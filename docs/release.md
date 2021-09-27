@@ -1,5 +1,35 @@
 # Release
 
+## 3.7.11
+
+- feature
+  - bamboo-pipeline bump to 3.7.3
+
+## 3.7.10
+
+- bugfix
+  - 修复第三方插件任务重试无响应的问题
+  - 修复第三方插件无法保留对应插件版本与参数的问题
+  - 修复公共流程批量操作无法导入导出提示无权限的问题
+
+## 3.7.9
+
+- bugfix
+  - 修复 operate_node API 不修改参数重试 engine v2 失败节点时节点数据会被清空的问题
+  - api，周期任务 celery worker pool 替换为 threads 类型
+
+## 3.7.8
+
+- bugfix
+  - 修复 get_task_node_detail API 未传入 project_id 导致 500 的问题
+
+## 3.7.7
+
+- bugfix
+  - 修复 create_task API 公共流程鉴权时未使用项目资源的问题
+- feature
+  - 新增 HTTP 1.0 插件超时时间提高到 60s 的功能
+
 ## 3.7.6
 
 - bugfix
