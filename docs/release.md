@@ -1,5 +1,10 @@
 # Release
 
+## 3.7.13
+
+- bugfix:
+  - 修复第三方插件plugin_code取值不正确问题
+
 ## 3.7.12
 
 - bugfix
