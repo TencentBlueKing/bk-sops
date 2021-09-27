@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.db.models import Q
 
@@ -20,6 +21,8 @@ from iam.contrib.django.dispatcher import InvalidPageException
 from iam.resource.provider import ListResult, ResourceProvider
 
 from gcloud.core.models import Project
+
+attr_names = {"en": {"iam_resource_owner": "Resource Owner"}, "zh-cn": {"iam_resource_owner": "资源创建者"}}
 
 
 def clocked_task_path_value_hook(value):
@@ -54,16 +57,27 @@ class ClockedTaskResourceProvider(ResourceProvider):
 
     def list_attr(self, **options):
         """
-        clocked_task 不包含属性
+        clocked_task 包含 iam_resource_owner 属性
         """
-        return ListResult(results=[], count=0)
+        return ListResult(
+            results=[
+                {"id": "iam_resource_owner", "display_name": attr_names[options["language"]]["iam_resource_owner"]}
+            ],
+            count=1,
+        )
 
     def list_attr_value(self, filter, page, **options):
         """
-        clocked_task 不包含属性
+        clocked_task 包含 iam_resource_owner 属性
         """
+        if filter.attr == "iam_resource_owner":
+            user_model = get_user_model()
+            users = user_model.objects.all().values_list("username", flat=True)
+            results = [{"id": username, "display_name": username} for username in users]
+        else:
+            results = []
 
-        return ListResult(results=[], count=0)
+        return ListResult(results=results, count=len(results))
 
     def list_instance(self, filter, page, **options):
         """
