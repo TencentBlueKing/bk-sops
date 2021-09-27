@@ -18,6 +18,9 @@ from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from iam import Subject, Action
 from iam.shortcuts import allow_or_raise_auth_failed
 
+from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.common_template.models import CommonTemplate
+
 iam = get_iam_client()
 
 
@@ -71,7 +74,15 @@ class SchemeEditPermission(permissions.BasePermission):
         return True
 
     def has_object_permission(self, request, view, obj):
-        template_id = int(obj.unique_id.split("-")[0])
+        data = request.query_params or request.data
+        # 项目流程方案的权限控制
+        if "project_id" in data or data.get("template_type") != "common":
+            model_cls = TaskTemplate
+        # 公共流程方案的权限控制
+        else:
+            model_cls = CommonTemplate
+
+        template_id = model_cls.objects.filter(pipeline_template__id=obj.template_id).values_list("id", flat=True)[0]
         self.scheme_allow_or_raise_auth_failed(request, template_id)
         return True
 
