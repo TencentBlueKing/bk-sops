@@ -145,7 +145,7 @@ class GetNodeDataV2TestCase(TestCase):
         bamboo_api = MagicMock()
         get_children_states_return = MagicMock()
         get_children_states_return.result = True
-        get_children_states_return.data = {"loop": 1}
+        get_children_states_return.data = {"node_id": {"loop": 1}}
         get_execution_data_return = MagicMock()
         get_execution_data_return.result = True
         get_execution_data_return.data = {"inputs": "inputs", "outputs": {}}
@@ -201,7 +201,7 @@ class GetNodeDataV2TestCase(TestCase):
         bamboo_api = MagicMock()
         get_children_states_return = MagicMock()
         get_children_states_return.result = True
-        get_children_states_return.data = {"loop": 1}
+        get_children_states_return.data = {"node_id": {"loop": 1}}
         get_execution_data_return = MagicMock()
         get_execution_data_return.result = True
         get_execution_data_return.data = {"inputs": "inputs", "outputs": {}}
@@ -257,7 +257,7 @@ class GetNodeDataV2TestCase(TestCase):
         bamboo_api = MagicMock()
         get_children_states_return = MagicMock()
         get_children_states_return.result = True
-        get_children_states_return.data = {"loop": 1}
+        get_children_states_return.data = {"node_id": {"loop": 1}}
         get_execution_data_return = MagicMock()
         get_execution_data_return.result = False
         get_execution_data_return.exc = NotFoundError()
@@ -307,7 +307,7 @@ class GetNodeDataV2TestCase(TestCase):
         bamboo_api = MagicMock()
         get_children_states_return = MagicMock()
         get_children_states_return.result = True
-        get_children_states_return.data = {"loop": 2}
+        get_children_states_return.data = {"node_id": {"loop": 2}}
         get_node_histories_return = MagicMock()
         get_node_histories_return.result = True
         get_node_histories_return.data = [{"inputs": "inputs", "outputs": {}}]
