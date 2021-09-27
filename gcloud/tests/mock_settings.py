@@ -42,6 +42,7 @@ TASKINSTANCE_CALLBACK = "gcloud.taskflow3.models.TaskFlowInstance.callback"
 TASKINSTANCE_HAS_NODE = "gcloud.taskflow3.models.TaskFlowInstance.has_node"
 
 TASKFLOW_MODEL_TASK_COMMAND_DISPATCHER = "gcloud.taskflow3.models.TaskCommandDispatcher"
+TASKFLOW_MODEL_TASK_COMMAND_DISPATCHER_GET_STATUS = "gcloud.taskflow3.models.TaskCommandDispatcher.get_task_status"
 TASKFLOW_MODEL_TASK_TEMPLATE = "gcloud.taskflow3.models.TaskTemplate"
 TASKFLOW_MODEL_NODE_CMD_DISPATCHER = "gcloud.taskflow3.models.NodeCommandDispatcher"
 
@@ -126,7 +127,46 @@ PROJECT_RESOURCE_BATCH_REGISTER_INSTANCE = "gcloud.core.permissions.project_reso
 
 TASK_OPERATION_TIMES_CONFIG_GET = "gcloud.taskflow3.models.TaskOperationTimesConfig.objects.get"
 
+TASKFLOW_STATISTICS_UPDATE_OR_CREATE = "gcloud.analysis_statistics.models.TaskflowStatistics.objects.update_or_create"
+TASKFLOW_STATISTICS_CREATE = "gcloud.analysis_statistics.models.TaskflowStatistics.objects.create"
+TASKFLOW_STATISTICS_GET = "gcloud.analysis_statistics.models.TaskflowStatistics.objects.get"
+
+TEMPLATENODE_STATISTICS_FILTER = "gcloud.analysis_statistics.models.TemplateNodeStatistics.objects.filter"
+TEMPLATENODE_STATISTICS_BULK_CREATE = "gcloud.analysis_statistics.models.TemplateNodeStatistics.objects.bulk_create"
+
+TASKFLOWEXECUTEDNODE_STATISTICS_FILTER = (
+    "gcloud.analysis_statistics.models.TaskflowExecutedNodeStatistics.objects.filter"
+)
+
+TEMPLATE_STATISTICS_UPDATE_OR_CREATE = "gcloud.analysis_statistics.models.TemplateStatistics.objects.update_or_create"
+TEMPLATE_STATISTICS_FILTER = "gcloud.analysis_statistics.models.TemplateStatistics.objects.filter"
+TEMPLATE_STATISTICS_CREATE = "gcloud.analysis_statistics.models.TemplateStatistics.objects.create"
+
+TASKFLOW_STATISTICS_FILTER = "gcloud.analysis_statistics.models.TaskflowStatistics.objects.filter"
+TASKFLOW_STATISTICS_CREATE = "gcloud.analysis_statistics.models.TaskflowStatistics.objects.create"
+
+TEMPLATE_NODE_STATISTICS_FILTER = "gcloud.analysis_statistics.models.TemplateNodeStatistics.objects.filter"
+TEMPLATE_NODE_STATISTICS_CREATE = "gcloud.analysis_statistics.models.TemplateNodeStatistics.objects.create"
+
+TASKFLOW_EXECUTE_NODE_STATISTICS_FILTER = (
+    "gcloud.analysis_statistics.models.TaskflowExecutedNodeStatistics.objects.filter"
+)
+TASKFLOW_EXECUTE_NODE_STATISTICS_CREATE = (
+    "gcloud.analysis_statistics.models.TaskflowExecutedNodeStatistics.objects.create"
+)
+
+CALCULATE_ELAPSED_TIME = "pipeline.engine.utils.calculate_elapsed_time"
+COUNT_PIPELINE_TREE_NODES = "pipeline.contrib.statistics.utils.count_pipeline_tree_nodes"
+
+PIPELINE_INSTANCE_GET = "pipeline.models.PipelineInstance.objects.get"
+PIPELINE_TEMPLATE_GET = "pipeline.models.PipelineTemplate.objects.get"
 TEMPLATE_BASE_MODELS_TEMPLATE_RELATIONSHIP = "gcloud.template_base.models.TemplateRelationship"
 TEMPLATE_BASE_MODELS_TEMPLATE_CURRENT_VERSION = "gcloud.template_base.models.TemplateCurrentVersion"
 
-ENGINE_CONFIG_GET_VER = "gcloud.core.models.EngineConfig.objects.get_engine_ver"
+
+TEMPLATEINPIPELINE_FILTER = "pipeline.contrib.statistics.models.TemplateInPipeline.objects.filter"
+INSTANCEINPIPELINE_FILTER = "pipeline.contrib.statistics.models.InstanceInPipeline.objects.filter"
+COMPONENTINTEMPLATE_FILTER = "pipeline.contrib.statistics.models.ComponentInTemplate.objects.filter"
+COMPONENTEXECUTEDATA_FILTER = "pipeline.contrib.statistics.models.ComponentExecuteData.objects.filter"
+
+PIPELINE_TEMPLATE_POSTSAVE_HANDLER = "pipeline.signals.handlers.pipeline_template_pre_save_handler"

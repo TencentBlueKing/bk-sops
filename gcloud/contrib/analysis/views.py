@@ -16,13 +16,15 @@ from django.shortcuts import render
 from django.views.decorators.http import require_POST, require_GET
 
 from gcloud.contrib.analysis.decorators import standardize_params
-
 from gcloud.constants import AE
 from gcloud.constants import TASK_CATEGORY
 from gcloud.contrib.analysis.analyse_items import app_maker, task_flow_instance, task_template
-
+from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.core.models import Project
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.statistics import StatisticsViewInpterceptor
+from gcloud.err_code import REQUEST_PARAM_INVALID
 
 
 @require_GET
@@ -36,6 +38,27 @@ def get_task_category(request):
     for category in TASK_CATEGORY:
         groups.append({"value": category[0], "name": category[1]})
     return JsonResponse({"result": True, "data": groups})
+
+
+@require_GET
+def get_biz_useage(request, query):
+    """
+    @summary 获取正在使用业务数量、总业务数量
+    :param request:
+    :param query:模板/任务
+    :return:
+    """
+    total = Project.objects.all().count()
+    if query == "template":
+        count = TaskTemplate.objects.values("project__id").distinct().count()
+    elif query == "task":
+        count = TaskFlowInstance.objects.values("project__id").distinct().count()
+    else:
+        return JsonResponse(
+            {"result": False, "code": REQUEST_PARAM_INVALID.code, "message": REQUEST_PARAM_INVALID.description}
+        )
+    data = {"total": total, "count": count}
+    return JsonResponse({"result": True, "data": data})
 
 
 @iam_intercept(StatisticsViewInpterceptor())

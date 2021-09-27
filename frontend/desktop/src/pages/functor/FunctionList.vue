@@ -264,6 +264,13 @@
             value: ''
         },
         {
+            type: 'input',
+            key: 'claimant',
+            label: i18n.t('认领人'),
+            placeholder: i18n.t('请输入认领人'),
+            value: ''
+        },
+        {
             type: 'select',
             label: i18n.t('状态'),
             key: 'statusSync',
@@ -428,6 +435,7 @@
             this.loadFunctionTask()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             await this.getProjectList()
+            await this.getProjectSearchForm()
             this.firstLoading = false
         },
         beforeDestroy () {
@@ -452,12 +460,13 @@
             async loadFunctionTask () {
                 this.listLoading = true
                 try {
-                    const { selectedProject, executeTime, creator, statusSync, taskName } = this.requestData
+                    const { selectedProject, executeTime, creator, statusSync, taskName, claimant } = this.requestData
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         task__pipeline_instance__name__contains: taskName || undefined,
                         creator: creator || undefined,
+                        claimant: claimant || undefined,
                         task__project__id: selectedProject || undefined,
                         status: statusSync || undefined
                     }
@@ -590,15 +599,22 @@
             async getProjectList () {
                 this.business.loading = true
                 try {
-                    const businessData = await this.loadUserProjectList({ limit: 0 })
+                    const businessData = await this.loadUserProjectList({ limit: 0, is_disable: false })
                     this.business.list = businessData.objects
-                    const form = this.searchForm.find(item => item.key === 'selectedProject')
-                    form.list = this.business.list.map(m => ({ name: m.name, value: m.id }))
-                    form.loading = false
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.business.loading = false
+                }
+            },
+            async getProjectSearchForm () {
+                try {
+                    const businessData = await this.loadUserProjectList({ limit: 0 })
+                    const form = this.searchForm.find(item => item.key === 'selectedProject')
+                    form.list = businessData.objects.map(m => ({ name: m.name, value: m.id }))
+                    form.loading = false
+                } catch (error) {
+                    console.warn(error)
                 }
             },
             async getTemplateList () {
