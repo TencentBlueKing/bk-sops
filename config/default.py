@@ -68,6 +68,8 @@ INSTALLED_APPS += (
     "gcloud.contrib.admin",
     "gcloud.iam_auth",
     "gcloud.project_constants",
+    "gcloud.analysis_statistics",
+    "gcloud.analysis_statistics.data_migrate",
     "pipeline",
     "pipeline.component_framework",
     "pipeline.variable_framework",
