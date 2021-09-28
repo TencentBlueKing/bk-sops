@@ -1,0 +1,2 @@
+improvement:
+  - 周期任务策略字段显示适配新版django_celery_beat返回格式
