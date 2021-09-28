@@ -1,5 +1,10 @@
 # Release
 
+## 3.7.14
+
+- feature
+  - bk-monitor-report 升级到 1.0.4
+
 ## 3.7.13
 
 - bugfix:
