@@ -98,8 +98,7 @@ class Record(object):
     @property
     def result_response(self):
         if isinstance(self.operate_result, dict):
-            if "result" in self.operate_result.keys():
-                return self.operate_result
+            return self.operate_result
         if isinstance(self.operate_result, JsonResponse):
             return json.loads(self.operate_result.content)
         return {}
