@@ -43,6 +43,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         "skip",
         "callback",
         "skip_exg",
+        "skip_cpg",
         "pause",
         "resume",
         "pause_subproc",
@@ -101,6 +102,21 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
     def skip_exg_v2(self, operator: str, **kwargs) -> dict:
         return bamboo_engine_api.skip_exclusive_gateway(
             runtime=BambooDjangoRuntime(), node_id=self.node_id, flow_id=kwargs["flow_id"]
+        )
+
+    @ensure_return_is_dict
+    def skip_cpg_v1(self, operator: str, **kwargs) -> dict:
+        return task_service.skip_conditional_parallel_gateway(
+            gateway_id=self.node_id, flow_ids=kwargs["flow_ids"], converge_gateway_id=kwargs["converge_gateway_id"]
+        )
+
+    @ensure_return_is_dict
+    def skip_cpg_v2(self, operator: str, **kwargs) -> dict:
+        return bamboo_engine_api.skip_conditional_parallel_gateway(
+            runtime=BambooDjangoRuntime(),
+            node_id=self.node_id,
+            flow_ids=kwargs["flow_ids"],
+            converge_gateway_id=kwargs["converge_gateway_id"],
         )
 
     @ensure_return_is_dict

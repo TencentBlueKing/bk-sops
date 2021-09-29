@@ -31,6 +31,7 @@ class OperateType(Enum):
     retry = _("重试")
     skip = _("跳过")
     skip_exg = _("跳过失败网关")
+    skip_cpg = _("跳过并行条件网关")
     pause_subproc = _("暂停节点")
     resume_subproc = _("继续节点")
     forced_fail = _("强制失败")

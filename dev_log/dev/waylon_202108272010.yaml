@@ -1,0 +1,2 @@
+feature:
+  - 条件并行网关支持跳过（依赖bamboo-pipeline 3.8.0）
