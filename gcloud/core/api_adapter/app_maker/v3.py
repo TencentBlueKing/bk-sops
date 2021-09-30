@@ -111,8 +111,8 @@ def create_maker_app(
     """
 
     data = {
-        "app_code": settings.APP_CODE,
-        "app_secret": settings.SECRET_KEY,
+        "bk_app_code": settings.APP_CODE,
+        "bk_app_secret": settings.SECRET_KEY,
         "parent_app_code": settings.APP_CODE,
         "app_name": app_name,
         "app_url": app_url,
@@ -158,8 +158,8 @@ def edit_maker_app(
     """
 
     data = {
-        "app_code": settings.APP_CODE,
-        "app_secret": settings.SECRET_KEY,
+        "bk_app_code": settings.APP_CODE,
+        "bk_app_secret": settings.SECRET_KEY,
         "light_app_code": app_maker_code,
         "app_name": app_name,
     }
@@ -191,8 +191,8 @@ def del_maker_app(operator, app_maker_code):
     """
 
     params = {
-        "app_code": settings.APP_CODE,
-        "app_secret": settings.SECRET_KEY,
+        "bk_app_code": settings.APP_CODE,
+        "bk_app_secret": settings.SECRET_KEY,
         "light_app_code": app_maker_code,
     }
 
@@ -210,7 +210,12 @@ def modify_app_logo(operator, app_maker_code, logo):
     @return: {'result': True, 'message':u"APP LOGO 修改成功"}
     {'result': False, 'message':u"APP LOGO 修改失败"}
     """
-    data = {"light_app_code": app_maker_code, "logo": logo}
+    data = {
+        "bk_app_code": settings.APP_CODE,
+        "bk_app_secret": settings.SECRET_KEY,
+        "light_app_code": app_maker_code,
+        "logo": logo,
+    }
 
     resp = _request_paasv3_light_app_api(url=LIGHT_APP_API, method="patch", data=data)
 
@@ -220,8 +225,8 @@ def modify_app_logo(operator, app_maker_code, logo):
 def get_app_logo_url(app_code):
 
     params = {
-        "app_code": settings.APP_CODE,
-        "app_secret": settings.SECRET_KEY,
+        "bk_app_code": settings.APP_CODE,
+        "bk_app_secret": settings.SECRET_KEY,
         "light_app_code": app_code,
     }
 
