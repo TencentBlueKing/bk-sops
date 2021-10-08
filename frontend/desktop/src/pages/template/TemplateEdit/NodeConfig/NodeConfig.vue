@@ -103,6 +103,7 @@
                 <!-- 插件/子流程选择面板 -->
                 <selector-panel
                     v-if="isSelectorPanelShow"
+                    :project_id="project_id"
                     :template-labels="templateLabels"
                     :is-subflow="isSubflow"
                     :atom-type-list="atomTypeList"
