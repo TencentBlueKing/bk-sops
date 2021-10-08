@@ -100,3 +100,21 @@ def string_to_boolean(value):
         value = bool(value)
 
     return value
+
+
+def django_celery_beat_cron_time_format_fit(cron_str):
+    """
+    django_celery_beat 2.1.0 cron格式变动兼容
+    旧格式：10 0 * * * (m/h/d/dM/MY) Asia/Shanghai 或 */5 * * * * (m/h/d/dM/MY)
+    新格式：0 7 1,4,6,8,10,12 10 * (m/h/dM/MY/d) Asia/Shanghai
+    返回格式遵循旧格式
+    """
+    if not cron_str:
+        return cron_str
+    unit_order = ["m", "h", "d", "dM", "MY"]
+    cron_list = cron_str.split(" ")
+    # 下标0-4为对应时间值，5为时间单位，6为时区(可能不包含)
+    cron_times, time_formats, time_zone = cron_list[:5], cron_list[5][1:-1].split("/"), cron_list[6:]
+    cron_config = {time_format: cron_time for time_format, cron_time in zip(time_formats, cron_times)}
+    result_cron_list = [cron_config[unit] for unit in unit_order] + ["({})".format("/".join(unit_order))] + time_zone
+    return " ".join(result_cron_list).strip()

@@ -1,5 +1,24 @@
 # Release
 
+## 3.7.14
+
+- feature
+  - bk-monitor-report 升级到 1.0.4
+
+## 3.7.13
+
+- bugfix:
+  - 修复第三方插件plugin_code取值不正确问题
+
+## 3.7.12
+
+- bugfix
+  - 修复 operate_task 能够操作未启动的任务的问题
+  - 修复 V1 版本引擎获取非当前迭代节点历史记录时间不正确的问题
+  - 修复流程执行方案对单个方案对象权限校验获取流程ID的问题
+- feature
+  - 新增 engien version fix API
+
 ## 3.7.11
 
 - feature
