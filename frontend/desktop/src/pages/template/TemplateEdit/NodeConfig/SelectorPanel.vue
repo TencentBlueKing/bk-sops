@@ -199,6 +199,7 @@
         },
         mixins: [permission],
         props: {
+            project_id: [String, Number],
             sublistLoading: Boolean,
             templateLabels: Array, // 模板标签
             atomTypeList: Object,
@@ -371,6 +372,11 @@
                         const reg = new RegExp(this.searchStr, 'i')
                         const data = {
                             pipeline_template__name__icontains: this.searchStr || undefined
+                        }
+                        if (this.common) {
+                            data.common = 1
+                        } else {
+                            data.project__id = this.project_id
                         }
                         const resp = await this.loadTemplateList(data)
                         this.handleSubflowList(resp).forEach(tpl => {
