@@ -10,17 +10,17 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.dispatch import receiver
-from django.db.models.signals import post_save
 
-from gcloud.clocked_task.models import ClockedTask
-from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth.resource_creator_action.utils import register_grant_resource_creator_actions
+from django.views.decorators.http import require_GET
+from django.http.response import JsonResponse
+
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.admin import AdminEditViewInterceptor
 
 
-@receiver(post_save, sender=ClockedTask)
-def clocked_task_resource_creator_action_handler(sender, instance, created, **kwargs):
-    if created:
-        # clocked_task 的 task_name 字段即为计划任务的name
-        setattr(instance, "name", instance.task_name)
-        register_grant_resource_creator_actions(instance, IAMMeta.CLOCKED_TASK_RESOURCE, with_ancestors=True)
+@require_GET
+@iam_intercept(AdminEditViewInterceptor())
+def fix_engine_version_zero_task(request):
+    rows = TaskFlowInstance.objects.filter(engine_ver=0).update(engine_ver=1)
+    return JsonResponse({"result": True, "message": "fix {} tasks".format(rows)})

@@ -46,4 +46,5 @@ urlpatterns = [
     url(r"^migration/migrate_app_maker/$", migration_api.migrate_app_maker),
     url(r"^migration/migrate_staff_group/$", migration_api.migrate_staff_group),
     url(r"^migration/migrate_template_category/$", migration_api.migrate_template_category),
+    url(r"^migration/fix_engine_version_zero_task/$", migration_api.fix_engine_version_zero_task),
 ]
