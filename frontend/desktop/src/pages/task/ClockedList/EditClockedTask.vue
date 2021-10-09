@@ -184,7 +184,7 @@
                             plan_start_time: this.sameTimeStamp ? undefined : time,
                             task_parameters: {
                                 constants: taskParamEdit ? taskParamEdit.renderData : {},
-                                exclude_atsk_nodes_id: taskParams.exclude_task_nodes_id || []
+                                exclude_task_nodes_id: taskParams.exclude_task_nodes_id || []
                             }
                         }
                         await this.updateClocked(params)
