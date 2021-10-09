@@ -443,7 +443,9 @@
                         /* eslint-disable-next-line */
                         eval(renderFrom)
                         const config = $.atoms[plugin_code]
-                        this.renderConfig = config
+                        const { source_tag } = this.theEditingData
+                        const tag = source_tag.split('.')[1]
+                        this.renderConfig = tools.deepClone([config.find(item => item.tag_code === tag)])
                         return
                     }
                     await this.loadAtomConfig({

@@ -165,7 +165,7 @@
                                                 :value="inputsParamValue"
                                                 :is-subflow="isSubflow"
                                                 :constants="localConstants"
-                                                :third-party-code="isThirdParty ? basicInfo.nodeName : ''"
+                                                :third-party-code="isThirdParty ? basicInfo.plugin : ''"
                                                 @hookChange="onHookChange"
                                                 @update="updateInputsValue">
                                             </input-params>
