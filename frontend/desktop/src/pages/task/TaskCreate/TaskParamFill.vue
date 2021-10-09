@@ -460,9 +460,7 @@
 
                     this.isSubmit = true
                     let flowType
-                    if (
-                        (this.$route.name === 'functionTemplateStep'
-                        && this.entrance === 'function')
+                    if ((this.$route.name === 'functionTemplateStep' && this.entrance === 'function')
                         || this.isSelectFunctionalType) {
                         // 职能化任务
                         flowType = 'common_func'
