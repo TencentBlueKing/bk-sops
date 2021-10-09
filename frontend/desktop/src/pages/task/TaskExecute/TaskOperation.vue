@@ -924,11 +924,7 @@
                     case 'resume':
                         return this.state === 'SUSPENDED'
                     case 'revoke':
-                        return this.isTopTask
-                            && (this.state === 'RUNNING'
-                            || this.state === 'SUSPENDED'
-                            || this.state === 'NODE_SUSPENDED'
-                            || this.state === 'FAILED')
+                        return this.isTopTask && ['RUNNING', 'SUSPENDED', 'NODE_SUSPENDED', 'FAILED'].includes(this.state)
                     default:
                         break
                 }
