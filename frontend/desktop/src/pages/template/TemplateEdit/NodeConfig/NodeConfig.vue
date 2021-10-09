@@ -108,6 +108,7 @@
                     :atom-type-list="atomTypeList"
                     :basic-info="basicInfo"
                     :common="common"
+                    :is-third-party="isThirdParty"
                     :sublist-loading="subAtomListLoading"
                     @updatePluginList="updatePluginList"
                     @back="isSelectorPanelShow = false"
@@ -845,7 +846,7 @@
                     plugin: code,
                     version: list[list.length - 1].version,
                     name: this.isThirdParty ? name : `${group_name}-${name}`,
-                    nodeName: name,
+                    nodeName: this.isThirdParty ? code : name,
                     stageName: '',
                     nodeLabel: [],
                     desc: desc,

@@ -204,11 +204,12 @@
             atomTypeList: Object,
             isSubflow: Boolean,
             basicInfo: Object,
+            isThirdParty: Boolean,
             common: [String, Number]
         },
         data () {
             const listData = this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
-            const curPluginTab = this.basicInfo.plugin === 'remote_plugin' ? 'third_praty_plugin' : 'build_in_plugin'
+            const curPluginTab = this.isThirdParty ? 'third_praty_plugin' : 'build_in_plugin'
             return {
                 curPluginTab,
                 listData,
