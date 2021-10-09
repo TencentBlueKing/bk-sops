@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading , zIndex: 100 }">
+    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading , zIndex: 100 }">
         <div v-if="!templateDataLoading" class="pipeline-canvas-wrapper">
             <TemplateHeader
                 ref="templateHeader"
@@ -1094,7 +1094,7 @@
                     if (nodeConfig.component
                         && nodeConfig.component.code === 'remote_plugin'
                         && !this.thirdPartyList[id]) {
-                        const resp = await this.loadPluginServiceMeta({ plugin_code: nodeConfig.name })
+                        const resp = await this.loadPluginServiceMeta({ plugin_code: nodeConfig.component.data.plugin_code.value })
                         const { code, versions, description } = resp.data
                         const versionList = versions.map(version => {
                             return { version }
@@ -1103,7 +1103,7 @@
                         let version = data && data.plugin_version
                         version = version && version.value
                         const group = {
-                            nodeName: code,
+                            code,
                             list: versionList,
                             version,
                             desc: description
@@ -1186,6 +1186,16 @@
                                     if (!resp.result) return
                                     const versionList = resp.data.versions
                                     location.version = versionList[versionList.length - 1]
+                                    location.data = {
+                                        plugin_code: {
+                                            hook: false,
+                                            value: location.name
+                                        },
+                                        plugin_version: {
+                                            hook: false,
+                                            value: location.version
+                                        }
+                                    }
                                 } else {
                                     const atoms = this.atomList.find(item => item.code === location.atomId).list
                                     // @todo 需要确认插件最新版本的取值逻辑，暂时取最后一个

@@ -190,6 +190,9 @@
                         limit: this.limit,
                         offset: this.currentPage * this.limit
                     }
+                    if (this.common) {
+                        data.common = 1
+                    }
                     const resp = await this.loadTemplateList(data)
                     this.handleSubflowList(resp)
                 } catch (e) {

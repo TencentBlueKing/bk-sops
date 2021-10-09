@@ -102,7 +102,7 @@
             },
             async getNodeConfig (type, version) {
                 if (atomFilter.isConfigExists(type, version, this.atomFormConfig)) {
-                    return this.atomFormConfig[type][version]
+                    this.renderConfig = this.atomFormConfig[type][version]
                 } else {
                     try {
                         // 第三方插件节点拼接输出参数
