@@ -1,5 +1,12 @@
 # Release
 
+## 3.7.15
+
+- bugfix
+  - 第三方插件第二次重选没有定位到具体插件问题修复
+- improvement
+  - 周期任务策略字段显示适配新版django_celery_beat返回格式
+
 ## 3.7.14
 
 - feature
