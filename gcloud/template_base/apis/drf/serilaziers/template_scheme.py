@@ -18,6 +18,7 @@ from gcloud.utils.drf.serializer import ReadWriteSerializerMethodField
 
 
 class SchemesSerizlializer(serializers.Serializer):
+    id = serializers.IntegerField(help_text="执行方案ID", required=False)
     data = serializers.CharField(help_text="执行方案数据")
     name = serializers.CharField(max_length=64, help_text="执行方案名称")
 

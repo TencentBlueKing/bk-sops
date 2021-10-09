@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
+from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -92,24 +93,41 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
         current_schemes = validated_data.get("schemes")
         template_id = validated_data.get("template_id")
 
-        # 筛选待处理方案
+        create_schemes = []
+        update_schemes = []
+        update_scheme_ids = []
+
         pipeline_template_id = self.get_pipeline_template_id(**validated_data)
-        need_create_schemes = []
+
+        # 获取现有方案id列表
+        existing_scheme_qs = TemplateScheme.objects.filter(template__id=pipeline_template_id)
+        scheme_mappings = dict([(scheme.id, scheme) for scheme in existing_scheme_qs])
+
         for scheme in current_schemes:
             if "id" in scheme:
-                scheme.pop("id")
-            scheme.update(
-                {"unique_id": "{}-{}".format(template_id, scheme["name"]), "template_id": pipeline_template_id}
-            )
-            need_create_schemes.append(TemplateScheme(**scheme))
+                scheme_id = scheme.pop("id")
+                update_scheme_ids.append(scheme_id)
+                scheme_obj = scheme_mappings[scheme_id]
+                scheme_obj.unique_id = f'{template_id}-{scheme["name"]}'
+                scheme_obj.name = scheme["name"]
+                scheme_obj.data = scheme["data"]
+                update_schemes.append(scheme_obj)
+            else:
+                scheme.update(
+                    {"unique_id": "{}-{}".format(template_id, scheme["name"]), "template_id": pipeline_template_id}
+                )
+                create_schemes.append(TemplateScheme(**scheme))
 
-        # 批量删除scheme
-        TemplateScheme.objects.filter(template__id=pipeline_template_id).delete()
+        remove_scheme_ids = list(set(scheme_mappings.keys()) - set(update_scheme_ids))
 
-        # 批量创建scheme
         try:
-            if need_create_schemes:
-                TemplateScheme.objects.bulk_create(need_create_schemes)
+            with transaction.atomic():
+                # 批量删除scheme
+                TemplateScheme.objects.filter(id__in=remove_scheme_ids).delete()
+                # 批量更新scheme
+                TemplateScheme.objects.bulk_update(update_schemes, ["unique_id", "name", "edit_time", "data"])
+                # 批量创建scheme
+                TemplateScheme.objects.bulk_create(create_schemes)
         except Exception as e:
             message = "create template({}) scheme failed: {}".format(template_id, str(e))
             logger.error(message)
