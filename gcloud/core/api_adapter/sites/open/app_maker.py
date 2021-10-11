@@ -18,8 +18,9 @@ from gcloud.conf import settings
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
-def create_maker_app(creator, app_name, app_url, developer='', app_tag='', introduction='', add_user='',
-                     company_code=''):
+def create_maker_app(
+    creator, app_name, app_url, developer="", app_tag="", introduction="", add_user="", company_code=""
+):
     """
     @summary: 创建 maker app
     @param creator：创建者英文id
@@ -36,20 +37,29 @@ def create_maker_app(creator, app_name, app_url, developer='', app_tag='', intro
     """
     client = get_client_by_user(creator)
     kwargs = {
-        'creator': creator,
-        'bk_app_code': settings.APP_CODE,
-        'bk_light_app_name': app_name,
-        'app_url': app_url,
-        'developer': developer,
-        'app_tag': app_tag,
-        'introduction': introduction
+        "creator": creator,
+        "bk_app_code": settings.APP_CODE,
+        "bk_light_app_name": app_name,
+        "app_url": app_url,
+        "developer": developer,
+        "app_tag": app_tag,
+        "introduction": introduction,
     }
     result = client.bk_paas.create_app(kwargs)
     return result
 
 
-def edit_maker_app(operator, app_maker_code, app_name='', app_url='', developer='', app_tag='', introduction='',
-                   add_user='', company_code=''):
+def edit_maker_app(
+    operator,
+    app_maker_code,
+    app_name="",
+    app_url="",
+    developer="",
+    app_tag="",
+    introduction="",
+    add_user="",
+    company_code="",
+):
     """
     @summary: 修改 maker app
     @param operator：操作者英文id
@@ -67,13 +77,13 @@ def edit_maker_app(operator, app_maker_code, app_name='', app_url='', developer=
     """
     client = get_client_by_user(operator)
     kwargs = {
-        'operator': operator,
-        'bk_light_app_code': app_maker_code,
-        'bk_light_app_name': app_name,
-        'app_url': app_url,
-        'developer': developer,
-        'app_tag': app_tag,
-        'introduction': introduction
+        "operator": operator,
+        "bk_light_app_code": app_maker_code,
+        "bk_light_app_name": app_name,
+        "app_url": app_url,
+        "developer": developer,
+        "app_tag": app_tag,
+        "introduction": introduction,
     }
     result = client.bk_paas.edit_app(kwargs)
     return result
@@ -89,8 +99,8 @@ def del_maker_app(operator, app_maker_code):
     """
     client = get_client_by_user(operator)
     kwargs = {
-        'operator': operator,
-        'bk_light_app_code': app_maker_code,
+        "operator": operator,
+        "bk_light_app_code": app_maker_code,
     }
     result = client.bk_paas.del_app(kwargs)
     return result
@@ -107,9 +117,9 @@ def modify_app_logo(operator, app_maker_code, logo):
     """
     client = get_client_by_user(operator)
     kwargs = {
-        'operator': operator,
-        'bk_light_app_code': app_maker_code,
-        'logo': logo,
+        "operator": operator,
+        "bk_light_app_code": app_maker_code,
+        "logo": logo.decode("ascii"),
     }
     result = client.bk_paas.modify_app_logo(kwargs)
     return result
@@ -117,7 +127,4 @@ def modify_app_logo(operator, app_maker_code, logo):
 
 def get_app_logo_url(app_code):
 
-    return '%s/media/applogo/%s.png?v=%s' % (
-        settings.BK_PAAS_HOST,
-        app_code,
-        time.time())
+    return "%s/media/applogo/%s.png?v=%s" % (settings.BK_PAAS_HOST, app_code, time.time())

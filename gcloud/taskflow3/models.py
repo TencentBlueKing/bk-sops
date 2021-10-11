@@ -331,15 +331,19 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
 
     def group_by_category(self, taskflow, filters, page, limit):
         """
-        根据分类对任务进行聚合
-        :param taskflow: 上层传入的初始筛选 queryset，此处不使用
-        :type taskflow: [type]
-        :param filters: 过滤参数
-        :type filters: [type]
-        :param page: 数据页
-        :type page: [type]
-        :param limit: 返回数据条数
-        :type limit: [type]
+                根据分类对任务进行聚合
+        <<<<<<< HEAD
+        =======
+
+        >>>>>>> V3.6.X
+                :param taskflow: 上层传入的初始筛选 queryset，此处不使用
+                :type taskflow: [type]
+                :param filters: 过滤参数
+                :type filters: [type]
+                :param page: 数据页
+                :type page: [type]
+                :param limit: 返回数据条数
+                :type limit: [type]
         """
 
         task_instance_id_list = taskflow.values_list("id", flat=True)
@@ -1063,7 +1067,7 @@ class TaskFlowInstance(models.Model):
         )
 
     def get_node_detail(
-        self, node_id, username, component_code=None, subprocess_stack=None, loop=None, include_data=True
+        self, node_id, username, component_code=None, subprocess_stack=None, loop=None, include_data=True, **kwargs
     ):
         if not self.has_node(node_id):
             message = "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
@@ -1081,6 +1085,7 @@ class TaskFlowInstance(models.Model):
                 loop=loop,
                 pipeline_instance=self.pipeline_instance,
                 subprocess_stack=subprocess_stack,
+                project_id=kwargs["project_id"],
             )
             if not node_data_result["result"]:
                 return node_data_result

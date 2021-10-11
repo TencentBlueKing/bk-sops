@@ -65,6 +65,12 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         "revoke",
     }
 
+    OPERATION_TYPE_COMMANDS = {
+        "pause",
+        "resume",
+        "revoke",
+    }
+
     def __init__(
         self, engine_ver: int, taskflow_id: int, pipeline_instance: PipelineInstance, project_id: int, queue: str = ""
     ):
@@ -80,6 +86,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         if command not in self.TASK_COMMANDS:
             return {"result": False, "message": "task command is invalid", "code": err_code.INVALID_OPERATION.code}
+
+        if command in self.OPERATION_TYPE_COMMANDS and not self.pipeline_instance.is_started:
+            return {"result": False, "message": "task not started", "code": err_code.INVALID_OPERATION.code}
 
         return getattr(self, "{}_v{}".format(command, self.engine_ver))(operator)
 
@@ -168,9 +177,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         except Exception as e:
             logger.exception("run pipeline failed")
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
-                start_time=None,
-                is_started=False,
-                executor="",
+                start_time=None, is_started=False, executor="",
             )
             return {
                 "result": False,
@@ -180,9 +187,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         if not result.result:
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
-                start_time=None,
-                is_started=False,
-                executor="",
+                start_time=None, is_started=False, executor="",
             )
             logger.error("run_pipeline fail: {}, exception: {}".format(result.message, result.exc_trace))
         else:
@@ -313,6 +318,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                     "message": "",
                     "code": err_code.SUCCESS.code,
                 }
+            except pipeline_exceptions.InvalidOperationException as e:
+                logger.error(f"node relationship does not exist: {e}")
+                task_status = self.CREATED_STATUS
             except Exception:
                 logger.exception("task.get_status fail")
                 return {

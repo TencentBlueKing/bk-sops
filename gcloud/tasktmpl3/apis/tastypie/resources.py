@@ -21,6 +21,7 @@ from tastypie.authorization import Authorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, InvalidFilterError
 
+from gcloud.iam_auth.utils import check_project_or_admin_view_action_for_user
 from gcloud.label.models import TemplateLabelRelation, Label
 from pipeline.models import TemplateScheme
 
@@ -49,13 +50,7 @@ iam = get_iam_client()
 class ProjectBasedTaskTemplateIAMAuthorization(CompleteListIAMAuthorization):
     def read_list(self, object_list, bundle):
         project_id = bundle.request.GET.get("project__id")
-        allow_or_raise_immediate_response(
-            iam=iam,
-            system=IAMMeta.SYSTEM_ID,
-            subject=Subject("user", bundle.request.user.username),
-            action=Action(IAMMeta.PROJECT_VIEW_ACTION),
-            resources=res_factory.resources_for_project(project_id),
-        )
+        check_project_or_admin_view_action_for_user(project_id, bundle.request.user.username)
         return object_list
 
 
@@ -113,6 +108,7 @@ class TaskTemplateResource(GCloudModelResource):
                 IAMMeta.FLOW_CREATE_TASK_ACTION,
                 IAMMeta.FLOW_CREATE_MINI_APP_ACTION,
                 IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION,
+                IAMMeta.FLOW_CREATE_CLOCKED_TASK_ACTION,
             ],
         )
 

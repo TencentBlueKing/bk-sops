@@ -39,7 +39,7 @@ ujson==4.1.0
 # monitor
 django-prometheus==2.1.0
 celery-prometheus-exporter==1.7.0
-bk-monitor-report==1.0.3
+bk-monitor-report==1.0.4
 
 # version log
 mistune==0.8.4
