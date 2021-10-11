@@ -112,6 +112,7 @@
         </bk-sideslider>
         <gatewaySelectDialog
             :is-gateway-select-dialog-show="isGatewaySelectDialogShow"
+            :is-cond-parallel-gw="isCondParallelGw"
             :gateway-branches="gatewayBranches"
             @onConfirm="onConfirmGatewaySelect"
             @onCancel="onCancelGatewaySelect">
@@ -296,6 +297,7 @@
                 nodeDetailConfig: {},
                 nodeSwitching: false,
                 isGatewaySelectDialogShow: false,
+                isCondParallelGw: false,
                 gatewayBranches: [],
                 canvasMountedQueues: [], // canvas pending queues
                 pending: {
@@ -434,6 +436,7 @@
                 'instanceNodeSkip',
                 'instanceBranchSkip',
                 'skipExclusiveGateway',
+                'skipCondParallelGateWay',
                 'pauseNodeResume',
                 'getNodeActInfo',
                 'forceFail'
@@ -752,7 +755,12 @@
             async selectGatewayBranch (data) {
                 this.pending.selectGateway = true
                 try {
-                    const res = await this.skipExclusiveGateway(data)
+                    let res
+                    if (this.isCondParallelGw) {
+                        res = await this.skipCondParallelGateWay(data)
+                    } else {
+                        res = await this.skipExclusiveGateway(data)
+                    }
                     if (res.result) {
                         this.$bkMessage({
                             message: i18n.t('跳过成功'),
@@ -899,9 +907,11 @@
                     branches.push({
                         id: item,
                         node_id: id,
-                        name: nodeGateway.conditions[item].name || nodeGateway.conditions[item].evaluate
+                        name: nodeGateway.conditions[item].name || nodeGateway.conditions[item].evaluate,
+                        converge_gateway_id: nodeGateway.converge_gateway_id || undefined
                     })
                 }
+                this.isCondParallelGw = nodeGateway.type === 'ConditionalParallelGateway'
                 this.gatewayBranches = branches
                 this.isGatewaySelectDialogShow = true
             },
@@ -935,11 +945,7 @@
                     case 'resume':
                         return this.state === 'SUSPENDED'
                     case 'revoke':
-                        return this.isTopTask
-                            && (this.state === 'RUNNING'
-                            || this.state === 'SUSPENDED'
-                            || this.state === 'NODE_SUSPENDED'
-                            || this.state === 'FAILED')
+                        return this.isTopTask && ['RUNNING', 'SUSPENDED', 'NODE_SUSPENDED', 'FAILED'].includes(this.state)
                     default:
                         break
                 }
@@ -1307,9 +1313,17 @@
             },
             onConfirmGatewaySelect (selected) {
                 const data = {
-                    flow_id: selected.id,
-                    node_id: selected.node_id,
-                    instance_id: this.instance_id
+                    node_id: selected[0].node_id,
+                    instance_id: this.instance_id,
+                    converge_gateway_id: this.isCondParallelGw ? selected[0].converge_gateway_id : undefined
+                }
+                if (this.isCondParallelGw) {
+                    data.flow_ids = selected.reduce((arr, cur) => {
+                        arr.push(cur.id)
+                        return arr
+                    }, [])
+                } else {
+                    data.flow_id = selected[0].id
                 }
                 this.isGatewaySelectDialogShow = false
                 this.selectGatewayBranch(data)

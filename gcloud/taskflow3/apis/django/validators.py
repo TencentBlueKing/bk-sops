@@ -128,6 +128,7 @@ class NodeActionV2Validator(ObjectJsonBodyValidator):
         "skip",
         "callback",
         "skip_exg",
+        "skip_cpg",
         "pause",
         "resume",
         "pause_subproc",
