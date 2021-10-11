@@ -39,9 +39,12 @@
         <div v-if="node.hasUpdated" class="updated-dot">
             <div class="ripple"></div>
         </div>
-        <div v-if="node.status === 'SUSPENDED' || node.status === 'RUNNING'" class="task-status-icon subflow-status">
-            <i v-if="node.status === 'SUSPENDED'" class="common-icon-double-vertical-line"></i>
-            <i v-if="node.status === 'RUNNING'" class="common-icon-loading"></i>
+        <!-- 节点右上角执行相关的icon区域 -->
+        <div class="node-execute-icon">
+            <div v-if="node.status === 'SUSPENDED' || node.status === 'RUNNING'" class="task-status-icon subflow-status">
+                <i v-if="node.status === 'SUSPENDED'" class="common-icon-double-vertical-line"></i>
+                <i v-if="node.status === 'RUNNING'" class="common-icon-loading"></i>
+            </div>
         </div>
         <!-- tooltip提示 -->
         <div class="state-icon">
