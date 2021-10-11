@@ -847,7 +847,7 @@
                     plugin: code,
                     version: list[list.length - 1].version,
                     name: this.isThirdParty ? name : `${group_name}-${name}`,
-                    nodeName: this.isThirdParty ? code : name,
+                    nodeName: name,
                     stageName: '',
                     nodeLabel: [],
                     desc: desc,
