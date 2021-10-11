@@ -249,7 +249,7 @@
                 appDescRule: {
                     max: STRING_LENGTH.APP_DESCRIPTION_MAX_LENGTH
                 },
-                taskCategories: TASK_CATEGORIES
+                taskCategories: []
             }
         },
         computed: {
@@ -307,6 +307,7 @@
             }
         },
         created () {
+            this.taskCategories = TASK_CATEGORIES.filter(item => item.id !== 'Default')
             this.getTemplateList()
         },
         methods: {

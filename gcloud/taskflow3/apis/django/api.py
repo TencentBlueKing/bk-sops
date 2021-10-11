@@ -67,6 +67,7 @@ from gcloud.iam_auth.view_interceptors.taskflow import (
     TaskModifyInputsInterceptor,
     TaskFuncClaimInterceptor,
     GetNodeLogInterceptor,
+    StatusViewInterceptor,
 )
 from gcloud.openapi.schema import AnnotationAutoSchema
 
@@ -88,6 +89,7 @@ def context(request):
 
 @require_GET
 @request_validate(StatusValidator)
+@iam_intercept(StatusViewInterceptor())
 def status(request, project_id):
     instance_id = request.GET.get("instance_id")
     subprocess_id = request.GET.get("subprocess_id")
@@ -184,7 +186,9 @@ def detail(request, project_id):
     subprocess_stack = json.loads(request.query_params.get("subprocess_stack", "[]"))
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
-    ctx = task.get_node_detail(node_id, request.user.username, component_code, subprocess_stack, loop, include_data)
+    ctx = task.get_node_detail(
+        node_id, request.user.username, component_code, subprocess_stack, loop, include_data, project_id=project_id
+    )
 
     return JsonResponse(ctx)
 

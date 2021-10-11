@@ -97,3 +97,43 @@ def refresh_template_notify_type(request):
             replace_results.append(_refresh_template_notify_type(template, notify_trans_map))
 
     return JsonResponse({"result": True, "data": replace_results})
+
+
+@iam_intercept(AdminEditViewInterceptor())
+def make_template_notify_type_loadable(request):
+    task_templates = TaskTemplate.objects.filter(is_deleted=False)
+    common_templates = CommonTemplate.objects.filter(is_deleted=False)
+    modified_project_templates = []
+    modified_common_templates = []
+    with transaction.atomic():
+        for template in task_templates:
+            tid = _modify_notify_type_loadable(template)
+            if tid:
+                modified_project_templates.append(tid)
+
+        for template in common_templates:
+            tid = _modify_notify_type_loadable(template)
+            if tid:
+                modified_common_templates.append(tid)
+
+    return JsonResponse(
+        {
+            "result": True,
+            "data": {
+                "modified_project_templates": modified_project_templates,
+                "modified_common_templates": modified_common_templates,
+            },
+        }
+    )
+
+
+def _modify_notify_type_loadable(template):
+    try:
+        json.loads(template.notify_type)
+    except ValueError:
+        template.notify_type = template.notify_type.replace("'", '"')
+        template.save()
+        return template.id
+    except Exception:
+        return f"{template.id}:{traceback.format_exc()}"
+    return None

@@ -177,12 +177,13 @@
                         offset: 0,
                         pipeline_instance__is_started: true,
                         creator_or_executor: this.username,
+                        user_type: 'user',
                         create_method: this.currentMethod === 'all' ? undefined : this.currentMethod
                     }
                     const res = await this.loadTaskList(data)
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', res.objects)
-                    
+
                     this.dynamicData = res.objects
                     this.dynamicData.forEach(m => {
                         const item = this.createMethods.find(method => method.value === m.create_method)
@@ -190,9 +191,10 @@
                             m.create_method = item.name
                         }
                     })
-                    this.isTableLoading = false
                 } catch (e) {
                     console.log(e)
+                } finally {
+                    this.isTableLoading = false
                 }
             },
             async getCreateMethods () {

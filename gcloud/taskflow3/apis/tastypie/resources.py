@@ -25,6 +25,7 @@ from iam import Subject, Action, Request
 from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam.contrib.tastypie.authorization import CustomCreateCompleteListIAMAuthorization
 
+from gcloud.core.api_adapter import user_role
 from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineInstance
 from pipeline_web.parser.validator import validate_web_pipeline_tree
@@ -43,7 +44,11 @@ from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers import TaskResourceHelper
 from gcloud.iam_auth.authorization_helpers import TaskIAMAuthorizationHelper
-from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user, get_common_flow_allowed_actions_for_user
+from gcloud.iam_auth.utils import (
+    get_flow_allowed_actions_for_user,
+    get_common_flow_allowed_actions_for_user,
+    check_project_or_admin_view_action_for_user,
+)
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.contrib.operate_record.constants import RecordType, OperateType
 
@@ -53,15 +58,24 @@ iam = get_iam_client()
 
 class ProjectBasedTaskFlowIAMAuthorization(CustomCreateCompleteListIAMAuthorization):
     def read_list(self, object_list, bundle):
+        # 对于"我的动态"和"审计页面"请求进行特殊处理，不需要提供project_id，直接进行用户校验
+        user_type = bundle.request.GET.get("user_type")
+        if user_type:
+            func = getattr(self, f"query_{user_type}_list", None)
+            return object_list if func and func(bundle) else []
         project_id = bundle.request.GET.get("project__id")
-        allow_or_raise_immediate_response(
-            iam=iam,
-            system=IAMMeta.SYSTEM_ID,
-            subject=Subject("user", bundle.request.user.username),
-            action=Action(IAMMeta.PROJECT_VIEW_ACTION),
-            resources=res_factory.resources_for_project(project_id),
-        )
+        check_project_or_admin_view_action_for_user(project_id, bundle.request.user.username)
         return object_list
+
+    @staticmethod
+    def query_user_list(bundle):
+        user_in_query = bundle.request.GET.get("creator_or_executor")
+        return user_in_query == bundle.request.user.username
+
+    @staticmethod
+    def query_auditor_list(bundle):
+        user = bundle.request.user.username
+        return user_role.is_user_role(user, IAMMeta.AUDIT_VIEW_ACTION)
 
 
 class PipelineInstanceResource(GCloudModelResource):

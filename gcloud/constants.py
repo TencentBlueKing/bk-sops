@@ -69,6 +69,7 @@ TASK_CREATE_METHOD = [
     ("api", _("API网关")),
     ("app_maker", _("轻应用")),
     ("periodic", _("周期任务")),
+    ("clocked", _("计划任务")),
     ("mobile", _("移动端")),
 ]
 

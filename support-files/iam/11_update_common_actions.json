@@ -1,0 +1,160 @@
+{
+  "system_id": "bk_sops",
+  "operations": [
+    {
+      "operation": "upsert_common_actions",
+      "data": [
+        {
+          "name": "使用流程创建任务",
+          "name_en": "Create task by flow",
+          "actions": [
+            {
+              "id": "project_view"
+            },
+            {
+              "id": "flow_view"
+            },
+            {
+              "id": "flow_create_task"
+            }
+          ]
+        },
+        {
+          "name": "使用轻应用",
+          "name_en": "Use mini app",
+          "actions": [
+            {
+              "id": "project_view"
+            },
+            {
+              "id": "flow_view"
+            },
+            {
+              "id": "mini_app_view"
+            },
+            {
+              "id": "mini_app_create_task"
+            }
+          ]
+        },
+        {
+          "name": "使用公共流程创建任务",
+          "name_en": "Create task by common flow",
+          "actions": [
+            {
+              "id": "project_view"
+            },
+            {
+              "id": "common_flow_view"
+            },
+            {
+              "id": "common_flow_create_task"
+            }
+          ]
+        },
+        {
+          "name": "业务运维",
+          "name_en": "Operator",
+          "actions": [
+            {
+              "id": "project_view"
+            },
+            {
+              "id": "project_edit"
+            },
+            {
+              "id": "flow_create"
+            },
+            {
+              "id": "flow_view"
+            },
+            {
+              "id": "flow_edit"
+            },
+            {
+              "id": "flow_delete"
+            },
+            {
+              "id": "flow_create_task"
+            },
+            {
+              "id": "flow_create_mini_app"
+            },
+            {
+              "id": "flow_create_periodic_task"
+            },
+            {
+              "id": "flow_create_clocked_task"
+            },
+            {
+              "id": "task_view"
+            },
+            {
+              "id": "task_edit"
+            },
+            {
+              "id": "task_operate"
+            },
+            {
+              "id": "task_delete"
+            },
+            {
+              "id": "task_clone"
+            },
+            {
+              "id": "mini_app_edit"
+            },
+            {
+              "id": "mini_app_view"
+            },
+            {
+              "id": "mini_app_delete"
+            },
+            {
+              "id": "mini_app_create_task"
+            },
+            {
+              "id": "periodic_task_view"
+            },
+            {
+              "id": "periodic_task_edit"
+            },
+            {
+              "id": "periodic_task_delete"
+            },
+            {
+              "id": "clocked_task_view"
+            },
+            {
+              "id": "clocked_task_edit"
+            },
+            {
+              "id": "clocked_task_delete"
+            }
+          ]
+        },
+        {
+          "name": "管理员权限",
+          "name_en": "Admin Permission",
+          "actions": [
+            {
+              "id": "admin_view"
+            },
+            {
+              "id": "admin_edit"
+            },
+            {
+              "id": "audit_view"
+            },
+            {
+              "id": "statistics_view"
+            },
+            {
+              "id": "project_create"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

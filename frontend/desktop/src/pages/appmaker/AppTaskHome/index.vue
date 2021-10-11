@@ -252,9 +252,6 @@
                 'loadTaskList',
                 'cloneTask'
             ]),
-            ...mapActions('task/', [
-                'getInstanceStatus'
-            ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo'
             ]),

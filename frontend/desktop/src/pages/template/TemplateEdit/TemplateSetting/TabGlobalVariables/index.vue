@@ -492,14 +492,13 @@
     }
     .variable-list {
         width: 100%;
-        min-height: 300px;
         max-height: calc(100vh - 214px);
         border-top: none;
         overflow-y: auto;
         @include scrollbar;
     }
     .empty-variable-tips {
-        margin-top: 120px;
+        margin: 120px 0;
         /deep/ .no-data-wording {
             font-size: 12px;
         }

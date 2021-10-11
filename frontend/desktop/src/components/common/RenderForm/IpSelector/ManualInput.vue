@@ -4,6 +4,7 @@
         <bk-select
             v-model="selectorId"
             :clearable="false"
+            :disabled="!editable"
             @change="onManualInputChange">
             <bk-option v-for="selector in selectorTabs.slice(0, -1)"
                 :key="selector.id"
@@ -15,10 +16,11 @@
         <bk-input
             :placeholder="typeDes"
             :type="'textarea'"
-            :disabled="!selectorId"
+            :disabled="!editable"
             v-model="inputValue"
             @change="onManualInputChange">
         </bk-input>
+        <span v-show="dataError" class="common-error-tip error-info">{{ $t('必填项') }}</span>
     </div>
 </template>
 
@@ -33,13 +35,27 @@
             manualInput: {
                 type: Object,
                 default: () => {}
+            },
+            editable: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
+            const keys = Object.keys(this.manualInput)
+            let selectorId, inputValue
+            if (keys.length) {
+                selectorId = this.manualInput.type
+                inputValue = this.manualInput.value
+            } else {
+                selectorId = this.selectorTabs[0].id
+                inputValue = ''
+            }
             return {
-                selectorId: '',
-                inputValue: '',
+                selectorId,
+                inputValue,
                 selectTypeTitle: '',
+                dataError: false,
                 typeDes: ''
             }
         },
@@ -80,6 +96,15 @@
                     value: this.inputValue
                 }
                 this.$emit('change', parmas)
+            },
+            validate () {
+                if (this.manualInput.value) {
+                    this.dataError = false
+                    return true
+                } else {
+                    this.dataError = true
+                    return false
+                }
             }
         }
     }

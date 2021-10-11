@@ -165,7 +165,8 @@
             ref="conditionEdit"
             :is-readonly="true"
             :is-show.sync="isShowConditionEdit"
-            :condition-data="conditionData">
+            :condition-data="conditionData"
+            @close="onCloseConfigPanel">
         </condition-edit>
         <bk-dialog
             width="400"
@@ -922,6 +923,9 @@
             onTaskNodeResumeCancel () {
                 this.isNodeResumeDialogShow = false
                 this.nodeResumeId = undefined
+            },
+            onCloseConfigPanel () {
+                this.isShowConditionEdit = false
             },
             onSubflowPauseResumeClick (id, value) {
                 if (this.pending.subflowPause) return

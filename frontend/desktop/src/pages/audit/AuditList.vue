@@ -305,9 +305,6 @@
             ...mapActions('auditTask/', [
                 'loadAuditTaskList'
             ]),
-            ...mapActions('task/', [
-                'getInstanceStatus'
-            ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo'
             ]),
@@ -343,6 +340,7 @@
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         project__id: selectedProject || undefined,
                         category: category || undefined,
+                        user_type: 'auditor',
                         pipeline_instance__name__contains: taskName || undefined,
                         pipeline_instance__is_started,
                         pipeline_instance__is_finished,

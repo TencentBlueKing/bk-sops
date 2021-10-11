@@ -1,0 +1,2 @@
+bugfix:
+  - 修复 operate_task 能够操作未启动的任务的问题

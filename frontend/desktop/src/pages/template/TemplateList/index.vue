@@ -51,10 +51,17 @@
                                 <i :class="['bk-icon icon-angle-down']"></i>
                             </div>
                             <ul class="batch-operation-list" slot="dropdown-content">
-                                <li @click="onExportTemplate('dat')">{{ $t('导出为') }}DAT</li>
-                                <li @click="onExportTemplate('yaml')">{{ $t('导出为') }}YAML</li>
-                                <li :class="{ 'disabled': selectedTpls.length === 0 }" @click="onBatchCollect">{{ $t('收藏') }}</li>
-                                <li :class="{ 'disabled': selectedTpls.length === 0 }" @click="onBatchDelete">{{ $t('删除') }}</li>
+                                <template v-for="operat in operatList">
+                                    <li
+                                        :key="operat.type"
+                                        v-bk-tooltips="{
+                                            content: operat.content,
+                                            disabled: !selectedTpls.length || (operat.isOther ? hasBatchEditAuth : hasBatchViewAuth) }"
+                                        :class="{ 'disabled': operat.isOther ? !hasBatchEditAuth : !hasBatchViewAuth }"
+                                        @click="onOperatClick(operat.type)">
+                                        {{ operat.value }}
+                                    </li>
+                                </template>
                             </ul>
                         </bk-dropdown-menu>
                         <div v-if="selectedTpls.length > 0" class="selected-tpl-num">
@@ -425,6 +432,29 @@
                 return item
             })
             const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
+            // 获取操作列表
+            const noViewAuthTip = i18n.t('已选流程模板没有查看权限，请取消选择或申请权限')
+            const noEditAuthTip = i18n.t('已选流程模板没有编辑权限，请取消选择或申请权限')
+            const operatList = [
+                {
+                    type: 'dat',
+                    content: noViewAuthTip,
+                    value: i18n.t('导出为') + 'DAT'
+                }, {
+                    type: 'yaml',
+                    content: noViewAuthTip,
+                    value: i18n.t('导出为') + 'YAML'
+                }, {
+                    type: 'collect',
+                    content: noViewAuthTip,
+                    value: i18n.t('收藏')
+                }, {
+                    type: 'delete',
+                    content: noEditAuthTip,
+                    value: i18n.t('删除'),
+                    isOther: true
+                }
+            ]
             return {
                 firstLoading: true,
                 listLoading: false,
@@ -433,6 +463,7 @@
                 searchForm,
                 isSearchFormOpen, // 高级搜索表单默认展开
                 exportType: 'dat', // 模板导出类型
+                operatList,
                 expiredSubflowTplList: [],
                 selectedTpls: [], // 选中的流程模板
                 templateList: [],
@@ -494,6 +525,20 @@
             }),
             crtPageSelectedAll () {
                 return this.templateList.length > 0 && this.templateList.every(item => this.selectedTpls.find(tpl => tpl.id === item.id))
+            },
+            hasBatchViewAuth () {
+                let result = false
+                if (this.selectedTpls.length) {
+                    result = this.selectedTpls.every(template => this.hasPermission(['flow_view'], template.auth_actions))
+                }
+                return result
+            },
+            hasBatchEditAuth () {
+                let result = false
+                if (this.selectedTpls.length) {
+                    result = this.selectedTpls.every(template => this.hasPermission(['flow_delete'], template.auth_actions))
+                }
+                return result
             }
         },
         watch: {
@@ -781,12 +826,12 @@
                 if (val) {
                     this.selectedTpls.push(tpl)
                 } else {
-                    const index = this.selectedTpls.findIndex(item => item === tpl.id)
+                    const index = this.selectedTpls.findIndex(item => item.id === tpl.id)
                     this.selectedTpls.splice(index, 1)
                 }
             },
             async onBatchCollect () {
-                if (this.selectedTpls.length === 0) {
+                if (this.selectedTpls.length === 0 || !this.hasBatchViewAuth) {
                     return
                 }
                 this.batchCollectPending = true
@@ -818,7 +863,7 @@
                 }
             },
             onBatchDelete () {
-                if (this.selectedTpls.length === 0 || this.batchDeletePending) {
+                if (this.selectedTpls.length === 0 || this.batchDeletePending || !this.hasBatchEditAuth) {
                     return
                 }
                 this.$bkInfo({
@@ -855,6 +900,22 @@
             onImportYamlSuccess () {
                 this.isImportYamlDialogShow = false
                 this.getTemplateList()
+            },
+            onOperatClick (type) {
+                switch (type) {
+                    case 'collect':
+                        if (!this.hasBatchViewAuth) return
+                        this.onBatchCollect()
+                        break
+                    case 'delete':
+                        if (!this.hasBatchEditAuth) return
+                        this.onBatchDelete()
+                        break
+                    default:
+                        if (!this.hasBatchViewAuth) return
+                        this.onExportTemplate(type)
+                        break
+                }
             },
             onExportTemplate (type) {
                 this.exportType = type
@@ -1168,6 +1229,8 @@
     }
 }
 .selected-tpl-num {
+    display: flex;
+    align-items: center;
     margin-left: 10px;
     font-size: 12px;
     line-height: 1;

@@ -45,7 +45,9 @@
                     :template-labels="templateLabels"
                     :is-disable-start-point="isDisableStartPoint"
                     :is-disable-end-point="isDisableEndPoint"
-                    :subflow-list-loading="subAtomListLoading"
+                    :subflow-list-loading="subflowListLoading"
+                    :plugin-loading="pluginLoading"
+                    @updatePluginList="updatePluginList"
                     @updateNodeMenuState="updateNodeMenuState"
                     @getAtomList="getAtomList">
                 </palette-panel>
@@ -204,6 +206,10 @@
                 }
             },
             isCanvasImg: {
+                type: Boolean,
+                default: false
+            },
+            pluginLoading: {
                 type: Boolean,
                 default: false
             }
@@ -505,6 +511,9 @@
                 this.$emit('onToggleAllNode', val)
                 this.showSmallMap = false
             },
+            updatePluginList (val, type) {
+                this.$emit('updatePluginList', val, type)
+            },
             updateNodeMenuState (val) {
                 this.showNodeMenu = val
                 this.$emit('update:nodeMemuOpen', val)
@@ -619,7 +628,7 @@
                 }
             },
             onConnectionClick (conn, e) {
-                if (e.target.tagName !== 'path') {
+                if (!this.editable || e.target.tagName !== 'path') {
                     return
                 }
                 const [sEdp, tEdp] = conn.endpoints
@@ -756,7 +765,7 @@
                                 midpoint: lineInCanvasData.midpoint
                             }
                         ]
-                        
+
                         this.$refs.jsFlow.setConnector(lineInCanvasData.source.id, lineInCanvasData.target.id, config)
                     }
                     // 增加连线删除 icon

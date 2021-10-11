@@ -42,5 +42,8 @@ class CreateTaskInterceptor(ViewInterceptor):
             allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)
         else:
             action = Action(IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION)
-            resources = res_factory.resources_for_common_flow(template_id)
+            resources = [
+                res_factory.resources_for_common_flow(template_id)[0],
+                res_factory.resources_for_project_obj(request.project)[0],
+            ]
             allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)

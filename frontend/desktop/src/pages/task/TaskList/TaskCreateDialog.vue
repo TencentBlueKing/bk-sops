@@ -21,12 +21,14 @@
                             :disabled="!categoryListPending"
                             :clearable="false"
                             @selected="onChooseTplType">
-                            <bk-option
-                                v-for="(option, index) in templateType"
-                                :key="index"
-                                :id="option.id"
-                                :name="option.name">
-                            </bk-option>
+                            <template v-for="(option, index) in templateType">
+                                <bk-option
+                                    v-if="entrance === 'clockedTask' ? option.id === 'businessProcess' : true"
+                                    :key="index"
+                                    :id="option.id"
+                                    :name="option.name">
+                                </bk-option>
+                            </template>
                         </bk-select>
                     </div>
                     <div class="task-search">
@@ -104,7 +106,7 @@
                                                 'task-item',
                                                 {
                                                     'task-item-selected': selectedTpl.id === template.id,
-                                                    'permission-disable': selectedTplType === 'businessProcess' && !hasPermission(action, template.auth_actions)
+                                                    'permission-disable': selectedTplType === 'publicProcess' && !hasPermission(action, template.auth_actions)
                                                 }
                                             ]"
                                             @click="onSelectTpl(template)">
@@ -245,8 +247,10 @@
             action () {
                 if (this.entrance === 'taskflow') {
                     return this.selectedTplType === 'businessProcess' ? ['flow_create_task'] : ['common_flow_create_task']
-                } else {
+                } else if (this.entrance === 'periodic') {
                     return this.selectedTplType === 'businessProcess' ? ['flow_create_periodic_task'] : ['common_flow_create_periodic_task']
+                } else {
+                    return ['flow_create_clocked_task']
                 }
             }
         },
