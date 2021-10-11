@@ -780,6 +780,11 @@
                     if (this.isThirdPartyNode && traceId) {
                         this.handleTabChange(traceId)
                     }
+                    // 获取第三方插件节点日志
+                    const traceId = outputs.length && outputs[0].value
+                    if (this.isThirdPartyNode && traceId) {
+                        this.handleTabChange(traceId)
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
