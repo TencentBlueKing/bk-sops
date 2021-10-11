@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
@@ -22,6 +21,7 @@ from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.apigw.views.utils import format_task_list_data, paginate_list_data
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
+from gcloud.apigw.forms import GetTaskListForm
 from packages.bkoauth.decorators import apigw_required
 
 
@@ -33,9 +33,12 @@ from packages.bkoauth.decorators import apigw_required
 @iam_intercept(ProjectViewInterceptor())
 def get_task_list(request, project_id):
     project = request.project
-    keyword = request.GET.get("keyword")
-    is_started = request.GET.get("is_started")
-    is_finished = request.GET.get("is_finished")
+    params_validator = GetTaskListForm(request.GET)
+    if not params_validator.is_valid():
+        return {"result": False, "data": "", "message": params_validator.errors, "code": err_code.VALIDATION_ERROR.code}
+    keyword = params_validator.cleaned_data["keyword"]
+    is_started = params_validator.cleaned_data["is_started"]
+    is_finished = params_validator.cleaned_data["is_finished"]
 
     filter_kwargs = dict(is_deleted=False, project_id=project.id)
     if keyword:
