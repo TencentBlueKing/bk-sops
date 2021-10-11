@@ -66,7 +66,7 @@ class TaskActionInterceptor(TaskSingleActionPostInterceptor):
     action = IAMMeta.TASK_OPERATE_ACTION
 
 
-class NodesActionInpterceptor(TaskSingleActionPostInterceptor):
+class NodesActionInterceptor(TaskSingleActionPostInterceptor):
     action = IAMMeta.TASK_OPERATE_ACTION
 
 
