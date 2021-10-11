@@ -11,20 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import logging
-from celery import task
-
-from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth.resource_creator_action.utils import register_grant_resource_creator_action_attributes
-
-logger = logging.getLogger("root")
+from django.apps import AppConfig
 
 
-@task
-def register_grant_resource_creator_task(username):
-    register_grant_resource_creator_action_attributes(
-        IAMMeta.TASK_RESOURCE, username, attributes=[{"id": "iam_resource_owner", "name": "资源创建者"}]
-    )
-    register_grant_resource_creator_action_attributes(
-        IAMMeta.CLOCKED_TASK_RESOURCE, username, attributes=[{"id": "iam_resource_owner", "name": "资源创建者"}]
-    )
+class ClockedTaskConfig(AppConfig):
+    name = "gcloud.clocked_task"
+    verbose_name = "ClockedTaskConfig"

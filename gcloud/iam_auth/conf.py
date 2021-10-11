@@ -31,6 +31,7 @@ RESOURCES = [
     {"id": "common_flow", "name": _("公共流程"), "parent_id": None},
     {"id": "mini_app", "name": _("轻应用"), "parent_id": "project"},
     {"id": "periodic_task", "name": _("周期任务"), "parent_id": "project"},
+    {"id": "clocked_task", "name": _("计划任务"), "parent_id": "project"},
 ]
 
 ACTIONS = [
@@ -107,6 +108,13 @@ ACTIONS = [
     {
         "id": "flow_create_periodic_task",
         "name": _("新建周期任务"),
+        "relate_resources": ["flow"],
+        "relate_actions": ["flow_view"],
+        "resource_topo": ["project", "flow"],
+    },
+    {
+        "id": "flow_create_clocked_task",
+        "name": _("新建计划任务"),
         "relate_resources": ["flow"],
         "relate_actions": ["flow_view"],
         "resource_topo": ["project", "flow"],
@@ -244,6 +252,27 @@ ACTIONS = [
         "relate_actions": ["periodic_task_view"],
         "resource_topo": ["project", "periodic_task"],
     },
+    {
+        "id": "clocked_task_view",
+        "name": _("查看计划任务"),
+        "relate_resources": ["clocked_task"],
+        "relate_actions": [],
+        "resource_topo": ["project", "clocked_task"],
+    },
+    {
+        "id": "clocked_task_edit",
+        "name": _("编辑计划任务"),
+        "relate_resources": ["clocked_task"],
+        "relate_actions": ["clocked_task_view"],
+        "resource_topo": ["project", "clocked_task"],
+    },
+    {
+        "id": "clocked_task_delete",
+        "name": _("删除计划任务"),
+        "relate_resources": ["clocked_task"],
+        "relate_actions": ["clocked_task_view"],
+        "resource_topo": ["project", "clocked_task"],
+    },
     {"id": "admin_view", "name": _("后台管理查看"), "relate_resources": [], "relate_actions": []},
     {"id": "admin_edit", "name": _("后台管理编辑"), "relate_resources": [], "relate_actions": []},
     {"id": "audit_view", "name": _("查看审计中心"), "relate_resources": [], "relate_actions": []},
@@ -262,6 +291,7 @@ class IAMMeta(object):
     COMMON_FLOW_RESOURCE = "common_flow"
     MINI_APP_RESOURCE = "mini_app"
     PERIODIC_TASK_RESOURCE = "periodic_task"
+    CLOCKED_TASK_RESOURCE = "clocked_task"
 
     PROJECT_VIEW_ACTION = "project_view"
     PROJECT_EDIT_ACTION = "project_edit"
@@ -274,6 +304,7 @@ class IAMMeta(object):
     FLOW_CREATE_TASK_ACTION = "flow_create_task"
     FLOW_CREATE_MINI_APP_ACTION = "flow_create_mini_app"
     FLOW_CREATE_PERIODIC_TASK_ACTION = "flow_create_periodic_task"
+    FLOW_CREATE_CLOCKED_TASK_ACTION = "flow_create_clocked_task"
 
     TASK_VIEW_ACTION = "task_view"
     TASK_EDIT_ACTION = "task_edit"
@@ -297,6 +328,10 @@ class IAMMeta(object):
     PERIODIC_TASK_VIEW_ACTION = "periodic_task_view"
     PERIODIC_TASK_EDIT_ACTION = "periodic_task_edit"
     PERIODIC_TASK_DELETE_ACTION = "periodic_task_delete"
+
+    CLOCKED_TASK_VIEW_ACTION = "clocked_task_view"
+    CLOCKED_TASK_EDIT_ACTION = "clocked_task_edit"
+    CLOCKED_TASK_DELETE_ACTION = "clocked_task_delete"
 
     ADMIN_VIEW_ACTION = "admin_view"
     ADMIN_EDIT_ACTION = "admin_edit"
