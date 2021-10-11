@@ -10,7 +10,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-(function () {
+ (function () {
     $.atoms.monitor_alarm_shield_strategy = [
         {
             tag_code: "bk_alarm_shield_strategy",

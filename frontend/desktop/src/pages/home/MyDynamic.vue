@@ -183,7 +183,7 @@
                     const res = await this.loadTaskList(data)
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', res.objects)
-                    
+
                     this.dynamicData = res.objects
                     this.dynamicData.forEach(m => {
                         const item = this.createMethods.find(method => method.value === m.create_method)

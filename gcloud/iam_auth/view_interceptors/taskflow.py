@@ -95,3 +95,7 @@ class TaskFuncClaimInterceptor(TaskSingleActionPostInterceptor):
 
 class GetNodeLogInterceptor(TaskSingleActionGetInterceptor):
     action = IAMMeta.TASK_VIEW_ACTION
+
+
+class StatusViewInterceptor(TaskSingleActionGetInterceptor):
+    action = IAMMeta.TASK_VIEW_ACTION
