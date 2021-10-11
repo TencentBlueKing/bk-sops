@@ -432,7 +432,7 @@
                 const { params } = this.$route
                 try {
                     const data = {
-                        project_id: this.project_id,
+                        project__id: params.project_id,
                         common: this.common,
                         templateId: this.template_id,
                         limit: this.limit,

@@ -834,20 +834,6 @@
                 }
                 return Promise.resolve()
             },
-            onImportTemplate () {
-                this.isImportDialogShow = true
-            },
-            onImportConfirm () {
-                this.isImportDialogShow = false
-                this.getTemplateList()
-            },
-            onImportYamlSuccess () {
-                this.isImportYamlDialogShow = false
-                this.getTemplateList()
-            },
-            onImportCancel () {
-                this.isImportDialogShow = false
-            },
             onImportCancel () {
                 this.isImportDialogShow = false
             },

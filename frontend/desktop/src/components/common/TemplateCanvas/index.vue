@@ -627,7 +627,7 @@
                     })
                 }
             },
-            onConnectionClick (connection, e) {
+            onConnectionClick (conn, e) {
                 if (!this.editable || e.target.tagName !== 'path') {
                     return
                 }
