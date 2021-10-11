@@ -34,6 +34,7 @@ from pipeline_plugins.components.utils import (
     loose_strip,
     plat_ip_reg,
 )
+from pipeline_plugins.components.query.sites.open.job import JOBV3_VAR_CATEGORY_IP
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -121,7 +122,7 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
         for _value in original_global_var:
             # 3-IP
             val = loose_strip(_value["value"])
-            if _value["type"] == 3:
+            if _value["type"] == JOBV3_VAR_CATEGORY_IP:
 
                 plat_ip = [match.group() for match in plat_ip_reg.finditer(val)]
                 ip_list = [{"ip": _ip.split(":")[1], "bk_cloud_id": _ip.split(":")[0]} for _ip in plat_ip]
@@ -158,9 +159,6 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
             self.logger.error(message)
             data.outputs.ex_data = message
             return False
-
-    def schedule(self, data, parent_data, callback_data=None):
-        return super(AllBizJobExecuteJobPlanService, self).schedule(data, parent_data, callback_data)
 
 
 class AllBizJobExecuteJobPlanComponent(Component):
