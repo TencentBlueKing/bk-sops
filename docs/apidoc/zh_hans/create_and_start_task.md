@@ -183,7 +183,7 @@
             "id": "n7d2258a508c373a8a047f4cb0c3528a"
         },
         "task_id": 5,
-        "task_url": "http://paasee-test.woa.com/taskflow/execute/3/?instance_id=5"
+        "task_url": "http://{PAAS_HOST}/taskflow/execute/3/?instance_id=5"
     },
     "trace_id": "ebc2a953abbc4955a993f88242c7f808"
 }
