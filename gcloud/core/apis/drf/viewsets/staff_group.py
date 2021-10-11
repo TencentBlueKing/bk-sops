@@ -15,12 +15,13 @@ from rest_framework.response import Response
 
 from gcloud.core.models import StaffGroupSet
 from gcloud.core.apis.drf.serilaziers.staff_group import StaffGroupSetSerializer, ListSerializer
-from gcloud.core.apis.drf.viewsets.utils import ApiMixin
+from gcloud.core.apis.drf.viewsets.utils import ApiMixin, IAMMixin
 from gcloud.iam_auth import IAMMeta, res_factory
 
 
 class StaffGroupSetViewSet(
     ApiMixin,
+    IAMMixin,
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,

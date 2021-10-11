@@ -11,20 +11,20 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import logging
-from celery import task
+from gcloud.iam_auth import res_factory
+from gcloud.iam_auth.resource_helpers.base import SimpleSubjectEnvHelperMixin
 
-from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth.resource_creator_action.utils import register_grant_resource_creator_action_attributes
-
-logger = logging.getLogger("root")
+from iam.contrib.tastypie.resource import IAMResourceHelper
 
 
-@task
-def register_grant_resource_creator_task(username):
-    register_grant_resource_creator_action_attributes(
-        IAMMeta.TASK_RESOURCE, username, attributes=[{"id": "iam_resource_owner", "name": "资源创建者"}]
-    )
-    register_grant_resource_creator_action_attributes(
-        IAMMeta.CLOCKED_TASK_RESOURCE, username, attributes=[{"id": "iam_resource_owner", "name": "资源创建者"}]
-    )
+class ClockedTaskResourceHelper(SimpleSubjectEnvHelperMixin, IAMResourceHelper):
+    """
+    基于DRF的helper，直接会用obj作为入参
+    """
+
+    def get_resources(self, obj):
+
+        return res_factory.resources_for_clocked_task_obj(obj)
+
+    def get_resources_id(self, obj):
+        return obj.id

@@ -108,6 +108,7 @@ class TaskTemplateResource(GCloudModelResource):
                 IAMMeta.FLOW_CREATE_TASK_ACTION,
                 IAMMeta.FLOW_CREATE_MINI_APP_ACTION,
                 IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION,
+                IAMMeta.FLOW_CREATE_CLOCKED_TASK_ACTION,
             ],
         )
 
