@@ -29,6 +29,9 @@
                 :is-edit-process-page="isEditProcessPage"
                 :is-preview-mode="isPreviewMode"
                 :exclude-node="excludeNode"
+                :execute-scheme-saving="executeSchemeSaving"
+                @onDownloadCanvas="onDownloadCanvas"
+                @onSaveExecuteSchemeClick="onSaveExecuteSchemeClick"
                 @goBackToTplEdit="goBackToTplEdit"
                 @onClosePreview="onClosePreview"
                 @onOpenExecuteScheme="onOpenExecuteScheme"
@@ -1158,6 +1161,9 @@
                 const updatedLocation = Object.assign(location, data)
                 this.setLocation({ type: 'edit', location: updatedLocation })
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
+            },
+            onDownloadCanvas () {
+                this.$refs.templateCanvas.onDownloadCanvas()
             },
             async onSaveExecuteSchemeClick () {
                 try {

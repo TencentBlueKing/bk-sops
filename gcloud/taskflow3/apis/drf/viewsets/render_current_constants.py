@@ -16,7 +16,7 @@ from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import permissions
-from iam import Subject
+from iam import Subject, Action
 from iam.shortcuts import allow_or_raise_auth_failed
 from drf_yasg.utils import swagger_auto_schema
 
@@ -36,7 +36,7 @@ class RenderCurrentConstantsPermission(permissions.BasePermission):
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", request.user.username),
-            action=IAMMeta.PROJECT_VIEW_ACTION,
+            action=Action(IAMMeta.TASK_VIEW_ACTION),
             resources=task_resources,
         )
 
@@ -58,11 +58,16 @@ class RenderCurrentConstantsView(APIView):
     @action(methods=["GET"], detail=True)
     def get(self, request, task_id, format=None):
         # fetch require task data
-        task = TaskFlowInstance.objects.filter(id=task_id).only("id", "engine_ver", "pipeline_instance")[0]
+        task = TaskFlowInstance.objects.filter(id=task_id).only("id", "engine_ver", "pipeline_instance", "project_id")[
+            0
+        ]
 
         # dispatch get constants command
         resp_data = TaskCommandDispatcher(
-            engine_ver=task.engine_ver, taskflow_id=task.id, pipeline_instance=task.pipeline_instance
+            engine_ver=task.engine_ver,
+            taskflow_id=task.id,
+            pipeline_instance=task.pipeline_instance,
+            project_id=task.project_id,
         ).render_current_constants()
 
         return Response(resp_data)

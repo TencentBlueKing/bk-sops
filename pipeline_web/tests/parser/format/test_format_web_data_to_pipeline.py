@@ -1563,7 +1563,7 @@ pipeline_tree = json.loads(
                                                     }
                                                 },
                                                 "outputs": [],
-                                                "pre_render_keys": ["${b}"]
+                                                "pre_render_keys": []
                                             }
                                         },
                                         "params": {
@@ -1860,7 +1860,7 @@ pipeline_tree = json.loads(
                             }
                         },
                         "outputs": [],
-                        "pre_render_keys": ["${h1}", "${v1}", "${v2}", "${v3}", "${v4}", "${v5}", "${v6}"]
+                        "pre_render_keys": []
                     }
                 },
                 "params": {
@@ -2306,7 +2306,7 @@ pipeline_tree = json.loads(
                 }
             },
             "outputs": [],
-            "pre_render_keys": ["${d}", "${exp1}", "${exp2}", "${exp3}", "${output_exp}", "${time2}", "${time}"]
+            "pre_render_keys": ["${d}", "${exp2}", "${exp3}"]
         }
     }
     """

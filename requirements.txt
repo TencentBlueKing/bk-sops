@@ -28,14 +28,18 @@ pyinstrument==3.1.3
 djangorestframework==3.11.2
 django-filter==2.4.0
 prometheus-client==0.9.0
-bamboo-engine==1.2.0
 bamboo-pipeline==3.8.0
 drf-yasg==1.20.0
 typing-extensions==3.7.4.3
-django-prometheus==2.1.0
 six==1.15.0
 pyyaml==5.4.1
 bkstorages==1.0.1
+ujson==4.1.0
+
+# monitor
+django-prometheus==2.1.0
+celery-prometheus-exporter==1.7.0
+bk-monitor-report==1.0.3
 
 # version log
 mistune==0.8.4

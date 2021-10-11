@@ -15,7 +15,6 @@ import datetime
 import hashlib
 import copy
 import logging
-from functools import cmp_to_key
 
 import ujson as json
 from django.db.models import Q
@@ -25,6 +24,7 @@ from pipeline.parser.utils import replace_all_id
 from pipeline.models import PipelineTemplate, Snapshot, TemplateScheme
 from pipeline.exceptions import SubprocessExpiredError
 
+from gcloud.utils.algorithms import topology_sort
 from pipeline_web.constants import PWE
 from pipeline_web.core.abstract import NodeAttr
 from pipeline_web.core.models import NodeInTemplate
@@ -245,17 +245,7 @@ class PipelineTemplateWebWrapper(object):
             for r in referencers:
                 forward_refs.setdefault(id_maps.get(r, r), []).append(id_maps.get(be_referenced, be_referenced))
 
-        referenced_weight = {}
-        for referencer, be_referenced in list(forward_refs.items()):
-            referenced_weight.setdefault(referencer, 0)
-            # 引用者权重 -1
-            referenced_weight[referencer] -= 1
-            for ref in be_referenced:
-                referenced_weight.setdefault(ref, 0)
-                # 被引用者权重 +1
-                referenced_weight[ref] += 1
-
-        return [i[0] for i in sorted(list(referenced_weight.items()), key=cmp_to_key(lambda x, y: y[1] - x[1]))]
+        return topology_sort(forward_refs)
 
     @classmethod
     def _update_or_create_version(cls, template, order):

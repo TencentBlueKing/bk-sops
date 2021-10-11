@@ -412,6 +412,10 @@ const task = {
             return axios.get(`taskflow/api/nodes/get_job_instance_log/${project_id}/`, {
                 params: { job_instance_id }
             }).then(response => response.data)
+        },
+        subflowNodeRetry ({ commit }, data) {
+            const { project_id } = store.state.project
+            return axios.post(`taskflow/api/nodes/action/retry_subprocess/${project_id}/`, data).then(response => response.data)
         }
     }
 }
