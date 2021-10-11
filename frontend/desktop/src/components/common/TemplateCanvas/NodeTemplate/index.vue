@@ -27,7 +27,8 @@
                 @onGatewaySelectionClick="onGatewaySelectionClick"
                 @onTaskNodeResumeClick="onTaskNodeResumeClick"
                 @onForceFail="onForceFail"
-                @onSubflowPauseResumeClick="onSubflowPauseResumeClick" />
+                @onSubflowPauseResumeClick="onSubflowPauseResumeClick"
+                @onSubflowDetailClick="onSubflowDetailClick" />
             <i
                 v-if="editable"
                 class="common-icon-dark-circle-close close-icon"
@@ -162,6 +163,9 @@
             },
             onSubflowPauseResumeClick (id, value) {
                 this.$emit('onSubflowPauseResumeClick', id, value)
+            },
+            onSubflowDetailClick (id) {
+                this.$emit('onNodeClick', id, 'subflowDetail')
             },
             onAppendNode (data) {
                 this.$emit('onAppendNode', data)
