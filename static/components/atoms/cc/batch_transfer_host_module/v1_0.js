@@ -78,6 +78,7 @@
                         attrs: {
                             name: gettext("目标模块"),
                             placeholder: gettext("集群A>模块B"),
+                            width: '120px',
                             editable: true,
                             validation: [
                                 {
