@@ -221,30 +221,6 @@
 - bugfix
   - 修复create_task接口创建未传元变量参数时对应参数默认值获取失败问题
 
-## 3.6.4204
-
-- feature
-  - 分发本地文件插件文件源账户支持通过 BKAPP_FILE_MGR_SOURCE_ACCOUNT 环境变量进行配置
-
-## 3.6.4203
-
-- bugfix
-  - 修复create_task接口创建未传元变量参数时对应参数默认值获取失败问题
-
-## 3.6.4202
-
-- bugfix
-  - 修复因为 local storage 数据导致模板列表页面打不开的问题
-
-## 3.6.4201
-
-- feature
-  - 分发本地文件文件 2.0 信息分隔符修改和添加删除按钮
-- bugfix
-  - 修复创建集群插件设计容量字段为int校验不通过问题
-  - 修复导入模板和执行方案时执行方案内节点 ID 未替换的问题
-  - JOB.get_job_instance_global_var_value 返回值为 None 兼容
-
 ## 3.6.42
 
 - bugfix
