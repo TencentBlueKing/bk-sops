@@ -18,6 +18,132 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.0\n"
 
+#: pipeline_plugins/components/collections/sites/open/nodeman/plugin_operate/v1_0.py
+msgid "插件操作"
+msgstr "Plugin Operation"
+
+#: pipeline_plugins/components/collections/controller.py
+msgid "API回调数据"
+msgstr "API Callback Data"
+
+#: pipeline_plugins/components/collections/controller.py
+msgid "通过node_callback API接口回调并传入数据,支持dict数据"
+msgstr "Call back through the node_callback API interface and pass in data, support dict data"
+
+# pipeline_plugins/components/collections/sites/open/wechat_work/wechat_work_send_message/v1_0.py
+msgid "1.部署环境与企业微信服务器网络必须联通 "
+"2.通过企业微信机器人获取会话 ID，可参考https://open.work.weixin.qq.com/api/doc/90000/90136/91770"
+msgstr "1. The deployment environment must be connected to the enterprise WeChat server network"
+"2. To obtain the session ID through the enterprise WeChat robot, please refer to https://open.work.weixin.qq.com/api/doc/90000/90136/91770"
+
+#: pipeline_plugins/components/collections/sites/open/nodeman/plugin_operate/v1_0.py
+msgid "任务链接"
+msgstr "Task URL"
+
+#: pipeline_plugins/components/collections/controller.py
+msgid "最长定时时间受到环境配置影响，具体时长请咨询系统管理员"
+msgstr "The longest timing time is affected by the environment configuration, please consult the system administrator for the specific time"
+
+#:  pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py
+msgid "如果配置平台中模块启动了属性自动应用策略，则 复制故障机属性 选项无法复制对应属性"
+msgstr "If the module in CMDB the attribute automatic application strategy, the option of copying the attribute of the faulty machine cannot copy the corresponding attribute"
+
+#: pipeline_plugins/components/collections/controller.py
+msgid "该节点可以通过node_callback API接口进行回调并传入数据，callback_data参数为dict类型，回调数据会作为该节点的输出数据"
+msgstr "The node can call back through the node_callback API interface and pass in data. The callback_data parameter is of type dict, and the callback data will be used as the output data of the node."
+
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/v1_0.py
+msgid ""
+"注意：如果需要移动主机到空闲机池，请使用插件如下插件:\n"
+"转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块"
+msgstr ""
+"Note: If you need to move the host to the free machine pool, please use the plugin as follows:\n"
+"Transfer the host to the module to be recovered, transfer the host to the failed machine module, and transfer the host to the idle machine module"
+
+#: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/v1_0.py
+msgid "全业务_快速分发文件"
+msgstr "All Business Fast Push File"
+
+#: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/v1_0.py
+msgid "全业务_快速执行脚本"
+msgstr "All Business Fast Execute Script"
+
+#: pipeline_plugins/components/collections/sites/open/job/local_content_upload/v1_0.py
+#: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/v1_0.py
+#: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/legacy.py
+#: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/v1_0.py
+#: pipeline_plugins/components/collections/sites/open/job/execute_task/legacy.py
+msgid "输出日志中提取的全局变量，日志中形如 <SOPS_VAR>key:val</SOPS_VAR> 的变量会被提取到 log_outputs['key'] 中，值为 val"
+msgstr "The global variables extracted from the output log. The variables in the log with the form of <SOPS_VAR>key:val</SOPS_VAR> will be extracted to log_outputs['key'] with a value of val"
+
+#: pipeline_plugins/components/collections/sites/open/job/execute_task/legacy.py
+msgid "跨业务选项打开时IP参数需要按照(云区域ID:IP)格式填写，否则会尝试从本业务下获取IP信息"
+msgstr "When the cross-business option is turned on, the IP parameters need to be filled in in the format of (cloud area ID: IP), otherwise it will try to obtain IP information from this business"
+
+#: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/v1_0.py
+msgid ""
+"插件版本legacy会依据脚本id来执行脚本，JOB平台脚本上线版本变动仍执行原来脚本。\n"
+"插件版本v1.0会依据脚本名称来执行脚本，自动同步JOB平台当前上线版本进行执行。\n"
+"注：插件版本v1.0中跨业务执行脚本时需要在作业平台添加白名单"
+msgstr ""
+"The plugin version legacy will execute the script according to the script id, and the original script will still be executed when the version of the script on the JOB platform changes. \n"
+"The plugin version v1.0 will execute the script according to the script name, and automatically synchronize the current online version of the JOB platform for execution. \n"
+"Note: In the plug-in version v1.0, it is necessary to add a whitelist to the operating platform when executing scripts across businesses"
+
+#: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/v1_0.py
+msgid "跨业务分发文件时需要在作业平台添加白名单"
+msgstr "Need to add a whitelist to JOB when pushing files across businesses"
+
+#: pipeline_plugins/components/collections/sites/open/job/push_local_files/v1_0_0.py
+#: pipeline_plugins/components/collections/sites/open/job/push_local_files/v2_0.py
+#: pipeline_plugins/components/collections/sites/open/job/fast_push_file/v2_0.py
+#: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/v1_0.py
+msgid "总任务数"
+msgstr "Task Count"
+
+#: pipeline_plugins/components/collections/sites/open/job/fast_push_file/v2_0.py
+#: pipeline_plugins/components/collections/sites/open/job/push_local_files/v1_0_0.py
+#: pipeline_plugins/components/collections/sites/open/job/push_local_files/v2_0.py
+#: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/v1_0.py
+msgid "任务id"
+msgstr "Task id"
+
+#: pipeline_plugins/components/collections/sites/open/job/fast_push_file/v2_0.py
+#: pipeline_plugins/components/collections/sites/open/job/push_local_files/v1_0_0.py
+#: pipeline_plugins/components/collections/sites/open/job/push_local_files/v2_0.py
+#: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/v1_0.py
+msgid "任务url"
+msgstr "Task url"
+
+#: pipeline_plugins/components/collections/sites/open/job/fast_push_file/v2_0.py
+#: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/v1_0.py
+msgid "分发请求成功数"
+msgstr "Push Request Success Count"
+
+#: pipeline_plugins/components/collections/sites/open/job/fast_push_file/v2_0.py
+#: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/v1_0.py
+msgid "分发成功数"
+msgstr "Push Success Count"
+
+#: pipeline_plugins/components/collections/sites/open/job/push_local_files/v1_0_0.py
+#: pipeline_plugins/components/collections/sites/open/job/push_local_files/v2_0.py
+msgid "上传请求成功数"
+msgstr "Upload Request Success Count"
+
+#: pipeline_plugins/components/collections/sites/open/job/push_local_files/v1_0_0.py
+#: pipeline_plugins/components/collections/sites/open/job/push_local_files/v2_0.py
+msgid "上传成功数"
+msgstr "Upload Success Count"
+
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_to_recovery/v1_0.py
+msgid "转移主机至待回收模块"
+msgstr "Transfer the host to the module to be recycled"
+
+#: pipeline_plugins/components/collections/sites/open/job/fast_push_file/v1_0.py
+msgid "该版本不支持目标 IP 跨业务，需要目标 IP 跨业务分发请使用 2.0 及以上版本插件"
+msgstr "This version does not support cross-Business target IP, please use plugin version 2.0 and above if target IP cross-business distribution is required"
+
 #: blueapps/account/admin.py:25
 msgid "Personal info"
 msgstr "Personal info"
@@ -2671,13 +2797,13 @@ msgstr "Module attribute to be modified"
 msgid "更新成功的数据"
 msgstr "Data update successfully"
 
-#: pipeline_plugins/components/collections/sites/open/cc/batch_module_update/v1_0.py:163
+#: pipeline_plugins/components/collections/sites/open/cc/batch_module_update/v1_0.py
 msgid "更新失败的数据"
 msgstr "Data update failed"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_module_update/v1_0.py:169
 msgid "批量更新模块属性"
-msgstr "Update Module Attribute"
+msgstr "Batch Update Module Attribute"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_transfer_host_module/v1_0.py:53
 #: pipeline_plugins/components/collections/sites/open/cc/batch_transfer_host_module/v1_0.py:57
@@ -2753,8 +2879,13 @@ msgstr "Invalid IP"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_update_host/v1_0.py:196
 msgid "批量修改主机属性"
-msgstr "Host attribute to be modified"
+msgstr "Batch Modify Host Attribute"
 
+#: pipeline_plugins/components/collections/sites/open/cc/batch_transfer_host_module/v1_0.py:159
+#: pipeline_plugins/components/collections/sites/open/cc/batch_module_update/v1_0.py
+#: pipeline_plugins/components/collections/sites/open/cc/batch_update_set/v1_0.py
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py
 #: pipeline_plugins/components/collections/sites/open/cc/batch_update_host/v1_0.py:202
 msgid ""
 "1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
@@ -2777,7 +2908,7 @@ msgstr "Set Updated Failed"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_update_set/v1_0.py:151
 msgid "批量更新集群属性"
-msgstr "Modify Set Attribute"
+msgstr "Batch Modify Set Attribute"
 
 #: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:65
 msgid "所属集群 ID 列表"
@@ -3759,7 +3890,7 @@ msgstr "Shield Strategy ID To Be Executed"
 
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield_strategy/v1_0.py:146
 msgid "蓝鲸监控告警屏蔽(按策略)"
-msgstr "Alarm Shield of BlueKing Monitor (Based on Strategy)"
+msgstr "BlueKing Monitor Alarm Shield (Based on Strategy)"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:32
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:33

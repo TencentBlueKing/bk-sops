@@ -103,13 +103,14 @@ def get_sops_var_dict_from_log_text(log_text, service_logger):
     return sops_var_dict
 
 
-def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
+def get_job_instance_log(client, service_logger, job_instance_id, bk_biz_id, target_ip=None):
     """
-    解析作业日志：默认取每个步骤/节点的第一个ip_logs
+    获取作业日志：获取某个ip每个步骤的日志
     :param client:
     :param service_logger: 组件日志对象
     :param job_instance_id: 作业实例id
     :param bk_biz_id 业务ID
+    :param target_ip 希望提取日志的目标IP
     获取到的job_logs实例
     [
         {
@@ -139,7 +140,7 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
         },
     ]
     :return:
-    - success { "result": True, "data": {"key1": "value1"}}
+    - success { "result": True, "data": "log text of target_ip"}
     - fail { "result": False, "message": message}
     """
     get_job_instance_status_kwargs = {
@@ -160,32 +161,62 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
     # 根据每个步骤的IP（可能有多个），循环查询作业执行日志
     log_list = []
     for step_instance in get_job_instance_status_return["data"]["step_instance_list"]:
-        if "step_ip_result_list" not in step_instance:
+        if not step_instance.get("step_ip_result_list"):
             continue
         # 为了防止查询时间过长，每个步骤只取一个IP的日志进行记录
-        if step_instance["step_ip_result_list"]:
-            step_ip_result = step_instance["step_ip_result_list"][0]
-            get_job_instance_ip_log_kwargs = {
-                "job_instance_id": job_instance_id,
-                "bk_biz_id": bk_biz_id,
-                "step_instance_id": step_instance["step_instance_id"],
-                "bk_cloud_id": step_ip_result["bk_cloud_id"],
-                "ip": step_ip_result["ip"],
-            }
-            get_job_instance_ip_log_kwargs_return = client.jobv3.get_job_instance_ip_log(get_job_instance_ip_log_kwargs)
-            if not get_job_instance_ip_log_kwargs_return["result"]:
-                message = handle_api_error(
-                    __group_name__,
-                    "jobv3.get_job_instance_ip_log_kwargs",
-                    get_job_instance_ip_log_kwargs,
-                    get_job_instance_ip_log_kwargs_return,
+        step_ip_result = None
+        if target_ip:
+            for ip_result in step_instance["step_ip_result_list"]:
+                if ip_result["ip"] == target_ip:
+                    step_ip_result = ip_result
+            if step_ip_result is None:
+                message = (
+                    f"[get_job_instance_log] target_ip: {target_ip} does not match any ip in "
+                    f"ip_list: [{','.join([instance['ip'] for instance in step_instance['step_ip_result_list']])}]"
                 )
                 service_logger.warning(message)
                 return {"result": False, "message": message}
-            log_content = get_job_instance_ip_log_kwargs_return["data"]["log_content"]
-            if log_content:
-                log_list.append(str(log_content))
+        else:
+            step_ip_result = step_instance["step_ip_result_list"][0]
+        get_job_instance_ip_log_kwargs = {
+            "job_instance_id": job_instance_id,
+            "bk_biz_id": bk_biz_id,
+            "step_instance_id": step_instance["step_instance_id"],
+            "bk_cloud_id": step_ip_result["bk_cloud_id"],
+            "ip": step_ip_result["ip"],
+        }
+        get_job_instance_ip_log_kwargs_return = client.jobv3.get_job_instance_ip_log(get_job_instance_ip_log_kwargs)
+        if not get_job_instance_ip_log_kwargs_return["result"]:
+            message = handle_api_error(
+                __group_name__,
+                "jobv3.get_job_instance_ip_log_kwargs",
+                get_job_instance_ip_log_kwargs,
+                get_job_instance_ip_log_kwargs_return,
+            )
+            service_logger.warning(message)
+            return {"result": False, "message": message}
+        log_content = get_job_instance_ip_log_kwargs_return["data"]["log_content"]
+        if log_content:
+            log_list.append(str(log_content))
     log_text = "\n".join(log_list)
+    return {"result": True, "data": log_text}
+
+
+def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
+    """
+    解析作业日志：默认取每个步骤/节点的第一个ip_logs
+    :param client:
+    :param service_logger: 组件日志对象
+    :param job_instance_id: 作业实例id
+    :param bk_biz_id 业务ID
+    :return:
+    - success { "result": True, "data": {"key1": "value1"}}
+    - fail { "result": False, "message": message}
+    """
+    get_job_instance_log_result = get_job_instance_log(client, service_logger, job_instance_id, bk_biz_id)
+    if not get_job_instance_log_result["result"]:
+        return get_job_instance_log_result
+    log_text = get_job_instance_log_result["data"]
     return {"result": True, "data": get_sops_var_dict_from_log_text(log_text, service_logger)}
 
 
@@ -240,7 +271,7 @@ class JobService(Service):
 
                 global_var_list = global_var_result["data"].get("job_instance_var_values", [])
                 if global_var_list:
-                    for global_var in global_var_list[-1]["step_instance_var_values"]:
+                    for global_var in global_var_list[-1]["step_instance_var_values"] or []:
                         if global_var["category"] != JOB_VAR_TYPE_IP:
                             data.set_outputs(global_var["name"], global_var["value"])
 

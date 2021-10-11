@@ -404,9 +404,9 @@
             paramsCanBeModify () {
                 return this.isTopTask && this.state === 'CREATED'
             },
-            // 职能化/审计中心/轻应用时,隐藏[查看流程]按钮
+            // 审计中心/轻应用时,隐藏[查看流程]按钮
             isShowViewProcess () {
-                return !['function', 'audit'].includes(this.routerType) && this.view_mode !== 'appmaker'
+                return this.routerType !== 'audit' && this.view_mode !== 'appmaker'
             },
             adminView () {
                 return this.hasAdminPerm && this.$route.query.is_admin === 'true'
@@ -831,7 +831,7 @@
                         errorIgnorable = nodeActivities.error_ignorable
                     }
 
-                    const data = { status: currentNode.state, code, skippable, retryable, skip: currentNode.skip, retry: currentNode.retry, error_ignorable: errorIgnorable }
+                    const data = { status: currentNode.state, code, skippable, retryable, skip: currentNode.skip, retry: currentNode.retry, error_ignorable: errorIgnorable, error_ignored: currentNode.error_ignored }
 
                     this.setTaskNodeStatus(id, data)
                 }
@@ -929,13 +929,20 @@
                         break
                 }
             },
-            getOrderedTree (data) {
+            getOrderedTree (data, level = 0) {
                 const startNode = tools.deepClone(data.start_event)
                 const fstLine = startNode.outgoing
-                const orderedData = []
-                const passedNodes = []
-                this.retrieveLines(data, fstLine, orderedData, passedNodes)
+                const orderedData = [Object.assign({}, startNode, {
+                    level,
+                    title: this.$t('开始节点'),
+                    name: this.$t('开始节点'),
+                    expanded: false
+                })]
+                this.retrieveLines(data, fstLine, orderedData, true)
                 orderedData.sort((a, b) => a.level - b.level)
+                const endEventIndex = orderedData.findIndex(item => item.type === 'EmptyEndEvent')
+                const endEvent = orderedData.splice(endEventIndex, 1)
+                orderedData.push(endEvent[0])
                 return orderedData
             },
             /**
@@ -943,51 +950,50 @@
              * @param {Object} data 画布数据
              * @param {Array} lineId 连线ID
              * @param {Array} ordered 排序后的节点数据
-             * @param {Array} passedNodes 遍历过的节点
              * @param {Number} level 任务节点与开始节点的距离
              *
              */
-            retrieveLines (data, lineId, ordered, passedNodes, level = 0) {
+            retrieveLines (data, lineId, ordered, level = 0) {
                 const { end_event, activities, gateways, flows } = data
                 const currentNode = flows[lineId].target
-                const endEvent = tools.deepClone(end_event[currentNode])
+                const endEvent = end_event.id === currentNode ? tools.deepClone(end_event) : undefined
                 const activity = tools.deepClone(activities[currentNode])
                 const gateway = tools.deepClone(gateways[currentNode])
                 const node = endEvent || activity || gateway
 
-                if (node && !passedNodes.includes(node.id)) {
-                    passedNodes.push(node.id)
+                if (node && ordered.findIndex(item => item.id === node.id) === -1) {
                     if (endEvent) {
                         const name = this.$t('结束节点')
-                        endEvent.level = level
                         endEvent.title = name
                         endEvent.name = name
                         endEvent.expanded = false
                         ordered.push(endEvent)
-                    } else if (activity) { // 任务节点
-                        const isExistInList = ordered.find(item => item.id === activity.id)
-                        if (!isExistInList) {
-                            if (activity.pipeline) {
-                                activity.children = this.getOrderedTree(activity.pipeline)
-                            }
-                            activity.level = level
-                            activity.title = activity.name
-                            activity.expanded = activity.pipeline
-                            ordered.push(activity)
-                        }
                     } else if (gateway) { // 网关节点
                         const name = NODE_DICT[gateway.type.toLowerCase()]
+                        level += 1
                         gateway.level = level
                         gateway.title = name
                         gateway.name = name
                         gateway.expanded = false
-                        level += 1
                         ordered.push(gateway)
+                    } else if (activity) { // 任务节点
+                        if (activity.pipeline) {
+                            activity.children = this.getOrderedTree(activity.pipeline, level)
+                        }
+                        activity.level = level
+                        activity.title = activity.name
+                        activity.expanded = activity.pipeline
+                        ordered.push(activity)
                     }
 
-                    const outgoing = Array.isArray(node.outgoing) ? node.outgoing : [node.outgoing]
-                    outgoing.forEach((line, index, arr) => {
-                        this.retrieveLines(data, line, ordered, passedNodes, level)
+                    let outgoing
+                    if (Array.isArray(node.outgoing)) {
+                        outgoing = node.outgoing
+                    } else {
+                        outgoing = node.outgoing ? [node.outgoing] : []
+                    }
+                    outgoing.forEach(line => {
+                        this.retrieveLines(data, line, ordered, level)
                     })
                 }
             },
@@ -1271,11 +1277,14 @@
                     case 'REVOKED':
                         nameSuffix = 'failed'
                         break
-                    default:
+                    case 'RUNNING':
+                    case 'READY':
+                    case 'SUSPENDED':
+                    case 'NODE_SUSPENDED':
                         nameSuffix = 'running'
                 }
                 const picName = nameSuffix ? `bk_sops_${nameSuffix}` : 'bk_sops'
-                const path = `${window.SITE_URL}/static/core/images/${picName}.png`
+                const path = `${window.SITE_URL}static/core/images/${picName}.png`
                 dom.setPageTabIcon(path)
             },
             // 下次画布组件更新后执行队列

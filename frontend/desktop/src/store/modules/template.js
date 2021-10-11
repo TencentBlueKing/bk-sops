@@ -39,7 +39,7 @@ const generateInitLocation = () => {
         {
             id: 'node' + uuid(),
             x: 240,
-            y: 145,
+            y: 140,
             name: '',
             stage_name: '',
             type: 'tasknode'
@@ -178,7 +178,7 @@ const template = {
             receiver_group: [],
             more_receiver: ''
         },
-        notify_type: [],
+        notify_type: { success: [], fail: [] },
         time_out: '',
         category: '',
         description: '',
@@ -188,7 +188,7 @@ const template = {
             details: [],
             subproc_has_update: false
         },
-        systemConstants: [],
+        internalVariable: [],
         default_flow_type: 'common'
     },
     mutations: {
@@ -221,7 +221,7 @@ const template = {
         setSubprocessUpdated (state, subflow) {
             state.subprocess_info.details.some((item) => {
                 if (subflow.subprocess_node_id === item.subprocess_node_id) {
-                    item.expired = false
+                    item.expired = subflow.expired
                     if (subflow.version) {
                         item.version = subflow.version
                     }
@@ -295,7 +295,7 @@ const template = {
             state.name = name
             state.template_id = template_id
             state.notify_receivers.receiver_group = receiver.receiver_group || []
-            state.notify_type = notify_type ? JSON.parse(notify_type) : []
+            state.notify_type = typeof notify_type === 'string' ? { success: JSON.parse(notify_type), fail: [] } : notify_type
             state.description = description
             state.executor_proxy = executor_proxy
             state.template_labels = template_labels || []
@@ -328,7 +328,7 @@ const template = {
             state.template_id = ''
             state.constants = {}
             state.category = 'Default'
-            state.notify_type = []
+            state.notify_type = { success: [], fail: [] }
             state.notify_receivers = {
                 receiver_group: [],
                 more_receiver: ''
@@ -352,7 +352,7 @@ const template = {
             state.template_id = ''
             state.constants = {}
             state.category = 'Default'
-            state.notify_type = []
+            state.notify_type = { success: [], fail: [] }
             state.notify_receivers = {
                 receiver_group: [],
                 more_receiver: ''
@@ -530,8 +530,8 @@ const template = {
                         Vue.set(gatewayNode.outgoing, len, id)
                         if (gatewayNode.type === ATOM_TYPE_DICT['branchgateway'] || gatewayNode.type === ATOM_TYPE_DICT['conditionalparallelgateway']) {
                             const { conditions } = gatewayNode
-                            let evaluate = Object.keys(conditions).length ? '1 == 0' : '1 == 1'
-                            let name = evaluate
+                            let evaluate
+                            let name
                             // copy 连线，需复制原来的分支条件信息
                             if (line.oldSouceId) {
                                 const sourceNodeId = state.flows[line.oldSouceId].source
@@ -540,7 +540,14 @@ const template = {
 
                                 evaluate = sourceCondition.evaluate || sourceCondition.name
                                 name = sourceCondition.name
+                            } else if (line.condition) { // 自动重连，保留原连线分支条件
+                                evaluate = line.condition.evaluate
+                                name = line.condition.name
+                            } else {
+                                evaluate = Object.keys(conditions).length ? '1 == 0' : '1 == 1'
+                                name = evaluate
                             }
+
                             const conditionItem = {
                                 evaluate,
                                 name,
@@ -565,6 +572,9 @@ const template = {
                         deletedLine = Object.assign({}, flow)
                     }
                 })
+                if (!deletedLine) {
+                    return
+                }
                 const sourceNode = state.flows[deletedLine.id].source
                 const targetNode = state.flows[deletedLine.id].target
 
@@ -794,7 +804,7 @@ const template = {
         },
         // 设置内置变量
         setInternalVariable (state, payload) {
-            state.systemConstants = payload
+            state.internalVariable = payload
         }
     },
     actions: {
@@ -856,11 +866,9 @@ const template = {
                     reject(info)
                 })
             }
-
             const { name } = state
             const pipelineTree = JSON.stringify(fullCanvasData)
             const notifyReceivers = JSON.stringify(notify_receivers)
-            const notifyType = JSON.stringify(notify_type)
             const timeout = time_out
             const headers = {}
             const project = SITE_URL + 'api/v3/project/' + projectId + '/'
@@ -885,9 +893,9 @@ const template = {
                 executor_proxy,
                 template_labels,
                 default_flow_type,
+                notify_type,
                 pipeline_tree: pipelineTree,
-                notify_receivers: notifyReceivers,
-                notify_type: notifyType
+                notify_receivers: notifyReceivers
             }, {
                 headers
             }).then(response => response.data)

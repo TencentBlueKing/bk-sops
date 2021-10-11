@@ -91,11 +91,7 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
     """
 
     host_list = cmdb.get_business_host(
-        executor,
-        bk_biz_id,
-        supplier_account,
-        ["bk_host_id", "bk_host_innerip"],
-        ip_list,
+        executor, bk_biz_id, supplier_account, ["bk_host_id", "bk_host_innerip"], ip_list,
     )
 
     if not host_list:
@@ -285,39 +281,14 @@ def cc_list_match_node_inst_id(executor, biz_cc_id, supplier_account, path_list)
     return {"result": True, "data": inst_id_list}
 
 
-def cc_batch_validated_business_level(executor, supplier_account, bk_obj_type, path_list):
-    """
-    业务层级校验
-    :param executor:
-    :param supplier_account:
-    :param bk_obj_type: 校验层级类型, enum
-    :param path_list: 路径列表
-        - example: [[a, b], [a, c]]
-    :return:
-        - 执行成功：{'result': True, 'message': 'success'}
-        - 执行失败：{'result': False, 'message': '错误信息'}
-    """
-
-    if bk_obj_type.name not in BkObjType.__members__:
-        return {"result": False, "message": _("该层级类型不存在：{}").format(bk_obj_type)}
-
-    client = get_client_by_user(executor)
-    kwargs = {"bk_supplier_account": supplier_account}
-    # 获取主线模型业务拓扑
-    get_mainline_object_topo_return = client.cc.get_mainline_object_topo(kwargs)
-    if not get_mainline_object_topo_return["result"]:
-        message = cc_handle_api_error("cc.get_mainline_object_topo", kwargs, get_mainline_object_topo_return)
-        return {"result": False, "message": message}
-    mainline = get_mainline_object_topo_return["data"]
-    obj_depth = len(mainline) - bk_obj_type.value
-    for path in path_list:
-        if len(path) == obj_depth:
-            continue
-        return {"result": False, "message": _("输入文本路径[{}]与业务拓扑层级不匹配").format(">".join(path))}
-    return {"result": True, "message": "success"}
-
-
-def cc_list_select_node_inst_id(executor, biz_cc_id, supplier_account, bk_obj_type, path_text):
+def cc_list_select_node_inst_id(
+    executor: str,
+    biz_cc_id: int,
+    supplier_account: str,
+    bk_obj_type: BkObjType,
+    path_text: str,
+    auto_complete_biz_name: str = None,
+):
     """
     获取选择节点的bk_inst_id
     :param executor:
@@ -333,14 +304,34 @@ def cc_list_select_node_inst_id(executor, biz_cc_id, supplier_account, bk_obj_ty
     path_list = cc_parse_path_text(path_text)
 
     # 对输入的文本路径进行业务层级校验
-    cc_batch_validated_business_level_return = cc_batch_validated_business_level(
-        executor, supplier_account, bk_obj_type, path_list
-    )
-    if not cc_batch_validated_business_level_return["result"]:
-        return {"result": False, "message": cc_batch_validated_business_level_return["message"]}
+    if bk_obj_type.name not in BkObjType.__members__:
+        return {"result": False, "message": _("该层级类型不存在：{}").format(bk_obj_type)}
+
+    client = get_client_by_user(executor)
+    kwargs = {"bk_supplier_account": supplier_account, "bk_biz_id": biz_cc_id}
+    # 获取主线模型业务拓扑
+    get_mainline_object_topo_return = client.cc.get_mainline_object_topo(kwargs)
+    if not get_mainline_object_topo_return["result"]:
+        message = cc_handle_api_error("cc.get_mainline_object_topo", kwargs, get_mainline_object_topo_return)
+        return {"result": False, "message": message}
+
+    clean_path_list = []
+    mainline = get_mainline_object_topo_return["data"]
+    obj_depth = len(mainline) - bk_obj_type.value
+    for path in path_list:
+        if len(path) == obj_depth:
+            clean_path_list.append(path)
+            continue
+        elif (len(path) == obj_depth - 1) and auto_complete_biz_name:
+            clean_path_list.append([auto_complete_biz_name, *path])
+            continue
+
+        return {"result": False, "message": _("输入文本路径[{}]与业务拓扑层级不匹配").format(">".join(path))}
 
     # 获取选中节点bk_inst_id列表
-    cc_list_match_node_inst_id_return = cc_list_match_node_inst_id(executor, biz_cc_id, supplier_account, path_list)
+    cc_list_match_node_inst_id_return = cc_list_match_node_inst_id(
+        executor, biz_cc_id, supplier_account, clean_path_list
+    )
     if not cc_list_match_node_inst_id_return["result"]:
         return {"result": False, "message": cc_list_match_node_inst_id_return["message"]}
     return {"result": True, "data": cc_list_match_node_inst_id_return["data"]}

@@ -10,9 +10,9 @@
 */
 <template>
     <div class="output-params">
-        <bk-table :data="list" :border="true">
+        <bk-table :data="list" :col-border="false" :row-class-name="getRowClassName">
             <bk-table-column :label="$t('名称')" :width="180" align="center" prop="name"></bk-table-column>
-            <bk-table-column :label="$t('说明')" align="center">
+            <bk-table-column :label="$t('说明')" align="center" show-overflow-tooltip>
                 <template slot-scope="props">
                     <span
                         v-if="props.row.description"
@@ -23,11 +23,12 @@
                 </template>
             </bk-table-column>
             <bk-table-column label="type" :width="90" align="center" prop="type"></bk-table-column>
-            <bk-table-column label="KEY" :width="180" align="center" prop="key"></bk-table-column>
+            <bk-table-column label="KEY" :width="180" align="center" prop="key" show-overflow-tooltip></bk-table-column>
             <bk-table-column :label="$t('引用')" :width="100" align="center">
                 <template slot-scope="props">
                     <bk-checkbox
                         v-model="props.row.hooked"
+                        :disabled="!hook"
                         @change="onHookChange(props, $event)">
                     </bk-checkbox>
                 </template>
@@ -71,6 +72,10 @@
         name: 'OutputParams',
         props: {
             params: Array,
+            hook: {
+                type: Boolean,
+                default: true
+            },
             constants: Object,
             isSubflow: Boolean,
             nodeId: String,
@@ -161,10 +166,14 @@
                         type: param.type || '--',
                         description: param.schema ? param.schema.description : '--',
                         version: param.version,
+                        status: param.status,
                         hooked: isHooked
                     })
                 })
                 return list
+            },
+            getRowClassName ({ row }) {
+                return row.status || ''
             },
             /**
              * 输出参数勾选切换
@@ -250,6 +259,16 @@
         .bk-form:not(.bk-form-vertical) {
             /deep/ .bk-form-content {
                 margin-right: 30px;
+            }
+        }
+    }
+    .bk-table {
+        /deep/ .bk-table-row {
+            &.deleted {
+                background: #fff5f4;
+            }
+            &.added {
+                background: rgba(220,255,226,0.30);
             }
         }
     }

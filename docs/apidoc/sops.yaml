@@ -359,3 +359,13 @@
   comp_codename: generic.v2.sops.sops_component
   dest_path: /o/bk_sops/apigw/get_functionalization_task_list/
   dest_http_method: GET
+
+- path: /v2/sops/create_and_start_task/
+  name: create_and_start_task
+  label: 创建并开始执行任务
+  label_en: Create and start task
+  method: POST
+  api_type: operate
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/create_and_start_task/
+  dest_http_method: POST

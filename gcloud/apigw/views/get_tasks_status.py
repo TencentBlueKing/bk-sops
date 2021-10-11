@@ -59,14 +59,17 @@ def get_tasks_status(request, project_id):
     data = []
     for task in tasks:
         dispatcher = TaskCommandDispatcher(
-            engine_ver=task.engine_ver, taskflow_id=task.id, pipeline_instance=task.pipeline_instance
+            engine_ver=task.engine_ver,
+            taskflow_id=task.id,
+            pipeline_instance=task.pipeline_instance,
+            project_id=project_id,
         )
         result = dispatcher.get_task_status()
         if not result["result"]:
             return result
 
         status = result["data"]
-        if not include_children_status:
+        if not include_children_status and "children" in status:
             status.pop("children")
 
         if "name" not in status:

@@ -24,7 +24,7 @@ from gcloud.apigw.views import create_task
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
-from .utils import APITest
+from .utils import APITest, TEST_USERNAME
 
 TEST_PROJECT_ID = "123"
 TEST_PROJECT_NAME = "biz name"
@@ -44,7 +44,8 @@ class CreateTaskAPITest(APITest):
 
     @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=TEST_DATA))
     @mock.patch(
-        TASKINSTANCE_CREATE, MagicMock(return_value=MockTaskFlowInstance(id=TEST_TASKFLOW_ID)),
+        TASKINSTANCE_CREATE,
+        MagicMock(return_value=MockTaskFlowInstance(id=TEST_TASKFLOW_ID)),
     )
     @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
     def test_create_task__success(self):
@@ -52,12 +53,16 @@ class CreateTaskAPITest(APITest):
 
         tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
         proj = MockProject(
-            project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+            project_id=TEST_PROJECT_ID,
+            name=TEST_PROJECT_NAME,
+            bk_biz_id=TEST_BIZ_CC_ID,
+            from_cmdb=True,
         )
 
         with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
             with mock.patch(
-                TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+                TASKTEMPLATE_SELECT_RELATE,
+                MagicMock(return_value=MockQuerySet(get_result=tmpl)),
             ):
                 assert_data = {
                     "task_id": TEST_TASKFLOW_ID,
@@ -70,16 +75,21 @@ class CreateTaskAPITest(APITest):
                         {
                             "name": "name",
                             "constants": {},
-                            "exclude_task_nodes_id": "exclude_task_nodes_id",
+                            "exclude_task_nodes_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                             "flow_type": "common",
                         }
                     ),
                     content_type="application/json",
                     HTTP_BK_APP_CODE=TEST_APP_CODE,
+                    HTTP_BK_USERNAME=TEST_USERNAME,
                 )
 
                 TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
-                    tmpl, {"name": "name", "creator": "", "description": ""}, {}, "exclude_task_nodes_id", []
+                    tmpl,
+                    {"name": "name", "creator": "", "description": ""},
+                    {},
+                    ["ne584c1e69f53d109f0d99eacc3bd670"],
+                    [],
                 )
 
                 TaskFlowInstance.objects.create.assert_called_once_with(
@@ -108,7 +118,8 @@ class CreateTaskAPITest(APITest):
             tmpl = MockCommonTemplate(id=1, pipeline_template=pt1)
 
             with mock.patch(
-                COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+                COMMONTEMPLATE_SELECT_RELATE,
+                MagicMock(return_value=MockQuerySet(get_result=tmpl)),
             ):
                 assert_data = {
                     "task_id": TEST_TASKFLOW_ID,
@@ -121,17 +132,22 @@ class CreateTaskAPITest(APITest):
                         {
                             "name": "name",
                             "constants": {},
-                            "exclude_task_nodes_id": "exclude_task_nodes_id",
+                            "exclude_task_nodes_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                             "template_source": "common",
                             "flow_type": "common",
                         }
                     ),
                     content_type="application/json",
                     HTTP_BK_APP_CODE=TEST_APP_CODE,
+                    HTTP_BK_USERNAME=TEST_USERNAME,
                 )
 
                 TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
-                    tmpl, {"name": "name", "creator": "", "description": ""}, {}, "exclude_task_nodes_id", []
+                    tmpl,
+                    {"name": "name", "creator": "", "description": ""},
+                    {},
+                    ["ne584c1e69f53d109f0d99eacc3bd670"],
+                    [],
                 )
 
                 TaskFlowInstance.objects.create.assert_called_once_with(
@@ -154,7 +170,8 @@ class CreateTaskAPITest(APITest):
 
     @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=TEST_DATA))
     @mock.patch(
-        TASKINSTANCE_CREATE, MagicMock(return_value=MockTaskFlowInstance(id=TEST_TASKFLOW_ID)),
+        TASKINSTANCE_CREATE,
+        MagicMock(return_value=MockTaskFlowInstance(id=TEST_TASKFLOW_ID)),
     )
     @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
     @mock.patch(APIGW_CREATE_TASK_NODE_NAME_HANDLE, MagicMock())
@@ -165,12 +182,16 @@ class CreateTaskAPITest(APITest):
 
         tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
         proj = MockProject(
-            project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+            project_id=TEST_PROJECT_ID,
+            name=TEST_PROJECT_NAME,
+            bk_biz_id=TEST_BIZ_CC_ID,
+            from_cmdb=True,
         )
 
         with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
             with mock.patch(
-                TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+                TASKTEMPLATE_SELECT_RELATE,
+                MagicMock(return_value=MockQuerySet(get_result=tmpl)),
             ):
                 assert_data = {
                     "task_id": TEST_TASKFLOW_ID,
@@ -189,6 +210,7 @@ class CreateTaskAPITest(APITest):
                     ),
                     content_type="application/json",
                     HTTP_BK_APP_CODE=TEST_APP_CODE,
+                    HTTP_BK_USERNAME=TEST_USERNAME,
                 )
 
                 TaskFlowInstance.objects.create_pipeline_instance.assert_called_once_with(
@@ -221,20 +243,32 @@ class CreateTaskAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
     @mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
     @mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
     @mock.patch(
-        APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock(side_effect=jsonschema.ValidationError("")),
+        APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE,
+        MagicMock(side_effect=jsonschema.ValidationError("")),
     )
     def test_create_task__validate_fail(self):
         response = self.client.post(
             path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
-            data=json.dumps({"name": "name", "constants": {}, "exclude_task_node_id": "exclude_task_node_id"}),
+            data=json.dumps(
+                {
+                    "name": "name",
+                    "constants": {},
+                    "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
+                }
+            ),
             content_type="application/json",
+            HTTP_BK_APP_CODE=TEST_APP_CODE,
+            HTTP_BK_USERNAME=TEST_USERNAME,
         )
 
         data = json.loads(response.content)
@@ -248,11 +282,13 @@ class CreateTaskAPITest(APITest):
                 {
                     "name": "name",
                     "constants": {},
-                    "exclude_task_node_id": "exclude_task_node_id",
+                    "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                     "template_source": "common",
                 }
             ),
             content_type="application/json",
+            HTTP_BK_APP_CODE=TEST_APP_CODE,
+            HTTP_BK_USERNAME=TEST_USERNAME,
         )
 
         data = json.loads(response.content)
@@ -264,7 +300,10 @@ class CreateTaskAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -275,8 +314,16 @@ class CreateTaskAPITest(APITest):
     def test_create_task__without_app_code(self):
         response = self.client.post(
             path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
-            data=json.dumps({"constants": {}, "name": "test", "exclude_task_node_id": "exclude_task_node_id"}),
+            data=json.dumps(
+                {
+                    "constants": {},
+                    "name": "test",
+                    "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
+                }
+            ),
             content_type="application/json",
+            HTTP_BK_APP_CODE=TEST_APP_CODE,
+            HTTP_BK_USERNAME=TEST_USERNAME,
         )
 
         data = json.loads(response.content)
@@ -290,11 +337,13 @@ class CreateTaskAPITest(APITest):
                 {
                     "constants": {},
                     "name": "test",
-                    "exclude_task_node_id": "exclude_task_node_id",
+                    "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                     "template_source": "common",
                 }
             ),
             content_type="application/json",
+            HTTP_BK_APP_CODE=TEST_APP_CODE,
+            HTTP_BK_USERNAME=TEST_USERNAME,
         )
 
         data = json.loads(response.content)
@@ -306,7 +355,10 @@ class CreateTaskAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -318,13 +370,21 @@ class CreateTaskAPITest(APITest):
         tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
 
         with mock.patch(
-            TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+            TASKTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             response = self.client.post(
                 path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
-                data=json.dumps({"name": "name", "constants": {}, "exclude_task_node_id": "exclude_task_node_id"}),
+                data=json.dumps(
+                    {
+                        "name": "name",
+                        "constants": {},
+                        "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
+                    }
+                ),
                 content_type="application/json",
                 HTTP_BK_APP_CODE=TEST_APP_CODE,
+                HTTP_BK_USERNAME=TEST_USERNAME,
             )
 
             data = json.loads(response.content)
@@ -337,7 +397,8 @@ class CreateTaskAPITest(APITest):
         tmpl = MockCommonTemplate(id=1, pipeline_template=pt1)
 
         with mock.patch(
-            COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+            COMMONTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             response = self.client.post(
                 path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
@@ -345,12 +406,13 @@ class CreateTaskAPITest(APITest):
                     {
                         "name": "name",
                         "constants": {},
-                        "exclude_task_node_id": "exclude_task_node_id",
+                        "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                         "template_source": "common",
                     }
                 ),
                 content_type="application/json",
                 HTTP_BK_APP_CODE=TEST_APP_CODE,
+                HTTP_BK_USERNAME=TEST_USERNAME,
             )
 
             data = json.loads(response.content)
@@ -362,7 +424,10 @@ class CreateTaskAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -374,13 +439,15 @@ class CreateTaskAPITest(APITest):
         tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
 
         with mock.patch(
-            TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+            TASKTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             response = self.client.post(
                 path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
                 data=json.dumps({"name": "name", "constants": {}, "exclude_task_node_id": "exclude_task_node_id"}),
                 content_type="application/json",
                 HTTP_BK_APP_CODE=TEST_APP_CODE,
+                HTTP_BK_USERNAME=TEST_USERNAME,
             )
 
             data = json.loads(response.content)
@@ -393,7 +460,8 @@ class CreateTaskAPITest(APITest):
         tmpl = MockCommonTemplate(id=1, pipeline_template=pt1)
 
         with mock.patch(
-            COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+            COMMONTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             response = self.client.post(
                 path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
@@ -401,12 +469,13 @@ class CreateTaskAPITest(APITest):
                     {
                         "name": "name",
                         "constants": {},
-                        "exclude_task_node_id": "exclude_task_node_id",
+                        "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                         "template_source": "common",
                     }
                 ),
                 content_type="application/json",
                 HTTP_BK_APP_CODE=TEST_APP_CODE,
+                HTTP_BK_USERNAME=TEST_USERNAME,
             )
 
             data = json.loads(response.content)
@@ -418,7 +487,10 @@ class CreateTaskAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -431,7 +503,8 @@ class CreateTaskAPITest(APITest):
         tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
 
         with mock.patch(
-            TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+            TASKTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             response = self.client.post(
                 path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
@@ -439,11 +512,12 @@ class CreateTaskAPITest(APITest):
                     {
                         "name": "name",
                         "pipeline_tree": TEST_PIPELINE_TREE,
-                        "exclude_task_node_id": "exclude_task_node_id",
+                        "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                     }
                 ),
                 content_type="application/json",
                 HTTP_BK_APP_CODE=TEST_APP_CODE,
+                HTTP_BK_USERNAME=TEST_USERNAME,
             )
 
             data = json.loads(response.content)
@@ -462,7 +536,8 @@ class CreateTaskAPITest(APITest):
         tmpl = MockCommonTemplate(id=1, pipeline_template=pt1)
 
         with mock.patch(
-            COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+            COMMONTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             response = self.client.post(
                 path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
@@ -470,12 +545,13 @@ class CreateTaskAPITest(APITest):
                     {
                         "name": "name",
                         "pipeline_tree": TEST_PIPELINE_TREE,
-                        "exclude_task_node_id": "exclude_task_node_id",
+                        "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                         "template_source": "common",
                     }
                 ),
                 content_type="application/json",
                 HTTP_BK_APP_CODE=TEST_APP_CODE,
+                HTTP_BK_USERNAME=TEST_USERNAME,
             )
 
             data = json.loads(response.content)
@@ -491,7 +567,10 @@ class CreateTaskAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -499,7 +578,8 @@ class CreateTaskAPITest(APITest):
     @mock.patch(APIGW_CREATE_TASK_NODE_NAME_HANDLE, MagicMock())
     @mock.patch(APIGW_CREATE_TASK_VALIDATE_WEB_PIPELINE_TREE, MagicMock())
     @mock.patch(
-        TASKINSTANCE_CREATE_PIPELINE_INSTANCE, MagicMock(side_effect=PipelineException()),
+        TASKINSTANCE_CREATE_PIPELINE_INSTANCE,
+        MagicMock(side_effect=PipelineException()),
     )
     def test_create_task__create_pipeline_instance_error(self):
         pt1 = MockPipelineTemplate(id=1, name="pt1")
@@ -507,7 +587,8 @@ class CreateTaskAPITest(APITest):
         tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
 
         with mock.patch(
-            TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+            TASKTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             response = self.client.post(
                 path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
@@ -515,11 +596,12 @@ class CreateTaskAPITest(APITest):
                     {
                         "name": "name",
                         "pipeline_tree": TEST_PIPELINE_TREE,
-                        "exclude_task_node_id": "exclude_task_node_id",
+                        "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                     }
                 ),
                 content_type="application/json",
                 HTTP_BK_APP_CODE=TEST_APP_CODE,
+                HTTP_BK_USERNAME=TEST_USERNAME,
             )
 
             data = json.loads(response.content)
@@ -529,7 +611,11 @@ class CreateTaskAPITest(APITest):
             self.assertEqual(data["code"], err_code.UNKNOWN_ERROR.code)
 
             TaskFlowInstance.objects.create_pipeline_instance.assert_called_once_with(
-                template=tmpl, name="name", creator="", description="", pipeline_tree=TEST_PIPELINE_TREE,
+                template=tmpl,
+                name="name",
+                creator="",
+                description="",
+                pipeline_tree=TEST_PIPELINE_TREE,
             )
             TaskFlowInstance.objects.create_pipeline_instance.reset_mock()
 
@@ -538,7 +624,8 @@ class CreateTaskAPITest(APITest):
         tmpl = MockCommonTemplate(id=1, pipeline_template=pt1)
 
         with mock.patch(
-            COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+            COMMONTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             response = self.client.post(
                 path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
@@ -546,12 +633,13 @@ class CreateTaskAPITest(APITest):
                     {
                         "name": "name",
                         "pipeline_tree": TEST_PIPELINE_TREE,
-                        "exclude_task_node_id": "exclude_task_node_id",
+                        "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
                         "template_source": "common",
                     }
                 ),
                 content_type="application/json",
                 HTTP_BK_APP_CODE=TEST_APP_CODE,
+                HTTP_BK_USERNAME=TEST_USERNAME,
             )
 
             data = json.loads(response.content)
@@ -561,5 +649,104 @@ class CreateTaskAPITest(APITest):
             self.assertEqual(data["code"], err_code.UNKNOWN_ERROR.code)
 
             TaskFlowInstance.objects.create_pipeline_instance.assert_called_once_with(
-                template=tmpl, name="name", creator="", description="", pipeline_tree=TEST_PIPELINE_TREE,
+                template=tmpl,
+                name="name",
+                creator="",
+                description="",
+                pipeline_tree=TEST_PIPELINE_TREE,
+            )
+
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
+    @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
+    @mock.patch(APIGW_CREATE_TASK_NODE_NAME_HANDLE, MagicMock())
+    @mock.patch(APIGW_CREATE_TASK_VALIDATE_WEB_PIPELINE_TREE, MagicMock())
+    @mock.patch(
+        TASKINSTANCE_CREATE_PIPELINE_INSTANCE,
+        MagicMock(side_effect=PipelineException()),
+    )
+    def test_create_task_success_with_execute_task_nodes(self):
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
+
+        tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
+
+        with mock.patch(
+            TASKTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+        ):
+            response = self.client.post(
+                path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
+                data=json.dumps(
+                    {
+                        "name": "name",
+                        "pipeline_tree": TEST_PIPELINE_TREE,
+                        "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
+                        "execute_task_nodes_id": ["node8c2af510c04b898e1f9ac8296296"],
+                    }
+                ),
+                content_type="application/json",
+                HTTP_BK_APP_CODE=TEST_APP_CODE,
+                HTTP_BK_USERNAME=TEST_USERNAME,
+            )
+
+            data = json.loads(response.content)
+
+            self.assertFalse(data["result"])
+            self.assertTrue("message" in data)
+            self.assertEqual(data["code"], err_code.UNKNOWN_ERROR.code)
+
+            TaskFlowInstance.objects.create_pipeline_instance.assert_called_once_with(
+                template=tmpl,
+                name="name",
+                creator="",
+                description="",
+                pipeline_tree=TEST_PIPELINE_TREE,
+            )
+            TaskFlowInstance.objects.create_pipeline_instance.reset_mock()
+
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
+
+        tmpl = MockCommonTemplate(id=1, pipeline_template=pt1)
+
+        with mock.patch(
+            COMMONTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+        ):
+            response = self.client.post(
+                path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
+                data=json.dumps(
+                    {
+                        "name": "name",
+                        "pipeline_tree": TEST_PIPELINE_TREE,
+                        "exclude_task_node_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
+                        "template_source": "common",
+                        "execute_task_nodes_id": ["node8c2af510c04b898e1f9ac8296296"],
+                    }
+                ),
+                content_type="application/json",
+                HTTP_BK_APP_CODE=TEST_APP_CODE,
+                HTTP_BK_USERNAME=TEST_USERNAME,
+            )
+
+            data = json.loads(response.content)
+
+            self.assertFalse(data["result"])
+            self.assertTrue("message" in data)
+            self.assertEqual(data["code"], err_code.UNKNOWN_ERROR.code)
+
+            TaskFlowInstance.objects.create_pipeline_instance.assert_called_once_with(
+                template=tmpl,
+                name="name",
+                creator="",
+                description="",
+                pipeline_tree=TEST_PIPELINE_TREE,
             )

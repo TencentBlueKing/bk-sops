@@ -112,7 +112,7 @@
                             type: "primary",
                             title: gettext('添加'),
                             size: "normal",
-                            margin:"50px",
+                            margin: "50px",
                             cols: 1,
                             formViewHidden: true
                         },
@@ -129,19 +129,20 @@
                                     let local_files = local_files_obj._get_value();
                                     let job_target_path = job_target_path_obj._get_value();
 
-                                    if(local_files.length === 0){
+                                    if (local_files.length === 0) {
                                         alert(gettext("请上传文件"))
                                         return
                                     }
-                                    if(job_target_path === ""){
+                                    if (job_target_path === "") {
                                         alert(gettext("请填写目标路径"))
                                         return
                                     }
 
                                     let show_name = "";
                                     $.each(local_files, function (i, v) {
-                                        show_name += v.name + ";"
+                                        show_name += v.name + "\n"
                                     })
+                                    show_name = show_name.slice(0, show_name.length - 1)
 
                                     table_obj._get_value().push({
                                         "show_file": show_name,
@@ -152,8 +153,6 @@
 
                                     //reset info tag
                                     local_files_obj._set_value([])
-                                    job_target_path_obj._set_value("")
-
                                 }
                             },
                         ]
@@ -175,7 +174,7 @@
                             columns: [
                                 {
                                     tag_code: "show_file",
-                                    type: "text",
+                                    type: "textarea",
                                     attrs: {
                                         name: gettext("文件信息")
                                     }
@@ -250,6 +249,14 @@
                 ]
             }
         },
-
+        {
+            tag_code: "job_timeout",
+            type: "input",
+            attrs: {
+                name: gettext("超时时间"),
+                placeholder: gettext("单位为秒，为空时使用JOB默认值"),
+                hookable: true,
+            }
+        },
     ]
 })();
