@@ -21,6 +21,8 @@ from . import res_factory
 from .conf import IAMMeta
 from .shortcuts import get_iam_client
 
+iam = get_iam_client()
+
 
 def get_user_projects(username):
     subject = Subject("user", username)
