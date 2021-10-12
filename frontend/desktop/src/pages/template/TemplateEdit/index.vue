@@ -1070,27 +1070,6 @@
                 }
                 const location = this.locations.find(item => item.id === id)
                 if (['tasknode', 'subflow'].includes(location.type)) {
-                    // 设置第三发插件缓存
-                    const nodeConfig = this.$store.state.template.activities[id]
-                    if (nodeConfig.component
-                        && nodeConfig.component.code === 'remote_plugin'
-                        && !this.thirdPartyList[id]) {
-                        const resp = await this.loadPluginServiceMeta({ plugin_code: nodeConfig.component.data.plugin_code.value })
-                        const { code, versions, description } = resp.data
-                        const versionList = versions.map(version => {
-                            return { version }
-                        })
-                        const { data } = nodeConfig.component
-                        let version = data && data.plugin_version
-                        version = version && version.value
-                        const group = {
-                            code,
-                            list: versionList,
-                            version,
-                            desc: description
-                        }
-                        this.thirdPartyList[id] = group
-                    }
                     this.showConfigPanel(id)
                 }
             },
