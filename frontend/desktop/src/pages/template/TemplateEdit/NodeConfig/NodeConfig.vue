@@ -622,7 +622,8 @@
                         this.outputs = [...storeOutputs, ...outputs]
                         // 获取host
                         const { host } = window.location
-                        $.context.bk_plugin_api_host[plugin] = app.urls.find(item => item.includes(host))
+                        const hostUrl = app.urls.find(item => item.includes(host)) || app.url
+                        $.context.bk_plugin_api_host[plugin] = hostUrl + '/'
                         // 输入参数
                         $.atoms[plugin] = {}
                         const renderFrom = forms.renderform
