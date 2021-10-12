@@ -41,7 +41,8 @@ from .base import EngineCommandDispatcher, ensure_return_is_dict
 
 logger = logging.getLogger("root")
 
-domain = "https://not_exist.woa.com"
+domain1 = "https://not-exist.woa.com"
+domain2 = "https://notexist.woa.com"
 
 class NodeCommandDispatcher(EngineCommandDispatcher):
     NODE_COMMANDS = {
