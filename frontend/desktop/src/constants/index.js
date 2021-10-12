@@ -156,6 +156,12 @@ const COLOR_BLOCK_LIST = [
         code: 5,
         text: '移动端',
         color: '#ff6f72'
+    },
+    {
+        value: 'clocked',
+        code: 6,
+        text: '计划任务',
+        color: '#b568ff'
     }
 ]
 
