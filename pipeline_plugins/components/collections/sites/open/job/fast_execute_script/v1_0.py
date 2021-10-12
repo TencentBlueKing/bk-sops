@@ -119,10 +119,7 @@ class JobFastExecuteScriptService(JobService):
                 schema=StringItemSchema(description=_("执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"),
-                key="job_account",
-                type="string",
-                schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
+                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
             ),
             self.InputItem(
                 name=_("IP 存在性校验"),
@@ -167,7 +164,7 @@ class JobFastExecuteScriptService(JobService):
         across_biz = data.get_one_of_inputs("job_across_biz", False)
         original_ip_list = data.get_one_of_inputs("job_ip_list")
         ip_is_exist = data.get_one_of_inputs("ip_is_exist")
-        custom_task_name = data.get_one_of_inputs("custom_task_name")
+        custom_task_name = data.get_one_of_inputs("custom_task_name", "")
 
         # 获取 IP
         clean_result, ip_list = get_biz_ip_from_frontend(
