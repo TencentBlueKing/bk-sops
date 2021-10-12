@@ -201,7 +201,8 @@
                     const { app, forms } = resp.data
                     // 设置host
                     const { host } = window.location
-                    $.context.bk_plugin_api_host[code] = app.urls.find(item => item.includes(host))
+                    const hostUrl = app.urls.find(item => item.includes(host)) || app.url
+                    $.context.bk_plugin_api_host[code] = hostUrl + '/'
                     // 输入参数
                     $.atoms[code] = {}
                     const renderFrom = forms.renderform

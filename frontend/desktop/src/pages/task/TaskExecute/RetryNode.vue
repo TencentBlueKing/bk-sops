@@ -123,7 +123,8 @@
                             
                             // 设置host
                             const { host } = window.location
-                            $.context.bk_plugin_api_host[pluginCode] = app.urls.find(item => item.includes(host))
+                            const hostUrl = app.urls.find(item => item.includes(host)) || app.url
+                            $.context.bk_plugin_api_host[pluginCode] = hostUrl + '/'
                             // 输入参数
                             const renderFrom = forms.renderform
                             /* eslint-disable-next-line */
