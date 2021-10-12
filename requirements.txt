@@ -28,17 +28,18 @@ pyinstrument==3.1.3
 djangorestframework==3.11.2
 django-filter==2.4.0
 prometheus-client==0.9.0
-bamboo-pipeline==3.6.3
+bamboo-pipeline==3.7.3
 drf-yasg==1.20.0
 typing-extensions==3.7.4.3
 six==1.15.0
 pyyaml==5.4.1
 bkstorages==1.0.1
+ujson==4.1.0
 
 # monitor
 django-prometheus==2.1.0
 celery-prometheus-exporter==1.7.0
-bk-monitor-report==1.0.2
+bk-monitor-report==1.0.4
 
 # version log
 mistune==0.8.4
@@ -48,7 +49,7 @@ bk-iam==1.1.14
 
 # celery 4
 celery==4.4.0
-django-celery-beat==2.0.0
+django-celery-beat==2.1.0
 django-celery-results==1.2.1
 redis==3.2.0
 redis-py-cluster==2.1.0

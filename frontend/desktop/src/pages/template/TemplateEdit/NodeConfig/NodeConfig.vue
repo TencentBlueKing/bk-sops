@@ -103,11 +103,13 @@
                 <!-- 插件/子流程选择面板 -->
                 <selector-panel
                     v-if="isSelectorPanelShow"
+                    :project_id="project_id"
                     :template-labels="templateLabels"
                     :is-subflow="isSubflow"
                     :atom-type-list="atomTypeList"
                     :basic-info="basicInfo"
                     :common="common"
+                    :is-third-party="isThirdParty"
                     :sublist-loading="subAtomListLoading"
                     @updatePluginList="updatePluginList"
                     @back="isSelectorPanelShow = false"
@@ -163,7 +165,7 @@
                                                 :value="inputsParamValue"
                                                 :is-subflow="isSubflow"
                                                 :constants="localConstants"
-                                                :third-party-code="isThirdParty ? basicInfo.nodeName : ''"
+                                                :third-party-code="isThirdParty ? basicInfo.plugin : ''"
                                                 @hookChange="onHookChange"
                                                 @update="updateInputsValue">
                                             </input-params>
@@ -502,11 +504,11 @@
              * 加载标准插件节点输入参数表单配置项，获取输出参数列表
              */
             async getPluginDetail () {
-                const { plugin, version, nodeName } = this.basicInfo
+                const { plugin, version } = this.basicInfo
                 this.pluginLoading = true
                 try {
                     // 获取输入输出参数
-                    this.inputs = await this.getAtomConfig(this.isThirdParty ? nodeName : plugin, version)
+                    this.inputs = await this.getAtomConfig(plugin, version)
                     if (!this.isThirdParty) {
                         this.outputs = this.atomGroup.list.find(item => item.version === version).output
                     }
@@ -659,17 +661,20 @@
                         retryable, isSkipped, skippable, optional
                     } = config
                     let basicInfoName = i18n.t('请选择插件')
+                    let code = ''
                     let desc = ''
                     let version = ''
                     // 节点已选择标准插件
                     if (component.code) {
                         if (component.code === 'remote_plugin') {
                             const atom = this.$parent.thirdPartyList[this.nodeId]
-                            basicInfoName = component.code
+                            code = component.data.plugin_code.value
+                            basicInfoName = this.atomTypeList.pluginList.find(item => item.code === code).name
                             version = atom.version
                             desc = atom.desc
                         } else {
                             const atom = this.atomList.find(item => item.code === component.code)
+                            code = component.code
                             basicInfoName = `${atom.group_name}-${atom.name}`
                             version = component.hasOwnProperty('version') ? component.version : 'legacy'
                             // 获取不同版本的描述
@@ -682,7 +687,7 @@
                     }
 
                     return {
-                        plugin: component.code || '',
+                        plugin: code,
                         name: basicInfoName, // 插件名称
                         nodeName: name, // 节点名称
                         stageName: stage_name,
@@ -841,7 +846,7 @@
                 const config = {
                     plugin: code,
                     version: list[list.length - 1].version,
-                    name: this.isThirdParty ? code : `${group_name}-${name}`,
+                    name: this.isThirdParty ? name : `${group_name}-${name}`,
                     nodeName: name,
                     stageName: '',
                     nodeLabel: [],
@@ -1141,7 +1146,7 @@
                     if (this.isThirdParty) {
                         data['plugin_code'] = {
                             hook: false,
-                            value: nodeName
+                            value: plugin
                         }
                         data['plugin_version'] = {
                             hook: false,

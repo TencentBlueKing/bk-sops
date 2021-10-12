@@ -169,7 +169,7 @@
         <div v-show="curPluginTab === 'third_praty_plugin'" class="third-praty-list">
             <ul>
                 <li
-                    :class="['plugin-item', { 'is-actived': plugin.code === basicInfo.nodeName }]"
+                    :class="['plugin-item', { 'is-actived': plugin.code === basicInfo.plugin }]"
                     v-for="(plugin, index) in atomTypeList.pluginList"
                     :key="index"
                     @click="onThirdPratyClick(plugin)">
@@ -199,16 +199,18 @@
         },
         mixins: [permission],
         props: {
+            project_id: [String, Number],
             sublistLoading: Boolean,
             templateLabels: Array, // 模板标签
             atomTypeList: Object,
             isSubflow: Boolean,
             basicInfo: Object,
+            isThirdParty: Boolean,
             common: [String, Number]
         },
         data () {
             const listData = this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
-            const curPluginTab = this.basicInfo.plugin === 'remote_plugin' ? 'third_praty_plugin' : 'build_in_plugin'
+            const curPluginTab = this.isThirdParty ? 'third_praty_plugin' : 'build_in_plugin'
             return {
                 curPluginTab,
                 listData,
@@ -371,6 +373,11 @@
                         const data = {
                             pipeline_template__name__icontains: this.searchStr || undefined
                         }
+                        if (this.common) {
+                            data.common = 1
+                        } else {
+                            data.project__id = this.project_id
+                        }
                         const resp = await this.loadTemplateList(data)
                         this.handleSubflowList(resp).forEach(tpl => {
                             let matchLabel = true
@@ -430,14 +437,14 @@
             async onThirdPratyClick (plugin) {
                 try {
                     const resp = await this.loadPluginServiceMeta({ plugin_code: plugin.code })
-                    const appDeatil = await this.loadPluginServiceAppDetail({ plugin_code: plugin.code })
+                    const appDetail = await this.loadPluginServiceAppDetail({ plugin_code: plugin.code })
                     const { code, versions, description } = resp.data
                     const versionList = versions.map(version => {
                         return { version }
                     })
                     const group = {
-                        name: code,
-                        code: appDeatil.data.name,
+                        code,
+                        name: appDetail.data.name,
                         list: versionList,
                         desc: description,
                         id: 'remote_plugin'

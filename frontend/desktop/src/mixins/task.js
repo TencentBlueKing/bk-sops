@@ -4,7 +4,7 @@ import i18n from '@/config/i18n/index.js'
 const task = {
     methods: {
         ...mapActions('task/', [
-            'getInstanceStatus'
+            'getTaskStatus'
         ]),
         /**
          * getExecuteStatus
@@ -41,7 +41,7 @@ const task = {
                 project_id: item.project.id
             }
             try {
-                const detailInfo = await this.getInstanceStatus(data)
+                const detailInfo = await this.getTaskStatus(data)
                 if (detailInfo.result) {
                     const { state } = detailInfo.data
                     const status = {}

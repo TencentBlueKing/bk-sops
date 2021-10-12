@@ -15,7 +15,7 @@ from django.conf import settings
 from iam.contrib.django.dispatcher import DjangoBasicResourceApiDispatcher
 
 from gcloud.iam_auth import get_iam_client
-
+from .clocked_task import ClockedTaskResourceProvider
 from .common_flow import CommonFlowResourceProvider
 from .flow import FlowResourceProvider
 from .mini_app import MiniAppResourceProvider
@@ -30,3 +30,4 @@ dispatcher.register("task", TaskResourceProvider())
 dispatcher.register("common_flow", CommonFlowResourceProvider())
 dispatcher.register("mini_app", MiniAppResourceProvider())
 dispatcher.register("periodic_task", PeriodicTaskResourceProvider())
+dispatcher.register("clocked_task", ClockedTaskResourceProvider())

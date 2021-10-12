@@ -18,6 +18,7 @@ from django.test import TestCase
 from django.db.models import signals
 from django.conf import settings
 
+from gcloud.utils.strings import django_celery_beat_cron_time_format_fit
 from pipeline.models import PipelineTemplate, Snapshot
 from pipeline.utils.uniqid import uniqid
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
@@ -199,7 +200,7 @@ class PeriodicTaskTestCase(TestCase):
         self.assertEqual(self.task.name, self.task.task.name)
 
     def test_cron(self):
-        self.assertEqual(self.task.cron, self.task.task.cron)
+        self.assertEqual(self.task.cron, django_celery_beat_cron_time_format_fit(self.task.task.cron))
 
     def test_total_run_count(self):
         self.assertEqual(self.task.total_run_count, self.task.task.total_run_count)

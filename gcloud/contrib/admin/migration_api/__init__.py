@@ -15,3 +15,4 @@ from .app_maker import migrate_app_maker  # noqa
 from .resource_config import register_resource_config  # noqa
 from .staff_group import migrate_staff_group  # noqa
 from .template_category import migrate_template_category  # noqa
+from .fix_task_engine_ver import fix_engine_version_zero_task  # noqa

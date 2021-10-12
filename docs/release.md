@@ -1,5 +1,63 @@
 # Release
 
+## 3.8.0
+
+- feature
+  - 新增计划任务功能
+  - 新增 engien version fix API
+- bugfix
+  - 修复 operate_task 能够操作未启动的任务的问题
+  - 修复 V1 版本引擎获取非当前迭代节点历史记录时间不正确的问题
+
+## 3.7.15
+
+- bugfix
+  - 第三方插件第二次重选没有定位到具体插件问题修复
+- improvement
+  - 周期任务策略字段显示适配新版django_celery_beat返回格式
+
+## 3.7.14
+
+- feature
+  - bk-monitor-report 升级到 1.0.4
+
+## 3.7.13
+
+- bugfix:
+  - 修复第三方插件plugin_code取值不正确问题
+
+## 3.7.12
+
+- bugfix
+  - 修复 operate_task 能够操作未启动的任务的问题
+  - 修复 V1 版本引擎获取非当前迭代节点历史记录时间不正确的问题
+  - 修复流程执行方案对单个方案对象权限校验获取流程ID的问题
+- feature
+  - 新增 engien version fix API
+
+## 3.7.11
+
+- feature
+  - bamboo-pipeline bump to 3.7.3
+
+## 3.7.10
+
+- bugfix
+  - 修复第三方插件任务重试无响应的问题
+  - 修复第三方插件无法保留对应插件版本与参数的问题
+  - 修复公共流程批量操作无法导入导出提示无权限的问题
+
+## 3.7.9
+
+- bugfix
+  - 修复 operate_node API 不修改参数重试 engine v2 失败节点时节点数据会被清空的问题
+  - api，周期任务 celery worker pool 替换为 threads 类型
+
+## 3.7.8
+
+- bugfix
+  - 修复 get_task_node_detail API 未传入 project_id 导致 500 的问题
+
 ## 3.7.7
 
 - bugfix
@@ -171,30 +229,6 @@
   - renderform表单正则校验默认通过${xxx}格式类型值
 - bugfix
   - 修复create_task接口创建未传元变量参数时对应参数默认值获取失败问题
-
-## 3.6.4204
-
-- feature
-  - 分发本地文件插件文件源账户支持通过 BKAPP_FILE_MGR_SOURCE_ACCOUNT 环境变量进行配置
-
-## 3.6.4203
-
-- bugfix
-  - 修复create_task接口创建未传元变量参数时对应参数默认值获取失败问题
-
-## 3.6.4202
-
-- bugfix
-  - 修复因为 local storage 数据导致模板列表页面打不开的问题
-
-## 3.6.4201
-
-- feature
-  - 分发本地文件文件 2.0 信息分隔符修改和添加删除按钮
-- bugfix
-  - 修复创建集群插件设计容量字段为int校验不通过问题
-  - 修复导入模板和执行方案时执行方案内节点 ID 未替换的问题
-  - JOB.get_job_instance_global_var_value 返回值为 None 兼容
 
 ## 3.6.42
 
