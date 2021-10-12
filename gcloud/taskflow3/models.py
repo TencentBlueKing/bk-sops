@@ -382,7 +382,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         instance_id_list = taskflow_statistics_data.values_list("instance_id", flat=True)
         project_id_list = taskflow_statistics_data.values_list("project_id", flat=True)
         instance_dict = dict(PipelineInstance.objects.filter(id__in=instance_id_list).values_list("id", "name"))
-        project_dict = dict(PipelineInstance.objects.filter(id__in=project_id_list).values_list("id", "name"))
+        project_dict = dict(Project.objects.filter(id__in=project_id_list).values_list("id", "name"))
 
         data_list = taskflow_statistics_data.values(
             "instance_id",

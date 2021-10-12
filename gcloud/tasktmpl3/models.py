@@ -96,16 +96,19 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         # 获得所有类型的dict列表
         category_dict = dict(TASK_CATEGORY)
 
+        tasktmpl_id_list = tasktmpl.values_list("id", flat=True)
         # 获取标准插件code
         component_code = filters.get("component_code")
         version = filters.get("version")
         # 获取到组件code对应的template_id_list
         if component_code:
             template_node_template_data = TemplateNodeStatistics.objects.filter(
-                component_code=component_code, version=version
+                task_template_id__in=tasktmpl_id_list, component_code=component_code, version=version
             )
         else:
-            template_node_template_data = TemplateNodeStatistics.objects.all()
+            template_node_template_data = TemplateNodeStatistics.objects.filter(
+                task_template_id__in=tasktmpl_id_list,
+            )
         total = template_node_template_data.count()
         atom_template_data = template_node_template_data.values(
             "template_id",
