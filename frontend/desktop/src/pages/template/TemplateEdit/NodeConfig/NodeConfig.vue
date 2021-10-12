@@ -134,21 +134,24 @@
                                 <!-- 基础信息 -->
                                 <section class="config-section">
                                     <h3>{{$t('基础信息')}}</h3>
-                                    <basic-info
-                                        ref="basicInfo"
-                                        v-bkloading="{ isLoading: isBaseInfoLoading }"
-                                        :basic-info="basicInfo"
-                                        :node-config="nodeConfig"
-                                        :version-list="versionList"
-                                        :is-subflow="isSubflow"
-                                        :input-loading="inputLoading"
-                                        :common="common"
-                                        @openSelectorPanel="isSelectorPanelShow = true"
-                                        @versionChange="versionChange"
-                                        @viewSubflow="onViewSubflow"
-                                        @updateSubflowVersion="updateSubflowVersion"
-                                        @update="updateBasicInfo">
-                                    </basic-info>
+                                    <div class="basic-info-wrapper" v-bkloading="{ isLoading: isBaseInfoLoading }">
+                                        <template v-if="!isBaseInfoLoading">
+                                            <basic-info
+                                                ref="basicInfo"
+                                                :basic-info="basicInfo"
+                                                :node-config="nodeConfig"
+                                                :version-list="versionList"
+                                                :is-subflow="isSubflow"
+                                                :input-loading="inputLoading"
+                                                :common="common"
+                                                @openSelectorPanel="isSelectorPanelShow = true"
+                                                @versionChange="versionChange"
+                                                @viewSubflow="onViewSubflow"
+                                                @updateSubflowVersion="updateSubflowVersion"
+                                                @update="updateBasicInfo">
+                                            </basic-info>
+                                        </template>
+                                    </div>
                                 </section>
                                 <!-- 输入参数 -->
                                 <section class="config-section">
@@ -266,7 +269,7 @@
                 subflowVersionUpdating: false, // 子流程更新
                 isConfirmDialogShow: false, // 确认是否保存编辑数据
                 nodeConfig: {}, // 任务节点的完整 activity 配置参数
-                isBaseInfoLoading: false, // 基础信息loading
+                isBaseInfoLoading: true, // 基础信息loading
                 basicInfo: {}, // 基础信息模块
                 versionList: [], // 标准插件版本
                 inputs: [], // 输入参数表单配置项
@@ -429,12 +432,13 @@
                 const nodeConfig = this.$store.state.template.activities[this.nodeId]
                 const isThirdParty = nodeConfig.component && nodeConfig.component.code === 'remote_plugin'
                 if (nodeConfig.type === 'ServiceActivity') {
-                    this.isBaseInfoLoading = true
                     await this.setThirdPartyList(nodeConfig)
                     this.basicInfo = this.getNodeBasic(nodeConfig)
+                    this.$nextTick(() => {
+                        this.isBaseInfoLoading = false
+                    })
                 } else {
                     this.isSelectorPanelShow = !nodeConfig.template_id
-                    this.isBaseInfoLoading = true
                     await this.getSubflowList()
                 }
                 const basicInfo = this.basicInfo
@@ -528,7 +532,6 @@
                     }
                 } catch (error) {
                     console.warn(error)
-                } finally {
                     this.isBaseInfoLoading = false
                 }
             },
@@ -1453,6 +1456,9 @@
             line-height: 1;
             color: #313238;
             border-bottom: 1px solid #cacecb;
+        }
+        .basic-info-wrapper {
+            min-height: 250px;
         }
         .inputs-wrapper,
         .outputs-wrapper {
