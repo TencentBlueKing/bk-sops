@@ -32,23 +32,31 @@ BK_PAAS_DESKTOP_HOST = os.getenv(
 
 # V3 Smart
 BKPAAS_SERVICE_ADDRESSES_BKSAAS = os.getenv("BKPAAS_SERVICE_ADDRESSES_BKSAAS")
+BKSAAS_DEFAULT_MODULE_NAME = "default"
+SOPS_DEFAULT_MODULE_NAME = "default"
+SOPS_CALLBACK_MODULE_NAME = "callback"
 BK_SAAS_HOSTS_DICT = (
     json.loads(base64.b64decode(BKPAAS_SERVICE_ADDRESSES_BKSAAS).decode("utf-8"))
     if BKPAAS_SERVICE_ADDRESSES_BKSAAS
     else {}
 )
-BK_SAAS_HOSTS = {
-    item["key"]["bk_app_code"]: item["value"][os.getenv("BKPAAS_ENVIRONMENT", "prod")] for item in BK_SAAS_HOSTS_DICT
-}
+BK_SAAS_HOSTS = {}
+for item in BK_SAAS_HOSTS_DICT:
+    BK_SAAS_HOSTS.setdefault(item["key"]["bk_app_code"], {})
+    BK_SAAS_HOSTS[item["key"]["bk_app_code"]][item["key"]["module_name"] or BKSAAS_DEFAULT_MODULE_NAME] = item["value"][
+        os.getenv("BKPAAS_ENVIRONMENT", "prod")
+    ]
 
 BK_CC_HOST = os.getenv("BK_CC_HOST")
 
 BK_JOB_HOST = os.getenv("BK_JOB_HOST")
 
-BK_NODEMAN_HOST = os.getenv("BK_NODEMAN_HOST", BK_SAAS_HOSTS.get("bk_nodeman"))
+BK_NODEMAN_HOST = os.getenv("BK_NODEMAN_HOST", BK_SAAS_HOSTS["bk_nodeman"][BKSAAS_DEFAULT_MODULE_NAME])
+
+BK_SOPS_HOST = os.getenv("BK_SOPS_HOST", BK_SAAS_HOSTS["bk_sops"][SOPS_DEFAULT_MODULE_NAME])
 
 # 用户管理配置
-BK_USER_MANAGE_HOST = os.getenv("BK_USER_MANAGE_HOST", BK_SAAS_HOSTS.get("bk_user_manage"))
+BK_USER_MANAGE_HOST = os.getenv("BK_USER_MANAGE_HOST", BK_SAAS_HOSTS["bk_user_manage"][BKSAAS_DEFAULT_MODULE_NAME])
 
 # 文档中心
 BK_DOC_CENTER_HOST = os.getenv("BK_DOC_CENTER_HOST", os.getenv("BK_DOCS_URL_PREFIX"))
@@ -84,9 +92,9 @@ BK_IAM_V3_APP_CODE = os.getenv("BK_IAM_V3_APP_CODE", "bk_iam")
 BK_IAM_SKIP = os.getenv("BK_IAM_SKIP") or os.getenv("BKAPP_IAM_SKIP")
 # 兼容 open_paas 版本低于 2.10.7，此时只能从环境变量 BK_IAM_HOST 中获取权限中心后台 host
 BK_IAM_INNER_HOST = os.getenv("BK_IAM_V3_INNER_HOST", os.getenv("BK_IAM_HOST", ""))
-BK_IAM_SAAS_HOST = os.getenv("BK_IAM_V3_SAAS_HOST", BK_SAAS_HOSTS.get(BK_IAM_V3_APP_CODE))
+BK_IAM_SAAS_HOST = os.getenv("BK_IAM_V3_SAAS_HOST", BK_SAAS_HOSTS[BK_IAM_V3_APP_CODE][BKSAAS_DEFAULT_MODULE_NAME])
 # 线上环境IAM配置
-BK_IAM_RESOURCE_API_HOST = os.getenv("BKAPP_IAM_RESOURCE_API_HOST", "{}{}".format(BK_PAAS_INNER_HOST, SITE_URL))
+BK_IAM_RESOURCE_API_HOST = os.getenv("BKAPP_IAM_RESOURCE_API_HOST", BK_SOPS_HOST)
 # 权限中心 SDK 无权限时不返回 499 的请求路径前缀配置
 BK_IAM_API_PREFIX = os.getenv("BKAPP_BK_IAM_API_PREFIX", SITE_URL + "apigw")
 
@@ -133,7 +141,7 @@ BKAPP_REDIS_SENTINEL_PASSWORD = os.getenv("REDIS_SENTINEL_PASSWORD")
 
 # CALLBACK 回调地址
 BKAPP_INNER_CALLBACK_HOST = os.getenv(
-    "BKAPP_INNER_CALLBACK_HOST", BK_SAAS_HOSTS.get(APP_CODE) or BK_PAAS_INNER_HOST + SITE_URL
+    "BKAPP_INNER_CALLBACK_HOST", BK_SAAS_HOSTS[APP_CODE][SOPS_CALLBACK_MODULE_NAME] or BK_PAAS_INNER_HOST + SITE_URL
 )
 
 BKAPP_FILE_UPLOAD_ENTRY = os.getenv("BKAPP_FILE_UPLOAD_ENTRY", "")
