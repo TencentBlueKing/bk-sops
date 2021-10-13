@@ -788,6 +788,7 @@
             },
             async getTaskNodeDetail () {
                 try {
+                    if (this.nodeDetailConfig.root_node) return
                     let query = Object.assign({}, this.nodeDetailConfig, { loop: this.theExecuteTime })
                     let res
 
