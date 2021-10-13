@@ -405,7 +405,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
                 "project_id": data["project_id"],
                 "project_name": project_dict.get(data["project_id"], data["project_id"]),
                 "category": self.TASK_CATEGORY_DICT.get(data["category"], data["category"]),
-                "create_time": data["create_time"],
+                "create_time": format_datetime(data["create_time"]),
                 "creator": data["creator"],
                 "elapsed_time": data["elapsed_time"],
                 "atom_total": data["atom_total"],
