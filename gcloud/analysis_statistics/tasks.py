@@ -273,6 +273,15 @@ def tasktemplate_post_save_statistics_task(template_id):
 @task
 def pipeline_archive_statistics_task(instance_id):
     taskflow_instance = TaskFlowInstance.objects.get(pipeline_instance__instance_id=instance_id)
+    # 更新taskflowinstance统计数据start_time finish_time elapsed_time
+    taskflow_statistic = TaskflowStatistics.objects.filter(task_instance_id=taskflow_instance.id).first()
+    if taskflow_statistic:
+        start_time = taskflow_instance.pipeline_instance.start_time
+        finish_time = taskflow_instance.pipeline_instance.finish_time
+        taskflow_statistic.start_time = start_time
+        taskflow_statistic.finish_time = finish_time
+        taskflow_statistic.elapsed_time = calculate_elapsed_time(start_time, finish_time)
+        taskflow_statistic.save()
     engine_ver = taskflow_instance.engine_ver
     # 获取任务实例执行树
     cmd_dispatcher = TaskCommandDispatcher(
