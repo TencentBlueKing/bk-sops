@@ -41,6 +41,7 @@ urlpatterns = [
     url(r"^command/get_cache_key/(?P<key>\w+)/$", views.get_cache_key),
     url(r"^command/delete_cache_key/(?P<key>\w+)/$", views.delete_cache_key),
     url(r"^command/get_settings/$", views.get_settings),
+    url(r"^command/upsert_iam_system_provider_config/$", views.upsert_iam_system_provider_config),
     url(r"^command/migrate_pipeline_parent_data/$", views.migrate_pipeline_parent_data),
     url(r"^migration/register_resource_config/$", migration_api.register_resource_config),
     url(r"^migration/migrate_app_maker/$", migration_api.migrate_app_maker),
