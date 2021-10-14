@@ -1352,6 +1352,9 @@
             onSaveConfig () {
                 this.validate().then(result => {
                     if (result) {
+                        ['stageName', 'nodeName'].forEach(item => {
+                            this.basicInfo[item] = this.basicInfo[item].trim()
+                        })
                         const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional, desc, nodeName } = this.basicInfo
                         const nodeData = { status: '', skippable, retryable, optional }
                         if (!this.isSubflow) {
