@@ -886,9 +886,14 @@
                 const instance = this.$refs.jsFlow.instance
                 // const sourceLines = instance.getConnections({ source: id })
                 const targetLines = instance.getConnections({ target: id })
+                // 分支网关的输入输出连线不调整
+                const lines = targetLines.filter(item => {
+                    const node = this.canvasData.locations.find(n => n.id === item.source.id || n.id === item.target.id)
+                    return node.type !== 'branchgateway'
+                })
                 const eps = instance.selectEndpoints({ source: id })
                 // this.setShortestLine(sourceLines, eps, 'source')
-                this.setShortestLine(targetLines, eps, 'target')
+                this.setShortestLine(lines, eps, 'target')
             },
             setShortestLine (lines, eps, type) {
                 const instance = this.$refs.jsFlow.instance
