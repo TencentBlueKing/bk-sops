@@ -19,7 +19,7 @@ import requests
 
 from . import env
 from .conf import PLUGIN_CLIENT_LOGGER
-from .exceptions import PluginServiceNotDeploy, PluginServiceNetworkError, PluginServiceNotUse
+from .exceptions import PluginServiceNotUse
 
 logger = logging.getLogger(PLUGIN_CLIENT_LOGGER)
 
@@ -160,11 +160,15 @@ class PluginServiceApiClient:
         result = PluginServiceApiClient.get_paas_plugin_info(plugin_code, environment="prod")
 
         if result.get("result") is False:
-            raise PluginServiceNetworkError(f"Plugin Service {plugin_code} network error: {result.get('message')}")
+            return {
+                "result": False,
+                "data": None,
+                "message": f"Plugin Service {plugin_code} network error: {result.get('message')}",
+            }
 
         info = result["deployed_statuses"][env.APIGW_ENVIRONMENT]
         if not info["deployed"]:
-            raise PluginServiceNotDeploy(f"Plugin Service {plugin_code} does not deployed.")
+            return {"result": False, "data": None, "message": f"Plugin Service {plugin_code} does not deployed."}
         plugin = result["plugin"]
 
         default_host = ""
