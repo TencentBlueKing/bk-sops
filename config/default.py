@@ -101,6 +101,7 @@ INSTALLED_APPS += (
     "bksops_iam_migrations",
     "drf_yasg",
     "plugin_service",
+    "django_dbconn_retry",
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
