@@ -858,7 +858,7 @@
             setTaskNodeStatus (id, data) {
                 this.$refs.templateCanvas && this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
-            async setNodeDetailConfig (id) {
+            async setNodeDetailConfig (id, rootNode) {
                 let code, version
                 const node = this.pipelineData.activities[id]
                 if (node) {
@@ -874,6 +874,7 @@
                     version: version,
                     node_id: id,
                     instance_id: this.instance_id,
+                    root_node: rootNode,
                     subprocess_stack: JSON.stringify(subprocessStack)
                 }
             },
@@ -1211,7 +1212,7 @@
                     this.treeNodeConfig = {}
                 }
 
-                this.setNodeDetailConfig(selectNodeId)
+                this.setNodeDetailConfig(selectNodeId, !nodeHeirarchy)
                 this.updateNodeActived(selectNodeId, true)
             },
             // 切换画布视图

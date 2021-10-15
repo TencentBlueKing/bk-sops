@@ -347,6 +347,7 @@
                 if (variable.is_meta || formItemConfig.meta_transform) {
                     formItemConfig = formItemConfig.meta_transform(variable.meta || variable)
                     if (!variable.meta) {
+                        variable.meta = tools.deepClone(variable)
                         variable.value = formItemConfig.attrs.value
                     }
                 }
