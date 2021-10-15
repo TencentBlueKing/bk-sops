@@ -1,5 +1,5 @@
 spec_version: 2
-app_version: "3.7.7"
+app_version: "3.8.0"
 app:
     region: default
     bk_app_code: bk_sops
@@ -58,7 +58,7 @@ modules:
         svc_discovery:
             bk_saas:
                 - bk_app_code: "bk_iam"
-                - bk_app_code: "bk_user_management"
+                - bk_app_code: "bk_user_manage"
                 - bk_app_code: "bk_nodeman"
                 - bk_app_code: "bk_sops"
                   module_name: "default"
@@ -101,7 +101,7 @@ modules:
         svc_discovery:
             bk_saas:
                 - bk_app_code: "bk_iam"
-                - bk_app_code: "bk_user_management"
+                - bk_app_code: "bk_user_manage"
                 - bk_app_code: "bk_nodeman"
                 - bk_app_code: "bk_sops"
                   module_name: "default"
@@ -210,7 +210,7 @@ modules:
         svc_discovery:
             bk_saas:
               - bk_app_code: "bk_iam"
-              - bk_app_code: "bk_user_management"
+              - bk_app_code: "bk_user_manage"
               - bk_app_code: "bk_nodeman"
               - bk_app_code: "bk_sops"
                 module_name: "default"
@@ -253,7 +253,7 @@ modules:
         svc_discovery:
             bk_saas:
               - bk_app_code: "bk_iam"
-              - bk_app_code: "bk_user_management"
+              - bk_app_code: "bk_user_manage"
               - bk_app_code: "bk_nodeman"
               - bk_app_code: "bk_sops"
                 module_name: "default"
