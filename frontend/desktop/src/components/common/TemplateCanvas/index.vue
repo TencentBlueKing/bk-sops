@@ -888,8 +888,9 @@
                 const targetLines = instance.getConnections({ target: id })
                 // 分支网关的输入输出连线不调整
                 const lines = targetLines.filter(item => {
-                    const node = this.canvasData.locations.find(n => n.id === item.source.id || n.id === item.target.id)
-                    return node.type !== 'branchgateway'
+                    const sourceNode = this.canvasData.locations.find(n => n.id === item.source.id)
+                    const targetNode = this.canvasData.locations.find(n => n.id === item.target.id)
+                    return sourceNode.type !== 'branchgateway' && targetNode.type !== 'branchgateway'
                 })
                 const eps = instance.selectEndpoints({ source: id })
                 // this.setShortestLine(sourceLines, eps, 'source')
