@@ -19,7 +19,7 @@ import requests
 
 from . import env
 from .conf import PLUGIN_CLIENT_LOGGER
-from .exceptions import PluginServiceNotUse
+from .exceptions import PluginServiceNotUse, PluginServiceException
 
 logger = logging.getLogger(PLUGIN_CLIENT_LOGGER)
 
@@ -85,8 +85,10 @@ class PluginServiceApiClient:
             raise PluginServiceNotUse("插件服务未启用，请联系管理员进行配置")
         self.plugin_code = plugin_code
         if not plugin_host:
-            # 如果请求报错，会抛出PluginServiceException类型异常，需要调用放进行捕获处理
+            # 如果请求报错，会抛出PluginServiceException类型异常，需要调用方进行捕获处理
             result = PluginServiceApiClient.get_plugin_app_detail(plugin_code)
+            if not result["result"]:
+                raise PluginServiceException(result["message"])
             self.plugin_host = os.path.join(result["data"]["url"], "bk_plugin/")
 
     @data_parser
