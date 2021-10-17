@@ -55,6 +55,8 @@ if RUN_VER == "open":
         SITE_URL = os.environ.get("BK_SITE_URL", "/o/%s/" % APP_CODE)
         STATIC_URL = "%sstatic/" % SITE_URL
 
+BK_SOPS_HOST = "{}{}".format(BK_PAAS_HOST, SITE_URL)
+
 BK_MONITOR_API_ENTRY = os.getenv("BK_MONITOR_API_ENTRY")
 BK_ITSM_API_ENTRY = os.getenv("BK_ITSM_API_ENTRY")
 BK_NODEMAN_API_ENTRY = os.getenv("BK_NODEMAN_API_ENTRY")
