@@ -151,6 +151,7 @@ try:
 except Exception:
     JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS = []
 
+
 # celery broker 连接池数量配置
 CELERY_BROKER_POOL_LIMIT = int(os.getenv("BKAPP_CELERY_BROKER_POOL_LIMIT", 10))
 

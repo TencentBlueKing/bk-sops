@@ -592,25 +592,6 @@
                 }
             },
             /**
-             * 加载子流程列表
-             */
-            async getSubflowList () {
-                this.subflowListLoading = true
-                try {
-                    const data = {
-                        project_id: this.project_id,
-                        common: this.common,
-                        templateId: this.template_id
-                    }
-                    const resp = await this.loadSubflowList(data)
-                    this.handleSubflowList(resp)
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.subflowListLoading = false
-                }
-            },
-            /**
              * 获取模板详情
              */
             async getTemplateData () {

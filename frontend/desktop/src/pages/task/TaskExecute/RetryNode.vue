@@ -43,7 +43,7 @@
         props: ['nodeDetailConfig'],
         data () {
             return {
-                loading: true,
+                loading: false,
                 retrying: false,
                 bkMessageInstance: null,
                 nodeInfo: {},
@@ -69,12 +69,15 @@
             }
         },
         mounted () {
-            this.loadNodeInfo()
+            if (this.nodeDetailConfig.component_code) {
+                this.loadNodeInfo()
+            }
         },
         methods: {
             ...mapActions('task/', [
                 'getNodeActInfo',
-                'instanceRetry'
+                'instanceRetry',
+                'subflowNodeRetry'
             ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig',
@@ -120,7 +123,8 @@
                             
                             // 设置host
                             const { host } = window.location
-                            $.context.bk_plugin_api_host[pluginCode] = app.urls.find(item => item.includes(host))
+                            const hostUrl = app.urls.find(item => item.includes(host)) || app.url
+                            $.context.bk_plugin_api_host[pluginCode] = hostUrl + '/'
                             // 输入参数
                             const renderFrom = forms.renderform
                             /* eslint-disable-next-line */
@@ -147,15 +151,20 @@
                 if (!formvalid || this.retrying) return false
 
                 const { instance_id, component_code, node_id } = this.nodeDetailConfig
-                const data = {
-                    instance_id,
-                    node_id,
-                    component_code,
-                    inputs: this.renderData
-                }
                 this.retrying = true
                 try {
-                    const res = await this.instanceRetry(data)
+                    let res
+                    if (this.nodeDetailConfig.component_code) {
+                        const data = {
+                            instance_id,
+                            node_id,
+                            component_code,
+                            inputs: this.renderData
+                        }
+                        res = await this.instanceRetry(data)
+                    } else {
+                        res = await this.subflowNodeRetry({ instance_id, node_id })
+                    }
                     if (res.result) {
                         this.$bkMessage({
                             message: i18n.t('重试成功'),
@@ -191,7 +200,7 @@
             @include scrollbar;
         }
         .action-wrapper {
-            padding-left: 55px;
+            padding-left: 20px;
             height: 60px;
             line-height: 60px;
             border-top: 1px solid $commonBorderColor;

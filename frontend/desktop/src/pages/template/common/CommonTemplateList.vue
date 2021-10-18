@@ -832,6 +832,7 @@
                         this.onExportTemplate(type)
                         break
                 }
+                return Promise.resolve()
             },
             onImportCancel () {
                 this.isImportDialogShow = false

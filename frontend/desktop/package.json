@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@blueking/bkcharts": "^2.0.6",
+    "@blueking/bkcharts": "^2.0.11-alpha.5",
     "@blueking/user-selector": "^1.0.5-beta.2",
     "ajv": "^6.10.2",
     "art-template": "^4.13.0",

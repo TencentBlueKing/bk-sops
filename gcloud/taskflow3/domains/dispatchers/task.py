@@ -21,13 +21,13 @@ from bamboo_engine import api as bamboo_engine_api
 from bamboo_engine import states as bamboo_engine_states
 from bamboo_engine.context import Context
 from pipeline.eri.runtime import BambooDjangoRuntime
-from pipeline import exceptions as pipeline_exceptions
 from pipeline.service import task_service
 from pipeline.models import PipelineInstance
 from pipeline.parser.context import get_pipeline_context
 from pipeline.engine import api as pipeline_api
 from pipeline.engine.models import PipelineModel
 from pipeline_web.parser.format import format_web_data_to_pipeline
+from pipeline.engine import exceptions as pipeline_exceptions
 from pipeline.exceptions import (
     ConvergeMatchError,
     ConnectionValidateError,

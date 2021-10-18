@@ -37,6 +37,11 @@ Import project templates
 {
     "message": "Successfully imported 2 flows",
     "data": {
+        "flows": {
+              11: "flowA",
+              12: "flowB",
+              ...
+        },
         "count": 2
     },
     "result": true
@@ -56,3 +61,4 @@ Import project templates
 | Field      | Type      | Description      |
 | ------------ | ---------- | ------------------------------ |
 |  count      |    int    |    the number of flows had been imported    |
+|  flows      |    dict |      mapping of import flow ID and name |
