@@ -314,10 +314,10 @@
                 return this.atomList.find(item => item.code === this.basicInfo.plugin)
             },
             inputLoading () { // 以下任一方法处于 pending 状态，输入参数展示 loading 效果
-                return this.pluginLoading || this.subflowLoading || this.constantsLoading || this.subflowVersionUpdating
+                return this.isBaseInfoLoading || this.pluginLoading || this.subflowLoading || this.constantsLoading || this.subflowVersionUpdating
             },
             outputLoading () {
-                return this.pluginLoading || this.subflowLoading
+                return this.isBaseInfoLoading || this.pluginLoading || this.subflowLoading
             },
             selectorTitle () {
                 return this.isSubflow ? i18n.t('选择子流程') : i18n.t('选择标准插件')
@@ -588,7 +588,7 @@
              * 加载标准插件表单配置项文件
              * 优先取 store 里的缓存
              */
-            async getAtomConfig (plugin, version, classify, name) {
+            async getAtomConfig (plugin, version, classify, name, isThird) {
                 const project_id = this.common ? undefined : this.project_id
                 try {
                     // 先取标准节点缓存的数据
@@ -597,7 +597,7 @@
                         return pluginGroup[version]
                     }
                     // 第三方插件
-                    if (this.isThirdParty) {
+                    if (isThird || this.isThirdParty) {
                         const resp = await this.loadPluginServiceDetail({
                             plugin_code: plugin,
                             plugin_version: version,
@@ -694,7 +694,8 @@
                     const { key } = variable
                     const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
                     const version = variable.version || 'legacy'
-                    const atomConfig = await this.getAtomConfig(atom, version, classify, name)
+                    const isThird = Boolean(variable.plugin_code)
+                    const atomConfig = await this.getAtomConfig(atom, version, classify, name, isThird)
                     let formItemConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                     if (variable.is_meta || formItemConfig.meta_transform) {
                         formItemConfig = formItemConfig.meta_transform(variable.meta || variable)
