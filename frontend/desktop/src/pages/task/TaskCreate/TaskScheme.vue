@@ -349,9 +349,8 @@
             }
         }
         .scheme-content {
-            height: calc(100% - 127px- 63px);
-            overflow: hidden;
-            overflow-y: auto;
+            height: calc(100% - 190px);
+            overflow: auto;
             @include scrollbar;
             .scheme-item {
                 margin: 0 20px;
