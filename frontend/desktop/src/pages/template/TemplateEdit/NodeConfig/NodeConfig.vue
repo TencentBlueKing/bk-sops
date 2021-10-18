@@ -350,7 +350,7 @@
                 this.subflowListDom.removeEventListener('scroll', this.handleTableScroll)
             }
         },
-        async created () {
+        created () {
             /**
              * notice: 该方法为了兼容“job-执行作业（job_execute_task）标准插件”动态添加输出参数
              * description: 切换作业模板时，将当前作业的全局变量表格数据部分添加到输出参数
@@ -396,13 +396,12 @@
                 }
             })
             this.localConstants = tools.deepClone(this.constants)
-
+        },
+        async mounted () {
             const defaultData = await this.initDefaultData()
             for (const [key, val] of Object.entries(defaultData)) {
                 this[key] = val
             }
-        },
-        mounted () {
             this.initData()
             if (this.isSelectorPanelShow) {
                 this.$nextTick(function () {
