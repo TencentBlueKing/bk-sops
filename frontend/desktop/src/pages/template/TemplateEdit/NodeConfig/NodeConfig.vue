@@ -406,7 +406,7 @@
             if (this.isSelectorPanelShow) {
                 this.$nextTick(function () {
                     this.subflowListDom = document.querySelector('.tpl-list')
-                    this.subflowListDom.addEventListener('scroll', this.handleTableScroll)
+                    this.subflowListDom && this.subflowListDom.addEventListener('scroll', this.handleTableScroll)
                 })
             }
         },
@@ -574,7 +574,7 @@
                 this.pluginLoading = true
                 try {
                     // 获取输入输出参数
-                    this.inputs = await this.getAtomConfig(plugin, version)
+                    this.inputs = await this.getAtomConfig({ plugin, version, isThird: this.isThirdParty })
                     if (!this.isThirdParty) {
                         this.outputs = this.atomGroup.list.find(item => item.version === version).output
                     }
@@ -588,7 +588,8 @@
              * 加载标准插件表单配置项文件
              * 优先取 store 里的缓存
              */
-            async getAtomConfig (plugin, version, classify, name, isThird) {
+            async getAtomConfig (config) {
+                const { plugin, version, classify, name, isThird } = config
                 const project_id = this.common ? undefined : this.project_id
                 try {
                     // 先取标准节点缓存的数据
@@ -597,7 +598,7 @@
                         return pluginGroup[version]
                     }
                     // 第三方插件
-                    if (isThird || this.isThirdParty) {
+                    if (isThird) {
                         const resp = await this.loadPluginServiceDetail({
                             plugin_code: plugin,
                             plugin_version: version,
@@ -695,7 +696,7 @@
                     const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
                     const version = variable.version || 'legacy'
                     const isThird = Boolean(variable.plugin_code)
-                    const atomConfig = await this.getAtomConfig(atom, version, classify, name, isThird)
+                    const atomConfig = await this.getAtomConfig({ plugin: atom, version, classify, name, isThird })
                     let formItemConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                     if (variable.is_meta || formItemConfig.meta_transform) {
                         formItemConfig = formItemConfig.meta_transform(variable.meta || variable)
