@@ -56,6 +56,13 @@ class ExportTemplateApiViewValidator(RequestValidator):
         return True, ""
 
 
+class FileValidator(RequestValidator):
+    def validate(self, request, *args, **kwargs):
+        if not request.data.get("data_file"):
+            return False, "data_file can not be empty"
+        return True, ""
+
+
 class YamlTemplateImportValidator(RequestValidator):
     def validate(self, request, *args, **kwargs):
         data = request.data
@@ -87,13 +94,6 @@ class YamlTemplateExportValidator(RequestValidator):
             return False, "template_type can not be empty"
         if data["template_type"] == "project" and not data.get("project_id"):
             return False, "project_id can not be empty when template_type=project"
-        return True, ""
-
-
-class FileValidator(RequestValidator):
-    def validate(self, request, *args, **kwargs):
-        if not request.data.get("data_file"):
-            return False, "data_file can not be empty"
         return True, ""
 
 

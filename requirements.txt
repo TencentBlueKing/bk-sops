@@ -35,6 +35,7 @@ six==1.15.0
 pyyaml==5.4.1
 bkstorages==1.0.1
 ujson==4.1.0
+django-dbconn-retry==0.1.5
 
 # monitor
 django-prometheus==2.1.0

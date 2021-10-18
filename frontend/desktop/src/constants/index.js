@@ -130,32 +130,38 @@ const COLOR_BLOCK_LIST = [
     {
         value: 'app',
         code: 1,
-        text: '手动',
+        text: i18n.t('手动'),
         color: '#3a84ff'
     },
     {
         value: 'api',
         code: 2,
-        text: 'API网关',
+        text: i18n.t('API网关'),
         color: '#ff9c4a'
     },
     {
         value: 'app_maker',
         code: 3,
-        text: '轻应用',
+        text: i18n.t('轻应用'),
         color: '#f8d30f'
     },
     {
         value: 'periodic',
         code: 4,
-        text: '周期任务',
+        text: i18n.t('周期任务'),
         color: '#3bce95'
     },
     {
         value: 'mobile',
         code: 5,
-        text: '移动端',
+        text: i18n.t('移动端'),
         color: '#ff6f72'
+    },
+    {
+        value: 'clocked',
+        code: 6,
+        text: i18n.t('计划任务'),
+        color: '#b568ff'
     }
 ]
 

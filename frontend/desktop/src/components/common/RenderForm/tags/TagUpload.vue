@@ -22,7 +22,6 @@
                 :headers="headers"
                 :data="data_params"
                 :disabled="!editable || disabled"
-                :http-request="handleHttpRequest.bind(this)"
                 :on-success="handleSuccess.bind(this)"
                 :on-remove="handleRemove.bind(this)"
                 :on-error="handleError.bind(this)"
