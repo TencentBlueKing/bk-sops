@@ -357,23 +357,13 @@ def migrate_schedule():
     # 打印开始迁移日志
 
     logger.info("[migrate_schedule] migrate process have started.")
-    logger.info(
-        """
-        [migrate_schedule] migrated templateInPipeline({:0}) ComponentInTemplate({:1})
-        InstanceInPipeline({:2}) ComponentExecuteData({:3})
-        """.format(
-            migrate_log.template_in_pipeline_migrated,
-            migrate_log.component_in_template_migrated,
-            migrate_log.instance_in_pipeline_migrated,
-            migrate_log.component_execute_data_migrated,
-        )
-    )
 
     # TemplateInPipeline迁移并更新上下文
     if not migrate_log.template_in_pipeline_finished:
         if migrate_template(migrate_log.template_in_pipeline_start, migrate_log.template_in_pipeline_end):
             migrate_log.template_in_pipeline_start = migrate_log.template_in_pipeline_end
             migrate_log.template_in_pipeline_end += migrate_log.migrate_num_once
+            migrate_log.template_in_pipeline_migrated += migrate_log.migrate_num_once
             migrate_log.save()
             # 如果起点大于总量就标记完成
             if migrate_log.template_in_pipeline_start > migrate_log.template_in_pipeline_count:
@@ -385,6 +375,7 @@ def migrate_schedule():
         if migrate_component(migrate_log.component_in_template_start, migrate_log.component_in_template_end):
             migrate_log.component_in_template_start = migrate_log.component_in_template_end
             migrate_log.component_in_template_end += migrate_log.migrate_num_once
+            migrate_log.component_in_template_migrated += migrate_log.migrate_num_once
             migrate_log.save()
             # 如果起点大于总量就标记完成
             if migrate_log.component_in_template_start > migrate_log.component_in_template_count:
@@ -396,6 +387,7 @@ def migrate_schedule():
         if migrate_instance(migrate_log.instance_in_pipeline_start, migrate_log.instance_in_pipeline_end):
             migrate_log.instance_in_pipeline_start = migrate_log.instance_in_pipeline_end
             migrate_log.instance_in_pipeline_end += migrate_log.migrate_num_once
+            migrate_log.instance_in_pipeline_migrated += migrate_log.migrate_num_once
             migrate_log.save()
             # 如果起点大于总量就标记完成
             if migrate_log.instance_in_pipeline_start > migrate_log.instance_in_pipeline_count:
@@ -409,6 +401,7 @@ def migrate_schedule():
         ):
             migrate_log.component_execute_data_start = migrate_log.component_execute_data_end
             migrate_log.component_execute_data_end += migrate_log.migrate_num_once
+            migrate_log.component_execute_data_migrated += migrate_log.migrate_num_once
             migrate_log.save()
             # 如果起点大于总量就标记完成
             if migrate_log.component_execute_data_start > migrate_log.component_execute_data_count:
@@ -424,6 +417,32 @@ def migrate_schedule():
             migrate_log.component_execute_data_finished,
         )
     )
+
+    # 计算各表迁移进度百分比
+    template_migrate_process = (
+        round(migrate_log.template_in_pipeline_migrated / migrate_log.template_in_pipeline_count, 2) * 100
+    )
+    component_migrate_process = (
+        round(migrate_log.component_in_template_migrated / migrate_log.component_in_template_count, 2) * 100
+    )
+    instance_migrate_process = (
+        round(migrate_log.instance_in_pipeline_migrated / migrate_log.instance_in_pipeline_count, 2) * 100
+    )
+    component_execute_migrate_process = (
+        round(migrate_log.component_execute_data_migrated / migrate_log.component_execute_data_count, 2) * 100
+    )
+    logger.info(
+        """
+        [statistics_migrate_process] migrated templateInPipeline({:0}%) ComponentInTemplate({:1}%)
+        InstanceInPipeline({:2}%) ComponentExecuteData({:3}%)
+        """.format(
+            template_migrate_process,
+            component_migrate_process,
+            instance_migrate_process,
+            component_execute_migrate_process,
+        )
+    )
+
     if finished:
         migrate_log.migrate_switch = False
         migrate_log.save()

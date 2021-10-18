@@ -427,7 +427,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             .extra(select=select)
             .values("time", "create_method")
             .annotate(value=Count("id"))
-        )
+        ).order_by("time")
         total = sum([result["value"] for result in results])
 
         def format_groups(type):
