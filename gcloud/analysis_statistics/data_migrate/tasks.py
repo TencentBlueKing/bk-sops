@@ -92,7 +92,8 @@ def migrate_template(start, end):
                 "template_edit_time": pipeline_template.edit_time,
             }
         except Exception:
-            logger.exception("[migrate_template] unkwon eror")
+            template_id = pipeline_template.id
+            logger.exception("[migrate_template] unkwon error template_id={:0}".format(template_id))
             continue
         # 计算输入输出变量个数
         input_count = 0
@@ -170,7 +171,11 @@ def migrate_component(start, end):
                 template_edit_time=pipeline_template.edit_time,
             )
         except Exception:
-            logger.exception("[migrate_component] unkwon eror")
+            template_id = pipeline_template.id
+            node_id = component.id
+            logger.exception(
+                "[migrate_component] unkwon error template_id={:0},node_id={:1}".format(template_id, node_id)
+            )
             continue
         try:
             with transaction.atomic():
@@ -248,7 +253,7 @@ def migrate_instance(start, end):
                 create_method=taskflow_instance.create_method,
             )
         except Exception:
-            logger.exception("[migrate_instance] unkwon eror")
+            logger.exception("[migrate_instance] unkwon error instance_id={:0}".format(instance.id))
             continue
         try:
             with transaction.atomic():
@@ -305,7 +310,11 @@ def migrate_component_execute_data(start, end):
         except ObjectDoesNotExist:
             continue
         except Exception:
-            logger.exception("[migrate_component_execute_data] unkwon eror")
+            logger.exception(
+                "[migrate_component_execute_data] unkwon error instance_id={:0},node_id={:1}".format(
+                    pipeline_instance.id, component.node_id
+                )
+            )
             continue
         try:
             with transaction.atomic():
