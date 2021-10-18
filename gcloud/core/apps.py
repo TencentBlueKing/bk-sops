@@ -46,7 +46,7 @@ class CoreConfig(AppConfig):
             except Exception:
                 logger.warning(traceback.format_exc())
                 # first migrate, database may not have been migrated, so try get BKAPP_REDIS from env
-                if "BKAPP_REDIS_HOST" in os.environ:
+                if "BKAPP_REDIS_HOST" in os.environ or "REDIS_HOST" in os.environ:
                     settings.REDIS = {
                         "host": env.BKAPP_REDIS_HOST,
                         "port": env.BKAPP_REDIS_PORT,
