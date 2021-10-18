@@ -264,7 +264,6 @@ const validatePipeline = {
         let valid = validator(data)
         let message = ''
         if (!valid) {
-            console.log(validator.errors)
             const error = validator.errors[0]
             let nodeName = ''
             const nodeReg = /^\.activities\['(\w+)'\]/

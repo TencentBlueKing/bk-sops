@@ -689,6 +689,90 @@
             }
         }
     }
+    .tpl-loading {
+        height: 40px;
+        bottom: 0;
+        left: 0;
+        font-size: 14px;
+        text-align: center;
+        margin-top: 10px;
+    }
+}
+.third-praty-list {
+    height: calc(100vh - 102px);
+    overflow: auto;
+    @include scrollbar;
+    .plugin-item {
+        height: 80px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        padding: 0 59px 0 38px;
+        color: #63656e;
+        .plugin-logo {
+            width: 48px;
+            height: 48px;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+        .plugin-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .plugin-code {
+            font-size: 12px;
+        }
+        &.is-actived, &:hover {
+            background: hsl(218, 100%, 94%);
+        }
+    }
+    .tpl-loading {
+        height: 40px;
+        bottom: 0;
+        left: 0;
+        font-size: 14px;
+        text-align: center;
+        margin-top: 10px;
+    }
+}
+.third-praty-list {
+    height: calc(100vh - 102px);
+    overflow: auto;
+    @include scrollbar;
+    .plugin-item {
+        height: 80px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        padding: 0 59px 0 38px;
+        color: #63656e;
+        .plugin-logo {
+            width: 48px;
+            height: 48px;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+        .plugin-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .plugin-code {
+            font-size: 12px;
+        }
+        &.is-actived, &:hover {
+            background: hsl(218, 100%, 94%);
+        }
+    }
+    .tpl-loading {
+        height: 40px;
+        bottom: 0;
+        left: 0;
+        font-size: 14px;
+        text-align: center;
+        margin-top: 10px;
+    }
 }
 .third-praty-list {
     height: calc(100vh - 102px);

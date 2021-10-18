@@ -170,6 +170,7 @@
                 } else {
                     this.changeRoute(this.routerList[groupIndex][routeIndex])
                 }
+                this.$emit('navChangeRoute')
             },
             // onHandleSubNavClick (groupIndex, routeIndex, childIndex) {
             //     if (this.$route.name === route.routerName) {

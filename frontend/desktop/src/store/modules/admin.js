@@ -78,6 +78,11 @@ const admin = {
         queryInstanceData ({ commit }, data) {
             return axios.post('analysis/query_instance_by_group/', data).then(response => response.data)
         },
+        // 加载流程/任务覆盖率
+        queryBizUseageData ({ commit }, data) {
+            const { query } = data
+            return axios.get(`analysis/get_biz_useage/${query}/`).then(response => response.data)
+        },
         // 加载轻应用统计数据
         queryAppmakerData ({ commit }, data) {
             return axios.post('analysis/query_appmaker_by_group/', data).then(response => response.data)

@@ -13,101 +13,61 @@
     <bk-dialog
         width="850"
         ext-cls="common-dialog export-tpl-dialog"
-        :title="$t('导出流程')"
+        :title="$t('导出为') + (type === 'dat' ? 'DAT' : 'YAML')"
         :mask-close="false"
         :value="isExportDialogShow"
         :header-position="'left'"
         :auto-close="false"
         @cancel="closeDialog">
         <div class="export-container" v-bkloading="{ isLoading: businessInfoLoading, opacity: 1, zIndex: 100 }">
-            <div class="template-wrapper">
-                <div class="search-wrapper">
-                    <div class="business-selector">
-                        <bk-select
-                            v-model="filterCondition.classifyId"
-                            class="bk-select-inline"
-                            :clearable="false"
-                            :disabled="tplLoading"
-                            @change="onSelectClassify">
-                            <bk-option
-                                v-for="(item, index) in taskCategories"
-                                :key="index"
-                                :id="item.id"
-                                :name="item.name">
-                            </bk-option>
-                        </bk-select>
-                    </div>
-                    <div class="template-search">
-                        <bk-input
-                            class="search-input"
-                            v-model.trim="filterCondition.keywords"
-                            :clearable="true"
-                            :placeholder="$t('请输入流程名称')"
-                            :right-icon="'icon-search'"
-                            @input="onSearchInput">
-                        </bk-input>
-                    </div>
-                </div>
-                <div class="template-list" v-bkloading="{ isLoading: tplLoading, opacity: 1, zIndex: 100 }">
-                    <ul class="grouped-list">
-                        <template v-for="group in templateInPanel">
-                            <li
-                                v-if="group.children.length"
-                                :key="group.id"
-                                class="template-group">
-                                <h5 class="group-name">
-                                    {{group.name}}
-                                    (<span class="list-count">{{group.children.length}}</span>)
-                                </h5>
-                                <ul class="group-wrap">
-                                    <base-card
-                                        v-for="(template, i) in group.children"
-                                        :key="i"
-                                        :data="template"
-                                        :selected="getTplIndexInSelected(template) > -1"
-                                        :is-apply-permission="!hasPermission(reqPerm, template.auth_actions)"
-                                        @onCardClick="onSelectTemplate(template)">
-                                    </base-card>
-                                </ul>
-                            </li>
+            <bk-input
+                class="search-input"
+                v-model.trim="keywords"
+                :clearable="true"
+                :placeholder="$t('请输入流程名称')"
+                :right-icon="'icon-search'"
+                @input="onSearchInput">
+            </bk-input>
+            <div class="template-list" v-bkloading="{ isLoading: tplLoading, opacity: 1, zIndex: 100 }">
+                <bk-table
+                    v-if="templateList.length"
+                    :data="templateList"
+                    :row-class-name="handlerRowClassName"
+                    @select-all="onSelectAllTemplate">
+                    <bk-table-column :resizable="false" width="50" :render-header="renderHeaderCheckbox">
+                        <template slot-scope="props">
+                            <bk-checkbox :value="props.row.isChecked" @change="onSelectTemplate(props.row)"></bk-checkbox>
                         </template>
-                        <NoData v-if="!templateInPanel.length" class="empty-template"></NoData>
-                    </ul>
-                </div>
-            </div>
-            <div class="selected-wrapper">
-                <div class="selected-area-title">
-                    {{$t('已选择')}}
-                    <span class="select-count">{{selectedTemplates.length}}</span>
-                    {{$t('项')}}
-                </div>
-                <ul class="selected-list">
-                    <base-card
-                        v-for="(template, i) in selectedTemplates"
-                        :key="i"
-                        :data="template"
-                        :selected="true"
-                        :show-delete="true"
-                        @onDeleteCard="deleteTemplate(template)">
-                    </base-card>
-                </ul>
+                    </bk-table-column>
+                    <bk-table-column :resizable="false" label="ID" prop="id" width="120"></bk-table-column>
+                    <bk-table-column :resizable="false" label="流程名称" prop="name"></bk-table-column>
+                    <div class="is-loading" slot="append" v-if="!isPageOver && isLoading" v-bkloading="{ isLoading: isLoading, zIndex: 100 }"></div>
+                </bk-table>
+                <NoData v-else class="empty-template"></NoData>
             </div>
         </div>
         <div class="footer-wrap" slot="footer">
-            <bk-checkbox
-                class="template-checkbox"
-                :value="isTplInPanelAllSelected"
-                @change="onSelectAllClick">
-                {{ $t('全选') }}
-            </bk-checkbox>
+            <div class="footer-left">
+                <bk-checkbox
+                    class="template-checkbox"
+                    :value="isTplInPanelAllSelected"
+                    @change="onSelectAllClick">
+                    {{ $t('全选所有流程') }}
+                </bk-checkbox>
+                <p>
+                    {{ $t('已选择') }}
+                    <span class="selected-num">{{ isHasSelected }}</span>
+                    {{ $t('条流程') }}
+                </p>
+            </div>
             <div class="operate-area">
                 <span class="export-tips">{{ exportTips }}</span>
                 <bk-button
                     theme="primary"
-                    :disabled="selectedTemplates.length === 0"
+                    :disabled="!isHasSelected"
                     :loading="exportPending"
                     @click="onConfirm">
-                    {{ $t('导出为') }}{{ type === 'dat' ? 'DAT' : 'YAML' }}
+                    {{ $t('确定') }}
                 </bk-button>
                 <bk-button @click="closeDialog">{{ $t('取消') }}</bk-button>
             </div>
@@ -120,13 +80,10 @@
     import { mapActions } from 'vuex'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
-    import BaseCard from '@/components/common/base/BaseCard.vue'
-    import { TASK_CATEGORIES } from '@/constants/index.js'
     export default {
         name: 'ExportTemplateDialog',
         components: {
-            NoData,
-            BaseCard
+            NoData
         },
         mixins: [permission],
         props: {
@@ -145,19 +102,23 @@
                 isCheckedDisabled: false,
                 list: [],
                 templateList: [],
-                templateInPanel: [],
-                searchList: [],
-                selectedTemplates: [],
-                selectedTaskCategory: '',
-                category: '',
-                filterCondition: {
-                    classifyId: 'all',
-                    keywords: ''
-                },
-                taskCategories: []
+                keywords: '',
+                isHasSelected: 0,
+                tableScroller: null,
+                isLoading: false,
+                pollingTimer: null,
+                isThrottled: false,
+                isPageOver: false,
+                pageSize: 15,
+                currentPage: 1,
+                totalPage: null,
+                totalCount: 0
             }
         },
         computed: {
+            exportTips () {
+                return this.type === 'dat' ? i18n.t('DAT文件导出后不可编辑，导出时不能自由覆盖模板') : i18n.t('YAML文件导出后可以编辑，导入时可以自由覆盖模板但节点会丢失位置信息')
+            },
             reqPerm () {
                 return this.common ? ['common_flow_view'] : ['flow_view']
             },
@@ -168,186 +129,216 @@
         watch: {
             isExportDialogShow (val) {
                 if (val) {
-                    if (this.selected && this.selected.length > 0) {
-                        this.selectedTemplates = this.selected.slice(0)
+                    const selected = this.selected
+                    if (selected && selected.length > 0) {
+                        const idList = selected.map(item => item.id)
+                        this.templateList.forEach(template => {
+                            this.$set(template, 'isChecked', idList.includes(template.id))
+                        })
+                        this.isHasSelected = selected.length
+                        this.isTplInPanelAllSelected = selected.length === this.totalCount
+                    }
+                    if (!this.tableScroller) {
+                        this.tableScroller = this.$el.querySelector('.export-tpl-dialog .bk-table-body-wrapper')
+                        this.tableScroller.addEventListener('scroll', this.handleTableScroll, { passive: true })
                     }
                 }
             }
         },
         created () {
-            // 设置分类列表
-            this.taskCategories = toolsUtils.deepClone(TASK_CATEGORIES || [])
-            this.taskCategories.unshift({ id: 'all', name: i18n.t('全部分类') })
-
             this.getTemplateData()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             // 设置分类列表
             this.taskCategories = toolsUtils.deepClone(TASK_CATEGORIES || [])
             this.taskCategories.unshift({ id: 'all', name: i18n.t('全部分类') })
         },
+        beforeDestroy () {
+            if (this.tableScroller) {
+                this.tableScroller.removeEventListener('scroll', this.handleTableScroll)
+            }
+        },
         methods: {
             ...mapActions('templateList/', [
                 'loadTemplateList',
                 'templateExport'
             ]),
-            async getTemplateData () {
-                this.tplLoading = true
+            // 滚动加载
+            handleTableScroll () {
+                if (!this.isPageOver && !this.isThrottled && !this.isLoading) {
+                    this.isThrottled = true
+                    this.pollingTimer = setTimeout(() => {
+                        this.isThrottled = false
+                        const el = this.tableScroller
+                        if (el.scrollHeight - el.offsetHeight - el.scrollTop < 10) {
+                            this.currentPage += 1
+                            clearTimeout(this.pollingTimer)
+                            this.isLoading = true
+                            this.getTemplateData(true)
+                        }
+                    }, 200)
+                }
+            },
+            // 自定义头部
+            renderHeaderCheckbox (h) {
+                const self = this
+                return h('div', {
+                    'class': {
+                        'select-all-cell': true,
+                        'full-selected': this.isTplInPanelAllSelected
+                    }
+                }, [
+                    h('bk-checkbox', {
+                        props: {
+                            indeterminate: !!this.isHasSelected,
+                            value: this.getTplIsAllSelected()
+                        },
+                        on: {
+                            change: function (val) {
+                                self.onSelectAllTemplate(val)
+                            }
+                        }
+                    })
+                ])
+            },
+            // 获取模板列表
+            async getTemplateData (isMore) {
+                this.tplLoading = !this.isLoading
                 this.isCheckedDisabled = true
                 try {
-                    const data = {}
+                    const offset = (this.currentPage - 1) * this.pageSize
+                    const data = {
+                        limit: this.pageSize,
+                        offset,
+                        pipeline_template__name__icontains: this.keywords || undefined
+                    }
                     if (this.common) {
                         data.common = 1
                     } else {
                         data.project__id = this.project_id
                     }
                     const respData = await this.loadTemplateList(data)
-                    this.list = respData.objects
-                    this.templateList = this.getGroupedList(this.list)
-                    this.templateInPanel = this.templateList.slice(0)
+                    this.totalCount = respData.meta.total_count
+                    this.totalPage = Math.ceil(respData.meta.total_count / this.pageSize)
+                    this.isPageOver = this.currentPage === this.totalPage
+
+                    const idList = this.selected.map(item => item.id) || []
+                    const templateList = respData.objects.map(item => {
+                        const isChecked = this.isTplInPanelAllSelected ? true : idList.includes(item.id)
+                        this.$set(item, 'isChecked', isChecked)
+                        return item
+                    })
+                    if (isMore) {
+                        this.templateList.push(...templateList)
+                    } else {
+                        this.templateList = templateList
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.tplLoading = false
+                    this.isLoading = false
                     this.isCheckedDisabled = false
                 }
             },
-            getGroupedList (list) {
-                const groups = []
-                const atomGrouped = []
-                this.taskCategories.forEach(item => {
-                    groups.push(item.id)
-                    atomGrouped.push({
-                        name: item.name,
-                        value: item.id,
-                        children: []
-                    })
-                })
-                list.forEach(item => {
-                    const type = item.category
-                    const index = groups.indexOf(type)
-                    if (index > -1) {
-                        atomGrouped[index].children.push(item)
-                    }
-                })
-                const listGroup = atomGrouped.filter(item => item.children.length)
-                return listGroup
-            },
-            getTemplateIcon (template) {
-                return template.name.trim().substr(0, 1).toUpperCase()
-            },
-            getTplIndexInSelected (template) {
-                return this.selectedTemplates.findIndex(item => item.id === template.id)
-            },
+            // 判断模板列表是否为全选
             getTplIsAllSelected () {
-                if (!this.templateInPanel.length) {
+                if (!this.templateList.length) {
                     return false
                 }
-                return this.templateInPanel.every(group => {
-                    return group.children.every(template => {
-                        return this.selectedTemplates.findIndex(item => item.id === template.id) > -1
-                    })
-                })
+                return this.templateList.every(template => template.isChecked)
             },
-            onSelectClassify (value) {
-                let groupedList = []
-                this.filterCondition.classifyId = value
-
-                if (value === 'all') {
-                    groupedList = this.templateList.slice(0)
-                } else {
-                    groupedList = this.templateList.filter(group => group.value === value)
-                }
-
-                if (this.filterCondition.keywords !== '') {
-                    this.searchInputhandler()
-                } else {
-                    this.templateInPanel = groupedList
-                }
-
-                this.isTplInPanelAllSelected = this.getTplIsAllSelected()
+            // 判断模板列表是否勾选
+            getTplIsSelected () {
+                const selected = this.templateList.reduce((acc, cur) => {
+                    if (cur.isChecked) {
+                        acc.push(cur.id)
+                    }
+                    return acc
+                }, [])
+                return selected && selected.length
             },
+            // 搜索
             searchInputhandler () {
-                let searchList = []
-
-                if (this.filterCondition.classifyId !== 'all') {
-                    searchList = this.templateList.filter(group => group.value === this.filterCondition.classifyId)
-                } else {
-                    searchList = this.templateList.slice(0)
-                }
-                this.templateInPanel = toolsUtils.deepClone(searchList).filter(group => {
-                    group.children = group.children.filter(template => {
-                        return template.name.includes(this.filterCondition.keywords)
-                    })
-                    return group.children.length
-                })
+                this.currentPage = 1
+                this.getTemplateData()
             },
-            onSelectTemplate (template) {
-                if (this.hasPermission(this.reqPerm, template.auth_actions)) {
-                    const tplIndex = this.getTplIndexInSelected(template)
-                    if (tplIndex > -1) {
-                        this.selectedTemplates.splice(tplIndex, 1)
-                        this.isTplInPanelAllSelected = false
+            // 勾选模板
+            onSelectTemplate (row) {
+                if (this.hasPermission(this.reqPerm, row.auth_actions)) {
+                    row.isChecked = !row.isChecked
+                    this.isTplInPanelAllSelected = this.getTplIsAllSelected()
+                    if (this.selected.length === this.totalCount) {
+                        this.isHasSelected = row.isChecked ? this.isHasSelected + 1 : this.isHasSelected - 1
                     } else {
-                        this.selectedTemplates.push(template)
-                        this.isTplInPanelAllSelected = this.getTplIsAllSelected()
+                        this.isHasSelected = this.getTplIsSelected()
                     }
                 } else {
                     let permissionData
                     if (this.common) {
                         permissionData = {
                             common_flow: [{
-                                id: template.id,
-                                name: template.name
+                                id: row.id,
+                                name: row.name
                             }]
                         }
                     } else {
                         permissionData = {
                             flow: [{
-                                id: template.id,
-                                name: template.name
+                                id: row.id,
+                                name: row.name
                             }],
                             project: [{
-                                id: template.project.id,
-                                name: template.project.name
+                                id: row.project.id,
+                                name: row.project.name
                             }]
                         }
                     }
-                    this.applyForPermission(this.reqPerm, template.auth_actions, permissionData)
+                    this.applyForPermission(this.reqPerm, row.auth_actions, permissionData)
                 }
             },
-            deleteTemplate (template) {
-                const tplIndex = this.getTplIndexInSelected(template)
-                this.selectedTemplates.splice(tplIndex, 1)
-                this.isTplInPanelAllSelected = false
+            // 设置表格行
+            handlerRowClassName ({ row }) {
+                return row.isChecked ? 'select-row' : ''
             },
+            // 当前页全选
+            onSelectAllTemplate () {
+                const isAllSelected = this.getTplIsAllSelected()
+                this.templateList.forEach(item => {
+                    item.isChecked = !isAllSelected
+                })
+                this.isHasSelected = this.getTplIsSelected()
+                this.isTplInPanelAllSelected = !isAllSelected && this.isPageOver
+            },
+            // 跨页全选
             onSelectAllClick () {
                 if (this.isCheckedDisabled) {
                     return
                 }
 
-                this.templateInPanel.forEach(group => {
-                    group.children.forEach(template => {
-                        if (this.hasPermission(this.reqPerm, template.auth_actions)) {
-                            const tplIndex = this.getTplIndexInSelected(template)
-                            if (this.isTplInPanelAllSelected) {
-                                if (tplIndex > -1) {
-                                    this.selectedTemplates.splice(tplIndex, 1)
-                                }
-                            } else {
-                                if (tplIndex === -1) {
-                                    this.selectedTemplates.push(template)
-                                }
-                            }
-                        }
-                    })
+                this.templateList.forEach(template => {
+                    if (this.hasPermission(this.reqPerm, template.auth_actions)) {
+                        template.isChecked = !this.isTplInPanelAllSelected
+                    }
                 })
                 this.isTplInPanelAllSelected = !this.isTplInPanelAllSelected
+                this.isHasSelected = this.isTplInPanelAllSelected ? this.totalCount : 0
             },
+            // 确定导出
             async onConfirm () {
-                const list = this.selectedTemplates.map(item => item.id)
+                const list = this.templateList.reduce((acc, cur) => {
+                    if (cur.isChecked) {
+                        acc.push(cur.id)
+                    }
+                    return acc
+                }, [])
                 try {
                     this.exportPending = true
-                    const resp = await this.templateExport({ list, type: this.type, common: this.common })
+                    const resp = await this.templateExport({
+                        list,
+                        type: this.type,
+                        common: this.common,
+                        is_full: this.isTplInPanelAllSelected
+                    })
                     if (resp.result) {
                         this.closeDialog()
                     }
@@ -357,18 +348,19 @@
                     this.exportPending = false
                 }
             },
+            // 取消导出
             closeDialog () {
                 this.resetData()
                 this.$emit('update:isExportDialogShow', false)
             },
+            // 数据重置
             resetData () {
-                this.selectedTemplates = []
-                this.filterCondition = {
-                    classifyId: 'all',
-                    keywords: ''
-                }
+                this.templateList.forEach(template => {
+                    template.isChecked = false
+                })
+                this.keywords = ''
+                this.isHasSelected = false
                 this.isTplInPanelAllSelected = false
-                this.templateInPanel = this.templateList.slice(0)
             }
         }
     }
@@ -379,9 +371,13 @@
 @import '@/scss/config.scss';
 .export-container {
     position: relative;
-    height: 340px;
+    height: 450px;
     .search-wrapper {
         padding: 0 18px 0 20px;
+    }
+    .search-input {
+        width: 266px;
+        padding: 15px 0 8px 24px;
     }
     .project-selector {
         position: absolute;
@@ -389,108 +385,75 @@
         width: 255px;
         height: 32px;
     }
-    .business-selector {
-        width: 260px;
-        display: inline-block;
-        vertical-align: top;
+    .template-list {
+        height: calc(100% - 54px);
+        padding: 0 14px 0 24px;
     }
-    .template-search {
-        width: 250px;
-        display: inline-block;
-        vertical-align: top;
-    }
-    .template-wrapper {
-        float: left;
-        padding: 20px 4px 20px 0;
-        width: 557px;
-        height: 100%;
-        .template-list {
-            padding: 0 14px 0 20px;
-            height: 284px;
-            overflow-y: auto;
-            @include scrollbar;
-        }
-        .template-group {
-            margin-bottom: 30px;
-        }
-        .search-list {
-            padding-top: 40px;
-        }
-        .group-name {
-            margin-bottom: 8px;
-            font-size: 12px;
-        }
-    }
-    .group-wrap {
-        width: 100%;
-        overflow: hidden;
-        .card-item {
-            float: left;
-            width: calc(( 100% - 16px) / 2);
-            margin-right: 0;
-            border-radius: 2px;
-            &:not(:nth-child(2n)) {
-                margin-right: 16px;
+    /deep/.select-all-cell {
+        display: flex;
+        align-items: center;
+        &.full-selected {
+            .bk-form-checkbox {
+                .bk-checkbox {
+                    background: #ffffff;
+                    &:after {
+                        border-color: #3a84ff;
+                    }
+                }
             }
         }
     }
-    .empty-template {
-        padding-top: 104px;
+    /deep/.select-row {
+        background: #e1ecff;
     }
-    .selected-wrapper {
-        width: 292px;
-        height: 100%;
-        margin-left: 557px;
-        padding-right: 4px;
-        border-left:1px solid #dde4eb;
-        .selected-area-title {
-            padding: 28px 20px 22px;
-            line-height: 1;
-            font-size: 14px;
-            font-weight: 600;
-            color: #313238;
-            .select-count {
-                color: #3a84ff;
-            }
-        }
+    .is-loading {
+        height: 42px;
+        border-bottom: 1px solid #dfe0e5;
+        background: #fff;
     }
-    .selected-list {
-        padding-top: 8px;
-        height: 276px;
-        overflow-y: auto;
-        @include scrollbar;
-        .card-item {
-            width: 252px;
-            margin: 0 0 10px 14px;
-        }
-    }
-    // .template-checkbox {
-    //     position: absolute;
-    //     left: 20px;
-    //     bottom: -38px;
-    // }
-    // .task-footer {
-    //     position: absolute;
-    //     right: 290px;
-    //     bottom: -40px;
-    //     .error-info {
-    //         margin-right: 20px;
-    //         font-size: 12px;
-    //         color: #ea3636;
-    //     }
-    // }
 }
 </style>
 <style lang="scss">
+    @import '@/scss/mixins/scrollbar.scss';
     .export-tpl-dialog {
+        .bk-dialog-content {
+            height: 560px;
+            .bk-dialog-tool {
+                min-height: 0;
+            }
+            .bk-dialog-header {
+                margin-top: 0;
+                flex-shrink: 0;
+            }
+        }
         .footer-wrap {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            .footer-left {
+                display: flex;
+                align-items: center;
+                p {
+                    font-size: 12px;
+                    margin-left: 10px;
+                    color: #63656e;
+                    .selected-num {
+                        margin: 0 2px;
+                    }
+                }
+            }
         }
         .export-tips {
             font-size: 12px;
             color: #63656e;
+        }
+        .bk-table-body-wrapper {
+            height: 352px;
+            overflow-y: auto;
+            @include scrollbar;
+        }
+        .search-input .control-icon {
+            transform: translateY(-25%) !important;
         }
     }
 </style>
