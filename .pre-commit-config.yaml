@@ -29,8 +29,3 @@ repos:
         name: Check Sensitive Info
         entry: sh scripts/check_sensitive_info.sh
         language: system
-      - id: check-dev-log
-        name: Check Dev Log
-        entry: python3 scripts/check_dev_log.py
-        language: system
-        stages: [commit-msg]

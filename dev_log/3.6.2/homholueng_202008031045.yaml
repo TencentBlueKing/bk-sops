@@ -1,2 +1,0 @@
-improvement:
-  - " redis sentinel 模式支持配置 redis sentinel 独立密码"

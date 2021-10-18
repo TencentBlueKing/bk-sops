@@ -1,3 +1,0 @@
-improvement:
-  - 优化 CMDB/JOB 系列插件及集群模块 IP 选择器变量从 CMDB 拉取 IP 时的速度
-

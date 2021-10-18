@@ -1,2 +1,0 @@
-feature:
-    - "API接口增强，get_task_status支持获取失败节点的异常数据"
