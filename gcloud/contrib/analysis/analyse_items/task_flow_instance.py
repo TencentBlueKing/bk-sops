@@ -74,7 +74,10 @@ def produce_filter(filters):
                 orm_filters.update({filter_cond: timestamp_to_datetime(value) + datetime.timedelta(days=1)})
                 continue
         else:
-            filter_cond = cond
+            if cond == "create_method":
+                filter_cond = "create_method__in"
+            else:
+                filter_cond = cond
         orm_filters.update({filter_cond: value})
 
     return orm_filters
