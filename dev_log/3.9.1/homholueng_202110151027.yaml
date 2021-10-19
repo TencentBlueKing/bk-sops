@@ -1,2 +1,0 @@
-improvement:
-  - 优化 Django DB 链接失效重连功能
