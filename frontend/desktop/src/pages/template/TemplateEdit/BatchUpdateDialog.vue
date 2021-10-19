@@ -266,8 +266,8 @@
                             currentFormItem.status = 'deleted' // 标记当前版本子流程输出参数表单项是否被删除
                         }
                     })
-                    subflow.latestForm = latestForm
-                    subflow.currentForm = currentForm
+                    subflow.latestForm.outputs = latestForm.outputs
+                    subflow.currentForm.outputs = currentForm.outputs
                 })
             },
             // 加载当前版本和待更新版本流程的输入参数表单配置项
