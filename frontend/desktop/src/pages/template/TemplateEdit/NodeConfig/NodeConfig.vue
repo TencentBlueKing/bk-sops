@@ -623,7 +623,16 @@
                                 schema: { description: val.description || '--' }
                             })
                         }
-                        this.outputs = [...storeOutputs, ...outputs]
+                        this.outputs.push(...storeOutputs, ...outputs)
+                        // 根据key值去重
+                        const outputsObj = {}
+                        this.outputs = this.outputs.reduce((acc, cur) => {
+                            if (!outputsObj[cur.key]) {
+                                outputsObj[cur.key] = true
+                                acc.push(cur)
+                            }
+                            return acc
+                        }, [])
                         // 获取host
                         const { host } = window.location
                         const hostUrl = app.urls.find(item => item.includes(host)) || app.url
