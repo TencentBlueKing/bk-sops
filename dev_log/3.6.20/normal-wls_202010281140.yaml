@@ -1,2 +1,0 @@
-improvement:
-    - "优化 get_template_list 接口，可按照名称关键字筛选模版"

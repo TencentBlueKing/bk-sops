@@ -1,3 +1,0 @@
-bugfix:
-  - 修复通过 create_task API 创建任务时下拉框等元变量无法展示的问题
-

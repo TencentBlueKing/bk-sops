@@ -51,7 +51,6 @@ def migrate_template(start, end):
     param end:TemplateInPipeline表的主键
     return success:是否成功
     """
-
     # 查询出所有目标记录
     condition = Q()
     condition.children.append(("id__gte", start))
@@ -76,21 +75,26 @@ def migrate_template(start, end):
             continue
 
     for data_source_item in data_source_list:
-        pipeline_template = data_source_item["pipeline_template"]
-        template_in_pipeline_inst = data_source_item["template_in_pipeline_inst"]
-        task_template = data_source_item["task_template"]
-        kwargs = {
-            "template_id": pipeline_template.id,
-            "task_template_id": task_template.id,
-            "atom_total": template_in_pipeline_inst.atom_total,
-            "subprocess_total": template_in_pipeline_inst.subprocess_total,
-            "gateways_total": template_in_pipeline_inst.gateways_total,
-            "project_id": task_template.project.id,
-            "category": task_template.category,
-            "template_creator": pipeline_template.creator,
-            "template_create_time": pipeline_template.create_time,
-            "template_edit_time": pipeline_template.edit_time,
-        }
+        try:
+            pipeline_template = data_source_item["pipeline_template"]
+            template_in_pipeline_inst = data_source_item["template_in_pipeline_inst"]
+            task_template = data_source_item["task_template"]
+            kwargs = {
+                "template_id": pipeline_template.id,
+                "task_template_id": task_template.id,
+                "atom_total": template_in_pipeline_inst.atom_total,
+                "subprocess_total": template_in_pipeline_inst.subprocess_total,
+                "gateways_total": template_in_pipeline_inst.gateways_total,
+                "project_id": task_template.project.id,
+                "category": task_template.category,
+                "template_creator": pipeline_template.creator,
+                "template_create_time": pipeline_template.create_time,
+                "template_edit_time": pipeline_template.edit_time,
+            }
+        except Exception:
+            template_id = pipeline_template.id
+            logger.exception("[migrate_template] unkwon error template_id={:0}".format(template_id))
+            continue
         # 计算输入输出变量个数
         input_count = 0
         output_count = 0
@@ -112,6 +116,7 @@ def migrate_template(start, end):
                 template_statistics.save()
         except Exception:
             logger.exception("[migrate_template] template_id={:0}的数据插入失败，自动回滚".format(kwargs["template_id"]))
+
     return True
 
 
@@ -147,23 +152,31 @@ def migrate_component(start, end):
 
     # 迁移
     for data_source_item in data_source_list:
-        component = data_source_item["component_in_template_inst"]
-        pipeline_template = data_source_item["pipeline_template"]
-        task_template = data_source_item["task_template"]
-        kwargs = dict(
-            component_code=component.component_code,
-            template_id=pipeline_template.id,
-            task_template_id=task_template.id,
-            project_id=task_template.project.id,
-            category=task_template.category,
-            node_id=component.node_id,
-            is_sub=component.is_sub,
-            subprocess_stack=component.subprocess_stack,
-            version=component.version,
-            template_creator=pipeline_template.creator,
-            template_create_time=pipeline_template.create_time,
-            template_edit_time=pipeline_template.edit_time,
-        )
+        try:
+            component = data_source_item["component_in_template_inst"]
+            pipeline_template = data_source_item["pipeline_template"]
+            task_template = data_source_item["task_template"]
+            kwargs = dict(
+                component_code=component.component_code,
+                template_id=pipeline_template.id,
+                task_template_id=task_template.id,
+                project_id=task_template.project.id,
+                category=task_template.category,
+                node_id=component.node_id,
+                is_sub=component.is_sub,
+                subprocess_stack=component.subprocess_stack,
+                version=component.version,
+                template_creator=pipeline_template.creator,
+                template_create_time=pipeline_template.create_time,
+                template_edit_time=pipeline_template.edit_time,
+            )
+        except Exception:
+            template_id = pipeline_template.id
+            node_id = component.id
+            logger.exception(
+                "[migrate_component] unkwon error template_id={:0},node_id={:1}".format(template_id, node_id)
+            )
+            continue
         try:
             with transaction.atomic():
                 TemplateNodeStatistics.objects.filter(
@@ -177,6 +190,7 @@ def migrate_component(start, end):
                     kwargs["template_id"], kwargs["node_id"]
                 )
             )
+
     return True
 
 
@@ -216,27 +230,31 @@ def migrate_instance(start, end):
             continue
     # 构建目标数据对象
     for data_source_item in data_source_list:
-        instance = data_source_item["pipeline_instance"]
-        taskflow_instance = data_source_item["taskflow_instance"]
-        task_template = data_source_item["task_template"]
-        instance_in_pipeline = data_source_item["instance_in_pipeline"]
-        pipeline_template = data_source_item["pipeline_template"]
-        kwargs = dict(
-            instance_id=instance.id,
-            task_instance_id=taskflow_instance.id,
-            atom_total=instance_in_pipeline.atom_total,
-            subprocess_total=instance_in_pipeline.subprocess_total,
-            gateways_total=instance_in_pipeline.gateways_total,
-            project_id=taskflow_instance.project.id,
-            category=task_template.category,
-            template_id=pipeline_template.id,
-            creator=instance.creator,
-            create_time=instance.create_time,
-            start_time=instance.start_time,
-            finish_time=instance.finish_time,
-            elapsed_time=calculate_elapsed_time(instance.start_time, instance.finish_time),
-            create_method=taskflow_instance.create_method,
-        )
+        try:
+            instance = data_source_item["pipeline_instance"]
+            taskflow_instance = data_source_item["taskflow_instance"]
+            task_template = data_source_item["task_template"]
+            instance_in_pipeline = data_source_item["instance_in_pipeline"]
+            pipeline_template = data_source_item["pipeline_template"]
+            kwargs = dict(
+                instance_id=instance.id,
+                task_instance_id=taskflow_instance.id,
+                atom_total=instance_in_pipeline.atom_total,
+                subprocess_total=instance_in_pipeline.subprocess_total,
+                gateways_total=instance_in_pipeline.gateways_total,
+                project_id=taskflow_instance.project.id,
+                category=task_template.category,
+                template_id=pipeline_template.id,
+                creator=instance.creator,
+                create_time=instance.create_time,
+                start_time=instance.start_time,
+                finish_time=instance.finish_time,
+                elapsed_time=calculate_elapsed_time(instance.start_time, instance.finish_time),
+                create_method=taskflow_instance.create_method,
+            )
+        except Exception:
+            logger.exception("[migrate_instance] unkwon error instance_id={:0}".format(instance.id))
+            continue
         try:
             with transaction.atomic():
                 TaskflowStatistics.objects.filter(instance_id=kwargs["instance_id"]).delete()
@@ -244,6 +262,7 @@ def migrate_instance(start, end):
                 taslflowstatistics.save()
         except Exception:
             logger.exception("[migrate_instance] instance_id={:0}的数据插入失败，自动回滚".format(kwargs["instance_id"]))
+
     return True
 
 
@@ -260,35 +279,43 @@ def migrate_component_execute_data(start, end):
     condition.children.append(("id__gte", start))
     condition.children.append(("id__lt", end))
     component_execute_data_records = ComponentExecuteData.objects.filter(condition)
+
     for component in component_execute_data_records:
         try:
             pipeline_instance = PipelineInstance.objects.get(instance_id=component.instance_id)
             taskflow_instance = TaskFlowInstance.objects.get(pipeline_instance=pipeline_instance)
             pipeline_template = pipeline_instance.template
             task_template = TaskTemplate.objects.get(pipeline_template=pipeline_template)
+            kwargs = dict(
+                component_code=component.component_code,
+                instance_id=pipeline_instance.id,
+                task_instance_id=taskflow_instance.id,
+                node_id=component.node_id,
+                is_sub=component.is_sub,
+                subprocess_stack=component.subprocess_stack,
+                started_time=component.started_time,
+                archived_time=component.archived_time,
+                elapsed_time=component.elapsed_time,
+                status=component.status,
+                is_skip=component.is_skip,
+                is_retry=component.is_retry,
+                version=component.version,
+                template_id=pipeline_template.id,
+                task_template_id=task_template.id,
+                project_id=taskflow_instance.project.id,
+                instance_create_time=pipeline_instance.create_time,
+                instance_start_time=pipeline_instance.start_time,
+                instance_finish_time=pipeline_instance.finish_time,
+            )
         except ObjectDoesNotExist:
             continue
-        kwargs = dict(
-            component_code=component.component_code,
-            instance_id=pipeline_instance.id,
-            task_instance_id=taskflow_instance.id,
-            node_id=component.node_id,
-            is_sub=component.is_sub,
-            subprocess_stack=component.subprocess_stack,
-            started_time=component.started_time,
-            archived_time=component.archived_time,
-            elapsed_time=component.elapsed_time,
-            status=component.status,
-            is_skip=component.is_skip,
-            is_retry=component.is_retry,
-            version=component.version,
-            template_id=pipeline_template.id,
-            task_template_id=task_template.id,
-            project_id=taskflow_instance.project.id,
-            instance_create_time=pipeline_instance.create_time,
-            instance_start_time=pipeline_instance.start_time,
-            instance_finish_time=pipeline_instance.finish_time,
-        )
+        except Exception:
+            logger.exception(
+                "[migrate_component_execute_data] unkwon error instance_id={:0},node_id={:1}".format(
+                    pipeline_instance.id, component.node_id
+                )
+            )
+            continue
         try:
             with transaction.atomic():
                 TaskflowExecutedNodeStatistics.objects.filter(
@@ -302,7 +329,6 @@ def migrate_component_execute_data(start, end):
                     kwargs["instance_id"], kwargs["node_id"]
                 )
             )
-
     return True
 
 
@@ -331,23 +357,13 @@ def migrate_schedule():
     # 打印开始迁移日志
 
     logger.info("[migrate_schedule] migrate process have started.")
-    logger.info(
-        """
-        [migrate_schedule] migrated templateInPipeline({:0}) ComponentInTemplate({:1})
-        InstanceInPipeline({:2}) ComponentExecuteData({:3})
-        """.format(
-            migrate_log.template_in_pipeline_migrated,
-            migrate_log.component_in_template_migrated,
-            migrate_log.instance_in_pipeline_migrated,
-            migrate_log.component_execute_data_migrated,
-        )
-    )
 
     # TemplateInPipeline迁移并更新上下文
     if not migrate_log.template_in_pipeline_finished:
         if migrate_template(migrate_log.template_in_pipeline_start, migrate_log.template_in_pipeline_end):
             migrate_log.template_in_pipeline_start = migrate_log.template_in_pipeline_end
             migrate_log.template_in_pipeline_end += migrate_log.migrate_num_once
+            migrate_log.template_in_pipeline_migrated += migrate_log.migrate_num_once
             migrate_log.save()
             # 如果起点大于总量就标记完成
             if migrate_log.template_in_pipeline_start > migrate_log.template_in_pipeline_count:
@@ -359,6 +375,7 @@ def migrate_schedule():
         if migrate_component(migrate_log.component_in_template_start, migrate_log.component_in_template_end):
             migrate_log.component_in_template_start = migrate_log.component_in_template_end
             migrate_log.component_in_template_end += migrate_log.migrate_num_once
+            migrate_log.component_in_template_migrated += migrate_log.migrate_num_once
             migrate_log.save()
             # 如果起点大于总量就标记完成
             if migrate_log.component_in_template_start > migrate_log.component_in_template_count:
@@ -370,6 +387,7 @@ def migrate_schedule():
         if migrate_instance(migrate_log.instance_in_pipeline_start, migrate_log.instance_in_pipeline_end):
             migrate_log.instance_in_pipeline_start = migrate_log.instance_in_pipeline_end
             migrate_log.instance_in_pipeline_end += migrate_log.migrate_num_once
+            migrate_log.instance_in_pipeline_migrated += migrate_log.migrate_num_once
             migrate_log.save()
             # 如果起点大于总量就标记完成
             if migrate_log.instance_in_pipeline_start > migrate_log.instance_in_pipeline_count:
@@ -383,6 +401,7 @@ def migrate_schedule():
         ):
             migrate_log.component_execute_data_start = migrate_log.component_execute_data_end
             migrate_log.component_execute_data_end += migrate_log.migrate_num_once
+            migrate_log.component_execute_data_migrated += migrate_log.migrate_num_once
             migrate_log.save()
             # 如果起点大于总量就标记完成
             if migrate_log.component_execute_data_start > migrate_log.component_execute_data_count:
@@ -398,6 +417,32 @@ def migrate_schedule():
             migrate_log.component_execute_data_finished,
         )
     )
+
+    # 计算各表迁移进度百分比
+    template_migrate_process = (
+        round(migrate_log.template_in_pipeline_migrated / migrate_log.template_in_pipeline_count, 2) * 100
+    )
+    component_migrate_process = (
+        round(migrate_log.component_in_template_migrated / migrate_log.component_in_template_count, 2) * 100
+    )
+    instance_migrate_process = (
+        round(migrate_log.instance_in_pipeline_migrated / migrate_log.instance_in_pipeline_count, 2) * 100
+    )
+    component_execute_migrate_process = (
+        round(migrate_log.component_execute_data_migrated / migrate_log.component_execute_data_count, 2) * 100
+    )
+    logger.info(
+        """
+        [statistics_migrate_process] migrated templateInPipeline({:0}%) ComponentInTemplate({:1}%)
+        InstanceInPipeline({:2}%) ComponentExecuteData({:3}%)
+        """.format(
+            template_migrate_process,
+            component_migrate_process,
+            instance_migrate_process,
+            component_execute_migrate_process,
+        )
+    )
+
     if finished:
         migrate_log.migrate_switch = False
         migrate_log.save()

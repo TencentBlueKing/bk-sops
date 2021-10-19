@@ -1,2 +1,0 @@
-bugfix:
-    - 修复 iam_auth.conf SYSTEM_ID 没有从 settings 获取的问题

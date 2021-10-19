@@ -1,2 +1,0 @@
-bugfix:
-  - 修复ProjectConfig和StaffGroup接口无权限中心校验问题
