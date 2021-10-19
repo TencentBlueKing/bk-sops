@@ -31,11 +31,8 @@ modules:
               value: 20.2.3
               description: PIP版本
             - key: BKAPP_FILE_MANAGER_TYPE
-              value: bk_repo
+              value: job_repo
               description: 文件管理类型
-            - key: BKAPP_JOB_FILE_BIZ_ID
-              value: 9991001
-              description: JOB平台统一全业务ID
             - key: BKAPP_AUTO_UPDATE_VARIABLE_MODELS
               value: 0
               description: 是否自动更新变量模型
@@ -81,11 +78,8 @@ modules:
               value: 20.2.3
               description: PIP版本
             - key: BKAPP_FILE_MANAGER_TYPE
-              value: bk_repo
+              value: job_repo
               description: 文件管理类型
-            - key: BKAPP_JOB_FILE_BIZ_ID
-              value: 9991001
-              description: JOB平台统一全业务ID
             - key: BKAPP_AUTO_UPDATE_VARIABLE_MODELS
               value: 0
               description: 是否自动更新变量模型
@@ -123,11 +117,8 @@ modules:
               value: 20.2.3
               description: PIP版本
             - key: BKAPP_FILE_MANAGER_TYPE
-              value: bk_repo
+              value: job_repo
               description: 文件管理类型
-            - key: BKAPP_JOB_FILE_BIZ_ID
-              value: 9991001
-              description: JOB平台统一全业务ID
             - key: DEFAULT_MAX_TASKS_IN_MEMORY
               value: 100000
               description: celery exporter 存储任务最大值
@@ -231,11 +222,8 @@ modules:
               value: 20.2.3
               description: PIP版本
             - key: BKAPP_FILE_MANAGER_TYPE
-              value: bk_repo
+              value: job_repo
               description: 文件管理类型
-            - key: BKAPP_JOB_FILE_BIZ_ID
-              value: 9991001
-              description: JOB平台统一全业务ID
             - key: BKAPP_AUTO_UPDATE_VARIABLE_MODELS
               value: 0
               description: 是否自动更新变量模型

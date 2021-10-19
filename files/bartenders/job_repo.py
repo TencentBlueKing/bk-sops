@@ -11,14 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
-class FilesError(Exception):
-    pass
-
-
-class InvalidOperationError(FilesError):
-    pass
+from .base import UploadRequestBartender
+from .utils import common_process_request
 
 
-class ApiResultError(FilesError):
-    pass
+class JobRepoBartender(UploadRequestBartender):
+    def process_request(self, request):
+        return common_process_request(request, self.manager)
