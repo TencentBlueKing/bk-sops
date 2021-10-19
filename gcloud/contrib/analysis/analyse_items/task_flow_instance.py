@@ -74,7 +74,10 @@ def produce_filter(filters):
                 orm_filters.update({filter_cond: timestamp_to_datetime(value) + datetime.timedelta(days=1)})
                 continue
         else:
-            filter_cond = cond
+            if cond == "create_method":
+                filter_cond = "create_method__in"
+            else:
+                filter_cond = cond
         orm_filters.update({filter_cond: value})
 
     return orm_filters
@@ -83,7 +86,8 @@ def produce_filter(filters):
 def format_create_and_finish_time(filters):
     create_time = timestamp_to_datetime(
         filters.get(
-            "create_time", datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp(),
+            "create_time",
+            datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp(),
         )
     )
     finish_time = timestamp_to_datetime(filters.get("finish_time", datetime.datetime.now().timestamp()))
