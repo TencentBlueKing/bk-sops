@@ -1,5 +1,10 @@
 # Release
 
+## 3.5.36
+
+- improvement
+  - ip选择器支持选择不同分隔符
+
 ## 3.5.35
 
 - improvement
