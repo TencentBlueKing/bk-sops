@@ -61,7 +61,6 @@ modules:
                 - bk_app_code: "bk_user_manage"
                 - bk_app_code: "bk_nodeman"
                 - bk_app_code: "bk_sops"
-                  module_name: "default"
                 - bk_app_code: "bk_sops"
                   module_name: "callback"
     callback:
@@ -104,7 +103,6 @@ modules:
                 - bk_app_code: "bk_user_manage"
                 - bk_app_code: "bk_nodeman"
                 - bk_app_code: "bk_sops"
-                  module_name: "default"
                 - bk_app_code: "bk_sops"
                   module_name: "callback"
     pipeline:
@@ -213,7 +211,6 @@ modules:
               - bk_app_code: "bk_user_manage"
               - bk_app_code: "bk_nodeman"
               - bk_app_code: "bk_sops"
-                module_name: "default"
               - bk_app_code: "bk_sops"
                 module_name: "callback"
     api:
@@ -256,6 +253,5 @@ modules:
               - bk_app_code: "bk_user_manage"
               - bk_app_code: "bk_nodeman"
               - bk_app_code: "bk_sops"
-                module_name: "default"
               - bk_app_code: "bk_sops"
                 module_name: "callback"

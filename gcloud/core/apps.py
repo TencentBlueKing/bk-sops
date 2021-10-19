@@ -35,13 +35,20 @@ class CoreConfig(AppConfig):
                 from gcloud.core.models import EnvironmentVariables
 
                 settings.REDIS = {
-                    "host": EnvironmentVariables.objects.get_var("BKAPP_REDIS_HOST"),
-                    "port": EnvironmentVariables.objects.get_var("BKAPP_REDIS_PORT"),
-                    "password": EnvironmentVariables.objects.get_var("BKAPP_REDIS_PASSWORD"),
-                    "service_name": EnvironmentVariables.objects.get_var("BKAPP_REDIS_SERVICE_NAME"),
-                    "mode": EnvironmentVariables.objects.get_var("BKAPP_REDIS_MODE"),
-                    "db": EnvironmentVariables.objects.get_var("BKAPP_REDIS_DB"),
-                    "sentinel_password": EnvironmentVariables.objects.get_var("BKAPP_REDIS_SENTINEL_PASSWORD"),
+                    "host": EnvironmentVariables.objects.get_var("BKAPP_REDIS_HOST")
+                    or EnvironmentVariables.objects.get_var("REDIS_HOST"),
+                    "port": EnvironmentVariables.objects.get_var("BKAPP_REDIS_PORT")
+                    or EnvironmentVariables.objects.get_var("REDIS_PORT"),
+                    "password": EnvironmentVariables.objects.get_var("BKAPP_REDIS_PASSWORD")
+                    or EnvironmentVariables.objects.get_var("REDIS_PASSWORD"),
+                    "service_name": EnvironmentVariables.objects.get_var("BKAPP_REDIS_SERVICE_NAME")
+                    or EnvironmentVariables.objects.get_var("REDIS_SERVICE_NAME"),
+                    "mode": EnvironmentVariables.objects.get_var("BKAPP_REDIS_MODE")
+                    or EnvironmentVariables.objects.get_var("REDIS_MODE"),
+                    "db": EnvironmentVariables.objects.get_var("BKAPP_REDIS_DB")
+                    or EnvironmentVariables.objects.get_var("REDIS_DB"),
+                    "sentinel_password": EnvironmentVariables.objects.get_var("BKAPP_REDIS_SENTINEL_PASSWORD")
+                    or EnvironmentVariables.objects.get_var("REDIS_SENTINEL_PASSWORD"),
                 }
             except Exception:
                 logger.warning(traceback.format_exc())
