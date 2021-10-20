@@ -44,7 +44,7 @@
         <div class="tab-content-area">
             <bk-tab>
                 <bk-tab-panel v-bind="{ name: 'instance', label: $t('任务详情') }">
-                    <bk-form form-type="inline" ref="xxxx">
+                    <bk-form form-type="inline">
                         <bk-form-item :label="$t('所属项目')">
                             <bk-select
                                 v-model="instanceProject"
@@ -127,7 +127,7 @@
                     </bk-table>
                 </bk-tab-panel>
             </bk-tab>
-            <div id="filter-popover" class="popover">
+            <div id="filter-popover" class="filter-popover" ref="filterPopover">
                 <ul class="label-menu">
                     <li
                         class="label-menu-item"
@@ -369,6 +369,7 @@
             this.getData()
         },
         mounted () {
+            window.addEventListener('mouseup', this.handlePopoverOutSide)
             this.$nextTick(() => {
                 const dom = document.querySelector('#filter-popover')
                 const options = {
@@ -378,7 +379,7 @@
                     theme: 'light',
                     distance: 10,
                     trigger: 'click',
-                    hideOnClick: true,
+                    hideOnClick: false,
                     arrow: false,
                     extCls: 'select-all-tpl-popover'
                 }
@@ -387,6 +388,7 @@
             })
         },
         beforeDestroy () {
+            window.removeEventListener('mouseup', this.handlePopoverOutSide)
             this.instance && this.instance.destroy()
         },
         methods: {
@@ -544,7 +546,7 @@
                     'class': 'creat-method-filter-header'
                 }, [
                     h('div', {
-                        'class': 'filter-popover'
+                        'class': 'render-header'
                     }, [
                         h('span', [i18n.t('任务类型')]),
                         h('i', {
@@ -559,7 +561,6 @@
             onSwitchCheckStatus (val) {
                 const selectFilter = this.filterList.find(item => item.value === val.value)
                 selectFilter.checked = !selectFilter.checked
-                this.instance && this.instance.show()
             },
             onConfirmFilter () {
                 this.selectedFilter = this.filterList.reduce((acc, cur) => {
@@ -571,6 +572,12 @@
                 this.instance && this.instance.hide()
                 this.pagination.current = 1
                 this.getTableData()
+            },
+            handlePopoverOutSide (e) {
+                const popoverDom = this.$refs.filterPopover
+                if (popoverDom && !popoverDom.contains(e.target)) {
+                    this.instance && this.instance.hide()
+                }
             },
             onResetFilter () {
                 this.selectedFilter = []
@@ -677,32 +684,34 @@
             padding-bottom: 0 !important;
         }
     }
-    .label-menu-item {
-        width: 100px;
-        display: flex;
-        align-items: center;
-        line-height: 16px;
-        margin-bottom: 10px;
-        padding-left: 10px;
-        color: #63656e;
-        cursor: pointer;
-        font-size: 14px;
-        .bk-form-checkbox {
-            margin-right: 5px;
+    .filter-popover {
+        font-size: 12px;
+        .label-menu-item {
+            width: 100px;
+            display: flex;
+            align-items: center;
+            line-height: 16px;
+            margin-bottom: 10px;
+            padding-left: 10px;
+            color: #63656e;
+            cursor: pointer;
+            .bk-form-checkbox {
+                margin-right: 5px;
+            }
         }
-    }
-    .filter-footer {
-        display: flex;
-        height: 31px;
-        border-top: 1px solid #f0f1f5;
-        align-items: center;
-        justify-content: center;
-        color: #3a84ff;
-        cursor: pointer;
-        .operat-btn {
-            margin-right: 10px;
-            &:hover {
-                color: #699df4;
+        .filter-footer {
+            display: flex;
+            height: 31px;
+            border-top: 1px solid #f0f1f5;
+            align-items: center;
+            justify-content: center;
+            color: #3a84ff;
+            cursor: pointer;
+            .operat-btn {
+                margin-right: 10px;
+                &:hover {
+                    color: #699df4;
+                }
             }
         }
     }
