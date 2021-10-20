@@ -21,13 +21,13 @@ const task = {
          * @param {Object} data 筛选条件
          */
         loadTaskScheme ({ commit }, payload) {
-            const { isCommon, project_id, template_id } = payload
+            const { isCommon, project__id, template_id } = payload
             const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
 
             return axios.get(url, {
                 params: {
                     template_id,
-                    project_id
+                    project__id
                 }
             }).then(response => response.data.objects)
         },
