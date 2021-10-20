@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from collections import Counter
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth import get_user_model
@@ -30,7 +31,7 @@ from gcloud.template_base.models import BaseTemplate, BaseTemplateManager
 from gcloud.core.models import Project
 from gcloud.utils.managermixins import ClassificationCountMixin
 from gcloud.utils.dates import format_datetime
-from gcloud.analysis_statistics.models import TemplateStatistics, TemplateNodeStatistics
+from gcloud.analysis_statistics.models import TemplateStatistics, TemplateNodeStatistics, TaskflowStatistics
 from gcloud.utils.components import format_component_name
 
 logger = logging.getLogger("root")
@@ -267,6 +268,26 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         else:
             groups = sorted(groups, key=lambda group: group.get(order_by), reverse=False)
         return total, groups[(page - 1) * limit : page * limit]
+
+    def group_by_template_execute_times(self, tasktmpl, filters, page, limit):
+        topn = filters.get("topn", 10)
+        tasktmpl_id_list = tasktmpl.values_list("id", flat=True)
+        tasktmpl_dict = dict(tasktmpl.values_list("id", "pipeline_template__name"))
+        # 计算使用过的流程使用次数
+        used = TaskflowStatistics.objects.filter(task_template_id__in=str(tasktmpl_id_list)).values_list(
+            "id", flat=True
+        )
+        used_count = dict(Counter(used))
+        # 取出未使用过的流程
+        un_used = tasktmpl_id_list.exclude(id__in=used)
+        # 计算total
+        total = used.count() + un_used.count()
+        groups = []
+        for id, count in used_count.items():
+            groups.append({"template_id": id, "template_name": tasktmpl_dict.get("id", ""), "count": count})
+        groups.extend([{"template_id": id, "template_name": tasktmpl_dict.get("id", ""), "count": 0} for id in un_used])
+        groups.sort(key=lambda item: item.get("count", 0), reverse=True)
+        return total, groups[0:topn]
 
     def general_group_by(self, prefix_filters, group_by):
         try:

@@ -35,6 +35,8 @@ TEMPLATE_GROUP_BY_METHODS = {
     AE.atom_execute: TaskTemplate.objects.group_by_atom_execute,
     # 按起始时间、业务（可选）、类型（可选）查询各流程模板标准插件节点个数、子流程节点个数、网关节点数
     AE.template_node: TaskTemplate.objects.group_by_template_node,
+    # 查询模板执行数量top n
+    AE.template_execute_times: TaskTemplate.objects.group_by_template_execute_times,
 }
 
 
