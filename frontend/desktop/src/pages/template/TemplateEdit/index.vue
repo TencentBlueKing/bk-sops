@@ -323,8 +323,8 @@
                 },
                 typeOfNodeNameEmpty: '', // 新建流程未选择插件的节点类型
                 pagination: {
-                    limit: 100,
-                    offset: 0,
+                    limit: 15,
+                    offset: 1,
                     isLoading: false,
                     totalPage: null
                 },
@@ -1464,7 +1464,7 @@
                         if (offset !== totalPage && !isLoading) {
                             this.pagination.isLoading = true
                             this.pagination.offset++
-                            const params = { search_term: val, limit: limit, offset }
+                            const params = { search_term: val, limit: limit, offset: this.pagination.offset }
                             const resp = await this.loadPluginServiceList(params)
                             const { count, plugins } = resp.data
                             this.pagination.totalPage = Math.ceil(count / this.pagination.limit)
