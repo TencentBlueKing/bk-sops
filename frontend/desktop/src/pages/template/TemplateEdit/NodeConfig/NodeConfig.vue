@@ -396,7 +396,6 @@
                 }
             })
             this.localConstants = tools.deepClone(this.constants)
-            this.getSubflowList()
         },
         async mounted () {
             const defaultData = await this.initDefaultData()
