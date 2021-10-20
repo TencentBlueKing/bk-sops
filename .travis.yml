@@ -9,6 +9,7 @@ before_script:
   - pip install flake8
   - pip install codecov
   - pip install coverage
+  - pip install typing_extensions
 
 script:
   - flake8
