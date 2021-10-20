@@ -157,8 +157,7 @@
                 'activities': state => state.template.activities,
                 'constants': state => state.template.constants,
                 'internalVariable': state => state.template.internalVariable.variables,
-                'pluginConfigs': state => state.atomForm.config,
-                'pluginOutput': state => state.atomForm.output
+                'pluginConfigs': state => state.atomForm.config
             }),
             expiredTplNum () {
                 return this.list.filter(item => item.expired).length
@@ -249,27 +248,6 @@
                     this.subflowFormsLoading = false
                 }
             },
-            // 更新输出参数状态
-            updateFormsStatus () {
-                this.subflowForms.forEach(subflow => {
-                    const latestForm = this.getNodeFormData(subflow.latestForm)
-                    const currentForm = this.getNodeFormData(subflow.currentForm)
-                    latestForm.outputs.forEach(latestFormItem => {
-                        const currentFormItem = currentForm.outputs.find(item => item.key === latestFormItem.key && item.version === latestFormItem.version)
-                        if (!currentFormItem) {
-                            latestFormItem.status = 'added' // 标记最新版本子流程输出参数表单项是否为新增
-                        }
-                    })
-                    currentForm.outputs.forEach(currentFormItem => {
-                        const latestFormItem = latestForm.outputs.find(item => item.key === currentFormItem.key && item.version === currentFormItem.version)
-                        if (!latestFormItem) {
-                            currentFormItem.status = 'deleted' // 标记当前版本子流程输出参数表单项是否被删除
-                        }
-                    })
-                    subflow.latestForm.outputs = latestForm.outputs
-                    subflow.currentForm.outputs = currentForm.outputs
-                })
-            },
             // 加载当前版本和待更新版本流程的输入参数表单配置项
             async getTplsFormConfig (subflowForms) {
                 const uniqueConfigMap = {}
@@ -300,9 +278,7 @@
                     const { name, atom, classify } = atomFilter.getVariableArgs(variable)
                     const version = variable.version || 'legacy'
                     const isThird = Boolean(variable.plugin_code)
-                    const config = await this.getAtomConfig({ plugin: atom, version, classify, name, isThird, id: variable.id })
-                    // 更新输出参数状态
-                    this.updateFormsStatus()
+                    const config = await this.getAtomConfig({ plugin: atom, version, classify, name, isThird })
                     variablesConfig[`${formKey}_${variable.version}`] = config
                 }))
 
@@ -330,7 +306,7 @@
                 })
             },
             async getAtomConfig (config) {
-                const { plugin, version, classify, name, isThird, id } = config
+                const { plugin, version, classify, name, isThird } = config
                 const project_id = this.common ? undefined : this.project_id
                 try {
                     // 先取标准节点缓存的数据
@@ -347,36 +323,7 @@
                         })
                         if (!resp.result) return
                         // 获取参数
-                        const { app, outputs: respsOutputs, forms } = resp.data
-                        // 获取第三方插件公共输出参数
-                        if (!this.pluginOutput['remote_plugin']) {
-                            await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
-                        }
-                        // 输出参数
-                        const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
-                        const outputs = []
-                        for (const [key, val] of Object.entries(respsOutputs.properties)) {
-                            outputs.push({
-                                name: val.title,
-                                key,
-                                type: val.type,
-                                version,
-                                schema: { description: val.description || '--' }
-                            })
-                        }
-                        const subflowForms = this.subflowForms.find(subflow => subflow.id === id)
-                        const formOutputs = subflowForms.latestForm.outputs
-                        formOutputs.push(...storeOutputs, ...outputs)
-                        // 输出参数去重
-                        const outputsObj = {}
-                        subflowForms.latestForm.outputs = formOutputs.reduce((acc, cur) => {
-                            if (!outputsObj[cur.key]) {
-                                outputsObj[cur.key] = true
-                                acc.push(cur)
-                            }
-                            return acc
-                        }, [])
-                        
+                        const { app, forms } = resp.data
                         // 获取host
                         const { host } = window.location
                         const hostUrl = app.urls.find(item => item.includes(host)) || app.url
