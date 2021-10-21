@@ -289,6 +289,30 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         groups.sort(key=lambda item: item.get("count", 0), reverse=True)
         return total, groups[0:topn]
 
+    def group_by_execute_in_biz(self, tasktmpl, filters, page, limit):
+        project_dict = dict(Project.objects.values_list("id", "name"))
+        proj_id_list = tasktmpl.values("project", "id")
+        proj_dict = {}
+        # 生成项目-流程字典
+        for item in proj_id_list:
+            proj_dict[item["project"]] = proj_dict.get(item["project"], [])
+            proj_dict[item["project"]].append(str(item["id"]))
+        groups = []
+        total = len(proj_dict)
+        for proj, tasktmpl_list in proj_dict.items():
+            all_tasktmpl_count = len(tasktmpl_list)
+            used_count = TaskflowStatistics.objects.filter(task_template_id__in=tasktmpl_list).count()
+            unused_count = all_tasktmpl_count - used_count
+            groups.append(
+                {
+                    "project_id": proj,
+                    "project_name": project_dict[proj],
+                    "used_value": used_count,
+                    "unused_value": unused_count,
+                }
+            )
+        return total, groups
+
     def general_group_by(self, prefix_filters, group_by):
         try:
             total, groups = self.classified_count(prefix_filters, group_by)

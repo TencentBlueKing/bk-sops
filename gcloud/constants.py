@@ -146,6 +146,7 @@ class AnalysisElement(object):
     pipeline_template__editor = "pipeline_template__editor"
     pipeline_template__edit_time = "pipeline_template__edit_time"
     template_execute_times = "template_execute_times"
+    template_execute_in_biz = "template_execute_in_biz"
     type = "type"
     group_list = [
         "category",
@@ -165,6 +166,7 @@ class AnalysisElement(object):
         "atom_avg_execute_time",
         "atom_fail_percent",
         "template_execute_times",
+        "template_execute_in_biz",
     ]
     atom_dimensions = [
         atom_execute,

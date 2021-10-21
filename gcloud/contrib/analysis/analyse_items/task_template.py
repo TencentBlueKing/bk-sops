@@ -37,6 +37,8 @@ TEMPLATE_GROUP_BY_METHODS = {
     AE.template_node: TaskTemplate.objects.group_by_template_node,
     # 查询模板执行数量top n
     AE.template_execute_times: TaskTemplate.objects.group_by_template_execute_times,
+    # 查询模板使用情况统计数据
+    AE.template_execute_in_biz: TaskTemplate.objects.group_by_execute_in_biz,
 }
 
 
