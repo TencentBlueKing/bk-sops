@@ -245,6 +245,7 @@ def migrate_instance(start, end):
                 project_id=taskflow_instance.project.id,
                 category=task_template.category,
                 template_id=pipeline_template.id,
+                task_template_id=task_template.id,
                 creator=instance.creator,
                 create_time=instance.create_time,
                 start_time=instance.start_time,
