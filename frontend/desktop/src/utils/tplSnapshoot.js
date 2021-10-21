@@ -27,20 +27,17 @@ const tplSnapshoot = {
                     alert('localstorage 空间不足')
                 } else {
                     // 删除非当前用户、非当前项目、非当前流程模板的快照数据
-                    Object.keys(snapshootStorage).forEach((username, usernameIndex) => {
+                    Object.keys(snapshootStorage).forEach((username) => {
                         if (username !== current.username) {
-                            snapshootStorage.splice(usernameIndex, 1)
-                            // delete snapshootStorage[username]
+                            delete snapshootStorage[username]
                         } else {
-                            Object.keys(snapshootStorage[username]).forEach((id, idIndex) => {
+                            Object.keys(snapshootStorage[username]).forEach((id) => {
                                 if (id !== current.id) {
-                                    snapshootStorage[username].splice(idIndex, 1)
-                                    // delete snapshootStorage[username][id]
+                                    delete snapshootStorage[username][id]
                                 } else {
-                                    Object.keys(snapshootStorage[username][id]).forEach((tpl, tplIndex) => {
+                                    Object.keys(snapshootStorage[username][id]).forEach((tpl) => {
                                         if (tpl !== current.tpl) {
-                                            snapshootStorage[username][id].splice(tplIndex, 1)
-                                            // delete snapshootStorage[username][id][tpl]
+                                            delete snapshootStorage[username][id][tpl]
                                         }
                                     })
                                 }

@@ -23,9 +23,10 @@ Create a task with a flow template
 |   name         |   string     |   YES   |  task name |
 |   flow_type    |   string     |   NO    |  flow type，common: common flow，common_func：functional flow. Default is common |
 |   constants    |   dict       |   NO    |  global variables，details are described below |
-|   exclude_task_nodes_id | list |   NO   |  nodes id not be executed, which are set ignore in flow |
+|   exclude_task_nodes_id | list |   NO   | nodes id not be executed, which are set ignore in flow(if you have execute_task_nodes_id and exclude_task_nodes_id, then execute_task_nodes_id will be using.) |
 | scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 |   simplify_vars    |   list       |   NO    |  list of constants key for type simplify.(after the task is created, the simplified constants will lose the type originally configured in the template, and they will all become variables of this textarea. By using this option, the difference in value format of different types of constants can be shielded when API calls are made, and they are uniformly passed through the text type. value) |
+| execute_task_nodes_id | list | NO | nodes id only be executed.(if you have execute_task_nodes_id and exclude_task_nodes_id, then execute_task_nodes_id will be using.) |
 
 #### constants KEY
 

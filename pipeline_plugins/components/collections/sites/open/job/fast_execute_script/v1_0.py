@@ -127,6 +127,12 @@ class JobFastExecuteScriptService(JobService):
                 type="string",
                 schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
             ),
+            self.InputItem(
+                name=_("自定义任务名"),
+                key="custom_task_name",
+                type="string",
+                schema=BooleanItemSchema(description=_("用户自定义任务名称。不填的话，作业平台会自动生成任务名称")),
+            ),
         ]
 
     def outputs_format(self):
@@ -158,6 +164,7 @@ class JobFastExecuteScriptService(JobService):
         across_biz = data.get_one_of_inputs("job_across_biz", False)
         original_ip_list = data.get_one_of_inputs("job_ip_list")
         ip_is_exist = data.get_one_of_inputs("ip_is_exist")
+        custom_task_name = data.get_one_of_inputs("custom_task_name", "")
 
         # 获取 IP
         clean_result, ip_list = get_biz_ip_from_frontend(
@@ -173,6 +180,8 @@ class JobFastExecuteScriptService(JobService):
             "ip_list": ip_list,
             "bk_callback_url": get_node_callback_url(self.id, getattr(self, "version", "")),
         }
+        if custom_task_name.strip():
+            job_kwargs.update({"task_name": custom_task_name})
 
         script_param = str(data.get_one_of_inputs("job_script_param"))
 

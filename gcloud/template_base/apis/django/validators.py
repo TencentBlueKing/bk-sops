@@ -41,13 +41,17 @@ class FormValidator(RequestValidator):
 class ExportTemplateApiViewValidator(RequestValidator):
     def validate(self, request, *args, **kwargs):
 
-        template_id_list = request.data.get("template_id_list")
+        template_id_list = request.data.get("template_id_list", [])
+        is_full = request.data.get("is_full", None)
+
+        if is_full is None:
+            return False, "is_full is required"
 
         if not isinstance(template_id_list, list):
             return False, "invalid template_id_list"
 
-        if not template_id_list:
-            return False, "template_id_list can not be empty"
+        if not (template_id_list or is_full):
+            return False, "template_id_list can not be empty when is_full is false"
 
         return True, ""
 
@@ -90,6 +94,7 @@ class YamlTemplateExportValidator(RequestValidator):
             return False, "template_type can not be empty"
         if data["template_type"] == "project" and not data.get("project_id"):
             return False, "project_id can not be empty when template_type=project"
+        return True, ""
 
 
 class TemplateParentsValidator(RequestValidator):

@@ -1,2 +1,0 @@
-feature:
-  - 新增通过 BKAPP_JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS 环境变量添加 JOB 日志变量提取模式功能

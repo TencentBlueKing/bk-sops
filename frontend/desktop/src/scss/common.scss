@@ -159,6 +159,10 @@
         overflow: hidden;
     }
 }
+.tippy-tooltip .tippy-arrow { // 解决人员选择器组件单独引入tippyjs，导致箭头不显示问题
+    width: 0;
+    height: 0;
+}
 .tippy-tooltip.guide-theme[x-placement^='top'] .tippy-arrow {
     border-top-color: #656e82;
 }

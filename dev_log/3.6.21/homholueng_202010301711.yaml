@@ -1,4 +1,0 @@
-feature:
-    - 增加 healthz 接口
-bugfix:
-    - 修复自动排版时分支条件被覆盖的问题

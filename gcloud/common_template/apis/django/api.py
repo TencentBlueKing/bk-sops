@@ -26,6 +26,7 @@ from gcloud.template_base.apis.django.api import (
     base_export_templates,
     base_import_templates,
     base_template_parents,
+    is_full_param_process,
 )
 from gcloud.template_base.apis.django.validators import (
     BatchFormValidator,
@@ -111,6 +112,7 @@ def batch_form(request):
 )
 @api_view(["POST"])
 @request_validate(ExportTemplateApiViewValidator)
+@is_full_param_process(CommonTemplate, project_related=False)
 @iam_intercept(ExportInterceptor())
 def export_templates(request):
     """
@@ -118,25 +120,14 @@ def export_templates(request):
 
     body: data
     {
-        "templates(required)": [
-            {
-                "id": "流程ID(integer)",
-                "version": "流程版本(string)"
-            }
-        ]
+        "template_id_list(required)": [
+            "流程ID(integer)"
+        ],
+        "is_full(required)": "是否导出全部模板，该参数优先级大于 template_id_list(bool)"
     }
 
-    return: 每个流程当前版本和指定版本的表单数据列表
-    {
-        "template_id": [
-            {
-                "form": "流程表单(dict)",
-                "outputs": "流程输出(dict)",
-                "version": "版本号(string)",
-                "is_current": "是否当前版本(boolean)"
-            }
-        ]
-    }
+    return: DAT 文件
+    {}
     """
     return base_export_templates(request, CommonTemplate, "common", [])
 
@@ -158,7 +149,10 @@ def import_templates(request):
 
     return: 检测结果
     {
-        "data(integer)": "成功导入的流程数"
+        "data(integer)": "成功导入的流程数",
+        "flows": {
+            "导入的流程ID(integer)": "导入的流程名称(string)"
+        }
     }
     """
     return base_import_templates(request, CommonTemplate, {})
