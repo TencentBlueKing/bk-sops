@@ -124,19 +124,51 @@ class CCUpdateHostService(Service):
         else:
             cc_host_prop_value = data.get_one_of_inputs("cc_host_prop_value")
 
-        cc_kwargs = {
-            "bk_host_id": ",".join(host_result["data"]),
-            "bk_supplier_account": supplier_account,
-            "data": {cc_host_property: cc_host_prop_value},
-        }
-        cc_result = client.cc.update_host(cc_kwargs)
-        if cc_result["result"]:
-            return True
-        else:
-            message = cc_handle_api_error("cc.update_host", cc_kwargs, cc_result)
+        kwargs = {"bk_obj_id": "host", "bk_supplier_account": supplier_account, "bk_biz_id": int(biz_cc_id)}
+        result = client.cc.search_object_attribute(kwargs)
+        if not result["result"]:
+            message = cc_handle_api_error("cc.search_object_attribute", kwargs, result)
             self.logger.error(message)
             data.set_outputs("ex_data", message)
             return False
+
+        obj_property = []
+        for item in result["data"]:
+            if item["bk_property_type"] == "int":
+                obj_property.append({"value": item["bk_property_id"], "type": "int"})
+            elif item["bk_property_type"] == "bool":
+                obj_property.append({"value": item["bk_property_id"], "type": "bool"})
+            else:
+                obj_property.append({"value": item["bk_property_id"], "type": "string"})
+
+        for obj_type in obj_property:
+            if obj_type["value"] == cc_host_property:
+                if obj_type["type"] == "int":
+                    cc_kwargs = {
+                        "bk_host_id": ",".join(host_result["data"]),
+                        "bk_supplier_account": supplier_account,
+                        "data": {cc_host_property: int(cc_host_prop_value)},
+                    }
+                elif obj_type["type"] == "bool":
+                    cc_kwargs = {
+                        "bk_host_id": ",".join(host_result["data"]),
+                        "bk_supplier_account": supplier_account,
+                        "data": {cc_host_property: bool(cc_host_prop_value)},
+                    }
+                else:
+                    cc_kwargs = {
+                        "bk_host_id": ",".join(host_result["data"]),
+                        "bk_supplier_account": supplier_account,
+                        "data": {cc_host_property: str(cc_host_prop_value)},
+                    }
+                cc_result = client.cc.update_host(cc_kwargs)
+                if cc_result["result"]:
+                    return True
+                else:
+                    message = cc_handle_api_error("cc.update_host", cc_kwargs, cc_result)
+                    self.logger.error(message)
+                    data.set_outputs("ex_data", message)
+                    return False
 
 
 class CCUpdateHostComponent(Component):
