@@ -538,6 +538,8 @@
                     }
                     const data = await this.loadSingleAtomList(params)
 
+                    // 获取第三方插件列表每页多少条
+                    this.getPaginationLimit()
                     const { limit, offset } = this.pagination
                     const resp = await this.loadPluginServiceList({
                         search_term: '',
@@ -577,8 +579,18 @@
                 }
             },
             /**
-             * 加载项目基础信息
+             * 获取第三方插件列表每页多少条
+             * 60 侧滑头高度
+             * 50 tab高度
+             * 80 第三方插件高度
              */
+            getPaginationLimit () {
+                const bodyHeight = document.body.clientHeight
+                // 60
+                const thirdListHeight = bodyHeight - 60 - 50
+                const limit = Math.ceil(thirdListHeight / 80)
+                this.pagination.limit = limit + 1
+            },
             async getProjectBaseInfo () {
                 this.projectInfoLoading = true
                 try {
@@ -1460,6 +1472,8 @@
             async updatePluginList (val = undefined, type) {
                 try {
                     if (type === 'scroll') {
+                        // 获取第三方插件列表每页多少条
+                        this.getPaginationLimit()
                         const { limit, offset, totalPage, isLoading } = this.pagination
                         if (offset !== totalPage && !isLoading) {
                             this.pagination.isLoading = true
