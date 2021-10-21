@@ -586,7 +586,6 @@
              */
             getPaginationLimit () {
                 const bodyHeight = document.body.clientHeight
-                // 60
                 const thirdListHeight = bodyHeight - 60 - 50
                 const limit = Math.ceil(thirdListHeight / 80)
                 this.pagination.limit = limit + 1
