@@ -29,11 +29,12 @@ job_handle_api_error = partial(handle_api_error, __group_name__)
 
 class JobExecuteTaskService(JobExecuteTaskServiceBase, GetJobHistoryResultMixin):
     def execute(self, data, parent_data):
+        job_success_id = data.get_one_of_inputs("job_success_id")
+        if not job_success_id:
+            return super().execute(data, parent_data)
         history_result = self.get_job_history_result(data, parent_data)
         self.logger.info(history_result)
-        if history_result is not None:
-            return history_result
-        return super().execute(data, parent_data)
+        return history_result
 
 
 class JobExecuteTaskComponent(Component):

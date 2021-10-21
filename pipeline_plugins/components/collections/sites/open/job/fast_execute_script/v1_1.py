@@ -152,9 +152,10 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
         ]
 
     def execute(self, data, parent_data):
-        history_result = self.get_job_history_result(data, parent_data)
-        self.logger.info(history_result)
-        if history_result is not None:
+        job_success_id = data.get_one_of_inputs("job_success_id")
+        if job_success_id:
+            history_result = self.get_job_history_result(data, parent_data)
+            self.logger.info(history_result)
             return history_result
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)

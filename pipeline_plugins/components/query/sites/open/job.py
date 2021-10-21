@@ -31,8 +31,7 @@ JOB_VAR_CATEGORY_CONTEXT = 2
 JOB_VAR_CATEGORY_PASSWORD = 4
 JOB_VAR_CATEGORY_GLOBAL_VARS = {JOB_VAR_CATEGORY_CLOUD, JOB_VAR_CATEGORY_CONTEXT, JOB_VAR_CATEGORY_PASSWORD}
 JOB_VAR_CATEGORY_IP = 3
-JOB_SUCCESS = 3
-QUETY_TIMES = 600000  # 十分钟的毫秒级时间戳
+TEN_MINUTES_MILLISECONDS = 600000  # 十分钟的毫秒级时间戳
 
 
 def _job_get_scripts_data(request, biz_cc_id=None):
@@ -258,8 +257,8 @@ def job_get_instance_list(request, biz_cc_id, type, status):
 
     job_kwargs = {
         "bk_biz_id": biz_cc_id,
-        "create_time_end": int(round(time.time() * 1000)) + QUETY_TIMES * 1,
-        "create_time_start": int(round(time.time() * 1000)) - QUETY_TIMES * 1,  # 取一天前到一天后这段时间的历史
+        "create_time_end": int(round(time.time() * 1000)) + TEN_MINUTES_MILLISECONDS * 1,
+        "create_time_start": int(round(time.time() * 1000)) - TEN_MINUTES_MILLISECONDS * 1,  # 取一天前到一天后这段时间的历史
         "operator": username,
         "status": int(status),
         "type": int(type),

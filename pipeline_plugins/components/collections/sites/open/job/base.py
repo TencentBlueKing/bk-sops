@@ -402,13 +402,12 @@ class JobScheduleService(JobService):
 
 class GetJobHistoryResultMixin(object):
     def get_job_history_result(self, data, parent_data):
-        job_success_id = data.get_one_of_inputs("job_success_id")
-        if not job_success_id:
-            return None
         # get job_instance[job_success_id] execute status
+        job_success_id = data.get_one_of_inputs("job_success_id")
         client = get_client_by_user(parent_data.inputs.executor)
         job_kwargs = {"bk_biz_id": data.inputs.biz_cc_id, "job_instance_id": job_success_id}
         job_result = client.jobv3.get_job_instance_status(job_kwargs)
+
         if not job_result["result"]:
             message = handle_api_error(
                 __group_name__,
@@ -416,18 +415,16 @@ class GetJobHistoryResultMixin(object):
                 job_kwargs,
                 job_result,
             )
-            self.logger.warning(message)
+            self.logger.error(message)
             data.outputs.ex_data = message
-            self.__need_schedule__ = False
             self.logger.info(data.outputs)
             return False
 
         # judge success status
         if job_result["data"]["job_instance"]["status"] not in JOB_SUCCESS:
             message = "[get_job_instance_status] Job_instance:{id} is not success.".format(id=job_success_id)
-            self.logger.warning(message)
+            self.logger.error(message)
             data.outputs.ex_data = message
-            self.__need_schedule__ = False
             self.logger.info(data.outputs)
             return False
 
@@ -444,7 +441,7 @@ class GetJobHistoryResultMixin(object):
             data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
         )
         if not get_job_sops_var_dict_return["result"]:
-            self.logger.warning(
+            self.logger.error(
                 _("{group}.{job_service_name}: 提取日志失败，{message}").format(
                     group=__group_name__,
                     job_service_name=self.__class__.__name__,
