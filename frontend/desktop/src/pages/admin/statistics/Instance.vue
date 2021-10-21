@@ -88,35 +88,61 @@
                         @sort-change="handleSortChange"
                         @page-change="handlePageChange"
                         @page-limit-change="handlePageLimitChange">
-                        <bk-table-column
-                            v-for="item in tableColumn"
-                            :key="item.prop"
-                            :label="item.label"
-                            :prop="item.prop"
-                            :width="item.hasOwnProperty('width') ? item.width : 'auto'"
-                            :min-width="item.hasOwnProperty('minWidth') ? item.minWidth : 'auto'"
-                            :sortable="item.sortable"
-                            :filters="item.filter ? colorBlockList : null"
-                            :filter-method="creatMethodFilter"
-                            :filter-multiple="true">
-                            <template slot-scope="props">
-                                <a
-                                    v-if="item.prop === 'instanceName'"
-                                    class="table-link"
-                                    target="_blank"
-                                    :title="props.row.instanceName"
-                                    :href="`${site_url}taskflow/execute/${props.row.projectId}/?instance_id=${props.row.instanceId}`">
-                                    {{props.row.instanceName}}
-                                </a>
-                                <template v-else>
+                        <template v-for="item in tableColumn">
+                            <bk-table-column
+                                v-if="item.prop !== 'create_method'"
+                                :key="item.prop"
+                                :label="item.label"
+                                :prop="item.prop"
+                                :width="item.hasOwnProperty('width') ? item.width : 'auto'"
+                                :min-width="item.hasOwnProperty('minWidth') ? item.minWidth : 'auto'"
+                                :sortable="item.sortable">
+                                <template slot-scope="props">
+                                    <a
+                                        v-if="item.prop === 'instanceName'"
+                                        class="table-link"
+                                        target="_blank"
+                                        :title="props.row.instanceName"
+                                        :href="`${site_url}taskflow/execute/${props.row.projectId}/?instance_id=${props.row.instanceId}`">
+                                        {{props.row.instanceName}}
+                                    </a>
+                                    <template v-else>
+                                        <span :title="props.row[item.prop]">{{ props.row[item.prop] }}</span>
+                                    </template>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column
+                                v-else
+                                :key="item.prop"
+                                :label="item.label"
+                                :prop="item.prop"
+                                :min-width="120"
+                                :render-header="renderFilterHeader">
+                                <template slot-scope="props">
                                     <span :title="props.row[item.prop]">{{ props.row[item.prop] }}</span>
                                 </template>
-                            </template>
-                        </bk-table-column>
+                            </bk-table-column>
+                        </template>
                         <div class="empty-data" slot="empty"><no-data></no-data></div>
                     </bk-table>
                 </bk-tab-panel>
             </bk-tab>
+            <div id="filter-popover" class="filter-popover" ref="filterPopover">
+                <ul class="label-menu">
+                    <li
+                        class="label-menu-item"
+                        v-for="item in filterList"
+                        :key="item.value"
+                        @click="onSwitchCheckStatus(item)">
+                        <bk-checkbox :value="item.checked"></bk-checkbox>
+                        {{ item.text }}
+                    </li>
+                </ul>
+                <div class="filter-footer">
+                    <span class="operat-btn" @click="onConfirmFilter">{{ $t('确定') }}</span>
+                    <span class="operat-btn" @click="onResetFilter">{{ $t('重置') }}</span>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -128,6 +154,7 @@
     import HorizontalBarChart from './HorizontalBarChart.vue'
     import VerticalBarChart from './VerticalBarChart.vue'
     import NoData from '@/components/common/base/NoData.vue'
+    import tippy from 'bk-magic-vue/lib/utils/tippy.js'
 
     const SELECTORS = [
         {
@@ -176,8 +203,7 @@
         {
             label: i18n.t('任务类型'),
             prop: 'create_method',
-            minWidth: 120,
-            filter: true
+            minWidth: 120
         },
         {
             label: i18n.t('项目'),
@@ -258,6 +284,13 @@
                 acc[value] = { color, text }
                 return acc
             }, {})
+            const filterList = COLOR_BLOCK_LIST.map(item => {
+                return {
+                    text: item.text,
+                    value: item.value,
+                    checked: false
+                }
+            })
             return {
                 categoryData: [],
                 categoryDataProject: '',
@@ -297,6 +330,9 @@
                 instanceProject: '',
                 instanceCategory: '',
                 instanceSort: '',
+                instance: null,
+                filterList,
+                selectedFilter: [],
                 instanceDataLoading: true,
                 tableColumn: TABLE_COLUMN,
                 colorBlockList: COLOR_BLOCK_LIST,
@@ -331,6 +367,29 @@
         },
         created () {
             this.getData()
+        },
+        mounted () {
+            window.addEventListener('mouseup', this.handlePopoverOutSide)
+            this.$nextTick(() => {
+                const dom = document.querySelector('#filter-popover')
+                const options = {
+                    allowHTML: true,
+                    content: dom,
+                    placement: 'bottom',
+                    theme: 'light',
+                    distance: 10,
+                    trigger: 'click',
+                    hideOnClick: false,
+                    arrow: false,
+                    extCls: 'select-all-tpl-popover'
+                }
+                const instance = tippy('.icon-funnel', options)
+                this.instance = instance.length ? instance[0] : this.instance
+            })
+        },
+        beforeDestroy () {
+            window.removeEventListener('mouseup', this.handlePopoverOutSide)
+            this.instance && this.instance.destroy()
         },
         methods: {
             ...mapActions('admin', [
@@ -423,7 +482,8 @@
                             finish_time: this.dateRange[1],
                             project_id: this.instanceProject,
                             category: this.instanceCategory,
-                            order_by: this.instanceSort
+                            order_by: this.instanceSort,
+                            create_method: this.selectedFilter
                         },
                         pageIndex: this.pagination.current,
                         limit: this.pagination.limit
@@ -480,9 +540,53 @@
                 }
                 this.getTableData()
             },
-            creatMethodFilter (value, row, column) {
-                const property = column.property
-                return row[property] === value
+            renderFilterHeader (h, data) {
+                const self = this
+                return h('div', {
+                    'class': 'creat-method-filter-header'
+                }, [
+                    h('div', {
+                        'class': 'render-header'
+                    }, [
+                        h('span', [i18n.t('任务类型')]),
+                        h('i', {
+                            'class': {
+                                'bk-icon icon-funnel': true,
+                                'is-checked': self.selectedFilter.length
+                            }
+                        })
+                    ])
+                ])
+            },
+            onSwitchCheckStatus (val) {
+                const selectFilter = this.filterList.find(item => item.value === val.value)
+                selectFilter.checked = !selectFilter.checked
+            },
+            onConfirmFilter () {
+                this.selectedFilter = this.filterList.reduce((acc, cur) => {
+                    if (cur.checked) {
+                        acc.push(cur.value)
+                    }
+                    return acc
+                }, [])
+                this.instance && this.instance.hide()
+                this.pagination.current = 1
+                this.getTableData()
+            },
+            handlePopoverOutSide (e) {
+                const popoverDom = this.$refs.filterPopover
+                if (popoverDom && !popoverDom.contains(e.target)) {
+                    this.instance && this.instance.hide()
+                }
+            },
+            onResetFilter () {
+                this.selectedFilter = []
+                this.filterList.forEach(item => {
+                    item.checked = false
+                })
+                this.instance && this.instance.hide()
+                this.pagination.current = 1
+                this.getTableData()
             },
             handlePageChange (val) {
                 this.pagination.current = val
@@ -558,6 +662,57 @@
             color: #979ba5;
             margin-left: 5px;
             min-width: 31px;
+        }
+    }
+    .creat-method-filter-header {
+        display: flex;
+        align-items: center;
+        .icon-funnel {
+            font-size: 14px;
+            color: #c4c6cc;
+            margin-left: 5px;
+            cursor: pointer;
+            &.is-checked {
+                color: #63656e;
+            }
+        }
+    }
+    .select-all-tpl-popover {
+        pointer-events: initial;
+        .tippy-tooltip {
+            background: #fff !important;
+            padding-bottom: 0 !important;
+        }
+    }
+    .filter-popover {
+        font-size: 12px;
+        .label-menu-item {
+            width: 100px;
+            display: flex;
+            align-items: center;
+            line-height: 16px;
+            margin-bottom: 10px;
+            padding-left: 10px;
+            color: #63656e;
+            cursor: pointer;
+            .bk-form-checkbox {
+                margin-right: 5px;
+            }
+        }
+        .filter-footer {
+            display: flex;
+            height: 31px;
+            border-top: 1px solid #f0f1f5;
+            align-items: center;
+            justify-content: center;
+            color: #3a84ff;
+            cursor: pointer;
+            .operat-btn {
+                margin-right: 10px;
+                &:hover {
+                    color: #699df4;
+                }
+            }
         }
     }
 </style>
