@@ -152,6 +152,19 @@
             }
         },
         {
+            tag_code: "notify",
+            type: "radio",
+            attrs: {
+                name: gettext("通知执行人"),
+                items: [
+                    {value: true, name: gettext("是")},
+                    {value: false, name: gettext("否")},
+                ],
+                default: false,
+                hookable: true,
+            }
+            },
+        {
             tag_code: "bk_notify_title",
             type: "input",
             attrs: {

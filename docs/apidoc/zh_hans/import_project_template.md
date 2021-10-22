@@ -37,6 +37,11 @@
 {
     "message": "Successfully imported 2 flows",
     "data": {
+        "flows": {
+              11: "flowA",
+              12: "flowB",
+              ...
+        },
         "count": 2
     },
     "result": true
@@ -56,3 +61,4 @@
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |
 |  count      |    int    |      导入的流程数    |
+|  flows      |    dict |      导入的流程ID与名字的映射 |

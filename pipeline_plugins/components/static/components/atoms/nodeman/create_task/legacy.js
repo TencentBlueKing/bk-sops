@@ -230,7 +230,7 @@
                     },
                     {
                         tag_code: "auth_key",
-                        type: "input",
+                        type: "password",
                         attrs: {
                             name: gettext("认证密钥"),
                             width: "100px",

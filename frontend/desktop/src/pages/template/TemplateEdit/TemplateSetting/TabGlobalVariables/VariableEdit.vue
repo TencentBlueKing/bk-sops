@@ -353,7 +353,8 @@
                 'checkKey'
             ]),
             ...mapActions('atomForm/', [
-                'loadAtomConfig'
+                'loadAtomConfig',
+                'loadPluginServiceDetail'
             ]),
             ...mapMutations('template/', [
                 'addVariable',
@@ -402,7 +403,7 @@
              * 加载表单标准插件配置文件
              */
             async getAtomConfig () {
-                const { source_tag, custom_type, version = 'legacy' } = this.theEditingData
+                const { source_tag, custom_type, version = 'legacy', plugin_code } = this.theEditingData
                 const tagStr = this.metaTag ? this.metaTag : source_tag
 
                 // 兼容旧数据自定义变量勾选为输入参数 source_tag 为空
@@ -424,6 +425,30 @@
                 }
 
                 try {
+                    // 第三方插件变量
+                    if (plugin_code) {
+                        const resp = await this.loadPluginServiceDetail({
+                            plugin_code,
+                            plugin_version: version,
+                            with_app_detail: true
+                        })
+                        if (!resp.result) return
+                        const { app, forms } = resp.data
+                        // 设置host
+                        const { host } = window.location
+                        const hostUrl = app.urls.find(item => item.includes(host)) || app.url
+                        $.context.bk_plugin_api_host[plugin_code] = hostUrl + '/'
+                        // 输入参数
+                        $.atoms[plugin_code] = {}
+                        const renderFrom = forms.renderform
+                        /* eslint-disable-next-line */
+                        eval(renderFrom)
+                        const config = $.atoms[plugin_code]
+                        const { source_tag } = this.theEditingData
+                        const tag = source_tag.split('.')[1]
+                        this.renderConfig = tools.deepClone([config.find(item => item.tag_code === tag)])
+                        return
+                    }
                     await this.loadAtomConfig({
                         classify,
                         name: this.atomType,
@@ -601,9 +626,13 @@
                 if (!this.variableData.key) {
                     this.isSaveConfirmDialogShow = true
                 } else {
-                    const tagCode = this.renderConfig[0].tag_code
-                    const editingVariable = Object.assign({}, this.theEditingData, { value: this.renderData[tagCode] })
+                    const editingVariable = tools.deepClone(this.theEditingData)
                     editingVariable.key = /^\$\{\w+\}$/.test(editingVariable.key) ? editingVariable.key : '${' + editingVariable.key + '}'
+                    if (this.renderConfig.length > 0) {
+                        const tagCode = this.renderConfig[0].tag_code
+                        editingVariable.value = this.renderData[tagCode]
+                    }
+
                     if (tools.isDataEqual(editingVariable, this.variableData)) {
                         this.$emit('closeEditingPanel')
                     } else {
@@ -620,13 +649,26 @@
                 return this.$validator.validateAll().then(async (result) => {
                     let formValid = true
                     const variable = this.theEditingData
-                    const tagCode = this.renderConfig[0].tag_code
+                    variable.name = variable.name.trim()
 
+                    // 变量预渲染
+                    if (variable.pre_render_mako) {
+                        variable.pre_render_mako = Boolean(variable.pre_render_mako)
+                    }
+                    // 变量key值格式统一
+                    if (!/^\$\{\w+\}$/.test(variable.key)) {
+                        variable.key = '${' + variable.key + '}'
+                    }
                     // renderform表单校验
-                    // 变量为隐藏状态时，或显示状态并默认值没有改变时执行校验
-                    if (this.$refs.renderForm) {
-                        if (this.theEditingData.show_type === 'hide' || !tools.isDataEqual(variable.value, this.renderData[tagCode])) {
-                            formValid = this.$refs.renderForm.validate()
+                    if (this.renderConfig.length > 0) {
+                        const tagCode = this.renderConfig[0].tag_code
+                        variable.value = this.renderData[tagCode]
+    
+                        // 变量为隐藏状态时，或显示状态并默认值没有改变时执行校验
+                        if (this.$refs.renderForm) {
+                            if (variable.show_type === 'hide' || !tools.isDataEqual(variable.value, this.renderData[tagCode])) {
+                                formValid = this.$refs.renderForm.validate()
+                            }
                         }
                     }
 
@@ -643,31 +685,6 @@
                         return
                     }
 
-                    if (this.theEditingData.pre_render_mako) {
-                        this.theEditingData.pre_render_mako = Boolean(this.theEditingData.pre_render_mako)
-                    }
-
-                    if (this.renderConfig.length > 0) { // 变量有默认值表单需要填写时，取表单值
-                        const tagCode = this.renderConfig[0].tag_code
-                        let varValue = {}
-
-                        // value为空且不渲染RenderForm组件的变量取表单默认值
-                        if (this.renderData.hasOwnProperty(tagCode)) {
-                            varValue = this.renderData
-                        } else {
-                            varValue = atomFilter.getFormItemDefaultValue(this.renderConfig)
-                        }
-
-                        // 变量key值格式统一
-                        if (!/^\$\{\w+\}$/.test(variable.key)) {
-                            variable.key = '${' + variable.key + '}'
-                        }
-
-                        this.theEditingData.value = varValue[tagCode]
-                    }
-
-                    this.theEditingData.value = this.renderData[tagCode]
-                    this.theEditingData.name = this.theEditingData.name.trim()
                     if (!this.variableData.key) { // 新增变量
                         if (!this.isHookedVar) { // 自定义变量
                             variable.version = 'legacy'

@@ -12,12 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 
 from __future__ import absolute_import
+from datetime import datetime
 
 import ujson as json
 import mock  # noqa
 from mock import MagicMock, patch, call  # noqa
 
 from django.utils.timezone import now
+
+from gcloud.tests.test_data import TEST_PIPELINE_TREE
 
 
 class MockRequest(object):
@@ -63,6 +66,7 @@ class MockPipelineTemplate(object):
         self.edit_time = kwargs.get("edit_time", now())
         self.editor = kwargs.get("editor", "editor")
         self.create_time = kwargs.get("create_time", now())
+        self.data = kwargs.get("data", TEST_PIPELINE_TREE)
 
 
 class MockBaseTemplate(object):
@@ -78,7 +82,9 @@ class MockBaseTemplate(object):
 
 
 class MockTaskTemplate(MockBaseTemplate):
-    pass
+    def __init__(self, **kwargs):
+        self.project = kwargs.get("project", MockProject())
+        return super().__init__(**kwargs)
 
 
 class MockCommonTemplate(MockBaseTemplate):
@@ -114,6 +120,10 @@ class MockTaskFlowInstance(object):
         self.is_deleted = True
         self.engine_ver = kwargs.get("engine_ver", 1)
         self.pipeline_instance = kwargs.get("pipeline_instance", MagicMock())
+        self.template_id = kwargs.get("template_id", 1)
+        self.project = kwargs.get("project", MockProject())
+        self.create_method = kwargs.get("create_method", "create_method")
+        self.pipeline_instance__id = 1
 
 
 class MockPeriodicTask(object):
@@ -153,6 +163,7 @@ class MockQuerySet(object):
         self.get = MagicMock(return_value=get_result) if get_result else MagicMock(side_effect=get_raise)
         self.filter = MagicMock(return_value=filter_result)
         self.exist = MagicMock(return_value=exist_return)
+        self.delete = MagicMock(return_value=None)
 
 
 class MockCache(object):
@@ -220,3 +231,40 @@ class MockTaskOperationTimesConfig(object):
 
     def __getattr__(self, item):
         return self.kwargs[item]
+
+
+class MockTaskCommandDispatcher(object):
+    def __init__(self, **kwargs):
+        self.engine_ver = kwargs.get("engine_ver", 1)
+        self.taskflow_id = kwargs.get("taskflow_id", 1)
+        self.pipeline_instance = kwargs.get("pipeline_instance", None)
+        self.project_id = kwargs.get("project_id", 1)
+        self.queue = kwargs.get("queue", "")
+
+
+class MockPipelineInstance(object):
+    def __init__(self, **kwargs):
+        self.id = kwargs.get("id", 1)
+        self.instance_id = kwargs.get("instance_id", "instance_id")
+        self.template = kwargs.get("template", MockPipelineTemplate())
+        self.name = kwargs.get("name", "name")
+        self.creator = kwargs.get("creator", "creator")
+        self.create_time = kwargs.get("create_time", "create_time")
+        self.executor = kwargs.get("executor", "executor")
+        self.start_time = kwargs.get("start_time", datetime.now())
+        self.finish_time = kwargs.get("finish_time", datetime.now())
+        self.description = kwargs.get("description", "description")
+        self.is_started = kwargs.get("is_started", True)
+        self.is_finished = kwargs.get("is_finished", True)
+        self.is_revoked = kwargs.get("is_revoked", False)
+        self.is_deleted = kwargs.get("is_deleted", False)
+        self.is_expired = kwargs.get("is_expired", False)
+        self.execution_data = kwargs.get("execution_data", "")
+
+
+class MockTemplateInPipeline(object):
+    def __init__(self, **kwargs):
+        self.id = kwargs.get("id", 1)
+        self.atom_total = kwargs.get("atom_total", 0)
+        self.subprocess_total = kwargs.get("subprocess_total", 0)
+        self.gateways_total = kwargs.get("gateways_total", 0)

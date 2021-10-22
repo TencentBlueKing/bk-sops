@@ -435,6 +435,7 @@
             this.loadFunctionTask()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             await this.getProjectList()
+            await this.getProjectSearchForm()
             this.firstLoading = false
         },
         beforeDestroy () {
@@ -598,15 +599,22 @@
             async getProjectList () {
                 this.business.loading = true
                 try {
-                    const businessData = await this.loadUserProjectList({ limit: 0 })
+                    const businessData = await this.loadUserProjectList({ limit: 0, is_disable: false })
                     this.business.list = businessData.objects
-                    const form = this.searchForm.find(item => item.key === 'selectedProject')
-                    form.list = this.business.list.map(m => ({ name: m.name, value: m.id }))
-                    form.loading = false
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.business.loading = false
+                }
+            },
+            async getProjectSearchForm () {
+                try {
+                    const businessData = await this.loadUserProjectList({ limit: 0 })
+                    const form = this.searchForm.find(item => item.key === 'selectedProject')
+                    form.list = businessData.objects.map(m => ({ name: m.name, value: m.id }))
+                    form.loading = false
+                } catch (error) {
+                    console.warn(error)
                 }
             },
             async getTemplateList () {

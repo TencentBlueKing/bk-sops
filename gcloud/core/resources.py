@@ -219,6 +219,9 @@ class ComponentModelResource(GCloudModelResource):
         altered_objects = []
 
         for bundle in data["objects"]:
+            # 远程插件不显示在列表中
+            if bundle.data["code"] == "remote_plugin":
+                continue
             try:
                 component = ComponentLibrary.get_component_class(bundle.data["code"], bundle.data["version"])
             except ComponentNotExistException:

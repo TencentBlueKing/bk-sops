@@ -51,7 +51,7 @@ HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.bk.notify
 NOTIFY_HANDLE_API_ERROR = "gcloud.utils.cmdb.handle_api_error"
 BK_HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.bk.notify.v1_0.bk_handle_api_error"
 
-COMMON_PARENT = {"executor": "admin", "biz_cc_id": 2, "biz_supplier_account": 0}
+COMMON_PARENT = {"executor": "tester", "biz_cc_id": 2, "biz_supplier_account": 0}
 
 CC_SEARCH_BUSINESS_FAIL_RETURN = {
     "result": False,
@@ -93,6 +93,7 @@ GET_NOTIFY_RECEIVERS_FAIL_CASE = ComponentTestCase(
             "bk_receiver_group": ["Maintainers", "ProductPm"],
             "bk_more_receiver": "a,b",
         },
+        "notify": True,
         "bk_notify_title": "title",
         "bk_notify_content": "content"
     },
@@ -118,6 +119,7 @@ SEND_MSG_FAIL_CASE = ComponentTestCase(
             "bk_receiver_group": ["Maintainers", "ProductPm"],
             "bk_more_receiver": "a,b",
         },
+        "notify": False,
         "bk_notify_title": "title",
         "bk_notify_content": "content"
     },
@@ -147,6 +149,7 @@ SEND_MSG_SUCCESS_CASE = ComponentTestCase(
             "bk_receiver_group": ["Maintainers", "ProductPm"],
             "bk_more_receiver": "a,b",
         },
+        "notify": True,
         "bk_notify_title": "title",
         "bk_notify_content": "content"
     },
@@ -158,13 +161,13 @@ SEND_MSG_SUCCESS_CASE = ComponentTestCase(
             func=SEND_MSG_SUCCESS_CLIENT.cmsi.send_msg,
             calls=[
                 Call({
-                    "receiver__username": ",".join(sorted(set("b,p1,p2,m1,m2,a".split(",")))),
+                    "receiver__username": ",".join(sorted(set("b,p1,p2,m1,m2,a,tester".split(",")))),
                     "title": "title",
                     "content": "<pre>content</pre>",
                     "msg_type": "mail"
                 }),
                 Call({
-                    "receiver__username": ",".join(sorted(set("b,p1,p2,m1,m2,a".split(",")))),
+                    "receiver__username": ",".join(sorted(set("b,p1,p2,m1,m2,a,tester".split(",")))),
                     "title": "title",
                     "content": "content",
                     "msg_type": "weixin"
@@ -189,6 +192,7 @@ SEND_MSG_SUCCESS_RECEIVER_ORDER_CASE = ComponentTestCase(
             "bk_receiver_group": [],
             "bk_more_receiver": "c,a,b",
         },
+        "notify": True,
         "bk_notify_title": "title",
         "bk_notify_content": "content"
     },
@@ -200,13 +204,13 @@ SEND_MSG_SUCCESS_RECEIVER_ORDER_CASE = ComponentTestCase(
             func=SEND_MSG_SUCCESS_CLIENT.cmsi.send_msg,
             calls=[
                 Call({
-                    "receiver__username": "c,a,b",
+                    "receiver__username": "c,a,b,tester",
                     "title": "title",
                     "content": "<pre>content</pre>",
                     "msg_type": "mail"
                 }),
                 Call({
-                    "receiver__username": "c,a,b",
+                    "receiver__username": "c,a,b,tester",
                     "title": "title",
                     "content": "content",
                     "msg_type": "weixin"

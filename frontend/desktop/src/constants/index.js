@@ -125,6 +125,46 @@ const TASK_CATEGORIES = [
     }
 ]
 
+// 任务类型
+const COLOR_BLOCK_LIST = [
+    {
+        value: 'app',
+        code: 1,
+        text: i18n.t('手动'),
+        color: '#3a84ff'
+    },
+    {
+        value: 'api',
+        code: 2,
+        text: i18n.t('API网关'),
+        color: '#ff9c4a'
+    },
+    {
+        value: 'app_maker',
+        code: 3,
+        text: i18n.t('轻应用'),
+        color: '#f8d30f'
+    },
+    {
+        value: 'periodic',
+        code: 4,
+        text: i18n.t('周期任务'),
+        color: '#3bce95'
+    },
+    {
+        value: 'mobile',
+        code: 5,
+        text: i18n.t('移动端'),
+        color: '#ff6f72'
+    },
+    {
+        value: 'clocked',
+        code: 6,
+        text: i18n.t('计划任务'),
+        color: '#b568ff'
+    }
+]
+
 const NAME_REG = /^[^'"‘’“”$<>]+$/
 const PACKAGE_NAME_REG = /^[^\d][\w]*?$/
 // celery的crontab时间表达式正则表达式（分钟 小时 星期 日 月）（以空格分割）
@@ -138,5 +178,5 @@ const URL_REG= new RegExp('^(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A
 export {
     TASK_STATE_DICT, NODE_DICT, SYSTEM_GROUP_ICON, BK_PLUGIN_ICON, NAME_REG,
     INVALID_NAME_CHAR, PACKAGE_NAME_REG, URL_REG, PERIODIC_REG, STRING_LENGTH,
-    LABEL_COLOR_LIST, DARK_COLOR_LIST, TASK_CATEGORIES
+    LABEL_COLOR_LIST, DARK_COLOR_LIST, TASK_CATEGORIES, COLOR_BLOCK_LIST
 }

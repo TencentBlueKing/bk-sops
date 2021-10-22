@@ -21,13 +21,13 @@ from bamboo_engine import api as bamboo_engine_api
 from bamboo_engine import states as bamboo_engine_states
 from bamboo_engine.context import Context
 from pipeline.eri.runtime import BambooDjangoRuntime
-from pipeline import exceptions as pipeline_exceptions
 from pipeline.service import task_service
 from pipeline.models import PipelineInstance
 from pipeline.parser.context import get_pipeline_context
 from pipeline.engine import api as pipeline_api
 from pipeline.engine.models import PipelineModel
 from pipeline_web.parser.format import format_web_data_to_pipeline
+from pipeline.engine import exceptions as pipeline_exceptions
 from pipeline.exceptions import (
     ConvergeMatchError,
     ConnectionValidateError,
@@ -65,6 +65,12 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         "revoke",
     }
 
+    OPERATION_TYPE_COMMANDS = {
+        "pause",
+        "resume",
+        "revoke",
+    }
+
     def __init__(
         self, engine_ver: int, taskflow_id: int, pipeline_instance: PipelineInstance, project_id: int, queue: str = ""
     ):
@@ -80,6 +86,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         if command not in self.TASK_COMMANDS:
             return {"result": False, "message": "task command is invalid", "code": err_code.INVALID_OPERATION.code}
+
+        if command in self.OPERATION_TYPE_COMMANDS and not self.pipeline_instance.is_started:
+            return {"result": False, "message": "task not started", "code": err_code.INVALID_OPERATION.code}
 
         return getattr(self, "{}_v{}".format(command, self.engine_ver))(operator)
 
@@ -309,6 +318,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                     "message": "",
                     "code": err_code.SUCCESS.code,
                 }
+            except pipeline_exceptions.InvalidOperationException as e:
+                logger.error(f"node relationship does not exist: {e}")
+                task_status = self.CREATED_STATUS
             except Exception:
                 logger.exception("task.get_status fail")
                 return {
