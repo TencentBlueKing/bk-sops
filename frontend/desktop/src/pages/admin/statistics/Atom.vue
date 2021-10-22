@@ -92,20 +92,20 @@
                             :sortable="item.sortable">
                             <template slot-scope="props">
                                 <a
-                                    v-if="item.prop === 'templateName'"
+                                    v-if="item.prop === 'template_name'"
                                     class="table-link"
                                     target="_blank"
-                                    :title="props.row.templateName"
-                                    :href="`${site_url}template/edit/${props.row.projectId}/?template_id=${props.row.templateId}`">
-                                    {{props.row.templateName}}
+                                    :title="props.row.template_name"
+                                    :href="`${site_url}template/edit/${props.row.project_id}/?template_id=${props.row.template_id}`">
+                                    {{props.row.template_name}}
                                 </a>
                                 <a
-                                    v-else-if="item.prop === 'instanceName'"
+                                    v-else-if="item.prop === 'instance_name'"
                                     class="table-link"
                                     target="_blank"
-                                    :title="props.row.instanceName"
-                                    :href="`${site_url}taskflow/execute/${props.row.projectId}/?instance_id=${props.row.instanceId}`">
-                                    {{props.row.instanceName}}
+                                    :title="props.row.instance_name"
+                                    :href="`${site_url}taskflow/execute/${props.row.project_id}/?instance_id=${props.row.instance_id}`">
+                                    {{props.row.instance_name}}
                                 </a>
                                 <template v-else>
                                     <span :title="props.row[item.prop]">{{ props.row[item.prop] }}</span>
@@ -141,17 +141,17 @@
         atom_template: [
             {
                 label: i18n.t('流程ID'),
-                prop: 'templateId',
+                prop: 'template_id',
                 sortable: true,
                 width: 100
             },
             {
                 label: i18n.t('流程名称'),
-                prop: 'templateName'
+                prop: 'template_name'
             },
             {
                 label: i18n.t('项目'),
-                prop: 'projectName',
+                prop: 'project_name',
                 width: 150
             },
             {
@@ -166,7 +166,7 @@
             },
             {
                 label: i18n.t('创建时间'),
-                prop: 'createTime',
+                prop: 'create_time',
                 width: 200,
                 sortable: true
             }
@@ -174,17 +174,17 @@
         atom_instance: [
             {
                 label: i18n.t('任务ID'),
-                prop: 'instanceId',
+                prop: 'instance_id',
                 sortable: true,
                 width: 100
             },
             {
                 label: i18n.t('任务名称'),
-                prop: 'instanceName'
+                prop: 'instance_name'
             },
             {
                 label: i18n.t('项目'),
-                prop: 'projectName'
+                prop: 'project_name'
             },
             {
                 label: i18n.t('分类'),
@@ -198,7 +198,7 @@
             },
             {
                 label: i18n.t('创建时间'),
-                prop: 'createTime',
+                prop: 'create_time',
                 sortable: true
             }
         ]

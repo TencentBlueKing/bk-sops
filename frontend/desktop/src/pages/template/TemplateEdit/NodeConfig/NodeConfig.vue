@@ -103,12 +103,15 @@
                 <!-- 插件/子流程选择面板 -->
                 <selector-panel
                     v-if="isSelectorPanelShow"
+                    :project_id="project_id"
                     :template-labels="templateLabels"
                     :is-subflow="isSubflow"
                     :atom-type-list="atomTypeList"
                     :basic-info="basicInfo"
                     :common="common"
+                    :is-third-party="isThirdParty"
                     :sublist-loading="subAtomListLoading"
+                    @updatePluginList="updatePluginList"
                     @back="isSelectorPanelShow = false"
                     @viewSubflow="onViewSubflow"
                     @select="onPluginOrTplChange">
@@ -131,20 +134,24 @@
                                 <!-- 基础信息 -->
                                 <section class="config-section">
                                     <h3>{{$t('基础信息')}}</h3>
-                                    <basic-info
-                                        ref="basicInfo"
-                                        :basic-info="basicInfo"
-                                        :node-config="nodeConfig"
-                                        :version-list="versionList"
-                                        :is-subflow="isSubflow"
-                                        :input-loading="inputLoading"
-                                        :common="common"
-                                        @openSelectorPanel="isSelectorPanelShow = true"
-                                        @versionChange="versionChange"
-                                        @viewSubflow="onViewSubflow"
-                                        @updateSubflowVersion="updateSubflowVersion"
-                                        @update="updateBasicInfo">
-                                    </basic-info>
+                                    <div class="basic-info-wrapper" v-bkloading="{ isLoading: isBaseInfoLoading }">
+                                        <template v-if="!isBaseInfoLoading">
+                                            <basic-info
+                                                ref="basicInfo"
+                                                :basic-info="basicInfo"
+                                                :node-config="nodeConfig"
+                                                :version-list="versionList"
+                                                :is-subflow="isSubflow"
+                                                :input-loading="inputLoading"
+                                                :common="common"
+                                                @openSelectorPanel="isSelectorPanelShow = true"
+                                                @versionChange="versionChange"
+                                                @viewSubflow="onViewSubflow"
+                                                @updateSubflowVersion="updateSubflowVersion"
+                                                @update="updateBasicInfo">
+                                            </basic-info>
+                                        </template>
+                                    </div>
                                 </section>
                                 <!-- 输入参数 -->
                                 <section class="config-section">
@@ -162,6 +169,7 @@
                                                 :value="inputsParamValue"
                                                 :is-subflow="isSubflow"
                                                 :constants="localConstants"
+                                                :third-party-code="isThirdParty ? basicInfo.plugin : ''"
                                                 @hookChange="onHookChange"
                                                 @update="updateInputsValue">
                                             </input-params>
@@ -180,6 +188,7 @@
                                                 :params="outputs"
                                                 :version="basicInfo.version"
                                                 :node-id="nodeId"
+                                                :is-third-party="isThirdParty"
                                                 @hookChange="onHookChange">
                                             </output-params>
                                             <no-data v-else></no-data>
@@ -189,7 +198,7 @@
                             </div>
                             <div class="btn-footer">
                                 <bk-button theme="primary" :disabled="inputLoading || (isSubflow && subflowListLoading)" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
-                                <bk-button theme="default" @click="onClosePanel">{{ $t('取消') }}</bk-button>
+                                <bk-button theme="default" @click="onClosePanel()">{{ $t('取消') }}</bk-button>
                             </div>
                         </template>
                     </div>
@@ -208,7 +217,7 @@
                 <div class="leave-tips">{{ $t('保存已修改的节点信息吗？') }}</div>
                 <div class="action-wrapper">
                     <bk-button theme="primary" :disabled="inputLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
-                    <bk-button theme="default" @click="onClosePanel">{{ $t('不保存') }}</bk-button>
+                    <bk-button theme="default" @click="onClosePanel()">{{ $t('不保存') }}</bk-button>
                 </div>
             </div>
         </bk-dialog>
@@ -252,10 +261,6 @@
             backToVariablePanel: Boolean
         },
         data () {
-            const nodeConfig = this.$store.state.template.activities[this.nodeId]
-            const basicInfo = this.getNodeBasic(nodeConfig)
-            const versionList = nodeConfig.type === 'ServiceActivity' ? this.getAtomVersions(nodeConfig.component.code) : []
-            const isSelectorPanelShow = nodeConfig.type === 'ServiceActivity' ? !basicInfo.plugin : !basicInfo.tpl
             return {
                 subflowUpdated: false, // 子流程是否更新
                 pluginLoading: false, // 普通任务节点数据加载
@@ -263,14 +268,15 @@
                 constantsLoading: false, // 子流程输入参数配置项加载
                 subflowVersionUpdating: false, // 子流程更新
                 isConfirmDialogShow: false, // 确认是否保存编辑数据
-                nodeConfig, // 任务节点的完整 activity 配置参数
-                basicInfo, // 基础信息模块
-                versionList, // 标准插件版本
+                nodeConfig: {}, // 任务节点的完整 activity 配置参数
+                isBaseInfoLoading: true, // 基础信息loading
+                basicInfo: {}, // 基础信息模块
+                versionList: [], // 标准插件版本
                 inputs: [], // 输入参数表单配置项
                 inputsParamValue: {}, // 输入参数值
                 outputs: [], // 输出参数
                 subflowForms: {}, // 子流程输入参数
-                isSelectorPanelShow, // 是否显示选择插件(子流程)面板
+                isSelectorPanelShow: false, // 是否显示选择插件(子流程)面板
                 isVariablePanelShow: false, // 是否显示变量编辑面板
                 variableData: {}, // 当前编辑的变量
                 localConstants: {}, // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
@@ -282,7 +288,9 @@
                 pollingTimer: null,
                 isPageOver: false,
                 isThrottled: false, // 滚动节流 是否进入cd
-                subAtomListLoading: false // 子流程列表loading
+                subflowListDom: null,
+                subAtomListLoading: false, // 子流程列表loading
+                isThirdParty: false // 是否为第三方插件
             }
         },
         computed: {
@@ -306,10 +314,10 @@
                 return this.atomList.find(item => item.code === this.basicInfo.plugin)
             },
             inputLoading () { // 以下任一方法处于 pending 状态，输入参数展示 loading 效果
-                return this.pluginLoading || this.subflowLoading || this.constantsLoading || this.subflowVersionUpdating
+                return this.isBaseInfoLoading || this.pluginLoading || this.subflowLoading || this.constantsLoading || this.subflowVersionUpdating
             },
             outputLoading () {
-                return this.pluginLoading || this.subflowLoading
+                return this.isBaseInfoLoading || this.pluginLoading || this.subflowLoading
             },
             selectorTitle () {
                 return this.isSubflow ? i18n.t('选择子流程') : i18n.t('选择标准插件')
@@ -323,6 +331,23 @@
                 if (!val) {
                     this.basicInfo = this.getNodeBasic(this.nodeConfig) // 获取子流程模板的名称
                 }
+            },
+            isSelectorPanelShow: {
+                handler (val) {
+                    if (val && this.isSubflow && !this.subflowListDom) {
+                        this.$nextTick(() => {
+                            const subflowListDom = document.querySelector('.tpl-list')
+                            subflowListDom && subflowListDom.addEventListener('scroll', this.handleTableScroll)
+                            this.subflowListDom = subflowListDom
+                        })
+                    }
+                },
+                immediate: true
+            }
+        },
+        beforeDestroy () {
+            if (this.subflowListDom) {
+                this.subflowListDom.removeEventListener('scroll', this.handleTableScroll)
             }
         },
         created () {
@@ -373,7 +398,11 @@
             this.localConstants = tools.deepClone(this.constants)
             this.getSubflowList()
         },
-        mounted () {
+        async mounted () {
+            const defaultData = await this.initDefaultData()
+            for (const [key, val] of Object.entries(defaultData)) {
+                this[key] = val
+            }
             this.initData()
             if (this.isSelectorPanelShow) {
                 this.$nextTick(function () {
@@ -385,7 +414,9 @@
         methods: {
             ...mapActions('atomForm/', [
                 'loadAtomConfig',
-                'loadSubflowConfig'
+                'loadSubflowConfig',
+                'loadPluginServiceMeta',
+                'loadPluginServiceDetail'
             ]),
             ...mapMutations('template/', [
                 'setSubprocessUpdated',
@@ -397,11 +428,40 @@
             ...mapActions('templateList', [
                 'loadTemplateList'
             ]),
+            async initDefaultData () {
+                const nodeConfig = this.$store.state.template.activities[this.nodeId]
+                const isThirdParty = nodeConfig.component && nodeConfig.component.code === 'remote_plugin'
+                if (nodeConfig.type === 'ServiceActivity') {
+                    await this.setThirdPartyList(nodeConfig)
+                    this.basicInfo = this.getNodeBasic(nodeConfig)
+                    this.$nextTick(() => {
+                        this.isBaseInfoLoading = false
+                    })
+                } else {
+                    this.isSelectorPanelShow = !nodeConfig.template_id
+                    await this.getSubflowList()
+                }
+                const basicInfo = this.basicInfo
+                let versionList = []
+                if (nodeConfig.type === 'ServiceActivity') {
+                    const code = isThirdParty ? nodeConfig.name : nodeConfig.component.code
+                    versionList = this.getAtomVersions(code, isThirdParty)
+                }
+                const isSelectorPanelShow = nodeConfig.type === 'ServiceActivity' ? !basicInfo.plugin : !basicInfo.tpl
+                return {
+                    nodeConfig,
+                    isThirdParty,
+                    basicInfo,
+                    versionList,
+                    isSelectorPanelShow
+                }
+            },
             async getSubflowList () {
                 this.subAtomListLoading = true
+                const { params } = this.$route
                 try {
                     const data = {
-                        project__id: this.project_id,
+                        project__id: params.project_id,
                         common: this.common,
                         limit: this.limit,
                         offset: this.currentPage * this.limit
@@ -413,12 +473,14 @@
                     console.log(e)
                 } finally {
                     this.subAtomListLoading = false
+                    this.isBaseInfoLoading = false
                 }
             },
             handleSubflowList (data) {
                 const list = []
                 const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
                 const { params, query } = this.$route
+                const nodeConfig = this.$store.state.template.activities[this.nodeId]
                 data.objects.forEach(item => {
                     // 克隆模板可以引用被克隆的模板，模板不可以引用自己
                     if (params.type === 'clone' || item.id !== Number(query.template_id)) {
@@ -427,6 +489,7 @@
                     }
                 })
                 this.atomTypeList.subflow.push(...list)
+                this.basicInfo = this.getNodeBasic(nodeConfig)
             },
             handleTableScroll () {
                 if (!this.isPageOver && !this.isThrottled) {
@@ -441,6 +504,34 @@
                             this.getSubflowList()
                         }
                     }, 500)
+                }
+            },
+            async setThirdPartyList (nodeConfig) {
+                try {
+                    // 设置第三发插件缓存
+                    const thirdPartyList = this.$parent.thirdPartyList
+                    if (nodeConfig.component
+                        && nodeConfig.component.code === 'remote_plugin'
+                        && !thirdPartyList[this.nodeId]) {
+                        const resp = await this.loadPluginServiceMeta({ plugin_code: nodeConfig.component.data.plugin_code.value })
+                        const { code, versions, description } = resp.data
+                        const versionList = versions.map(version => {
+                            return { version }
+                        })
+                        const { data } = nodeConfig.component
+                        let version = data && data.plugin_version
+                        version = version && version.value
+                        const group = {
+                            code,
+                            list: versionList,
+                            version,
+                            desc: description
+                        }
+                        thirdPartyList[this.nodeId] = group
+                    }
+                } catch (error) {
+                    console.warn(error)
+                    this.isBaseInfoLoading = false
                 }
             },
             // 初始化节点数据
@@ -482,8 +573,11 @@
                 const { plugin, version } = this.basicInfo
                 this.pluginLoading = true
                 try {
-                    this.inputs = await this.getAtomConfig(plugin, version)
-                    this.outputs = this.atomGroup.list.find(item => item.version === version).output
+                    // 获取输入输出参数
+                    this.inputs = await this.getAtomConfig({ plugin, version, isThird: this.isThirdParty })
+                    if (!this.isThirdParty) {
+                        this.outputs = this.atomGroup.list.find(item => item.version === version).output
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -494,14 +588,53 @@
              * 加载标准插件表单配置项文件
              * 优先取 store 里的缓存
              */
-            async getAtomConfig (plugin, version, classify, name) {
+            async getAtomConfig (config) {
+                const { plugin, version, classify, name, isThird } = config
                 const project_id = this.common ? undefined : this.project_id
-                const pluginGroup = this.pluginConfigs[plugin]
-                if (pluginGroup && pluginGroup[version]) {
-                    return pluginGroup[version]
-                }
                 try {
-                    await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id })
+                    // 先取标准节点缓存的数据
+                    const pluginGroup = this.pluginConfigs[plugin]
+                    if (pluginGroup && pluginGroup[version]) {
+                        return pluginGroup[version]
+                    }
+                    // 第三方插件
+                    if (isThird) {
+                        const resp = await this.loadPluginServiceDetail({
+                            plugin_code: plugin,
+                            plugin_version: version,
+                            with_app_detail: true
+                        })
+                        if (!resp.result) return
+                        // 获取参数
+                        const { app, outputs: respsOutputs, forms } = resp.data
+                        // 获取第三方插件公共输出参数
+                        if (!this.pluginOutput['remote_plugin']) {
+                            await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
+                        }
+                        // 输出参数
+                        const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
+                        const outputs = []
+                        for (const [key, val] of Object.entries(respsOutputs.properties)) {
+                            outputs.push({
+                                name: val.title,
+                                key,
+                                type: val.type,
+                                schema: { description: val.description || '--' }
+                            })
+                        }
+                        this.outputs = [...storeOutputs, ...outputs]
+                        // 获取host
+                        const { host } = window.location
+                        const hostUrl = app.urls.find(item => item.includes(host)) || app.url
+                        $.context.bk_plugin_api_host[plugin] = hostUrl + '/'
+                        // 输入参数
+                        $.atoms[plugin] = {}
+                        const renderFrom = forms.renderform
+                        /* eslint-disable-next-line */
+                        eval(renderFrom)
+                    } else {
+                        await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id })
+                    }
                     const config = $.atoms[plugin]
                     return config
                 } catch (e) {
@@ -562,7 +695,8 @@
                     const { key } = variable
                     const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
                     const version = variable.version || 'legacy'
-                    const atomConfig = await this.getAtomConfig(atom, version, classify, name)
+                    const isThird = Boolean(variable.plugin_code)
+                    const atomConfig = await this.getAtomConfig({ plugin: atom, version, classify, name, isThird })
                     let formItemConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                     if (variable.is_meta || formItemConfig.meta_transform) {
                         formItemConfig = formItemConfig.meta_transform(variable.meta || variable)
@@ -596,25 +730,33 @@
                         retryable, isSkipped, skippable, optional
                     } = config
                     let basicInfoName = i18n.t('请选择插件')
+                    let code = ''
                     let desc = ''
                     let version = ''
                     // 节点已选择标准插件
                     if (component.code) {
-                        const atom = this.atomList.find(item => item.code === component.code)
-                        basicInfoName = `${atom.group_name}-${atom.name}`
-                        version = component.hasOwnProperty('version') ? component.version : 'legacy'
-                        // 获取不同版本的描述
-                        const { desc: description } = atom.list.find(item => item.version === version)
-                        if (description && description.includes('\n')) {
-                            const descList = description.split('\n')
-                            desc = descList.join('<br>')
+                        if (component.code === 'remote_plugin') {
+                            const atom = this.$parent.thirdPartyList[this.nodeId]
+                            code = component.data.plugin_code.value
+                            basicInfoName = this.atomTypeList.pluginList.find(item => item.code === code).name
+                            version = atom.version
+                            desc = atom.desc
                         } else {
-                            desc = description
+                            const atom = this.atomList.find(item => item.code === component.code)
+                            code = component.code
+                            basicInfoName = `${atom.group_name}-${atom.name}`
+                            version = component.hasOwnProperty('version') ? component.version : 'legacy'
+                            // 获取不同版本的描述
+                            desc = atom.list.find(item => item.version === version).desc
+                        }
+                        if (desc && desc.includes('\n')) {
+                            const descList = desc.split('\n')
+                            desc = descList.join('<br>')
                         }
                     }
 
                     return {
-                        plugin: component.code || '',
+                        plugin: code,
                         name: basicInfoName, // 插件名称
                         nodeName: name, // 节点名称
                         stageName: stage_name,
@@ -655,16 +797,22 @@
             /**
              * 获取某一标准插件所有版本列表
              */
-            getAtomVersions (code) {
+            getAtomVersions (code, isThirdParty = false) {
                 if (!code) {
                     return []
                 }
-                const atom = this.atomList.find(item => item.code === code)
-                return atom.list.map(item => {
-                    return {
-                        version: item.version
-                    }
-                }).reverse()
+                let atom
+                if (isThirdParty) {
+                    atom = this.$parent.thirdPartyList[this.nodeId]
+                    return atom && atom.list
+                } else {
+                    atom = this.atomList.find(item => item.code === code)
+                    return atom.list.map(item => {
+                        return {
+                            version: item.version
+                        }
+                    }).reverse()
+                }
             },
             /**
              * 获取子流程任务节点输入参数值，有三种情况：
@@ -733,8 +881,10 @@
             },
 
             // 标准插件（子流程）选择面板切换插件（子流程）
-            onPluginOrTplChange (val) {
+            // isThirdParty 是否为第三方插件
+            onPluginOrTplChange (val, isThirdParty = false) {
                 this.isSelectorPanelShow = false
+                this.isThirdParty = isThirdParty
                 this.clearParamsSourceInfo()
                 if (this.isSubflow) {
                     this.tplChange(val)
@@ -751,10 +901,13 @@
              */
             async pluginChange (atomGroup) {
                 const { code, group_name, name, list } = atomGroup
-                this.versionList = this.getAtomVersions(code)
+                this.versionList = this.isThirdParty ? list : this.getAtomVersions(code)
                 // 获取不同版本的描述
-                const atom = this.atomList.find(item => item.code === code)
-                let { desc } = atom.list.find(item => item.version === list[list.length - 1].version)
+                let desc = atomGroup.desc || ''
+                if (!this.isThirdParty) {
+                    const atom = this.atomList.find(item => item.code === code)
+                    desc = atom.list.find(item => item.version === list[list.length - 1].version).desc
+                }
                 if (desc && desc.includes('\n')) {
                     const descList = desc.split('\n')
                     desc = descList.join('<br>')
@@ -762,7 +915,7 @@
                 const config = {
                     plugin: code,
                     version: list[list.length - 1].version,
-                    name: `${group_name}-${name}`,
+                    name: this.isThirdParty ? name : `${group_name}-${name}`,
                     nodeName: name,
                     stageName: '',
                     nodeLabel: [],
@@ -782,8 +935,11 @@
              */
             versionChange (val) {
                 // 获取不同版本的描述
-                const atom = this.atomList.find(item => item.code === this.basicInfo.plugin)
-                let { desc } = atom.list.find(item => item.version === val)
+                let desc = this.basicInfo.desc
+                if (!this.isThirdParty) {
+                    const atom = this.atomList.find(item => item.code === this.basicInfo.plugin)
+                    desc = atom.list.find(item => item.version === val).desc
+                }
                 if (desc && desc.includes('\n')) {
                     const descList = desc.split('\n')
                     desc = descList.join('<br>')
@@ -923,6 +1079,9 @@
                     }
                 }
             },
+            updatePluginList (val, type) {
+                this.$emit('updatePluginList', val, type)
+            },
             // 查看子流程模板
             onViewSubflow (id) {
                 let pathData = {}
@@ -1052,10 +1211,21 @@
                             value: tools.deepClone(formVal)
                         }
                     })
+                    // 第三方插件需手动设置plugin_code和plugin_version
+                    if (this.isThirdParty) {
+                        data['plugin_code'] = {
+                            hook: false,
+                            value: plugin
+                        }
+                        data['plugin_version'] = {
+                            hook: false,
+                            value: version
+                        }
+                    }
                     const component = {
-                        code: plugin,
+                        code: this.isThirdParty ? 'remote_plugin' : plugin,
                         data,
-                        version
+                        version: this.isThirdParty ? '1.0.0' : version
                     }
                     config = Object.assign({}, this.nodeConfig, {
                         component,
@@ -1183,7 +1353,7 @@
             onSaveConfig () {
                 this.validate().then(result => {
                     if (result) {
-                        const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional } = this.basicInfo
+                        const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional, desc, nodeName } = this.basicInfo
                         const nodeData = { status: '', skippable, retryable, optional }
                         if (!this.isSubflow) {
                             const phase = this.getAtomPhase()
@@ -1200,6 +1370,16 @@
                             }
                         }
                         this.syncActivity()
+                        // 将第三方插件信息传给父级存起来
+                        if (this.isThirdParty) {
+                            const params = {
+                                desc,
+                                nodeName,
+                                version,
+                                list: tools.deepClone(this.versionList)
+                            }
+                            this.$parent.thirdPartyList[this.nodeId] = params
+                        }
                         this.handleVariableChange() // 更新全局变量列表、全局变量输出列表、全局变量面板icon小红点
                         this.$emit('updateNodeInfo', this.nodeId, nodeData)
                         this.$emit('templateDataChanged')
@@ -1277,6 +1457,9 @@
             line-height: 1;
             color: #313238;
             border-bottom: 1px solid #cacecb;
+        }
+        .basic-info-wrapper {
+            min-height: 250px;
         }
         .inputs-wrapper,
         .outputs-wrapper {

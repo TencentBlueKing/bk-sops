@@ -77,6 +77,7 @@
                 default: true
             },
             constants: Object,
+            thirdPartyCode: String,
             isSubflow: Boolean,
             nodeId: String,
             version: String // 标准插件版本或子流程版本
@@ -216,7 +217,8 @@
                             source_info: {
                                 [this.nodeId]: [this.params[this.selectIndex].key]
                             },
-                            version
+                            version,
+                            plugin_code: this.thirdPartyCode || ''
                         }
                         this.createVariable(config)
                     }
@@ -240,7 +242,8 @@
                     source_type: 'component_outputs',
                     validation: '',
                     index: len,
-                    version: ''
+                    version: '',
+                    plugin_code: ''
                 }
                 const variable = Object.assign({}, defaultOpts, variableOpts)
                 this.$emit('hookChange', 'create', variable)

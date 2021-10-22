@@ -31,6 +31,13 @@ const COMMON_ROUTE_LIST = [
             url: '/taskflow/home/periodic/'
         },
         {
+            id: 'clockedTemplate',
+            name: i18n.t('计划任务'),
+            icon: 'common-icon-clocked-task',
+            hasProjectId: true,
+            url: '/taskflow/home/clocked/'
+        },
+        {
             id: 'appMakerList',
             name: i18n.t('轻应用'),
             icon: 'icon-apps-shape',

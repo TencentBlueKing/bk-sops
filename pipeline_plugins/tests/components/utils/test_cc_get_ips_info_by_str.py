@@ -93,6 +93,67 @@ class CCGetIPsInfoByStrTestCase(TestCase):
         self.assertEqual(result["ip_count"], 3)
         self.assertEqual(result["invalid_ip"], ["4.4.4.4"])
 
+    def test_ip_format_with_multi_innerip(self):
+        ip_str = "1.1.1.1,2.2.2.2\n3.3.3.3,4.4.4.4"
+        get_business_host_topo_return = [
+            {
+                "host": {"bk_host_id": 1, "bk_host_innerip": "1.2.3.4,1.1.1.1", "bk_cloud_id": 0},
+                "module": [{"bk_module_id": 1, "bk_module_name": "module_1"}],
+                "set": [{"bk_set_id": 1, "bk_set_name": "set_1"}],
+            },
+            {
+                "host": {"bk_host_id": 2, "bk_host_innerip": "", "bk_cloud_id": 0},
+                "module": [{"bk_module_id": 2, "bk_module_name": "module_2"}],
+                "set": [{"bk_set_id": 2, "bk_set_name": "set_2"}],
+            },
+            {
+                "host": {"bk_host_id": 3, "bk_host_innerip": "3.3.3.3", "bk_cloud_id": 0},
+                "module": [{"bk_module_id": 3, "bk_module_name": "module_3"}],
+                "set": [{"bk_set_id": 3, "bk_set_name": "set_3"}],
+            },
+        ]
+        cmdb = MagicMock()
+        cmdb.get_business_host_topo = MagicMock(return_value=get_business_host_topo_return)
+        supplier_account_for_business = MagicMock(return_value=self.supplier_account)
+
+        with patch(
+            "pipeline_plugins.components.utils.sites.open.utils.supplier_account_for_business",
+            supplier_account_for_business,
+        ):
+            with patch("pipeline_plugins.components.utils.sites.open.utils.cmdb", cmdb):
+                result = cc_get_ips_info_by_str(username=self.username, biz_cc_id=self.biz_cc_id, ip_str=ip_str)
+
+        supplier_account_for_business.assert_called_once_with(self.biz_cc_id)
+        cmdb.get_business_host_topo.assert_called_once_with(
+            username=self.username,
+            bk_biz_id=self.biz_cc_id,
+            supplier_account=self.supplier_account,
+            host_fields=["bk_host_innerip", "bk_host_id", "bk_cloud_id"],
+            ip_list=["1.1.1.1", "2.2.2.2", "3.3.3.3", "4.4.4.4"],
+        )
+        self.assertEqual(result["result"], True)
+        self.assertEqual(
+            result["ip_result"],
+            [
+                {
+                    "InnerIP": "1.1.1.1",
+                    "HostID": 1,
+                    "Source": 0,
+                    "Sets": [{"bk_set_id": 1, "bk_set_name": "set_1"}],
+                    "Modules": [{"bk_module_id": 1, "bk_module_name": "module_1"}],
+                },
+                {
+                    "InnerIP": "3.3.3.3",
+                    "HostID": 3,
+                    "Source": 0,
+                    "Sets": [{"bk_set_id": 3, "bk_set_name": "set_3"}],
+                    "Modules": [{"bk_module_id": 3, "bk_module_name": "module_3"}],
+                },
+            ],
+        )
+        self.assertEqual(result["ip_count"], 2)
+        self.assertEqual(set(result["invalid_ip"]), {"2.2.2.2", "4.4.4.4"})
+
     def test_set_module_format(self):
         ip_str = "set_1|module_1|1.1.1.1,set_2|module_2|2.2.2.2\nset_3|module_3|3.3.3.3,set_3|module_3|4.4.4.4"
         get_business_host_topo_return = [
@@ -240,3 +301,64 @@ class CCGetIPsInfoByStrTestCase(TestCase):
         )
         self.assertEqual(result["ip_count"], 3)
         self.assertEqual(result["invalid_ip"], ["4.4.4.4"])
+
+    def test_cloud_ip_format_with_multi_innerip(self):
+        ip_str = "0:1.1.1.1,0:2.2.2.2\n0:3.3.3.3,0:4.4.4.4"
+        get_business_host_topo_return = [
+            {
+                "host": {"bk_host_id": 1, "bk_host_innerip": "1.2.3.4,1.1.1.1", "bk_cloud_id": 0},
+                "module": [{"bk_module_id": 1, "bk_module_name": "module_1"}],
+                "set": [{"bk_set_id": 1, "bk_set_name": "set_1"}],
+            },
+            {
+                "host": {"bk_host_id": 2, "bk_host_innerip": "", "bk_cloud_id": 0},
+                "module": [{"bk_module_id": 2, "bk_module_name": "module_2"}],
+                "set": [{"bk_set_id": 2, "bk_set_name": "set_2"}],
+            },
+            {
+                "host": {"bk_host_id": 3, "bk_host_innerip": "3.3.3.3", "bk_cloud_id": 0},
+                "module": [{"bk_module_id": 3, "bk_module_name": "module_3"}],
+                "set": [{"bk_set_id": 3, "bk_set_name": "set_3"}],
+            },
+        ]
+        cmdb = MagicMock()
+        cmdb.get_business_host_topo = MagicMock(return_value=get_business_host_topo_return)
+        supplier_account_for_business = MagicMock(return_value=self.supplier_account)
+
+        with patch(
+            "pipeline_plugins.components.utils.sites.open.utils.supplier_account_for_business",
+            supplier_account_for_business,
+        ):
+            with patch("pipeline_plugins.components.utils.sites.open.utils.cmdb", cmdb):
+                result = cc_get_ips_info_by_str(username=self.username, biz_cc_id=self.biz_cc_id, ip_str=ip_str)
+
+        supplier_account_for_business.assert_called_once_with(self.biz_cc_id)
+        cmdb.get_business_host_topo.assert_called_once_with(
+            username=self.username,
+            bk_biz_id=self.biz_cc_id,
+            supplier_account=self.supplier_account,
+            host_fields=["bk_host_innerip", "bk_host_id", "bk_cloud_id"],
+            ip_list=["1.1.1.1", "2.2.2.2", "3.3.3.3", "4.4.4.4"],
+        )
+        self.assertEqual(result["result"], True)
+        self.assertEqual(
+            result["ip_result"],
+            [
+                {
+                    "InnerIP": "1.1.1.1",
+                    "HostID": 1,
+                    "Source": 0,
+                    "Sets": [{"bk_set_id": 1, "bk_set_name": "set_1"}],
+                    "Modules": [{"bk_module_id": 1, "bk_module_name": "module_1"}],
+                },
+                {
+                    "InnerIP": "3.3.3.3",
+                    "HostID": 3,
+                    "Source": 0,
+                    "Sets": [{"bk_set_id": 3, "bk_set_name": "set_3"}],
+                    "Modules": [{"bk_module_id": 3, "bk_module_name": "module_3"}],
+                },
+            ],
+        )
+        self.assertEqual(result["ip_count"], 2)
+        self.assertEqual(set(result["invalid_ip"]), {"2.2.2.2", "4.4.4.4"})

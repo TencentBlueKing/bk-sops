@@ -53,9 +53,9 @@
             <div class="palette-item entry-item" data-config-name="" data-type="convergegateway">
                 <div class="node-type-icon common-icon-node-convergegateway"></div>
             </div>
-            <!-- <div class="palette-item entry-item" data-config-name="" data-type="conditionalparallelgateway">
+            <div class="palette-item entry-item" data-config-name="" data-type="conditionalparallelgateway">
                 <div class="node-type-icon common-icon-node-conditionalparallelgateway"></div>
-            </div> -->
+            </div>
         </div>
         <node-menu
             ref="node_menu"
@@ -66,6 +66,9 @@
             :loading="activeNodeListType === 'subflow' && listLoading"
             :nodes="nodes"
             :common="common"
+            :plugin-list="atomTypeList.pluginList"
+            :plugin-loading="pluginLoading"
+            @updatePluginList="updatePluginList"
             @onCloseNodeMenu="onCloseNodeMenu"
             @onToggleNodeMenuFixed="onToggleNodeMenuFixed">
         </node-menu>
@@ -101,6 +104,10 @@
             },
             common: {
                 type: [String, Number],
+                default: false
+            },
+            pluginLoading: {
+                type: Boolean,
                 default: false
             }
         },
@@ -179,6 +186,9 @@
                         limit: this.limit,
                         offset: this.currentPage * this.limit
                     }
+                    if (this.common) {
+                        data.common = 1
+                    }
                     const resp = await this.loadTemplateList(data)
                     this.handleSubflowList(resp)
                 } catch (e) {
@@ -224,6 +234,9 @@
             onOpenNodeMenu () {
                 this.showNodeMenu = true
                 this.activeNodeListType = this.nodeMouse.type
+            },
+            updatePluginList (val, type) {
+                this.$emit('updatePluginList', val, type)
             },
             onCloseNodeMenu () {
                 this.showNodeMenu = false
