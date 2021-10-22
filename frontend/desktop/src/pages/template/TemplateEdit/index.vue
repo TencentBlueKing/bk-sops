@@ -1266,7 +1266,7 @@
                     this.isSchemaListChange = false
                     this.isEditProcessPage = !isDefault
                     if (isDefault) {
-                        this.$refs.taskSelectNode.$refs.taskScheme.loadSchemeList()
+                        this.$refs.taskSelectNode.loadSchemeList()
                     }
                 } catch (e) {
                     console.log(e)

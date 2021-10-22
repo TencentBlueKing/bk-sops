@@ -600,6 +600,9 @@
             onSaveExecuteSchemeClick (isDefault) {
                 this.$emit('onSaveExecuteSchemeClick', isDefault)
             },
+            loadSchemeList () {
+                this.$refs.taskScheme.loadSchemeList()
+            },
             // 更新执行方案列表
             updateTaskSchemeList (val, isChange) {
                 this.$emit('updateTaskSchemeList', val, isChange)
