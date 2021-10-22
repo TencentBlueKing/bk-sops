@@ -62,7 +62,9 @@ class BKRepoManager(Manager):
         self.storage.save(file_path, content)
         return {"type": "bk_repo", "tags": {"uid": uid, "shims": shims, "name": name}}
 
-    def push_files_to_ips(self, esb_client, bk_biz_id, file_tags, target_path, ips, account, callback_url=None):
+    def push_files_to_ips(
+        self, esb_client, bk_biz_id, file_tags, target_path, ips, account, callback_url=None, timeout=None
+    ):
         try:
             file_source_id = BKJobFileSource.objects.get(bk_biz_id=env.JOB_FILE_BIZ_ID).file_source_id
         except BKJobFileSource.DoesNotExist:
@@ -99,6 +101,10 @@ class BKRepoManager(Manager):
             ],
             "target_server": {"ip_list": ips},
         }
+        if timeout is not None:
+            job_kwargs["timeout"] = int(timeout)
+        if callback_url:
+            job_kwargs["callback_url"] = callback_url
         job_result = esb_client.jobv3.fast_transfer_file(job_kwargs)
 
         if not job_result["result"]:
