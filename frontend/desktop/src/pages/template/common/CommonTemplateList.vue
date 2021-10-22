@@ -438,7 +438,6 @@
         computed: {
             ...mapState({
                 'site_url': state => state.site_url,
-                'templateList': state => state.templateList.templateListData,
                 'commonTemplateData': state => state.templateList.commonTemplateData,
                 'v1_import_flag': state => state.v1_import_flag,
                 'permissionMeta': state => state.permissionMeta

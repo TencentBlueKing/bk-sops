@@ -1,4 +1,7 @@
 const en = {
+    '查看合法检查结果': 'View legal inspection results',
+    '或': 'or',
+    '全选所有流程': 'Select all processes',
     '请输入IP，多个以逗号或者换行符隔开，在cmdb上唯一': 'Please enter IP, multiple separated by comma or newline, unique on cmdb',
     '请输入业务拓扑（形如：业务A>集群B>模块C），多个逗号或换行符隔开，在cmdb上唯一': 'Please enter the business topology (form: business A>cluster B>module C), separated by multiple commas or newlines, unique on cmdb',
     '请输入动态分组名称，多个以逗号或换行符隔开，在cmdb上唯一': 'Please enter the dynamic group name, separated by commas or newlines, unique on cmdb',
@@ -580,6 +583,7 @@ const en = {
     '提单时间': 'Date submitted',
     '提单人': 'Creator',
     '请输入提单人': 'Please enter the creator',
+    '请输入认领人': 'Please enter the claimant',
     '未认领': 'Submitted',
     '已认领': 'Claimed',
     '认领时间': 'Claim ime',
