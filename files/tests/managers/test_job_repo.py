@@ -52,7 +52,7 @@ class JobRepoManagerTestCase(TestCase):
                     manager.storage.generate_temporary_upload_url.assert_called_once_with(
                         username="user_name", bk_biz_id=self.bk_biz_id, file_names=[self.file_name]
                     )
-                    manager.storage.save.assert_called_once_with(self.upload_url, self.content)
+                    manager.storage.save.assert_called_once_with(self.upload_url, self.file_name, self.content)
                     self.assertEqual(
                         tag, {"type": "job_repo", "tags": {"file_path": self.path, "name": self.file_name}}
                     )

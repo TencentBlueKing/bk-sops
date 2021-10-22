@@ -68,7 +68,7 @@ class JobRepoManager(Manager):
         file_name, data = list(url_fetch_result["data"]["url_map"].items())[0]  # 每次仅上传一个文件
         upload_url = data["upload_url"]
         upload_path = data["path"]
-        upload_result = self.storage.save(upload_url, content)
+        upload_result = self.storage.save(upload_url, file_name, content)
         if not upload_result["result"]:
             raise ApiResultError(f'upload file failed: {upload_result["message"]}')
         return {"type": "job_repo", "tags": {"file_path": upload_path, "name": file_name}}
@@ -87,6 +87,10 @@ class JobRepoManager(Manager):
             "file_source_list": [{"file_list": [tag["tags"]["file_path"] for tag in file_tags], "file_type": 2}],
             "target_server": {"ip_list": ips},
         }
+        if timeout is not None:
+            job_kwargs["timeout"] = int(timeout)
+        if callback_url:
+            job_kwargs["callback_url"] = callback_url
 
         job_result = esb_client.jobv3.fast_transfer_file(job_kwargs)
 
