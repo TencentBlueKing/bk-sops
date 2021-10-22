@@ -19,12 +19,14 @@
         :value="isGatewaySelectDialogShow"
         @confirm="onConfirm"
         @cancel="onCancel">
-        <div class="dialog-content">
+        <div class="dialog-content" v-if="isGatewaySelectDialogShow">
             <div class="common-form-item">
                 <label>{{ $t('可选执行分支') }}</label>
                 <div class="common-form-content">
                     <bk-select
                         v-model="selectedBranch"
+                        :multiple="isCondParallelGw"
+                        :display-tag="isCondParallelGw"
                         :clearable="false">
                         <bk-option
                             v-for="item in gatewayBranches"
@@ -43,23 +45,31 @@
         name: 'GatewaySelectDialog',
         props: [
             'isGatewaySelectDialogShow',
+            'isCondParallelGw',
             'gatewayBranches'
         ],
         data () {
             return {
-                selectedBranch: this.gatewayBranches.length ? this.gatewayBranches[0].id : ''
+                selectedBranch: null
             }
         },
         watch: {
             gatewayBranches (val) {
-                this.selectedBranch = val.length ? val[0].id : ''
+                if (this.isCondParallelGw) {
+                    this.selectedBranch = val.length ? [val[0].id] : []
+                } else {
+                    this.selectedBranch = val.length ? val[0].id : ''
+                }
             }
         },
         methods: {
             onConfirm () {
                 const selected = this.gatewayBranches.filter(item => {
+                    if (this.isCondParallelGw) {
+                        return this.selectedBranch.includes(item.id)
+                    }
                     return item.id === this.selectedBranch
-                })[0]
+                })
                 this.$emit('onConfirm', selected)
             },
             onCancel () {
@@ -73,6 +83,9 @@
         padding: 30px 40px;
         .common-form-item > label {
             font-weight: normal;
+        }
+        /deep/.bk-select .bk-select-tag-container {
+            padding-top: 0 !important;
         }
     }
 </style>

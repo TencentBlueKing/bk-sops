@@ -18,6 +18,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 
+from gcloud.utils.strings import django_celery_beat_cron_time_format_fit
 from pipeline.contrib.periodic_task.models import BAMBOO_ENGINE_TRIGGER_TASK
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory as PipelinePeriodicTaskHistory
@@ -136,7 +137,7 @@ class PeriodicTask(models.Model):
 
     @property
     def cron(self):
-        return self.task.cron
+        return django_celery_beat_cron_time_format_fit(self.task.cron)
 
     @property
     def total_run_count(self):

@@ -250,14 +250,7 @@
             onImportTemporaryPlan () {
                 // 提示用户先保存创建方案再进行其他操作
                 if (this.setRemindUserMsg()) return
-                let hasCreatePermission = true
-                if (!this.haveCreateSchemeTpl) {
-                    const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
-                    hasCreatePermission = this.checkSchemeRelativePermission([tplAction])
-                }
-                if (hasCreatePermission) {
-                    this.$emit('onImportTemporaryPlan')
-                }
+                this.$emit('onImportTemporaryPlan')
             },
             /**
              * 执行方案全选/半选

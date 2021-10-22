@@ -57,7 +57,6 @@
         data () {
             return {
                 taskDataLoading: true,
-                taskStatusLoading: true,
                 isFunctional: this.routerType === 'function', // 是否为职能化任务
                 showParamsFill: false, // 显示参数填写页面
                 primaryTitle: '', // 浏览器tab页初始title

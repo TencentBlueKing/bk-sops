@@ -59,7 +59,8 @@
             isSubflow: Boolean,
             subflowForms: Object, // 子流程模板输入参数变量配置
             nodeId: String,
-            constants: Object
+            constants: Object,
+            thirdPartyCode: String
         },
         data () {
             return {
@@ -91,10 +92,11 @@
                 const hooked = {}
                 const keys = Object.keys(this.constants)
                 this.scheme.forEach(form => {
-                    // 已勾选到全局变量中
+                    // 已勾选到全局变量中, 判断勾选的输入参数生成的变量及自定义全局变量source_info是否包含该节点对应表单tag_code
+                    // 可能存在表单勾选时已存在相同key的变量，选择复用自定义变量
                     const isHooked = keys.some(item => {
                         const varItem = this.constants[item]
-                        if (varItem.source_type === 'component_inputs') {
+                        if (['component_inputs', 'custom'].includes(varItem.source_type)) {
                             const sourceInfo = varItem.source_info[this.nodeId]
                             if (sourceInfo && sourceInfo.includes(form.tag_code)) {
                                 return true
@@ -142,7 +144,7 @@
                     const sourceTag = constant.source_tag
                     if (sourceTag) { // 判断 sourceTag 是否存在是为了兼容旧数据自定义全局变量 source_tag 为空
                         const tagCode = sourceTag.split('.')[1]
-                        if (tagCode === formCode) {
+                        if (tagCode === formCode && constant.source_type !== 'component_outputs') { // 输入参数和输出参数不复用
                             reuseList.push({
                                 name: `${constant.name}(${constant.key})`,
                                 id: constant.key
@@ -197,7 +199,8 @@
                     key: variableKey,
                     source_info: { [this.nodeId]: [this.hookingVarForm] },
                     value: tools.deepClone(this.formData[this.hookingVarForm]),
-                    form_schema: formSchema.getSchema(this.hookingVarForm, this.scheme)
+                    form_schema: formSchema.getSchema(this.hookingVarForm, this.scheme),
+                    plugin_code: this.thirdPartyCode || ''
                 }
                 if (this.isSubflow) {
                     const constant = this.subflowForms[this.hookingVarForm]
@@ -238,7 +241,8 @@
                     validation: '',
                     index: len,
                     version: 'legacy',
-                    form_schema: {}
+                    form_schema: {},
+                    plugin_code: ''
                 }
                 const variable = Object.assign({}, defaultOpts, config)
                 this.formData[this.hookingVarForm] = variable.key

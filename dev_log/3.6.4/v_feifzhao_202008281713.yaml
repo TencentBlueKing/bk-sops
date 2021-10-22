@@ -1,3 +1,0 @@
-feature:
-    - "新增人员分组选择器变量"
-    - "提取消息通知插件内函数 get_notify_receivers 到 gcloud/utils/cmdb.py 中"

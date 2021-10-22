@@ -100,6 +100,7 @@
                 exportPending: false,
                 isTplInPanelAllSelected: false,
                 isCheckedDisabled: false,
+                list: [],
                 templateList: [],
                 keywords: '',
                 isHasSelected: 0,

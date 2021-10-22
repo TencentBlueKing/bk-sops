@@ -50,6 +50,7 @@
             <manual-input
                 v-show="activeSelector === 'manual'"
                 ref="manual"
+                :editable="editable"
                 :selector-tabs="selectorTabs"
                 :manual-input="manualInput"
                 @change="onManualInputChange">

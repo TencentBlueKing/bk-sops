@@ -83,12 +83,12 @@
                             :sortable="item.sortable">
                             <template slot-scope="props">
                                 <router-link
-                                    v-if="item.prop === 'templateName'"
+                                    v-if="item.prop === 'template_name'"
                                     class="table-link"
                                     target="_blank"
-                                    :title="props.row.templateName"
+                                    :title="props.row.template_name"
                                     :to="getExecuteHistoryUrl(props.row)">
-                                    {{props.row.templateName}}
+                                    {{props.row.template_name}}
                                 </router-link>
                                 <template v-else>
                                     <span :title="props.row[item.prop]">{{ props.row[item.prop] }}</span>
@@ -112,11 +112,11 @@
     const TABLE_COLUMN = [
         {
             label: i18n.t('轻应用名称'),
-            prop: 'templateName'
+            prop: 'template_name'
         },
         {
             label: i18n.t('项目'),
-            prop: 'projectName'
+            prop: 'project_name'
         },
         {
             label: i18n.t('分类'),
@@ -130,12 +130,12 @@
         },
         {
             label: i18n.t('创建时间'),
-            prop: 'createTime',
+            prop: 'create_time',
             width: 200
         },
         {
             label: i18n.t('创建任务数'),
-            prop: 'instanceTotal',
+            prop: 'instance_total',
             sortable: true,
             width: 150
         }
@@ -327,8 +327,8 @@
             getExecuteHistoryUrl (val) {
                 return {
                     name: 'taskList',
-                    params: { project_id: val.projectId },
-                    query: { template_id: val.templateId, create_method: 'app_maker', create_info: val.appmakerId, template_source: 'project' }
+                    params: { project_id: val.project_id },
+                    query: { template_id: val.template_id, create_method: 'app_maker', create_info: val.appmaker_id, template_source: 'project' }
                 }
             },
             handlePageChange (val) {
