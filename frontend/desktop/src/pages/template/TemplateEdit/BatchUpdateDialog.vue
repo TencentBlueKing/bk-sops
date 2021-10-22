@@ -347,6 +347,7 @@
                 if (variable.is_meta || formItemConfig.meta_transform) {
                     formItemConfig = formItemConfig.meta_transform(variable.meta || variable)
                     if (!variable.meta) {
+                        variable.meta = tools.deepClone(variable)
                         variable.value = formItemConfig.attrs.value
                     }
                 }
@@ -483,8 +484,7 @@
                                             }
                                         } else {
                                             // 注释 2.a 场景，变量未被删除，最新版本部分表单勾选部分未被勾选
-                                            if (!source_info[subflow.id].includes(formKey)
-                                                && ((source_type === 'component_inputs' && (subflow.latestForm.form[formKey] && subflow.latestForm.form[formKey].source_tag === varItem.source_tag))
+                                            if (!source_info[subflow.id].includes(formKey) && ((source_type === 'component_inputs' && (subflow.latestForm.form[formKey] && subflow.latestForm.form[formKey].source_tag === varItem.source_tag))
                                                 || (source_type === 'component_outputs' && subflow.latestForm.outputs.find(item => item.key === formKey)))
                                             ) {
                                                 source_info[subflow.id].push(formKey)

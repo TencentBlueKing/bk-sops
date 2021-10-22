@@ -1485,6 +1485,72 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
             ]
         )
 
+    def test_ip_selector_manual_method_all_select_set_internal_module__case(self, mock_get_client_by_user_return=None):
+        set_module_ip_selector = SetModuleIpSelector(
+            pipeline_data=self.pipeline_data,
+            value={
+                "var_ip_method": "manual",
+                "var_ip_custom_value": "",
+                "var_ip_select_value": {"var_set": [], "var_module": [], "var_module_name": ""},
+                "var_ip_manual_value": {"var_manual_set": "all", "var_manual_module": "空闲机", "var_module_name": ""},
+                "var_filter_set": "",
+                "var_filter_module": "",
+            },
+            name="test_ip_selector_manual_method_all_select_set_success__case",
+            context={},
+        )
+        self.assertEqual(set("192.168.1.1".split(",")), set(set_module_ip_selector.get_value().split(",")))
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[3],
+                            bk_set_ids=[31, 32],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        )
+                    ],
+                },
+                {"func": self.client.new().cc.list_biz_hosts, "calls": []},
+            ]
+        )
+
+    def test_ip_selector_manual_method_all_select_set_module__case(self, mock_get_client_by_user_return=None):
+        set_module_ip_selector = SetModuleIpSelector(
+            pipeline_data=self.pipeline_data,
+            value={
+                "var_ip_method": "manual",
+                "var_ip_custom_value": "",
+                "var_ip_select_value": {"var_set": [], "var_module": [], "var_module_name": ""},
+                "var_ip_manual_value": {"var_manual_set": "all", "var_manual_module": "db", "var_module_name": ""},
+                "var_filter_set": "",
+                "var_filter_module": "",
+            },
+            name="test_ip_selector_manual_method_all_select_set_module__case",
+            context={},
+        )
+        self.assertEqual(set("192.168.40.1".split(",")), set(set_module_ip_selector.get_value().split(",")))
+        call_assert(
+            [
+                {
+                    "func": self.client.new().cc.find_module_with_relation,
+                    "calls": [
+                        call(
+                            bk_biz_id=1,
+                            bk_service_template_ids=[61],
+                            bk_set_ids=[31, 32],
+                            fields=["bk_module_id"],
+                            page={"start": 0, "limit": 1},
+                        )
+                    ],
+                },
+                {"func": self.client.new().cc.list_biz_hosts, "calls": []},
+            ]
+        )
+
 
 def call_assert(calls_list):
     for call_item in calls_list:

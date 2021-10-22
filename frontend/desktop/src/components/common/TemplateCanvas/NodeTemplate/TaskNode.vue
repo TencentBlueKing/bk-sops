@@ -43,30 +43,38 @@
             <span v-if="node.isSkipped || node.skippable" class="dark-circle common-icon-dark-circle-s"></span>
             <span v-if="node.can_retry || node.retryable" class="dark-circle common-icon-dark-circle-r"></span>
         </div>
-        <!-- 节点执行顶部右侧 icon， 执行中、重试次数、是否为跳过-->
-        <div v-if="node.status === 'RUNNING'" class="task-status-icon">
-            <i class="common-icon-loading"></i>
-        </div>
-        <div v-else-if="node.status === 'FINISHED' && (node.retry > 0 || node.skip)" class="task-status-icon">
-            <i v-if="node.skip" class="bk-icon icon-arrows-right-shape"></i>
-            <span v-else-if="node.retry > 0" class="retry-times">{{ node.retry > 99 ? '100+' : node.retry }}</span>
-        </div>
-        <!-- 节点失败后自动忽略icon -->
-        <div v-else-if="node.status === 'FINISHED' && node.error_ignored" class="task-status-icon node-subscript">
-            <i class="bk-icon icon-arrows-right-shape"></i>
-        </div>
-        <!-- 节点顶部右侧生命周期 icon -->
-        <div class="node-phase-icon" v-if="[1, 2].includes(node.phase)">
-            <i
-                :class="['bk-icon', 'icon-exclamation-circle', {
-                    'phase-warn': node.phase === 1,
-                    'phase-error': node.phase === 2
-                }]"
-                v-bk-tooltips="{
-                    content: phaseStr[node.phase],
-                    width: 210
-                }">
-            </i>
+        <!-- 节点右上角执行相关的icon区域 -->
+        <div class="node-execute-icon">
+            <!-- 节点执行顶部右侧 icon， 执行中、重试次数、是否为跳过-->
+            <div v-if="node.status === 'RUNNING'" class="task-status-icon">
+                <i class="common-icon-loading"></i>
+            </div>
+            <div v-else-if="node.status === 'FINISHED' && (node.retry > 0 || node.skip)" class="task-status-icon">
+                <i v-if="node.skip" class="bk-icon icon-arrows-right-shape"></i>
+                <span v-else-if="node.retry > 0" class="retry-times">{{ node.retry > 99 ? '100+' : node.retry }}</span>
+            </div>
+            <!-- 节点失败后自动忽略icon -->
+            <div v-else-if="node.status === 'FINISHED' && node.error_ignored" class="task-status-icon node-subscript">
+                <i class="bk-icon icon-arrows-right-shape"></i>
+            </div>
+            <!-- 节点循环次数 -->
+            <div v-if="node.loop > 1" class="task-status-icon task-node-loop">
+                <i class="common-icon-loading-circle"></i>
+                <span>{{ node.loop }}</span>
+            </div>
+            <!-- 节点顶部右侧生命周期 icon -->
+            <div class="node-phase-icon" v-if="[1, 2].includes(node.phase)">
+                <i
+                    :class="['bk-icon', 'icon-exclamation-circle', {
+                        'phase-warn': node.phase === 1,
+                        'phase-error': node.phase === 2
+                    }]"
+                    v-bk-tooltips="{
+                        content: phaseStr[node.phase],
+                        width: 210
+                    }">
+                </i>
+            </div>
         </div>
         <!-- tooltip提示 -->
         <div class="state-icon" v-if="node.mode === 'execute'">
@@ -169,6 +177,9 @@
                     return BK_PLUGIN_ICON[code]
                 }
 
+                if (code === 'remote_plugin') {
+                    return 'common-icon-sys-third-party'
+                }
                 const systemType = SYSTEM_GROUP_ICON.find(item => new RegExp(item).test(group))
                 if (systemType) {
                     return `common-icon-sys-${systemType.toLowerCase()}`

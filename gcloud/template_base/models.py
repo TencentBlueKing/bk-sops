@@ -164,17 +164,24 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         # update creator when templates are created
         PipelineTemplate.objects.filter(template_id__in=new_objects_template_ids).update(creator=operator)
 
+        # update flows map
+        flows = {info["id"]: info["name"] for info in check_info["new_template"]}
+
         if not override:
             self.model.objects.bulk_create(new_objects)
 
             create_templates = list(self.model.objects.filter(pipeline_template_id__in=new_objects_template_ids))
+
+            # create flows map
+            flows = {tmp.id: tmp.name for tmp in create_templates}
+
             # send_signal
             if create_templates:
                 batch_create.send(self.model, instance=create_templates, creator=operator)
 
         return {
             "result": True,
-            "data": len(template),
+            "data": {"count": len(template), "flows": flows},
             "message": "Successfully imported %s flows" % len(template),
             "code": err_code.SUCCESS.code,
         }
@@ -351,3 +358,13 @@ class BaseTemplate(models.Model):
         nodes_attr = NodeAttr.get_nodes_attr(nodes, "template")
         pipeline_web_clean.to_web(nodes_attr)
         return tree
+
+
+class DefaultTemplateScheme(models.Model):
+    project_id = models.IntegerField(default=-1, help_text="项目ID，-1代表公共流程")
+    template_id = models.IntegerField(help_text="流程ID")
+    default_scheme_ids = models.TextField(help_text="默认执行方案组合ID拼接结果，用`,`分隔", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "默认执行方案"
+        unique_together = ("project_id", "template_id")

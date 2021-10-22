@@ -403,7 +403,6 @@
                 'loadProjectBaseInfo'
             ]),
             ...mapActions('task/', [
-                'getInstanceStatus',
                 'loadCreateMethod'
             ]),
             ...mapActions('taskList/', [

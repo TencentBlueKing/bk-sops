@@ -112,6 +112,7 @@
         </bk-sideslider>
         <gatewaySelectDialog
             :is-gateway-select-dialog-show="isGatewaySelectDialogShow"
+            :is-cond-parallel-gw="isCondParallelGw"
             :gateway-branches="gatewayBranches"
             @onConfirm="onConfirmGatewaySelect"
             @onCancel="onCancelGatewaySelect">
@@ -164,7 +165,8 @@
             ref="conditionEdit"
             :is-readonly="true"
             :is-show.sync="isShowConditionEdit"
-            :condition-data="conditionData">
+            :condition-data="conditionData"
+            @close="onCloseConfigPanel">
         </condition-edit>
         <bk-dialog
             width="400"
@@ -296,6 +298,7 @@
                 nodeDetailConfig: {},
                 nodeSwitching: false,
                 isGatewaySelectDialogShow: false,
+                isCondParallelGw: false,
                 gatewayBranches: [],
                 canvasMountedQueues: [], // canvas pending queues
                 pending: {
@@ -404,9 +407,9 @@
             paramsCanBeModify () {
                 return this.isTopTask && this.state === 'CREATED'
             },
-            // 职能化/审计中心/轻应用时,隐藏[查看流程]按钮
+            // 审计中心/轻应用时,隐藏[查看流程]按钮
             isShowViewProcess () {
-                return !['function', 'audit'].includes(this.routerType) && this.view_mode !== 'appmaker'
+                return this.routerType !== 'audit' && this.view_mode !== 'appmaker'
             },
             adminView () {
                 return this.hasAdminPerm && this.$route.query.is_admin === 'true'
@@ -434,6 +437,7 @@
                 'instanceNodeSkip',
                 'instanceBranchSkip',
                 'skipExclusiveGateway',
+                'skipCondParallelGateWay',
                 'pauseNodeResume',
                 'getNodeActInfo',
                 'forceFail'
@@ -752,7 +756,12 @@
             async selectGatewayBranch (data) {
                 this.pending.selectGateway = true
                 try {
-                    const res = await this.skipExclusiveGateway(data)
+                    let res
+                    if (this.isCondParallelGw) {
+                        res = await this.skipCondParallelGateWay(data)
+                    } else {
+                        res = await this.skipExclusiveGateway(data)
+                    }
                     if (res.result) {
                         this.$bkMessage({
                             message: i18n.t('跳过成功'),
@@ -831,7 +840,17 @@
                         errorIgnorable = nodeActivities.error_ignorable
                     }
 
-                    const data = { status: currentNode.state, code, skippable, retryable, skip: currentNode.skip, retry: currentNode.retry, error_ignorable: errorIgnorable, error_ignored: currentNode.error_ignored }
+                    const data = {
+                        code,
+                        skippable,
+                        retryable,
+                        loop: currentNode.loop,
+                        status: currentNode.state,
+                        skip: currentNode.skip,
+                        retry: currentNode.retry,
+                        error_ignorable: errorIgnorable,
+                        error_ignored: currentNode.error_ignored
+                    }
 
                     this.setTaskNodeStatus(id, data)
                 }
@@ -839,22 +858,28 @@
             setTaskNodeStatus (id, data) {
                 this.$refs.templateCanvas && this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
-            async setNodeDetailConfig (id) {
-                const tasknode = this.pipelineData.activities[id]
+            async setNodeDetailConfig (id, rootNode) {
+                let code, version
+                const node = this.pipelineData.activities[id]
+                if (node) {
+                    code = node.type === 'ServiceActivity' ? node.component.code : ''
+                    version = (node.type === 'ServiceActivity' ? node.component.version : node.version) || 'legacy'
+                }
                 let subprocessStack = []
                 if (this.selectedFlowPath.length > 1) {
                     subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
                 }
                 this.nodeDetailConfig = {
-                    component_code: tasknode ? tasknode.component.code : '',
-                    version: tasknode ? tasknode.component.version || 'legacy' : '',
+                    component_code: code,
+                    version: version,
                     node_id: id,
                     instance_id: this.instance_id,
+                    root_node: rootNode,
                     subprocess_stack: JSON.stringify(subprocessStack)
                 }
             },
             onRetryClick (id) {
-                this.onSidesliderConfig('retryNode', i18n.t('重试'))
+                this.openNodeInfoPanel('retryNode', i18n.t('重试'))
                 this.setNodeDetailConfig(id)
             },
             onSkipClick (id) {
@@ -874,7 +899,7 @@
                 this.forceFailId = undefined
             },
             onModifyTimeClick (id) {
-                this.onSidesliderConfig('modifyTime', i18n.t('修改时间'))
+                this.openNodeInfoPanel('modifyTime', i18n.t('修改时间'))
                 this.setNodeDetailConfig(id)
             },
             onGatewaySelectionClick (id) {
@@ -884,9 +909,11 @@
                     branches.push({
                         id: item,
                         node_id: id,
-                        name: nodeGateway.conditions[item].name || nodeGateway.conditions[item].evaluate
+                        name: nodeGateway.conditions[item].name || nodeGateway.conditions[item].evaluate,
+                        converge_gateway_id: nodeGateway.converge_gateway_id || undefined
                     })
                 }
+                this.isCondParallelGw = nodeGateway.type === 'ConditionalParallelGateway'
                 this.gatewayBranches = branches
                 this.isGatewaySelectDialogShow = true
             },
@@ -897,6 +924,9 @@
             onTaskNodeResumeCancel () {
                 this.isNodeResumeDialogShow = false
                 this.nodeResumeId = undefined
+            },
+            onCloseConfigPanel () {
+                this.isShowConditionEdit = false
             },
             onSubflowPauseResumeClick (id, value) {
                 if (this.pending.subflowPause) return
@@ -920,11 +950,7 @@
                     case 'resume':
                         return this.state === 'SUSPENDED'
                     case 'revoke':
-                        return this.isTopTask
-                            && (this.state === 'RUNNING'
-                            || this.state === 'SUSPENDED'
-                            || this.state === 'NODE_SUSPENDED'
-                            || this.state === 'FAILED')
+                        return this.isTopTask && ['RUNNING', 'SUSPENDED', 'NODE_SUSPENDED', 'FAILED'].includes(this.state)
                     default:
                         break
                 }
@@ -1028,10 +1054,10 @@
                 if (type === 'templateData') {
                     this.templateData = JSON.stringify(this.pipelineData, null, 4)
                 }
-                this.onSidesliderConfig(type, name)
+                this.openNodeInfoPanel(type, name)
             },
-            // 侧滑面板配置
-            onSidesliderConfig (type, name) {
+            // 打开节点参数信息面板
+            openNodeInfoPanel (type, name) {
                 this.sideSliderTitle = name
                 this.isNodeInfoPanelShow = true
                 this.nodeInfoType = type
@@ -1073,46 +1099,25 @@
             },
             onNodeClick (id, type) {
                 this.defaultActiveId = id
-                if (type === 'tasknode') {
-                    this.handleSingleNodeClick(id, 'singleAtom')
-                } else if (type === 'subflow') {
-                    this.handleSubflowAtomClick(id)
+                if (type === 'subflow') {
+                    this.handleSubflowCanvasChange(id)
                 } else {
-                    this.handleSingleNodeClick(id, 'controlNode')
-                }
-            },
-            handleSingleNodeClick (id, type) {
-                // 节点执行状态
-                // const nodeState = this.instanceStatus.children && this.instanceStatus.children[id]
-                // 任务节点
-                if (type === 'singleAtom') {
-                    // updateNodeActived 设置节点选中态
+                    this.setNodeDetailConfig(id)
                     if (this.nodeDetailConfig.node_id) {
                         this.updateNodeActived(this.nodeDetailConfig.node_id, false)
                     }
-                    this.setNodeDetailConfig(id)
-                    this.onSidesliderConfig('executeInfo', i18n.t('节点参数'))
                     this.updateNodeActived(id, true)
-                } else {
-                    let subprocessStack = []
-                    if (this.selectedFlowPath.length > 1) {
-                        subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
-                    }
-                    this.nodeDetailConfig = {
-                        component_code: '',
-                        version: undefined,
-                        node_id: id,
-                        instance_id: this.instance_id,
-                        subprocess_stack: JSON.stringify(subprocessStack)
-                    }
-                    this.onSidesliderConfig('executeInfo', i18n.t('节点参数'))
+                    this.openNodeInfoPanel('executeInfo', i18n.t('节点参数'))
                 }
             },
             onOpenConditionEdit (data) {
                 this.isShowConditionEdit = true
                 this.conditionData = { ...data }
             },
-            handleSubflowAtomClick (id) {
+            /**
+             * 切换为子流程画布
+             */
+            handleSubflowCanvasChange (id) {
                 this.cancelTaskStatusTimer()
                 const nodeActivities = this.pipelineData.activities[id]
                 this.nodeSwitching = true
@@ -1206,9 +1211,8 @@
                     await this.switchCanvasView(this.completePipelineData, true)
                     this.treeNodeConfig = {}
                 }
-                if (nodeType !== 'subflow') {
-                    this.setNodeDetailConfig(selectNodeId)
-                }
+
+                this.setNodeDetailConfig(selectNodeId, !nodeHeirarchy)
                 this.updateNodeActived(selectNodeId, true)
             },
             // 切换画布视图
@@ -1314,9 +1318,17 @@
             },
             onConfirmGatewaySelect (selected) {
                 const data = {
-                    flow_id: selected.id,
-                    node_id: selected.node_id,
-                    instance_id: this.instance_id
+                    node_id: selected[0].node_id,
+                    instance_id: this.instance_id,
+                    converge_gateway_id: this.isCondParallelGw ? selected[0].converge_gateway_id : undefined
+                }
+                if (this.isCondParallelGw) {
+                    data.flow_ids = selected.reduce((arr, cur) => {
+                        arr.push(cur.id)
+                        return arr
+                    }, [])
+                } else {
+                    data.flow_id = selected[0].id
                 }
                 this.isGatewaySelectDialogShow = false
                 this.selectGatewayBranch(data)

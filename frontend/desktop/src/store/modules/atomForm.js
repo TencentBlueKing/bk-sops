@@ -201,6 +201,37 @@ const atomForm = {
                     version
                 }
             }).then(response => response.data)
+        },
+        /**
+         * 加载第三方插件列表
+         */
+        loadPluginServiceList ({ commit }, params) {
+            return axios.get('/plugin_service/list/', { params }).then(response => response.data)
+        },
+        /**
+         * 加载第三方插件详情
+         */
+        loadPluginServiceDetail ({ commit }, params) {
+            return axios.get('/plugin_service/detail/', { params }).then(response => response.data)
+        },
+        /**
+         * 加载第三方插件日志
+         */
+        loadPluginServiceLog ({ commit }, params) {
+            return axios.get('/plugin_service/logs/', { params }).then(response => response.data)
+        },
+        /**
+         * 加载第三方插件元信息
+         */
+        loadPluginServiceMeta ({ commit }, params) {
+            return axios.get('/plugin_service/meta/', { params }).then(response => response.data)
+        },
+        /**
+         * 加载第三方插件
+         */
+        loadPluginServiceAppDetail ({ commit }, params) {
+            const { plugin_code } = params
+            return axios.get(`/plugin_service/app_detail/?plugin_code=${plugin_code}`).then(response => response.data)
         }
     }
 }

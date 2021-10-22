@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@blueking/bkcharts": "^2.0.6",
+    "@blueking/bkcharts": "^2.0.11-alpha.5",
     "@blueking/user-selector": "^1.0.5-beta.2",
     "ajv": "^6.10.2",
     "art-template": "^4.13.0",
@@ -57,7 +57,7 @@
     "@vue/test-utils": "^1.0.0-beta.30",
     "acorn": "^6.1.1",
     "babel-core": "^7.0.0-bridge.0",
-    "babel-eslint": "^10.0.1",
+    "babel-eslint": "^8.2.6",
     "babel-jest": "^23.4.2",
     "babel-loader": "^8.0.0",
     "babel-plugin-component": "^1.1.1",
