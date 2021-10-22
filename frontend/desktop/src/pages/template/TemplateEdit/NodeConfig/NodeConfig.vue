@@ -463,6 +463,7 @@
                     const data = {
                         project__id: params.project_id,
                         common: this.common,
+                        templateId: this.template_id,
                         limit: this.limit,
                         offset: this.currentPage * this.limit
                     }
