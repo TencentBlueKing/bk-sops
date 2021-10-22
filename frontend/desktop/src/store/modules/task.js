@@ -132,6 +132,14 @@ const task = {
             return axios.put(`template/api/default_scheme/${id}/`, params).then(response => response.data)
         },
         /**
+         * 删除默认执行方案列表
+         * @param {String} payload 方案参数
+         */
+        deleteDefaultScheme ({ commit }, payload) {
+            const { id } = payload
+            return axios.delete(`template/api/default_scheme/${id}/`).then(response => response.data)
+        },
+        /**
          * 获取任务节点预览数据
          * @param {Object} payload 筛选条件
          */

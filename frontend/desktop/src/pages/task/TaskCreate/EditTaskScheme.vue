@@ -73,10 +73,10 @@
                     <!-- 方案展示列表 -->
                     <li
                         v-for="item in schemeList"
-                        :class="['scheme-item', { 'is-checked': isDefaultSchemeIng ? item.isDefault : Boolean(planDataObj[item.id]) }]"
-                        :key="item.id">
+                        :class="['scheme-item', { 'is-checked': isDefaultSchemeIng ? item.isDefault : Boolean(planDataObj[item.uuid]) }]"
+                        :key="item.uuid">
                         <bk-checkbox
-                            :value="isDefaultSchemeIng ? item.isDefault : Boolean(planDataObj[item.id])"
+                            :value="isDefaultSchemeIng ? item.isDefault : Boolean(planDataObj[item.uuid])"
                             :disabled="nameEditing"
                             v-bk-tooltips="{ content: $t('请先保存方案再执行其他操作'), boundary: 'window', disabled: !nameEditing }"
                             @change="onCheckChange($event, item)">
@@ -106,7 +106,7 @@
                 </bk-exception>
             </section>
             <section class="scheme-footer">
-                <bk-button theme="primary" :loading="executeSchemeSaving" @click="onSaveExecuteSchemeClick">{{ $t('保存') }}</bk-button>
+                <bk-button theme="primary" :loading="executeSchemeSaving || isSaveDefaultLoading" @click="onSaveExecuteSchemeClick">{{ $t('保存') }}</bk-button>
                 <bk-button @click="toggleSchemePanel">{{ $t('返回') }}</bk-button>
             </section>
         </div>
@@ -195,6 +195,7 @@
                 },
                 isSchemeLoading: true,
                 isDefaultSchemeIng: false,
+                isSaveDefaultLoading: false,
                 schemeList: [],
                 initSchemeIdList: [],
                 initDefaultIdList: [],
@@ -227,7 +228,7 @@
             },
             schemeInfo (val) {
                 if (!this.schemeList.length) return
-                const scheme = this.schemeList.find(item => item.id === val.id)
+                const scheme = this.schemeList.find(item => item.uuid === val.uuid)
                 scheme.data = JSON.stringify(val.data)
             },
             isDefaultSchemeIng (val) {
@@ -244,7 +245,8 @@
                 'deleteTaskScheme',
                 'getDefaultTaskScheme',
                 'saveDefaultScheme',
-                'updateDefaultScheme'
+                'updateDefaultScheme',
+                'deleteDefaultScheme'
             ]),
             // 选择方案并进行切换更新选择的节点
             onCheckChange (e, scheme) {
@@ -258,8 +260,8 @@
             async initLoad () {
                 try {
                     this.isSchemeLoading = true
-                    await this.loadSchemeList()
-                    this.loadDefaultSchemeList()
+                    await this.loadDefaultSchemeList()
+                    this.loadSchemeList()
                 } catch (error) {
                     console.warn(error)
                 } finally {
@@ -274,12 +276,19 @@
                         template_id: this.template_id,
                         isCommon: this.isCommonProcess
                     }) || []
+                    const defaultObj = {}
                     this.initSchemeIdList = []
                     this.schemeList.forEach(scheme => {
                         this.$set(scheme, 'isDefault', false)
-                        this.initSchemeIdList.push(scheme.id)
+                        this.$set(scheme, 'uuid', scheme.id)
+                        if (this.initDefaultIdList.includes(scheme.uuid)) {
+                            scheme.isDefault = true
+                            defaultObj[scheme.uuid] = JSON.parse(scheme.data)
+                        }
+                        this.initSchemeIdList.push(scheme.uuid)
                     })
                     this.$emit('updateTaskSchemeList', this.schemeList)
+                    this.$emit('setDefaultScheme', defaultObj)
                 } catch (error) {
                     errorHandler(error, this)
                 }
@@ -291,23 +300,14 @@
                         project_id: this.project_id,
                         template_id: Number(this.template_id)
                     })
-                    const defaultObj = {}
                     if (resp.data.length) {
                         this.isUpdate = true
                         const { id, scheme_ids: schemeIds } = resp.data[0]
                         this.defaultSchemeId = id
-                        if (schemeIds.length) {
-                            this.schemeList.forEach(scheme => {
-                                if (schemeIds.includes(scheme.id)) {
-                                    scheme.isDefault = true
-                                    defaultObj[scheme.id] = JSON.parse(scheme.data)
-                                }
-                            })
-                        }
+                        this.initDefaultIdList = schemeIds
                     } else {
                         this.isUpdate = false
                     }
-                    this.$emit('setDefaultScheme', defaultObj)
                 } catch (error) {
                     errorHandler(error, this)
                 }
@@ -326,7 +326,7 @@
             judgeDataEqual () {
                 const selectedIdList = this.schemeList.reduce((acc, cur) => {
                     if (cur.isDefault) {
-                        acc.push(cur.id)
+                        acc.push(cur.uuid)
                     }
                     return acc
                 }, [])
@@ -337,7 +337,7 @@
              */
             resetDefaultScheme () {
                 this.schemeList.forEach(scheme => {
-                    const isTrue = this.initDefaultIdList.includes(scheme.id)
+                    const isTrue = this.initDefaultIdList.includes(scheme.uuid)
                     if (scheme.isDefault && !isTrue) {
                         this.onCheckChange(false, scheme)
                         scheme.isDefault = isTrue
@@ -370,14 +370,14 @@
                 // 提示用户先保存创建方案再进行其他操作
                 if (this.setRemindUserMsg()) return
                 try {
-                    const schemeIdList = this.schemeList.map(scheme => scheme.id)
+                    const schemeIdList = this.schemeList.map(scheme => scheme.uuid)
                     const isEqual = tools.isDataEqual(this.initSchemeIdList, schemeIdList)
                     if (!isEqual) {
                         this.isSchemeLoading = true
                         await this.$emit('onSaveExecuteSchemeClick', true)
                     }
                     this.isDefaultSchemeIng = true
-                    this.initDefaultIdList = Object.keys(this.defaultPlanDataObj)
+                    this.initDefaultIdList = Object.keys(this.defaultPlanDataObj).map(item => Number(item))
                 } catch (error) {
                     console.warn(error)
                 } finally {
@@ -396,8 +396,14 @@
                         scheme_ids: ids,
                         id: this.defaultSchemeId
                     }
-                    const defaultSchemeFunc = this.isUpdate ? this.updateDefaultScheme : this.saveDefaultScheme
+                    const defaultSchemeFunc = !ids.length ? this.deleteDefaultScheme : this.isUpdate ? this.updateDefaultScheme : this.saveDefaultScheme
                     const resp = await defaultSchemeFunc(params)
+                    if (!ids.length) {
+                        this.isUpdate = false
+                    } else if (!this.isUpdate) {
+                        this.isUpdate = true
+                        this.defaultSchemeId = resp.data.id
+                    }
                     return resp.result
                 } catch (error) {
                     console.warn(error)
@@ -473,7 +479,7 @@
                     this.schemeList.unshift({
                         data: JSON.stringify(selectedNodes),
                         name: this.schemeName,
-                        id: uuid()
+                        uuid: uuid()
                     })
                     this.$bkMessage({
                         message: i18n.t('新增方案成功'),
@@ -509,7 +515,11 @@
                 const hasPermission = this.checkSchemeRelativePermission([tplAction])
 
                 if (!hasPermission) return
-                const index = this.schemeList.findIndex(item => item.id === scheme.id)
+                if (scheme.isDefault) {
+                    scheme.isDefault = false
+                    await this.onSaveDefaultExecuteScheme()
+                }
+                const index = this.schemeList.findIndex(item => item.uuid === scheme.uuid)
                 this.schemeList.splice(index, 1)
                 this.onCheckChange(false, scheme)
                 this.$bkMessage({
@@ -555,6 +565,7 @@
                     if (this.isDefaultSchemeIng) {
                         const isEqual = this.judgeDataEqual()
                         if (!isEqual) {
+                            this.isSaveDefaultLoading = true
                             await this.onSaveDefaultExecuteScheme()
                         }
                         this.isDefaultSchemeIng = false
@@ -563,6 +574,8 @@
                     }
                 } catch (error) {
                     console.warn(error)
+                } finally {
+                    this.isSaveDefaultLoading = false
                 }
             }
         }

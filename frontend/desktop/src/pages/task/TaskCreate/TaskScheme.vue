@@ -12,7 +12,7 @@
             <div class="scheme-active-wrapper">
                 <div>
                     <bk-button :disabled="isCommonProcess" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
-                    <bk-button @click="isEditSchemeShow = true">{{ $t('导入临时方案') }}</bk-button>
+                    <bk-button @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
                 </div>
                 <bk-button @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
             </div>
@@ -46,13 +46,14 @@
                     <li
                         v-for="item in schemeList"
                         class="scheme-item"
-                        :class="{ 'is-checked': Boolean(planDataObj[item.id]) }"
-                        :key="item.id">
+                        :class="{ 'is-checked': Boolean(planDataObj[item.uuid]) }"
+                        :key="item.uuid">
                         <bk-checkbox
-                            :value="Boolean(planDataObj[item.id])"
+                            :value="Boolean(planDataObj[item.uuid])"
                             @change="onCheckChange($event, item)">
                         </bk-checkbox>
                         <span class="scheme-name" :title="item.name">{{item.name}}</span>
+                        <span v-if="item.isDefault" class="default-label">{{$t('默认')}}</span>
                         <i
                             v-if="isSchemeEditable"
                             class="bk-icon icon-close-circle-shape"
@@ -141,6 +142,7 @@
                     regex: NAME_REG
                 },
                 schemeList: [],
+                defaultIdList: [],
                 defaultSchemeId: null,
                 deleting: false,
                 isPreview: false
@@ -186,8 +188,8 @@
             },
             async initLoad () {
                 try {
-                    await this.loadSchemeList()
-                    this.loadDefaultSchemeList()
+                    await this.loadDefaultSchemeList()
+                    this.loadSchemeList()
                 } catch (error) {
                     console.warn(error)
                 }
@@ -200,10 +202,17 @@
                         template_id: this.template_id,
                         isCommon: this.isCommonProcess
                     }) || []
+                    const defaultObj = {}
                     this.schemeList.forEach(scheme => {
                         this.$set(scheme, 'isDefault', false)
+                        this.$set(scheme, 'uuid', scheme.id)
+                        if (this.defaultIdList.includes(scheme.uuid)) {
+                            scheme.isDefault = true
+                            defaultObj[scheme.uuid] = JSON.parse(scheme.data)
+                        }
                     })
                     this.$emit('updateTaskSchemeList', this.schemeList, false)
+                    this.$emit('setDefaultScheme', defaultObj)
                 } catch (e) {
                     console.log(e)
                 }
@@ -215,20 +224,11 @@
                         project_id: this.project_id,
                         template_id: Number(this.template_id)
                     })
-                    const defaultObj = {}
                     if (resp.data.length) {
                         const { id, scheme_ids: schemeIds } = resp.data[0]
                         this.defaultSchemeId = id
-                        if (schemeIds.length) {
-                            this.schemeList.forEach(scheme => {
-                                if (schemeIds.includes(scheme.id)) {
-                                    scheme.isDefault = true
-                                    defaultObj[scheme.id] = JSON.parse(scheme.data)
-                                }
-                            })
-                        }
+                        this.defaultIdList = schemeIds
                     }
-                    this.$emit('setDefaultScheme', defaultObj)
                 } catch (error) {
                     console.warn(error)
                 }
@@ -240,7 +240,7 @@
                 try {
                     const ids = this.schemeList.reduce((acc, cur) => {
                         if (cur.isDefault) {
-                            acc.push(cur.id)
+                            acc.push(cur.uuid)
                         }
                         return acc
                     }, [])
@@ -357,11 +357,12 @@
                 if (this.deleting || !hasPermission) return
                 this.deleting = true
                 try {
-                    await this.deleteTaskScheme({ id: scheme.id, isCommon: this.isCommonProcess })
+                    await this.deleteTaskScheme({ id: scheme.uuid, isCommon: this.isCommonProcess })
                     if (scheme.isDefault) {
+                        scheme.isDefault = false
                         await this.onSaveDefaultExecuteScheme()
                     }
-                    const index = this.schemeList.findIndex(item => item.id === scheme.id)
+                    const index = this.schemeList.findIndex(item => item.uuid === scheme.uuid)
                     this.schemeList.splice(index, 1)
                     this.onCheckChange(false, scheme)
                     this.$bkMessage({
@@ -514,6 +515,16 @@
                 white-space: nowrap;
                 text-overflow: ellipsis;
                 color: #313238;
+            }
+            .default-label {
+                height: 22px;
+                line-height: 22px;
+                font-size: 12px;
+                padding: 0 10px;
+                border-radius: 2px;
+                margin-left: 10px;
+                color: #14a568;
+                background: #e4faf0;
             }
             .icon-close-circle-shape {
                 position: absolute;

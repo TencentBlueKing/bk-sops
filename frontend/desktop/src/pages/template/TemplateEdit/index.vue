@@ -1244,6 +1244,7 @@
                     this.executeSchemeSaving = true
                     const schemes = this.taskSchemeList.map(item => {
                         return {
+                            id: item.id || undefined,
                             data: item.data,
                             name: item.name
                         }

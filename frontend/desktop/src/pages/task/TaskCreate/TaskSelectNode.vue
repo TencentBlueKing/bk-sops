@@ -482,7 +482,7 @@
                 const dataObj = this.isDefaultSchemeIng ? this.defaultPlanDataObj : this.planDataObj
                 // 取消已选择方案
                 if (isChecked === false) {
-                    this.$delete(dataObj, scheme.id)
+                    this.$delete(dataObj, scheme.uuid)
                     if (Object.keys(dataObj).length) {
                         for (const key in dataObj) {
                             allNodeId = dataObj[key]
@@ -494,13 +494,13 @@
                     }
                 } else {
                     try {
-                        const result = this.isEditProcessPage ? await this.getSchemeDetail({ id: scheme.id, isCommon: this.isCommonProcess }) : scheme
+                        const result = this.isEditProcessPage ? await this.getSchemeDetail({ id: scheme.uuid, isCommon: this.isCommonProcess }) : scheme
                         if (this.isCommonProcess) {
                             allNodeId = JSON.parse(result)
                         } else {
                             allNodeId = JSON.parse(result.data)
                         }
-                        this.$set(dataObj, scheme.id, allNodeId)
+                        this.$set(dataObj, scheme.uuid, allNodeId)
                         for (const key in dataObj) {
                             const planNodeId = dataObj[key]
                             selectNodeArr.push(...planNodeId)
