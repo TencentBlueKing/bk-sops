@@ -50,4 +50,4 @@ class DefaultTemplateSchemeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DefaultTemplateScheme
-        fields = ("project_id", "template_id", "scheme_ids")
+        fields = ("id", "project_id", "template_id", "scheme_ids")
