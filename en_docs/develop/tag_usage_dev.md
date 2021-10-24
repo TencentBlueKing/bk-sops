@@ -297,7 +297,7 @@ IP selector. Supports single/multiple selection of static/dynamic IP.
 Password input box.
 
 **Attributes**
-
+  - `pubKey`: public key
   - `disabled`: set whether this component is disabled.
   - `value`: the encrypted password value
 
