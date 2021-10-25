@@ -64,11 +64,7 @@ class CCBatchTransferHostModule(Service):
                 schema=StringItemSchema(description=_("在自动填参时使用的扩展分割符")),
             ),
             self.InputItem(
-                name=_("更新方式"),
-                key="is_append",
-                type="boolean",
-                schema=BooleanItemSchema(description=_("更新方式")),
-
+                name=_("更新方式"), key="is_append", type="boolean", schema=BooleanItemSchema(description=_("更新方式")),
             ),
         ]
 
@@ -97,7 +93,7 @@ class CCBatchTransferHostModule(Service):
         cc_module_select_method = data.get_one_of_inputs("cc_module_select_method")
         cc_host_transfer_detail = data.get_one_of_inputs("cc_host_transfer_detail")
         cc_transfer_host_template_break_line = data.get_one_of_inputs("cc_transfer_host_template_break_line") or ","
-        is_append = data.get_one_of_inputs("is_append") or True
+        is_append = data.get_one_of_inputs("is_append", default=True)
         cc_host_transfer_detail = convert_num_to_str(cc_host_transfer_detail)
 
         attr_list = []
