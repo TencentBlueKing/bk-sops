@@ -97,7 +97,7 @@ class CCBatchTransferHostModule(Service):
         cc_module_select_method = data.get_one_of_inputs("cc_module_select_method")
         cc_host_transfer_detail = data.get_one_of_inputs("cc_host_transfer_detail")
         cc_transfer_host_template_break_line = data.get_one_of_inputs("cc_transfer_host_template_break_line") or ","
-        is_append = data.get_one_of_inputs("is_append")
+        is_append = data.get_one_of_inputs("is_append") or True
         cc_host_transfer_detail = convert_num_to_str(cc_host_transfer_detail)
 
         attr_list = []
