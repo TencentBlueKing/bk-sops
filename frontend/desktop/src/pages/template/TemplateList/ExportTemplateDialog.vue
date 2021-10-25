@@ -121,9 +121,6 @@
             },
             reqPerm () {
                 return this.common ? ['common_flow_view'] : ['flow_view']
-            },
-            exportTips () {
-                return this.type === 'dat' ? i18n.t('DAT文件导出后不可编辑，导出时不能自由覆盖模板') : i18n.t('YAML文件导出后可以编辑，导入时可以自由覆盖模板但节点会丢失位置信息')
             }
         },
         watch: {
