@@ -317,7 +317,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
 
     def group_by_template_biz(self, tasktmpl, filters, page, limit):
         proj_task_count = dict(
-            tasktmpl.values_list("project__id").annotate(value=Count("project__id")).order_by("value")
+            tasktmpl.values_list("project__bk_biz_id").annotate(value=Count("project__id")).order_by("value")
         )
         proj_demision_dict = dict(ProjectStatisticsDemision.objects.values_list("demision_id", "demision_name"))
         proj_demision_id_list = proj_demision_dict.keys()

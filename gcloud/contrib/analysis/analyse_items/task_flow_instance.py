@@ -49,6 +49,8 @@ TASK_GROUP_BY_METHODS = {
     AE.category: TaskFlowInstance.objects.group_by_category,
     # 查询业务职能化任务使用情况
     AE.common_func: TaskFlowInstance.objects.group_by_common_func,
+    # 按配置的业务属性字段统计各业务模板数占比情况
+    AE.instance_biz: TaskFlowInstance.objects.group_by_instance_biz,
 }
 
 

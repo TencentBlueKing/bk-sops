@@ -149,6 +149,7 @@ class AnalysisElement(object):
     template_execute_in_biz = "template_execute_in_biz"
     common_func = "common_func"
     template_biz = "template_biz"
+    instance_biz = "instance_biz"
     type = "type"
     group_list = [
         "category",
@@ -171,6 +172,7 @@ class AnalysisElement(object):
         "template_execute_in_biz",
         "common_func",
         "template_biz",
+        "instance_biz",
     ]
     atom_dimensions = [
         atom_execute,
