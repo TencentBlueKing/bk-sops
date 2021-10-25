@@ -324,9 +324,9 @@
                 typeOfNodeNameEmpty: '', // 新建流程未选择插件的节点类型
                 pagination: {
                     limit: 15,
-                    offset: 1,
-                    isLoading: false,
-                    totalPage: null
+                    offset: 0,
+                    count: 0,
+                    isLoading: false
                 },
                 totalPage: 0,
                 currentPage: 0,
@@ -542,7 +542,6 @@
                     this.getPaginationLimit()
                     const { limit, offset } = this.pagination
                     const resp = await this.loadPluginServiceList({
-                        search_term: '',
                         limit,
                         offset
                     })
@@ -570,7 +569,8 @@
                     this.handleAtomGroup(atomList)
                     this.markNodesPhase()
                     // 第三方插件
-                    this.pagination.totalPage = Math.ceil(resp.data.count / this.pagination.limit)
+                    this.pagination.count = resp.data.count
+                    this.pagination.offset = offset + limit
                     this.atomTypeList.pluginList = resp.data.plugins
                 } catch (e) {
                     console.log(e)
@@ -1473,20 +1473,20 @@
                     if (type === 'scroll') {
                         // 获取第三方插件列表每页多少条
                         this.getPaginationLimit()
-                        const { limit, offset, totalPage, isLoading } = this.pagination
-                        if (offset !== totalPage && !isLoading) {
+                        const { limit, offset, count, isLoading } = this.pagination
+                        if (offset < count && !isLoading) {
                             this.pagination.isLoading = true
-                            this.pagination.offset++
-                            const params = { search_term: val, limit: limit, offset: this.pagination.offset }
+                            const params = { search_term: val, limit, offset }
                             const resp = await this.loadPluginServiceList(params)
                             const { count, plugins } = resp.data
-                            this.pagination.totalPage = Math.ceil(count / this.pagination.limit)
+                            this.pagination.count = count
+                            this.pagination.offset = offset + limit
                             this.atomTypeList.pluginList.push(...plugins)
                             this.pagination.isLoading = false
                         }
                     } else {
                         const { limit, offset } = this.pagination
-                        const params = { search_term: val, limit: limit, offset }
+                        const params = { search_term: val, limit, offset }
                         const resp = await this.loadPluginServiceList(params)
                         this.atomTypeList.pluginList = resp.data.plugins
                     }
