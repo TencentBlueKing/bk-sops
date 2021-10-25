@@ -19,7 +19,7 @@ import requests
 
 from . import env
 from .conf import PLUGIN_CLIENT_LOGGER
-from .exceptions import PluginServiceNotDeploy, PluginServiceNetworkError, PluginServiceNotUse
+from .exceptions import PluginServiceNotUse, PluginServiceException
 
 logger = logging.getLogger(PLUGIN_CLIENT_LOGGER)
 
@@ -85,8 +85,10 @@ class PluginServiceApiClient:
             raise PluginServiceNotUse("插件服务未启用，请联系管理员进行配置")
         self.plugin_code = plugin_code
         if not plugin_host:
-            # 如果请求报错，会抛出PluginServiceException类型异常，需要调用放进行捕获处理
+            # 如果请求报错，会抛出PluginServiceException类型异常，需要调用方进行捕获处理
             result = PluginServiceApiClient.get_plugin_app_detail(plugin_code)
+            if not result["result"]:
+                raise PluginServiceException(result["message"])
             self.plugin_host = os.path.join(result["data"]["url"], "bk_plugin/")
 
     @data_parser
@@ -150,7 +152,7 @@ class PluginServiceApiClient:
             }
             for plugin in result["results"]
         ]
-        count = len(plugins)
+        count = result["count"]
 
         return {"result": True, "message": None, "data": {"count": count, "plugins": plugins}}
 
@@ -160,11 +162,15 @@ class PluginServiceApiClient:
         result = PluginServiceApiClient.get_paas_plugin_info(plugin_code, environment="prod")
 
         if result.get("result") is False:
-            raise PluginServiceNetworkError(f"Plugin Service {plugin_code} network error: {result.get('message')}")
+            return {
+                "result": False,
+                "data": None,
+                "message": f"Plugin Service {plugin_code} network error: {result.get('message')}",
+            }
 
         info = result["deployed_statuses"][env.APIGW_ENVIRONMENT]
         if not info["deployed"]:
-            raise PluginServiceNotDeploy(f"Plugin Service {plugin_code} does not deployed.")
+            return {"result": False, "data": None, "message": f"Plugin Service {plugin_code} does not deployed."}
         plugin = result["plugin"]
 
         default_host = ""

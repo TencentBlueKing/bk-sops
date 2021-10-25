@@ -1,2 +1,0 @@
-improvement:
-  - get相关api接口添加缓存机制(get_plugin_list/get_task_status/get_tasks_status/get_user_project_detail)

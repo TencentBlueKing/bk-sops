@@ -106,6 +106,24 @@
             }
         },
         {
+            tag_code: "is_append",
+            type: "radio",
+            attrs: {
+                name: gettext("更新方式"),
+                items: [
+                    {value: true, name: gettext("追加")},
+                    {value: false, name: gettext("覆盖")},
+                ],
+                default: true,
+                hookable: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            },
+        },
+        {
             tag_code: "cc_transfer_host_template_break_line",
             type: "input",
             attrs: {

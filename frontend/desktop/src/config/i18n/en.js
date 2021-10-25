@@ -1,4 +1,7 @@
 const en = {
+    '查看合法检查结果': 'View legal inspection results',
+    '或': 'or',
+    '全选所有流程': 'Select all processes',
     '请选择启动时间': 'Please select the start time',
     '启动时间不能为空': 'Start time cannot be empty',
     '新建计划任务': 'New clocked task',
@@ -503,8 +506,12 @@ const en = {
     '标准插件': 'Standard Plugins',
     '请选择标准插件': 'Standard Plugins',
     '选择标准插件': 'Select Standard Plugins',
-    '降序排列': 'Descending',
-    '升序排列': 'Ascending',
+    '降序': 'Descending',
+    '升序': 'Ascending',
+    '总项目': 'Total project',
+    '正在使用项目': 'Project in use',
+    '输入变量': 'Input variable',
+    '输出变量': 'Output variable',
     '查看全部': 'All',
     '关闭': 'Close',
     '月': 'Month',
@@ -603,6 +610,7 @@ const en = {
     '提单时间': 'Date submitted',
     '提单人': 'Creator',
     '请输入提单人': 'Please enter the creator',
+    '请输入认领人': 'Please enter the claimant',
     '未认领': 'Submitted',
     '已认领': 'Claimed',
     '认领时间': 'Claim ime',
@@ -1210,7 +1218,10 @@ const en = {
     '打开该开关后，每次创建任务会尝试使用子流程的最新版本，并且不会再提示该节点需要更新，如果子流程中增加了新的变量，在不更新子流程版本的情况下，会使用变量默认值': 'With this switch on, each time a task is created it will try to use the latest version of the subprocess and will no longer prompt that the node needs to be updated. If a new variable is added to the subprocess, the default value of the variable will be used if the version of the subprocess is not updated',
     '任务状态': 'Task Status',
     '成功': 'Success',
-    '变量保存数据与最新的CMDB集群配置存在差异，是否更新变量数据？': 'Variable data is different from the latest CMDB configuration, determine whether to update'
+    '变量保存数据与最新的CMDB集群配置存在差异，是否更新变量数据？': 'Variable data is different from the latest CMDB configuration, determine whether to update',
+    '移动端': 'Mobile',
+    'API网关': 'API Gateway',
+    '重置': 'Reset'
 }
 
 export default en

@@ -138,109 +138,87 @@ class IPPickerDataGenerator:
             topo_info[topo_tree["bk_inst_name"]]["child"] = topo_child
 
 
-def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
-    """
-    @summary：根据前端表单数据获取合法的IP
-    @param username:
-    @param bk_biz_id:
-    @param bk_supplier_account:
-    @param kwargs:
-    @return:
-    """
-    topo_result = get_cmdb_topo_tree(username, bk_biz_id, bk_supplier_account)
-    if not topo_result["result"]:
-        return topo_result
-    biz_topo_tree = topo_result["data"][0]
+class IPPickerHandler:
+    def __init__(
+        self, selector, username, bk_biz_id, bk_supplier_account, is_manual=False, filters=None, excludes=None
+    ):
+        self.selector = selector
+        self.username = username
+        self.bk_biz_id = bk_biz_id
+        self.bk_supplier_account = bk_supplier_account
+        self.filters = filters
+        self.excludes = excludes
+        self.biz_topo_tree: dict = None
+        self.host_info: list = None
+        self.error = None
 
-    host_info = cmdb.get_business_host_topo(
-        username,
-        bk_biz_id,
-        bk_supplier_account,
-        ["bk_host_id", "bk_host_innerip", "bk_host_outerip", "bk_host_name", "bk_cloud_id"],
-    )
+        # 数据准备
+        # 获取业务下的topo树
+        if self.selector == "topo" or is_manual or self.filters or self.excludes:
+            topo_result = get_cmdb_topo_tree(username, bk_biz_id, bk_supplier_account)
+            if not topo_result["result"]:
+                self.error = topo_result
+                return
+            self.biz_topo_tree = topo_result["data"][0]
+        # 获取业务下的所有主机信息
+        if self.selector in ["ip", "topo"] or self.filters or self.excludes:
+            host_info_result = self.fetch_host_info()
+            if not host_info_result["result"]:
+                self.error = host_info_result
+                return
+            self.host_info = host_info_result["data"]
 
-    logger.info("[get_ip_picker_result] cmdb.get_business_host_topo return: {host_info}".format(host_info=host_info))
+    def dispatch(self, params):
+        handle_func = getattr(self, f"{self.selector}_picker_handler")
+        return handle_func(params[self.selector])
 
-    if not host_info:
-        return {
-            "result": False,
-            "code": ERROR_CODES.PARAMETERS_ERROR,
-            "data": [],
-            "message": "get_business_host_topo return empty",
-        }
+    def ip_picker_handler(self, inputted_ips):
+        """
+        静态IP选择情况
+        :params inputted_ips: ip主机信息列表, list
+        """
+        host_data_result = self.prepare_host_data(inputted_ips)
+        if not host_data_result["result"]:
+            return host_data_result
+        return {"result": True, "data": host_data_result["data"]["host_data"], "message": ""}
 
-    # IP选择器
-    selector = kwargs["selectors"][0]
-
-    # 如果是手动输入，则先按照值构造对应数据后替换到kwargs中
-    if selector == "manual":
-        input_value = kwargs["manual_input"]["value"]
-        input_type = kwargs["manual_input"]["type"]
-
-        gen_kwargs = {"biz_topo_tree": biz_topo_tree}
-        request_kwargs = {"username": username, "bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
-        gen_result = IPPickerDataGenerator(input_type, input_value, request_kwargs, gen_kwargs).generate()
-
-        if not gen_result["result"]:
-            logger.error(
-                f"[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} manual generate data error: {gen_result}"
-            )
-            raise ApiRequestError(gen_result["message"])
-        kwargs[input_type] = gen_result["data"]
-        selector = input_type
-
-    if selector == "ip":
-        ip_list = [
-            "{cloud}:{ip}".format(cloud=get_bk_cloud_id_for_host(host, "cloud"), ip=host["bk_host_innerip"])
-            for host in kwargs["ip"]
-        ]
-    else:
-        ip_list = []
-    data = []
-    host_modules_ids = {}
-    for host in host_info:
-        host_modules_id = get_modules_id(host["module"])
-        host_innerip = format_sundry_ip(host["host"].get("bk_host_innerip", ""))
-        host_modules_ids[host_innerip] = host_modules_id
-        if (
-            selector == "topo"
-            or selector == "group"
-            or "{cloud}:{ip}".format(cloud=host["host"].get("bk_cloud_id", DEFAULT_BK_CLOUD_ID), ip=host_innerip)
-            in ip_list
-        ):
-            data.append(
-                {
-                    "bk_host_id": host["host"]["bk_host_id"],
-                    "bk_host_innerip": host_innerip,
-                    "bk_host_outerip": host["host"].get("bk_host_outerip", ""),
-                    "bk_host_name": host["host"].get("bk_host_name", ""),
-                    "bk_cloud_id": host["host"].get("bk_cloud_id", DEFAULT_BK_CLOUD_ID),
-                    "host_modules_id": host_modules_id,
-                }
-            )
-
-    logger.info("[get_ip_picker_result] filter data collect: {data}".format(data=data))
-
-    # 先把不在用户选择拓扑中的主机过滤掉
-    if selector == "topo":
+    def topo_picker_handler(self, inputted_topo):
+        """
+        topo选择情况
+        :params inputted_topo: 拓扑结构信息列表, list
+        """
+        host_data_result = self.prepare_host_data()
+        if not host_data_result["result"]:
+            return host_data_result
+        host_data = host_data_result["data"]["host_data"]
         user_select_topo_host = {}
-        topo_filter = [[{"field": t["bk_obj_id"], "value": [t["bk_inst_id"]]}] for t in kwargs["topo"]]
+        topo_filter = [[{"field": t["bk_obj_id"], "value": [t["bk_inst_id"]]}] for t in inputted_topo]
         # 这里需要单独对每个 filter 进行过滤，因为 filter_hosts 过滤的是同时满足所有条件的主机
         for tf in topo_filter:
             user_select_topo_host.update(
-                {host["bk_host_id"]: host for host in filter_hosts(tf, biz_topo_tree, data, "bk_inst_id")}
+                {host["bk_host_id"]: host for host in filter_hosts(tf, self.biz_topo_tree, host_data, "bk_inst_id")}
             )
         data = user_select_topo_host.values()
 
-        logger.info("[get_ip_picker_result] data topo filter: {data}".format(data=data))
+        logger.info("[topo_picker_handler] data topo filter: {data}".format(data=data))
+        return {"result": True, "data": data, "message": ""}
 
-    # 动态分组得到的主机ip
-    if selector == "group":
-        dynamic_group_ids = [dynamic_group["id"] for dynamic_group in kwargs["group"]]
+    def group_picker_handler(self, inputted_group):
+        """
+        动态分组选择情况
+        :params inputted_group: 动态分组信息列表, list
+        """
+        host_modules_ids = None
+        if self.filters or self.excludes:
+            host_data_result = self.prepare_host_data()
+            if not host_data_result["result"]:
+                return host_data_result
+            host_modules_ids = host_data_result["data"]["host_modules_ids"]
+        dynamic_group_ids = [dynamic_group["id"] for dynamic_group in inputted_group]
         dynamic_groups_host = {}
         for dynamic_group_id in dynamic_group_ids:
             success, result = cmdb.get_dynamic_group_host_list(
-                username, bk_biz_id, bk_supplier_account, dynamic_group_id, host_modules_ids
+                self.username, self.bk_biz_id, self.bk_supplier_account, dynamic_group_id, host_modules_ids
             )
             if not success:
                 return {
@@ -252,28 +230,144 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
             dynamic_groups_host.update({host["bk_host_id"]: host for host in result["data"]})
         data = dynamic_groups_host.values()
 
-        logger.info("[get_ip_picker_result] data from dynamic group: {data}".format(data=data))
+        logger.info("[group_picker_handler] data from dynamic group: {data}".format(data=data))
+        return {"result": True, "data": data, "message": ""}
+
+    def fetch_host_info(self):
+        """
+        获取业务下所有主机信息
+        """
+        host_info = cmdb.get_business_host_topo(
+            self.username,
+            self.bk_biz_id,
+            self.bk_supplier_account,
+            ["bk_host_id", "bk_host_innerip", "bk_host_outerip", "bk_host_name", "bk_cloud_id"],
+        )
+
+        logger.info("[fetch_host_info] cmdb.get_business_host_topo return: {host_info}".format(host_info=host_info))
+
+        if not host_info:
+            return {
+                "result": False,
+                "code": ERROR_CODES.PARAMETERS_ERROR,
+                "data": [],
+                "message": "get_business_host_topo return empty",
+            }
+        return {"result": True, "code": NO_ERROR, "data": host_info, "message": ""}
+
+    def prepare_host_data(self, inputted_ips=None):
+        """
+        准备主机信息列表数据
+        :params inputted_ips: ip主机信息列表，只有静态IP选择情况下需要传入, list
+        :return host_modules_ids: ip主机与所属模块id映射关系, dict
+        :return host_data: 经过与业务下主机进行匹配后的主机信息列表, list
+        """
+        ip_list = (
+            [
+                "{cloud}:{ip}".format(cloud=get_bk_cloud_id_for_host(host, "cloud"), ip=host["bk_host_innerip"])
+                for host in inputted_ips
+            ]
+            if inputted_ips
+            else []
+        )
+        data = []
+        host_modules_ids = {}
+        if self.host_info is None:
+            return {"result": False, "data": {}, "message": "[prepare_host_data] host_info should not be None"}
+        for host in self.host_info:
+            host_modules_id = get_modules_id(host["module"])
+            host_innerip = format_sundry_ip(host["host"].get("bk_host_innerip", ""))
+            host_modules_ids[host_innerip] = host_modules_id
+            if (
+                self.selector == "topo"
+                or "{cloud}:{ip}".format(cloud=host["host"].get("bk_cloud_id", DEFAULT_BK_CLOUD_ID), ip=host_innerip)
+                in ip_list
+            ):
+                data.append(
+                    {
+                        "bk_host_id": host["host"]["bk_host_id"],
+                        "bk_host_innerip": host_innerip,
+                        "bk_host_outerip": host["host"].get("bk_host_outerip", ""),
+                        "bk_host_name": host["host"].get("bk_host_name", ""),
+                        "bk_cloud_id": host["host"].get("bk_cloud_id", DEFAULT_BK_CLOUD_ID),
+                        "host_modules_id": host_modules_id,
+                    }
+                )
+
+        logger.info("[prepare_host_data] filter data collect: {data}".format(data=data))
+        return {"result": True, "data": {"host_modules_ids": host_modules_ids, "host_data": data}, "message": ""}
+
+    def filter_host_data(self, host_data):
+        """
+        根据筛选和排除条件过滤主机信息列表
+        :params host_data: 未过滤的主机信息列表, list
+        :return data: 过滤之后的主机信息列表, list
+        """
+        if self.filters:
+            host_data = filter_hosts(self.filters, self.biz_topo_tree, host_data, "bk_inst_name")
+
+            logger.info("[filter_host_data] data condition filter: {data}".format(data=host_data))
+
+        if self.excludes:
+            # 先把 data 中符合全部排除条件的 hosts 找出来，然后筛除
+            exclude_hosts = filter_hosts(self.excludes, self.biz_topo_tree, host_data, "bk_inst_name")
+            exclude_host_ip_list = [host["bk_host_innerip"] for host in exclude_hosts]
+            new_data = [host for host in host_data if host["bk_host_innerip"] not in exclude_host_ip_list]
+            host_data = new_data
+
+            logger.info("[filter_host_data] data condition excludes: {data}".format(data=host_data))
+
+        return {"result": True, "data": host_data, "message": ""}
+
+
+def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
+    """
+    @summary：根据前端表单数据获取合法的IP，IP选择器调用
+    @param username:
+    @param bk_biz_id:
+    @param bk_supplier_account:
+    @param kwargs:
+    @return:
+    """
+    # IP选择器
+    selector = kwargs["selectors"][0]
+    # 手动输入情况需要特殊处理
+    is_manual = selector == "manual"
+    selector = kwargs["manual_input"]["type"] if is_manual else selector
 
     # 筛选条件
     filters = kwargs["filters"]
-    if filters:
-        data = filter_hosts(filters, biz_topo_tree, data, "bk_inst_name")
-
-        logger.info("[get_ip_picker_result] data condition filter: {data}".format(data=data))
-
     # 过滤条件
     excludes = kwargs["excludes"]
-    if excludes:
-        # 先把 data 中符合全部排除条件的 hosts 找出来，然后筛除
-        exclude_hosts = filter_hosts(excludes, biz_topo_tree, data, "bk_inst_name")
-        exclude_host_ip_list = [host["bk_host_innerip"] for host in exclude_hosts]
-        new_data = [host for host in data if host["bk_host_innerip"] not in exclude_host_ip_list]
-        data = new_data
 
-        logger.info("[get_ip_picker_result] data condition excludes: {data}".format(data=data))
+    ip_picker_handler = IPPickerHandler(
+        selector, username, bk_biz_id, bk_supplier_account, is_manual, filters, excludes
+    )
+    if ip_picker_handler.error:
+        logger.error(f"[get_ip_picker_result] error: {ip_picker_handler.error}")
+        return ip_picker_handler.error
 
-    result = {"result": True, "code": NO_ERROR, "data": data, "message": ""}
-    return result
+    # 如果是手动输入，则先按照值构造对应数据后替换到kwargs中
+    if is_manual:
+        input_value = kwargs["manual_input"]["value"]
+        input_type = kwargs["manual_input"]["type"]
+
+        gen_kwargs = {"biz_topo_tree": ip_picker_handler.biz_topo_tree}
+        request_kwargs = {"username": username, "bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
+        gen_result = IPPickerDataGenerator(input_type, input_value, request_kwargs, gen_kwargs).generate()
+
+        if not gen_result["result"]:
+            logger.error(
+                f"[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} manual generate data error: {gen_result}"
+            )
+            return gen_result
+        kwargs[input_type] = gen_result["data"]
+
+    host_data_result = ip_picker_handler.dispatch(kwargs)
+    if not host_data_result["result"]:
+        return host_data_result
+    filtered_result = ip_picker_handler.filter_host_data(host_data_result["data"])
+    return filtered_result
 
 
 def filter_hosts(filters, biz_topo_tree, hosts, comp_key):

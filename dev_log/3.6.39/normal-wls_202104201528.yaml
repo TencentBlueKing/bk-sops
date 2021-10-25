@@ -1,2 +1,0 @@
-feature:
-  - apigw接口响应增加trace_id字段

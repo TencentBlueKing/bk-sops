@@ -35,6 +35,7 @@
                 <bk-button theme="default" size="small" :disabled="!editable" style="margin-left: 4px;" @click="onAddPanelShow('select')">{{i18n.selectAdd}}</bk-button>
                 <bk-button theme="default" size="small" :disabled="!editable" style="margin-left: 4px;" @click="onAddPanelShow('manual')">{{i18n.manualAdd}}</bk-button>
                 <ip-search-input
+                    ref="ipSearchInput"
                     :class="['ip-search-wrap', { 'static-ip-unfold': isUnfold }]"
                     :editable="editable"
                     @focus="onStaticIpFocus"
@@ -352,6 +353,9 @@
             onAddIpConfirm (data) {
                 this.$emit('change', data)
                 this.isIpAddingPanelShow = false
+                this.$nextTick(() => {
+                    this.$refs.ipSearchInput.handleSearch()
+                })
             },
             onAddIpCancel () {
                 this.isIpAddingPanelShow = false

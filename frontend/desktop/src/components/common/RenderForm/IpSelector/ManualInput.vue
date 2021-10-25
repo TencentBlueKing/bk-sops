@@ -80,6 +80,15 @@
                 this.typeDes = desc
             }
         },
+        mounted () {
+            const keys = Object.keys(this.manualInput)
+            if (keys.length) {
+                this.selectorId = this.manualInput.type
+                this.inputValue = this.manualInput.value
+            } else {
+                this.selectorId = this.selectorTabs[0].id
+            }
+        },
         methods: {
             onManualInputChange () {
                 const parmas = {

@@ -1,0 +1,22 @@
+# release.yml
+
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release-notes
+  categories:
+    - title: Breaking Changes 🛠
+      labels:
+        - breaking-change
+    - title: Exciting New Features 🎉
+      labels:
+        - type/feature
+    - title: Fixed Bugs 👾
+      labels:
+        - type/bug
+    - title: Optimizations 🦾
+      labels:
+        - type/optimization 
+    - title: Other Changes
+      labels:
+        - "*"

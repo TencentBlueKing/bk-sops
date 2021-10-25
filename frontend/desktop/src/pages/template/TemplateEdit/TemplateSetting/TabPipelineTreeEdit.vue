@@ -23,10 +23,6 @@
                     :options="{ readOnly: !hasAdminPerm, language: 'json' }"
                     @input="onDataChange">
                 </code-editor>
-                <div class="error-tips" v-if="errorMessage" :title="errorMessage">
-                    <i class="common-icon-info"></i>
-                    <div class="message">{{ errorMessage }}</div>
-                </div>
             </div>
             <div class="btn-wrap">
                 <template v-if="hasAdminPerm">
@@ -77,19 +73,25 @@
                 let pipelineData = {}
                 try {
                     pipelineData = JSON.parse(this.template)
-                    this.errorMessage = ''
                 } catch (error) {
-                    this.errorMessage = error
+                    this.$bkMessage({
+                        theme: 'error',
+                        ellipsisLine: 0,
+                        message: error
+                    })
+                    return
                 }
-                if (!this.errorMessage) {
-                    const validateResult = validatePipeline.isPipelineDataValid(pipelineData)
-                    if (!validateResult.result) {
-                        this.errorMessage = validateResult.message
-                        return
-                    }
-                    this.$emit('modifyTemplateData', pipelineData)
-                    this.closeTab()
+                const validateResult = validatePipeline.isPipelineDataValid(pipelineData)
+                if (!validateResult.result) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        ellipsisLine: 0,
+                        message: validateResult.message
+                    })
+                    return
                 }
+                this.$emit('modifyTemplateData', pipelineData)
+                this.closeTab()
             },
             closeTab () {
                 this.$emit('closeTab')
@@ -108,29 +110,6 @@
         position: relative;
         padding: 20px;
         height: calc(100% - 49px);
-    }
-    .error-tips {
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        position: absolute;
-        bottom: -50px;
-        left: 0;
-        width: 654px;
-        height: 38px;
-        color: #ea3636;
-        font-size: 12px;
-        .common-icon-info {
-            margin-right: 6px;
-            font-size: 16px;
-        }
-        .message {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-        }
     }
     .btn-wrap {
         padding: 8px 20px;

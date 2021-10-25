@@ -11,7 +11,7 @@
 */
 <template>
     <div id="app">
-        <navigation v-if="!hideHeader">
+        <navigation v-if="!hideHeader" @navChangeRoute="navChangeRoute">
             <template slot="page-content">
                 <div class="main-container">
                     <router-view v-if="isRouterViewShow"></router-view>
@@ -278,6 +278,10 @@
                 this.$nextTick(() => {
                     this.isRouterAlive = true
                 })
+            },
+            // 左侧导航切换重置权限界面
+            navChangeRoute () {
+                this.permissinApplyShow = false
             }
         }
     }

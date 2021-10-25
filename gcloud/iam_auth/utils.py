@@ -80,6 +80,7 @@ def get_resources_allowed_actions_for_user(username, system_id, actions, resourc
 
 
 def iam_multi_resource_auth_or_raise(username, action, resource_ids, get_resource_func):
+    iam = get_iam_client()
     action = Action(action)
     subject = Subject("user", username)
     resource_list = getattr(res_factory, get_resource_func)(resource_ids)
@@ -100,6 +101,7 @@ def iam_multi_resource_auth_or_raise(username, action, resource_ids, get_resourc
 
 
 def iam_resource_auth_or_raise(username, action, resource_id=None, get_resource_func=None):
+    iam = get_iam_client()
     action = Action(action)
     subject = Subject("user", username)
     resources = None
@@ -111,6 +113,7 @@ def iam_resource_auth_or_raise(username, action, resource_id=None, get_resource_
 
 
 def check_project_or_admin_view_action_for_user(project_id, username):
+    iam = get_iam_client()
     action = Action(IAMMeta.PROJECT_VIEW_ACTION) if project_id else Action(IAMMeta.ADMIN_VIEW_ACTION)
     resources = res_factory.resources_for_project(project_id) if project_id else []
     allow_or_raise_immediate_response(
