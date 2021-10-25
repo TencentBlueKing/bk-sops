@@ -482,6 +482,38 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
 
         return total, groups
 
+    def group_by_common_func(self, taskflow, filters, page, limit):
+        project_dict = dict(Project.objects.values_list("id", "name"))
+        proj_flow_type = taskflow.values_list("project", "flow_type")
+        # 计算各业务的各类型任务数量
+        proj_flow_dict = {}
+        for proj_flow in proj_flow_type:
+            proj_id = proj_flow[0]
+            flow_type = proj_flow[1]
+            common_cou = 0
+            common_func_cou = 0
+            if flow_type == "common":
+                common_cou = 1
+            else:
+                common_func_cou = 1
+            if proj_id not in proj_flow_dict.keys():
+                proj_flow_dict[proj_id] = {"common_cou": common_cou, "common_func_cou": common_func_cou}
+            else:
+                proj_flow_dict[proj_id]["common_cou"] += common_cou
+                proj_flow_dict[proj_id]["common_func_cou"] += common_func_cou
+        # 计算total、groups
+        total = len(project_dict)
+        groups = [
+            {
+                "project_name": project_dict[proj_id],
+                "project_id": proj_id,
+                "common_cou": value["common_cou"],
+                "common_func_cou": value["common_func_cou"],
+            }
+            for proj_id, value in proj_flow_dict.items()
+        ]
+        return total, groups
+
     def general_group_by(self, prefix_filters, group_by):
         try:
             total, groups = self.classified_count(prefix_filters, group_by)
