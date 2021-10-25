@@ -48,6 +48,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         "skip",
         "callback",
         "skip_exg",
+        "skip_cpg",
         "pause",
         "resume",
         "pause_subproc",
@@ -113,6 +114,21 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         )
 
     @ensure_return_is_dict
+    def skip_cpg_v1(self, operator: str, **kwargs) -> dict:
+        return task_service.skip_conditional_parallel_gateway(
+            gateway_id=self.node_id, flow_ids=kwargs["flow_ids"], converge_gateway_id=kwargs["converge_gateway_id"]
+        )
+
+    @ensure_return_is_dict
+    def skip_cpg_v2(self, operator: str, **kwargs) -> dict:
+        return bamboo_engine_api.skip_conditional_parallel_gateway(
+            runtime=BambooDjangoRuntime(),
+            node_id=self.node_id,
+            flow_ids=kwargs["flow_ids"],
+            converge_gateway_id=kwargs["converge_gateway_id"],
+        )
+
+    @ensure_return_is_dict
     def pause_v1(self, operator: str, **kwargs) -> dict:
         return task_service.pause_activity(self.node_id)
 
@@ -153,6 +169,17 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         return bamboo_engine_api.forced_fail_activity(
             runtime=BambooDjangoRuntime(), node_id=self.node_id, ex_data="forced fail by {}".format(operator)
         )
+
+    def retry_subprocess_v1(self, operator: str, **kwargs) -> dict:
+        return {
+            "result": False,
+            "message": "v1 engine do not support subprocess retry",
+            "code": err_code.INVALID_OPERATION.code,
+        }
+
+    @ensure_return_is_dict
+    def retry_subprocess_v2(self, operator: str, **kwargs) -> dict:
+        return bamboo_engine_api.retry_subprocess(runtime=BambooDjangoRuntime(), node_id=self.node_id)
 
     def get_node_log(self, history_id: int) -> dict:
         if self.engine_ver not in self.VALID_ENGINE_VER:

@@ -23,7 +23,11 @@
                 :title="$t('分项目统计')"
                 :selector-list="categorySelector"
                 :data-list="projectData"
+                :is-instance="true"
                 :data-loading="projectDataLoading"
+                :biz-useage-data="bizUseageData"
+                :color-block-list="colorBlockList"
+                :creat-methods="creatMethods"
                 @onFilterClick="projectFilterChange">
             </horizontal-bar-chart>
         </div>
@@ -33,6 +37,7 @@
                 :selector-list="timeSelectorList"
                 :data-list="timeDataList"
                 :data-loading="timeDataLoading"
+                :color-block-list="colorBlockList"
                 @onFilterClick="timeFilterChange">
             </vertical-bar-chart>
         </div>
@@ -83,32 +88,61 @@
                         @sort-change="handleSortChange"
                         @page-change="handlePageChange"
                         @page-limit-change="handlePageLimitChange">
-                        <bk-table-column
-                            v-for="item in tableColumn"
-                            :key="item.prop"
-                            :label="item.label"
-                            :prop="item.prop"
-                            :width="item.hasOwnProperty('width') ? item.width : 'auto'"
-                            :min-width="item.hasOwnProperty('minWidth') ? item.minWidth : 'auto'"
-                            :sortable="item.sortable">
-                            <template slot-scope="props">
-                                <a
-                                    v-if="item.prop === 'instanceName'"
-                                    class="table-link"
-                                    target="_blank"
-                                    :title="props.row.instanceName"
-                                    :href="`${site_url}taskflow/execute/${props.row.projectId}/?instance_id=${props.row.instanceId}`">
-                                    {{props.row.instanceName}}
-                                </a>
-                                <template v-else>
+                        <template v-for="item in tableColumn">
+                            <bk-table-column
+                                v-if="item.prop !== 'create_method'"
+                                :key="item.prop"
+                                :label="item.label"
+                                :prop="item.prop"
+                                :width="item.hasOwnProperty('width') ? item.width : 'auto'"
+                                :min-width="item.hasOwnProperty('minWidth') ? item.minWidth : 'auto'"
+                                :sortable="item.sortable">
+                                <template slot-scope="props">
+                                    <a
+                                        v-if="item.prop === 'instance_name'"
+                                        class="table-link"
+                                        target="_blank"
+                                        :title="props.row.instance_name"
+                                        :href="`${site_url}taskflow/execute/${props.row.projectId}/?instance_id=${props.row.instanceId}`">
+                                        {{props.row.instance_name}}
+                                    </a>
+                                    <template v-else>
+                                        <span :title="props.row[item.prop]">{{ props.row[item.prop] }}</span>
+                                    </template>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column
+                                v-else
+                                :key="item.prop"
+                                :label="item.label"
+                                :prop="item.prop"
+                                :min-width="120"
+                                :render-header="renderFilterHeader">
+                                <template slot-scope="props">
                                     <span :title="props.row[item.prop]">{{ props.row[item.prop] }}</span>
                                 </template>
-                            </template>
-                        </bk-table-column>
+                            </bk-table-column>
+                        </template>
                         <div class="empty-data" slot="empty"><no-data></no-data></div>
                     </bk-table>
                 </bk-tab-panel>
             </bk-tab>
+            <div id="filter-popover" class="filter-popover" ref="filterPopover">
+                <ul class="label-menu">
+                    <li
+                        class="label-menu-item"
+                        v-for="item in filterList"
+                        :key="item.value"
+                        @click="onSwitchCheckStatus(item)">
+                        <bk-checkbox :value="item.checked"></bk-checkbox>
+                        {{ item.text }}
+                    </li>
+                </ul>
+                <div class="filter-footer">
+                    <span class="operat-btn" @click="onConfirmFilter">{{ $t('确定') }}</span>
+                    <span class="operat-btn" @click="onResetFilter">{{ $t('重置') }}</span>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -116,9 +150,11 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
+    import { COLOR_BLOCK_LIST } from '@/constants/index.js'
     import HorizontalBarChart from './HorizontalBarChart.vue'
     import VerticalBarChart from './VerticalBarChart.vue'
     import NoData from '@/components/common/base/NoData.vue'
+    import tippy from 'bk-magic-vue/lib/utils/tippy.js'
 
     const SELECTORS = [
         {
@@ -155,18 +191,23 @@
     const TABLE_COLUMN = [
         {
             label: i18n.t('任务ID'),
-            prop: 'instanceId',
+            prop: 'instance_id',
             sortable: true,
             width: 90
         },
         {
             label: i18n.t('任务名称'),
-            prop: 'instanceName',
+            prop: 'instance_name',
             minWidth: 200
         },
         {
+            label: i18n.t('任务类型'),
+            prop: 'create_method',
+            minWidth: 120
+        },
+        {
             label: i18n.t('项目'),
-            prop: 'projectName',
+            prop: 'project_name',
             width: 150
         },
         {
@@ -181,30 +222,30 @@
         },
         {
             label: i18n.t('创建时间'),
-            prop: 'createTime',
+            prop: 'create_time',
             width: 200
         },
         {
             label: i18n.t('插件数'),
-            prop: 'atomTotal',
+            prop: 'atom_total',
             sortable: true,
             width: 100
         },
         {
             label: i18n.t('子流程数'),
-            prop: 'subprocessTotal',
+            prop: 'subprocess_total',
             sortable: true,
             width: 120
         },
         {
             label: i18n.t('网关数'),
-            prop: 'gatewaysTotal',
+            prop: 'gateways_total',
             sortable: true,
             width: 100
         },
         {
             label: i18n.t('耗时'),
-            prop: 'elapsedTime',
+            prop: 'elapsed_time',
             sortable: true,
             width: 100
         }
@@ -238,6 +279,18 @@
             }
         },
         data () {
+            const creatMethods = COLOR_BLOCK_LIST.reduce((acc, cur) => {
+                const { value, color, text } = cur
+                acc[value] = { color, text }
+                return acc
+            }, {})
+            const filterList = COLOR_BLOCK_LIST.map(item => {
+                return {
+                    text: item.text,
+                    value: item.value,
+                    checked: false
+                }
+            })
             return {
                 categoryData: [],
                 categoryDataProject: '',
@@ -277,8 +330,14 @@
                 instanceProject: '',
                 instanceCategory: '',
                 instanceSort: '',
+                instance: null,
+                filterList,
+                selectedFilter: [],
                 instanceDataLoading: true,
                 tableColumn: TABLE_COLUMN,
+                colorBlockList: COLOR_BLOCK_LIST,
+                creatMethods,
+                bizUseageData: {},
                 pagination: {
                     current: 1,
                     count: 0,
@@ -309,15 +368,40 @@
         created () {
             this.getData()
         },
+        mounted () {
+            window.addEventListener('mouseup', this.handlePopoverOutSide)
+            this.$nextTick(() => {
+                const dom = document.querySelector('#filter-popover')
+                const options = {
+                    allowHTML: true,
+                    content: dom,
+                    placement: 'bottom',
+                    theme: 'light',
+                    distance: 10,
+                    trigger: 'click',
+                    hideOnClick: false,
+                    arrow: false,
+                    extCls: 'select-all-tpl-popover'
+                }
+                const instance = tippy('.icon-funnel', options)
+                this.instance = instance.length ? instance[0] : this.instance
+            })
+        },
+        beforeDestroy () {
+            window.removeEventListener('mouseup', this.handlePopoverOutSide)
+            this.instance && this.instance.destroy()
+        },
         methods: {
             ...mapActions('admin', [
-                'queryInstanceData'
+                'queryInstanceData',
+                'queryBizUseageData'
             ]),
             getData () {
                 this.getCategoryData()
                 this.getProjectData()
                 this.getTimeData()
                 this.getTableData()
+                this.getBizUseageData()
             },
             async loadAnalysisData (query, type = '') {
                 try {
@@ -398,7 +482,8 @@
                             finish_time: this.dateRange[1],
                             project_id: this.instanceProject,
                             category: this.instanceCategory,
-                            order_by: this.instanceSort
+                            order_by: this.instanceSort,
+                            create_method: this.selectedFilter
                         },
                         pageIndex: this.pagination.current,
                         limit: this.pagination.limit
@@ -411,6 +496,14 @@
                     console.log(e)
                 } finally {
                     this.instanceDataLoading = false
+                }
+            },
+            async getBizUseageData () {
+                try {
+                    const resp = await this.queryBizUseageData({ query: 'task' })
+                    this.bizUseageData = resp.data
+                } catch (error) {
+                    console.warn(error)
                 }
             },
             categoryFilterChange (val) {
@@ -427,6 +520,8 @@
                 } else if (selector === 'category') {
                     this.timeDataCategory = val
                 } else {
+                    const selectTime = this.timeSelectorList.slice(-1)[0]
+                    selectTime.selected = val
                     this.timeDataType = val
                 }
                 this.getTimeData()
@@ -443,6 +538,54 @@
                 } else {
                     this.instanceSort = ''
                 }
+                this.getTableData()
+            },
+            renderFilterHeader (h, data) {
+                const self = this
+                return h('div', {
+                    'class': 'creat-method-filter-header'
+                }, [
+                    h('div', {
+                        'class': 'render-header'
+                    }, [
+                        h('span', [i18n.t('任务类型')]),
+                        h('i', {
+                            'class': {
+                                'bk-icon icon-funnel': true,
+                                'is-checked': self.selectedFilter.length
+                            }
+                        })
+                    ])
+                ])
+            },
+            onSwitchCheckStatus (val) {
+                const selectFilter = this.filterList.find(item => item.value === val.value)
+                selectFilter.checked = !selectFilter.checked
+            },
+            onConfirmFilter () {
+                this.selectedFilter = this.filterList.reduce((acc, cur) => {
+                    if (cur.checked) {
+                        acc.push(cur.value)
+                    }
+                    return acc
+                }, [])
+                this.instance && this.instance.hide()
+                this.pagination.current = 1
+                this.getTableData()
+            },
+            handlePopoverOutSide (e) {
+                const popoverDom = this.$refs.filterPopover
+                if (popoverDom && !popoverDom.contains(e.target)) {
+                    this.instance && this.instance.hide()
+                }
+            },
+            onResetFilter () {
+                this.selectedFilter = []
+                this.filterList.forEach(item => {
+                    item.checked = false
+                })
+                this.instance && this.instance.hide()
+                this.pagination.current = 1
                 this.getTableData()
             },
             handlePageChange (val) {
@@ -464,5 +607,112 @@
 <style lang="scss" scoped>
     .vertical-bar-chart-area {
         margin-top: 20px;
+    }
+</style>
+<style lang="scss">
+    .task-method {
+        .project-name {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+    }
+    #chartjs-tooltip {
+        position: absolute;
+        padding: 6px 12px;
+        background: rgba(0, 0, 0, 0.8);
+        border: none;
+        border-radius: 6px;
+        pointer-events: none;
+        font-size: 12px;
+        color: #fff;
+        .tip-title {
+            font: bold 12px "Helvetica Neue", Helvetica, Arial, sans-serif;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+    }
+    .task-method-item {
+        display: flex;
+        align-items: center;
+        position: relative;
+        margin-bottom: 3px;
+        font: 12px "Helvetica Neue", Helvetica, Arial, sans-serif;
+        .color-block {
+            height: 10px;
+            width: 10px;
+            margin-right: 4px;
+            border-width: 2px;
+        }
+        .task-name {
+            flex: 1;
+            min-width: 80px;
+            max-width: 120px;
+            word-break: break-all;
+        }
+        .hide-task-name {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+        }
+        .task-num {
+            min-width: 25px;
+            text-align: right;
+        }
+        .percentage {
+            color: #979ba5;
+            margin-left: 5px;
+            min-width: 31px;
+        }
+    }
+    .creat-method-filter-header {
+        display: flex;
+        align-items: center;
+        .icon-funnel {
+            font-size: 14px;
+            color: #c4c6cc;
+            margin-left: 5px;
+            cursor: pointer;
+            &.is-checked {
+                color: #63656e;
+            }
+        }
+    }
+    .select-all-tpl-popover {
+        pointer-events: initial;
+        .tippy-tooltip {
+            background: #fff !important;
+            padding-bottom: 0 !important;
+        }
+    }
+    .filter-popover {
+        font-size: 12px;
+        .label-menu-item {
+            width: 100px;
+            display: flex;
+            align-items: center;
+            line-height: 16px;
+            margin-bottom: 10px;
+            padding-left: 10px;
+            color: #63656e;
+            cursor: pointer;
+            .bk-form-checkbox {
+                margin-right: 5px;
+            }
+        }
+        .filter-footer {
+            display: flex;
+            height: 31px;
+            border-top: 1px solid #f0f1f5;
+            align-items: center;
+            justify-content: center;
+            color: #3a84ff;
+            cursor: pointer;
+            .operat-btn {
+                margin-right: 10px;
+                &:hover {
+                    color: #699df4;
+                }
+            }
+        }
     }
 </style>

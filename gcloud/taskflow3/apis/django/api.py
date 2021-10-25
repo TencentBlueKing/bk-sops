@@ -61,7 +61,7 @@ from gcloud.iam_auth.view_interceptors.taskflow import (
     DataViewInterceptor,
     DetailViewInterceptor,
     TaskActionInterceptor,
-    NodesActionInpterceptor,
+    NodesActionInterceptor,
     SpecNodesTimerResetInpterceptor,
     TaskCloneInpterceptor,
     TaskModifyInputsInterceptor,
@@ -236,20 +236,42 @@ def task_action(request, action, project_id):
     return JsonResponse(ctx)
 
 
-@require_POST
+@swagger_auto_schema(methods=["POST"], auto_schema=AnnotationAutoSchema)
 @request_validate(NodesActionValidator)
-@iam_intercept(NodesActionInpterceptor())
-@record_operation(RecordType.task.name, OperateType.nodes_action.name)
+@iam_intercept(NodesActionInterceptor())
+@api_view(["POST"])
 def nodes_action(request, action, project_id):
-    data = json.loads(request.body)
+    """
+    节点操作
+    param: project_id: 项目 ID, string, query, required
+    param: action: 节点动作[可选值有：callback, skip_exg, retry, skip, pause_subproc, resume_subproc, retry_subprocess], string, query, required  # noqa
 
-    task_id = data["instance_id"]
-    node_id = data["node_id"]
+    body: data
+    {
+        "instance_id(required)": "任务 ID",
+        "node_id(required)": "节点 ID",
+        "data": "action 为 callback 时传入的数据",
+        "inputs": "action 为 retry 时重试节点时节点的输入数据",
+        "flow_id": "action 为 skip_exg 时选择执行的分支 id"
+    }
+
+    return: dict 根据 result 字段判断是否请求成功
+    {
+        "result": "是否请求成功(boolean)",
+        "data": {},
+        "message": "错误时提示(string)"
+    }
+    """
+
+    task_id = request.data["instance_id"]
+    node_id = request.data["node_id"]
     username = request.user.username
     kwargs = {
-        "data": data.get("data", {}),
-        "inputs": data.get("inputs", {}),
-        "flow_id": data.get("flow_id", ""),
+        "data": request.data.get("data", {}),
+        "inputs": request.data.get("inputs", {}),
+        "flow_id": request.data.get("flow_id", ""),
+        "flow_ids": request.data.get("flow_ids", []),
+        "converge_gateway_id": request.data.get("converge_gateway_id", ""),
     }
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     ctx = task.nodes_action(action, node_id, username, **kwargs)

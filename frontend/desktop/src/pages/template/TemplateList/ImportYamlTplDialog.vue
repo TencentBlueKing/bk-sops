@@ -23,6 +23,10 @@
                     <div slot="title">
                         {{ file.name }}
                         {{ checkResult ? $t('文件合法性检查通过。') : $t('文件不合法，请') }}
+                        <template v-if="!checkResult">
+                            <a class="view-result-btn" href="#checkMsgTitle">{{ $t('查看合法检查结果') }}</a>
+                            {{ $t('或') }}
+                        </template>
                         <label
                             :for="checkPending ? '' : 'tpl-file'"
                             :class="['upload-tpl-btn', { 'is-disabled': checkPending }]">
@@ -40,6 +44,7 @@
                 <div class="table-title">
                     <span>{{ $t('文件解析流程') + $t('（') }}{{ ('file' in importData.error) ? 0 : importData.yaml_docs.length }}{{ $t('）') }}</span>
                     <bk-pagination
+                        v-if="pagination.count > 5"
                         small
                         :current="pagination.current"
                         :count="pagination.count"
@@ -80,7 +85,7 @@
                         </template>
                     </bk-table-column>
                 </bk-table>
-                <div class="check-msg-title">{{ $t('合法性检测结果') }}</div>
+                <div class="check-msg-title" id="checkMsgTitle">{{ $t('合法性检测结果') }}</div>
                 <div class="check-msg">
                     <template v-if="!errorMsg">{{ $t('合法性检查通过。') }}</template>
                     <template v-else>
@@ -93,6 +98,11 @@
             </div>
         </div>
         <div class="footer-wrap" slot="footer">
+            <label
+                :for="checkPending ? '' : 'tpl-file'"
+                :class="['upload-tpl-btn', { 'is-disabled': checkPending, 'is-hide': !file || !importData }]">
+                {{ $t('重新上传文件') }}
+            </label>
             <div class="operate-area">
                 <bk-button
                     theme="primary"
@@ -294,24 +304,31 @@
     }
 </script>
 <style lang="scss" scoped>
+    @import '@/scss/mixins/scrollbar.scss';
     .import-dialog-content {
-        padding: 20px;
-        height: 478px;
-        overflow: auto;
+        padding-left: 24px;
+        height: 365px;
+        overflow-y: auto;
+        @include scrollbar;
     }
     .upload-file-area {
         width: 530px;
-        margin: 100px auto;
+        margin: 120px auto 0;
         /deep/.file-wrapper {
             background: #fafbfd;
         }
     }
+    .import-check-wrapper {
+        height: 100%;
+        margin-right: 25px;
+    }
     .bk-button-text {
         font-size: 12px;
     }
-    .upload-tpl-btn {
+    .view-result-btn, .upload-tpl-btn {
         color: #3a84ff;
         cursor: pointer;
+        font-size: 12px;
     }
     .table-title {
         display: flex;
@@ -332,5 +349,31 @@
         padding: 10px 0 10px;
         font-size: 12px;
         color: #696a72;
+    }
+</style>
+<style lang="scss">
+    .import-yaml-dialog {
+        .bk-dialog-content {
+            height: 480px;
+            .bk-dialog-tool {
+                min-height: 0;
+            }
+            .bk-dialog-header {
+                margin-top: 0;
+                padding-left: 24px;
+                border-bottom: none;
+            }
+        }
+        .footer-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            .upload-tpl-btn {
+                font-size: 14px;
+                &.is-hide {
+                    transform: scale(0);
+                }
+            }
+        }
     }
 </style>

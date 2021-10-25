@@ -53,9 +53,9 @@
             <div class="palette-item entry-item" data-config-name="" data-type="convergegateway">
                 <div class="node-type-icon common-icon-node-convergegateway"></div>
             </div>
-            <!-- <div class="palette-item entry-item" data-config-name="" data-type="conditionalparallelgateway">
+            <div class="palette-item entry-item" data-config-name="" data-type="conditionalparallelgateway">
                 <div class="node-type-icon common-icon-node-conditionalparallelgateway"></div>
-            </div> -->
+            </div>
         </div>
         <node-menu
             ref="node_menu"
@@ -63,7 +63,7 @@
             :is-fixed-node-menu="isFixedNodeMenu"
             :active-node-list-type="activeNodeListType"
             :template-labels="templateLabels"
-            :loading="activeNodeListType === 'subflow' && subflowListLoading"
+            :loading="activeNodeListType === 'subflow' && listLoading"
             :nodes="nodes"
             :common="common"
             :plugin-list="atomTypeList.pluginList"
@@ -88,10 +88,6 @@
         mixins: [permission],
         props: {
             templateLabels: Array,
-            subflowListLoading: {
-                type: Boolean,
-                default: true
-            },
             atomTypeList: {
                 type: Object,
                 default () {

@@ -94,7 +94,14 @@ class RemotePluginService(Service):
         plugin_code = data.get_one_of_inputs("plugin_code")
         trace_id = data.get_one_of_outputs("trace_id")
 
-        plugin_client = PluginServiceApiClient(plugin_code)
+        try:
+            plugin_client = PluginServiceApiClient(plugin_code)
+        except PluginServiceException as e:
+            message = f"[remote plugin service client] error: {e}"
+            logger.error(message)
+            data.set_outputs("ex_data", message)
+            return False
+
         ok, result_data = plugin_client.get_schedule(trace_id)
 
         if not ok:
@@ -108,7 +115,8 @@ class RemotePluginService(Service):
 
         state = result_data["state"]
         if state == State.FAIL:
-            data.set_outputs("ex_data", "please check the logs for the reason of task failure.")
+            default_message = "please check the logs for the reason of task failure."
+            data.set_outputs("ex_data", result_data["outputs"].get("ex_data") or default_message)
             return False
         if state == State.POLL:
             setattr(self, "__need_schedule__", True)

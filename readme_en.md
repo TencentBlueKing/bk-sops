@@ -1,7 +1,6 @@
 ![](docs/resource/img/logo_en.png)
 ---
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/Tencent/bk-sops/blob/master/LICENSE)
-[![Release](https://img.shields.io/badge/release-3.8.0-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
 [![travis-ci](https://travis-ci.com/Tencent/bk-sops.svg?branch=master)](https://travis-ci.com/Tencent/bk-sops)
 [![Coverage Status](https://codecov.io/gh/Tencent/bk-sops/branch/master/graph/badge.svg)](https://codecov.io/gh/Tencent/bk-sops)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Tencent/bk-sops/pulls)
@@ -23,9 +22,9 @@ The background uses Python as the development language and Django development fr
  greatly reduces the difficulty for users to develop front-end forms of Standard Plugins.
 
 ## Overview
-- [Architecture Design (In Chinese)](docs/overview/architecture.md)
-- [Code Directory (In Chinese)](docs/overview/code_structure.md)
-- [Use Scenario (In Chinese)](docs/overview/usecase.md)
+- [Architecture Design](en_docs/overview/architecture.md)
+- [Code Directory](en_docs/overview/code_structure.md)
+- [Use Case](en_docs/overview/usecase.md)
 
 
 ## Features
@@ -45,25 +44,25 @@ If you want to know more about the above features, please refer to the
 
 
 ## Getting started
-- [Development Background Deployment (In Chinese)](docs/install/dev_deploy.md)
-- [Development Front-end Deployment (In Chinese)](docs/install/dev_web.md)
-- [Production Source Deployment (In Chinese)](docs/install/source_code_deploy.md)
-- [Production Upload Deployment (In Chinese)](docs/install/upload_pack_deploy.md)
-- [Mobile Deployment (In Chinese)](docs/install/mobile_deploy.md)
-- [Standard Plugin Development](docs/develop/dev_plugins.md)
+- [Development Background Deployment](en_docs/install/dev_deploy.md)
+- [Development Front-end Deployment](en_docs/install/dev_web.md)
+- [Production Source Deployment](en_docs/install/source_code_deploy.md)
+- [Production Upload Deployment](en_docs/install/upload_pack_deploy.md)
+- [Mobile Deployment](en_docs/install/mobile_deploy.md)
+- [Standard Plugin Development](en_docs/develop/dev_plugins.md)
 
 
 ## Usage
 - [API Documents](docs/apidoc/readme.md)
-- [Standard Plugin Documents (In Chinese)](docs/features/plugin_usage.md)
-- [Standard Plugin Remote Importing (In Chinese)](docs/features/remote_plugins.md)
-- [Variables Engine (In Chinese)](docs/features/variables_engine.md)
-- [Tag Usage And Develop (In Chinese)](docs/develop/tag_usage_dev.md)
-- [Mobile Documents (In Chinese)](docs/features/mobile.md)
+- [Standard Plugin Documents](en_docs/features/plugin_usage.md)
+- [Standard Plugin Remote Importing](en_docs/features/remote_plugins.md)
+- [Variables Engine](en_docs/features/variables_engine.md)
+- [Tag Usage And Develop](en_docs/develop/tag_usage_dev.md)
+- [Mobile Documents](en_docs/features/mobile.md)
 
 
 ## Version plan
-- [Release Notes](docs/release.md)
+- [Release Notes (In Chinese)](docs/release.md)
 
 
 ## BlueKing Community
@@ -88,13 +87,13 @@ If you want to know more about the above features, please refer to the
 ## Contributing
 If you have good ideas or suggestions, please let us know by Issues or Pull Requests and contribute to the Blue Whale
  Open Source Community. For Standard SOPS branch management, issues, and pr specifications, read the
- [Contributing Guide](docs/CONTRIBUTING.md)。
+ [Contributing Guide](en_docs/CONTRIBUTING.md)。
 
 If you are interested in contributing, check out the [CONTRIBUTING.md], also join our
  [Tencent OpenSource Plan](https://opensource.tencent.com/contribution).
 
 ## FAQ
-[FAQ (In Chinese)](docs/wiki/faq.md)
+[FAQ](en_docs/wiki/faq.md)
 
 
 ## License

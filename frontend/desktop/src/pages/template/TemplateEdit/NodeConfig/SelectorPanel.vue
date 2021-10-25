@@ -689,6 +689,14 @@
             }
         }
     }
+    .tpl-loading {
+        height: 40px;
+        bottom: 0;
+        left: 0;
+        font-size: 14px;
+        text-align: center;
+        margin-top: 10px;
+    }
 }
 .third-praty-list {
     height: calc(100vh - 102px);
