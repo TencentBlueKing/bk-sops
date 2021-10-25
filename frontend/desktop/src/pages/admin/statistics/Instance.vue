@@ -99,12 +99,12 @@
                                 :sortable="item.sortable">
                                 <template slot-scope="props">
                                     <a
-                                        v-if="item.prop === 'instanceName'"
+                                        v-if="item.prop === 'instance_name'"
                                         class="table-link"
                                         target="_blank"
-                                        :title="props.row.instanceName"
+                                        :title="props.row.instance_name"
                                         :href="`${site_url}taskflow/execute/${props.row.projectId}/?instance_id=${props.row.instanceId}`">
-                                        {{props.row.instanceName}}
+                                        {{props.row.instance_name}}
                                     </a>
                                     <template v-else>
                                         <span :title="props.row[item.prop]">{{ props.row[item.prop] }}</span>
