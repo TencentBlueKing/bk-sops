@@ -51,3 +51,18 @@ def get_business_group_members(bk_biz_id, groups):
             group_members.extend(members.split(","))
 
     return list(set(group_members))
+
+
+def get_business_attrinfo(attrs: str) -> list:
+    if not attrs:
+        return []
+
+    client = get_client_by_user(settings.SYSTEM_USE_API_ACCOUNT)
+
+    kwargs = {"fields": ["bk_biz_id", attrs]}
+    result = client.cc.search_business(kwargs)
+    if not result["result"]:
+        logger.error("get_business_attrinfo search_business fail: args: {}, result: {}".format(kwargs, result))
+        return []
+    info = result["data"]["info"]
+    return info

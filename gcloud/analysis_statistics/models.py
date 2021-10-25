@@ -118,3 +118,12 @@ class TaskflowStatistics(models.Model):
 
     def __unicode__(self):
         return "{}_{}_{}_{}".format(self.instance_id, self.atom_total, self.subprocess_total, self.gateways_total)
+
+
+class ProjectStatisticsDemision(models.Model):
+    demision_id = models.CharField(verbose_name="统计维度id(cmdb业务模型属性id)", max_length=32, null=False)
+    demision_name = models.CharField(verbose_name="统计维度名称(cmdb业务模型属性名称)", max_length=32, null=False)
+
+    class Meta:
+        verbose_name = _("业务统计数据维度")
+        verbose_name_plural = _("业务统计数据维度")

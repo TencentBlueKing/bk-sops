@@ -33,6 +33,8 @@ from gcloud.utils.managermixins import ClassificationCountMixin
 from gcloud.utils.dates import format_datetime
 from gcloud.analysis_statistics.models import TemplateStatistics, TemplateNodeStatistics, TaskflowStatistics
 from gcloud.utils.components import format_component_name
+from gcloud.analysis_statistics.models import ProjectStatisticsDemision
+from gcloud.shortcuts.cmdb import get_business_attrinfo
 
 logger = logging.getLogger("root")
 
@@ -309,6 +311,35 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                     "project_name": project_dict[proj],
                     "used_value": used_count,
                     "unused_value": unused_count,
+                }
+            )
+        return total, groups
+
+    def group_by_template_biz(self, tasktmpl, filters, page, limit):
+        proj_task_count = dict(
+            tasktmpl.values_list("project__id").annotate(value=Count("project__id")).order_by("value")
+        )
+        proj_demision_dict = dict(ProjectStatisticsDemision.objects.values_list("demision_id", "demision_name"))
+        proj_demision_id_list = proj_demision_dict.keys()
+        # 获取全部业务对应维度信息
+        total = len(proj_demision_id_list)
+        groups = []
+        for demision in proj_demision_id_list:
+            result = {}
+            proj_attr_info = get_business_attrinfo(demision)
+            for info in proj_attr_info:
+                if info[demision] not in result.keys():
+                    result[info[demision]] = {
+                        "project_id": info["bk_biz_id"],
+                        "value": proj_task_count.get(info["bk_biz_id"], 0),
+                    }
+                else:
+                    result[info[demision]]["value"] += proj_task_count.get(info["bk_biz_id"], 0)
+            groups.append(
+                {
+                    "demision_id": demision,
+                    "demision_name": proj_demision_dict[demision],
+                    "info": [{"name": key, "value": value["value"]} for key, value in result.items()],
                 }
             )
         return total, groups

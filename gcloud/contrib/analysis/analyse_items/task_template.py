@@ -39,6 +39,8 @@ TEMPLATE_GROUP_BY_METHODS = {
     AE.template_execute_times: TaskTemplate.objects.group_by_template_execute_times,
     # 查询模板使用情况统计数据
     AE.template_execute_in_biz: TaskTemplate.objects.group_by_execute_in_biz,
+    # 按配置的业务属性字段统计各业务模板数占比情况
+    AE.template_biz: TaskTemplate.objects.group_by_template_biz,
 }
 
 
