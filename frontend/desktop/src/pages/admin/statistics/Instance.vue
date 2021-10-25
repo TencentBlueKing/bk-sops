@@ -103,7 +103,7 @@
                                         class="table-link"
                                         target="_blank"
                                         :title="props.row.instance_name"
-                                        :href="`${site_url}taskflow/execute/${props.row.projectId}/?instance_id=${props.row.instanceId}`">
+                                        :href="`${site_url}taskflow/execute/${props.row.project_id}/?instance_id=${props.row.instance_id}`">
                                         {{props.row.instance_name}}
                                     </a>
                                     <template v-else>
