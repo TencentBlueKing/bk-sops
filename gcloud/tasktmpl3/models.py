@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from collections import Counter
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth import get_user_model
@@ -30,8 +31,10 @@ from gcloud.template_base.models import BaseTemplate, BaseTemplateManager
 from gcloud.core.models import Project
 from gcloud.utils.managermixins import ClassificationCountMixin
 from gcloud.utils.dates import format_datetime
-from gcloud.analysis_statistics.models import TemplateStatistics, TemplateNodeStatistics
+from gcloud.analysis_statistics.models import TemplateStatistics, TemplateNodeStatistics, TaskflowStatistics
 from gcloud.utils.components import format_component_name
+from gcloud.analysis_statistics.models import ProjectStatisticsDemision
+from gcloud.shortcuts.cmdb import get_business_attrinfo
 
 logger = logging.getLogger("root")
 
@@ -267,6 +270,79 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         else:
             groups = sorted(groups, key=lambda group: group.get(order_by), reverse=False)
         return total, groups[(page - 1) * limit : page * limit]
+
+    def group_by_template_execute_times(self, tasktmpl, filters, page, limit):
+        topn = filters.get("topn", 10)
+        tasktmpl_id_list = tasktmpl.values_list("id", flat=True)
+        tasktmpl_dict = dict(tasktmpl.values_list("id", "pipeline_template__name"))
+        # 计算使用过的流程使用次数
+        used = TaskflowStatistics.objects.filter(task_template_id__in=str(tasktmpl_id_list)).values_list(
+            "id", flat=True
+        )
+        used_count = dict(Counter(used))
+        # 取出未使用过的流程
+        un_used = tasktmpl_id_list.exclude(id__in=used)
+        # 计算total
+        total = used.count() + un_used.count()
+        groups = []
+        for id, count in used_count.items():
+            groups.append({"template_id": id, "template_name": tasktmpl_dict.get("id", ""), "count": count})
+        groups.extend([{"template_id": id, "template_name": tasktmpl_dict.get("id", ""), "count": 0} for id in un_used])
+        groups.sort(key=lambda item: item.get("count", 0), reverse=True)
+        return total, groups[0:topn]
+
+    def group_by_execute_in_biz(self, tasktmpl, filters, page, limit):
+        project_dict = dict(Project.objects.values_list("id", "name"))
+        proj_id_list = tasktmpl.values("project", "id")
+        proj_dict = {}
+        # 生成项目-流程字典
+        for item in proj_id_list:
+            proj_dict[item["project"]] = proj_dict.get(item["project"], [])
+            proj_dict[item["project"]].append(str(item["id"]))
+        groups = []
+        total = len(proj_dict)
+        for proj, tasktmpl_list in proj_dict.items():
+            all_tasktmpl_count = len(tasktmpl_list)
+            used_count = TaskflowStatistics.objects.filter(task_template_id__in=tasktmpl_list).count()
+            unused_count = all_tasktmpl_count - used_count
+            groups.append(
+                {
+                    "project_id": proj,
+                    "project_name": project_dict[proj],
+                    "used_value": used_count,
+                    "unused_value": unused_count,
+                }
+            )
+        return total, groups
+
+    def group_by_template_biz(self, tasktmpl, filters, page, limit):
+        proj_task_count = dict(
+            tasktmpl.values_list("project__bk_biz_id").annotate(value=Count("project__id")).order_by("value")
+        )
+        proj_demision_dict = dict(ProjectStatisticsDemision.objects.values_list("demision_id", "demision_name"))
+        proj_demision_id_list = proj_demision_dict.keys()
+        # 获取全部业务对应维度信息
+        total = len(proj_demision_id_list)
+        groups = []
+        for demision in proj_demision_id_list:
+            result = {}
+            proj_attr_info = get_business_attrinfo(demision)
+            for info in proj_attr_info:
+                if info[demision] not in result.keys():
+                    result[info[demision]] = {
+                        "project_id": info["bk_biz_id"],
+                        "value": proj_task_count.get(info["bk_biz_id"], 0),
+                    }
+                else:
+                    result[info[demision]]["value"] += proj_task_count.get(info["bk_biz_id"], 0)
+            groups.append(
+                {
+                    "demision_id": demision,
+                    "demision_name": proj_demision_dict[demision],
+                    "info": [{"name": key, "value": value["value"]} for key, value in result.items()],
+                }
+            )
+        return total, groups
 
     def general_group_by(self, prefix_filters, group_by):
         try:

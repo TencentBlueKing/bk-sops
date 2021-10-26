@@ -47,6 +47,10 @@ TASK_GROUP_BY_METHODS = {
     AE.instance_time: TaskFlowInstance.objects.group_by_instance_time,
     #  按分类对任务执行数进行统计
     AE.category: TaskFlowInstance.objects.group_by_category,
+    # 查询业务职能化任务使用情况
+    AE.common_func: TaskFlowInstance.objects.group_by_common_func,
+    # 按配置的业务属性字段统计各业务模板数占比情况
+    AE.instance_biz: TaskFlowInstance.objects.group_by_instance_biz,
 }
 
 
@@ -83,7 +87,8 @@ def produce_filter(filters):
 def format_create_and_finish_time(filters):
     create_time = timestamp_to_datetime(
         filters.get(
-            "create_time", datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp(),
+            "create_time",
+            datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp(),
         )
     )
     finish_time = timestamp_to_datetime(filters.get("finish_time", datetime.datetime.now().timestamp()))

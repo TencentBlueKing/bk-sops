@@ -18,6 +18,7 @@ from gcloud.analysis_statistics.models import (
     TemplateNodeStatistics,
     TaskflowStatistics,
     TemplateStatistics,
+    ProjectStatisticsDemision,
 )
 
 
@@ -73,3 +74,8 @@ class TaskflowStatisticsAdmin(admin.ModelAdmin):
 
     search_fields = ("instance_id__exact",)
     list_filter = ("instance_id", "atom_total", "subprocess_total", "gateways_total")
+
+
+@admin.register(ProjectStatisticsDemision)
+class ProjectStatisticsDemisionAdmin(admin.ModelAdmin):
+    list_display = ("demision_id", "demision_name")
