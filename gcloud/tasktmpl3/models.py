@@ -206,9 +206,16 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
             .values("descendant_template_id")
             .annotate(relationship_total=Count("descendant_template_id"))
         )
-        # 查询所有的任务，并统计每个template创建了多少个任务
+        # 查询所有的任务，并统计每个template已创建了多少个任务
         taskflow_list = list(
             PipelineInstance.objects.filter(template__id__in=list(template_id_map.keys()))
+            .values("template_id")
+            .annotate(instance_total=Count("template_id"))
+            .order_by()
+        )
+        # 统计每个template已经启动了多少个任务
+        taskflow_list_start = list(
+            PipelineInstance.objects.filter(template__id__in=list(template_id_map.keys()), is_started=True)
             .values("template_id")
             .annotate(instance_total=Count("template_id"))
             .order_by()
@@ -231,6 +238,12 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         for taskflow in taskflow_list:
             try:
                 taskflow_dict[template_id_map[taskflow["template_id"]]] = taskflow["instance_total"]
+            except KeyError:
+                continue
+        taskflow_start_dict = {}
+        for taskflow in taskflow_list_start:
+            try:
+                taskflow_start_dict[template_id_map[taskflow["template_id"]]] = taskflow["instance_total"]
             except KeyError:
                 continue
         periodic_dict = {}
@@ -260,8 +273,9 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                     "subprocess_total": data.subprocess_total,
                     "gateways_total": data.gateways_total,
                     "relationship_total": relationship_dict.get(data.task_template_id, 0),
-                    "instance_total": taskflow_dict.get(data.template_id, 0),
+                    "instance_total": taskflow_start_dict.get(data.template_id, 0),
                     "periodic_total": periodic_dict.get(data.template_id, 0),
+                    "taskflow_total": taskflow_dict.get(data.template_id, 0),
                     "output_count": data.output_count,
                     "input_count": data.input_count,
                 }
