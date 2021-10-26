@@ -71,7 +71,7 @@ def migrate_template(start, end):
                 }
             )
         except Exception:
-            logger.exception("[migrate_template] dirty data error template_id={:0}".format(template_id))
+            logger.exception(f"[migrate_template] dirty data error template_id={template_id}")
             continue
 
     for data_source_item in data_source_list:
@@ -93,7 +93,7 @@ def migrate_template(start, end):
             }
         except Exception:
             template_id = pipeline_template.id
-            logger.exception("[migrate_template] unkwon error template_id={:0}".format(template_id))
+            logger.exception(f"[migrate_template] unkwon error template_id={template_id}")
             continue
         # 计算输入输出变量个数
         input_count = 0
@@ -115,7 +115,8 @@ def migrate_template(start, end):
                 template_statistics = TemplateStatistics.objects.create(**kwargs)
                 template_statistics.save()
         except Exception:
-            logger.exception("[migrate_template] template_id={:0}的数据插入失败，自动回滚".format(kwargs["template_id"]))
+            template_id = kwargs["template_id"]
+            logger.exception(f"[migrate_template] template_id={template_id}的数据插入失败，自动回滚")
 
     return True
 
@@ -148,7 +149,7 @@ def migrate_component(start, end):
                 }
             )
         except Exception:
-            logger.exception("[migrate_component] dirty data error template_id={:0}".format(template_id))
+            logger.exception(f"[migrate_component] dirty data error template_id={template_id}")
             continue
 
     # 迁移
@@ -174,9 +175,7 @@ def migrate_component(start, end):
         except Exception:
             template_id = pipeline_template.id
             node_id = component.id
-            logger.exception(
-                "[migrate_component] unkwon error template_id={:0},node_id={:1}".format(template_id, node_id)
-            )
+            logger.exception(f"[migrate_component] unkwon error template_id={template_id},node_id={node_id}")
             continue
         try:
             with transaction.atomic():
@@ -186,11 +185,9 @@ def migrate_component(start, end):
                 template_node_statistics = TemplateNodeStatistics.objects.create(**kwargs)
                 template_node_statistics.save()
         except Exception:
-            logger.exception(
-                "[migrate_component] template_id={:0},node_id={:1}的数据插入失败，自动回滚".format(
-                    kwargs["template_id"], kwargs["node_id"]
-                )
-            )
+            template_id = kwargs["template_id"]
+            node_id = kwargs["node_id"]
+            logger.exception(f"[migrate_component] template_id={template_id},node_id={node_id}的数据插入失败，自动回滚")
 
     return True
 
@@ -228,7 +225,7 @@ def migrate_instance(start, end):
                 }
             )
         except Exception:
-            logger.exception("[migrate_instance] dirty data error template_id={:0}".format(instance_id))
+            logger.exception(f"[migrate_instance] dirty data error template_id={instance_id}")
             continue
     # 构建目标数据对象
     for data_source_item in data_source_list:
@@ -256,7 +253,8 @@ def migrate_instance(start, end):
                 create_method=taskflow_instance.create_method,
             )
         except Exception:
-            logger.exception("[migrate_instance] unkwon error instance_id={:0}".format(instance.id))
+            instance_id = instance.id
+            logger.exception(f"[migrate_instance] unkwon error instance_id={instance_id}")
             continue
         try:
             with transaction.atomic():
@@ -264,7 +262,8 @@ def migrate_instance(start, end):
                 taslflowstatistics = TaskflowStatistics.objects.create(**kwargs)
                 taslflowstatistics.save()
         except Exception:
-            logger.exception("[migrate_instance] instance_id={:0}的数据插入失败，自动回滚".format(kwargs["instance_id"]))
+            instance_id = kwargs["instance_id"]
+            logger.exception(f"[migrate_instance] instance_id={instance_id}的数据插入失败，自动回滚")
 
     return True
 
@@ -311,10 +310,10 @@ def migrate_component_execute_data(start, end):
                 instance_finish_time=pipeline_instance.finish_time,
             )
         except Exception:
+            instance_id = pipeline_instance.id
+            node_id = component.node_id
             logger.exception(
-                "[migrate_component_execute_data] unkwon error instance_id={:0},node_id={:1}".format(
-                    pipeline_instance.id, component.node_id
-                )
+                f"[migrate_component_execute_data] unkwon error instance_id={instance_id},node_id={node_id}"
             )
             continue
         try:
