@@ -17,7 +17,6 @@ import logging
 
 from django.db.models import Q
 from django.db import transaction
-from django.core.exceptions import ObjectDoesNotExist
 from celery.task import periodic_task
 
 from pipeline.contrib.statistics.models import (
@@ -71,7 +70,8 @@ def migrate_template(start, end):
                     "task_template": task_template,
                 }
             )
-        except ObjectDoesNotExist:
+        except Exception:
+            logger.exception("[migrate_template] ugly data error template_id={:0}".format(template_id))
             continue
 
     for data_source_item in data_source_list:
@@ -147,7 +147,8 @@ def migrate_component(start, end):
                     "component_in_template_inst": component_in_template_inst,
                 }
             )
-        except ObjectDoesNotExist:
+        except Exception:
+            logger.exception("[migrate_component] ugly data error template_id={:0}".format(template_id))
             continue
 
     # 迁移
@@ -227,6 +228,7 @@ def migrate_instance(start, end):
                 }
             )
         except Exception:
+            logger.exception("[migrate_instance] ugly data error template_id={:0}".format(instance_id))
             continue
     # 构建目标数据对象
     for data_source_item in data_source_list:
@@ -308,8 +310,6 @@ def migrate_component_execute_data(start, end):
                 instance_start_time=pipeline_instance.start_time,
                 instance_finish_time=pipeline_instance.finish_time,
             )
-        except ObjectDoesNotExist:
-            continue
         except Exception:
             logger.exception(
                 "[migrate_component_execute_data] unkwon error instance_id={:0},node_id={:1}".format(
