@@ -377,7 +377,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         """
 
         # 获取排序字段和排序方法
-        order_by_field = filters.get("order_by", "instance_id")
+        order_by_field = filters.get("order_by", "-instance_id")
 
         # 查询出有序的taskflow统计数据
         task_instance_id_list = taskflow.values_list("id", flat=True)
