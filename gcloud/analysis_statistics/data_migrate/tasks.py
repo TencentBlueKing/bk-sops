@@ -71,7 +71,7 @@ def migrate_template(start, end):
                 }
             )
         except Exception:
-            logger.exception("[migrate_template] ugly data error template_id={:0}".format(template_id))
+            logger.exception("[migrate_template] dirty data error template_id={:0}".format(template_id))
             continue
 
     for data_source_item in data_source_list:
@@ -148,7 +148,7 @@ def migrate_component(start, end):
                 }
             )
         except Exception:
-            logger.exception("[migrate_component] ugly data error template_id={:0}".format(template_id))
+            logger.exception("[migrate_component] dirty data error template_id={:0}".format(template_id))
             continue
 
     # 迁移
@@ -228,7 +228,7 @@ def migrate_instance(start, end):
                 }
             )
         except Exception:
-            logger.exception("[migrate_instance] ugly data error template_id={:0}".format(instance_id))
+            logger.exception("[migrate_instance] dirty data error template_id={:0}".format(instance_id))
             continue
     # 构建目标数据对象
     for data_source_item in data_source_list:
