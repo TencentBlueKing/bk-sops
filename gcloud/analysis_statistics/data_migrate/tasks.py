@@ -324,10 +324,10 @@ def migrate_component_execute_data(start, end):
                 taskflowexcutednodestatistics = TaskflowExecutedNodeStatistics.objects.create(**kwargs)
                 taskflowexcutednodestatistics.save()
         except Exception:
+            instance_id = kwargs["instance_id"]
+            node_id = kwargs["node_id"]
             logger.exception(
-                "[migrate_component_execute_data] instance_id={:0},node_id={:1}的数据插入失败，自动回滚".format(
-                    kwargs["instance_id"], kwargs["node_id"]
-                )
+                f"[migrate_component_execute_data] instance_id={instance_id},node_id={node_id}的数据插入失败，自动回滚"
             )
     return True
 
@@ -432,15 +432,12 @@ def migrate_schedule():
         round(migrate_log.component_execute_data_migrated / migrate_log.component_execute_data_count, 2) * 100
     )
     logger.info(
+        f"""
+        [statistics_migrate_process] migrated templateInPipeline({template_migrate_process}%)
+        ComponentInTemplate({component_migrate_process}%)
+        InstanceInPipeline({instance_migrate_process}%)
+        ComponentExecuteData({component_execute_migrate_process}%)
         """
-        [statistics_migrate_process] migrated templateInPipeline({:0}%) ComponentInTemplate({:1}%)
-        InstanceInPipeline({:2}%) ComponentExecuteData({:3}%)
-        """.format(
-            template_migrate_process,
-            component_migrate_process,
-            instance_migrate_process,
-            component_execute_migrate_process,
-        )
     )
 
     if finished:
