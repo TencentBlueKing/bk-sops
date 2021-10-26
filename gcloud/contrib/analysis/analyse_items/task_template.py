@@ -53,7 +53,7 @@ def produce_filter(filters):
     orm_filters = {}
     for cond, value in list(filters.items()):
         # component_code不加入查询条件中
-        if value in ["None", ""] or cond in ["component_code", "order_by", "type"]:
+        if value in ["None", ""] or cond in ["component_code", "order_by", "type", "topn"]:
             continue
         if TEMPLATE_REGEX.match(cond):
             filter_cond = "pipeline_template__%s" % cond
