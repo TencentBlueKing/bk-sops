@@ -193,9 +193,12 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         total = tasktmpl.count()
         groups = []
 
-        template_id_list = list(tasktmpl.values_list("id", flat=True))
-        template_in_statistics_data = TemplateStatistics.objects.filter(task_template_id__in=template_id_list)
-        template_id_map = {template.template_id: template.task_template_id for template in template_in_statistics_data}
+        task_template_id_list = list(tasktmpl.values_list("id", flat=True))
+        template_id_dict = dict(tasktmpl.values_list("pipeline_template__template_id", "id"))
+        # template_id_list = list(tasktmpl.values_list("pipeline_template__template_id", flat=True))
+        template_id_list = list(template_id_dict.keys())
+        template_in_statistics_data = TemplateStatistics.objects.filter(task_template_id__in=task_template_id_list)
+        template_id_map = {template.template_id: template.template_id for template in template_in_statistics_data}
         # 计算relationshipTotal, instanceTotal, periodicTotal
         # 查询所有的流程引用，并统计引用数量
         relationship_list = (
@@ -205,33 +208,35 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         )
         # 查询所有的任务，并统计每个template创建了多少个任务
         taskflow_list = list(
-            PipelineInstance.objects.filter(template_id__in=list(template_id_map.keys()))
+            PipelineInstance.objects.filter(template__id__in=list(template_id_map.keys()))
             .values("template_id")
             .annotate(instance_total=Count("template_id"))
             .order_by()
         )
         # 查询所有归档的周期任务，并统计每个template创建了多少个周期任务
         periodic_list = (
-            PeriodicTask.objects.filter(template__template_id__in=template_id_list)
-            .values("template__template_id")
+            PeriodicTask.objects.filter(template__id__in=list(template_id_map.keys()))
+            .values("template__id")
             .annotate(periodic_total=Count("template__id"))
         )
         relationship_dict = {}
         for relationship in relationship_list:
             try:
-                relationship_dict[relationship["descendant_template_id"]] = relationship["relationship_total"]
+                relationship_dict[template_id_dict[relationship["descendant_template_id"]]] = relationship[
+                    "relationship_total"
+                ]
             except KeyError:
                 continue
         taskflow_dict = {}
         for taskflow in taskflow_list:
             try:
-                taskflow_dict[template_id_map[str(taskflow["template_id"])]] = taskflow["instance_total"]
+                taskflow_dict[template_id_map[taskflow["template_id"]]] = taskflow["instance_total"]
             except KeyError:
                 continue
         periodic_dict = {}
         for periodic_task in periodic_list:
             try:
-                periodic_dict[periodic_task["template__template_id"]] = periodic_task["periodic_total"]
+                periodic_dict[periodic_task["template__id"]] = periodic_task["periodic_total"]
             except KeyError:
                 continue
         # 查询所有project_name
@@ -254,7 +259,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                     "atom_toal": data.atom_total,
                     "subprocess_total": data.subprocess_total,
                     "gateways_total": data.gateways_total,
-                    "relationship_total": relationship_dict.get(data.template_id, 0),
+                    "relationship_total": relationship_dict.get(data.task_template_id, 0),
                     "instance_total": taskflow_dict.get(data.template_id, 0),
                     "periodic_total": periodic_dict.get(data.template_id, 0),
                     "output_count": data.output_count,
