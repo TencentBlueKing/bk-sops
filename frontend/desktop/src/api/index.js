@@ -13,7 +13,6 @@ import axios from 'axios'
 import axiosDefaults from 'axios/lib/defaults'
 import bus from '@/utils/bus.js'
 import isCrossOriginIFrame from '@/utils/isCrossOriginIFrame.js'
-import { checkDataType } from '@/utils/checkDataType'
 import { setJqueryAjaxConfig } from '@/config/setting.js'
 
 axiosDefaults.baseURL = window.SITE_URL
@@ -50,17 +49,7 @@ axios.interceptors.response.use(
         const response = error.response
         console.log(response)
         if (response.data.message) {
-            if (checkDataType(response.data.message) === 'Object') {
-                const msg = []
-                Object.keys(response.data.message).forEach((key) => {
-                    msg.push(response.data.message[key].join(';'))
-                })
-                response.data.msg = msg.join(';')
-            } else if (checkDataType(response.data.message) === 'Array') {
-                response.data.msg = response.data.message.join(';')
-            } else {
-                response.data.msg = response.data.message
-            }
+            response.data.msg = response.data.message
         }
         if (response.data.responseText) {
             response.data.msg = response.data.responseText
