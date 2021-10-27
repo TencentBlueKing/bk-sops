@@ -543,6 +543,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
                 {
                     "demision_id": demision,
                     "demision_name": proj_demision_dict[demision],
+                    "demision_total": len(result),
                     "info": [{"name": key, "value": value["value"]} for key, value in result.items()],
                 }
             )
