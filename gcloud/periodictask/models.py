@@ -206,7 +206,7 @@ class PeriodicTask(models.Model):
     def get_stakeholders(self):
         notify_receivers = json.loads(self.template.notify_receivers)
         receiver_group = notify_receivers.get("receiver_group", [])
-        receivers = [self.creator]
+        receivers = []
 
         if self.project.from_cmdb:
             cc_group_members = get_business_group_members(self.project.bk_biz_id, receiver_group)
@@ -223,7 +223,10 @@ class PeriodicTask(models.Model):
             members = ",".join(members).split(",")
             receivers.extend(members)
 
-        return list(set(receivers))
+        # 这里保证执行人在列表第一位，其他接收人不保证顺序
+        receiver_set = set(receivers)
+        receiver_set.discard(self.creator)
+        return [self.creator] + list(receiver_set)
 
     def get_notify_type(self):
         notify_type = json.loads(self.template.notify_type)
