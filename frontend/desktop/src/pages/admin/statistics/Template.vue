@@ -13,12 +13,8 @@
     <div class="statistics-template">
         <div class="bar-chart-area">
             <percentage
-                title="BG占比"
-                canvas-id="bg-percent">
-            </percentage>
-            <percentage
-                title="部门占比"
-                canvas-id="dept-percent">
+                :data-loading="statsDataLoading"
+                :data-list="statsData">
             </percentage>
             <horizontal-bar-chart
                 :title="$t('分类统计')"
@@ -34,6 +30,20 @@
                 :data-loading="projectDataLoading"
                 :biz-useage-data="bizUseageData"
                 @onFilterClick="projectFilterChange">
+            </horizontal-bar-chart>
+            <horizontal-bar-chart
+                :title="$t('模板执行次数TOP5')"
+                :show-form="false"
+                :show-popover="true"
+                :data-list="topnData"
+                :data-loading="topnDataLoading">
+            </horizontal-bar-chart>
+            <horizontal-bar-chart
+                :title="$t('模板使用统计')"
+                :show-form="false"
+                :show-popover="true"
+                :data-list="tempUsageData"
+                :data-loading="tempUsageLoading">
             </horizontal-bar-chart>
         </div>
         <div class="tab-content-area">
@@ -92,12 +102,28 @@
                             :sortable="item.sortable">
                             <template slot-scope="props">
                                 <a
-                                    v-if="item.prop === 'templateName'"
+                                    v-if="item.prop === 'template_name'"
                                     class="table-link"
                                     target="_blank"
-                                    :title="props.row.templateName"
-                                    :href="`${site_url}template/edit/${props.row.projectId}/?template_id=${props.row.templateId}`">
-                                    {{props.row.templateName}}
+                                    :title="props.row.template_name"
+                                    :href="`${site_url}template/edit/${props.row.project_id}/?template_id=${props.row.template_id}`">
+                                    {{props.row.template_name}}
+                                </a>
+                                <a
+                                    v-else-if="item.prop === 'taskflow_total'"
+                                    class="table-link"
+                                    target="_blank"
+                                    :title="props.row.taskflow_total"
+                                    :href="`${site_url}taskflow/home/list/${props.row.project_id}/`">
+                                    {{props.row.taskflow_total}}
+                                </a>
+                                <a
+                                    v-else-if="item.prop === 'periodic_total'"
+                                    class="table-link"
+                                    target="_blank"
+                                    :title="props.row.periodic_total"
+                                    :href="`${site_url}taskflow/home/periodic/${props.row.project_id}/`">
+                                    {{props.row.periodic_total}}
                                 </a>
                                 <template v-else>
                                     <span :title="props.row[item.prop]">{{ props.row[item.prop] }}</span>
@@ -188,6 +214,12 @@
             width: 100
         },
         {
+            label: i18n.t('普通任务'),
+            prop: 'taskflow_total',
+            sortable: true,
+            width: 110
+        },
+        {
             label: i18n.t('周期任务'),
             prop: 'periodic_total',
             sortable: true,
@@ -246,6 +278,12 @@
                 tplSort: '',
                 tplDataLoading: true,
                 tableColumn: TABLE_COLUMN,
+                statsData: [],
+                statsDataLoading: true,
+                topnData: [],
+                topnDataLoading: true,
+                tempUsageData: [],
+                tempUsageLoading: true,
                 bizUseageData: {},
                 pagination: {
                     current: 1,
@@ -285,6 +323,9 @@
                 this.getProjectData()
                 this.getTplData()
                 this.getBizUseageData()
+                this.getStatsData()
+                this.getTopnData()
+                this.getTempUsageData()
             },
             async loadAnalysisData (query, type = '') {
                 try {
@@ -360,6 +401,77 @@
                     this.tplDataLoading = false
                 }
             },
+            async getStatsData () {
+                try {
+                    this.statsDataLoading = true
+                    const query = {
+                        group_by: 'template_biz',
+                        conditions: {
+                            create_time: this.dateRange[0],
+                            finish_time: this.dateRange[1]
+                        }
+                    }
+                    this.statsData = await this.loadAnalysisData(query)
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.statsDataLoading = false
+                }
+            },
+            async getTopnData () {
+                try {
+                    this.topnDataLoading = true
+                    const query = {
+                        group_by: 'template_execute_times',
+                        conditions: {
+                            create_time: this.dateRange[0],
+                            finish_time: this.dateRange[1]
+                        }
+                    }
+                    const resp = await this.loadAnalysisData(query)
+                    this.topnData = resp.map(item => {
+                        item.name = item.template_name
+                        item.value = item.count
+                        return item
+                    })
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.topnDataLoading = false
+                }
+            },
+            async getTempUsageData () {
+                try {
+                    this.tempUsageLoading = true
+                    const query = {
+                        group_by: 'template_execute_in_biz',
+                        conditions: {
+                            create_time: this.dateRange[0],
+                            finish_time: this.dateRange[1]
+                        }
+                    }
+                    const resp = await this.loadAnalysisData(query)
+                    this.tempUsageData = resp.reduce((acc, cur) => {
+                        let value = 0
+                        const createMethod = cur.useage.filter(item => {
+                            value += item.value
+                            item.color = item.name === '已使用' ? '#339dff' : '#c4c6cc'
+                            return item.value
+                        })
+                        acc.push({
+                            name: cur.project_name,
+                            value,
+                            isTemp: true,
+                            create_method: createMethod
+                        })
+                        return acc
+                    }, [])
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.tempUsageLoading = false
+                }
+            },
             async getBizUseageData () {
                 try {
                     const resp = await this.queryBizUseageData({ query: 'template' })
@@ -402,3 +514,44 @@
         }
     }
 </script>
+<style lang="scss">
+    .task-method {
+        .project-name {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+    }
+    .task-method-item {
+        display: flex;
+        align-items: center;
+        position: relative;
+        margin-bottom: 3px;
+        font: 12px "Helvetica Neue", Helvetica, Arial, sans-serif;
+        .color-block {
+            height: 10px;
+            width: 10px;
+            margin-right: 4px;
+            border-width: 2px;
+        }
+        .task-name {
+            flex: 1;
+            min-width: 80px;
+            max-width: 120px;
+            word-break: break-all;
+        }
+        .hide-task-name {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+        }
+        .task-num {
+            min-width: 25px;
+            text-align: right;
+        }
+        .percentage {
+            color: #979ba5;
+            margin-left: 5px;
+            min-width: 31px;
+        }
+    }
+</style>

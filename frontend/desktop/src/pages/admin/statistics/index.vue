@@ -191,7 +191,6 @@
             justify-content: space-between;
             .percentage, .horizontal-bar-chart {
                 width: 49%;
-                margin-bottom: 20px;
             }
         }
         /deep/ .tab-content-area {

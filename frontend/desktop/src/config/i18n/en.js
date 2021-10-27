@@ -1220,7 +1220,18 @@ const en = {
     '成功': 'Success',
     '变量保存数据与最新的CMDB集群配置存在差异，是否更新变量数据？': 'Variable data is different from the latest CMDB configuration, determine whether to update',
     '移动端': 'Mobile',
-    'API网关': 'API Gateway'
+    'API网关': 'API Gateway',
+    '模板执行次数TOP5': 'TOP5 template execution times',
+    '模板使用统计': 'Template usage statistics',
+    '已使用': 'Used',
+    '未使用': 'Unused',
+    '职能化统计': 'Functional statistics',
+    '非职能化': 'Non-functional',
+    '总计': 'Total',
+    '总数': 'Total',
+    '业务名称': 'Business name',
+    '数量': 'Amount',
+    '占比': 'Percentage'
 }
 
 export default en

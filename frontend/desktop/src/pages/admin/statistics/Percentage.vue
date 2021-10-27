@@ -1,20 +1,31 @@
 <template>
-    <div class="percentage">
+    <div class="percentage" v-bkloading="{ isLoading: dataLoading, opacity: 1, zIndex: 100 }">
         <section class="percentage-title">
-            <p class="title">{{ title }}</p>
+            <ul class="panel">
+                <li
+                    v-for="item in dataList"
+                    :key="item.demision_id"
+                    :class="['panel-item', { 'active': item.demision_id === demisionId }]"
+                    @click="demisionId = item.demision_id">
+                    {{ item.demision_name }}
+                </li>
+            </ul>
             <slot></slot>
         </section>
         <section class="chart-wrapper">
             <div class="canvas-content">
-                <canvas :class="`${canvasId}-canvas`" style="height: 100%; width: 100%"></canvas>
-                <div class="center-circle">
-                    <span class="total">368</span>
-                    <span class="desc">BG总数</span>
-                </div>
+                <template v-if="hasAmountBizTotal">
+                    <canvas :class="`${canvasId}-canvas`" style="height: 240px; width: 240px"></canvas>
+                    <div class="center-circle">
+                        <span class="total">{{ statsInfo.total }}</span>
+                        <span class="desc">{{ statsInfo.name + $t('总数') }}</span>
+                    </div>
+                </template>
+                <no-data v-else></no-data>
             </div>
             <div class="percent-table">
                 <bk-table
-                    :data="dataList"
+                    :data="statsList"
                     :outer-border="false"
                     :header-border="false">
                     <bk-table-column
@@ -27,7 +38,11 @@
                         :prop="item.prop">
                         <template slot-scope="{ row, $index }">
                             <div v-if="item.prop === 'name'" class="business-name">
-                                <span v-if="$index !== dataList.length - 1" class="color-block"></span>
+                                <span
+                                    v-if="$index !== statsList.length - 1"
+                                    class="color-block"
+                                    :style="{ background: row.color }">
+                                </span>
                                 <span>{{ row.name }}</span>
                             </div>
                             <span v-else>{{ row[item.prop] }}</span>
@@ -41,97 +56,129 @@
 
 <script>
     import BKChart from '@blueking/bkcharts'
+    import i18n from '@/config/i18n/index.js'
+    import NoData from '@/components/common/base/NoData.vue'
 
     const TABLE_COLUMN = [
         {
             width: '200',
             align: 'left',
-            label: '业务名称',
+            label: i18n.t('业务名称'),
             prop: 'name'
         },
         {
             width: '',
             align: 'right',
-            label: '数量',
-            prop: 'source'
+            label: i18n.t('数量'),
+            prop: 'amount'
         },
         {
-            width: '',
-            align: 'right',
-            label: '占比',
-            prop: 'status'
+            width: 60,
+            align: 'left',
+            label: i18n.t('占比'),
+            prop: 'percentage'
         }
     ]
     export default {
+        components: {
+            NoData
+        },
         props: {
-            title: {
-                type: String,
-                default: ''
+            dataLoading: {
+                type: Boolean,
+                default: true
             },
-            canvasId: {
-                type: String,
-                default: ''
+            dataList: {
+                type: Array,
+                default: () => []
             }
         },
         data () {
             return {
                 tableColumn: TABLE_COLUMN,
-                dataList: [
-                    {
-                        name: '王者荣耀手机版',
-                        source: '61',
-                        status: '12%'
-                    }, {
-                        name: '蓝鲸',
-                        source: '61',
-                        status: '12%'
-                    }, {
-                        name: '权限中心',
-                        source: '61',
-                        status: '12%'
-                    }, {
-                        name: '王者荣耀手机版',
-                        source: '61',
-                        status: '12%'
-                    }, {
-                        name: '蓝鲸',
-                        source: '61',
-                        status: '12%'
-                    }, {
-                        name: '权限中心',
-                        source: '61',
-                        status: '12%'
-                    }, {
-                        name: '总计',
-                        source: '161',
-                        status: '100%'
-                    }
-                ]
+                chart: null,
+                canvasId: '',
+                demisionId: '',
+                statsInfo: {
+                    name: '',
+                    total: 0
+                },
+                statsList: [],
+                hasAmountBizTotal: 0 // 所有业务有数量的总和
             }
         },
-        mounted () {
-            this.initChart()
+        watch: {
+            dataList (val) {
+                if (val.length) {
+                    const { demision_id } = this.dataList[0]
+                    this.demisionId = demision_id
+                }
+            },
+            demisionId: {
+                handler (val) {
+                    if (!val) return
+                    // 表格数据
+                    const { info, demision_name: name, demision_total: total } = this.dataList.find(item => item.demision_id === val)
+                    this.statsInfo.name = name
+                    this.statsInfo.total = total
+                    // count 所有业务数量总和
+                    const count = info.reduce((acc, cur) => {
+                        return acc + cur.value
+                    }, 0)
+                    const statsList = info.map(item => {
+                        item.color = this.randomColor()
+                        item.amount = item.value
+                        item.percentage = Math.round(item.value / count * 10000) / 100.00 + '%'
+                        return item
+                    })
+                    statsList.push({
+                        name: i18n.t('总计'),
+                        amount: count,
+                        percentage: '100%'
+                    })
+                    this.statsList = statsList
+                    // 环形图数据
+                    this.canvasId = val.replace(/\_/g, '-')
+                    const labels = []
+                    const bgcColor = []
+                    const data = []
+                    let counts = 0
+                    const circleDataList = this.statsList.slice(0, -1)
+                    circleDataList.forEach(item => {
+                        labels.push(item.name)
+                        bgcColor.push(item.color)
+                        data.push(item.value)
+                        counts = counts + (item.value ? 1 : 0)
+                    })
+                    this.hasAmountBizTotal = counts
+                    this.$nextTick(() => {
+                        if (this.chart) {
+                            this.updateChart(labels, bgcColor, data, counts)
+                        } else {
+                            this.initChart(labels, bgcColor, data, counts)
+                        }
+                    })
+                }
+            }
+        },
+        beforeDestroy () {
+            if (this.chart) {
+                this.chart.destroy()
+            }
         },
         methods: {
-            initChart () {
+            initChart (labels, backgroundColor, data, counts) {
                 const context = document.querySelector(`.${this.canvasId}-canvas`)
                 this.chart = new BKChart(context, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Running', 'Swimming', 'Eating', 'Cycling', 'Jumping', 'Sleeping'],
+                        labels,
                         datasets: [
                             {
-                                backgroundColor: [
-                                    'rgba(51,157,255,1)',
-                                    'rgba(59,206,149,1)',
-                                    'rgba(255,156,74,1)',
-                                    'rgba(255,111,114,1)',
-                                    'rgba(248,211,15,1)',
-                                    'rgba(181, 104, 255, 1)'
-                                ],
+                                backgroundColor,
                                 borderColor: '#fff',
-                                borderWidth: 1,
-                                data: [20, 10, 30, 50, 40, 60],
+                                borderWidth: counts === 1 ? 0 : 1,
+                                data,
                                 hoverBackgroundColor: 'rgba(0, 0, 0, 0.1)'
                             }
                         ]
@@ -148,6 +195,21 @@
                         }
                     }
                 })
+            },
+            updateChart (labels, backgroundColor, data, counts) {
+                this.chart.data.labels = labels
+                const datasets = this.chart.data.datasets[0]
+                datasets.backgroundColor = backgroundColor
+                datasets.borderWidth = counts === 1 ? 0 : 1
+                datasets.data = data
+                this.chart.update()
+            },
+            randomColor () {
+                let color = ''
+                for (let i = 0; i < 6; i++) {
+                    color += '0123456789abcdef'[Math.floor(Math.random() * 16)]
+                }
+                return '#' + color
             }
         }
     }
@@ -164,12 +226,22 @@
         border-radius: 3px;
         box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.15);
         overflow: hidden;
+        margin-bottom: 20px;
         .percentage-title {
             margin-bottom: 40px;
-            .title {
-                color: #313238;
-                font-size: 14px;
-                font-weight: 700;
+            .panel {
+                display: flex;
+                align-items: center;
+                .panel-item {
+                    color: #313238;
+                    font-size: 14px;
+                    cursor: pointer;
+                    margin-right: 16px;
+                    &.active {
+                        color: #1768ef;
+                        font-weight: 700;
+                    }
+                }
             }
         }
         .chart-wrapper {
@@ -239,9 +311,11 @@
                     .color-block {
                         width: 12px;
                         height: 12px;
-                        background: #ff6f72;
                         margin-right: 8px;
                     }
+                }
+                .bk-table-empty-text {
+                    height: 200px;
                 }
             }
         }
