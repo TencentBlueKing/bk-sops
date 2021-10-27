@@ -18,10 +18,11 @@ from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, BooleanItemSchema
+from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, BooleanItemSchema, IntItemSchema
 from pipeline.component_framework.component import Component
 
 from gcloud.conf import settings
+from gcloud.core.models import StaffGroupSet
 from gcloud.utils.handlers import handle_api_error
 from gcloud.utils.cmdb import get_notify_receivers
 from gcloud.core.roles import CC_V2_ROLE_MAP
@@ -35,43 +36,58 @@ bk_handle_api_error = partial(handle_api_error, __group_name__)
 
 
 class NotifyService(Service):
-
     def inputs_format(self):
         return [
-            self.InputItem(name=_("业务 ID"),
-                           key="biz_cc_id",
-                           type="string",
-                           schema=StringItemSchema(description=_("通知人员所属的 CMDB 业务 ID"))),
-            self.InputItem(name=_("通知方式"),
-                           key="bk_notify_type",
-                           type="array",
-                           schema=ArrayItemSchema(description=_("需要使用的通知方式，从 API 网关自动获取已实现的通知渠道"),
-                                                  item_schema=StringItemSchema(description=_("通知方式")))),
-            self.InputItem(name=_("通知分组"),
-                           key="bk_receiver_group",
-                           type="array",
-                           required=False,
-                           schema=ArrayItemSchema(description=_("需要进行通知的业务人员分组"),
-                                                  enum=["Maintainers", "ProductPm", "Developer", "Tester"],
-                                                  item_schema=StringItemSchema(description=_("通知分组")))),
-            self.InputItem(name=_("额外通知人"),
-                           key="bk_more_receiver",
-                           type="string",
-                           schema=StringItemSchema(
-                               description=_("除了通知分组外需要额外通知的人员，多个用英文逗号 `,` 分隔"))
-                           ),
-            self.InputItem(name=_("通知标题"),
-                           key="bk_notify_title",
-                           type="string",
-                           schema=StringItemSchema(description=_("通知的标题"))),
-            self.InputItem(name=_("通知内容"),
-                           key="bk_notify_content",
-                           type="string",
-                           schema=StringItemSchema(description=_("通知的内容"))),
-            self.InputItem(name=_("通知执行人"),
-                           key="notify",
-                           type="boolean",
-                           schema=BooleanItemSchema(description=_("通知执行人名字")))]
+            self.InputItem(
+                name=_("业务 ID"),
+                key="biz_cc_id",
+                type="string",
+                schema=StringItemSchema(description=_("通知人员所属的 CMDB 业务 ID")),
+            ),
+            self.InputItem(
+                name=_("通知方式"),
+                key="bk_notify_type",
+                type="array",
+                schema=ArrayItemSchema(
+                    description=_("需要使用的通知方式，从 API 网关自动获取已实现的通知渠道"), item_schema=StringItemSchema(description=_("通知方式"))
+                ),
+            ),
+            self.InputItem(
+                name=_("固定分组"),
+                key="bk_receiver_group",
+                type="array",
+                required=False,
+                schema=ArrayItemSchema(
+                    description=_("需要进行通知的业务人员分组"),
+                    enum=["Maintainers", "ProductPm", "Developer", "Tester"],
+                    item_schema=StringItemSchema(description=_("通知分组")),
+                ),
+            ),
+            self.InputItem(
+                name=_("项目人员分组"),
+                key="bk_staff_group",
+                type="array",
+                required=False,
+                schema=ArrayItemSchema(
+                    description=_("需要进行通知的项目人员分组ID列表"), item_schema=IntItemSchema(description=_("项目人员分组ID"))
+                ),
+            ),
+            self.InputItem(
+                name=_("额外通知人"),
+                key="bk_more_receiver",
+                type="string",
+                schema=StringItemSchema(description=_("除了通知分组外需要额外通知的人员，多个用英文逗号 `,` 分隔")),
+            ),
+            self.InputItem(
+                name=_("通知标题"), key="bk_notify_title", type="string", schema=StringItemSchema(description=_("通知的标题"))
+            ),
+            self.InputItem(
+                name=_("通知内容"), key="bk_notify_content", type="string", schema=StringItemSchema(description=_("通知的内容"))
+            ),
+            self.InputItem(
+                name=_("通知执行人"), key="notify", type="boolean", schema=BooleanItemSchema(description=_("通知执行人名字"))
+            ),
+        ]
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
@@ -87,25 +103,28 @@ class NotifyService(Service):
 
         receiver_info = data.get_one_of_inputs("bk_receiver_info")
         receiver_groups = receiver_info.get("bk_receiver_group")
+        staff_groups = receiver_info.get("bk_staff_group")
         more_receiver = receiver_info.get("bk_more_receiver")
         notify = data.get_one_of_inputs("notify")
 
         # 转换为cc3.0字段
         receiver_group = [CC_V2_ROLE_MAP[group] for group in receiver_groups]
 
-        result = get_notify_receivers(client,
-                                      biz_cc_id,
-                                      supplier_account,
-                                      receiver_group,
-                                      more_receiver,
-                                      self.logger)
+        result = get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, more_receiver, self.logger)
 
         if not result["result"]:
             data.set_outputs("ex_data", result["message"])
             return False
 
+        # 获取项目的自定义人员分组人员
+        staff_names = StaffGroupSet.objects.get_members_with_group_ids(staff_groups) if staff_groups else []
+
+        usernames = result["data"].split(",") + staff_names
+        if notify:
+            usernames.append(executor)
+
         base_kwargs = {
-            "receiver__username": f'{result["data"]},{executor}'.strip(",") if notify else result["data"],
+            "receiver__username": ",".join(usernames).strip(","),
             "title": title,
             "content": content,
         }
@@ -143,6 +162,8 @@ class NotifyComponent(Component):
     bound_service = NotifyService
     version = "v1.0"
     form = "%scomponents/atoms/bk/notify/v1_0.js" % settings.STATIC_URL
-    desc = _("通知方式从 API 网关自动获取已实现的通知渠道，API网关定义了这些消息通知组件的接口协议，但是并没有完全实现组件内容，"
-             "用户可根据接口协议，重写此部分组件。API网关为降低实现消息通知组件的难度，提供了在线更新组件配置，"
-             "不需编写组件代码的方案。详情请查阅PaaS->API网关->使用指南。")
+    desc = _(
+        "通知方式从 API 网关自动获取已实现的通知渠道，API网关定义了这些消息通知组件的接口协议，但是并没有完全实现组件内容，"
+        "用户可根据接口协议，重写此部分组件。API网关为降低实现消息通知组件的难度，提供了在线更新组件配置，"
+        "不需编写组件代码的方案。详情请查阅PaaS->API网关->使用指南。"
+    )
