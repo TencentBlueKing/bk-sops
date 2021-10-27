@@ -175,7 +175,7 @@ def import_templates(request, project_id):
     {
         "data(integer)": "成功导入的流程数",
         "flows": {
-            "导入的流程ID(integer)"："导入的流程名称(string)"
+            "导入的流程ID(integer)": "导入的流程名称(string)"
         }
     }
     """

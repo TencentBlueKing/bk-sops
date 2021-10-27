@@ -389,15 +389,23 @@ def get_biz_inner_module_list(
 
     # 勾选的模块与空闲机、待回收、故障机模块取交集
     select_method = var_ip_selector[produce_method]
-    if ALL_SELECTED_STR in select_method[module_input_method]:
+    select_sets = select_method[set_input_method]
+    select_modules = select_method[module_input_method]
+
+    if isinstance(select_sets, str):
+        select_sets = select_sets.split(",")
+    if isinstance(select_modules, str):
+        select_modules = select_modules.split(",")
+
+    if ALL_SELECTED_STR in select_modules:
         select_biz_internal_module = biz_internal_module_names
     else:
-        select_biz_internal_module = set(biz_internal_module_names) & set(select_method[module_input_method])
+        select_biz_internal_module = set(biz_internal_module_names) & set(select_modules)
 
     # 用户输入空闲机池或all，选择到模块为空或all，取空闲机池下所有模块ID
-    if (
-        BIZ_INTERNAL_SET in select_method[set_input_method] or ALL_SELECTED_STR in select_method[set_input_method]
-    ) and (not select_method[module_input_method] or ALL_SELECTED_STR in select_method[module_input_method]):
+    if (BIZ_INTERNAL_SET in select_sets or ALL_SELECTED_STR in select_sets) and (
+        not select_modules or ALL_SELECTED_STR in select_modules
+    ):
         return biz_internal_module_list
 
     biz_internal_module_option_list = []
