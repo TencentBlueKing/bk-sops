@@ -119,11 +119,9 @@ class TestGetJobHistoryResultMixin(TestCase):
         self.mixin = GetJobHistoryResultMixin()
         self.mixin.logger = logger
         self.mixin.need_get_sops_var = True
-        self.mixin.__need_schedule__ = True
         self.get_job_result = self.mixin.get_job_history_result
 
     def test_get_job_history_result(self):
         with mock.patch(GET_CLIENT_BY_USER, return_value=MockClient()):
             result = self.get_job_result(TEST_DATA, TEST_PARENT_DATA)
             self.assertTrue(result)
-            self.assertFalse(self.mixin.__need_schedule__)
