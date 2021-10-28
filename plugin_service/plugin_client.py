@@ -58,9 +58,9 @@ def json_response_decoder(func):
         if response.status_code != 200:
             message = (
                 f"{func.__name__} gets error status code [{response.status_code}], "
-                f"request with params: {args} and kwargs: {kwargs}. "
+                f"request with params: {args} and kwargs: {kwargs}. response content: {response.content}"
             )
-            logger.error(message + f"response content: {response.content}")
+            logger.error(message)
             return {"result": False, "data": None, "message": message}
         return response.json()
 
@@ -94,19 +94,13 @@ class PluginServiceApiClient:
     @data_parser
     @json_response_decoder
     def invoke(self, version, data):
-        url = os.path.join(
-            f"{env.APIGW_NETWORK_PROTOCAL}://{self.plugin_code}.{env.APIGW_URL_SUFFIX}",
-            env.APIGW_ENVIRONMENT,
-            "invoke",
-            version,
-        )
-        headers = {
-            "X-Bkapi-Authorization": json.dumps(
-                {"bk_app_code": env.PLUGIN_SERVICE_APIGW_APP_CODE, "bk_app_secret": env.PLUGIN_SERVICE_APIGW_APP_SECRET}
-            ),
-            "Content-Type": "application/json",
-        }
+        url, headers = self._prepare_apigw_api_request(path_params=["invoke", version])
         return requests.post(url, data=json.dumps(data), headers=headers)
+
+    @json_response_decoder
+    def dispatch_plugin_api_request(self, request_params):
+        url, headers = self._prepare_apigw_api_request(path_params=["plugin_api_dispatch"])
+        return requests.post(url, data=json.dumps(request_params), headers=headers)
 
     @json_response_decoder
     def get_meta(self):
@@ -225,3 +219,17 @@ class PluginServiceApiClient:
         if scroll_id:
             params.update({"scroll_id": scroll_id})
         return requests.get(url, params=params)
+
+    def _prepare_apigw_api_request(self, path_params: list):
+        url = os.path.join(
+            f"{env.APIGW_NETWORK_PROTOCAL}://{self.plugin_code}.{env.APIGW_URL_SUFFIX}",
+            env.APIGW_ENVIRONMENT,
+            *path_params,
+        )
+        headers = {
+            "X-Bkapi-Authorization": json.dumps(
+                {"bk_app_code": env.PLUGIN_SERVICE_APIGW_APP_CODE, "bk_app_secret": env.PLUGIN_SERVICE_APIGW_APP_SECRET}
+            ),
+            "Content-Type": "application/json",
+        }
+        return url, headers
