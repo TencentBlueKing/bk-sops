@@ -32,18 +32,19 @@
                 @onFilterClick="projectFilterChange">
             </horizontal-bar-chart>
             <horizontal-bar-chart
-                :title="$t('模板执行次数TOP5')"
-                :show-form="false"
-                :show-popover="true"
-                :data-list="topnData"
-                :data-loading="topnDataLoading">
-            </horizontal-bar-chart>
-            <horizontal-bar-chart
                 :title="$t('模板使用统计')"
                 :show-form="false"
                 :show-popover="true"
                 :data-list="tempUsageData"
                 :data-loading="tempUsageLoading">
+            </horizontal-bar-chart>
+            <horizontal-bar-chart
+                class="topn-chart"
+                :title="$t('模板执行次数TOP5')"
+                :show-form="false"
+                :show-popover="true"
+                :data-list="topnData"
+                :data-loading="topnDataLoading">
             </horizontal-bar-chart>
         </div>
         <div class="tab-content-area">
@@ -515,6 +516,9 @@
     }
 </script>
 <style lang="scss">
+    .topn-chart {
+        width: 100% !important;
+    }
     .task-method {
         .project-name {
             font-size: 14px;
