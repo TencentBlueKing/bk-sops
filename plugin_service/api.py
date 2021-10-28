@@ -10,12 +10,16 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import logging
+
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
 
+from plugin_service.conf import PLUGIN_LOGGER
 from plugin_service.decorators import inject_plugin_client, validate_params
+from plugin_service.exceptions import PluginServiceException
 from plugin_service.plugin_client import PluginServiceApiClient
 from plugin_service.serializers import (
     PluginListResponseSerializer,
@@ -28,6 +32,8 @@ from plugin_service.serializers import (
     PluginListQuerySerializer,
     PluginAppDetailResponseSerializer,
 )
+
+logger = logging.getLogger(PLUGIN_LOGGER)
 
 
 @swagger_auto_schema(
@@ -101,4 +107,24 @@ def get_logs(request: Request):
 def get_plugin_app_detail(request: Request):
     """获取插件服务App详情"""
     result = PluginServiceApiClient.get_plugin_app_detail(request.validated_data.get("plugin_code"))
+    return JsonResponse(result)
+
+
+@swagger_auto_schema(methods=["GET", "POST", "PUT", "PATCH", "DELETE"], responses={200: "插件数据接口返回"})
+@api_view(["GET", "POST", "PUT", "PATCH", "DELETE"])
+def get_plugin_api_data(request: Request, plugin_code: str, data_api_path: str):
+    """获取插件服务提供的数据接口数据"""
+    try:
+        client = PluginServiceApiClient(plugin_code)
+    except PluginServiceException as e:
+        message = f"[get_plugin_api_data] error: {e}"
+        logger.error(message)
+        return JsonResponse({"message": message, "result": False, "data": None})
+    params = {
+        "method": request.method,
+        "url": "/" + data_api_path,
+        "username": request.user.username,
+        "data": request.data,
+    }
+    result = client.dispatch_plugin_api_request(params)
     return JsonResponse(result)
