@@ -533,11 +533,20 @@
             margin-right: 4px;
             border-width: 2px;
         }
-        .task-name {
+        .content-wrap {
             flex: 1;
             min-width: 80px;
             max-width: 120px;
+            margin-right: 10px;
             word-break: break-all;
+            &.is-template {
+                min-width: 140px;
+                max-width: 170px;
+            }
+        }
+        .template-id {
+            color: #979ba5;
+            margin-left: 3px;
         }
         .hide-task-name {
             position: absolute;

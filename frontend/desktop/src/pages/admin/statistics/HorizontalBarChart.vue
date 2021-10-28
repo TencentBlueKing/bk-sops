@@ -76,9 +76,14 @@
                                                 v-for="val in item.create_method"
                                                 :key="val.name">
                                                 <span class="color-block" :style="{ background: item.isTemp ? val.color : creatMethods[val.name].color }"></span>
-                                                <span class="task-name">{{ item.isTemp ? val.name : creatMethods[val.name].text }}</span>
+                                                <span :class="['content-wrap', { 'is-template': item.template_id }]">
+                                                    <span class="task-name">{{ item.isTemp ? val.name : creatMethods[val.name].text }}</span>
+                                                    <span class="template-id" v-if="item.template_id">
+                                                        {{ 'ID: ' + item.template_id }}
+                                                    </span>
+                                                </span>
                                                 <span class="task-num">{{ val.value }}</span>
-                                                <span class="percentage">{{ '(' + getPercentage(val.value, item.value) + ')' }}</span>
+                                                <span class="percentage" v-if="!item.template_id">{{ '(' + getPercentage(val.value, item.value) + ')' }}</span>
                                             </li>
                                         </ul>
                                     </div>
