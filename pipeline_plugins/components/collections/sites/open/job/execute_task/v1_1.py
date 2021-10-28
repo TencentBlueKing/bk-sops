@@ -34,6 +34,8 @@ class JobExecuteTaskService(JobExecuteTaskServiceBase, GetJobHistoryResultMixin)
             return super().execute(data, parent_data)
         history_result = self.get_job_history_result(data, parent_data)
         self.logger.info(history_result)
+        if history_result:
+            self.__need_schedule__ = False
         return history_result
 
 

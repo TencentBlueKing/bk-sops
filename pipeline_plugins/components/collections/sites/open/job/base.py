@@ -431,7 +431,6 @@ class GetJobHistoryResultMixin(object):
         # get job_var
         if not self.need_get_sops_var:
             self.logger.info(data.outputs)
-            self.__need_schedule__ = False
             return True
 
         get_job_sops_var_dict_return = get_job_sops_var_dict(
@@ -450,7 +449,6 @@ class GetJobHistoryResultMixin(object):
             )
             data.set_outputs("log_outputs", {})
             self.logger.info(data.outputs)
-            self.__need_schedule__ = False
             return True
         log_outputs = get_job_sops_var_dict_return["data"]
         self.logger.info(
@@ -460,5 +458,4 @@ class GetJobHistoryResultMixin(object):
         )
         data.set_outputs("log_outputs", log_outputs)
         self.logger.info(data.outputs)
-        self.__need_schedule__ = False
         return True

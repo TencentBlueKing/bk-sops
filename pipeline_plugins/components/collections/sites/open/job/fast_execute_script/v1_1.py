@@ -156,6 +156,8 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
         if job_success_id:
             history_result = self.get_job_history_result(data, parent_data)
             self.logger.info(history_result)
+            if history_result:
+                self.__need_schedule__ = False
             return history_result
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
