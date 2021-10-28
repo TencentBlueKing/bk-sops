@@ -1562,7 +1562,7 @@
             box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.10);
         }
         .jtk-endpoint {
-            z-index: 4;
+            z-index: 3;
         }
         .jsflow-node {
             z-index: 4;
