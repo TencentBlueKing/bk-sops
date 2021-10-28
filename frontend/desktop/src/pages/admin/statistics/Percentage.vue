@@ -104,6 +104,7 @@
                     total: 0
                 },
                 statsList: [],
+                statsObj: {},
                 hasAmountBizTotal: 0 // 所有业务有数量的总和
             }
         },
@@ -118,25 +119,33 @@
                 handler (val) {
                     if (!val) return
                     // 表格数据
-                    const { info, demision_name: name, demision_total: total } = this.dataList.find(item => item.demision_id === val)
-                    this.statsInfo.name = name
-                    this.statsInfo.total = total
-                    // count 所有业务数量总和
-                    const count = info.reduce((acc, cur) => {
-                        return acc + cur.value
-                    }, 0)
-                    const statsList = info.map(item => {
-                        item.color = this.randomColor()
-                        item.amount = item.value
-                        item.percentage = Math.round(item.value / count * 10000) / 100.00 + '%'
-                        return item
-                    })
-                    statsList.push({
-                        name: i18n.t('总计'),
-                        amount: count,
-                        percentage: '100%'
-                    })
-                    this.statsList = statsList
+                    if (this.demisionId in this.statsObj) {
+                        const { statsList, name, total } = this.statsObj[this.demisionId]
+                        this.statsList = statsList
+                        this.statsInfo.name = name
+                        this.statsInfo.total = total
+                    } else {
+                        const { info, demision_name: name, demision_total: total } = this.dataList.find(item => item.demision_id === val)
+                        this.statsInfo.name = name
+                        this.statsInfo.total = total
+                        const statsList = info.map(item => {
+                            item.color = this.randomColor()
+                            item.amount = item.value
+                            item.percentage = Math.round(item.value / total * 10000) / 100.00 + '%'
+                            return item
+                        })
+                        statsList.push({
+                            name: i18n.t('总计'),
+                            amount: total,
+                            percentage: '100%'
+                        })
+                        this.statsList = statsList
+                        this.statsObj[this.demisionId] = {
+                            statsList,
+                            name,
+                            total
+                        }
+                    }
                     // 环形图数据
                     this.canvasId = val.replace(/\_/g, '-')
                     const labels = []
