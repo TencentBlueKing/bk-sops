@@ -91,7 +91,16 @@
                     }
                     return COMMON_ROUTE_LIST.concat(adminRouteList)
                 }
-                return COMMON_ROUTE_LIST
+                const commonRouteList = COMMON_ROUTE_LIST.map(group => {
+                    group.map(item => {
+                        if (item.hasProjectId && !this.project_id && !this.projectList.length) {
+                            item.url = '/guide'
+                        }
+                        return item
+                    })
+                    return group
+                })
+                return commonRouteList
             }
         },
         watch: {
@@ -136,6 +145,9 @@
                 if (nav.hasProjectId) {
                     route.path = `${nav.url}${this.project_id}/`
                 }
+                if (this.$route.path === route.path) {
+                    return
+                }
                 if (this.$route.name === nav.id) {
                     this.$router.push(route)
                     this.$nextTick(() => {
@@ -146,16 +158,6 @@
                 }
             },
             onHandleNavClick (id, groupIndex, routeIndex) {
-                // 特定页面未携带项目id时处理
-                const includesList = ['process', 'taskList', 'periodicTemplate', 'clockedTemplate', 'appMakerList']
-                if (includesList.includes(id) && !this.project_id && !this.projectList.length) {
-                    if (this.$route.path !== '/guide') {
-                        this.$router.push({
-                            path: '/guide'
-                        })
-                    }
-                    return
-                }
                 if (this.view_mode === 'appmaker') { // 轻应用跳转特殊处理
                     const { template_id } = this.$route.query
                     if (id === 'appmakerTaskCreate') {
