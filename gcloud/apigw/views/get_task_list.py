@@ -33,12 +33,16 @@ from packages.bkoauth.decorators import apigw_required
 @iam_intercept(ProjectViewInterceptor())
 def get_task_list(request, project_id):
     project = request.project
-    params_validator = GetTaskListForm(request.GET)
+    params_validator = GetTaskListForm(data=request.GET)
+    is_started = request.GET.get("is_started", None)
+    is_finished = request.GET.get("is_finished", None)
     if not params_validator.is_valid():
         return {"result": False, "data": "", "message": params_validator.errors, "code": err_code.VALIDATION_ERROR.code}
     keyword = params_validator.cleaned_data["keyword"]
-    is_started = params_validator.cleaned_data["is_started"]
-    is_finished = params_validator.cleaned_data["is_finished"]
+    if is_started:
+        is_started = params_validator.cleaned_data["is_started"]
+    if is_finished:
+        is_finished = params_validator.cleaned_data["is_finished"]
 
     filter_kwargs = dict(is_deleted=False, project_id=project.id)
     if keyword:
