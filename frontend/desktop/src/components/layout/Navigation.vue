@@ -48,7 +48,7 @@
     </bk-navigation>
 </template>
 <script>
-    import { mapState } from 'vuex'
+    import { mapState, mapMutations } from 'vuex'
     import { COMMON_ROUTE_LIST, ADMIN_ROUTE_LIST, APPMAKER_ROUTE_LIST } from '@/constants/routes.js'
     import tools from '@/utils/tools.js'
     import NavigatorHeadRight from '@/components/layout/NavigatorHeadRight.vue'
@@ -80,7 +80,26 @@
                 'project_id': state => state.project_id,
                 'projectList': state => state.userProjectList
             }),
+            commonRouteList () {
+                if (!this.project_id && !this.projectList.length) {
+                    const commonRouteList = tools.deepClone(COMMON_ROUTE_LIST)
+                    return commonRouteList.map(group => {
+                        return group.map(item => {
+                            if (item.hasProjectId) {
+                                item.url = '/guide'
+                            }
+                            return item
+                        })
+                    })
+                }
+                if (!this.project_id && this.projectList.length) {
+                    const projectId = this.projectList[0].id
+                    this.setProjectId(projectId)
+                }
+                return COMMON_ROUTE_LIST
+            },
             routerList () {
+                const commonRouteList = this.commonRouteList || COMMON_ROUTE_LIST
                 if (this.view_mode === 'appmaker') {
                     return APPMAKER_ROUTE_LIST
                 } else if (this.hasAdminPerm) {
@@ -89,17 +108,8 @@
                         // 暂时用写死的方式去掉管理员入口导航的运营数据
                         adminRouteList[0][0].children = adminRouteList[0][0].children.filter(item => item.id !== 'operation')
                     }
-                    return COMMON_ROUTE_LIST.concat(adminRouteList)
+                    return commonRouteList.concat(adminRouteList)
                 }
-                const commonRouteList = COMMON_ROUTE_LIST.map(group => {
-                    group.map(item => {
-                        if (item.hasProjectId && !this.project_id && !this.projectList.length) {
-                            item.url = '/guide'
-                        }
-                        return item
-                    })
-                    return group
-                })
                 return commonRouteList
             }
         },
@@ -112,6 +122,9 @@
             }
         },
         methods: {
+            ...mapMutations('project', [
+                'setProjectId'
+            ]),
             setNavigationTitle (route) {
                 const nav = this.findCurrentNav(route)
                 if (nav) {
