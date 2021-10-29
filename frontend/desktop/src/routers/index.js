@@ -484,9 +484,13 @@ routers.beforeEach((to, from, next) => {
     } else {
         store.commit('setNotFoundPage', false)
     }
+    const projectList = store.state.project.userProjectList
     // 设置全局 project_id
     if (to.params.project_id) {
         store.commit('project/setProjectId', to.params.project_id)
+    } else if (projectList.length) {
+        const projectId = projectList[0].id
+        store.commit('project/setProjectId', projectId)
     }
     if (store.state.viewMode === 'appmaker' && !APPMAKER.routes.includes(to.name)) {
         next(APPMAKER.getIndex())
