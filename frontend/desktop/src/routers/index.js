@@ -14,6 +14,7 @@ import VueRouter from 'vue-router'
 import store from '@/store/index.js'
 
 const NotFoundComponent = () => import('@/components/layout/NotFoundComponent.vue')
+const NotPermissionComponent = () => import('@/components/layout/NotPermissionComponent.vue')
 
 const Home = () => import('@/pages/home/index.vue')
 
@@ -463,6 +464,10 @@ const routers = new VueRouter({
             props: (route) => ({
                 code: route.params.code
             })
+        },
+        {
+            path: '/guide',
+            component: NotPermissionComponent
         },
         {
             path: '*',

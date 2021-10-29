@@ -1220,7 +1220,15 @@ const en = {
     '成功': 'Success',
     '变量保存数据与最新的CMDB集群配置存在差异，是否更新变量数据？': 'Variable data is different from the latest CMDB configuration, determine whether to update',
     '移动端': 'Mobile',
-    'API网关': 'API Gateway'
+    'API网关': 'API Gateway',
+    '获取权限': 'Get permission',
+    '已有业务，但尚未获取资源': "Have business, but haven't acquired resources",
+    '前往权限中心申请相关的业务权限': 'Go to the bk-iam apply for related business',
+    '申请业务权限': 'Apply for business',
+    '新接入业务': 'New access business',
+    '还没有接入新的业务': "Haven't access the new business",
+    '需要前往配置平台新建业务': 'Need to go to the bk-cmdb creat new business',
+    '创建新业务': 'Create new business'
 }
 
 export default en

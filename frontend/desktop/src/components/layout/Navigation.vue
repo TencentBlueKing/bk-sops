@@ -77,7 +77,8 @@
                 view_mode: state => state.view_mode
             }),
             ...mapState('project', {
-                'project_id': state => state.project_id
+                'project_id': state => state.project_id,
+                'projectList': state => state.userProjectList
             }),
             routerList () {
                 if (this.view_mode === 'appmaker') {
@@ -145,6 +146,16 @@
                 }
             },
             onHandleNavClick (id, groupIndex, routeIndex) {
+                // 特定页面未携带项目id时处理
+                const includesList = ['process', 'taskList', 'periodicTemplate', 'clockedTemplate', 'appMakerList']
+                if (includesList.includes(id) && !this.project_id && !this.projectList.length) {
+                    if (this.$route.path !== '/guide') {
+                        this.$router.push({
+                            path: '/guide'
+                        })
+                    }
+                    return
+                }
                 if (this.view_mode === 'appmaker') { // 轻应用跳转特殊处理
                     const { template_id } = this.$route.query
                     if (id === 'appmakerTaskCreate') {
