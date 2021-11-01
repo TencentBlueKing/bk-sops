@@ -382,13 +382,11 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         # 查询出有序的taskflow统计数据
         task_instance_id_list = taskflow.values_list("id", flat=True)
         taskflow_statistics_data = TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)
-
         # 注入instance_name和project_name
         instance_id_list = taskflow_statistics_data.values_list("instance_id", flat=True)
         project_id_list = taskflow_statistics_data.values_list("project_id", flat=True)
         instance_dict = dict(PipelineInstance.objects.filter(id__in=instance_id_list).values_list("id", "name"))
         project_dict = dict(Project.objects.filter(id__in=project_id_list).values_list("id", "name"))
-
         data_list = taskflow_statistics_data.values(
             "instance_id",
             "project_id",
@@ -401,7 +399,6 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             "gateways_total",
             "create_method",
         ).order_by(order_by_field)[(page - 1) * limit : page * limit]
-
         total = taskflow_statistics_data.count()
         groups = [
             {
@@ -469,7 +466,6 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         # 获取project_name
         project_id_list = taskflow_statistics_data.values_list("project_id", flat=True)
         project_dict = dict(Project.objects.filter(id__in=project_id_list).values_list("id", "name"))
-
         total = 1
         groups = [
             {
@@ -531,20 +527,21 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         for demision in proj_demision_id_list:
             result = {}
             proj_attr_info = get_business_attrinfo(demision)
+            demision_total = 0
             for info in proj_attr_info:
+                value = proj_task_count.get(info["bk_biz_id"], 0)
                 if info[demision] not in result.keys():
-                    result[info[demision]] = {
-                        "project_id": info["bk_biz_id"],
-                        "value": proj_task_count.get(info["bk_biz_id"], 0),
-                    }
+                    result[info[demision]] = {"project_id": info["bk_biz_id"], "value": value}
                 else:
-                    result[info[demision]]["value"] += proj_task_count.get(info["bk_biz_id"], 0)
+                    result[info[demision]]["value"] += value
+                demision_total += value
+            info = [{"name": key, "value": value["value"]} for key, value in result.items()]
             groups.append(
                 {
                     "demision_id": demision,
                     "demision_name": proj_demision_dict[demision],
-                    "demision_total": len(result),
-                    "info": [{"name": key, "value": value["value"]} for key, value in result.items()],
+                    "demision_total": demision_total,
+                    "info": sorted(info, key=lambda item: item["value"], reverse=True),
                 }
             )
         return total, groups

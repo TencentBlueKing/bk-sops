@@ -371,20 +371,24 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
             result = {}
             proj_attr_info = get_business_attrinfo(demision)
             # 对应统计维度cmdb总数
+            demision_total = 0
             for info in proj_attr_info:
+                value = proj_task_count.get(info["bk_biz_id"], 0)
                 if info[demision] not in result.keys():
                     result[info[demision]] = {
                         "project_id": info["bk_biz_id"],
-                        "value": proj_task_count.get(info["bk_biz_id"], 0),
+                        "value": value,
                     }
                 else:
-                    result[info[demision]]["value"] += proj_task_count.get(info["bk_biz_id"], 0)
+                    result[info[demision]]["value"] += value
+                demision_total += value
+            info = [{"name": key, "value": value["value"]} for key, value in result.items()]
             groups.append(
                 {
                     "demision_id": demision,
                     "demision_name": proj_demision_dict[demision],
-                    "demision_total": len(result),
-                    "info": [{"name": key, "value": value["value"]} for key, value in result.items()],
+                    "demision_total": demision_total,
+                    "info": sorted(info, key=lambda item: item["value"], reverse=True),
                 }
             )
         return total, groups
