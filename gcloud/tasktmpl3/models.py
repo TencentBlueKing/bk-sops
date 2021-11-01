@@ -33,7 +33,7 @@ from gcloud.utils.managermixins import ClassificationCountMixin
 from gcloud.utils.dates import format_datetime
 from gcloud.analysis_statistics.models import TemplateStatistics, TemplateNodeStatistics, TaskflowStatistics
 from gcloud.utils.components import format_component_name
-from gcloud.analysis_statistics.models import ProjectStatisticsDemision
+from gcloud.analysis_statistics.models import ProjectStatisticsDemision, TaskTmplExecuteTopN
 from gcloud.shortcuts.cmdb import get_business_attrinfo
 
 logger = logging.getLogger("root")
@@ -291,7 +291,12 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         return total, groups[(page - 1) * limit : page * limit]
 
     def group_by_template_execute_times(self, tasktmpl, filters, page, limit):
-        topn = filters.get("topn", 10)
+        topn = TaskTmplExecuteTopN.objects.all().first()
+        if not topn:
+            # 默认返回top5
+            topn = 5
+        else:
+            topn = topn.topn
         tasktmpl_dict = dict(tasktmpl.values_list("id", "pipeline_template__name"))
         tasktmpl_id_list = list(tasktmpl_dict.keys())
         # 计算使用过的流程使用次数
@@ -311,7 +316,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                     tmpl_task_dict[tmpl["task_template_id"]].get(create_method, 0) + 1
                 )
         used_count = dict(Counter(used))
-        total = 0
+        total = topn
         groups = []
         for task_template_id, count in used_count.items():
             groups.append(

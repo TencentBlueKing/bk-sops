@@ -127,3 +127,11 @@ class ProjectStatisticsDemision(models.Model):
     class Meta:
         verbose_name = _("业务统计数据维度")
         verbose_name_plural = _("业务统计数据维度")
+
+
+class TaskTmplExecuteTopN(models.Model):
+    topn = models.IntegerField(verbose_name="流程执行次数topn统计面板配置")
+
+    class Meta:
+        verbose_name = _("流程执行次数topn统计面板配置")
+        verbose_name_plural = _("流程执行次数topn统计面板配置")
