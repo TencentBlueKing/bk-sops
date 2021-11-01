@@ -198,14 +198,12 @@
                         with_app_detail: true
                     })
                     if (!resp.result) return
-                    const { app, forms } = resp.data
                     // 设置host
-                    const { host } = window.location
-                    const hostUrl = app.urls.find(item => item.includes(host)) || app.url
-                    $.context.bk_plugin_api_host[code] = hostUrl + '/'
+                    const hostUrl = `plugin_service/data_api/${code}/`
+                    $.context.bk_plugin_api_host[code] = hostUrl
                     // 输入参数
                     $.atoms[code] = {}
-                    const renderFrom = forms.renderform
+                    const renderFrom = resp.data.forms.renderform
                     /* eslint-disable-next-line */
                     eval(renderFrom)
                     const atomConfig = $.atoms[code]

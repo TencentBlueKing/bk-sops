@@ -606,7 +606,7 @@
                         })
                         if (!resp.result) return
                         // 获取参数
-                        const { app, outputs: respsOutputs, forms } = resp.data
+                        const { outputs: respsOutputs, forms } = resp.data
                         if (!this.isSubflow) {
                             // 获取第三方插件公共输出参数
                             if (!this.pluginOutput['remote_plugin']) {
@@ -626,9 +626,8 @@
                             this.outputs = [...storeOutputs, ...outputs]
                         }
                         // 获取host
-                        const { host } = window.location
-                        const hostUrl = app.urls.find(item => item.includes(host)) || app.url
-                        $.context.bk_plugin_api_host[plugin] = hostUrl + '/'
+                        const hostUrl = `plugin_service/data_api/${plugin}/`
+                        $.context.bk_plugin_api_host[plugin] = hostUrl
                         // 输入参数
                         $.atoms[plugin] = {}
                         const renderFrom = forms.renderform
