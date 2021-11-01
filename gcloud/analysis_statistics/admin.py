@@ -19,6 +19,7 @@ from gcloud.analysis_statistics.models import (
     TaskflowStatistics,
     TemplateStatistics,
     ProjectStatisticsDemision,
+    TaskTmplExecuteTopN,
 )
 
 
@@ -79,3 +80,8 @@ class TaskflowStatisticsAdmin(admin.ModelAdmin):
 @admin.register(ProjectStatisticsDemision)
 class ProjectStatisticsDemisionAdmin(admin.ModelAdmin):
     list_display = ("demision_id", "demision_name")
+
+
+@admin.register(TaskTmplExecuteTopN)
+class TaskTmplExecuteTopNAdmin(admin.ModelAdmin):
+    list_display = ("topn",)
