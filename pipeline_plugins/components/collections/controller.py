@@ -146,6 +146,8 @@ class SleepTimerService(Service):
         if t_delta.total_seconds() < 1:
             self.finish_schedule()
 
+        # 如果定时时间距离当前时间的时长大于唤醒消息的有效期，则设置下一次唤醒时间为消息有效期之内的时长
+        # 避免唤醒消息超过消息的有效期被清除，导致定时节点永远不会被唤醒
         if t_delta.total_seconds() > self.BK_TIMEMING_TICK_INTERVAL > 60 * 5:
             self.interval.interval = self.BK_TIMEMING_TICK_INTERVAL - 60 * 5
             wake_time = now + datetime.timedelta(seconds=self.interval.interval)
