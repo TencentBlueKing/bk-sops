@@ -71,7 +71,8 @@
                     @onFormatPosition="onFormatPosition"
                     @onReplaceLineAndLocation="onReplaceLineAndLocation"
                     @onShowNodeConfig="onShowNodeConfig"
-                    @getAtomList="getAtomList">
+                    @getAtomList="getAtomList"
+                    @updateCondition="setBranchCondition($event)">
                 </TemplateCanvas>
             </template>
             <TaskSelectNode
