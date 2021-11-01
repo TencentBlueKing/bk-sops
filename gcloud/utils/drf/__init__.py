@@ -11,20 +11,5 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import url
-from django.urls import include
-from rest_framework.routers import DefaultRouter
-
-from .apis.django import api
-from .apis.drf.viewsets import DefaultTemplateSchemeViewSet
-
-router = DefaultRouter()
-router.register(r"default_scheme", DefaultTemplateSchemeViewSet)
-
-
-urlpatterns = [
-    url(r"^api/upload_yaml_templates/$", api.upload_and_check_yaml_templates),
-    url(r"^api/export_yaml_templates/$", api.export_yaml_templates),
-    url(r"^api/import_yaml_templates/$", api.import_yaml_templates),
-    url(r"^api/", include(router.urls)),
-]
+__author__ = "蓝鲸智云"
+__copyright__ = "Copyright (c) 2012-2018 Tencent. All Rights Reserved."

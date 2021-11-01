@@ -11,20 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import url
-from django.urls import include
-from rest_framework.routers import DefaultRouter
+from django.contrib import admin
 
-from .apis.django import api
-from .apis.drf.viewsets import DefaultTemplateSchemeViewSet
-
-router = DefaultRouter()
-router.register(r"default_scheme", DefaultTemplateSchemeViewSet)
+from gcloud.template_base.models import DefaultTemplateScheme
+from pipeline.models import TemplateScheme
 
 
-urlpatterns = [
-    url(r"^api/upload_yaml_templates/$", api.upload_and_check_yaml_templates),
-    url(r"^api/export_yaml_templates/$", api.export_yaml_templates),
-    url(r"^api/import_yaml_templates/$", api.import_yaml_templates),
-    url(r"^api/", include(router.urls)),
-]
+@admin.register(DefaultTemplateScheme)
+class DefaultTemplateSchemeAdmin(admin.ModelAdmin):
+    list_display = ["id", "project_id", "template_id", "default_scheme_ids"]
+    search_fields = ["project_id", "template_id"]
+
+
+@admin.register(TemplateScheme)
+class TemplateSchemeAdmin(admin.ModelAdmin):
+    list_display = ["id", "name", "unique_id", "template_id", "edit_time", "data"]
+    search_fields = ["name", "template_id", "unique_id"]
