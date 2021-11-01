@@ -182,7 +182,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_list/' + $.context.getBkBizId() + '/?type=public';
+                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + $.context.getBkBizId() + '/?type=public';
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -223,7 +223,7 @@
                     action: function () {
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         if (cc_id !== '') {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + cc_id + '/?type=public';
+                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + cc_id + '/?type=public';
                             this.remoteMethod();
                         }
                     }
@@ -235,7 +235,7 @@
                         if (value === '') {
                             return;
                         }
-                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + value + '/?type=public';
+                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + value + '/?type=public';
                         this.remoteMethod();
                     }
                 },
@@ -261,7 +261,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_list/' + $.context.getBkBizId() + '/?type=general';
+                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + $.context.getBkBizId() + '/?type=general';
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -302,7 +302,7 @@
                     action: function () {
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         if (cc_id !== '') {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + cc_id + '/?type=general';
+                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + cc_id + '/?type=general';
                             this.remoteMethod();
                         }
                     }
@@ -317,7 +317,7 @@
                         if (value === '') {
                             return;
                         }
-                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + value + '/?type=general';
+                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + value + '/?type=general';
                         this.remoteMethod();
                     }
                 },
@@ -370,6 +370,24 @@
             }
         },
         {
+            tag_code: "job_across_biz",
+            type: "radio",
+            attrs: {
+                name: gettext("是否允许跨业务"),
+                hookable: true,
+                items: [
+                    {value: true, name: gettext("是")},
+                    {value: false, name: gettext("否")},
+                ],
+                default: false,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        },
+        {
             tag_code: "job_ip_list",
             type: "textarea",
             attrs: {
@@ -380,8 +398,21 @@
                     {
                         type: "required"
                     }
-                ]
-            }
+                ],
+            },
+            events: [
+                {
+                    source: "job_across_biz",
+                    type: "change",
+                    action: function (value) {
+                        if (value === true) {
+                            this.placeholder = gettext("输入 CLOUD_ID:IP, 多个用英文逗号 `,` 或换行分隔");
+                        } else {
+                            this.placeholder = gettext("输入IP, 多个用英文逗号 `,` 或换行分隔");
+                        }
+                    }
+                },
+            ]
         },
         {
             tag_code: "job_account",
@@ -413,6 +444,87 @@
                     }
                 ]
             }
-        }
+        },
+        {
+            tag_code: "job_success_id",
+            type: "select",
+            attrs: {
+                name: gettext("JOB成功历史"),
+                allowCreate: true,
+                hookable: false,
+                remote: true,
+                remote_url: function () {
+                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_instance_list/' + $.context.getBkBizId() + '/1/3/';
+                    return url;
+                },
+                remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
+                    return resp.data;
+                },
+                showRightBtn: true,
+                rightBtnCb: function () {
+                    if (!this.value) {
+                        return;
+                    }
+                    let biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
+                    let bk_job_host = window.BK_JOB_HOST;
+                    let url = bk_job_host + '/' + biz_cc_id + "/api_plan/" + this.value;
+                    window.open(url, '_blank')
+                },
+                cols: 10
+            },
+            events: [
+                {
+                    source: "biz_cc_id",
+                    type: "init",
+                    action: function () {
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
+                        if (cc_id !== '') {
+                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_instance_list/' + cc_id + '/1/3/';
+                            this.remoteMethod();
+                        }
+                    }
+                },
+                {
+                    source: "button_refresh_2",
+                    type: "click",
+                    action: function (value) {
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
+                        if (cc_id !== '') {
+                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_instance_list/' + cc_id + '/1/3/';
+                            this.remoteMethod();
+                        }
+                    }
+                },
+                {
+                    source: "biz_cc_id",
+                    type: "change",
+                    action: function (value) {
+                        if ($.context.canSelectBiz()) {
+                            this._set_value('');
+                        }
+                        if (value === '') {
+                            return;
+                        }
+                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_instance_list/' + value + '/1/3/';
+                        this.remoteMethod();
+                    }
+                }
+            ]
+        },
+        {
+            tag_code: "button_refresh_2",
+            type: "button",
+            attrs: {
+                hookable: false,
+                type: "primary",
+                title: '刷新',
+                size: "normal",
+                cols: 1,
+                formViewHidden: true
+            }
+        },
     ]
 })();
