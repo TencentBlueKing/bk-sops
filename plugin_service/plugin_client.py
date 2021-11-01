@@ -152,7 +152,7 @@ class PluginServiceApiClient:
             }
             for plugin in result["results"]
         ]
-        count = len(plugins)
+        count = result["count"]
 
         return {"result": True, "message": None, "data": {"count": count, "plugins": plugins}}
 

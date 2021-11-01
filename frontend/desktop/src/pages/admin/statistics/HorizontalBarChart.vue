@@ -73,7 +73,7 @@
                                                 <span class="color-block" :style="{ background: creatMethods[val.name].color }"></span>
                                                 <span class="task-name">{{ creatMethods[val.name].text }}</span>
                                                 <span class="task-num">{{ val.value }}</span>
-                                                <span class="percentage">{{ getPercentage(val.value, item.value) }}</span>
+                                                <span class="percentage">{{ '(' + getPercentage(val.value, item.value) + ')' }}</span>
                                             </li>
                                         </ul>
                                     </div>

@@ -396,7 +396,6 @@
                 }
             })
             this.localConstants = tools.deepClone(this.constants)
-            this.getSubflowList()
         },
         async mounted () {
             const defaultData = await this.initDefaultData()
@@ -608,22 +607,24 @@
                         if (!resp.result) return
                         // 获取参数
                         const { app, outputs: respsOutputs, forms } = resp.data
-                        // 获取第三方插件公共输出参数
-                        if (!this.pluginOutput['remote_plugin']) {
-                            await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
+                        if (!this.isSubflow) {
+                            // 获取第三方插件公共输出参数
+                            if (!this.pluginOutput['remote_plugin']) {
+                                await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
+                            }
+                            // 输出参数
+                            const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
+                            const outputs = []
+                            for (const [key, val] of Object.entries(respsOutputs.properties)) {
+                                outputs.push({
+                                    name: val.title,
+                                    key,
+                                    type: val.type,
+                                    schema: { description: val.description || '--' }
+                                })
+                            }
+                            this.outputs = [...storeOutputs, ...outputs]
                         }
-                        // 输出参数
-                        const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
-                        const outputs = []
-                        for (const [key, val] of Object.entries(respsOutputs.properties)) {
-                            outputs.push({
-                                name: val.title,
-                                key,
-                                type: val.type,
-                                schema: { description: val.description || '--' }
-                            })
-                        }
-                        this.outputs = [...storeOutputs, ...outputs]
                         // 获取host
                         const { host } = window.location
                         const hostUrl = app.urls.find(item => item.includes(host)) || app.url
