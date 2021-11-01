@@ -11,6 +11,17 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
+            name="TaskTmplExecuteTopN",
+            fields=[
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("topn", models.IntegerField(verbose_name="流程执行次数topn")),
+            ],
+            options={
+                "verbose_name": "流程执行次数topn统计面板配置",
+                "verbose_name_plural": "流程执行次数topn统计面板配置",
+            },
+        ),
+        migrations.CreateModel(
             name="ProjectStatisticsDemision",
             fields=[
                 ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
@@ -110,17 +121,6 @@ class Migration(migrations.Migration):
             options={
                 "verbose_name": "Pipeline实例引用数据",
                 "verbose_name_plural": "Pipeline实例引用数据",
-            },
-        ),
-        migrations.CreateModel(
-            name="TaskTmplExecuteTopN",
-            fields=[
-                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("topn", models.IntegerField(verbose_name="流程执行次数topn统计面板配置")),
-            ],
-            options={
-                "verbose_name": "流程执行次数topn统计面板配置",
-                "verbose_name_plural": "流程执行次数topn统计面板配置",
             },
         ),
         migrations.CreateModel(

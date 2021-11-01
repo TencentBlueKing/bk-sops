@@ -130,7 +130,7 @@ class ProjectStatisticsDemision(models.Model):
 
 
 class TaskTmplExecuteTopN(models.Model):
-    topn = models.IntegerField(verbose_name="流程执行次数topn统计面板配置")
+    topn = models.IntegerField(verbose_name="流程执行次数topn")
 
     class Meta:
         verbose_name = _("流程执行次数topn统计面板配置")
