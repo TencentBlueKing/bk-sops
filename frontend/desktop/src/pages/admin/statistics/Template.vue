@@ -40,7 +40,7 @@
             </horizontal-bar-chart>
             <horizontal-bar-chart
                 class="topn-chart"
-                :title="$t('模板执行次数TOP5')"
+                :title="topnTitle"
                 :show-form="false"
                 :show-popover="true"
                 :data-list="topnData"
@@ -281,6 +281,7 @@
                 tableColumn: TABLE_COLUMN,
                 statsData: [],
                 statsDataLoading: true,
+                topnTitle: i18n.t('模板执行次数TOPx', { x: 5 }),
                 topnData: [],
                 topnDataLoading: true,
                 tempUsageData: [],
@@ -430,6 +431,7 @@
                         }
                     }
                     const resp = await this.loadAnalysisData(query)
+                    this.topnTitle = i18n.t('模板执行次数TOPx', { x: resp.length })
                     this.topnData = resp.map(item => {
                         item.name = item.template_name
                         item.value = item.count
