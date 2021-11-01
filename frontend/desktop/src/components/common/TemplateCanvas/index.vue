@@ -128,10 +128,7 @@
     </div>
 </template>
 <script>
-    // import html2canvas from 'html2canvas'
-    // import domtoimage from 'dom-to-image'
     import domtoimage from '@/utils/domToImage.js'
-    // import htmltoimage from 'html-to-image'
     import BkFlow from '@/assets/js/flow.js'
     import { uuid } from '@/utils/uuid.js'
     import NodeTemplate from './NodeTemplate/index.vue'
@@ -287,7 +284,8 @@
                 flowData,
                 connectorOptions,
                 nodeOptions,
-                zoomRatio: 100
+                zoomRatio: 100,
+                labelDrag: false // 标识分支条件是否为拖动触发
             }
         },
         watch: {
@@ -501,6 +499,10 @@
             },
             // 分支条件点击回调
             branchConditionEditHandler (e, overlayId) {
+                if (this.labelDrag) {
+                    this.labelDrag = false
+                    return
+                }
                 const $branchEl = e.target
                 const lineId = $branchEl.dataset.lineid
                 const nodeId = $branchEl.dataset.nodeid
@@ -786,17 +788,26 @@
                         const labelValue = branchInfo[lineId].evaluate
                         // 兼容旧数据，分支条件里没有 name 属性的情况
                         const labelName = branchInfo[lineId].name || labelValue
+                        const loc = ('loc' in branchInfo[lineId]) ? branchInfo[lineId].loc : -70
                         const labelData = {
                             type: 'Label',
                             name: `<div class="branch-condition"
                                     title="${tools.escapeStr(labelName)}(${tools.escapeStr(labelValue)})"
                                     data-lineid="${lineId}"
                                     data-nodeid="${line.sourceId}">${labelName}</div>`,
-                            location: -70,
+                            location: loc,
                             cls: 'branch-condition',
                             id: `condition${lineId}`
                         }
                         this.$refs.jsFlow.addLineOverlay(line, labelData)
+                        const condition = {
+                            id: lineId,
+                            nodeId: line.source.id,
+                            name: branchInfo[lineId].name,
+                            tag: branchInfo[lineId].tag,
+                            value: branchInfo[lineId].evaluate
+                        }
+                        this.setLabelDraggable({ ...line, id: lineId }, condition)
                     }
                 })
             },
@@ -1143,7 +1154,7 @@
             },
             // 更新分支条件数据
             updataConditionCanvasData (data) {
-                const { name, overlayId, id: lineId, value } = data
+                const { name, overlayId, id: lineId, value, loc = -70 } = data
                 const line = this.canvasData.lines.find(item => item.id === lineId)
                 this.$refs.jsFlow.removeLineOverlay(line, overlayId)
                 this.$nextTick(() => {
@@ -1153,11 +1164,12 @@
                                 title="${tools.escapeStr(name)}(${tools.escapeStr(value)})"
                                 data-lineid="${lineId}"
                                 data-nodeid="${line.source.id}">${name}</div>`,
-                        location: -70,
+                        location: loc,
                         cls: 'branch-condition',
                         id: `condition${lineId}`
                     }
                     this.$refs.jsFlow.addLineOverlay(line, labelData)
+                    this.setLabelDraggable(line, { ...data, nodeId: line.source.id })
                 })
             },
             // node mousedown
@@ -1560,6 +1572,53 @@
                 const canvasPositionX = -left * (this.canvasWidth / this.smallMapWidth) + this.initialLeft + moreOffsetLeft
                 const canvasPositionY = -top * (this.canvasHeight / this.smallMapHeight) + this.initialTop + moreOffsetTop
                 this.setCanvasPosition(canvasPositionX, canvasPositionY)
+            },
+            getLabelPosition (connection, x, y) {
+                const segments = connection.connector.getSegments()
+                let closest
+                let projectionWay
+                let totalWay = 0
+                for (let i = 0; i < segments.length; i++) {
+                    const segment = segments[i]
+                    const projection = segment.findClosestPointOnPath(x, y, i, connection.connector.bounds)
+                    const segmentWay = segment.getLength()
+                    if (closest === undefined || projection.d < closest.d) {
+                        closest = projection
+                        projectionWay = totalWay + segmentWay * projection.l
+                    }
+                    totalWay += segmentWay
+                }
+                closest.totalPercent = projectionWay / totalWay
+                return closest
+            },
+            // 设置连线label可拖动
+            setLabelDraggable (line, labelData) {
+                const self = this
+                const instance = this.$refs.jsFlow.instance
+                const connection = this.$refs.jsFlow.instance.getConnections({ source: line.source.id, target: line.target.id })[0]
+                const label = connection.getOverlay(`condition${line.id}`)
+                const elLabel = label.getElement()
+                instance.draggable(elLabel, {
+                    drag () {
+                        const pos = instance.getUIPosition(arguments, instance.getZoom())
+                        const o1 = instance.getOffset(connection.endpoints[0].canvas)
+                        const o2 = instance.getOffset(connection.endpoints[1].canvas)
+                        const labelWidth = label.canvas.offsetWidth
+                        const labelHeight = label.canvas.offsetHeight
+                        const o = {
+                            left: Math.min(o1.left, o2.left) + labelWidth / 2,
+                            top: Math.min(o1.top, o2.top) + labelHeight / 2
+                        }
+                        const closest = self.getLabelPosition(connection, pos.left - o.left, pos.top - o.top)
+                        label.loc = closest.totalPercent
+                        if (!instance.isSuspendDrawing()) {
+                            label.component.repaint()
+                            const data = Object.assign({}, labelData, { loc: closest.totalPercent })
+                            self.$emit('updateCondition', data)
+                            self.labelDrag = true
+                        }
+                    }
+                })
             }
         }
     }
