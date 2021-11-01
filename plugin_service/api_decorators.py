@@ -11,21 +11,28 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import functools
+import logging
 
 from django.http import JsonResponse
 from rest_framework.request import Request
 
+from .conf import PLUGIN_CLIENT_LOGGER
 from plugin_service.exceptions import PluginServiceException
 from plugin_service.plugin_client import PluginServiceApiClient
 
+logger = logging.getLogger(PLUGIN_CLIENT_LOGGER)
+
 
 def inject_plugin_client(func):
+    """往request中注入client"""
+
     @functools.wraps(func)
     def wrapper(request: Request):
         plugin_code = request.validated_data.get("plugin_code")
         try:
             plugin_client = PluginServiceApiClient(plugin_code)
         except PluginServiceException as e:
+            logger.error(f"[inject_plugin_client] error: {e}")
             return JsonResponse({"message": e, "result": False, "data": None})
         setattr(request, "plugin_client", plugin_client)
         return func(request)
@@ -34,6 +41,8 @@ def inject_plugin_client(func):
 
 
 def validate_params(serializer_cls):
+    """利用Serializer对请求参数进行校验"""
+
     def decorator(func):
         @functools.wraps(func)
         def wrapper(request: Request):
