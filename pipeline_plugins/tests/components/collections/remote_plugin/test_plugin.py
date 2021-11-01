@@ -21,7 +21,7 @@ from pipeline.component_framework.test import (
     ScheduleAssertion,
     Patcher,
 )
-from plugin_service.plugin import RemotePluginComponent, State
+from pipeline_plugins.components.collections.remote_plugin.v1_0_0 import RemotePluginComponent, State
 
 
 class RemotePluginComponentTest(TestCase, ComponentTestMixin):
@@ -41,13 +41,14 @@ class RemotePluginComponentTest(TestCase, ComponentTestMixin):
 
 
 class MockPluginClient(object):
-    def __init__(self, invoke_result=None, get_schedule_result=None):
+    def __init__(self, invoke_result=None, get_schedule_result=None, get_detail_result=None):
         self.invoke = MagicMock(return_value=invoke_result)
         self.get_schedule = MagicMock(return_value=get_schedule_result)
+        self.get_detail = MagicMock(return_value=get_detail_result)
 
 
 # mock path
-PLUGIN_SERVICE_API_CLIENT = "plugin_service.plugin.PluginServiceApiClient"
+PLUGIN_SERVICE_API_CLIENT = "pipeline_plugins.components.collections.remote_plugin.v1_0_0.PluginServiceApiClient"
 
 # parent_data
 PARENT_DATA = {"executor": "executor", "biz_cc_id": 1}
@@ -64,23 +65,30 @@ TRACE_ID_OUTPUTS = {"trace_id": "trace_id"}
 
 # mock clients
 ONLY_EXECUTE_AND_SUCCESS_CLIENT = MockPluginClient(
-    invoke_result=(True, {**TRACE_ID_OUTPUTS, "state": State.SUCCESS, "outputs": BASE_OUTPUTS})
+    invoke_result=(True, {**TRACE_ID_OUTPUTS, "state": State.SUCCESS, "outputs": BASE_OUTPUTS}),
+    get_detail_result={"result": True, "data": {"context_inputs": {"properties": {}}}},
 )
 
 EXECUTE_AND_SCHEDULE_SUCCESS_CLIENT = MockPluginClient(
     invoke_result=(True, {**TRACE_ID_OUTPUTS, "state": State.POLL, "outputs": {}}),
     get_schedule_result=(True, {"state": State.SUCCESS, "outputs": BASE_OUTPUTS}),
+    get_detail_result={"result": True, "data": {"context_inputs": {"properties": {}}}},
 )
 
-INVOKE_API_FAIL_CLIENT = MockPluginClient(invoke_result=(False, {**TRACE_ID_OUTPUTS, "message": "ex_data"}))
+INVOKE_API_FAIL_CLIENT = MockPluginClient(
+    invoke_result=(False, {**TRACE_ID_OUTPUTS, "message": "ex_data"}),
+    get_detail_result={"result": True, "data": {"context_inputs": {"properties": {}}}},
+)
 
 EXECUTE_FAIL_CLIENT = MockPluginClient(
-    invoke_result=(True, {**TRACE_ID_OUTPUTS, "state": State.FAIL, "err": "state fail"})
+    invoke_result=(True, {**TRACE_ID_OUTPUTS, "state": State.FAIL, "err": "state fail"}),
+    get_detail_result={"result": True, "data": {"context_inputs": {"properties": {}}}},
 )
 
 SCHEDULE_FAIL_CLIENT = MockPluginClient(
     invoke_result=(True, {**TRACE_ID_OUTPUTS, "state": State.POLL, "outputs": {}}),
-    get_schedule_result=(True, {"state": State.FAIL}),
+    get_schedule_result=(True, {"state": State.FAIL, "outputs": {}}),
+    get_detail_result={"result": True, "data": {"context_inputs": {"properties": {}}}},
 )
 
 # only execute success
