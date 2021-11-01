@@ -12,6 +12,17 @@
 <template>
     <div class="statistics-template">
         <div class="bar-chart-area">
+            <percentage
+                :data-loading="statsDataLoading"
+                :data-list="statsData">
+            </percentage>
+            <horizontal-bar-chart
+                :title="$t('职能化统计')"
+                :show-form="false"
+                :show-popover="true"
+                :data-list="commonFuncData"
+                :data-loading="commonFuncLoading">
+            </horizontal-bar-chart>
             <horizontal-bar-chart
                 :title="$t('分类统计')"
                 :selector-list="projectSelector"
@@ -23,11 +34,10 @@
                 :title="$t('分项目统计')"
                 :selector-list="categorySelector"
                 :data-list="projectData"
-                :is-instance="true"
+                :show-popover="true"
                 :data-loading="projectDataLoading"
                 :biz-useage-data="bizUseageData"
                 :color-block-list="colorBlockList"
-                :creat-methods="creatMethods"
                 @onFilterClick="projectFilterChange">
             </horizontal-bar-chart>
         </div>
@@ -125,6 +135,7 @@
     import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
     import { COLOR_BLOCK_LIST } from '@/constants/index.js'
+    import Percentage from './Percentage.vue'
     import HorizontalBarChart from './HorizontalBarChart.vue'
     import VerticalBarChart from './VerticalBarChart.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -228,6 +239,7 @@
     export default {
         name: 'StatisticsIntance',
         components: {
+            Percentage,
             HorizontalBarChart,
             VerticalBarChart,
             NoData
@@ -253,11 +265,6 @@
             }
         },
         data () {
-            const creatMethods = COLOR_BLOCK_LIST.reduce((acc, cur) => {
-                const { value, color, text } = cur
-                acc[value] = { color, text }
-                return acc
-            }, {})
             return {
                 categoryData: [],
                 categoryDataProject: '',
@@ -300,7 +307,10 @@
                 instanceDataLoading: true,
                 tableColumn: TABLE_COLUMN,
                 colorBlockList: COLOR_BLOCK_LIST,
-                creatMethods,
+                statsData: [],
+                statsDataLoading: true,
+                commonFuncData: [],
+                commonFuncLoading: true,
                 bizUseageData: {},
                 pagination: {
                     current: 1,
@@ -343,6 +353,8 @@
                 this.getTimeData()
                 this.getTableData()
                 this.getBizUseageData()
+                this.getStatsData()
+                this.getCommonFuncData()
             },
             async loadAnalysisData (query, type = '') {
                 try {
@@ -438,6 +450,60 @@
                     this.instanceDataLoading = false
                 }
             },
+            async getStatsData () {
+                try {
+                    this.statsDataLoading = true
+                    const query = {
+                        group_by: 'instance_biz',
+                        conditions: {
+                            create_time: this.dateRange[0],
+                            finish_time: this.dateRange[1]
+                        }
+                    }
+                    this.statsData = await this.loadAnalysisData(query)
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.statsDataLoading = false
+                }
+            },
+            async getCommonFuncData () {
+                try {
+                    this.commonFuncLoading = true
+                    const query = {
+                        group_by: 'common_func',
+                        conditions: {
+                            create_time: this.dateRange[0],
+                            finish_time: this.dateRange[1]
+                        }
+                    }
+                    const resp = await this.loadAnalysisData(query)
+                    this.commonFuncData = resp.reduce((acc, cur) => {
+                        const createMethod = [
+                            {
+                                name: i18n.t('职能化'),
+                                value: cur.common_func_cou,
+                                color: '#339dff'
+                            }, {
+                                name: i18n.t('非职能化'),
+                                value: cur.common_cou,
+                                color: '#c4c6cc'
+                            }
+                        ]
+                        acc.push({
+                            name: cur.project_name,
+                            value: cur.common_func_cou + cur.common_cou,
+                            isTemp: true,
+                            create_method: createMethod.filter(item => item.value)
+                        })
+                        return acc
+                    }, [])
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.commonFuncLoading = false
+                }
+            },
             async getBizUseageData () {
                 try {
                     const resp = await this.queryBizUseageData({ query: 'task' })
@@ -500,11 +566,6 @@
         }
     }
 </script>
-<style lang="scss" scoped>
-    .vertical-bar-chart-area {
-        margin-top: 20px;
-    }
-</style>
 <style lang="scss">
     .task-method {
         .project-name {
