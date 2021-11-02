@@ -62,3 +62,19 @@ factory_boy==2.11.1
 mock==2.0.0
 fakeredis==1.4.5
 gevent==1.2.2
+
+# otel
+opentelemetry-api==1.6.2
+opentelemetry-sdk==1.6.2
+opentelemetry-exporter-otlp==1.6.2
+opentelemetry-exporter-jaeger==1.6.2
+opentelemetry-exporter-jaeger-proto-grpc==1.6.2
+opentelemetry-exporter-jaeger-thrift==1.6.2
+opentelemetry-instrumentation==0.25b2
+opentelemetry-instrumentation-celery==0.25b2
+opentelemetry-instrumentation-django==0.25b2
+opentelemetry-instrumentation-django==0.25b2
+opentelemetry-instrumentation-dbapi==0.25b2
+opentelemetry-instrumentation-redis==0.25b2
+opentelemetry-instrumentation-logging==0.25b2
+opentelemetry-instrumentation-requests==0.25b2
