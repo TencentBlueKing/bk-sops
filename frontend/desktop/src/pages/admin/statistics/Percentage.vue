@@ -63,7 +63,7 @@
         {
             width: '200',
             align: 'left',
-            label: i18n.t('业务名称'),
+            label: i18n.t('名称'),
             prop: 'name'
         },
         {
@@ -85,6 +85,10 @@
         },
         props: {
             dataLoading: {
+                type: Boolean,
+                default: true
+            },
+            isTemp: {
                 type: Boolean,
                 default: true
             },
@@ -122,12 +126,15 @@
                     if (this.demisionId in this.statsObj) {
                         const { statsList, name, total } = this.statsObj[this.demisionId]
                         this.statsList = statsList
-                        this.statsInfo.name = name
-                        this.statsInfo.total = total
+                        this.statsInfo = { name, total }
+                        this.tableColumn[0].label = name
                     } else {
                         const { info, demision_name: name, demision_total: total } = this.dataList.find(item => item.demision_id === val)
-                        this.statsInfo.name = name
-                        this.statsInfo.total = total
+                        this.statsInfo = {
+                            name: this.isTemp ? i18n.t('流程') : i18n.t('业务'),
+                            total
+                        }
+                        this.tableColumn[0].label = name
                         const statsList = info.map(item => {
                             item.color = this.randomColor()
                             item.amount = item.value

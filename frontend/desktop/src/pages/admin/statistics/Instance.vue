@@ -14,6 +14,7 @@
         <div class="bar-chart-area">
             <percentage
                 :data-loading="statsDataLoading"
+                :is-temp="false"
                 :data-list="statsData">
             </percentage>
             <horizontal-bar-chart
