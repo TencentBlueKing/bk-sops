@@ -3,7 +3,7 @@
 Blueapps OpenTelemetry 为开发者提供了开箱即用的蓝鲸 SaaS OpenTelemetry 接入工具，你可以通过他来实现
 
 - 自动配置 OpenTelemetry SDK 与蓝鲸 SaaS 常用的 Instrumentor
-- 在本地通过 Jeager 来收集 SaaS Trace 数据并进行可视化
+- 在本地通过 Jaeger 来收集 SaaS Trace 数据并进行可视化
 - 在线上通过蓝鲸日志平台来收集 SaaS Trace 数据并进行可视化
 
 ## Quick Start
