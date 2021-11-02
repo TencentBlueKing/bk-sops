@@ -352,7 +352,7 @@
                 try {
                     this.exportPending = true
                     const resp = await this.templateExport({
-                        list: this.selectIdList,
+                        list: this.isTplInPanelAllSelected ? [] : this.selectIdList,
                         type: this.type,
                         common: this.common,
                         is_full: this.isTplInPanelAllSelected
