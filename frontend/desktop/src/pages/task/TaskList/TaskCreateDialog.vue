@@ -9,6 +9,7 @@
         :title="$t('新建任务')"
         :value="isNewTaskDialogShow"
         :auto-close="false"
+        :on-close="onCancel"
         @value-change="toggleShow">
         <div class="task-container">
             <div class="task-wrapper">
