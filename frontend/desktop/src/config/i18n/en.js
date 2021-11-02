@@ -1231,7 +1231,8 @@ const en = {
     '总数': 'Total',
     '业务名称': 'Business name',
     '数量': 'Amount',
-    '占比': 'Percentage'
+    '占比': 'Percentage',
+    '流程': 'Process'
 }
 
 export default en
