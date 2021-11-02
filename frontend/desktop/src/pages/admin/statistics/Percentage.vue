@@ -88,6 +88,10 @@
                 type: Boolean,
                 default: true
             },
+            isTemp: {
+                type: Boolean,
+                default: true
+            },
             dataList: {
                 type: Array,
                 default: () => []
@@ -126,7 +130,10 @@
                         this.tableColumn[0].label = name
                     } else {
                         const { info, demision_name: name, demision_total: total } = this.dataList.find(item => item.demision_id === val)
-                        this.statsInfo = { name, total }
+                        this.statsInfo = {
+                            name: this.isTemp ? i18n.t('流程') : i18n.t('业务'),
+                            total
+                        }
                         this.tableColumn[0].label = name
                         const statsList = info.map(item => {
                             item.color = this.randomColor()
