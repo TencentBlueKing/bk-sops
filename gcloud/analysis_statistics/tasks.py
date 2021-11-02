@@ -48,7 +48,13 @@ def format_date_time(time_str, time_format="%Y-%m-%d %H:%M:%S"):
     return date_time.replace(tzinfo=None)
 
 
-def recursive_collect_components_execution(activities, status_tree, task_instance, stack=None, engine_ver=1):
+def recursive_collect_components_execution(
+    activities,
+    status_tree,
+    task_instance,
+    engine_ver=1,
+    stack=None,
+):
     """
     @summary 递归流程树，获取所有执行结束的插件TaskflowExecutedNodeStatistics对象列表（成功/失败）
     @param activities: 当前流程树的任务节点信息
@@ -132,7 +138,7 @@ def recursive_collect_components_execution(activities, status_tree, task_instanc
                 copied_stack = deepcopy(stack)
                 copied_stack.insert(0, act_id)
                 component_list += recursive_collect_components_execution(
-                    sub_activities, exec_act["children"], instance, copied_stack
+                    sub_activities, exec_act["children"], task_instance, copied_stack
                 )
     return component_list
 
