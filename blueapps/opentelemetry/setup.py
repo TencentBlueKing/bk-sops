@@ -43,7 +43,7 @@ def setup_trace_config():
                     Resource.create(
                         {
                             "service.name": os.getenv("BKAPP_OTEL_SERVICE_NAME") or settings.APP_CODE,
-                            "bk_data_id": os.get_env("BKAPP_OTEL_BK_DATA_ID"),
+                            "bk_data_id": int(os.getenv("BKAPP_OTEL_BK_DATA_ID")),
                         },
                     ),
                 ),
