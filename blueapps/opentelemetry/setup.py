@@ -47,7 +47,7 @@ def setup_trace_config():
                         },
                     ),
                 ),
-                sampler=_KNOWN_SAMPLERS[os.getenv("BKAPP_OTEL_SAMPLER")],
+                sampler=_KNOWN_SAMPLERS[os.getenv("BKAPP_OTEL_SAMPLER", "parentbased_always_off")],
             )
         )
         otlp_exporter = OTLPSpanExporter(endpoint=os.getenv("BKAPP_OTEL_GRPC_HOST"))
