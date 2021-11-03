@@ -19,8 +19,3 @@ from blueapps.opentelemetry.setup import setup_by_settings
 @worker_process_init.connect(weak=False)
 def worker_process_init_otel_trace_setup(*args, **kwargs):
     setup_by_settings()
-
-
-@worker_init.connect(weak=False)
-def worker_init_otel_trace_setup(*args, **kwargs):
-    setup_by_settings()
