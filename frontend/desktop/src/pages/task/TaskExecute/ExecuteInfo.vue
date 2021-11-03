@@ -856,7 +856,8 @@
                             }
                             this.outputRenderConfig = [...storeOutputs, ...outputs]
                             // 设置host
-                            const hostUrl = `plugin_service/data_api/${this.thirdPartyNodeCode}/`
+                            const { origin } = window.location
+                            const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${this.thirdPartyNodeCode}/`
                             $.context.bk_plugin_api_host[this.thirdPartyNodeCode] = hostUrl
                             // 输入参数
                             const renderFrom = forms.renderform

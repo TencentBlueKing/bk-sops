@@ -626,7 +626,8 @@
                             this.outputs = [...storeOutputs, ...outputs]
                         }
                         // 获取host
-                        const hostUrl = `plugin_service/data_api/${plugin}/`
+                        const { origin } = window.location
+                        const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${plugin}/`
                         $.context.bk_plugin_api_host[plugin] = hostUrl
                         // 输入参数
                         $.atoms[plugin] = {}
