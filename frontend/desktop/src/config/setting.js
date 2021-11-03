@@ -38,6 +38,7 @@ export const setConfigContext = (site_url, project) => {
             outputs: undefined,
             state: undefined
         },
+        bk_plugin_api_host: {},
         get (attr) { // 获取 $.context 对象上属性
             return $.context[attr]
         },

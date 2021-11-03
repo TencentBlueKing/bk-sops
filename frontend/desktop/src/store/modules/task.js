@@ -94,6 +94,52 @@ const task = {
             return axios.post('api/v3/scheme/batch_operate/', params).then(response => response.data)
         },
         /**
+         * 获取默认执行方案列表
+         * @param {String} payload 方案参数
+         */
+        getDefaultTaskScheme ({ commit }, payload) {
+            const { project_id, template_id } = payload
+            const params = {
+                template_id,
+                project_id
+            }
+            return axios.get('template/api/default_scheme/', { params }).then(response => response.data)
+        },
+        /**
+         * 保存默认执行方案列表
+         * @param {String} payload 方案参数
+         */
+        saveDefaultScheme ({ commit }, payload) {
+            const { project_id, template_id, scheme_ids } = payload
+            const params = {
+                template_id,
+                project_id,
+                scheme_ids
+            }
+            return axios.post('template/api/default_scheme/', params).then(response => response.data)
+        },
+        /**
+         * 更新默认执行方案列表
+         * @param {String} payload 方案参数
+         */
+        updateDefaultScheme ({ commit }, payload) {
+            const { project_id, template_id, scheme_ids, id } = payload
+            const params = {
+                template_id,
+                project_id,
+                scheme_ids
+            }
+            return axios.put(`template/api/default_scheme/${id}/`, params).then(response => response.data)
+        },
+        /**
+         * 删除默认执行方案列表
+         * @param {String} payload 方案参数
+         */
+        deleteDefaultScheme ({ commit }, payload) {
+            const { id } = payload
+            return axios.delete(`template/api/default_scheme/${id}/`).then(response => response.data)
+        },
+        /**
          * 获取任务节点预览数据
          * @param {Object} payload 筛选条件
          */
@@ -180,7 +226,20 @@ const task = {
             return axios.post(`taskflow/api/flow/claim/${project_id}/`, requestData).then(response => response.data)
         },
         /**
-         * 获取任务实例状态信息
+         * 获取任务执行状态
+         * @param {Object} 实例数据
+         * @returns Object
+         */
+        getTaskStatus ({ commit }, data) {
+            const { instance_id, project_id } = data
+            return axios.get(`taskflow/api/v4/root_state/${project_id}/`, {
+                params: {
+                    instance_id
+                }
+            }).then(response => response.data)
+        },
+        /**
+         * 获取任务实例状态信息(包含子流程状态)
          * @param {String} data 实例数据
          */
         getInstanceStatus ({ commit }, data) {
@@ -384,6 +443,14 @@ const task = {
             return axios.post(`taskflow/api/nodes/action/skip_exg/${project_id}/`, data).then(response => response.data)
         },
         /**
+         * 跳过条件并行网关节点
+         * @param {Object} data 节点配置数据
+         */
+        skipCondParallelGateWay ({ commit }, data) {
+            const { project_id } = store.state.project
+            return axios.post(`taskflow/api/nodes/action/skip_cpg/${project_id}/`, data).then(response => response.data)
+        },
+        /**
          * 暂停节点继续
          * @param {Object} data 节点配置数据
          */
@@ -404,6 +471,10 @@ const task = {
             return axios.get(`taskflow/api/nodes/get_job_instance_log/${project_id}/`, {
                 params: { job_instance_id }
             }).then(response => response.data)
+        },
+        subflowNodeRetry ({ commit }, data) {
+            const { project_id } = store.state.project
+            return axios.post(`taskflow/api/nodes/action/retry_subprocess/${project_id}/`, data).then(response => response.data)
         }
     }
 }

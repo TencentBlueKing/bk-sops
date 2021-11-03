@@ -1,2 +1,0 @@
-bugfix:
-  - "修复 IAM 调用 fetch_instance_info 报错的问题"

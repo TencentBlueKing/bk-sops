@@ -64,5 +64,11 @@ def get_task_node_detail(request, task_id, project_id):
             "message": "subprocess_stack is not a valid array json",
             "code": err_code.UNKNOWN_ERROR.code,
         }
-    result = task.get_node_detail(node_id, request.user.username, component_code, subprocess_stack)
+    result = task.get_node_detail(
+        node_id=node_id,
+        username=request.user.username,
+        component_code=component_code,
+        subprocess_stack=subprocess_stack,
+        project_id=project_id,
+    )
     return result

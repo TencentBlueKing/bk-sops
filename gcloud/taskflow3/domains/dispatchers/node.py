@@ -12,8 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+from copy import deepcopy
 from typing import Optional, List
 
+from bamboo_engine import exceptions as bamboo_exceptions
 from bamboo_engine import api as bamboo_engine_api
 from bamboo_engine import states as bamboo_engine_states
 from engine_pickle_obj.context import SystemObject
@@ -22,9 +24,9 @@ from pipeline.engine import states as pipeline_states
 from pipeline.engine import api as pipeline_api
 from pipeline.service import task_service
 from pipeline.models import PipelineInstance
+from pipeline.engine import models as pipeline_engine_models
 from pipeline.parser.context import get_pipeline_context
 from pipeline.eri.runtime import BambooDjangoRuntime
-from pipeline.eri.models import ExecutionData
 from pipeline.log.models import LogEntry
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.engine import exceptions as pipeline_exceptions
@@ -46,11 +48,13 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         "skip",
         "callback",
         "skip_exg",
+        "skip_cpg",
         "pause",
         "resume",
         "pause_subproc",
         "resume_subproc",
         "forced_fail",
+        "retry_subprocess",
     }
 
     def __init__(self, engine_ver: int, node_id: str):
@@ -72,7 +76,10 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
     @ensure_return_is_dict
     def retry_v2(self, operator: str, **kwargs) -> dict:
-        return bamboo_engine_api.retry_node(runtime=BambooDjangoRuntime(), node_id=self.node_id, data=kwargs["inputs"])
+        # 数据为空的情况传入 None, v2 engine api 不认为 {} 是空数据
+        return bamboo_engine_api.retry_node(
+            runtime=BambooDjangoRuntime(), node_id=self.node_id, data=kwargs["inputs"] or None
+        )
 
     @ensure_return_is_dict
     def skip_v1(self, operator: str, **kwargs) -> dict:
@@ -104,6 +111,21 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
     def skip_exg_v2(self, operator: str, **kwargs) -> dict:
         return bamboo_engine_api.skip_exclusive_gateway(
             runtime=BambooDjangoRuntime(), node_id=self.node_id, flow_id=kwargs["flow_id"]
+        )
+
+    @ensure_return_is_dict
+    def skip_cpg_v1(self, operator: str, **kwargs) -> dict:
+        return task_service.skip_conditional_parallel_gateway(
+            gateway_id=self.node_id, flow_ids=kwargs["flow_ids"], converge_gateway_id=kwargs["converge_gateway_id"]
+        )
+
+    @ensure_return_is_dict
+    def skip_cpg_v2(self, operator: str, **kwargs) -> dict:
+        return bamboo_engine_api.skip_conditional_parallel_gateway(
+            runtime=BambooDjangoRuntime(),
+            node_id=self.node_id,
+            flow_ids=kwargs["flow_ids"],
+            converge_gateway_id=kwargs["converge_gateway_id"],
         )
 
     @ensure_return_is_dict
@@ -147,6 +169,17 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         return bamboo_engine_api.forced_fail_activity(
             runtime=BambooDjangoRuntime(), node_id=self.node_id, ex_data="forced fail by {}".format(operator)
         )
+
+    def retry_subprocess_v1(self, operator: str, **kwargs) -> dict:
+        return {
+            "result": False,
+            "message": "v1 engine do not support subprocess retry",
+            "code": err_code.INVALID_OPERATION.code,
+        }
+
+    @ensure_return_is_dict
+    def retry_subprocess_v2(self, operator: str, **kwargs) -> dict:
+        return bamboo_engine_api.retry_subprocess(runtime=BambooDjangoRuntime(), node_id=self.node_id)
 
     def get_node_log(self, history_id: int) -> dict:
         if self.engine_ver not in self.VALID_ENGINE_VER:
@@ -307,8 +340,17 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         else:
             # 最新 loop 执行记录，直接通过接口获取
             if loop is None or int(loop) >= detail["loop"]:
-                inputs = pipeline_api.get_inputs(self.node_id)
-                outputs = pipeline_api.get_outputs(self.node_id)
+                try:
+                    inputs = pipeline_api.get_inputs(self.node_id)
+                except pipeline_engine_models.Data.DoesNotExist:
+                    logger.exception("shield DoesNotExist in pipeline engine layer")
+                    inputs = {}
+
+                try:
+                    outputs = pipeline_api.get_outputs(self.node_id)
+                except pipeline_engine_models.Data.DoesNotExist:
+                    logger.exception("shield DoesNotExist in pipeline engine layer")
+                    outputs = {}
             # 历史 loop 记录，需要从 histories 获取，并取最新一次操作数据（如手动重试时重新填参）
             else:
                 his_data = pipeline_api.get_activity_histories(node_id=self.node_id, loop=loop)
@@ -384,13 +426,13 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
         if state:
             # 获取最新的执行数据
-            if loop is None or int(loop) >= state["loop"]:
+            if loop is None or int(loop) >= state[self.node_id]["loop"]:
                 result = bamboo_engine_api.get_execution_data(runtime=runtime, node_id=self.node_id)
                 if not result.result:
                     logger.exception("bamboo_engine_api.get_execution_data fail")
 
                     # 对上层屏蔽执行数据不存在的场景
-                    if isinstance(result.exc, ExecutionData.DoesNotExist):
+                    if isinstance(result.exc, bamboo_exceptions.NotFoundError):
                         return {
                             "result": True,
                             "data": {"inputs": {}, "outputs": [], "ex_data": ""},
@@ -443,8 +485,13 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     pipeline_instance, obj_type="instance", data_type="data", username=username
                 )
                 system_obj = SystemObject(root_pipeline_data)
-                root_pipeline_context = {"${_system}": system_obj}
-                root_pipeline_context.update(get_project_constants_context(kwargs["project_id"]))
+                root_pipeline_context = {"${_system}": {"type": "plain", "value": system_obj}}
+                root_pipeline_context.update(
+                    {
+                        key: {"type": "plain", "value": value}
+                        for key, value in get_project_constants_context(kwargs["project_id"]).items()
+                    }
+                )
 
                 formatted_pipeline = format_web_data_to_pipeline(pipeline_instance.execution_data)
                 preview_result = bamboo_engine_api.preview_node_inputs(
@@ -453,7 +500,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     node_id=self.node_id,
                     subprocess_stack=subprocess_stack,
                     root_pipeline_data=root_pipeline_data,
-                    current_constants=root_pipeline_context,
+                    parent_params=root_pipeline_context,
                 )
 
                 if not preview_result.result:
@@ -519,7 +566,8 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
     def _assemble_histroy_detail(self, detail: dict, histories: list):
         # index 为 -1 表示当前 loop 的最新一次重试执行，历史 loop 最终状态一定是 FINISHED
-        current_loop = histories[-1]
+        # deepcopy 是为了不在 format_pipeline_status 中修改原数据
+        current_loop = deepcopy(histories[-1])
         current_loop["state"] = bamboo_engine_states.FINISHED
         format_pipeline_status(current_loop)
         detail.update(

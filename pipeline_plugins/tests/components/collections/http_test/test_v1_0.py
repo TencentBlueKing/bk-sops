@@ -71,7 +71,7 @@ HTTP_CALL_REQUEST_ERR_CASE = ComponentTestCase(
                     url="url_token",
                     verify=False,
                     data="body_token".encode("utf-8"),
-                    timeout=30,
+                    timeout=60,
                     headers={"Content-type": "application/json"},
                 )
             ],
@@ -110,7 +110,7 @@ HTTP_CALL_RESP_NOT_JSON_CASE = ComponentTestCase(
                     url="url_token",
                     verify=False,
                     data="body_token".encode("utf-8"),
-                    timeout=30,
+                    timeout=60,
                     headers={"Content-type": "application/json"},
                 )
             ],
@@ -154,7 +154,7 @@ HTTP_CALL_RESP_STATUS_CODE_ERR_CASE = ComponentTestCase(
                     url="url_token",
                     verify=False,
                     data="body_token".encode("utf-8"),
-                    timeout=30,
+                    timeout=60,
                     headers={"Content-type": "application/json"},
                 )
             ],
@@ -342,7 +342,7 @@ HTTP_CALL_EXP_FAIL_CASE = ComponentTestCase(
     ),
     schedule_call_assertion=[
         CallAssertion(
-            func=HTTP_REQUEST, calls=[Call(method="GET", url="url_token", verify=False, timeout=30, headers={})]
+            func=HTTP_REQUEST, calls=[Call(method="GET", url="url_token", verify=False, timeout=60, headers={})]
         ),
         CallAssertion(func=HTTP_CALL_EXP_FAIL_BOOLRULE.test, calls=[Call(context={"resp": "json_token4"})]),
     ],
@@ -390,7 +390,7 @@ HTTP_CALL_EXP_SUCCESS_CASE = ComponentTestCase(
                     url="url_token",
                     verify=False,
                     data="body_token".encode("utf-8"),
-                    timeout=30,
+                    timeout=60,
                     headers={"Content-type": "application/json"},
                 )
             ],

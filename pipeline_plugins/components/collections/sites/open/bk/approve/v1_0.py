@@ -87,7 +87,7 @@ class ApproveService(Service):
         try:
             rejected_block = data.get_one_of_inputs("rejected_block", True)
             approve_result = callback_data["approve_result"]
-            data.outputs.approve_result = _("通过") if approve_result else _("拒绝")
+            data.outputs.approve_result = "通过" if approve_result else "拒绝"
             # 审核拒绝不阻塞
             if not approve_result and not rejected_block:
                 return True

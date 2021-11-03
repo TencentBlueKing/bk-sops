@@ -149,7 +149,10 @@ def import_templates(request):
 
     return: 检测结果
     {
-        "data(integer)": "成功导入的流程数"
+        "data(integer)": "成功导入的流程数",
+        "flows": {
+            "导入的流程ID(integer)": "导入的流程名称(string)"
+        }
     }
     """
     return base_import_templates(request, CommonTemplate, {})
