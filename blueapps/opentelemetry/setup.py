@@ -39,13 +39,11 @@ def setup_trace_config():
         # stage and prod environment, use bk_log as trace service
         trace.set_tracer_provider(
             tracer_provider=TracerProvider(
-                resource=(
-                    Resource.create(
-                        {
-                            "service.name": os.getenv("BKAPP_OTEL_SERVICE_NAME") or settings.APP_CODE,
-                            "bk_data_id": int(os.getenv("BKAPP_OTEL_BK_DATA_ID")),
-                        },
-                    ),
+                resource=Resource.create(
+                    {
+                        "service.name": os.getenv("BKAPP_OTEL_SERVICE_NAME") or settings.APP_CODE,
+                        "bk_data_id": int(os.getenv("BKAPP_OTEL_BK_DATA_ID")),
+                    },
                 ),
                 sampler=_KNOWN_SAMPLERS[os.getenv("BKAPP_OTEL_SAMPLER", "parentbased_always_off")],
             )
