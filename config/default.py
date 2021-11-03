@@ -102,6 +102,7 @@ INSTALLED_APPS += (
     "drf_yasg",
     "plugin_service",
     "django_dbconn_retry",
+    "blueapps.opentelemetry.instrument_app",
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -636,3 +637,7 @@ def monitor_report_config():
 # 自定义上报监控配置
 if env.BK_MONITOR_REPORT_ENABLE:
     monitor_report_config()
+
+ENABLE_OTEL_TRACE = env.ENABLE_OTEL_TRACE
+
+BK_APP_OTEL_INSTRUMENT_DB_API = env.BK_APP_OTEL_INSTRUMENT_DB_API
