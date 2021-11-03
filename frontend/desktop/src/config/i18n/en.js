@@ -1223,7 +1223,8 @@ const en = {
     '成功': 'Success',
     '变量保存数据与最新的CMDB集群配置存在差异，是否更新变量数据？': 'Variable data is different from the latest CMDB configuration, determine whether to update',
     '移动端': 'Mobile',
-    'API网关': 'API Gateway'
+    'API网关': 'API Gateway',
+    '删除连线': 'Delete Line'
 }
 
 export default en

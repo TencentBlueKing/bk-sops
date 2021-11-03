@@ -644,15 +644,16 @@
                     return
                 }
                 this.activeNode = null
+                this.activeCon = conn
                 this.openShortcutPanel('line', e)
-                const [sEdp, tEdp] = conn.endpoints
-                const { sourceId, targetId } = conn
-                this.replaceEndpoint(sEdp, sourceId, true)
-                this.replaceEndpoint(tEdp, targetId, true)
-                setTimeout(() => {
-                    const connections = this.$refs.jsFlow.instance.getConnections({ source: sourceId, targetId: targetId })
-                    this.activeCon = tools.deepClone(connections[0])
-                }, 0)
+                // const [sEdp, tEdp] = conn.endpoints
+                // const { sourceId, targetId } = conn
+                // this.replaceEndpoint(sEdp, sourceId, true)
+                // this.replaceEndpoint(tEdp, targetId, true)
+                // setTimeout(() => {
+                //     const connections = this.$refs.jsFlow.instance.getConnections({ source: sourceId, targetId: targetId })
+                //     this.activeCon = tools.deepClone(connections[0])
+                // }, 0)
             },
             replaceEndpoint (oEdp, nodeId, draggable = false) {
                 const oldConnections = tools.deepClone(oEdp.connections)

@@ -114,7 +114,7 @@
         },
         methods: {
             onConfigBtnClick () {
-                this.$emit('onConfigBtnClick')
+                this.$emit('onConfigBtnClick', this.node.id)
             },
             /**
              * 添加节点
