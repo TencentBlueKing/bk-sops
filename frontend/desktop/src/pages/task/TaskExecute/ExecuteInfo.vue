@@ -842,7 +842,7 @@
                                 with_app_detail: true
                             })
                             if (!resp.result) return
-                            const { app, outputs: respsOutputs, forms } = resp.data
+                            const { outputs: respsOutputs, forms } = resp.data
                             // 输出参数
                             const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
                             const outputs = []
@@ -856,9 +856,8 @@
                             }
                             this.outputRenderConfig = [...storeOutputs, ...outputs]
                             // 设置host
-                            const { host } = window.location
-                            const hostUrl = app.urls.find(item => item.includes(host)) || app.url
-                            $.context.bk_plugin_api_host[this.thirdPartyNodeCode] = hostUrl + '/'
+                            const hostUrl = `plugin_service/data_api/${this.thirdPartyNodeCode}/`
+                            $.context.bk_plugin_api_host[this.thirdPartyNodeCode] = hostUrl
                             // 输入参数
                             const renderFrom = forms.renderform
                             /* eslint-disable-next-line */
