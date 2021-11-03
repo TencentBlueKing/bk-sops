@@ -21,4 +21,4 @@ class InstrumentAppConfig(AppConfig):
 
     def ready(self):
         setup_by_settings()
-        from .celery import worker_process_init_otel_trace_setup, worker_init_otel_trace_setup  # noqa
+        from .celery import worker_process_init_otel_trace_setup  # noqa
