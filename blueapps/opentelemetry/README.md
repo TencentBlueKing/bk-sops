@@ -32,8 +32,8 @@ docker run -p 16686:16686 -p 6831:6831/udp jaegertracing/all-in-one
 ### 3. 启动进程
 
 ```bash
-OTEL_SERVICE_NAME="server" python manage.py runserver --noreload 
-OTEL_SERVICE_NAME="worker" celery worker -A blueapps.core.celery -P threads -c 300 -l info
+BKAPP_OTEL_SERVICE_NAME="server" python manage.py runserver --noreload 
+BKAPP_OTEL_SERVICE_NAME="worker" celery worker -A blueapps.core.celery -P threads -c 300 -l info
 ```
 
 ### 4. 查看 trace 结果
@@ -47,8 +47,9 @@ OTEL_SERVICE_NAME="worker" celery worker -A blueapps.core.celery -P threads -c 3
 ### 本地环境
 
 - 环境变量
-    - OTEL_SERVICE_NAME: 服务名，用于标识数据来源服务
+    - BKAPP_OTEL_SERVICE_NAME: 服务名，用于标识数据来源服务
 - Django Settings
+    - ENABLE_OTEL_TRACE: 是否开启 trace
     - BK_APP_OTEL_INSTRUMENT_DB_API(`bool`): 是否开启 DB 访问 trace（开启后 span 数量会明显增多）
     - BK_APP_OTEL_ADDTIONAL_INSTRUMENTORS(`Collection[opentelemetry.instrumentation.instrumentor.BaseInstrumentor]`): 额外需要开启的 instrumentor，默认包含以下 instrumentor
         - LoggingInstrumentor
@@ -60,10 +61,12 @@ OTEL_SERVICE_NAME="worker" celery worker -A blueapps.core.celery -P threads -c 3
 ### 线上环境
 
 - 环境变量
-    - OTEL_SERVICE_NAME: 服务名，用于标识数据来源服务，如果不配置，则默认使用 SaaS APP_CODE
-    - OTEL_BK_DATA_ID: 日志平台数据上报 data id
-    - OTEL_GRPC_HOST: 日志平台数据上报 grpc host
+    - BKAPP_OTEL_SERVICE_NAME: 服务名，用于标识数据来源服务，如果不配置，则默认使用 SaaS APP_CODE
+    - BKAPP_OTEL_BK_DATA_ID: 日志平台数据上报 data id
+    - BKAPP_OTEL_GRPC_HOST: 日志平台数据上报 grpc host
+    - BKAPP_OTEL_SAMPLER: 采样策略（always_on, always_off, parentbased_always_on, parentbased_always_off, traceidratio, parentbased_traceidratio）
 - Django Settings
+    - ENABLE_OTEL_TRACE: 是否开启 trace
     - BK_APP_OTEL_INSTRUMENT_DB_API(`bool`): 是否开启 DB 访问 trace（开启后 span 数量会明显增多）
     - BK_APP_OTEL_ADDTIONAL_INSTRUMENTORS(`Collection[opentelemetry.instrumentation.instrumentor.BaseInstrumentor]`): 额外需要开启的 instrumentor，默认包含以下 instrumentor
         - LoggingInstrumentor
