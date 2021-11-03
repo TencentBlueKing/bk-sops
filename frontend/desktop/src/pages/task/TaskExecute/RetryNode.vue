@@ -121,7 +121,8 @@
                             if (!resp.result) return
                             
                             // 设置host
-                            const hostUrl = `plugin_service/data_api/${pluginCode}/`
+                            const { origin } = window.location
+                            const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${pluginCode}/`
                             $.context.bk_plugin_api_host[pluginCode] = hostUrl
                             // 输入参数
                             const renderFrom = resp.data.forms.renderform

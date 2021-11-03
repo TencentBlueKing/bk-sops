@@ -434,7 +434,8 @@
                         })
                         if (!resp.result) return
                         // 设置host
-                        const hostUrl = `plugin_service/data_api/${plugin_code}/`
+                        const { origin } = window.location
+                        const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${plugin_code}/`
                         $.context.bk_plugin_api_host[plugin_code] = hostUrl
                         // 输入参数
                         $.atoms[plugin_code] = {}
