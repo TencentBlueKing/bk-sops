@@ -346,9 +346,8 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         :param limit: 返回数据条数
         :type limit: [type]
         """
-
         task_instance_id_list = taskflow.values_list("id", flat=True)
-        taskflow_statistics_data = (
+        taskflow_statistics_data = list(
             TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)
             .values("category")
             .annotate(value=Count("category"))
@@ -363,7 +362,6 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             }
             for data in taskflow_statistics_data
         ]
-
         return total, groups
 
     def group_by_instance_node(self, taskflow, filters, page, limit):
@@ -375,12 +373,12 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         @param limit:
         @return:
         """
-
         # 获取排序字段和排序方法
         order_by_field = filters.get("order_by", "-instance_id")
 
         # 查询出有序的taskflow统计数据
-        task_instance_id_list = taskflow.values_list("id", flat=True)
+        total = taskflow.count()
+        task_instance_id_list = list(taskflow[(page - 1) * limit : page * limit].values_list("id", flat=True))
         taskflow_statistics_data = TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)
         # 注入instance_name和project_name
         instance_id_list = taskflow_statistics_data.values_list("instance_id", flat=True)
@@ -398,8 +396,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             "subprocess_total",
             "gateways_total",
             "create_method",
-        ).order_by(order_by_field)[(page - 1) * limit : page * limit]
-        total = taskflow_statistics_data.count()
+        ).order_by(order_by_field)
         groups = [
             {
                 "instance_id": data["instance_id"],
@@ -458,13 +455,14 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
     def group_by_project_id(self, taskflow, filters, page, limit):
         # 查询不同业务对应的流程数
         taskflow_id_list = taskflow.values_list("id", flat=True)
-        taskflow_statistics_data = (
+        taskflow_statistics = (
             TaskflowStatistics.objects.filter(task_instance_id__in=taskflow_id_list)
             .values("project_id", "create_method")
             .annotate(value=Count("id"))
         )
+        taskflow_statistics_data = list(taskflow_statistics)
         # 获取project_name
-        project_id_list = taskflow_statistics_data.values_list("project_id", flat=True)
+        project_id_list = taskflow_statistics.values_list("project_id", flat=True)
         project_dict = dict(Project.objects.filter(id__in=project_id_list).values_list("id", "name"))
         total = 1
         groups = [
@@ -480,7 +478,6 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             }
             for project_id in project_dict.keys()
         ]
-
         return total, groups
 
     def group_by_common_func(self, taskflow, filters, page, limit):
