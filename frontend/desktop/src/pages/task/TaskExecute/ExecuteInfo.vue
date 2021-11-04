@@ -35,7 +35,7 @@
                         :name="index">
                     </bk-option>
                 </bk-select>
-                <span>{{$t('次执行')}}</span>
+                <span>{{$t('次循环')}}</span>
             </div>
             <div class="execute-head">
                 <div class="node-name">

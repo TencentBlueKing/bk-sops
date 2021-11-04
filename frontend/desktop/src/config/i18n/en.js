@@ -723,7 +723,7 @@ const en = {
     '节点日志': 'Node Logs',
     '日志': 'Logs',
     '第': ' ',
-    '次执行': 'Execution',
+    '次循环': 'Cycles',
     '执行次数': 'Count of executions',
     '请选择执行分支': 'Please select a execution branch',
     '可选执行分支': 'Branches',
