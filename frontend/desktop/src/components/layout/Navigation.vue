@@ -48,7 +48,7 @@
     </bk-navigation>
 </template>
 <script>
-    import { mapState, mapMutations } from 'vuex'
+    import { mapState } from 'vuex'
     import { COMMON_ROUTE_LIST, ADMIN_ROUTE_LIST, APPMAKER_ROUTE_LIST } from '@/constants/routes.js'
     import tools from '@/utils/tools.js'
     import NavigatorHeadRight from '@/components/layout/NavigatorHeadRight.vue'
@@ -92,10 +92,6 @@
                         })
                     })
                 }
-                if (!this.project_id && this.projectList.length) {
-                    const projectId = this.projectList[0].id
-                    this.setProjectId(projectId)
-                }
                 return COMMON_ROUTE_LIST
             },
             routerList () {
@@ -122,9 +118,6 @@
             }
         },
         methods: {
-            ...mapMutations('project', [
-                'setProjectId'
-            ]),
             setNavigationTitle (route) {
                 const nav = this.findCurrentNav(route)
                 if (nav) {
@@ -157,9 +150,6 @@
                 }
                 if (nav.hasProjectId) {
                     route.path = `${nav.url}${this.project_id}/`
-                }
-                if (this.$route.path === route.path) {
-                    return
                 }
                 if (this.$route.name === nav.id) {
                     this.$router.push(route)
