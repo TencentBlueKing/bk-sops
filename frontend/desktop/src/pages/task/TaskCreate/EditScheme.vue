@@ -17,7 +17,7 @@
         <div class="form-content">
             <bk-form form-type="vertical">
                 <bk-form-item :label="$t('方案内容')" :required="true">
-                    <bk-input type="textarea" :rows="16" v-model="schemeText" @blur="updateSelected"></bk-input>
+                    <bk-input type="textarea" :rows="16" v-model="schemeText" @paste="handleInputPaste" @blur="updateSelected"></bk-input>
                     <div class="content-tips">{{ $t('参考格式：步骤：节点名 标识位(0：不选择；1：选择；2：非可选节点)，并以换行符分隔。') }}</div>
                 </bk-form-item>
                 <bk-form-item :label="$t('变更节点对比')">
@@ -73,6 +73,19 @@
             },
             judgeDataEqual () {
                 return this.initSchemeText.trim() === this.schemeText.trim()
+            },
+            // 文本框粘贴
+            handleInputPaste (value, event) {
+                event.preventDefault()
+                let paste = (event.clipboardData || window.clipboardData).getData('text')
+                paste = paste.replace(/[\\]t/, '    ')
+                const selection = window.getSelection()
+                if (!selection.rangeCount) return false
+                if (selection.toString()) {
+                    this.schemeText = value.replace(selection.toString(), paste)
+                } else {
+                    this.schemeText = value + paste
+                }
             },
             updateSelected () {
                 this.errorMsg = ''
