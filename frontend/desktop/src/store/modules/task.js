@@ -342,6 +342,14 @@ const task = {
             }).then(response => response.data)
         },
         /**
+         * 获取任务所有全局变量当前渲染后的值
+         * @param {Object} data 节点配置数据
+         */
+        getRenderCurConstants ({ commit }, data) {
+            const { task_id } = data
+            return axios.get(`taskflow/api/render_current_constants/${task_id}/`).then(response => response.data)
+        },
+        /**
          * 获取模版操作记录
          * @param {Object} data 节点配置数据
          */
