@@ -10,52 +10,72 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <el-tooltip
-        placement="bottom"
-        popper-class="task-node-tooltip"
-        :disabled="!isOpenTooltip">
-        <div
-            :class="[
-                'task-node',
-                'subflow-node',
-                node.status ? node.status.toLowerCase() : '',
-                { 'actived': node.isActived }
-            ]">
-            <div class="node-status-block">
-                <i class="node-icon-font common-icon-subflow-mark"></i>
-                <div v-if="node.stage_name" class="stage-name">{{ node.stage_name }}</div>
-            </div>
-            <div class="node-name" :title="node.name">
-                <div class="name-text">{{ node.name }}</div>
-                <div class="subflow-mark"></div>
-            </div>
-            <div class="node-options-icon">
-                <template v-if="node.optional">
-                    <span v-if="node.mode === 'edit'" class="dark-circle common-icon-dark-circle-checkbox"></span>
-                    <bk-checkbox
-                        v-else-if="node.mode === 'select'"
-                        :value="node.checked"
-                        :disabled="node.checkDisable"
-                        @change="onNodeCheckClick">
-                    </bk-checkbox>
-                </template>
-            </div>
-            <div v-if="node.hasUpdated" class="updated-dot">
-                <div class="ripple"></div>
-            </div>
+    <div
+        :class="[
+            'task-node',
+            'subflow-node',
+            node.status ? node.status.toLowerCase() : '',
+            { 'actived': node.isActived }
+        ]">
+        <div class="node-status-block">
+            <i class="node-icon-font common-icon-subflow-mark"></i>
+            <div v-if="node.stage_name" class="stage-name">{{ node.stage_name }}</div>
+        </div>
+        <div class="node-name" :title="node.name">
+            <div class="name-text">{{ node.name }}</div>
+            <div class="subflow-mark"></div>
+        </div>
+        <div class="node-options-icon">
+            <template v-if="node.optional">
+                <span v-if="node.mode === 'edit'" class="dark-circle common-icon-dark-circle-checkbox"></span>
+                <bk-checkbox
+                    v-else-if="node.mode === 'select'"
+                    :value="node.checked"
+                    :disabled="node.checkDisable"
+                    @change="onNodeCheckClick">
+                </bk-checkbox>
+            </template>
+        </div>
+        <div v-if="node.hasUpdated" class="updated-dot">
+            <div class="ripple"></div>
+        </div>
+        <!-- 节点右上角执行相关的icon区域 -->
+        <div class="node-execute-icon">
             <div v-if="node.status === 'SUSPENDED' || node.status === 'RUNNING'" class="task-status-icon subflow-status">
                 <i v-if="node.status === 'SUSPENDED'" class="common-icon-double-vertical-line"></i>
                 <i v-if="node.status === 'RUNNING'" class="common-icon-loading"></i>
             </div>
         </div>
-        <div class="node-tooltip-content" slot="content">
+        <!-- tooltip提示 -->
+        <div class="state-icon">
+            <el-tooltip placement="bottom" :content="$t('节点参数')">
+                <span
+                    class="common-icon-bkflow-setting"
+                    @click.stop="$emit('onSubflowDetailClick', node.id)">
+                </span>
+            </el-tooltip>
             <template v-if="node.status === 'RUNNING'">
-                <bk-button @click="onSubflowPauseResumeClick('pause')">{{ $t('暂停') }}</bk-button>
-                <bk-button v-if="hasAdminPerm" @click="$emit('onForceFail', node.id)">{{ $t('强制失败') }}</bk-button>
+                <el-tooltip placement="bottom" :content="$t('暂停')">
+                    <span
+                        class="common-icon-resume"
+                        @click.stop="onSubflowPauseResumeClick('pause')">
+                    </span>
+                </el-tooltip>
+                <el-tooltip v-if="hasAdminPerm" placement="bottom" :content="$t('强制失败')">
+                    <span
+                        class="common-icon-mandatory-failure"
+                        @click.stop="$emit('onForceFail', node.id)">
+                    </span>
+                </el-tooltip>
             </template>
-            <bk-button v-if="node.status === 'SUSPENDED'" @click="onSubflowPauseResumeClick('resume')">{{ $t('继续') }}</bk-button>
+            <el-tooltip v-if="node.status === 'SUSPENDED'" placement="bottom" :content="$t('继续')">
+                <span
+                    class="common-icon-play"
+                    @click.stop="onSubflowPauseResumeClick('resume')">
+                </span>
+            </el-tooltip>
         </div>
-    </el-tooltip>
+    </div>
 </template>
 <script>
 
@@ -71,11 +91,6 @@
                 default () {
                     return {}
                 }
-            }
-        },
-        computed: {
-            isOpenTooltip () {
-                return ['RUNNING', 'SUSPENDED'].indexOf(this.node.status) > -1
             }
         },
         methods: {

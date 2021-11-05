@@ -262,7 +262,9 @@ class JobService(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "job.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
+                        "job.get_job_instance_global_var_value",
+                        get_var_kwargs,
+                        global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
@@ -574,3 +576,64 @@ class Jobv3ScheduleService(Jobv3Service):
 
             self.finish_schedule()
             return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count
+
+
+class GetJobHistoryResultMixin(object):
+    def get_job_history_result(self, data, parent_data):
+        # get job_instance[job_success_id] execute status
+        job_success_id = data.get_one_of_inputs("job_success_id")
+        client = get_client_by_user(parent_data.inputs.executor)
+        job_kwargs = {"bk_biz_id": data.inputs.biz_cc_id, "job_instance_id": job_success_id}
+        job_result = client.jobv3.get_job_instance_status(job_kwargs)
+
+        if not job_result["result"]:
+            message = handle_api_error(
+                __group_name__,
+                "jobv3.get_job_instance_status",
+                job_kwargs,
+                job_result,
+            )
+            self.logger.error(message)
+            data.outputs.ex_data = message
+            self.logger.info(data.outputs)
+            return False
+
+        # judge success status
+        if job_result["data"]["job_instance"]["status"] not in JOB_SUCCESS:
+            message = "[get_job_instance_status] Job_instance:{id} is not success.".format(id=job_success_id)
+            self.logger.error(message)
+            data.outputs.ex_data = message
+            self.logger.info(data.outputs)
+            return False
+
+        # get job_var
+        if not self.need_get_sops_var:
+            self.logger.info(data.outputs)
+            return True
+
+        get_job_sops_var_dict_return = get_job_sops_var_dict(
+            client,
+            self.logger,
+            job_success_id,
+            data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+        )
+        if not get_job_sops_var_dict_return["result"]:
+            self.logger.error(
+                _("{group}.{job_service_name}: 提取日志失败，{message}").format(
+                    group=__group_name__,
+                    job_service_name=self.__class__.__name__,
+                    message=get_job_sops_var_dict_return["message"],
+                )
+            )
+            data.set_outputs("log_outputs", {})
+            self.logger.info(data.outputs)
+            return True
+        log_outputs = get_job_sops_var_dict_return["data"]
+        self.logger.info(
+            _("{group}.{job_service_name}：输出日志提取变量为：{log_outputs}").format(
+                group=__group_name__, job_service_name=self.__class__.__name__, log_outputs=log_outputs
+            )
+        )
+        data.set_outputs("log_outputs", log_outputs)
+        self.logger.info(data.outputs)
+        return True

@@ -41,23 +41,16 @@ class GetTaskNodeDetailAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID,
-                name=TEST_PROJECT_NAME,
-                bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True,
+                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
             )
         ),
     )
     def test_get_task_node_detail__success(self):
-        mock_taskflow = MockTaskFlowInstance(
-            get_node_detail_return={"result": True, "data": TEST_DATA}
-        )
+        mock_taskflow = MockTaskFlowInstance(get_node_detail_return={"result": True, "data": TEST_DATA})
         with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=mock_taskflow)):
             assert_data = TEST_DATA
             response = self.client.get(
-                path=self.url().format(
-                    task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID
-                ),
+                path=self.url().format(task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID),
                 data={
                     "node_id": TEST_NODE_ID,
                     "component_code": TEST_COMPONENT_CODE,
@@ -70,20 +63,17 @@ class GetTaskNodeDetailAPITest(APITest):
             self.assertTrue(data["result"], msg=data)
             self.assertEqual(data["data"], assert_data)
             mock_taskflow.get_node_detail.assert_called_once_with(
-                TEST_NODE_ID,
-                TEST_USERNAME,
-                TEST_COMPONENT_CODE,
-                json.loads(TEST_SUBPROCESS_STACK),
+                component_code="component_code",
+                node_id="node_id",
+                project_id="123",
+                subprocess_stack=[1, 2, 3],
+                username="",
             )
 
-    @mock.patch(
-        TASKINSTANCE_GET, MagicMock(side_effect=TaskFlowInstance.DoesNotExist())
-    )
+    @mock.patch(TASKINSTANCE_GET, MagicMock(side_effect=TaskFlowInstance.DoesNotExist()))
     def test_get_task_node_detail__taskflow_doest_not_exist(self):
         response = self.client.get(
-            path=self.url().format(
-                task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID
-            ),
+            path=self.url().format(task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID),
             data={
                 "node_id": TEST_NODE_ID,
                 "component_code": TEST_COMPONENT_CODE,
@@ -97,14 +87,8 @@ class GetTaskNodeDetailAPITest(APITest):
 
     def test_get_task_node_detail__with_invalid_subprocess_stack(self):
         response = self.client.get(
-            path=self.url().format(
-                task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID
-            ),
-            data={
-                "node_id": TEST_NODE_ID,
-                "component_code": TEST_COMPONENT_CODE,
-                "subprocess_stack": "abcdefg",
-            },
+            path=self.url().format(task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID),
+            data={"node_id": TEST_NODE_ID, "component_code": TEST_COMPONENT_CODE, "subprocess_stack": "abcdefg"},
         )
 
         data = json.loads(response.content)

@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading , zIndex: 100 }">
+    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading , zIndex: 100 }">
         <div v-if="!templateDataLoading" class="pipeline-canvas-wrapper">
             <TemplateHeader
                 ref="templateHeader"
@@ -31,7 +31,6 @@
                 :exclude-node="excludeNode"
                 :execute-scheme-saving="executeSchemeSaving"
                 @onDownloadCanvas="onDownloadCanvas"
-                @onSaveExecuteSchemeClick="onSaveExecuteSchemeClick"
                 @goBackToTplEdit="goBackToTplEdit"
                 @onClosePreview="onClosePreview"
                 @onOpenExecuteScheme="onOpenExecuteScheme"
@@ -60,6 +59,8 @@
                     :template-labels="templateLabels"
                     :canvas-data="canvasData"
                     :node-memu-open.sync="nodeMenuOpen"
+                    :plugin-loading="pagination.isLoading"
+                    @updatePluginList="updatePluginList"
                     @hook:mounted="canvasMounted"
                     @onConditionClick="onOpenConditionEdit"
                     @templateDataChanged="templateDataChanged"
@@ -69,7 +70,8 @@
                     @onFormatPosition="onFormatPosition"
                     @onReplaceLineAndLocation="onReplaceLineAndLocation"
                     @onShowNodeConfig="onShowNodeConfig"
-                    @getAtomList="getAtomList">
+                    @getAtomList="getAtomList"
+                    @updateCondition="setBranchCondition($event)">
                 </TemplateCanvas>
             </template>
             <TaskSelectNode
@@ -100,6 +102,8 @@
                     :node-id="idOfNodeInConfigPanel"
                     :back-to-variable-panel="backToVariablePanel"
                     :subflow-list-loading="subflowListLoading"
+                    :plugin-loading="pagination.isLoading"
+                    @updatePluginList="updatePluginList"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
@@ -281,8 +285,10 @@
                 atomList: [],
                 atomTypeList: {
                     tasknode: [],
-                    subflow: []
-                }, // 左侧边栏菜单数据
+                    subflow: [],
+                    pluginList: []
+                },
+                thirdPartyList: {},
                 snapshoots: [],
                 snapshootTimer: null,
                 templateLabels: [],
@@ -316,6 +322,12 @@
                     ]
                 },
                 typeOfNodeNameEmpty: '', // 新建流程未选择插件的节点类型
+                pagination: {
+                    limit: 100,
+                    offset: 0,
+                    isLoading: false,
+                    totalPage: null
+                },
                 totalPage: 0,
                 currentPage: 0,
                 limit: 25,
@@ -323,7 +335,8 @@
                 pollingTimer: null,
                 isPageOver: false,
                 isThrottled: false, // 滚动节流 是否进入cd
-                envVariableData: {}
+                envVariableData: {},
+                validateConnectFailList: [] // 节点校验失败列表
             }
         },
         computed: {
@@ -357,17 +370,26 @@
                     lines: this.lines,
                     locations: this.locations.map(location => {
                         let icon, group, code
-                        const atom = this.atomList.find(item => {
-                            if (location.type === 'tasknode') {
-                                return this.activities[location.id].component.code === item.code
+                        if (location.type === 'tasknode') {
+                            const nodeConfig = this.activities[location.id]
+                            if (nodeConfig && nodeConfig.component.code === 'remote_plugin') {
+                                icon = location.group_icon
+                                group = location.group_name
+                                code = nodeConfig.name
+                            } else {
+                                const atom = this.atomList.find(item => {
+                                    return nodeConfig && nodeConfig.component.code === item.code
+                                })
+                                if (atom) {
+                                    icon = atom.group_icon
+                                    group = atom.group_name
+                                    code = atom.code
+                                }
                             }
-                        })
-                        if (atom) {
-                            icon = atom.group_icon
-                            group = atom.group_name
-                            code = atom.code
                         }
-                        const data = { ...location, mode: 'edit', icon, group, code }
+                        const status = this.validateConnectFailList.includes(location.id) ? 'FAILED' : ''
+
+                        const data = { ...location, mode: 'edit', icon, group, code, status }
                         if (
                             this.subprocess_info
                             && this.subprocess_info.details
@@ -458,7 +480,6 @@
                 'loadProjectBaseInfo',
                 'loadTemplateData',
                 'saveTemplateData',
-                'loadCommonTemplateData',
                 'loadCustomVarCollection',
                 'getLayoutedPipeline',
                 'loadInternalVariable'
@@ -467,7 +488,9 @@
                 'loadSingleAtomList',
                 'loadSubflowList',
                 'loadAtomConfig',
-                'loadSubflowConfig'
+                'loadSubflowConfig',
+                'loadPluginServiceList',
+                'loadPluginServiceMeta'
             ]),
             ...mapActions('project/', [
                 'getProjectLabelsWithDefault',
@@ -517,6 +540,14 @@
                         params.project_id = this.project_id
                     }
                     const data = await this.loadSingleAtomList(params)
+
+                    const { limit, offset } = this.pagination
+                    const resp = await this.loadPluginServiceList({
+                        search_term: '',
+                        limit,
+                        offset
+                    })
+                    // 内置插件
                     const atomList = []
                     data.forEach(item => {
                         const atom = atomList.find(atom => atom.code === item.code)
@@ -539,6 +570,9 @@
                     this.atomList = this.handleAtomVersionOrder(atomList)
                     this.handleAtomGroup(atomList)
                     this.markNodesPhase()
+                    // 第三方插件
+                    this.pagination.totalPage = Math.ceil(resp.data.count / this.pagination.limit)
+                    this.atomTypeList.pluginList = resp.data.plugins
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -601,7 +635,10 @@
                 this.atomConfigLoading = true
                 try {
                     await this.loadAtomConfig({ atom: code, version, project_id })
-                    this.addSingleAtomActivities(location, this.atomConfig[code][version])
+                    const config = this.atomConfig[code] && this.atomConfig[code][version]
+                    if (config) {
+                        this.addSingleAtomActivities(location, config)
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -1018,11 +1055,14 @@
             /**
              * 打开节点配置面板
              */
-            onShowNodeConfig (id) {
+            async onShowNodeConfig (id) {
                 // 判断节点配置的插件是否存在
                 const nodeConfig = this.$store.state.template.activities[id]
                 if (nodeConfig.type === 'ServiceActivity' && nodeConfig.name) {
-                    const atom = this.atomList.find(item => item.code === nodeConfig.component.code)
+                    let atom = true
+                    if (nodeConfig.component.code !== 'remote_plugin') {
+                        atom = this.atomList.find(item => item.code === nodeConfig.component.code)
+                    }
                     if (!atom) {
                         this.$bkMessage({
                             message: '该节点配置的插件不存在，请检查流程数据',
@@ -1033,6 +1073,27 @@
                 }
                 const location = this.locations.find(item => item.id === id)
                 if (['tasknode', 'subflow'].includes(location.type)) {
+                    // 设置第三发插件缓存
+                    const nodeConfig = this.$store.state.template.activities[id]
+                    if (nodeConfig.component
+                        && nodeConfig.component.code === 'remote_plugin'
+                        && !this.thirdPartyList[id]) {
+                        const resp = await this.loadPluginServiceMeta({ plugin_code: nodeConfig.component.data.plugin_code.value })
+                        const { code, versions, description } = resp.data
+                        const versionList = versions.map(version => {
+                            return { version }
+                        })
+                        const { data } = nodeConfig.component
+                        let version = data && data.plugin_version
+                        version = version && version.value
+                        const group = {
+                            code,
+                            list: versionList,
+                            version,
+                            desc: description
+                        }
+                        this.thirdPartyList[id] = group
+                    }
                     this.showConfigPanel(id)
                 }
             },
@@ -1096,7 +1157,7 @@
              * @param {String} changeType 变更类型,添加、删除、编辑
              * @param {Object} location 节点 location 字段
              */
-            onLocationChange (changeType, location) {
+            async onLocationChange (changeType, location) {
                 this.setLocation({ type: changeType, location })
                 switch (location.type) {
                     case 'tasknode':
@@ -1104,11 +1165,28 @@
                         // 添加任务节点
                         if (changeType === 'add' && location.atomId) {
                             if (location.type === 'tasknode') {
-                                const atoms = this.atomList.find(item => item.code === location.atomId).list
-                                // @todo 需要确认插件最新版本的取值逻辑，暂时取最后一个
-                                const lastVersionAtom = atoms[atoms.length - 1]
-                                const version = lastVersionAtom.version
-                                location.version = version
+                                if (location.atomId === 'remote_plugin') {
+                                    const resp = await this.loadPluginServiceMeta({ plugin_code: location.name })
+                                    if (!resp.result) return
+                                    const versionList = resp.data.versions
+                                    location.version = versionList[versionList.length - 1]
+                                    location.data = {
+                                        plugin_code: {
+                                            hook: false,
+                                            value: location.name
+                                        },
+                                        plugin_version: {
+                                            hook: false,
+                                            value: location.version
+                                        }
+                                    }
+                                } else {
+                                    const atoms = this.atomList.find(item => item.code === location.atomId).list
+                                    // @todo 需要确认插件最新版本的取值逻辑，暂时取最后一个
+                                    const lastVersionAtom = atoms[atoms.length - 1]
+                                    const version = lastVersionAtom.version
+                                    location.version = version
+                                }
                                 this.setActivities({ type: 'add', location })
                                 this.getSingleAtomConfig(location)
                             } else {
@@ -1132,6 +1210,13 @@
                         this.setEndpoint({ type: changeType, location })
                         break
                 }
+                // 删除节点时，清除对应的校验失败节点
+                if (changeType === 'delete' && this.validateConnectFailList.length) {
+                    const index = this.validateConnectFailList.findIndex(val => val === location.id)
+                    if (index > -1) {
+                        this.validateConnectFailList.splice(index, 1)
+                    }
+                }
             },
             /**
              * 连线变更(新增、删除)
@@ -1140,6 +1225,20 @@
              */
             onLineChange (changeType, line) {
                 this.setLine({ type: changeType, line })
+                // 对校验失败节点进行处理
+                if (changeType === 'add' && this.validateConnectFailList.length) {
+                    const idList = [line.target.id, line.source.id]
+                    const nodeList = this.validateConnectFailList.filter(val => idList.includes(val))
+                    if (!nodeList || !nodeList.length) return
+                    nodeList.forEach(node => {
+                        const nodeInfo = this.activities[node] || this.gateways[node]
+                        const outgoing = Array.isArray(nodeInfo.outgoing) ? nodeInfo.outgoing.length : nodeInfo.outgoing
+                        if (nodeInfo.incoming.length && outgoing) {
+                            const index = this.validateConnectFailList.findIndex(val => val === node)
+                            this.validateConnectFailList.splice(index, 1)
+                        }
+                    })
+                }
             },
             /**
              * 节点位置移动
@@ -1165,11 +1264,12 @@
             onDownloadCanvas () {
                 this.$refs.templateCanvas.onDownloadCanvas()
             },
-            async onSaveExecuteSchemeClick () {
+            async onSaveExecuteSchemeClick (isDefault) {
                 try {
                     this.executeSchemeSaving = true
                     const schemes = this.taskSchemeList.map(item => {
                         return {
+                            id: item.id || undefined,
                             data: item.data,
                             name: item.name
                         }
@@ -1180,16 +1280,18 @@
                         schemes,
                         isCommon: this.common
                     })
-                    if (resp.result) {
-                        this.$bkMessage({
-                            message: i18n.t('方案保存成功'),
-                            theme: 'success'
-                        })
-                        this.isExectueSchemeDialog = false
-                        this.allowLeave = true
-                        this.isTemplateDataChanged = false
-                        this.isEditProcessPage = true
-                        this.isSchemaListChange = false
+                    if (!resp.result) return
+                    this.$bkMessage({
+                        message: i18n.t('方案保存成功'),
+                        theme: 'success'
+                    })
+                    this.isExectueSchemeDialog = false
+                    this.allowLeave = true
+                    this.isTemplateDataChanged = false
+                    this.isSchemaListChange = false
+                    this.isEditProcessPage = !isDefault
+                    if (isDefault) {
+                        this.$refs.taskSelectNode.loadSchemeList()
                     }
                 } catch (e) {
                     console.log(e)
@@ -1198,10 +1300,12 @@
                 }
             },
             goBackToTplEdit () {
-                if (this.isSchemaListChange) {
-                    this.isExectueSchemeDialog = true
-                } else {
+                const { isDefaultSchemeIng, judgeDataEqual } = this.$refs.taskSelectNode
+                const isEqual = isDefaultSchemeIng ? judgeDataEqual() : !this.isSchemaListChange
+                if (isEqual) {
                     this.isEditProcessPage = true
+                } else {
+                    this.isExectueSchemeDialog = true
                 }
             },
             updateTaskSchemeList (val, isChange) {
@@ -1255,6 +1359,16 @@
                 // 校验节点数目
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
+                    // 获取检验不合格节点
+                    const validateConnectFailList = []
+                    const nodeObject = Object.assign({}, this.activities, this.gateways)
+                    Object.values(nodeObject).forEach(node => {
+                        const outgoing = Array.isArray(node.outgoing) ? node.outgoing.length : node.outgoing
+                        if (!node.incoming.length || !outgoing) {
+                            validateConnectFailList.push(node.id)
+                        }
+                    })
+                    this.validateConnectFailList = validateConnectFailList
                     this.$bkMessage({
                         message: validateMessage.message,
                         theme: 'error',
@@ -1380,6 +1494,31 @@
             hideGuideTips () {
                 if (this.nodeGuide) {
                     this.nodeGuide.instance.hide()
+                }
+            },
+            async updatePluginList (val = undefined, type) {
+                try {
+                    if (type === 'scroll') {
+                        const { limit, offset, totalPage, isLoading } = this.pagination
+                        if (offset !== totalPage && !isLoading) {
+                            this.pagination.isLoading = true
+                            this.pagination.offset++
+                            const params = { search_term: val, limit: limit, offset }
+                            const resp = await this.loadPluginServiceList(params)
+                            const { count, plugins } = resp.data
+                            this.pagination.totalPage = Math.ceil(count / this.pagination.limit)
+                            this.atomTypeList.pluginList.push(...plugins)
+                            this.pagination.isLoading = false
+                        }
+                    } else {
+                        const { limit, offset } = this.pagination
+                        const params = { search_term: val, limit: limit, offset }
+                        const resp = await this.loadPluginServiceList(params)
+                        this.atomTypeList.pluginList = resp.data.plugins
+                    }
+                } catch (error) {
+                    this.pagination.isLoading = false
+                    console.warn(error)
                 }
             },
             canvasMounted () {
@@ -1560,7 +1699,9 @@
                     this.isExectueSchemeDialog = false
                     this.isEditProcessPage = false
                 } else {
-                    this.onSaveExecuteSchemeClick()
+                    const { isDefaultSchemeIng, judgeDataEqual } = this.$refs.taskSelectNode
+                    const isEqual = isDefaultSchemeIng ? !judgeDataEqual() : false
+                    this.onSaveExecuteSchemeClick(isEqual)
                 }
             },
             // 编辑执行方案弹框 取消事件

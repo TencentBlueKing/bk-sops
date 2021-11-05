@@ -27,21 +27,14 @@
                 @onGatewaySelectionClick="onGatewaySelectionClick"
                 @onTaskNodeResumeClick="onTaskNodeResumeClick"
                 @onForceFail="onForceFail"
-                @onSubflowPauseResumeClick="onSubflowPauseResumeClick" />
+                @onSubflowPauseResumeClick="onSubflowPauseResumeClick"
+                @onSubflowDetailClick="onSubflowDetailClick" />
             <i
                 v-if="editable"
                 class="common-icon-dark-circle-close close-icon"
                 @click.stop="onNodeRemove">
             </i>
         </div>
-        <ShortcutPanel
-            :node="node"
-            :id-of-node-shortcut-panel="idOfNodeShortcutPanel"
-            :canvas-data="canvasData"
-            @onAppendNode="onAppendNode"
-            @onInsertNode="onInsertNode"
-            @onConfigBtnClick="onConfigBtnClick">
-        </ShortcutPanel>
     </div>
 </template>
 <script>
@@ -53,12 +46,8 @@
     import ParallelGateway from './ParallelGateway.vue'
     import ConditionalParallelGateway from './ConditionalParallelGateway.vue'
     import ConvergeGateway from './ConvergeGateway.vue'
-    import ShortcutPanel from './ShortcutPanel.vue'
     export default {
         name: 'NodeTemplate',
-        components: {
-            ShortcutPanel
-        },
         props: {
             node: {
                 type: Object,
@@ -70,19 +59,9 @@
                 type: Boolean,
                 default: true
             },
-            idOfNodeShortcutPanel: {
-                type: String,
-                default: ''
-            },
             hasAdminPerm: {
                 type: Boolean,
                 default: false
-            },
-            canvasData: {
-                type: Object,
-                default () {
-                    return {}
-                }
             }
         },
         data () {
@@ -163,14 +142,8 @@
             onSubflowPauseResumeClick (id, value) {
                 this.$emit('onSubflowPauseResumeClick', id, value)
             },
-            onAppendNode (data) {
-                this.$emit('onAppendNode', data)
-            },
-            onConfigBtnClick (id) {
-                this.$emit('onConfigBtnClick', id)
-            },
-            onInsertNode (data) {
-                this.$emit('onInsertNode', data)
+            onSubflowDetailClick (id) {
+                this.$emit('onNodeClick', id, 'subflowDetail')
             }
         }
     }
@@ -481,18 +454,27 @@
                 }
             }
         }
-        .task-status-icon {
+        .node-execute-icon {
             position: absolute;
+            display: flex;
+            flex-direction: row-reverse;
+            align-items: center;
+            justify-content: space-between;
             top: -10px;
             right: -8px;
+            height: 18px;
+        }
+        .task-status-icon {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-left: 2px;
             width: 18px;
             height: 18px;
-            line-height: 16px;
             font-size: 14px;
             border-radius: 50%;
             background: #f8b53f;
             color: #ffffff;
-            text-align: center;
             box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
             .common-icon-double-vertical-line {
                 display: inline-block;
@@ -512,6 +494,16 @@
             .retry-times {
                 font-size: 12px;
             }
+            &.task-node-loop {
+                position: relative;
+                font-size: 16px;
+                > span {
+                    position: absolute;
+                    top: 1px;
+                    left: 5px;
+                    font-size: 12px;
+                }
+            }
             @keyframes loading {
                 from {
                     transform: rotate(0);
@@ -526,14 +518,8 @@
             background: #ea3636 !important;
         }
         .node-phase-icon {
-            position: absolute;
-            top: -10px;
-            right: 10px;
-            width: 14px;
-            height: 14px;
-            line-height: 14px;
             i {
-                font-size: 12px;
+                font-size: 14px;
                 &.phase-warn {
                     color: $yellowDark;
                 }

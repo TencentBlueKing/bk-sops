@@ -370,6 +370,33 @@
             }
         },
         {
+            tag_code: "custom_task_name",
+            type: "input",
+            attrs: {
+                name: gettext("自定义任务名"),
+                placeholder: gettext("用户自定义任务名称。不填的话，作业平台会自动生成任务名称"),
+                hookable: true,
+                validation: [
+                    {
+                        type: "custom",
+                        args: function (value) {
+                            var result = {
+                                result: true,
+                                error_message: ""
+                            }
+                            if (value) {
+                                if (!value.trim()){
+                                    result.result = false;
+                                    result.error_message = gettext("请输入非空格之外的任务名");
+                                }
+                            }
+                            return result;
+                        }
+                    }
+                ]
+            }
+        },
+        {
             tag_code: "job_across_biz",
             type: "radio",
             attrs: {

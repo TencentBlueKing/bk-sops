@@ -442,9 +442,12 @@ const template = {
         },
         // 配置分支网关条件
         setBranchCondition (state, condition) {
-            const { id, nodeId, name, value } = condition
+            const { id, nodeId, name, value, loc } = condition
             state.gateways[nodeId].conditions[id].name = name
             state.gateways[nodeId].conditions[id].evaluate = value
+            if (loc !== undefined) {
+                state.gateways[nodeId].conditions[id].loc = loc
+            }
         },
         // 节点增加、删除、编辑、复制,操作，数据更新
         setLocation (state, payload) {
@@ -530,8 +533,8 @@ const template = {
                         Vue.set(gatewayNode.outgoing, len, id)
                         if (gatewayNode.type === ATOM_TYPE_DICT['branchgateway'] || gatewayNode.type === ATOM_TYPE_DICT['conditionalparallelgateway']) {
                             const { conditions } = gatewayNode
-                            let evaluate = Object.keys(conditions).length ? '1 == 0' : '1 == 1'
-                            let name = evaluate
+                            let evaluate
+                            let name
                             // copy 连线，需复制原来的分支条件信息
                             if (line.oldSouceId) {
                                 const sourceNodeId = state.flows[line.oldSouceId].source
@@ -540,7 +543,14 @@ const template = {
 
                                 evaluate = sourceCondition.evaluate || sourceCondition.name
                                 name = sourceCondition.name
+                            } else if (line.condition) { // 自动重连，保留原连线分支条件
+                                evaluate = line.condition.evaluate
+                                name = line.condition.name
+                            } else {
+                                evaluate = Object.keys(conditions).length ? '1 == 0' : '1 == 1'
+                                name = evaluate
                             }
+
                             const conditionItem = {
                                 evaluate,
                                 name,
@@ -565,6 +575,9 @@ const template = {
                         deletedLine = Object.assign({}, flow)
                     }
                 })
+                if (!deletedLine) {
+                    return
+                }
                 const sourceNode = state.flows[deletedLine.id].source
                 const targetNode = state.flows[deletedLine.id].target
 

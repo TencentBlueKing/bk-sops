@@ -12,17 +12,39 @@ specific language governing permissions and limitations under the License.
 """
 
 from rest_framework import mixins, permissions, viewsets
+from rest_framework.permissions import IsAdminUser
 
 from gcloud.core.models import Project, ProjectConfig
 from gcloud.core.apis.drf.serilaziers import ProjectConfigSerializer
 from gcloud.core.apis.drf.viewsets.utils import ApiMixin
 from gcloud.core.apis.drf.exceptions import ObjectDoesNotExistException
 
+from iam import Action, Subject
+from iam.shortcuts import allow_or_raise_auth_failed
+
+from gcloud.iam_auth import get_iam_client, IAMMeta, res_factory
+
+iam = get_iam_client()
+
+
+class ProjectConfigPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        project_id = view.kwargs["pk"]
+        action = IAMMeta.PROJECT_VIEW_ACTION if view.action in ["retrieve"] else IAMMeta.PROJECT_EDIT_ACTION
+        allow_or_raise_auth_failed(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", request.user.username),
+            action=Action(action),
+            resources=res_factory.resources_for_project(project_id),
+        )
+        return True
+
 
 class ProjectConfigViewSet(ApiMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet):
     queryset = ProjectConfig.objects.all()
     serializer_class = ProjectConfigSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsAdminUser | ProjectConfigPermission]
 
     def get_object(self):
         project_id = self.kwargs["pk"]

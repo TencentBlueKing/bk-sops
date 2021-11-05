@@ -45,7 +45,7 @@ class ProjectConstantPermissions(permissions.BasePermission):
                 iam=iam,
                 system=IAMMeta.SYSTEM_ID,
                 subject=Subject("user", request.user.username),
-                action=Action(IAMMeta.PROJECT_VIEW_ACTION),
+                action=Action(IAMMeta.PROJECT_EDIT_ACTION),
                 resources=project_resources,
             )
 

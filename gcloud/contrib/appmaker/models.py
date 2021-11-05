@@ -91,6 +91,8 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                 # 生成一个删除状态的对象，以便拼接轻应用访问链接
                 "is_deleted": True,
             }
+            if app_params.get("category"):
+                fields["category"] = app_params["category"]
             if app_params.get("template_scheme_id"):
                 fields["template_scheme_id"] = app_params["template_scheme_id"]
             app_maker_obj = AppMaker.objects.create(**fields)
@@ -114,7 +116,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                 app_params["name"],
                 app_link,
                 app_params["username"],
-                task_template.category,
+                app_params.get("category") or task_template.category,
                 app_params["desc"],
             )
             if not app_create_result["result"]:
@@ -148,7 +150,13 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
             if not fake:
                 # edit app on blueking
                 app_edit_result = edit_maker_app(
-                    creator, app_code, app_params["name"], link, creator, task_template.category, app_params["desc"],
+                    creator,
+                    app_code,
+                    app_params["name"],
+                    link,
+                    creator,
+                    app_params.get("category") or task_template.category,
+                    app_params["desc"],
                 )
                 if not app_edit_result["result"]:
                     return False, _("编辑轻应用失败：%s") % app_edit_result["message"]
@@ -156,6 +164,8 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
             app_maker_obj.name = app_params["name"]
             app_maker_obj.desc = app_params["desc"]
             app_maker_obj.editor = app_params["username"]
+            if "category" in app_params:
+                app_maker_obj.category = app_params["category"]
             if "template_scheme_id" in app_params:
                 app_maker_obj.template_scheme_id = app_params["template_scheme_id"]
 
@@ -164,9 +174,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
             logo = base64.b64encode(app_params["logo_content"])
             app_logo_result = modify_app_logo(app_maker_obj.creator, app_code, logo)
             if not app_logo_result["result"]:
-                logger.warning(
-                    "AppMaker[id=%s] upload logo failed: %s" % (app_maker_obj.id, app_logo_result["message"])
-                )
+                logger.error("AppMaker[id=%s] upload logo failed: %s" % (app_maker_obj.id, app_logo_result["message"]))
             # update app maker info
             app_maker_obj.logo_url = get_app_logo_url(app_code=app_code)
 
@@ -188,7 +196,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         del_name = time_now_str()
         if not fake:
             # rename before delete to avoid name conflict when create a new app
-            app_edit_result = edit_maker_app(app_maker_obj.creator, app_maker_obj.code, del_name[:20],)
+            app_edit_result = edit_maker_app(app_maker_obj.creator, app_maker_obj.code, del_name[:20])
             if not app_edit_result["result"]:
                 return False, _("删除失败：%s") % app_edit_result["message"]
 

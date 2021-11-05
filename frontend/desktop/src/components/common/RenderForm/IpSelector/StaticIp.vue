@@ -27,7 +27,7 @@
                             v-for="operation in operations"
                             :key="operation.type"
                             class="operation-btn"
-                            @click="onOperationClick(operation.type)">
+                            @click="onOperationClick(operation)">
                             {{operation.name}}
                         </div>
                     </div>
@@ -35,6 +35,7 @@
                 <bk-button theme="default" size="small" :disabled="!editable" style="margin-left: 4px;" @click="onAddPanelShow('select')">{{i18n.selectAdd}}</bk-button>
                 <bk-button theme="default" size="small" :disabled="!editable" style="margin-left: 4px;" @click="onAddPanelShow('manual')">{{i18n.manualAdd}}</bk-button>
                 <ip-search-input
+                    ref="ipSearchInput"
                     :class="['ip-search-wrap', { 'static-ip-unfold': isUnfold }]"
                     :editable="editable"
                     @focus="onStaticIpFocus"
@@ -149,6 +150,7 @@
         copyAgentIp: gettext('复制Agent异常IP'),
         clearIp: gettext('清空IP'),
         clearFailedAgentIp: gettext('清空Agent异常IP'),
+        success: gettext('成功'),
         selectAdd: gettext('选择添加'),
         manualAdd: gettext('手动添加'),
         batchOperations: gettext('批量操作'),
@@ -327,8 +329,13 @@
                     this.isSearchMode = false
                 }
             },
-            onOperationClick (type) {
+            onOperationClick (operation) {
+                const { type, name } = operation
                 this[type] && this[type]()
+                this.$bkMessage({
+                    message: name + this.i18n.success,
+                    theme: 'success'
+                })
             },
             onRemoveIpClick (id) {
                 if (!this.editable) {
@@ -346,6 +353,9 @@
             onAddIpConfirm (data) {
                 this.$emit('change', data)
                 this.isIpAddingPanelShow = false
+                this.$nextTick(() => {
+                    this.$refs.ipSearchInput.handleSearch()
+                })
             },
             onAddIpCancel () {
                 this.isIpAddingPanelShow = false

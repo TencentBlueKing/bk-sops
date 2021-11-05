@@ -1,2 +1,0 @@
-bugfix:
-    - "修复 BKAPP_API_JWT_EXEMPT 环境变量存在时 API 从 HTTP 头部中获取不到 APP CODE 的问题"

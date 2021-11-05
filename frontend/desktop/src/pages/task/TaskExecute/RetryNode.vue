@@ -43,7 +43,7 @@
         props: ['nodeDetailConfig'],
         data () {
             return {
-                loading: true,
+                loading: false,
                 retrying: false,
                 bkMessageInstance: null,
                 nodeInfo: {},
@@ -69,22 +69,26 @@
             }
         },
         mounted () {
-            this.loadNodeInfo()
+            if (this.nodeDetailConfig.component_code) {
+                this.loadNodeInfo()
+            }
         },
         methods: {
             ...mapActions('task/', [
                 'getNodeActInfo',
-                'instanceRetry'
+                'instanceRetry',
+                'subflowNodeRetry'
             ]),
             ...mapActions('atomForm/', [
-                'loadAtomConfig'
+                'loadAtomConfig',
+                'loadPluginServiceDetail'
             ]),
             async loadNodeInfo () {
                 this.loading = true
                 try {
                     const version = this.nodeDetailConfig.version
                     this.nodeInfo = await this.getNodeActInfo(this.nodeDetailConfig)
-                    this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
+                    await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
                     if (this.nodeInfo.result) {
                         if (this.nodeInfo) {
                             for (const key in this.nodeInfo.data.inputs) {
@@ -101,11 +105,36 @@
             },
             async getNodeConfig (type, version) {
                 if (atomFilter.isConfigExists(type, version, this.atomFormConfig)) {
-                    return this.atomFormConfig[type][version]
+                    this.renderConfig = this.atomFormConfig[type][version]
                 } else {
                     try {
-                        await this.loadAtomConfig({ atom: type, version, project_id: this.project_id })
-                        return this.atomFormConfig[type][version]
+                        // 第三方插件节点拼接输出参数
+                        if (this.nodeDetailConfig.component_code === 'remote_plugin') {
+                            const { inputs } = this.nodeInfo.data
+                            const pluginVersion = inputs && inputs.plugin_version
+                            const pluginCode = inputs && inputs.plugin_code
+                            const resp = await this.loadPluginServiceDetail({
+                                plugin_code: pluginCode,
+                                plugin_version: pluginVersion,
+                                with_app_detail: true
+                            })
+                            if (!resp.result) return
+                            const { app, forms } = resp.data
+                            
+                            // 设置host
+                            const { host } = window.location
+                            const hostUrl = app.urls.find(item => item.includes(host)) || app.url
+                            $.context.bk_plugin_api_host[pluginCode] = hostUrl + '/'
+                            // 输入参数
+                            const renderFrom = forms.renderform
+                            /* eslint-disable-next-line */
+                            eval(renderFrom)
+                            const config = $.atoms[pluginCode]
+                            this.renderConfig = config || []
+                        } else {
+                            await this.loadAtomConfig({ atom: type, version, project_id: this.project_id })
+                            this.renderConfig = this.atomFormConfig[type][version]
+                        }
                     } catch (e) {
                         console.log(e)
                     }
@@ -122,15 +151,20 @@
                 if (!formvalid || this.retrying) return false
 
                 const { instance_id, component_code, node_id } = this.nodeDetailConfig
-                const data = {
-                    instance_id,
-                    node_id,
-                    component_code,
-                    inputs: this.renderData
-                }
                 this.retrying = true
                 try {
-                    const res = await this.instanceRetry(data)
+                    let res
+                    if (this.nodeDetailConfig.component_code) {
+                        const data = {
+                            instance_id,
+                            node_id,
+                            component_code,
+                            inputs: this.renderData
+                        }
+                        res = await this.instanceRetry(data)
+                    } else {
+                        res = await this.subflowNodeRetry({ instance_id, node_id })
+                    }
                     if (res.result) {
                         this.$bkMessage({
                             message: i18n.t('重试成功'),
@@ -166,7 +200,7 @@
             @include scrollbar;
         }
         .action-wrapper {
-            padding-left: 55px;
+            padding-left: 20px;
             height: 60px;
             line-height: 60px;
             border-top: 1px solid $commonBorderColor;

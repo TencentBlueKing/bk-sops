@@ -110,7 +110,7 @@ class HttpRequestService(Service):
         url = data.inputs.bk_http_request_url.strip()
         body = data.inputs.bk_http_request_body
         request_header = data.inputs.bk_http_request_header
-        timeout = min(abs(int(data.inputs.bk_http_timeout)), 30) or 30
+        timeout = min(abs(int(data.inputs.bk_http_timeout)), 60) or 60
         success_exp = data.inputs.bk_http_success_exp.strip()
         other = {"headers": {}, "timeout": timeout}
 

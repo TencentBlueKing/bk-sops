@@ -37,4 +37,4 @@ class JobExecuteTaskComponent(Component):
     form = "%scomponents/atoms/job/job_execute_task/v1_0.js" % settings.STATIC_URL
     output_form = "%scomponents/atoms/job/job_execute_task_output.js" % settings.STATIC_URL
     version = "1.0"
-    desc = "在接收到用户编辑的全局变量后，v1.0版本会先去除首尾的全部双引号，然后在首尾各加上一个双引号，将得到的字符串作为调用API时的参数。"
+    desc = "在用户编辑开始编辑全局变量之前，v1.0版本会先生成一对双引号，将得到的字符串作为调用API时的参数。"

@@ -15,6 +15,7 @@ from django.conf.urls import include, url
 from tastypie.api import Api
 from rest_framework.routers import DefaultRouter
 
+from gcloud.clocked_task.viewset import ClockedTaskViewSet
 from gcloud.core.apis.drf.viewsets import ProjectConfigViewSet, ResourceConfigViewSet, StaffGroupSetViewSet
 from gcloud.template_base.apis.drf.viewsets import TemplateSchemeViewSet
 from gcloud.contrib.operate_record.apis.drf.viewsets import TaskOperateRecordSetViewSet, TemplateOperateRecordSetViewSet
@@ -78,6 +79,7 @@ drf_router.register(r"project_constants", ProjectConstantsViewSet)
 v4_drf_router = DefaultRouter()
 v4_drf_router.register(r"project_template/(?P<project_id>\d+)", ProjectTemplateViewSet, basename="project_template")
 v4_drf_router.register(r"common_template", CommonTemplateViewSet, basename="common_template")
+v4_drf_router.register(r"clocked_task", ClockedTaskViewSet, basename="clocked_task")
 
 # Standard bits...
 urlpatterns = [
