@@ -185,7 +185,7 @@
         },
         {
             name: 'mandate',
-            power: 'project_edit',
+            power: 'project_view',
             text: i18n.t('项目配置')
         },
         {
@@ -495,14 +495,14 @@
                 })
             },
             onGoToConfig (project) {
-                if (!this.hasPermission(['project_edit'], project.auth_actions)) {
+                if (!this.hasPermission(['project_view'], project.auth_actions)) {
                     const resourceData = {
                         project: [{
                             id: project.id,
                             name: project.name
                         }]
                     }
-                    this.applyForPermission(['project_edit'], project.auth_actions, resourceData)
+                    this.applyForPermission(['project_view'], project.auth_actions, resourceData)
                     return
                 }
                 this.$router.push({ name: 'projectConfig', params: { id: project.id } })

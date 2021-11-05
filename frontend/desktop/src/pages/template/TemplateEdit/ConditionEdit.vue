@@ -135,11 +135,12 @@
             confirm () {
                 this.$validator.validateAll().then(result => {
                     if (result) {
-                        const { id, nodeId, overlayId } = this.conditionData
+                        const { id, nodeId, overlayId, loc } = this.conditionData
                         const data = {
                             id,
                             nodeId,
                             overlayId,
+                            loc,
                             value: this.expression.trim(),
                             name: this.conditionName
                         }

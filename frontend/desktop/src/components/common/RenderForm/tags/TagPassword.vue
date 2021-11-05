@@ -33,6 +33,11 @@
     import { getFormMixins } from '../formMixins.js'
 
     export const attrs = {
+        pubKey: {
+            type: String,
+            required: false,
+            default: ''
+        },
         disabled: {
             type: Boolean,
             required: false,
@@ -85,6 +90,7 @@
             },
             encryptPassword () {
                 let val
+                const pubKey = this.pubKey || this.rsa_pub_key
                 if (this.password === this.passwordPlaceholder) {
                     return
                 }
@@ -93,7 +99,7 @@
                     return
                 }
                 const crypt = new JSEncrypt()
-                crypt.setKey(this.rsa_pub_key)
+                crypt.setKey(pubKey)
                 val = crypt.encrypt(this.password)
             
                 this.encrypted = true

@@ -57,20 +57,6 @@
                 <i
                     :class="[
                         'params-btn',
-                        'common-icon-branchs',
-                        {
-                            actived: nodeInfoType === 'operateFlow'
-                        }
-                    ]"
-                    v-bk-tooltips="{
-                        content: $t('流水操作记录'),
-                        placements: ['bottom']
-                    }"
-                    @click="onTaskParamsClick('operateFlow', $t('流水操作记录'))">
-                </i>
-                <i
-                    :class="[
-                        'params-btn',
                         'solid-eye',
                         'common-icon-solid-eye',
                         {
@@ -97,45 +83,30 @@
                     }"
                     @click="onTaskParamsClick('modifyParams', $t('修改参数'))">
                 </i>
-                <router-link
-                    v-if="isShowViewProcess"
-                    class="jump-tpl-page-btn common-icon-link"
-                    target="_blank"
-                    v-bk-tooltips="{
-                        content: $t('查看流程'),
-                        placements: ['bottom']
-                    }"
-                    :to="getTplURL()">
-                </router-link>
-                <i
-                    :class="[
-                        'params-btn',
-                        'common-icon-flow-data',
-                        {
-                            actived: nodeInfoType === 'templateData'
-                        }
-                    ]"
-                    v-bk-tooltips="{
-                        content: $t('任务数据'),
-                        placements: ['bottom']
-                    }"
-                    @click="onTaskParamsClick('templateData', $t('任务数据'))">
-                </i>
-                <i
-                    v-if="adminView"
-                    :class="[
-                        'params-btn',
-                        'common-icon-paper',
-                        {
-                            actived: nodeInfoType === 'taskExecuteInfo'
-                        }
-                    ]"
-                    v-bk-tooltips="{
-                        content: $t('流程信息'),
-                        placements: ['bottom']
-                    }"
-                    @click="onTaskParamsClick('taskExecuteInfo')">
-                </i>
+                <bk-popover placement="bottom-left" theme="light" ext-cls="operate-tip">
+                    <i class="bk-icon icon-more drop-icon-ellipsis"></i>
+                    <template slot="content">
+                        <p class="operate-item" @click="onTaskParamsClick('operateFlow', $t('流水操作记录'))">
+                            {{ $t('流水操作记录') }}
+                        </p>
+                        <p class="operate-item" @click="onTaskParamsClick('globalVariable', $t('全局变量'))">
+                            {{ $t('全局变量') }}
+                        </p>
+                        <p class="operate-item" @click="onTaskParamsClick('templateData', $t('任务数据'))">
+                            {{ $t('任务数据') }}
+                        </p>
+                        <router-link
+                            class="operate-item"
+                            v-if="isShowViewProcess"
+                            target="_blank"
+                            :to="getTplURL()">
+                            {{ $t('查看流程') }}
+                        </router-link>
+                        <p v-if="adminView" class="operate-item" @click="onTaskParamsClick(taskExecuteInfo)">
+                            {{ $t('流程信息') }}
+                        </p>
+                    </template>
+                </bk-popover>
             </div>
         </div>
     </page-header>
@@ -392,8 +363,8 @@
             }
         }
         .task-params-btns {
-            .params-btn, .jump-tpl-page-btn {
-                margin-right: 36px;
+            .params-btn {
+                margin-right: 25px;
                 padding: 0;
                 color: #979ba5;
                 font-size: 15px;
@@ -405,17 +376,44 @@
                     color: #63656e;
                 }
             }
-            .params-btn:last-child {
-                margin-right: 0;
-            }
             .back-button {
                 background: #ffffff;
                 border: 1px solid #c4c6cc;
+            }
+            .drop-icon-ellipsis {
+                font-size: 18px;
+                font-weight: 600;
+                color: #979ba5;
+                cursor: pointer;
+                &:hover {
+                    color: #63656e;
+                }
             }
         }
     }
     /deep/.bk-button .bk-icon {
         font-size: 14px;
+    }
+}
+</style>
+<style lang="scss">
+.operate-tip {
+    .tippy-tooltip {
+        padding: 4px 0;
+    }
+    .operate-item {
+        width: 160px;
+        height: 40px;
+        display: block;
+        line-height: 40px;
+        padding-left: 10px;
+        color: #313238;
+        font-size: 12px;
+        cursor: pointer;
+        &:hover {
+            color: #3a84ff;
+            background: #eaf3ff;
+        }
     }
 }
 </style>
