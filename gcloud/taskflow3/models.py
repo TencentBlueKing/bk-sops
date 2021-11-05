@@ -491,17 +491,8 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         for proj_flow in proj_flow_type:
             proj_id = proj_flow[0]
             flow_type = proj_flow[1]
-            common_cou = 0
-            common_func_cou = 0
-            if flow_type == "common":
-                common_cou = 1
-            else:
-                common_func_cou = 1
-            if proj_id not in proj_flow_dict.keys():
-                proj_flow_dict[proj_id] = {"common_cou": common_cou, "common_func_cou": common_func_cou}
-            else:
-                proj_flow_dict[proj_id]["common_cou"] += common_cou
-                proj_flow_dict[proj_id]["common_func_cou"] += common_func_cou
+            flow_type = "common_cou" if flow_type == "common" else "common_func_cou"
+            proj_flow_dict.setdefault(proj_id, {"common_cou": 0, "common_func_cou": 0})[flow_type] += 1
         # 计算total、groups
         total = len(project_dict)
         groups = [
@@ -524,16 +515,14 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         # 获取全部业务对应维度信息
         total = len(proj_demision_id_list)
         groups = []
+        proj_attr_info = get_business_attrinfo(proj_demision_id_list)
         for demision in proj_demision_id_list:
             result = {}
-            proj_attr_info = get_business_attrinfo(demision)
             demision_total = 0
             for info in proj_attr_info:
                 value = proj_task_count.get(info["bk_biz_id"], 0)
-                if info[demision] not in result.keys():
-                    result[info[demision]] = {"project_id": info["bk_biz_id"], "value": value}
-                else:
-                    result[info[demision]]["value"] += value
+                result.setdefault(info[demision], {"project_id": info["bk_biz_id"], "value": 0})
+                result[info[demision]]["value"] += value
                 demision_total += value
             info = [{"name": key, "value": value["value"]} for key, value in result.items()]
             groups.append(
