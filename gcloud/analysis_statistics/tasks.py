@@ -136,6 +136,7 @@ def recursive_collect_components_execution(activities, status_tree, task_instanc
                     status_tree=exec_act["children"],
                     task_instance=task_instance,
                     stack=copied_stack,
+                    engine_ver=engine_ver,
                 )
     return component_list
 
