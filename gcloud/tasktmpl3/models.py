@@ -112,6 +112,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         total = template_node_template_data.count()
         atom_template_data = template_node_template_data.values(
             "template_id",
+            "task_template_id",
             "project_id",
             "category",
             "template_create_time",
@@ -127,7 +128,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         for data in atom_template_data:
             groups.append(
                 {
-                    "template_id": data["template_id"],
+                    "template_id": data["task_template_id"],
                     "project_id": data["project_id"],
                     "project_name": project_dict.get(data["project_id"], ""),
                     "template_name": template_dict.get(int(data["template_id"]), ""),
