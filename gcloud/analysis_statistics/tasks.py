@@ -132,7 +132,10 @@ def recursive_collect_components_execution(activities, status_tree, task_instanc
                 copied_stack = deepcopy(stack)
                 copied_stack.insert(0, act_id)
                 component_list += recursive_collect_components_execution(
-                    sub_activities, exec_act["children"], task_instance, copied_stack
+                    activities=sub_activities,
+                    status_tree=exec_act["children"],
+                    task_instance=task_instance,
+                    stack=copied_stack,
                 )
     return component_list
 
@@ -296,7 +299,10 @@ def pipeline_archive_statistics_task(instance_id):
     data = taskflow_instance.pipeline_instance.execution_data
     try:
         component_list = recursive_collect_components_execution(
-            data[PE.activities], status_tree_result["data"]["children"], taskflow_instance, engine_ver
+            activities=data[PE.activities],
+            status_tree=status_tree_result["data"]["children"],
+            task_instance=taskflow_instance,
+            engine_ver=engine_ver,
         )
         TaskflowExecutedNodeStatistics.objects.bulk_create(component_list)
     except Exception:
