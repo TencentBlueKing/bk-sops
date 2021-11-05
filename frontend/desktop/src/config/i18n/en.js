@@ -1235,7 +1235,7 @@ const en = {
     '业务名称': 'Business name',
     '数量': 'Amount',
     '占比': 'Percentage',
-    '流程': 'Process'
+    '流程': 'Process',
     '删除连线': 'Delete Line'
 }
 
