@@ -76,14 +76,9 @@
             <template v-slot:nodeTemplate="{ node }">
                 <node-template
                     :node="node"
-                    :canvas-data="canvasData"
                     :is-node-check-open="isNodeCheckOpen"
                     :editable="editable"
-                    :id-of-node-shortcut-panel="idOfNodeShortcutPanel"
                     :has-admin-perm="hasAdminPerm"
-                    @onConfigBtnClick="onShowNodeConfig"
-                    @onInsertNode="onInsertNode"
-                    @onAppendNode="onAppendNode"
                     @onNodeDblclick="onNodeDblclick"
                     @onNodeClick="onNodeClick"
                     @onNodeMousedown="onNodeMousedown"
@@ -101,6 +96,18 @@
                 </node-template>
             </template>
         </bk-flow>
+        <ShortcutPanel
+            v-if="showShortcutPanel"
+            :node="activeNode"
+            :position="shortcutPanelPosition"
+            :node-operate="shortcutPanelNodeOperate"
+            :delete-line="shortcutPanelDeleteLine"
+            :canvas-data="canvasData"
+            @onAppendNode="onAppendNode"
+            @onInsertNode="onInsertNode"
+            @onConfigBtnClick="onShowNodeConfig"
+            @onDeleteLineClick="onShortcutDeleteLine">
+        </ShortcutPanel>
         <help-info
             :editable="editable"
             :is-show-hot-key="isShowHotKey"
@@ -128,11 +135,13 @@
     import BkFlow from '@/assets/js/flow.js'
     import { uuid } from '@/utils/uuid.js'
     import NodeTemplate from './NodeTemplate/index.vue'
+    import ShortcutPanel from './NodeTemplate/ShortcutPanel.vue'
     import PalettePanel from './PalettePanel/index.vue'
     import HelpInfo from './HelpInfo/index.vue'
     import ToolPanel from './ToolPanel/index.vue'
     import tools from '@/utils/tools.js'
     import dom from '@/utils/dom.js'
+    import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
     import { endpointOptions, connectorOptions, nodeOptions } from './options.js'
     import validatePipeline from '@/utils/validatePipeline.js'
 
@@ -141,6 +150,7 @@
         components: {
             BkFlow,
             NodeTemplate,
+            ShortcutPanel,
             PalettePanel,
             ToolPanel,
             HelpInfo
@@ -241,7 +251,6 @@
                 canvasWidth: 0, // 生成画布的宽
                 canvasHeight: 0, // 生成画布的高
                 canvasImgDownloading: false,
-                idOfNodeShortcutPanel: '',
                 showNodeMenu: false,
                 isDisableStartPoint: false,
                 isDisableEndPoint: false,
@@ -250,7 +259,12 @@
                 isCanCreateline: false,
                 selectedNodes: [],
                 copyNodes: [],
+                activeNode: null,
                 activeCon: null,
+                showShortcutPanel: false,
+                shortcutPanelPosition: { left: 0, right: 0 },
+                shortcutPanelNodeOperate: false,
+                shortcutPanelDeleteLine: false,
                 selectionOriginPos: {
                     x: 0,
                     y: 0
@@ -291,8 +305,7 @@
         mounted () {
             this.isDisableStartPoint = !!this.canvasData.locations.find((location) => location.type === 'startpoint')
             this.isDisableEndPoint = !!this.canvasData.locations.find((location) => location.type === 'endpoint')
-            document.body.addEventListener('click', this.handleShortcutPanelHide, false)
-            document.body.addEventListener('mousedown', this.handleDeleteLineIconHide, false)
+            document.body.addEventListener('click', this.closeShortcutPanel, false)
             // 画布快捷键缩放
             const canvasPaintArea = document.querySelector('.canvas-flow-wrap')
             canvasPaintArea.addEventListener('mousewheel', this.onMouseWheel, false)
@@ -305,8 +318,7 @@
             this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler)
             document.removeEventListener('keydown', this.nodeSelectedhandler)
             document.removeEventListener('keydown', this.nodeLineDeletehandler)
-            document.body.removeEventListener('click', this.handleShortcutPanelHide, false)
-            document.body.removeEventListener('mousedown', this.handleDeleteLineIconHide, false)
+            document.body.removeEventListener('click', this.closeShortcutPanel, false)
             // 画布快捷键缩放
             const canvasPaintArea = document.querySelector('.canvas-flow-wrap')
             if (canvasPaintArea) {
@@ -631,25 +643,17 @@
                 if (!this.editable || e.target.tagName !== 'path') {
                     return
                 }
-                const [sEdp, tEdp] = conn.endpoints
-                const { sourceId, targetId } = conn
-                this.replaceEndpoint(sEdp, sourceId, true)
-                this.replaceEndpoint(tEdp, targetId, true)
-                setTimeout(() => {
-                    const lineInCanvasData = this.canvasData.lines.find(item => {
-                        return item.source.id === sourceId && item.target.id === targetId
-                    })
-                    const lineId = lineInCanvasData.id
-                    const connections = this.$refs.jsFlow.instance.getConnections({ source: sourceId, targetId: targetId })
-                    this.$refs.jsFlow.addLineOverlay(connections[0], {
-                        type: 'Label',
-                        name: '<i class="common-icon-bkflow-delete"></i>',
-                        location: -45,
-                        cls: 'delete-line-icon',
-                        id: `delete_icon_${lineId}`
-                    })
-                    this.activeCon = tools.deepClone(connections[0])
-                }, 0)
+                this.activeNode = null
+                this.activeCon = conn
+                this.openShortcutPanel('line', e)
+                // const [sEdp, tEdp] = conn.endpoints
+                // const { sourceId, targetId } = conn
+                // this.replaceEndpoint(sEdp, sourceId, true)
+                // this.replaceEndpoint(tEdp, targetId, true)
+                // setTimeout(() => {
+                //     const connections = this.$refs.jsFlow.instance.getConnections({ source: sourceId, targetId: targetId })
+                //     this.activeCon = tools.deepClone(connections[0])
+                // }, 0)
             },
             replaceEndpoint (oEdp, nodeId, draggable = false) {
                 const oldConnections = tools.deepClone(oEdp.connections)
@@ -865,7 +869,6 @@
                 if (this.referenceLine.id && this.referenceLine.id === data.sourceId) {
                     this.clearReferenceLine()
                 }
-                this.handleDeleteLineIconHide()
             },
             // 节点拖动回调
             onNodeMoving (node) {
@@ -873,10 +876,9 @@
                 if (this.referenceLine.id && this.referenceLine.id === node.id) {
                     this.clearReferenceLine()
                 }
-                if (node.id !== this.idOfNodeShortcutPanel) {
-                    this.handleShortcutPanelHide()
+                if (this.activeNode) {
+                    this.closeShortcutPanel()
                 }
-                this.handleDeleteLineIconHide()
                 this.adjustLineEndpoint(node.id)
             },
             /**
@@ -1025,7 +1027,6 @@
                     return false
                 }
                 this.createReferenceLine()
-                this.handleDeleteLineIconHide()
                 this.referenceLine = { x: bX, y: bY, id: edp.elementId, arrow: type }
                 document.getElementById('canvasContainer').addEventListener('mousemove', this.handleReferenceLine, false)
             },
@@ -1178,48 +1179,57 @@
                     this.clearReferenceLine()
                     return
                 }
+                // 快捷菜单面板
                 if (type !== 'endpoint') {
-                    this.showShortcutPane(id)
+                    if (this.activeNode && this.activeNode.id) {
+                        this.onUpdateNodeInfo(this.activeNode.id, { isActived: false })
+                        this.toggleNodeLevel(this.activeNode.id, false)
+                        this.onUpdateNodeInfo(id, { isActived: true })
+                        this.toggleNodeLevel(id, true)
+                    }
+                    this.activeNode = this.canvasData.locations.find(item => item.id === id)
+                    this.openShortcutPanel('node')
                 }
-                this.handleDeleteLineIconHide()
             },
+            /**
+             * 节点双击
+            */
             onNodeDblclick (id) {
                 this.onShowNodeConfig(id)
-                this.handleShortcutPanelHide()
-                this.handleDeleteLineIconHide()
+                this.closeShortcutPanel()
             },
             // 显示快捷节点面板
-            showShortcutPane (id) {
-                if (this.idOfNodeShortcutPanel) {
-                    this.onUpdateNodeInfo(this.idOfNodeShortcutPanel, { isActived: false })
-                }
-                this.onUpdateNodeInfo(id, { isActived: true })
-                this.updataSelctedNodeData(id)
-            },
-            // 隐藏快捷节点面板
-            handleShortcutPanelHide (e) {
-                if (e && dom.parentClsContains('canvas-node', e.target)) {
-                    return false
-                }
-                this.onUpdateNodeInfo(this.idOfNodeShortcutPanel, { isActived: false })
-                this.toggleNodeLevel(this.idOfNodeShortcutPanel, false)
-                this.idOfNodeShortcutPanel = ''
-            },
-            handleDeleteLineIconHide (e) {
-                if (this.activeCon && (e && !dom.parentClsContains('delete-line-icon', e.target))) {
-                    const lineInCanvasData = this.canvasData.lines.find(item => {
-                        return item.source.id === this.activeCon.sourceId && item.target.id === this.activeCon.targetId
-                    })
-                    if (lineInCanvasData) {
-                        const lineId = lineInCanvasData.id
-                        const sEdp = tools.deepClone(this.activeCon.endpoints[0])
-                        const tEdp = tools.deepClone(this.activeCon.endpoints[1])
-                        this.activeCon.removeOverlay(`delete_icon_${lineId}`)
-                        this.replaceEndpoint(sEdp, this.activeCon.sourceId)
-                        this.replaceEndpoint(tEdp, this.activeCon.targetId)
-                        this.activeCon = null
+            openShortcutPanel (type, e) {
+                let left, top
+                if (type === 'node') {
+                    const { x: offsetX, y: offsetY } = this.$refs.jsFlow.canvasOffset
+                    const { x, y } = this.activeNode
+                    switch (this.activeNode.type) {
+                        case 'tasknode':
+                        case 'subflow':
+                            left = x + offsetX + NODES_SIZE_POSITION.ACTIVITY_SIZE[0] / 2 + 80
+                            top = y + offsetY + NODES_SIZE_POSITION.ACTIVITY_SIZE[1] + 10
+                            this.shortcutPanelNodeOperate = true
+                            break
+                        case 'startpoint':
+                            left = x + offsetX + NODES_SIZE_POSITION.EVENT_SIZE[0] / 2 + 80
+                            top = y + offsetY + NODES_SIZE_POSITION.EVENT_SIZE[1] + 10
+                            break
+                        default:
+                            left = x + offsetX + NODES_SIZE_POSITION.GATEWAY_SIZE[0] / 2 + 80
+                            top = y + offsetY + NODES_SIZE_POSITION.GATEWAY_SIZE[1] + 10
                     }
+                } else {
+                    const wrapGap = dom.getElementScrollCoords(this.$refs.jsFlow.$el)
+                    const { pageX, pageY } = e
+                    const nodeId = this.activeCon.sourceId
+                    this.activeNode = this.canvasData.locations.find(item => item.id === nodeId)
+                    this.shortcutPanelDeleteLine = true
+                    left = pageX - wrapGap.x + 10
+                    top = pageY - wrapGap.y + 10
                 }
+                this.shortcutPanelPosition = { left, top }
+                this.showShortcutPanel = true
             },
             // 切换节点层级状态
             toggleNodeLevel (id, isActived) {
@@ -1231,13 +1241,6 @@
                     node.classList.add('actived')
                 }
             },
-            // 更新选中节点数据
-            updataSelctedNodeData (id) {
-                // 切换节点层级状态
-                this.toggleNodeLevel(this.idOfNodeShortcutPanel, false)
-                this.toggleNodeLevel(id, true)
-                this.idOfNodeShortcutPanel = id
-            },
             // 节点后面追加
             onAppendNode ({ location, line, isFillParam }) {
                 const type = isFillParam ? 'copy' : 'add'
@@ -1246,7 +1249,8 @@
                 this.$emit('onLineChange', 'add', line)
                 this.$nextTick(() => {
                     this.$refs.jsFlow.createConnector(line)
-                    this.showShortcutPane(location.id)
+                    this.activeNode = location
+                    this.openShortcutPanel('node')
                 })
             },
             /**
@@ -1289,8 +1293,31 @@
                 this.$nextTick(() => {
                     this.$refs.jsFlow.createConnector(startLine)
                     this.$refs.jsFlow.createConnector(endLine)
-                    this.showShortcutPane(location.id)
+                    this.activeNode = location
+                    this.openShortcutPanel('node')
                 })
+            },
+            // 通过快捷面板删除连线
+            onShortcutDeleteLine () {
+                const { sourceId, targetId } = this.activeCon
+                const line = this.canvasData.lines.find(item => item.source.id === sourceId && item.target.id === targetId)
+                this.$refs.jsFlow.removeConnector(line)
+                this.closeShortcutPanel()
+            },
+            // 隐藏快捷节点面板
+            closeShortcutPanel (e) {
+                if (e && (dom.parentClsContains('canvas-node', e.target) || e.target.tagName === 'path')) {
+                    return
+                }
+                if (this.activeNode) {
+                    this.onUpdateNodeInfo(this.activeNode.id, { isActived: false })
+                    this.toggleNodeLevel(this.activeNode.id, false)
+                }
+                this.activeNode = null
+                this.activeCon = null
+                this.showShortcutPanel = false
+                this.shortcutPanelNodeOperate = false
+                this.shortcutPanelDeleteLine = false
             },
             /**
              * 切换选中节点
@@ -1591,15 +1618,6 @@
             z-index: 3;
             &.delete-line-circle-icon {
                 display: none;
-            }
-            &.delete-line-icon {
-                margin-left: 10px;
-                margin-top: -14px;
-                color: #52699d;
-                font-size: 14px;
-                line-height: 1;
-                background: #e1e4e8;
-                z-index: 10;
             }
             .common-icon-dark-circle-close{
                 font-size: 16px;
