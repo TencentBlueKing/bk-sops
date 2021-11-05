@@ -99,6 +99,10 @@
                     v-if="nodeInfoType === 'operateFlow'"
                     class="operation-flow">
                 </OperationFlow>
+                <GlobalVariable
+                    v-if="nodeInfoType === 'globalVariable'"
+                    :task-id="instance_id">
+                </GlobalVariable>
                 <TaskInfo
                     v-if="nodeInfoType === 'taskExecuteInfo'"
                     :task-id="instance_id">
@@ -199,6 +203,7 @@
     import RetryNode from './RetryNode.vue'
     import ModifyTime from './ModifyTime.vue'
     import OperationFlow from './OperationFlow.vue'
+    import GlobalVariable from './GlobalVariable.vue'
     import TaskInfo from './TaskInfo.vue'
     import gatewaySelectDialog from './GatewaySelectDialog.vue'
     import revokeDialog from './revokeDialog.vue'
@@ -248,6 +253,7 @@
             RetryNode,
             ModifyTime,
             OperationFlow,
+            GlobalVariable,
             TaskInfo,
             gatewaySelectDialog,
             revokeDialog,

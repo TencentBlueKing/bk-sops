@@ -1134,7 +1134,10 @@ const en = {
     '保存已修改的变量信息吗？': 'Save the modified variable information?',
     '保存已修改的配置信息吗？': 'Save the modified config information?',
     '全部项目': 'All Projects',
-    '导入临时方案': 'Import Temporaty Scheme',
+    '导入临时方案': 'Import temporaty',
+    '设置默认方案': 'Set default',
+    '默认': 'Default',
+    '流程执行时，默认执行当前方案的组合。': 'When the process is executed, the combination of the current scheme is executed by default.',
     '方案内容': 'Scheme Text',
     '变更节点对比': 'Node Selected List',
     '选中状态': 'Status',
@@ -1233,6 +1236,7 @@ const en = {
     '数量': 'Amount',
     '占比': 'Percentage',
     '流程': 'Process'
+    '删除连线': 'Delete Line'
 }
 
 export default en
