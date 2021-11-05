@@ -309,12 +309,10 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         tmpl_task_dict = {}
         for tmpl in task_create_methods:
             create_method = tmpl["create_method"]
-            if tmpl["task_template_id"] not in tmpl_task_dict.keys():
-                tmpl_task_dict[tmpl["task_template_id"]] = {create_method: 1}
-            else:
-                tmpl_task_dict[tmpl["task_template_id"]][create_method] = (
-                    tmpl_task_dict[tmpl["task_template_id"]].get(create_method, 0) + 1
-                )
+            tmpl_task_dict.setdefault(tmpl["task_template_id"], {create_method: 0})
+            tmpl_task_dict[tmpl["task_template_id"]][create_method] = (
+                tmpl_task_dict[tmpl["task_template_id"]].setdefault(create_method, 0) + 1
+            )
         used_count = dict(Counter(used))
         total = topn
         groups = []
@@ -344,7 +342,6 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         groups = []
         total = len(proj_dict)
         for proj, tasktmpl_list in proj_dict.items():
-            # all_tasktmpl_count = self.filter(pipeline_template__id__in=tasktmpl_list).count()
             all_tasktmpl_count = len(tasktmpl_list)
             used_count = (
                 TaskflowStatistics.objects.filter(template_id__in=tasktmpl_list)
@@ -372,20 +369,14 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         # 获取全部业务对应维度信息
         total = len(proj_demision_id_list)
         groups = []
+        proj_attr_info = get_business_attrinfo(proj_demision_id_list)
         for demision in proj_demision_id_list:
             result = {}
-            proj_attr_info = get_business_attrinfo(demision)
             # 对应统计维度cmdb总数
             demision_total = 0
             for info in proj_attr_info:
                 value = proj_task_count.get(info["bk_biz_id"], 0)
-                if info[demision] not in result.keys():
-                    result[info[demision]] = {
-                        "project_id": info["bk_biz_id"],
-                        "value": value,
-                    }
-                else:
-                    result[info[demision]]["value"] += value
+                result.setdefault(info[demision], {"project_id": info["bk_biz_id"], "value": 0})["value"] += value
                 demision_total += value
             info = [{"name": key, "value": value["value"]} for key, value in result.items()]
             groups.append(
