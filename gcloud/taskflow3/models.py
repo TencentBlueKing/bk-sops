@@ -524,6 +524,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
                 result.setdefault(info[dimension], {"project_id": info["bk_biz_id"], "value": 0})
                 result[info[dimension]]["value"] += value
                 dimension_total += value
+
             info = [{"name": key, "value": value["value"]} for key, value in result.items()]
             groups.append(
                 {
