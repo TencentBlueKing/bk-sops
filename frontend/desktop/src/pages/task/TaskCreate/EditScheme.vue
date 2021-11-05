@@ -78,7 +78,7 @@
             handleInputPaste (value, event) {
                 event.preventDefault()
                 let paste = (event.clipboardData || window.clipboardData).getData('text')
-                paste = paste.replace(/[\\]t/, '    ')
+                paste = paste.replace(/[\\]t/g, '    ')
                 const selection = window.getSelection()
                 if (!selection.rangeCount) return false
                 if (selection.toString()) {
