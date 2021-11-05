@@ -334,7 +334,8 @@
                 pollingTimer: null,
                 isPageOver: false,
                 isThrottled: false, // 滚动节流 是否进入cd
-                envVariableData: {}
+                envVariableData: {},
+                validateConnectFailList: [] // 节点校验失败列表
             }
         },
         computed: {
@@ -385,7 +386,9 @@
                                 }
                             }
                         }
-                        const data = { ...location, mode: 'edit', icon, group, code }
+                        const status = this.validateConnectFailList.includes(location.id) ? 'FAILED' : ''
+
+                        const data = { ...location, mode: 'edit', icon, group, code, status }
                         if (
                             this.subprocess_info
                             && this.subprocess_info.details
@@ -1206,6 +1209,13 @@
                         this.setEndpoint({ type: changeType, location })
                         break
                 }
+                // 删除节点时，清除对应的校验失败节点
+                if (changeType === 'delete' && this.validateConnectFailList.length) {
+                    const index = this.validateConnectFailList.findIndex(val => val === location.id)
+                    if (index > -1) {
+                        this.validateConnectFailList.splice(index, 1)
+                    }
+                }
             },
             /**
              * 连线变更(新增、删除)
@@ -1214,6 +1224,20 @@
              */
             onLineChange (changeType, line) {
                 this.setLine({ type: changeType, line })
+                // 对校验失败节点进行处理
+                if (changeType === 'add' && this.validateConnectFailList.length) {
+                    const idList = [line.target.id, line.source.id]
+                    const nodeList = this.validateConnectFailList.filter(val => idList.includes(val))
+                    if (!nodeList || !nodeList.length) return
+                    nodeList.forEach(node => {
+                        const nodeInfo = this.activities[node] || this.gateways[node]
+                        const outgoing = Array.isArray(nodeInfo.outgoing) ? nodeInfo.outgoing.length : nodeInfo.outgoing
+                        if (nodeInfo.incoming.length && outgoing) {
+                            const index = this.validateConnectFailList.findIndex(val => val === node)
+                            this.validateConnectFailList.splice(index, 1)
+                        }
+                    })
+                }
             },
             /**
              * 节点位置移动
@@ -1334,6 +1358,16 @@
                 // 校验节点数目
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
+                    // 获取检验不合格节点
+                    const validateConnectFailList = []
+                    const nodeObject = Object.assign({}, this.activities, this.gateways)
+                    Object.values(nodeObject).forEach(node => {
+                        const outgoing = Array.isArray(node.outgoing) ? node.outgoing.length : node.outgoing
+                        if (!node.incoming.length || !outgoing) {
+                            validateConnectFailList.push(node.id)
+                        }
+                    })
+                    this.validateConnectFailList = validateConnectFailList
                     this.$bkMessage({
                         message: validateMessage.message,
                         theme: 'error',
