@@ -400,6 +400,184 @@ class JobScheduleService(JobService):
             return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count
 
 
+class Jobv3Service(Service):
+    __need_schedule__ = True
+
+    reload_outputs = True
+
+    need_get_sops_var = False
+
+    def execute(self, data, parent_data):
+        pass
+
+    def schedule(self, data, parent_data, callback_data=None):
+
+        try:
+            job_instance_id = callback_data.get("job_instance_id", None)
+            status = callback_data.get("status", None)
+        except Exception as e:
+            err_msg = "invalid callback_data: {}, err: {}"
+            self.logger.error(err_msg.format(callback_data, traceback.format_exc()))
+            data.outputs.ex_data = err_msg.format(callback_data, e)
+            return False
+
+        if not job_instance_id or not status:
+            data.outputs.ex_data = "invalid callback_data, job_instance_id: %s, status: %s" % (job_instance_id, status)
+            self.finish_schedule()
+            return False
+
+        if status in JOB_SUCCESS:
+
+            if self.reload_outputs:
+
+                client = data.outputs.client
+
+                # 全局变量重载
+                get_var_kwargs = {
+                    "bk_biz_id": data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+                    "job_instance_id": job_instance_id,
+                }
+                global_var_result = client.jobv3.get_job_instance_global_var_value(get_var_kwargs)
+                self.logger.info("get_job_instance_global_var_value return: {}".format(global_var_result))
+
+                if not global_var_result["result"]:
+                    message = job_handle_api_error(
+                        "jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
+                    )
+                    self.logger.error(message)
+                    data.outputs.ex_data = message
+                    self.finish_schedule()
+                    return False
+
+                step_instance_var_list = global_var_result["data"].get("step_instance_var_list", [])
+                if step_instance_var_list:
+                    for global_var in step_instance_var_list[-1]["global_var_list"]:
+                        if global_var["type"] != JOB_VAR_TYPE_IP:
+                            data.set_outputs(global_var["name"], global_var["value"])
+
+            # 无需提取全局变量的Service直接返回
+            if not self.need_get_sops_var:
+                self.finish_schedule()
+                return True
+
+            get_jobv3_sops_var_dict_return = get_job_sops_var_dict(
+                data.outputs.client,
+                self.logger,
+                job_instance_id,
+                data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+            )
+            if not get_jobv3_sops_var_dict_return["result"]:
+                self.logger.warning(
+                    _("{group}.{job_service_name}: 提取日志失败，{message}").format(
+                        group=__group_name__,
+                        job_service_name=self.__class__.__name__,
+                        message=get_jobv3_sops_var_dict_return["message"],
+                    )
+                )
+                data.set_outputs("log_outputs", {})
+                self.finish_schedule()
+                return True
+
+            log_outputs = get_jobv3_sops_var_dict_return["data"]
+            self.logger.info(
+                _("{group}.{job_service_name}：输出日志提取变量为：{log_outputs}").format(
+                    group=__group_name__, job_service_name=self.__class__.__name__, log_outputs=log_outputs
+                )
+            )
+            data.set_outputs("log_outputs", log_outputs)
+            self.finish_schedule()
+            return True
+        else:
+            data.set_outputs(
+                "ex_data",
+                {
+                    "exception_msg": _("任务执行失败，<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>").format(
+                        job_inst_url=data.outputs.job_inst_url
+                    ),
+                    "task_inst_id": job_instance_id,
+                    "show_ip_log": True,
+                },
+            )
+            self.finish_schedule()
+            return False
+
+    def outputs_format(self):
+        return [
+            self.OutputItem(
+                name=_("JOB任务ID"),
+                key="job_inst_id",
+                type="int",
+                schema=IntItemSchema(description=_("提交的任务在 JOB 平台的实例 ID")),
+            ),
+            self.OutputItem(
+                name=_("JOB任务链接"),
+                key="job_inst_url",
+                type="string",
+                schema=StringItemSchema(description=_("提交的任务在 JOB 平台的 URL")),
+            ),
+        ]
+
+
+class Jobv3ScheduleService(Jobv3Service):
+    __need_schedule__ = True
+    interval = StaticIntervalGenerator(5)
+
+    def schedule(self, data, parent_data, callback_data=None):
+        if hasattr(data.outputs, "requests_error") and data.outputs.requests_error:
+            data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
+        else:
+            data.outputs.ex_data = ""
+
+        params_list = [
+            {"bk_biz_id": data.inputs.biz_cc_id, "job_instance_id": job_id}
+            for job_id in data.outputs.job_id_of_batch_execute
+        ]
+        client = get_client_by_user(parent_data.inputs.executor)
+
+        batch_result_list = batch_execute_func(client.jobv3.get_job_instance_status, params_list, interval_enabled=True)
+
+        # 重置查询 job_id
+        data.outputs.job_id_of_batch_execute = []
+
+        # 解析查询结果
+        running_task_list = []
+
+        for job_result in batch_result_list:
+            result = job_result["result"]
+            job_id_str = job_result["params"]["job_instance_id"]
+            job_urls = [url for url in data.outputs.job_inst_url if str(job_id_str) in url]
+            job_detail_url = job_urls[0] if job_urls else ""
+            if result["result"]:
+                log_content = "{}\n".format(result["data"][0]["step_results"][0]["ip_logs"][0]["log_content"])
+                job_status = result["data"][0]["status"]
+                # 成功状态
+                if job_status == 3:
+                    data.outputs.success_count += 1
+                # 失败状态
+                elif job_status > 3:
+                    data.outputs.ex_data += (
+                        "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>"
+                        "\n错误信息:{}\n".format(job_detail_url, log_content)
+                    )
+                else:
+                    running_task_list.append(job_id_str)
+            else:
+                data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
+                    job_detail_url
+                )
+
+        # 需要继续轮询的任务
+        data.outputs.job_id_of_batch_execute = running_task_list
+        # 结束调度
+        if not data.outputs.job_id_of_batch_execute:
+            # 没有报错信息
+            if not data.outputs.ex_data:
+                del data.outputs.ex_data
+
+            self.finish_schedule()
+            return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count
+
+
 class GetJobHistoryResultMixin(object):
     def get_job_history_result(self, data, parent_data):
         # get job_instance[job_success_id] execute status

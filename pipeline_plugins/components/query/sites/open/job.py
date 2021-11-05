@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+
 import logging
 import time
 
@@ -17,6 +18,7 @@ from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 from django.conf.urls import url
 
+from api.utils.request import batch_request
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
@@ -32,6 +34,14 @@ JOB_VAR_CATEGORY_PASSWORD = 4
 JOB_VAR_CATEGORY_GLOBAL_VARS = {JOB_VAR_CATEGORY_CLOUD, JOB_VAR_CATEGORY_CONTEXT, JOB_VAR_CATEGORY_PASSWORD}
 JOB_VAR_CATEGORY_IP = 3
 TEN_MINUTES_MILLISECONDS = 600000  # 十分钟的毫秒级时间戳
+
+JOBV3_VAR_CATEGORY_STRING = 1
+JOBV3_VAR_CATEGORY_NAMESPACE = 2
+JOBV3_VAR_CATEGORY_IP = 3
+JOBV3_VAR_CATEGORY_PASSWORD = 4
+JOBV3_VAR_CATEGORY_ARRAY = 5
+JOBV3_VAR_CATEGORY_GLOBAL_VARS = {JOBV3_VAR_CATEGORY_STRING, JOBV3_VAR_CATEGORY_NAMESPACE, JOBV3_VAR_CATEGORY_PASSWORD,
+                                  JOBV3_VAR_CATEGORY_ARRAY}
 
 
 def _job_get_scripts_data(request, biz_cc_id=None):
@@ -251,6 +261,108 @@ def job_get_instance_detail(request, biz_cc_id, task_id):
     return JsonResponse({"result": True, "data": data})
 
 
+def jobv3_get_job_template_list(request, biz_cc_id):
+    """
+    根据业务ID查询作业模版列表
+    @param request:
+    @param biz_cc_id: 业务 ID
+    @return:
+    """
+    client = get_client_by_user(request.user.username)
+    template_list = batch_request(
+        func=client.jobv3.get_job_template_list,
+        params={"bk_biz_id": biz_cc_id},
+        get_data=lambda x: x["data"]["data"],
+        get_count=lambda x: x["data"]["total"],
+        page_param={"cur_page_param": "start", "page_size_param": "length"},
+        is_page_merge=True
+    )
+
+    data = []
+    for template in template_list:
+        data.append({"value": template["id"], "text": template["name"]})
+    return JsonResponse({"result": True, "data": data})
+
+
+def jobv3_get_job_plan_list(request, biz_cc_id, job_template_id):
+    """
+    查询执行方案列表
+    @param request:
+    @param biz_cc_id: 业务 ID
+    @param job_template_id: 作业模版 ID
+    @return:
+    """
+    client = get_client_by_user(request.user.username)
+    plan_list = batch_request(
+        func=client.jobv3.get_job_plan_list,
+        params={"bk_biz_id": biz_cc_id, "job_template_id": job_template_id},
+        get_data=lambda x: x["data"]["data"],
+        get_count=lambda x: x["data"]["total"],
+        page_param={"cur_page_param": "start", "page_size_param": "length"},
+        is_page_merge=True
+    )
+
+    data = []
+    for plan in plan_list:
+        data.append({"value": plan["id"], "text": plan["name"]})
+    return JsonResponse({"result": True, "data": data})
+
+
+def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
+    """
+    根据作业执行方案 ID 查询作业执行方案详情
+    @param request:
+    @param biz_cc_id: 业务 ID
+    @param job_plan_id: 作业执行方案 ID
+    @return:
+    """
+    client = get_client_by_user(request.user.username)
+    kwargs = {"bk_biz_id": biz_cc_id, "job_plan_id": job_plan_id}
+
+    jobv3_result = client.jobv3.get_job_plan_detail(kwargs)
+    if not jobv3_result["result"]:
+        message = handle_api_error("jobv3", "get_job_plan_detail", kwargs, jobv3_result)
+        logger.error(message)
+        result = {"result": False, "message": message}
+        return JsonResponse(result)
+
+    plan_detail = jobv3_result["data"]
+    global_var = []
+    if not plan_detail:
+        message = _("请求作业平台执行方案详情返回数据为空: {}").format(jobv3_result)
+        logger.error(message)
+        return JsonResponse({"result": False, "message": message})
+
+    for var in plan_detail.get("global_var_list", []):
+        # 1-字符串, 2-命名空间, 3-IP, 4-密码, 5-数组
+        if var["type"] in JOBV3_VAR_CATEGORY_GLOBAL_VARS:
+            value = var.get("value", "")
+        elif var["type"] == JOBV3_VAR_CATEGORY_IP:
+            value = ",".join(
+                [
+                    "{plat_id}:{ip}".format(plat_id=ip_item["bk_cloud_id"], ip=ip_item["ip"])
+                    for ip_item in var.get("server", {}).get("ip_list", [])
+                ]
+            )
+        else:
+            message = "unknow type var: {}".format(var)
+            logger.error(message)
+            result = {"result": False, "message": message}
+            return JsonResponse(result)
+
+        global_var.append(
+            {
+                "id": var["id"],
+                "type": var.get("type", 1),
+                "name": var["name"],
+                "value": value,
+                "description": var["description"],
+            }
+        )
+
+    return JsonResponse({"result": True, "data": global_var})
+
+
 def job_get_instance_list(request, biz_cc_id, type, status):
     username = request.user.username
     client = get_client_by_user(username)
@@ -298,5 +410,9 @@ job_urlpatterns = [
         job_get_job_task_detail,
     ),
     url(r"^job_get_instance_detail/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_instance_detail),
+    # jobv3接口
+    url(r"^jobv3_get_job_template_list/(?P<biz_cc_id>\d+)/$", jobv3_get_job_template_list),
+    url(r"^jobv3_get_job_plan_list/(?P<biz_cc_id>\d+)/(?P<job_template_id>\d+)/$", jobv3_get_job_plan_list),
+    url(r"^jobv3_get_job_plan_detail/(?P<biz_cc_id>\d+)/(?P<job_plan_id>\d+)/$", jobv3_get_job_plan_detail),
     url(r"^job_get_instance_list/(?P<biz_cc_id>\d+)/(?P<type>\d+)/(?P<status>\d+)/$", job_get_instance_list),
 ]
