@@ -1,2 +1,0 @@
-bugfix:
-  - 修复 API 操作任务节点(operate_node)未记录流水日志
