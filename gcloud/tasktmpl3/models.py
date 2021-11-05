@@ -33,7 +33,7 @@ from gcloud.utils.managermixins import ClassificationCountMixin
 from gcloud.utils.dates import format_datetime
 from gcloud.analysis_statistics.models import TemplateStatistics, TemplateNodeStatistics, TaskflowStatistics
 from gcloud.utils.components import format_component_name
-from gcloud.analysis_statistics.models import ProjectStatisticsDemision, TaskTmplExecuteTopN
+from gcloud.analysis_statistics.models import ProjectStatisticsDimension, TaskTmplExecuteTopN
 from gcloud.shortcuts.cmdb import get_business_attrinfo
 
 logger = logging.getLogger("root")
@@ -364,26 +364,26 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         proj_task_count = dict(
             tasktmpl.values_list("project__bk_biz_id").annotate(value=Count("project__id")).order_by("value")
         )
-        proj_demision_dict = dict(ProjectStatisticsDemision.objects.values_list("demision_id", "demision_name"))
-        proj_demision_id_list = proj_demision_dict.keys()
+        proj_dimension_dict = dict(ProjectStatisticsDimension.objects.values_list("dimension_id", "dimension_name"))
+        proj_dimension_id_list = proj_dimension_dict.keys()
         # 获取全部业务对应维度信息
-        total = len(proj_demision_id_list)
+        total = len(proj_dimension_id_list)
         groups = []
-        proj_attr_info = get_business_attrinfo(proj_demision_id_list)
-        for demision in proj_demision_id_list:
+        proj_attr_info = get_business_attrinfo(proj_dimension_id_list)
+        for dimension in proj_dimension_id_list:
             result = {}
             # 对应统计维度cmdb总数
-            demision_total = 0
+            dimension_total = 0
             for info in proj_attr_info:
                 value = proj_task_count.get(info["bk_biz_id"], 0)
-                result.setdefault(info[demision], {"project_id": info["bk_biz_id"], "value": 0})["value"] += value
-                demision_total += value
+                result.setdefault(info[dimension], {"project_id": info["bk_biz_id"], "value": 0})["value"] += value
+                dimension_total += value
             info = [{"name": key, "value": value["value"]} for key, value in result.items()]
             groups.append(
                 {
-                    "demision_id": demision,
-                    "demision_name": proj_demision_dict[demision],
-                    "demision_total": demision_total,
+                    "dimension_id": dimension,
+                    "dimension_name": proj_dimension_dict[dimension],
+                    "dimension_total": dimension_total,
                     "info": sorted(info, key=lambda item: item["value"], reverse=True),
                 }
             )

@@ -11,11 +11,11 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name="ProjectStatisticsDemision",
+            name="ProjectStatisticsDimension",
             fields=[
                 ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("demision_id", models.CharField(max_length=32, verbose_name="统计维度id(cmdb业务模型属性id)")),
-                ("demision_name", models.CharField(max_length=32, verbose_name="统计维度名称(cmdb业务模型属性名称)")),
+                ("dimension_id", models.CharField(max_length=32, verbose_name="统计维度id(cmdb业务模型属性id)")),
+                ("dimension_name", models.CharField(max_length=32, verbose_name="统计维度名称(cmdb业务模型属性名称)")),
             ],
             options={
                 "verbose_name": "业务统计数据维度",
