@@ -19,6 +19,7 @@
         :title="$t('确认删除')"
         :value="isDeleteDialogShow"
         :draggable="true"
+        data-test-id="periodicList_from_deletePeriodicDialog"
         @confirm="onDeletePeriodicConfrim"
         @cancel="onDeletePeriodicCancel">
         <div class="dialog-content" v-bkloading="{ isLoading: deleting, opacity: 1, zIndex: 100 }">

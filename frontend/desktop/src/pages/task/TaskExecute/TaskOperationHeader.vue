@@ -49,6 +49,7 @@
                             placements: ['bottom']
                         }"
                         v-cursor="{ active: !hasPermission(['task_operate'], instanceActions) }"
+                        :data-test-id="`taskExcute_from_${operation.action}Btn`"
                         @click="onOperationClick(operation.action)">
                     </bk-button>
                 </template>
