@@ -21,7 +21,7 @@ from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema
+from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
@@ -63,6 +63,9 @@ class CCBatchTransferHostModule(Service):
                 type="string",
                 schema=StringItemSchema(description=_("在自动填参时使用的扩展分割符")),
             ),
+            self.InputItem(
+                name=_("更新方式"), key="is_append", type="boolean", schema=BooleanItemSchema(description=_("更新方式")),
+            ),
         ]
 
     def outputs_format(self):
@@ -90,6 +93,7 @@ class CCBatchTransferHostModule(Service):
         cc_module_select_method = data.get_one_of_inputs("cc_module_select_method")
         cc_host_transfer_detail = data.get_one_of_inputs("cc_host_transfer_detail")
         cc_transfer_host_template_break_line = data.get_one_of_inputs("cc_transfer_host_template_break_line") or ","
+        is_append = data.get_one_of_inputs("is_append", default=True)
         cc_host_transfer_detail = convert_num_to_str(cc_host_transfer_detail)
 
         attr_list = []
@@ -141,7 +145,7 @@ class CCBatchTransferHostModule(Service):
                 "bk_supplier_account": supplier_account,
                 "bk_host_id": [int(host_id) for host_id in host_result["data"]],
                 "bk_module_id": [int(module_id) for module_id in cc_module_select],
-                "is_increment": True,
+                "is_increment": is_append,
             }
             update_result = client.cc.transfer_host_module(cc_kwargs)
 

@@ -840,7 +840,8 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
                     if not gateway:  # had been removed
                         continue
 
-                    is_parallel = gateway[PE.type] in {PE.ParallelGateway, PE.ConditionalParallelGateway}
+                    # conditional parallel gateway do not need to trim
+                    is_parallel = gateway[PE.type] == PE.ParallelGateway
 
                     # only process parallel gateway
                     if not is_parallel:

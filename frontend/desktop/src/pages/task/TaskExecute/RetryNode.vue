@@ -14,7 +14,7 @@
         <div class="edit-wrapper">
             <RenderForm
                 ref="renderForm"
-                v-if="!isEmptyParams"
+                v-if="!isEmptyParams && !loading"
                 :scheme="renderConfig"
                 :form-option="renderOption"
                 v-model="renderData">
@@ -94,7 +94,7 @@
                             for (const key in this.nodeInfo.data.inputs) {
                                 this.$set(this.renderData, key, this.nodeInfo.data.inputs[key])
                             }
-                            this.initalRenderData = this.renderData
+                            this.initalRenderData = tools.deepClone(this.renderData)
                         }
                     }
                 } catch (e) {

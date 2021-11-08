@@ -1668,9 +1668,6 @@
         }
         .jtk-connector {
             z-index: 2;
-            &.jtk-hover {
-                z-index: 3;
-            }
         }
         .jtk-overlay {
             cursor: pointer;
