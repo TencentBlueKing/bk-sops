@@ -26,6 +26,7 @@ from pipeline.models import PipelineInstance
 from pipeline.parser.context import get_pipeline_context
 from pipeline.engine import api as pipeline_api
 from pipeline.engine.models import PipelineModel
+from pipeline.core.data.var import Variable
 from pipeline_web.parser.format import format_web_data_to_pipeline
 from pipeline.engine import exceptions as pipeline_exceptions
 from pipeline.exceptions import (
@@ -444,12 +445,13 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         data = []
         for key, var in context.variables.items():
             try:
-                if isinstance(var.value, TaskContext):
-                    data.append({"key": key, "value": var.value.__dict__})
-                elif hasattr(var, "get"):
-                    data.append({"key": key, "value": var.get()})
+                if issubclass(var.__class__, Variable):
+                    if isinstance(var.value, TaskContext):
+                        data.append({"key": key, "value": var.value.__dict__})
+                    else:
+                        data.append({"key": key, "value": var.get()})
                 else:
-                    data.append({"key": key, "value": var.value})
+                    data.append({"key": key, "value": var})
             except Exception:
                 logger.exception("[render_current_constants_v1] error occurred at value resolve for %s" % key)
                 data.append({"key": key, "value": "[ERROR]value resolve error"})
@@ -463,7 +465,17 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             key: di.value for key, di in runtime.get_data_inputs(self.pipeline_instance.instance_id).items()
         }
         context = Context(runtime, context_values, root_pipeline_inputs)
-        hydrated_context = context.hydrate()
+
+        try:
+            hydrated_context = context.hydrate()
+        except Exception as e:
+            logger.exception("[render_current_constants_v2] error occurred at context hydrate")
+            return {
+                "result": False,
+                "data": None,
+                "code": err_code.UNKNOWN_ERROR.code,
+                "message": "context hydrate error: %s" % str(e),
+            }
 
         data = []
         for key, value in hydrated_context.items():

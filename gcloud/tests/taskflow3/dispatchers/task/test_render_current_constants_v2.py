@@ -58,3 +58,39 @@ class RenderCurrentConstantsV2TestCase(TestCase):
                 "message": "",
             },
         )
+
+    def test_hydrate_error(self):
+        pipeline_instance = MagicMock()
+        pipeline_instance.instance_id = "instance_id_token"
+
+        runtime = MagicMock()
+        runtime.get_context = MagicMock(return_value="context_value_return")
+        runtime.get_data_inputs = MagicMock(return_value={"root_key": DataInput(need_render=False, value="root_val")})
+
+        context = MagicMock()
+        context.hydrate = MagicMock(side_effect=Exception("exception message"))
+
+        runtime_cls = MagicMock(return_value=runtime)
+        context_cls = MagicMock(return_value=context)
+
+        with mock.patch(TASKFLOW_DISPATCHERS_TASK_BAMBOO_DJANGO_RUNTIME, runtime_cls):
+            with mock.patch(TASKFLOW_DISPATCHERS_TASK_CONTEXT, context_cls):
+                dispatcher = TaskCommandDispatcher(
+                    engine_ver=2, taskflow_id=1, pipeline_instance=pipeline_instance, project_id=1
+                )
+                result = dispatcher.render_current_constants_v2()
+
+        runtime.get_context.assert_called_once_with(pipeline_instance.instance_id)
+        runtime.get_data_inputs.assert_called_once_with(pipeline_instance.instance_id)
+        context_cls.assert_called_once_with(runtime, "context_value_return", {"root_key": "root_val"})
+        context.hydrate.assert_called_once()
+
+        self.assertEqual(
+            result,
+            {
+                "result": False,
+                "data": None,
+                "code": err_code.UNKNOWN_ERROR.code,
+                "message": "context hydrate error: exception message",
+            },
+        )
