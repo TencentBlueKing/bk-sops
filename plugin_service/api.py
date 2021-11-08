@@ -148,4 +148,6 @@ def get_plugin_api_data(request: Request, plugin_code: str, data_api_path: str):
         "data": request.data,
     }
     result = client.dispatch_plugin_api_request(params)
+    # 如果请求成功，只返回接口原始data数据
+    result = result["data"] if result.get("result") else result
     return JsonResponse(result)
