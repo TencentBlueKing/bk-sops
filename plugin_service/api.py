@@ -16,6 +16,7 @@ from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
+from rest_framework.response import Response
 
 from plugin_service.conf import PLUGIN_LOGGER
 from plugin_service.api_decorators import inject_plugin_client, validate_params
@@ -150,4 +151,4 @@ def get_plugin_api_data(request: Request, plugin_code: str, data_api_path: str):
     result = client.dispatch_plugin_api_request(params)
     # 如果请求成功，只返回接口原始data数据
     result = result["data"] if result.get("result") else result
-    return JsonResponse(result)
+    return Response(result)
