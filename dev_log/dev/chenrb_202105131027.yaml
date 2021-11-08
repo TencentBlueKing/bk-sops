@@ -1,0 +1,5 @@
+feature:
+  - 依赖 jobv3 接口`jobv3_get_job_template_list、jobv3_get_job_plan_list`依赖 job 版本 3.3.0.1
+  - 新增 全业务执行作业方案原子功能
+bugfix:
+  - 修复 IP正则校验问题
