@@ -380,7 +380,8 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         order_by_field = filters.get("order_by", "-instance_id")
 
         # 查询出有序的taskflow统计数据
-        task_instance_id_list = taskflow.values_list("id", flat=True)
+        total = taskflow.count()
+        task_instance_id_list = list(taskflow[(page - 1) * limit : page * limit].values_list("id", flat=True))
         taskflow_statistics_data = TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)
         # 注入instance_name和project_name
         instance_id_list = taskflow_statistics_data.values_list("instance_id", flat=True)
@@ -398,8 +399,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             "subprocess_total",
             "gateways_total",
             "create_method",
-        ).order_by(order_by_field)[(page - 1) * limit : page * limit]
-        total = taskflow_statistics_data.count()
+        ).order_by(order_by_field)
         groups = [
             {
                 "instance_id": data["instance_id"],
