@@ -29,8 +29,8 @@ class ConfFixture(object):
     ADD_CROSS_PREFIX = False
     ADD_APP_CODE = True
 
-    IFRAME_HEIGHT = 490
-    IFRAME_WIDTH = 460
+    IFRAME_HEIGHT = 400
+    IFRAME_WIDTH = 400
 
     WEIXIN_BACKEND_TYPE = "null"
     WEIXIN_MIDDLEWARE = "null.NullMiddleware"
