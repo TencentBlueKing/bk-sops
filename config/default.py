@@ -328,7 +328,7 @@ BK_IAM_MIGRATION_APP_NAME = "bksops_iam_migrations"
 AUTH_LEGACY_RESOURCES = ["project", "common_flow", "flow", "mini_app", "periodic_task", "task"]
 
 # 用户管理配置
-BK_USER_MANAGE_HOST = "{}/o/{}".format(BK_PAAS_HOST, "bk_user_manage")
+BK_USER_MANAGE_HOST = env.BK_USER_MANAGE_HOST
 
 # 人员选择数据来源
 BK_MEMBER_SELECTOR_DATA_HOST = env.BK_MEMBER_SELECTOR_DATA_HOST

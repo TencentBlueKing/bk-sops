@@ -68,7 +68,9 @@ class LoginRequiredMiddleware(MiddlewareMixin):
 
             if user is not None and request.user.is_authenticated:
                 # 登录成功，重新调用自身函数，即可退出
-                cache.set(session_key, {"bk_token": bk_token}, settings.LOGIN_CACHE_EXPIRED)
+                cache.set(
+                    session_key, {"bk_token": bk_token}, settings.LOGIN_CACHE_EXPIRED
+                )
                 return self.process_view(request, view, args, kwargs)
 
         handler = ResponseHandler(ConfFixture, settings)

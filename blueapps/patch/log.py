@@ -53,7 +53,11 @@ def get_paas_v2_logging_config_dict(is_local, bk_log_dir, log_level):
                 "maxBytes": 1024 * 1024 * 10,
                 "backupCount": 5,
             },
-            "console": {"level": "DEBUG", "class": "logging.StreamHandler", "formatter": "simple",},
+            "console": {
+                "level": "DEBUG",
+                "class": "logging.StreamHandler",
+                "formatter": "simple",
+            },
             "null": {"level": "DEBUG", "class": "logging.NullHandler"},
             "root": {
                 "class": "logging.handlers.RotatingFileHandler",
@@ -72,11 +76,27 @@ def get_paas_v2_logging_config_dict(is_local, bk_log_dir, log_level):
         },
         "loggers": {
             # V2旧版开发框架使用的logger
-            "component": {"handlers": ["component"], "level": "WARNING", "propagate": True,},
+            "component": {
+                "handlers": ["component"],
+                "level": "WARNING",
+                "propagate": True,
+            },
             "django": {"handlers": ["null"], "level": "INFO", "propagate": True},
-            "django.server": {"handlers": ["console"], "level": log_level, "propagate": True,},
-            "django.request": {"handlers": ["console"], "level": "ERROR", "propagate": True,},
-            "django.db.backends": {"handlers": ["wb_mysql"], "level": log_level, "propagate": True,},
+            "django.server": {
+                "handlers": ["console"],
+                "level": log_level,
+                "propagate": True,
+            },
+            "django.request": {
+                "handlers": ["console"],
+                "level": "ERROR",
+                "propagate": True,
+            },
+            "django.db.backends": {
+                "handlers": ["wb_mysql"],
+                "level": log_level,
+                "propagate": True,
+            },
             "root": {"handlers": ["root"], "level": log_level, "propagate": True},
             # V3新版使用的日志
             "celery": {"handlers": ["root"], "level": log_level, "propagate": True},

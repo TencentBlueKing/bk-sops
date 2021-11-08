@@ -18,13 +18,7 @@
     <script type="text/javascript">
         $(document).ready(function () {
             // 关闭登录弹出框
-            try{
-                window.top.BLUEKING.corefunc.close_login_dialog();
-            }catch(err){
-                try{
-                    window.parent.close_login_dialog();
-                }catch(err){}
-            }
+            window.opener && window.opener.postMessage("login", '*');
         });
     </script>
 </html>
