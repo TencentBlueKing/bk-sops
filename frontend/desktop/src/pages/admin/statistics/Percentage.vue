@@ -4,10 +4,10 @@
             <ul class="panel">
                 <li
                     v-for="item in dataList"
-                    :key="item.demision_id"
-                    :class="['panel-item', { 'active': item.demision_id === demisionId }]"
-                    @click="demisionId = item.demision_id">
-                    {{ item.demision_name }}
+                    :key="item.dimension_id"
+                    :class="['panel-item', { 'active': item.dimension_id === dimensionId }]"
+                    @click="dimensionId = item.dimension_id">
+                    {{ item.dimension_name }}
                 </li>
             </ul>
             <slot></slot>
@@ -102,7 +102,7 @@
                 tableColumn: TABLE_COLUMN,
                 chart: null,
                 canvasId: '',
-                demisionId: '',
+                dimensionId: '',
                 statsInfo: {
                     name: '',
                     total: 0
@@ -115,21 +115,21 @@
         watch: {
             dataList (val) {
                 if (val.length) {
-                    const { demision_id } = this.dataList[0]
-                    this.demisionId = demision_id
+                    const { dimension_id } = this.dataList[0]
+                    this.dimensionId = dimension_id
                 }
             },
-            demisionId: {
+            dimensionId: {
                 handler (val) {
                     if (!val) return
                     // 表格数据
-                    if (this.demisionId in this.statsObj) {
-                        const { statsList, name, total } = this.statsObj[this.demisionId]
+                    if (this.dimensionId in this.statsObj) {
+                        const { statsList, name, total } = this.statsObj[this.dimensionId]
                         this.statsList = statsList
                         this.statsInfo.total = total
                         this.tableColumn[0].label = name
                     } else {
-                        const { info, demision_name: name, demision_total: total } = this.dataList.find(item => item.demision_id === val)
+                        const { info, dimension_name: name, dimension_total: total } = this.dataList.find(item => item.dimension_id === val)
                         this.statsInfo = {
                             name: this.isTemp ? i18n.t('流程') : i18n.t('业务'),
                             total
@@ -147,7 +147,7 @@
                             percentage: '100%'
                         })
                         this.statsList = statsList
-                        this.statsObj[this.demisionId] = {
+                        this.statsObj[this.dimensionId] = {
                             statsList,
                             name,
                             total
