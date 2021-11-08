@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import itertools
+import os
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -47,6 +48,8 @@ REMOVE_JOB = ["REMOVE_AGENT", "REMOVE_PROXY"]
 # 主机其它参数
 HOST_EXTRA_PARAMS = ["outer_ip", "login_ip", "data_ip"]
 
+BK_NODEMAN_SUPPORT_TJJ = os.environ.get("BK_NODEMAN_SUPPORT_TJJ", "False") == "True"
+
 
 class NodemanCreateTaskService(NodeManBaseService):
     def execute(self, data, parent_data):
@@ -57,6 +60,11 @@ class NodemanCreateTaskService(NodeManBaseService):
         nodeman_op_target = data.inputs.nodeman_op_target
         bk_cloud_id = nodeman_op_target.get("nodeman_bk_cloud_id", "")
         node_type = nodeman_op_target.get("nodeman_node_type", "")
+
+        nodeman_tjj_ticket = ""
+        if BK_NODEMAN_SUPPORT_TJJ and hasattr(data.inputs, "nodeman_ticket_combine"):
+            nodeman_ticket_combine = data.inputs.nodeman_ticket_combine
+            nodeman_tjj_ticket = nodeman_ticket_combine.get("nodeman_tjj_ticket", "")
 
         nodeman_op_info = data.inputs.nodeman_op_info
         op_type = nodeman_op_info.get("nodeman_op_type", "")
@@ -165,8 +173,15 @@ class NodemanCreateTaskService(NodeManBaseService):
             kwargs = {
                 "job_type": job_name,
                 "hosts": all_hosts,
-                "action": "job_install",
+                "action": "job_install"
             }
+
+            if nodeman_tjj_ticket:
+                kwargs.update(
+                    {
+                        "tcoa_ticket": nodeman_tjj_ticket
+                    }
+                )
         else:
             data.set_outputs("ex_data", _("无效的操作请求:{}".format(job_name)))
             return False
@@ -239,5 +254,6 @@ class NodemanCreateTaskComponent(Component):
     name = _("新建任务")
     code = "nodeman_create_task"
     bound_service = NodemanCreateTaskService
-    form = "%scomponents/atoms/nodeman/create_task/v2_0.js" % settings.STATIC_URL
+    form = "%scomponents/atoms/nodeman/create_task/%s" % (
+        settings.STATIC_URL, "v2_1.js" if BK_NODEMAN_SUPPORT_TJJ else "v2_0.js")
     version = VERSION
