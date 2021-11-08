@@ -187,13 +187,13 @@
         }
         /deep/ .bar-chart-area {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
-            .horizontal-bar-chart {
+            .percentage, .horizontal-bar-chart {
                 width: 49%;
             }
         }
         /deep/ .tab-content-area {
-            margin-top: 20px;
             border-radius: 2px;
             box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.06);
             .bk-tab-section {

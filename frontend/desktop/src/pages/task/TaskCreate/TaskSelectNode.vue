@@ -49,6 +49,7 @@
                 :ordered-node-data="orderedNodeData"
                 :tpl-actions="tplActions"
                 :plan-data-obj="planDataObj"
+                :default-plan-data-obj="defaultPlanDataObj"
                 :execute-scheme-saving="executeSchemeSaving"
                 :is-edit-process-page="isEditProcessPage"
                 :scheme-info="schemeInfo"
@@ -58,6 +59,9 @@
                 @updateTaskSchemeList="updateTaskSchemeList"
                 @onExportScheme="onExportScheme"
                 @selectScheme="selectScheme"
+                @setDefaultScheme="setDefaultScheme"
+                @setDefaultSelected="setDefaultSelected"
+                @setTaskSchemeDialog="setTaskSchemeDialog"
                 @selectAllScheme="selectAllScheme"
                 @importTextScheme="importTextScheme"
                 @togglePreviewMode="togglePreviewMode" />
@@ -159,6 +163,8 @@
                 previewDataLoading: true,
                 tplActions: [],
                 planDataObj: {}, // 包含所有方案的对象
+                defaultPlanDataObj: {},
+                isDefaultSchemeIng: false,
                 schemeInfo: null,
                 prevSelectedNodes: [],
                 isShowDialog: false,
@@ -473,12 +479,13 @@
             async selectScheme (scheme, isChecked) {
                 let allNodeId = []
                 const selectNodeArr = []
+                const dataObj = this.isDefaultSchemeIng ? this.defaultPlanDataObj : this.planDataObj
                 // 取消已选择方案
                 if (isChecked === false) {
-                    this.$delete(this.planDataObj, scheme.id)
-                    if (Object.keys(this.planDataObj).length) {
-                        for (const key in this.planDataObj) {
-                            allNodeId = this.planDataObj[key]
+                    this.$delete(dataObj, scheme.uuid)
+                    if (Object.keys(dataObj).length) {
+                        for (const key in dataObj) {
+                            allNodeId = dataObj[key]
                             selectNodeArr.push(...allNodeId)
                         }
                         this.selectedNodes = Array.from(new Set(selectNodeArr)) || []
@@ -487,15 +494,15 @@
                     }
                 } else {
                     try {
-                        const result = this.isEditProcessPage ? await this.getSchemeDetail({ id: scheme.id, isCommon: this.isCommonProcess }) : scheme
+                        const result = this.isEditProcessPage ? await this.getSchemeDetail({ id: scheme.uuid, isCommon: this.isCommonProcess }) : scheme
                         if (this.isCommonProcess) {
                             allNodeId = JSON.parse(result)
                         } else {
                             allNodeId = JSON.parse(result.data)
                         }
-                        this.$set(this.planDataObj, scheme.id, allNodeId)
-                        for (const key in this.planDataObj) {
-                            const planNodeId = this.planDataObj[key]
+                        this.$set(dataObj, scheme.uuid, allNodeId)
+                        for (const key in dataObj) {
+                            const planNodeId = dataObj[key]
                             selectNodeArr.push(...planNodeId)
                         }
                         this.selectedNodes = Array.from(new Set(selectNodeArr)) || []
@@ -505,6 +512,31 @@
                 }
                 this.updateDataAndCanvas()
             },
+            // 设置默认执行方案
+            setDefaultScheme (defaultObj = {}) {
+                this.defaultPlanDataObj = defaultObj
+                Object.assign(this.planDataObj, this.defaultPlanDataObj)
+            },
+            /**
+             * 设置默认勾选值
+             */
+            setDefaultSelected (val) {
+                this.isDefaultSchemeIng = val
+                const dataObj = val ? this.defaultPlanDataObj : Object.assign(this.planDataObj, this.defaultPlanDataObj)
+                const selectNodeAll = Object.values(dataObj).reduce((acc, cur) => {
+                    acc.push(...cur)
+                    return acc
+                }, [])
+                const selectedNodes = Array.from(new Set(selectNodeAll))
+                this.selectedNodes = selectedNodes.length ? selectedNodes : Object.keys(this.activities) // 默认全选
+                this.updateDataAndCanvas()
+            },
+            /**
+             * 设置任务方案二次确认弹框
+             */
+            setTaskSchemeDialog () {
+                this.isShowDialog = true
+            },
             /**
              * 批量选择执行方案
              */
@@ -513,7 +545,7 @@
                 if (isChecked) {
                     const taskSchemeDom = this.$refs.taskScheme
                     const selectNodeArr = []
-                    taskSchemeDom.schemaList.forEach(item => {
+                    taskSchemeDom.schemeList.forEach(item => {
                         const allNodeId = JSON.parse(item.data)
                         this.$set(this.planDataObj, item.id, allNodeId)
                         selectNodeArr.push(...allNodeId)
@@ -565,12 +597,19 @@
                 this.isEditSchemeShow = true
             },
             // 保存编辑方案
-            onSaveExecuteSchemeClick () {
-                this.$emit('onSaveExecuteSchemeClick')
+            onSaveExecuteSchemeClick (isDefault) {
+                this.$emit('onSaveExecuteSchemeClick', isDefault)
+            },
+            loadSchemeList () {
+                this.$refs.taskScheme.loadSchemeList()
             },
             // 更新执行方案列表
             updateTaskSchemeList (val, isChange) {
                 this.$emit('updateTaskSchemeList', val, isChange)
+            },
+            judgeDataEqual () {
+                const isEqual = this.$refs.taskScheme.judgeDataEqual()
+                return isEqual
             },
             // 导出当前方案
             onExportScheme () {
@@ -613,24 +652,37 @@
                     this.isShowDialog = true
                 }
             },
-            onConfirmClick () {
+            async onConfirmClick () {
                 this.isSaveLoading = true
                 try {
+                    if (this.isDefaultSchemeIng) {
+                        await this.$refs.taskScheme.onSaveDefaultExecuteScheme()
+                        this.$refs.taskScheme.isDefaultSchemeIng = false
+                        this.isDefaultSchemeIng = false
+                        this.isShowDialog = false
+                        return
+                    }
                     const editScheme = this.$refs.editScheme
-                    editScheme.onSaveScheme()
-                    this.isSaveLoading = false
+                    editScheme && editScheme.onSaveScheme()
                     this.isShowDialog = false
                     if (!editScheme.errorMsg) {
                         this.isEditSchemeShow = false
                     }
                 } catch (error) {
                     console.warn(error)
+                } finally {
                     this.isSaveLoading = false
                 }
             },
             onCancelClick () {
+                if (this.isDefaultSchemeIng) {
+                    const taskScheme = this.$refs.taskScheme
+                    taskScheme.resetDefaultScheme()
+                    this.isDefaultSchemeIng = false
+                } else {
+                    this.isEditSchemeShow = false
+                }
                 this.isShowDialog = false
-                this.isEditSchemeShow = false
             }
         }
     }

@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import re
 import logging
 
-ip_pattern = re.compile(r"((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)")
+ip_pattern = re.compile(r"(?<!\d)((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(?!\d)")
 
 logger = logging.getLogger("root")
 

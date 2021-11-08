@@ -145,6 +145,11 @@ class AnalysisElement(object):
     pipeline_template__name = "pipeline_template__name"
     pipeline_template__editor = "pipeline_template__editor"
     pipeline_template__edit_time = "pipeline_template__edit_time"
+    template_execute_times = "template_execute_times"
+    template_execute_in_biz = "template_execute_in_biz"
+    common_func = "common_func"
+    template_biz = "template_biz"
+    instance_biz = "instance_biz"
     type = "type"
     group_list = [
         "category",
@@ -163,6 +168,11 @@ class AnalysisElement(object):
         "atom_execute_times",
         "atom_avg_execute_time",
         "atom_fail_percent",
+        "template_execute_times",
+        "template_execute_in_biz",
+        "common_func",
+        "template_biz",
+        "instance_biz",
     ]
     atom_dimensions = [
         atom_execute,

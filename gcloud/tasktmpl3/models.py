@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from collections import Counter
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth import get_user_model
@@ -30,8 +31,10 @@ from gcloud.template_base.models import BaseTemplate, BaseTemplateManager
 from gcloud.core.models import Project
 from gcloud.utils.managermixins import ClassificationCountMixin
 from gcloud.utils.dates import format_datetime
-from gcloud.analysis_statistics.models import TemplateStatistics, TemplateNodeStatistics
+from gcloud.analysis_statistics.models import TemplateStatistics, TemplateNodeStatistics, TaskflowStatistics
 from gcloud.utils.components import format_component_name
+from gcloud.analysis_statistics.models import ProjectStatisticsDimension, TaskTmplExecuteTopN
+from gcloud.shortcuts.cmdb import get_business_attrinfo
 
 logger = logging.getLogger("root")
 
@@ -190,9 +193,12 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         total = tasktmpl.count()
         groups = []
 
-        template_id_list = list(tasktmpl.values_list("id", flat=True))
-        template_in_statistics_data = TemplateStatistics.objects.filter(task_template_id__in=template_id_list)
-        template_id_map = {template.template_id: template.task_template_id for template in template_in_statistics_data}
+        task_template_id_list = list(tasktmpl.values_list("id", flat=True))
+        template_id_dict = dict(tasktmpl.values_list("pipeline_template__template_id", "id"))
+        # template_id_list = list(tasktmpl.values_list("pipeline_template__template_id", flat=True))
+        template_id_list = list(template_id_dict.keys())
+        template_in_statistics_data = TemplateStatistics.objects.filter(task_template_id__in=task_template_id_list)
+        template_id_map = {template.template_id: template.template_id for template in template_in_statistics_data}
         # 计算relationshipTotal, instanceTotal, periodicTotal
         # 查询所有的流程引用，并统计引用数量
         relationship_list = (
@@ -200,35 +206,50 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
             .values("descendant_template_id")
             .annotate(relationship_total=Count("descendant_template_id"))
         )
-        # 查询所有的任务，并统计每个template创建了多少个任务
+        # 查询所有的任务，并统计每个template已创建了多少个任务
         taskflow_list = list(
-            PipelineInstance.objects.filter(template_id__in=list(template_id_map.keys()))
+            PipelineInstance.objects.filter(template__id__in=list(template_id_map.keys()))
+            .values("template_id")
+            .annotate(instance_total=Count("template_id"))
+            .order_by()
+        )
+        # 统计每个template已经启动了多少个任务
+        taskflow_list_start = list(
+            PipelineInstance.objects.filter(template__id__in=list(template_id_map.keys()), is_started=True)
             .values("template_id")
             .annotate(instance_total=Count("template_id"))
             .order_by()
         )
         # 查询所有归档的周期任务，并统计每个template创建了多少个周期任务
         periodic_list = (
-            PeriodicTask.objects.filter(template__template_id__in=template_id_list)
-            .values("template__template_id")
+            PeriodicTask.objects.filter(template__id__in=list(template_id_map.keys()))
+            .values("template__id")
             .annotate(periodic_total=Count("template__id"))
         )
         relationship_dict = {}
         for relationship in relationship_list:
             try:
-                relationship_dict[relationship["descendant_template_id"]] = relationship["relationship_total"]
+                relationship_dict[template_id_dict[relationship["descendant_template_id"]]] = relationship[
+                    "relationship_total"
+                ]
             except KeyError:
                 continue
         taskflow_dict = {}
         for taskflow in taskflow_list:
             try:
-                taskflow_dict[template_id_map[str(taskflow["template_id"])]] = taskflow["instance_total"]
+                taskflow_dict[template_id_map[taskflow["template_id"]]] = taskflow["instance_total"]
+            except KeyError:
+                continue
+        taskflow_start_dict = {}
+        for taskflow in taskflow_list_start:
+            try:
+                taskflow_start_dict[template_id_map[taskflow["template_id"]]] = taskflow["instance_total"]
             except KeyError:
                 continue
         periodic_dict = {}
         for periodic_task in periodic_list:
             try:
-                periodic_dict[periodic_task["template__template_id"]] = periodic_task["periodic_total"]
+                periodic_dict[periodic_task["template__id"]] = periodic_task["periodic_total"]
             except KeyError:
                 continue
         # 查询所有project_name
@@ -251,9 +272,10 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                     "atom_toal": data.atom_total,
                     "subprocess_total": data.subprocess_total,
                     "gateways_total": data.gateways_total,
-                    "relationship_total": relationship_dict.get(data.template_id, 0),
-                    "instance_total": taskflow_dict.get(data.template_id, 0),
+                    "relationship_total": relationship_dict.get(data.task_template_id, 0),
+                    "instance_total": taskflow_start_dict.get(data.template_id, 0),
                     "periodic_total": periodic_dict.get(data.template_id, 0),
+                    "taskflow_total": taskflow_dict.get(data.template_id, 0),
                     "output_count": data.output_count,
                     "input_count": data.input_count,
                 }
@@ -267,6 +289,105 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         else:
             groups = sorted(groups, key=lambda group: group.get(order_by), reverse=False)
         return total, groups[(page - 1) * limit : page * limit]
+
+    def group_by_template_execute_times(self, tasktmpl, filters, page, limit):
+        topn = TaskTmplExecuteTopN.objects.all().first()
+        if not topn:
+            # 默认返回top5
+            topn = 5
+        else:
+            topn = topn.topn
+        tasktmpl_dict = dict(tasktmpl.values_list("id", "pipeline_template__name"))
+        tasktmpl_id_list = list(tasktmpl_dict.keys())
+        # 计算使用过的流程使用次数
+        used = TaskflowStatistics.objects.filter(task_template_id__in=tasktmpl_id_list).values_list(
+            "task_template_id", flat=True
+        )
+        task_create_methods = TaskflowStatistics.objects.filter(task_template_id__in=used).values(
+            "task_template_id", "create_method"
+        )
+        tmpl_task_dict = {}
+        for tmpl in task_create_methods:
+            create_method = tmpl["create_method"]
+            tmpl_task_dict.setdefault(tmpl["task_template_id"], {create_method: 0})
+            tmpl_task_dict[tmpl["task_template_id"]][create_method] = (
+                tmpl_task_dict[tmpl["task_template_id"]].setdefault(create_method, 0) + 1
+            )
+        used_count = dict(Counter(used))
+        total = topn
+        groups = []
+        for task_template_id, count in used_count.items():
+            groups.append(
+                {
+                    "template_id": task_template_id,
+                    "template_name": tasktmpl_dict.get(int(task_template_id), ""),
+                    "count": count,
+                    "create_method": [
+                        {"name": name, "value": value}
+                        for name, value in tmpl_task_dict.get(task_template_id, {}).items()
+                    ],
+                }
+            )
+        groups.sort(key=lambda item: item.get("count", 0), reverse=True)
+        return total, groups[0:topn]
+
+    def group_by_execute_in_biz(self, tasktmpl, filters, page, limit):
+        project_dict = dict(Project.objects.values_list("id", "name"))
+        proj_id_list = tasktmpl.values("project", "pipeline_template__id")
+        proj_dict = {}
+        # 生成项目-流程字典
+        for item in proj_id_list:
+            proj_dict[item["project"]] = proj_dict.get(item["project"], [])
+            proj_dict[item["project"]].append(str(item["pipeline_template__id"]))
+        groups = []
+        total = len(proj_dict)
+        for proj, tasktmpl_list in proj_dict.items():
+            all_tasktmpl_count = len(tasktmpl_list)
+            used_count = (
+                TaskflowStatistics.objects.filter(template_id__in=tasktmpl_list)
+                .values("template_id")
+                .distinct()
+                .count()
+            )
+            unused_count = all_tasktmpl_count - used_count
+            groups.append(
+                {
+                    "project_id": proj,
+                    "project_name": project_dict[proj],
+                    "useage": [{"name": "已使用", "value": used_count}, {"name": "未使用", "value": unused_count}],
+                }
+            )
+        groups.sort(key=lambda x: x["useage"][0]["value"], reverse=True)
+        return total, groups
+
+    def group_by_template_biz(self, tasktmpl, filters, page, limit):
+        proj_task_count = dict(
+            tasktmpl.values_list("project__bk_biz_id").annotate(value=Count("project__id")).order_by("value")
+        )
+        proj_dimension_dict = dict(ProjectStatisticsDimension.objects.values_list("dimension_id", "dimension_name"))
+        proj_dimension_id_list = proj_dimension_dict.keys()
+        # 获取全部业务对应维度信息
+        total = len(proj_dimension_id_list)
+        groups = []
+        proj_attr_info = get_business_attrinfo(proj_dimension_id_list)
+        for dimension in proj_dimension_id_list:
+            result = {}
+            # 对应统计维度cmdb总数
+            dimension_total = 0
+            for info in proj_attr_info:
+                value = proj_task_count.get(info["bk_biz_id"], 0)
+                result.setdefault(info[dimension], {"project_id": info["bk_biz_id"], "value": 0})["value"] += value
+                dimension_total += value
+            info = [{"name": key, "value": value["value"]} for key, value in result.items()]
+            groups.append(
+                {
+                    "dimension_id": dimension,
+                    "dimension_name": proj_dimension_dict[dimension],
+                    "dimension_total": dimension_total,
+                    "info": sorted(info, key=lambda item: item["value"], reverse=True),
+                }
+            )
+        return total, groups
 
     def general_group_by(self, prefix_filters, group_by):
         try:

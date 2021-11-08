@@ -14,6 +14,7 @@ import VueRouter from 'vue-router'
 import store from '@/store/index.js'
 
 const NotFoundComponent = () => import('@/components/layout/NotFoundComponent.vue')
+const NotPermissionComponent = () => import('@/components/layout/NotPermissionComponent.vue')
 
 const Home = () => import('@/pages/home/index.vue')
 
@@ -465,6 +466,10 @@ const routers = new VueRouter({
             })
         },
         {
+            path: '/guide',
+            component: NotPermissionComponent
+        },
+        {
             path: '*',
             name: 'notFoundPage',
             component: NotFoundComponent
@@ -479,9 +484,13 @@ routers.beforeEach((to, from, next) => {
     } else {
         store.commit('setNotFoundPage', false)
     }
+    const projectList = store.state.project.userProjectList
     // 设置全局 project_id
     if (to.params.project_id) {
         store.commit('project/setProjectId', to.params.project_id)
+    } else if (projectList.length) {
+        const projectId = projectList[0].id
+        store.commit('project/setProjectId', projectId)
     }
     if (store.state.viewMode === 'appmaker' && !APPMAKER.routes.includes(to.name)) {
         next(APPMAKER.getIndex())

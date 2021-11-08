@@ -35,6 +35,18 @@ const dom = {
         }
         return false
     },
+    getElementScrollCoords (element) {
+        let actualLeft = element.offsetLeft
+        let actualTop = element.offsetTop
+        let current = element.offsetParent
+        while (current !== null) {
+            // 注意要加上边界宽度
+            actualLeft += (current.offsetLeft + current.clientLeft)
+            actualTop += (current.offsetTop + current.clientTop)
+            current = current.offsetParent
+        }
+        return { x: actualLeft, y: actualTop }
+    },
     setPageTabIcon (path) {
         const link = document.querySelector("link[rel*='icon']") || document.createElement('link')
         link.type = 'image/x-icon'
