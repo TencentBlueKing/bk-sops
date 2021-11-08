@@ -152,6 +152,7 @@ export const getFormMixins = (attrs = {}) => {
             this.atomEvents.forEach((item) => {
                 const eventSource = `${item.source}_${item.type}`
                 this.eventActions[eventSource] = item.action
+                this.$parent.$parent.$off(eventSource) // 移除已绑定的相同事件名称的监听器
                 this.$parent.$parent.$on(eventSource, (data) => {
                     this.eventActions[eventSource].call(this, data)
                 })
