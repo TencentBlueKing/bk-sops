@@ -35,6 +35,12 @@ TEMPLATE_GROUP_BY_METHODS = {
     AE.atom_execute: TaskTemplate.objects.group_by_atom_execute,
     # 按起始时间、业务（可选）、类型（可选）查询各流程模板标准插件节点个数、子流程节点个数、网关节点数
     AE.template_node: TaskTemplate.objects.group_by_template_node,
+    # 查询模板执行数量top n
+    AE.template_execute_times: TaskTemplate.objects.group_by_template_execute_times,
+    # 查询模板使用情况统计数据
+    AE.template_execute_in_biz: TaskTemplate.objects.group_by_execute_in_biz,
+    # 按配置的业务属性字段统计各业务模板数占比情况
+    AE.template_biz: TaskTemplate.objects.group_by_template_biz,
 }
 
 
@@ -47,7 +53,7 @@ def produce_filter(filters):
     orm_filters = {}
     for cond, value in list(filters.items()):
         # component_code不加入查询条件中
-        if value in ["None", ""] or cond in ["component_code", "order_by", "type"]:
+        if value in ["None", ""] or cond in ["component_code", "order_by", "type", "topn"]:
             continue
         if TEMPLATE_REGEX.match(cond):
             filter_cond = "pipeline_template__%s" % cond

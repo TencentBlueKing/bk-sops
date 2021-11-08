@@ -51,8 +51,13 @@ from gcloud.constants import TASK_CREATE_METHOD, TEMPLATE_SOURCE, PROJECT, ONETI
 from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher, NodeCommandDispatcher
 from gcloud.shortcuts.cmdb import get_business_group_members
 from gcloud.project_constants.domains.context import get_project_constants_context
-from gcloud.analysis_statistics.models import TaskflowStatistics, TaskflowExecutedNodeStatistics
+from gcloud.analysis_statistics.models import (
+    TaskflowStatistics,
+    TaskflowExecutedNodeStatistics,
+    ProjectStatisticsDimension,
+)
 from gcloud.utils.components import format_component_name
+from gcloud.shortcuts.cmdb import get_business_attrinfo
 
 logger = logging.getLogger("root")
 
@@ -372,18 +377,16 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         """
 
         # 获取排序字段和排序方法
-        order_by_field = filters.get("order_by", "instance_id")
+        order_by_field = filters.get("order_by", "-instance_id")
 
         # 查询出有序的taskflow统计数据
         task_instance_id_list = taskflow.values_list("id", flat=True)
         taskflow_statistics_data = TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)
-
         # 注入instance_name和project_name
         instance_id_list = taskflow_statistics_data.values_list("instance_id", flat=True)
         project_id_list = taskflow_statistics_data.values_list("project_id", flat=True)
         instance_dict = dict(PipelineInstance.objects.filter(id__in=instance_id_list).values_list("id", "name"))
         project_dict = dict(Project.objects.filter(id__in=project_id_list).values_list("id", "name"))
-
         data_list = taskflow_statistics_data.values(
             "instance_id",
             "project_id",
@@ -396,7 +399,6 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             "gateways_total",
             "create_method",
         ).order_by(order_by_field)[(page - 1) * limit : page * limit]
-
         total = taskflow_statistics_data.count()
         groups = [
             {
@@ -464,7 +466,6 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         # 获取project_name
         project_id_list = taskflow_statistics_data.values_list("project_id", flat=True)
         project_dict = dict(Project.objects.filter(id__in=project_id_list).values_list("id", "name"))
-
         total = 1
         groups = [
             {
@@ -480,6 +481,59 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             for project_id in project_dict.keys()
         ]
 
+        return total, groups
+
+    def group_by_common_func(self, taskflow, filters, page, limit):
+        project_dict = dict(Project.objects.values_list("id", "name"))
+        proj_flow_type = taskflow.values_list("project", "flow_type")
+        # 计算各业务的各类型任务数量
+        proj_flow_dict = {}
+        for proj_flow in proj_flow_type:
+            proj_id = proj_flow[0]
+            flow_type = proj_flow[1]
+            flow_type = "common_cou" if flow_type == "common" else "common_func_cou"
+            proj_flow_dict.setdefault(proj_id, {"common_cou": 0, "common_func_cou": 0})[flow_type] += 1
+        # 计算total、groups
+        total = len(project_dict)
+        groups = [
+            {
+                "project_name": project_dict[proj_id],
+                "project_id": proj_id,
+                "common_cou": value["common_cou"],
+                "common_func_cou": value["common_func_cou"],
+            }
+            for proj_id, value in proj_flow_dict.items()
+        ]
+        return total, groups
+
+    def group_by_instance_biz(self, taskflow, filters, page, limit):
+        proj_task_count = dict(
+            taskflow.values_list("project__bk_biz_id").annotate(value=Count("project__id")).order_by("value")
+        )
+        proj_dimension_dict = dict(ProjectStatisticsDimension.objects.values_list("dimension_id", "dimension_name"))
+        proj_dimension_id_list = proj_dimension_dict.keys()
+        # 获取全部业务对应维度信息
+        total = len(proj_dimension_id_list)
+        groups = []
+        proj_attr_info = get_business_attrinfo(proj_dimension_id_list)
+        for dimension in proj_dimension_id_list:
+            result = {}
+            dimension_total = 0
+            for info in proj_attr_info:
+                value = proj_task_count.get(info["bk_biz_id"], 0)
+                result.setdefault(info[dimension], {"project_id": info["bk_biz_id"], "value": 0})
+                result[info[dimension]]["value"] += value
+                dimension_total += value
+
+            info = [{"name": key, "value": value["value"]} for key, value in result.items()]
+            groups.append(
+                {
+                    "dimension_id": dimension,
+                    "dimension_name": proj_dimension_dict[dimension],
+                    "dimension_total": dimension_total,
+                    "info": sorted(info, key=lambda item: item["value"], reverse=True),
+                }
+            )
         return total, groups
 
     def general_group_by(self, prefix_filters, group_by):

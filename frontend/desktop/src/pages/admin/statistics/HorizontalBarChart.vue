@@ -12,7 +12,7 @@
 <template>
     <div class="horizontal-bar-chart">
         <h3 class="chart-title">{{title}}</h3>
-        <bk-form class="select-wrapper" form-type="inline">
+        <bk-form v-if="showForm" class="select-wrapper" form-type="inline">
             <bk-form-item>
                 <div class="sort-area">
                     <span>{{ selectedSortType === 'ascending' ? $t('升序') : $t('降序') }}</span>
@@ -57,11 +57,16 @@
                         <span class="data-label" :title="item.name" :style="{ width: `${labelWidth}px` }">{{ item.name }}</span>
                         <div class="data-bar" :style="{ width: `calc(100% - ${labelWidth + 100}px)` }">
                             <div class="block" :style="getBlockStyle(item.value)">
-                                <bk-popover ext-cls="task-method" v-if="isInstance" placement="top">
+                                <bk-popover ext-cls="task-method" v-if="showPopover" placement="top">
                                     <span
                                         v-for="val in item.create_method"
                                         :key="val.name"
-                                        :style="{ display: 'inline-block', width: getPercentage(val.value, item.value), height: '100%', background: creatMethods[val.name].color }">
+                                        :style="{
+                                            display: 'inline-block',
+                                            width: getPercentage(val.value, item.value),
+                                            height: '100%',
+                                            background: item.isTemp ? val.color : creatMethods[val.name].color
+                                        }">
                                     </span>
                                     <div slot="content">
                                         <p class="project-name">{{ item.name }}</p>
@@ -70,10 +75,15 @@
                                                 class="task-method-item"
                                                 v-for="val in item.create_method"
                                                 :key="val.name">
-                                                <span class="color-block" :style="{ background: creatMethods[val.name].color }"></span>
-                                                <span class="task-name">{{ creatMethods[val.name].text }}</span>
+                                                <span class="color-block" :style="{ background: item.isTemp ? val.color : creatMethods[val.name].color }"></span>
+                                                <span :class="['content-wrap', { 'is-template': item.template_id }]">
+                                                    <span class="task-name">{{ item.isTemp ? val.name : creatMethods[val.name].text }}</span>
+                                                    <span class="template-id" v-if="item.template_id">
+                                                        {{ 'ID: ' + item.template_id }}
+                                                    </span>
+                                                </span>
                                                 <span class="task-num">{{ val.value }}</span>
-                                                <span class="percentage">{{ getPercentage(val.value, item.value) }}</span>
+                                                <span class="percentage" v-if="!item.template_id">{{ '(' + getPercentage(val.value, item.value) + ')' }}</span>
                                             </li>
                                         </ul>
                                     </div>
@@ -120,6 +130,7 @@
 </template>
 <script>
     import NoData from '@/components/common/base/NoData.vue'
+    import { COLOR_BLOCK_LIST } from '@/constants/index.js'
 
     const SORT_LIST = [
         {
@@ -164,12 +175,6 @@
                     return []
                 }
             },
-            creatMethods: {
-                type: Object,
-                default () {
-                    return {}
-                }
-            },
             bizUseageData: {
                 type: Object,
                 default () {
@@ -180,13 +185,23 @@
                 type: Number,
                 default: 150
             },
-            isInstance: {
+            showPopover: {
                 type: Boolean,
                 default: false
+            },
+            showForm: {
+                type: Boolean,
+                default: true
             }
         },
         data () {
+            const creatMethods = COLOR_BLOCK_LIST.reduce((acc, cur) => {
+                const { value, color, text } = cur
+                acc[value] = { color, text }
+                return acc
+            }, {})
             return {
+                creatMethods,
                 sortList: SORT_LIST,
                 selectedSortType: 'descending',
                 selectedValue: '',
@@ -239,9 +254,10 @@
         height: 360px;
         background: #ffffff;
         border: 1px solid #dcdee5;
-        border-radius: 2px;
-        box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.06);
+        border-radius: 3px;
+        box-shadow: 0px 2px 2px 0px rgba(0,0,0,0.15);
         overflow: hidden;
+        margin-bottom: 20px;
     }
     .chart-title {
         margin: 0;
