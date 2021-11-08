@@ -497,6 +497,7 @@
                 isRenderOutputForm: false,
                 executeInfo: {},
                 inputsInfo: {},
+                pluginOutputs: [],
                 outputsInfo: [],
                 logInfo: '',
                 historyInfo: [],
@@ -746,8 +747,31 @@
                                 return true
                             })
                         } else {
-                            // 普通插件展示 preset 为 true 的输出参数
-                            this.outputsInfo = this.isThirdPartyNode ? outputs : outputs.filter(output => output.preset)
+                            let outputsInfo = []
+                            if (this.isThirdPartyNode) {
+                                const excludeList = []
+                                outputsInfo = outputs.filter(item => {
+                                    if (!item.preset) {
+                                        excludeList.push(item)
+                                    }
+                                    return item.preset
+                                })
+                                excludeList.forEach(item => {
+                                    const output = this.pluginOutputs.find(output => output.key === item.key)
+                                    if (output) {
+                                        const { name, key } = output
+                                        const info = {
+                                            key,
+                                            name,
+                                            value: item.value
+                                        }
+                                        outputsInfo.push(info)
+                                    }
+                                })
+                            } else { // 普通插件展示 preset 为 true 的输出参数
+                                outputsInfo = outputs.filter(output => output.preset)
+                            }
+                            this.outputsInfo = outputsInfo
                         }
                         this.outputsInfo.forEach(out => {
                             this.$set(this.outputRenderData, out.key, out.value)
@@ -850,7 +874,7 @@
                                 with_app_detail: true
                             })
                             if (!resp.result) return
-                            const { app, outputs: respsOutputs, forms } = resp.data
+                            const { outputs: respsOutputs, forms } = resp.data
                             // 输出参数
                             const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
                             const outputs = []
@@ -862,11 +886,12 @@
                                     schema: { description: val.description || '--' }
                                 })
                             }
+                            this.pluginOutputs = outputs
                             this.outputRenderConfig = [...storeOutputs, ...outputs]
                             // 设置host
-                            const { host } = window.location
-                            const hostUrl = app.urls.find(item => item.includes(host)) || app.url
-                            $.context.bk_plugin_api_host[this.thirdPartyNodeCode] = hostUrl + '/'
+                            const { origin } = window.location
+                            const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${this.thirdPartyNodeCode}/`
+                            $.context.bk_plugin_api_host[this.thirdPartyNodeCode] = hostUrl
                             // 输入参数
                             const renderFrom = forms.renderform
                             /* eslint-disable-next-line */
