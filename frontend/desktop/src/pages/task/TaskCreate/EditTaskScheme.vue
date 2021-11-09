@@ -300,6 +300,7 @@
                     })
                     this.$emit('updateTaskSchemeList', this.schemeList)
                     this.$emit('setDefaultScheme', defaultObj)
+                    this.$emit('setDefaultSelected', Boolean(this.defaultSchemeId))
                 } catch (error) {
                     errorHandler(error, this)
                 }
