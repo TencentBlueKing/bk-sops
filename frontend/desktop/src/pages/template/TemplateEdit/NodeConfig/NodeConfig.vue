@@ -132,7 +132,7 @@
                         <template v-if="!isSubflow || !subflowListLoading">
                             <div class="config-form">
                                 <!-- 基础信息 -->
-                                <section class="config-section">
+                                <section class="config-section" data-test-id="templateEdit_form_nodeBaseInfo">
                                     <h3>{{$t('基础信息')}}</h3>
                                     <div class="basic-info-wrapper" v-bkloading="{ isLoading: isBaseInfoLoading }">
                                         <template v-if="!isBaseInfoLoading">
@@ -154,7 +154,7 @@
                                     </div>
                                 </section>
                                 <!-- 输入参数 -->
-                                <section class="config-section">
+                                <section class="config-section" data-test-id="templateEdit_form_inputParamsInfo">
                                     <h3>{{$t('输入参数')}}</h3>
                                     <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading, zIndex: 100 }">
                                         <template v-if="!inputLoading">
@@ -178,7 +178,7 @@
                                     </div>
                                 </section>
                                 <!-- 输出参数 -->
-                                <section class="config-section">
+                                <section class="config-section" data-test-id="templateEdit_form_outputParamsInfo">
                                     <h3>{{$t('输出参数')}}</h3>
                                     <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading, zIndex: 100 }">
                                         <template v-if="!outputLoading">
@@ -197,8 +197,19 @@
                                 </section>
                             </div>
                             <div class="btn-footer">
-                                <bk-button theme="primary" :disabled="inputLoading || (isSubflow && subflowListLoading)" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
-                                <bk-button theme="default" @click="onClosePanel()">{{ $t('取消') }}</bk-button>
+                                <bk-button
+                                    theme="primary"
+                                    :disabled="inputLoading || (isSubflow && subflowListLoading)"
+                                    data-test-id="templateEdit_form_saveNodeConfig"
+                                    @click="onSaveConfig">
+                                    {{ $t('保存') }}
+                                </bk-button>
+                                <bk-button
+                                    theme="default"
+                                    data-test-id="templateEdit_form_cancelNodeConfig"
+                                    @click="onClosePanel()">
+                                    {{ $t('取消') }}
+                                </bk-button>
                             </div>
                         </template>
                     </div>
@@ -606,7 +617,7 @@
                         })
                         if (!resp.result) return
                         // 获取参数
-                        const { app, outputs: respsOutputs, forms } = resp.data
+                        const { outputs: respsOutputs, forms } = resp.data
                         if (!this.isSubflow) {
                             // 获取第三方插件公共输出参数
                             if (!this.pluginOutput['remote_plugin']) {
@@ -626,9 +637,9 @@
                             this.outputs = [...storeOutputs, ...outputs]
                         }
                         // 获取host
-                        const { host } = window.location
-                        const hostUrl = app.urls.find(item => item.includes(host)) || app.url
-                        $.context.bk_plugin_api_host[plugin] = hostUrl + '/'
+                        const { origin } = window.location
+                        const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${plugin}/`
+                        $.context.bk_plugin_api_host[plugin] = hostUrl
                         // 输入参数
                         $.atoms[plugin] = {}
                         const renderFrom = forms.renderform
@@ -1355,6 +1366,9 @@
             onSaveConfig () {
                 this.validate().then(result => {
                     if (result) {
+                        ['stageName', 'nodeName'].forEach(item => {
+                            this.basicInfo[item] = this.basicInfo[item].trim()
+                        })
                         const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional, desc, nodeName } = this.basicInfo
                         const nodeData = { status: '', skippable, retryable, optional }
                         if (!this.isSubflow) {

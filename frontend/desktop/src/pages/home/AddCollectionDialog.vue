@@ -395,11 +395,13 @@
                 }
                 this.savePending = true
                 const project = this.searchValue.find(m => m.id === 'project')
-                let projectId
+                let projectId, projectName
                 if (project) {
                     projectId = project.values[0].id
+                    projectName = project.values[0].name
                 }
                 const saveList = this.selectedList.map(template => {
+                    template.project_name = projectName
                     const extra_info = this.getExtraInfo(template, template.collectType, projectId)
                     return {
                         extra_info,
@@ -435,6 +437,7 @@
                     case 'flow':
                         extraInfo = {
                             project_id: projectId,
+                            project_name: template.project_name,
                             template_id: template.template_id,
                             template_source: template.template_source,
                             name: template.name,

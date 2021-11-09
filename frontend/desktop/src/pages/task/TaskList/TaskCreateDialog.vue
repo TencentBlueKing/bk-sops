@@ -9,6 +9,7 @@
         :title="$t('新建任务')"
         :value="isNewTaskDialogShow"
         :auto-close="false"
+        :on-close="onCancel"
         @value-change="toggleShow">
         <div class="task-container">
             <div class="task-wrapper">
@@ -160,10 +161,11 @@
                 v-cursor="{
                     active: selectedTplType === 'publicProcess' && !hasCommonTplCreateTaskPerm
                 }"
+                data-test-id="taskList_from_confirmCreateBtn"
                 @click="onCreateTask">
                 {{ $t('确定') }}
             </bk-button>
-            <bk-button @click="onCancel">{{ $t('取消') }}</bk-button>
+            <bk-button data-test-id="taskList_from_cancelCreateBtn" @click="onCancel">{{ $t('取消') }}</bk-button>
         </div>
     </bk-dialog>
 </template>
