@@ -12,6 +12,7 @@
 import bus from '@/utils/bus.js'
 import store from '@/store/index.js'
 import i18n from '@/config/i18n/index.js'
+import { generateTraceId } from '@/utils/uuid.js'
 
 /**
  * 兼容之前版本的标准插件配置项里的异步请求
@@ -95,6 +96,11 @@ export const setConfigContext = (site_url, project) => {
  */
 // 在这里对ajax请求做一些统一公用处理
 export function setJqueryAjaxConfig () {
+    $.ajaxSetup({
+        beforeSend (xhr) {
+            xhr.setRequestHeader('traceparent', generateTraceId())
+        }
+    })
     $(document).ajaxError(function (event, xhr, setting) {
         const code = xhr.status
         switch (code) {
