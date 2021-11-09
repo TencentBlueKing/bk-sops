@@ -17,6 +17,7 @@
         :ext-cls="'common-dialog'"
         :title="$t('任务撤销')"
         :value="isRevokeDialogShow"
+        data-test-id="taskExcute_form_revokeDialog"
         @confirm="onConfirm"
         @cancel="onCancel">
         <div class="dialog-content">

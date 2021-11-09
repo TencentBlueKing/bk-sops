@@ -22,8 +22,20 @@
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper">
-            <bk-button theme="primary" class="confirm-btn" :loading="retrying" @click="onRetryTask">{{ $t('确定') }}</bk-button>
-            <bk-button theme="default" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
+            <bk-button
+                theme="primary"
+                class="confirm-btn"
+                :loading="retrying"
+                data-test-id="taskExcute_form_configRetryBtn"
+                @click="onRetryTask">
+                {{ $t('确定') }}
+            </bk-button>
+            <bk-button
+                theme="default"
+                data-test-id="taskExcute_form_cancelBtn"
+                @click="onCancelRetry">
+                {{ $t('取消') }}
+            </bk-button>
         </div>
     </div>
 </template>
@@ -119,14 +131,13 @@
                                 with_app_detail: true
                             })
                             if (!resp.result) return
-                            const { app, forms } = resp.data
                             
                             // 设置host
-                            const { host } = window.location
-                            const hostUrl = app.urls.find(item => item.includes(host)) || app.url
-                            $.context.bk_plugin_api_host[pluginCode] = hostUrl + '/'
+                            const { origin } = window.location
+                            const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${pluginCode}/`
+                            $.context.bk_plugin_api_host[pluginCode] = hostUrl
                             // 输入参数
-                            const renderFrom = forms.renderform
+                            const renderFrom = resp.data.forms.renderform
                             /* eslint-disable-next-line */
                             eval(renderFrom)
                             const config = $.atoms[pluginCode]

@@ -97,6 +97,8 @@ class Record(object):
 
     @property
     def result_response(self):
+        if isinstance(self.operate_result, dict):
+            return self.operate_result
         if isinstance(self.operate_result, JsonResponse):
             return json.loads(self.operate_result.content)
         return {}
