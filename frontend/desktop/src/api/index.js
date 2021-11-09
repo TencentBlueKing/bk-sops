@@ -14,6 +14,7 @@ import axiosDefaults from 'axios/lib/defaults'
 import bus from '@/utils/bus.js'
 import isCrossOriginIFrame from '@/utils/isCrossOriginIFrame.js'
 import { setJqueryAjaxConfig } from '@/config/setting.js'
+import { generateTraceId } from '@/utils/uuid.js'
 
 axiosDefaults.baseURL = window.SITE_URL
 axiosDefaults.xsrfCookieName = window.APP_CODE + '_csrftoken'
@@ -25,7 +26,10 @@ axiosDefaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
 setJqueryAjaxConfig()
 
 axios.interceptors.request.use(
-    config => config,
+    config => {
+        config.headers.common.traceparent = generateTraceId()
+        return config
+    },
     error => Promise.reject(error)
 )
 
