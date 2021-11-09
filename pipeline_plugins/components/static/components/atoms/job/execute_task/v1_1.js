@@ -246,7 +246,9 @@
                                     show_msg(resp.message, 'error');
                                 } else {
                                     for (var i = resp.data.global_var.length - 1; i >= 0; i--) {
-                                        resp.data.global_var[i].value = '\"' + resp.data.global_var[i].value.toString().replace(/^(\s|")+|(\s|")+$/g, '') + '\"';
+                                        if (resp.data.global_var[i] !== null && resp.data.global_var[i].value != null) {
+                                            resp.data.global_var[i].value = '\"' + resp.data.global_var[i].value.toString().replace(/^(\s|")+|(\s|")+$/g, '') + '\"';
+                                        }
                                     }
                                     $this._set_value(resp.data.global_var);
                                 }
