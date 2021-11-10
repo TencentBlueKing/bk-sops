@@ -158,7 +158,7 @@ SEND_MSG_SUCCESS_CASE = ComponentTestCase(
             calls=[
                 Call(
                     {
-                        "receiver__username": ",".join(sorted(set("b,p1,p2,m1,m2,a,tester".split(",")))),
+                        "receiver__username": "tester,a,b,m1,m2,p1,p2",
                         "title": "title",
                         "content": "<pre>content</pre>",
                         "msg_type": "mail",
@@ -166,7 +166,7 @@ SEND_MSG_SUCCESS_CASE = ComponentTestCase(
                 ),
                 Call(
                     {
-                        "receiver__username": ",".join(sorted(set("b,p1,p2,m1,m2,a,tester".split(",")))),
+                        "receiver__username": "tester,a,b,m1,m2,p1,p2",
                         "title": "title",
                         "content": "content",
                         "msg_type": "weixin",
@@ -198,14 +198,14 @@ SEND_MSG_SUCCESS_RECEIVER_ORDER_CASE = ComponentTestCase(
             calls=[
                 Call(
                     {
-                        "receiver__username": "c,a,b,tester",
+                        "receiver__username": "tester,c,a,b",
                         "title": "title",
                         "content": "<pre>content</pre>",
                         "msg_type": "mail",
                     }
                 ),
                 Call(
-                    {"receiver__username": "c,a,b,tester", "title": "title", "content": "content", "msg_type": "weixin"}
+                    {"receiver__username": "tester,c,a,b", "title": "title", "content": "content", "msg_type": "weixin"}
                 ),
             ],
         )
@@ -233,7 +233,7 @@ SEND_MSG_SUCCESS_WITH_STAFF_GROUP_CASE = ComponentTestCase(
             calls=[
                 Call(
                     {
-                        "receiver__username": "c,a,b,sg_a,sg_b,tester",
+                        "receiver__username": "tester,c,a,b,sg_a,sg_b",
                         "title": "title",
                         "content": "<pre>content</pre>",
                         "msg_type": "mail",
@@ -241,7 +241,7 @@ SEND_MSG_SUCCESS_WITH_STAFF_GROUP_CASE = ComponentTestCase(
                 ),
                 Call(
                     {
-                        "receiver__username": "c,a,b,sg_a,sg_b,tester",
+                        "receiver__username": "tester,c,a,b,sg_a,sg_b",
                         "title": "title",
                         "content": "content",
                         "msg_type": "weixin",

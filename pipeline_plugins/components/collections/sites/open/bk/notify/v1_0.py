@@ -120,11 +120,14 @@ class NotifyService(Service):
         staff_names = StaffGroupSet.objects.get_members_with_group_ids(staff_groups) if staff_groups else []
 
         usernames = result["data"].split(",") + staff_names
-        if notify:
-            usernames.append(executor)
+
+        # 当通知接收人包含执行人时，执行人放在列表第一位，且对通知名单进行去重处理
+        if notify or executor in usernames:
+            usernames.insert(0, executor)
+        unique_usernames = sorted(set(usernames), key=usernames.index)
 
         base_kwargs = {
-            "receiver__username": ",".join(usernames).strip(","),
+            "receiver__username": ",".join(unique_usernames).strip(","),
             "title": title,
             "content": content,
         }
