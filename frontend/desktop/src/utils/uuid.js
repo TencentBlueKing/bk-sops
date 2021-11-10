@@ -25,7 +25,7 @@ export const uuid = (group = 8) => {
 
 export const makeId = (length = 32) => {
     let result = ''
-    const characters = 'abcdefghijklmnopqrstuvwxyz0123456789'
+    const characters = 'abcdef0123456789'
     for (let i = 0; i < length; i++) {
         result += characters.charAt(Math.floor(Math.random() * characters.length))
     }
