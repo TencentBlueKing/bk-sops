@@ -46,6 +46,10 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
             all_inputs = calculate_constants_type(act_data, classification["data_inputs"])
             act["component"]["inputs"] = {key: value for key, value in list(all_inputs.items()) if key in act_data}
             act["component"]["global_outputs"] = classification["acts_outputs"].get(act_id, {})
+
+            # old web field process
+            act["skippable"] = act.get("isSkipped", True)
+            act["retryable"] = act.get("can_retry", True)
         elif act["type"] == "SubProcess":
             parent_params = {}
             for key, info in list(act["pipeline"]["constants"].items()):
