@@ -59,8 +59,7 @@ class MockClient(object):
 # mock path
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v2_0.BKNodeManClient"
 BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.base.BKNodeManClient"
-BK_NODEMAN_SUPPORT_TJJ = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v2_0" \
-                         ".BK_NODEMAN_SUPPORT_TJJ"
+
 HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.nodeman.base.handle_api_error"
 GET_HOST_ID_BY_INNER_IP = (
     "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v2_0.get_host_id_by_inner_ip"
@@ -665,7 +664,7 @@ INSTALL_SUCCESS_CASE_WITH_TTJ = ComponentTestCase(
     inputs={
         "bk_biz_id": "1",
         "nodeman_op_target": {"nodeman_bk_cloud_id": "1", "nodeman_node_type": "AGENT"},
-        "nodeman_ticket_combine": {
+        "nodeman_ticket": {
             "nodeman_tjj_ticket": "xxxxx"
         },
         "nodeman_op_info": {
@@ -734,6 +733,5 @@ INSTALL_SUCCESS_CASE_WITH_TTJ = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
-        Patcher(target=BK_NODEMAN_SUPPORT_TJJ, return_value="True")
     ],
 )

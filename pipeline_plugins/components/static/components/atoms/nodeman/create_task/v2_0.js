@@ -10,7 +10,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
- (function () {
+(function () {
     function is_display_tag(self, op_type, value) {
         if (op_type.indexOf(value) !== -1) {
             self.show()
@@ -136,6 +136,136 @@
                     },
                 ]
             }
+        },
+        {
+            tag_code: "nodeman_ticket",
+            type: "combine",
+            attrs: {
+                name: "ticket信息",
+                hookable: true,
+                hidden: true,
+                children: [{
+                    tag_code: "nodeman_ticket_save",
+                    type: "radio",
+                    attrs: {
+                        name: "ticket获取方式",
+                        hookable: true,
+                        hidden: false,
+                        value: 2,
+                        disabled: false,
+                        default: 2,
+                        items: [
+                            {
+                                name: "获取ticket",
+                                value: 0
+                            },
+                            {
+                                name: "实时获取ticket",
+                                value: 1
+                            },
+                            {
+                                name: "不使用ticket",
+                                value: 2
+                            }
+                        ],
+                    },
+                },
+                    {
+                        type: "text",
+                        attrs: {
+                            name: "说明",
+                            hookable: true,
+                            hidden: false,
+                            raw: false,
+                            value: "TJJ认证需要获取用户的ticket,请选择ticket获取方式"
+                        },
+                        events: [
+                            {
+                                source: "nodeman_ticket_save",
+                                type: "change",
+                                action: function (value) {
+                                    if (value === 0) {
+                                        this._set_value("此选项将保存ticket到模板,插件长时间未执行可能发生ticket过期失效导致认证失败")
+                                    }
+                                    if (value === 1) {
+                                        this._set_value("此选项将在任务执行前获取ticket,选择此选项需要(ticket使用方式)勾选为全局变量")
+                                    }
+                                    if (value === 2) {
+                                        this._set_value("TJJ认证需要获取用户的ticket,请选择ticket获取方式")
+                                    }
+                                }
+                            },]
+                    },
+                    {
+                        tag_code: "nodeman_tjj_ticket",
+                        type: "password",
+                        attrs: {
+                            name: "TJJ认证ticket",
+                            hookable: true,
+                            hidden: true,
+                            placeholder: "用户ticket",
+                            disabled: true,
+                            validation: []
+                        },
+                        events: [
+                            {
+                                source: "nodeman_ticket_save",
+                                type: "change",
+                                action: function (value) {
+                                    if (value === 2) {
+                                        this._set_value("")
+                                        return
+                                    }
+                                    let a = /TCOA_TICKET=\S+/
+                                    let cookieStr = document.cookie
+                                    let ticket = cookieStr.match(a)[0].split(";")[0].split("=")[1]
+                                    this._set_value(ticket)
+                                }
+                            },
+                            {
+                                source: "nodeman_ticket_save",
+                                type: "init",
+                                action: function (value) {
+                                    if (value === 1) {
+                                        let a = /TCOA_TICKET=\S+/
+                                        let cookieStr = document.cookie
+                                        let ticket = cookieStr.match(a)[0].split(";")[0].split("=")[1]
+                                        this._set_value(ticket)
+                                    }
+                                    if (value === 2) {
+                                        this._set_value("")
+                                    }
+                                }
+                            }
+
+                        ],
+                    }]
+            },
+            events: [
+                {
+                    source: "bk_biz_id",
+                    type: "init",
+                    action: function (value) {
+                        const self = this
+                        $.ajax({
+                            url: $.context.get('site_url') + 'pipeline/nodeman_is_support_tjj/',
+                            type: 'GET',
+                            dataType: 'json',
+                            async: false,
+                            success: function (resp) {
+                                if (resp.data) {
+                                    self.show()
+                                }
+                            },
+                            error: function () {
+                                show_msg('request nodeman is support tjj error', 'error');
+                            }
+                        })
+                    }
+                },
+            ]
+
+
         },
         {
             tag_code: "nodeman_op_info",
@@ -331,7 +461,9 @@
                                         width: "180px",
                                         items: [
                                             {value: "PASSWORD", text: gettext("PASSWORD")},
-                                            {value: "KEY", text: gettext("KEY")}
+                                            {value: "KEY", text: gettext("KEY")},
+                                            {value: "TJJ_PASSWORD", text: gettext("TJJ")}
+
                                         ],
                                         default: "PASSWORD",
                                         validation: [
