@@ -376,33 +376,39 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         @return:
         """
 
-        # 获取排序字段和排序方法
-        order_by_field = filters.get("order_by", "-instance_id")
-
         # 查询出有序的taskflow统计数据
         total = taskflow.count()
-        task_instance_id_list = list(taskflow[(page - 1) * limit : page * limit].values_list("id", flat=True))
-        taskflow_statistics_data = TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)
+        task_instance_id_list = taskflow.values_list("id", flat=True)
+        taskflow_statistics_data = list(TaskflowStatistics.objects
+            .filter(task_instance_id__in=task_instance_id_list)[(page - 1) * limit : page * limit]
+            .values(
+                "instance_id",
+                "task_instance_id",
+                "project_id",
+                "category",
+                "create_time",
+                "creator",
+                "elapsed_time",
+                "atom_total",
+                "subprocess_total",
+                "gateways_total",
+                "create_method",
+            )
+        )
         # 注入instance_name和project_name
-        instance_id_list = taskflow_statistics_data.values_list("instance_id", flat=True)
-        project_id_list = taskflow_statistics_data.values_list("project_id", flat=True)
+        instance_id_list = [
+            data["instance_id"]
+            for data in taskflow_statistics_data
+        ]
+        project_id_list = [
+            data["project_id"]
+            for data in taskflow_statistics_data
+        ]
         instance_dict = dict(PipelineInstance.objects.filter(id__in=instance_id_list).values_list("id", "name"))
         project_dict = dict(Project.objects.filter(id__in=project_id_list).values_list("id", "name"))
-        data_list = taskflow_statistics_data.values(
-            "instance_id",
-            "project_id",
-            "category",
-            "create_time",
-            "creator",
-            "elapsed_time",
-            "atom_total",
-            "subprocess_total",
-            "gateways_total",
-            "create_method",
-        ).order_by(order_by_field)
         groups = [
             {
-                "instance_id": data["instance_id"],
+                "instance_id": data["task_instance_id"],
                 "instance_name": instance_dict.get(data["instance_id"], data["instance_id"]),
                 "project_id": data["project_id"],
                 "project_name": project_dict.get(data["project_id"], data["project_id"]),
@@ -415,7 +421,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
                 "gateways_total": data["gateways_total"],
                 "create_method": data["create_method"],
             }
-            for data in data_list
+            for data in taskflow_statistics_data
         ]
         return total, groups
 
