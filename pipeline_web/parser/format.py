@@ -69,6 +69,8 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
                         else:
                             value = info["value"]
 
+                        # 如果 lazy 类型的变量被勾选到了全局变量
+                        # 则将 lazy 类型改为 splice 类型，避免两次解析 lazy 的值
                         if key in set(constants.get(key, {}).get("source_info", {}).get(act["id"], [])):
                             parent_params[key] = {
                                 "type": "splice",
