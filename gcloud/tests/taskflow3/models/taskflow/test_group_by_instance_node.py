@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase, override_settings
+from pipeline.models import PipelineInstance, PipelineTemplate, Snapshot
 
 from pipeline.utils.uniqid import uniqid
 
@@ -30,10 +31,21 @@ class TestGroupByInstanceNode(TestCase):
             creator="creator",
         )
         self.test_project.save()
+        self.test_snapshot = Snapshot.objects.create_snapshot({})
+        self.test_snapshot.save()
         # prepare test data
         template_id = uniqid()
+        instance_id = uniqid()
+        self.pipeline_template = PipelineTemplate.objects.create(
+            template_id=template_id, creator="creator", snapshot=self.test_snapshot
+        )
+        self.pipeline_instance = PipelineInstance.objects.create(
+            instance_id=instance_id, creator="creator", snapshot=self.test_snapshot, template=self.pipeline_template
+        )
         for i in range(TEST_TOTAL):
-            taskflow = TaskFlowInstance.objects.create(project=self.test_project, template_id=template_id)
+            taskflow = TaskFlowInstance.objects.create(
+                project=self.test_project, template_id=template_id, pipeline_instance=self.test_pipeline_instance
+            )
             taskflow.save()
         self.taskflow = TaskFlowInstance.objects.all()
 
