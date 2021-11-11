@@ -36,7 +36,6 @@ class TestGroupByInstanceNode(TestCase):
         template_id = uniqid()
         for i in range(TEST_TOTAL):
             taskflow = TaskFlowInstance.objects.create(project=self.test_project, template_id=template_id)
-            taskflow.save()
         self.taskflow = TaskFlowInstance.objects.all()
         print(4)
         
