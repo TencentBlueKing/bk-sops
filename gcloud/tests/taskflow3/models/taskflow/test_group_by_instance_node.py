@@ -25,25 +25,30 @@ TEST_LIMIT = 10
 
 class TestGroupByInstanceNode(TestCase):
     def setUp(self):
+        print(0)
         self.test_project = Project.objects.create(
             name="proj",
             creator="creator",
         )
         self.test_project.save()
+        print(3)
         # prepare test data
         template_id = uniqid()
         for i in range(TEST_TOTAL):
             taskflow = TaskFlowInstance.objects.create(project=self.test_project, template_id=template_id)
             taskflow.save()
         self.taskflow = TaskFlowInstance.objects.all()
-
+        print(4)
+        
     def tearDown(self):
         Project.objects.all().delete()
         TaskFlowInstance.objects.all().delete()
 
     @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     def test_group_by_instance_node(self):
+        print(1)
         total, groups = TaskFlowInstance.objects.group_by_instance_node(
             taskflow=self.taskflow, filters=None, page=TEST_PAGE, limit=TEST_LIMIT
         )
+        print(2)
         self.assertEqual(total, TEST_TOTAL)
