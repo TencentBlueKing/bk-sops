@@ -21,7 +21,11 @@ from pipeline.models import PipelineInstance, PipelineTemplate, Snapshot
 from pipeline.utils.uniqid import uniqid
 
 from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.models import TaskTemplate
 from gcloud.core.models import Project
+from gcloud.analysis_statistics.models import TaskflowStatistics
+from gcloud.analysis_statistics.tasks import taskflowinstance_post_save_statistics_task
+from gcloud.tests.test_data import TEST_EXECUTION_DATA
 
 TEST_TOTAL = 15
 TEST_PAGE = 1
@@ -36,7 +40,7 @@ class TestGroupByInstanceNode(TestCase):
             creator="creator",
         )
         self.test_project.save()
-        self.test_snapshot = Snapshot.objects.create_snapshot({})
+        self.test_snapshot = Snapshot.objects.create_snapshot(data=TEST_EXECUTION_DATA)
         self.test_snapshot.save()
         # prepare test data
         template_id = uniqid()
@@ -45,21 +49,33 @@ class TestGroupByInstanceNode(TestCase):
             template_id=template_id, creator="creator", snapshot=self.test_snapshot
         )
         self.pipeline_instance = PipelineInstance.objects.create(
-            instance_id=instance_id, creator="creator", snapshot=self.test_snapshot, template=self.pipeline_template
+            instance_id=instance_id,
+            creator="creator",
+            execution_snapshot=self.test_snapshot,
+            template=self.pipeline_template,
+        )
+        self.task_template = TaskTemplate.objects.create(
+            project=self.test_project, pipeline_template=self.pipeline_template
         )
         for i in range(TEST_TOTAL):
             taskflow = TaskFlowInstance.objects.create(
-                project=self.test_project, template_id=template_id, pipeline_instance=self.pipeline_instance
+                project=self.test_project, template_id=self.task_template.id, pipeline_instance=self.pipeline_instance
             )
             taskflow.save()
+            taskflowinstance_post_save_statistics_task.__wrapped__(taskflow.id, True)
         self.taskflow = TaskFlowInstance.objects.all()
 
     def tearDown(self):
         Project.objects.all().delete()
         TaskFlowInstance.objects.all().delete()
+        TaskTemplate.objects.all().delete()
+        PipelineInstance.objects.all().delete()
+        PipelineTemplate.objects.all().delete()
+        TaskflowStatistics.objects.all().delete()
 
     def test_group_by_instance_node(self):
         total, groups = TaskFlowInstance.objects.group_by_instance_node(
             taskflow=self.taskflow, filters=None, page=TEST_PAGE, limit=TEST_LIMIT
         )
         self.assertEqual(total, TEST_TOTAL)
+        self.assertEqual(len(groups), TEST_LIMIT)
