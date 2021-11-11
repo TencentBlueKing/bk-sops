@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from pipeline.utils.uniqid import uniqid
 
@@ -41,6 +41,7 @@ class TestGroupByInstanceNode(TestCase):
         Project.objects.all().delete()
         TaskFlowInstance.objects.all().delete()
 
+    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     def test_group_by_instance_node(self):
         total, groups = TaskFlowInstance.objects.group_by_instance_node(
             taskflow=self.taskflow, filters=None, page=TEST_PAGE, limit=TEST_LIMIT
