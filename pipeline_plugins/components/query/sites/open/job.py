@@ -40,8 +40,12 @@ JOBV3_VAR_CATEGORY_NAMESPACE = 2
 JOBV3_VAR_CATEGORY_IP = 3
 JOBV3_VAR_CATEGORY_PASSWORD = 4
 JOBV3_VAR_CATEGORY_ARRAY = 5
-JOBV3_VAR_CATEGORY_GLOBAL_VARS = {JOBV3_VAR_CATEGORY_STRING, JOBV3_VAR_CATEGORY_NAMESPACE, JOBV3_VAR_CATEGORY_PASSWORD,
-                                  JOBV3_VAR_CATEGORY_ARRAY}
+JOBV3_VAR_CATEGORY_GLOBAL_VARS = {
+    JOBV3_VAR_CATEGORY_STRING,
+    JOBV3_VAR_CATEGORY_NAMESPACE,
+    JOBV3_VAR_CATEGORY_PASSWORD,
+    JOBV3_VAR_CATEGORY_ARRAY,
+}
 
 
 def _job_get_scripts_data(request, biz_cc_id=None):
@@ -139,10 +143,7 @@ def job_get_job_tasks_by_biz(request, biz_cc_id):
     client = get_client_by_user(request.user.username)
     job_result = client.job.get_job_list({"bk_biz_id": biz_cc_id})
     if not job_result["result"]:
-        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (
-            biz_cc_id,
-            job_result["message"],
-        )
+        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (biz_cc_id, job_result["message"],)
 
         if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
             logger.warning(message)
@@ -162,10 +163,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
     job_result = client.job.get_job_detail({"bk_biz_id": biz_cc_id, "bk_job_id": task_id})
     if not job_result["result"]:
 
-        message = _("查询作业平台(JOB)的作业模板详情[app_id=%s]接口job.get_task_detail返回失败: %s") % (
-            biz_cc_id,
-            job_result["message"],
-        )
+        message = _("查询作业平台(JOB)的作业模板详情[app_id=%s]接口job.get_task_detail返回失败: %s") % (biz_cc_id, job_result["message"],)
 
         if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
             logger.warning(message)
@@ -275,7 +273,7 @@ def jobv3_get_job_template_list(request, biz_cc_id):
         get_data=lambda x: x["data"]["data"],
         get_count=lambda x: x["data"]["total"],
         page_param={"cur_page_param": "start", "page_size_param": "length"},
-        is_page_merge=True
+        is_page_merge=True,
     )
 
     data = []
@@ -299,7 +297,7 @@ def jobv3_get_job_plan_list(request, biz_cc_id, job_template_id):
         get_data=lambda x: x["data"]["data"],
         get_count=lambda x: x["data"]["total"],
         page_param={"cur_page_param": "start", "page_size_param": "length"},
-        is_page_merge=True
+        is_page_merge=True,
     )
 
     data = []
@@ -333,7 +331,7 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
 
-    for var in plan_detail.get("global_var_list", []):
+    for var in plan_detail.get("global_var_list") or []:
         # 1-字符串, 2-命名空间, 3-IP, 4-密码, 5-数组
         if var["type"] in JOBV3_VAR_CATEGORY_GLOBAL_VARS:
             value = var.get("value", "")
@@ -341,7 +339,7 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
             value = ",".join(
                 [
                     "{plat_id}:{ip}".format(plat_id=ip_item["bk_cloud_id"], ip=ip_item["ip"])
-                    for ip_item in var.get("server", {}).get("ip_list", [])
+                    for ip_item in var.get("server", {}).get("ip_list") or []
                 ]
             )
         else:
@@ -400,15 +398,9 @@ job_urlpatterns = [
     url(r"^job_get_script_list/(?P<biz_cc_id>\d+)/$", job_get_script_list),
     url(r"^job_get_script_name_list/(?P<biz_cc_id>\d+)/$", job_get_script_name_list),
     url(r"^job_get_public_script_name_list/$", job_get_public_script_name_list),
-    url(
-        r"^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$",
-        job_get_own_db_account_list,
-    ),
+    url(r"^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$", job_get_own_db_account_list,),
     url(r"^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$", job_get_job_tasks_by_biz),
-    url(
-        r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$",
-        job_get_job_task_detail,
-    ),
+    url(r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_job_task_detail,),
     url(r"^job_get_instance_detail/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_instance_detail),
     # jobv3接口
     url(r"^jobv3_get_job_template_list/(?P<biz_cc_id>\d+)/$", jobv3_get_job_template_list),
