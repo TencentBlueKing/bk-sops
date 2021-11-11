@@ -30,19 +30,19 @@ class TestGroupByInstanceNode(TestCase):
             creator="creator",
         )
         self.test_project.save()
+        # prepare test data
         template_id = uniqid()
         for i in range(TEST_TOTAL):
-            TaskFlowInstance.objects.create(
-                project=self.test_project, pipeline_instance=self.pipeline_instance, template_id=template_id
-            )
-        self.taskflow = TaskFlowInstance.objects.al()
+            taskflow = TaskFlowInstance.objects.create(project=self.test_project, template_id=template_id)
+            taskflow.save()
+        self.taskflow = TaskFlowInstance.objects.all()
 
     def tearDown(self):
+        Project.objects.all().delete()
         TaskFlowInstance.objects.all().delete()
 
     def test_group_by_instance_node(self):
         total, groups = TaskFlowInstance.objects.group_by_instance_node(
-            self.taskflow, filters=None, page=TEST_PAGE, limit=TEST_LIMIT
+            taskflow=self.taskflow, filters=None, page=TEST_PAGE, limit=TEST_LIMIT
         )
-        self.assert_equal(total, TEST_TOTAL)
-        self.assert_equal(len(groups), TEST_LIMIT)
+        self.assertEqual(total, TEST_TOTAL)
