@@ -46,12 +46,6 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
             all_inputs = calculate_constants_type(act_data, classification["data_inputs"])
             act["component"]["inputs"] = {key: value for key, value in list(all_inputs.items()) if key in act_data}
             act["component"]["global_outputs"] = classification["acts_outputs"].get(act_id, {})
-
-            # old web field process
-            if "skippable" not in act:
-                act["skippable"] = act.get("isSkipped", True)
-            if "retryable" not in act:
-                act["retryable"] = act.get("can_retry", True)
         elif act["type"] == "SubProcess":
             parent_params = {}
             for key, info in list(act["pipeline"]["constants"].items()):
@@ -68,12 +62,19 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
                             value = var_cls.process_meta_avalue(info["meta"], info["value"])
                         else:
                             value = info["value"]
-                        parent_params[key] = {
-                            "type": "lazy",
-                            "source_tag": info["source_tag"],
-                            "custom_type": info["custom_type"],
-                            "value": value,
-                        }
+
+                        if key in set(constants.get(key, {}).get("source_info", {}).get(act["id"], [])):
+                            parent_params[key] = {
+                                "type": "splice",
+                                "value": value,
+                            }
+                        else:
+                            parent_params[key] = {
+                                "type": "lazy",
+                                "source_tag": info["source_tag"],
+                                "custom_type": info["custom_type"],
+                                "value": value,
+                            }
                     else:
                         parent_params[key] = {"type": "splice", "value": info["value"]}
             act["params"] = parent_params
