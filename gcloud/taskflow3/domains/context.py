@@ -14,6 +14,7 @@ import datetime
 import logging
 
 from django.utils import translation, timezone
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from engine_pickle_obj.context import SystemObject
@@ -52,6 +53,11 @@ class TaskContext(object):
         project = Project.objects.get(id=self.project_id)
         project_tz = timezone.pytz.timezone(project.time_zone)
         self.task_start_time = datetime.datetime.now(tz=project_tz).strftime("%Y-%m-%d %H:%M:%S")
+        # 任务Url
+        self.task_url = (
+            settings.BKPAAS_SERVICE_ADDRESSES_BKSAAS.rstrip("/")
+            + f"/taskflow/execute/{self.project_id}/?instance_id={self.task_id}"
+        )
 
     def task_executor(self, taskflow, operator):
         """获取该任务的实际执行人
@@ -76,6 +82,12 @@ class TaskContext(object):
     def flat_details(cls):
         # index: 展示在前端全局变量的顺序，越小越靠前
         details = {
+            cls.to_flat_key("task_url"): {
+                "key": cls.to_flat_key("task_url"),
+                "name": _("任务Url"),
+                "index": "-9",
+                "desc": "",
+            },
             cls.to_flat_key("task_start_time"): {
                 "key": cls.to_flat_key("task_start_time"),
                 "name": _("任务开始时间"),
