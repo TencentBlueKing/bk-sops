@@ -11,23 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from ..base import ComponentAPI
 
+class FancyDict(dict):
+    def __getattr__(self, key):
+        try:
+            return self[key]
+        except KeyError as k:
+            raise AttributeError(k)
 
-class CollectionsUserManage(object):
-    """Collections of SOPS APIS"""
+    def __setattr__(self, key, value):
+        self[key] = value
 
-    def __init__(self, client):
-        self.client = client
-
-        self.retrieve_user = ComponentAPI(
-            client=self.client, method='GET',
-            path='/api/c/compapi{bk_api_ver}/usermanage/retrieve_user/',
-            description='查询用户具体详情'
-        )
-
-        self.list_users = ComponentAPI(
-            client=self.client, method='GET',
-            path='/api/c/compapi{bk_api_ver}/usermanage/list_users/',
-            description='获取用户列表'
-        )
+    def __delattr__(self, key):
+        try:
+            del self[key]
+        except KeyError as k:
+            raise AttributeError(k)

@@ -131,7 +131,7 @@
                                 with_app_detail: true
                             })
                             if (!resp.result) return
-                            
+
                             // 设置host
                             const { origin } = window.location
                             const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${pluginCode}/`

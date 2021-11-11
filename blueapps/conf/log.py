@@ -22,11 +22,11 @@ APP_CODE = os.environ.get("APP_ID", APP_CODE)
 
 
 def set_log_level(settings_module):
-    run_ver = settings_module.get("RUN_VER")
     log_level = settings_module.get("LOG_LEVEL", "INFO")
     is_local = settings_module.get("IS_LOCAL", False)
+    is_open_saas_v2 = settings_module.get("is_open_saas_v2", lambda: False)
 
-    if run_ver == "open":
+    if is_open_saas_v2():
         bk_log_dir = settings_module.get("BK_LOG_DIR", "/data/apps/logs/")
         logging = get_paas_v2_logging_config_dict(is_local, bk_log_dir, log_level)
     else:
@@ -58,7 +58,8 @@ def get_logging_config_dict(settings_module):
         logging_format = {
             "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
             "fmt": (
-                "%(levelname)s %(asctime)s %(pathname)s %(lineno)d " "%(funcName)s %(process)d %(thread)d %(message)s"
+                "%(levelname)s %(asctime)s %(pathname)s %(lineno)d "
+                "%(funcName)s %(process)d %(thread)d %(message)s"
             ),
         }
     if not os.path.exists(log_dir):
@@ -67,10 +68,17 @@ def get_logging_config_dict(settings_module):
     return {
         "version": 1,
         "disable_existing_loggers": False,
-        "formatters": {"verbose": logging_format, "simple": {"format": "%(levelname)s %(message)s"},},
+        "formatters": {
+            "verbose": logging_format,
+            "simple": {"format": "%(levelname)s %(message)s"},
+        },
         "handlers": {
             "null": {"level": "DEBUG", "class": "logging.NullHandler"},
-            "console": {"level": "DEBUG", "class": "logging.StreamHandler", "formatter": "simple",},
+            "console": {
+                "level": "DEBUG",
+                "class": "logging.StreamHandler",
+                "formatter": "simple",
+            },
             "root": {
                 "class": log_class,
                 "formatter": "verbose",
@@ -111,17 +119,37 @@ def get_logging_config_dict(settings_module):
         },
         "loggers": {
             "django": {"handlers": ["null"], "level": "INFO", "propagate": True},
-            "django.server": {"handlers": ["console"], "level": log_level, "propagate": True,},
-            "django.request": {"handlers": ["root"], "level": "ERROR", "propagate": True,},
-            "django.db.backends": {"handlers": ["mysql"], "level": log_level, "propagate": True,},
+            "django.server": {
+                "handlers": ["console"],
+                "level": log_level,
+                "propagate": True,
+            },
+            "django.request": {
+                "handlers": ["root"],
+                "level": "ERROR",
+                "propagate": True,
+            },
+            "django.db.backends": {
+                "handlers": ["mysql"],
+                "level": log_level,
+                "propagate": True,
+            },
             # the root logger ,用于整个project的logger
             "root": {"handlers": ["root"], "level": log_level, "propagate": True},
             # 组件调用日志
-            "component": {"handlers": ["component"], "level": log_level, "propagate": True,},
+            "component": {
+                "handlers": ["component"],
+                "level": log_level,
+                "propagate": True,
+            },
             "celery": {"handlers": ["celery"], "level": log_level, "propagate": True},
             # other loggers...
             # blueapps
-            "blueapps": {"handlers": ["blueapps"], "level": log_level, "propagate": True,},
+            "blueapps": {
+                "handlers": ["blueapps"],
+                "level": log_level,
+                "propagate": True,
+            },
             # 普通app日志
             "app": {"handlers": ["root"], "level": log_level, "propagate": True},
         },

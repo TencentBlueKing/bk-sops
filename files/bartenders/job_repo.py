@@ -11,19 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from .base import UploadRequestBartender
+from .utils import common_process_request
 
-class ComponentBaseException(Exception):
-    pass
 
-
-class ComponentAPIException(ComponentBaseException):
-    """Exception for Component API"""
-
-    def __init__(self, api_obj, error_message, resp=None):
-        self.api_obj = api_obj
-        self.error_message = error_message
-        self.resp = resp
-
-        if self.resp is not None:
-            error_message = '%s, resp=%s' % (error_message, self.resp.text)
-        super(ComponentAPIException, self).__init__(error_message)
+class JobRepoBartender(UploadRequestBartender):
+    def process_request(self, request):
+        return common_process_request(request, self.manager)

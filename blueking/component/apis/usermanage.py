@@ -14,26 +14,22 @@ specific language governing permissions and limitations under the License.
 from ..base import ComponentAPI
 
 
-class CollectionsEsb(object):
-    """Collections of ESB APIS"""
+class CollectionsUserManage(object):
+    """Collections of SOPS APIS"""
 
     def __init__(self, client):
         self.client = client
 
-        self.get_api_public_key = ComponentAPI(
-            client=self.client, method='POST',
-            path='/api/c/compapi{bk_api_ver}/esb/get_api_public_key/',
-            description='get api public key'
+        self.retrieve_user = ComponentAPI(
+            client=self.client,
+            method="GET",
+            path="/api/c/compapi{bk_api_ver}/usermanage/retrieve_user/",
+            description="查询用户具体详情",
         )
 
-        self.get_systems = ComponentAPI(
-            client=self.client, method='POST',
-            path='/api/c/compapi{bk_api_ver}/esb/get_systems/',
-            description='Get the list of systems accessing the ESB'
-        )
-
-        self.get_components = ComponentAPI(
-            client=self.client, method='POST',
-            path='/api/c/compapi{bk_api_ver}/esb/get_components/',
-            description='Get the list of components for the specified system'
+        self.list_users = ComponentAPI(
+            client=self.client,
+            method="GET",
+            path="/api/c/compapi{bk_api_ver}/usermanage/list_users/",
+            description="获取用户列表",
         )

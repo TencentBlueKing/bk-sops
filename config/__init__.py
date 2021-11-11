@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from __future__ import absolute_import
 
-__all__ = ['celery_app', 'RUN_VER', 'APP_CODE', 'SECRET_KEY', 'BASE_DIR']
+__all__ = ["celery_app", "RUN_VER", "APP_CODE", "SECRET_KEY", "BASE_DIR"]
 
 import os
 
@@ -21,17 +21,27 @@ import os
 # Django starts so that shared_task will use this app.
 from blueapps.core.celery import celery_app
 
+
+def get_env_or_raise(key):
+    """Get an environment variable, if it does not exist, raise an exception"""
+    value = os.environ.get(key)
+    if not value:
+        raise RuntimeError(
+            ('Environment variable "{}" not found, you must set this variable to run this application.').format(key)
+        )
+    return value
+
+
 # app 基本信息默认设置，本地开发可以修改这里，预发布环境和正式环境会从环境变量自动获取
-RUN_VER = 'open'
-APP_ID = ''
-APP_TOKEN = ''
-BK_PAAS_HOST = ''
+RUN_VER = "open"
+APP_ID = ""
+APP_TOKEN = ""
+BK_PAAS_HOST = ""
 BK_URL = BK_PAAS_HOST
 
-APP_CODE = APP_ID = os.environ.get('APP_ID', APP_ID)
-SECRET_KEY = APP_TOKEN = os.environ.get('APP_TOKEN', APP_TOKEN)
-RUN_VER = os.environ.get('RUN_VER', RUN_VER)
+APP_CODE = APP_ID = os.environ.get("APP_ID", APP_ID) or os.getenv("BKPAAS_APP_ID")
+SECRET_KEY = APP_TOKEN = os.environ.get("APP_TOKEN", APP_TOKEN) or os.getenv("BKPAAS_APP_SECRET")
+RUN_VER = os.environ.get("RUN_VER", RUN_VER)
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(
-    __file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

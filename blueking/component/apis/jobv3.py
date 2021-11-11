@@ -176,3 +176,9 @@ class CollectionsJOBV3(object):
             path="/api/c/compapi{bk_api_ver}/jobv3/create_file_source/",
             description="新建文件源",
         )
+        self.generate_local_file_upload_url = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/jobv3/generate_local_file_upload_url/",
+            description="获取本地文件上传url",
+        )

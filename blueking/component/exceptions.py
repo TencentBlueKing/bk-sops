@@ -11,17 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-try:
-    from django.conf import settings
 
-    APP_CODE = settings.APP_ID
-    SECRET_KEY = settings.APP_TOKEN
-    COMPONENT_SYSTEM_HOST = settings.BK_PAAS_INNER_HOST
-    DEFAULT_BK_API_VER = getattr(settings, 'DEFAULT_BK_API_VER', 'v2')
-except Exception:
-    APP_CODE = ''
-    SECRET_KEY = ''
-    COMPONENT_SYSTEM_HOST = ''
-    DEFAULT_BK_API_VER = 'v2'
+class ComponentBaseException(Exception):
+    pass
 
-CLIENT_ENABLE_SIGNATURE = False
+
+class ComponentAPIException(ComponentBaseException):
+    """Exception for Component API"""
+
+    def __init__(self, api_obj, error_message, resp=None):
+        self.api_obj = api_obj
+        self.error_message = error_message
+        self.resp = resp
+
+        if self.resp is not None:
+            error_message = "%s, resp=%s" % (error_message, self.resp.text)
+        super(ComponentAPIException, self).__init__(error_message)

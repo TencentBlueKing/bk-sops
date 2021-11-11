@@ -18,7 +18,7 @@ from api.client import BKComponentClient
 
 
 MONITOR_API_ENTRY = env.BK_MONITOR_API_ENTRY or "{}/{}".format(
-    settings.BK_PAAS_INNER_HOST, "api/c/compapi/v2/monitor_v3"
+    settings.BK_PAAS_ESB_HOST, "api/c/compapi/v2/monitor_v3"
 )
 
 
