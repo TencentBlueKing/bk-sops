@@ -63,10 +63,7 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
                 schema=StringItemSchema(description=_("作业模板 ID")),
             ),
             self.InputItem(
-                name=_("执行方案 ID"),
-                key="job_plan_id",
-                type="string",
-                schema=StringItemSchema(description=_("执行方案 ID")),
+                name=_("执行方案 ID"), key="job_plan_id", type="string", schema=StringItemSchema(description=_("执行方案 ID")),
             ),
             self.InputItem(
                 name=_("全局变量"),
@@ -115,8 +112,9 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
 
-        biz_cc_id = data.get_one_of_inputs("all_biz_cc_id")
-        original_global_var = deepcopy(data.get_one_of_inputs("job_global_var"))
+        config_data = data.get_one_of_inputs("all_biz_job_config")
+        biz_cc_id = config_data.get("all_biz_cc_id")
+        original_global_var = deepcopy(config_data.get("job_global_var")) or []
         global_var_list = []
 
         for _value in original_global_var:
@@ -139,9 +137,9 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
 
         job_kwargs = {
             "bk_biz_id": biz_cc_id,
-            "job_plan_id": data.get_one_of_inputs("job_plan_id"),
+            "job_plan_id": config_data.get("job_plan_id"),
             "global_var_list": global_var_list,
-            "bk_callback_url": get_node_callback_url(self.id, getattr(self, "version", "")),
+            "callback_url": get_node_callback_url(self.id, getattr(self, "version", "")),
         }
 
         job_result = client.jobv3.execute_job_plan(job_kwargs)
