@@ -71,7 +71,10 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
 
                         # 如果 lazy 类型的变量被勾选到了全局变量
                         # 则将 lazy 类型改为 splice 类型，避免两次解析 lazy 的值
-                        if key in set(constants.get(key, {}).get("source_info", {}).get(act["id"], [])):
+                        # 用 value 从 constants 中检索是因为勾选时 key 可能会发生变化
+                        if isinstance(value, str) and key in set(
+                            constants.get(value, {}).get("source_info", {}).get(act["id"], [])
+                        ):
                             parent_params[key] = {
                                 "type": "splice",
                                 "value": value,
