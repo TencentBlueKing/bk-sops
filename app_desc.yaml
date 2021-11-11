@@ -39,9 +39,15 @@ modules:
             - key: BKAPP_AUTO_UPDATE_COMPONENT_MODELS
               value: 0
               description: 是否自动更新插件模型
+            - key: GUNICORN_WORKER_NUM
+              value: 7
+              description: GunicornWorker数量
+            - key: GUNICORN_THREAD_NUM
+              value: 100
+              description: GunicornThread数量
         processes:
             web:
-                command: gunicorn wsgi -w 8 -b :$PORT --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=200 --log-level debug --timeout 120
+                command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b :$PORT --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=500 -k gthread --threads $GUNICORN_THREAD_NUM
                 plan: 4C2G5R
                 replicas: 5
             beat:
@@ -86,9 +92,15 @@ modules:
             - key: BKAPP_AUTO_UPDATE_COMPONENT_MODELS
               value: 0
               description: 是否自动更新插件模型
+            - key: GUNICORN_WORKER_NUM
+              value: 7
+              description: GunicornWorker数量
+            - key: GUNICORN_THREAD_NUM
+              value: 5
+              description: GunicornThread数量
         processes:
             web:
-                command: gunicorn wsgi -w 7 -b :$PORT --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=100 --log-level debug --timeout 120 -k gevent
+                command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b :$PORT --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=500 -k gthread --threads $GUNICORN_THREAD_NUM
                 plan: 4C5G5R
                 replicas: 5
         svc_discovery:
@@ -133,23 +145,23 @@ modules:
               description: 是否自动更新插件模型
         processes:
             api-er-e:
-                command: celery worker -A blueapps.core.celery -P gevent -Q er_execute_api -n api_er_e_worker@%h -c 100 -l info
+                command: celery worker -A blueapps.core.celery -P threads -Q er_execute_api -n api_er_e_worker@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 2
             api-er-s:
-                command: celery worker -A blueapps.core.celery -P gevent -Q er_schedule_api -n api_er_s_worker@%h -c 100 -l info
+                command: celery worker -A blueapps.core.celery -P threads -Q er_schedule_api -n api_er_s_worker@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 2
             api-pworker:
-                command: celery worker -A blueapps.core.celery -P gevent -Q api_task_queue_pipeline_priority -n api_task_schedule_worker@%h -c 100 -l info --maxtasksperchild=50
+                command: celery worker -A blueapps.core.celery -P threads -Q api_task_queue_pipeline_priority -n api_task_schedule_worker@%h -c 100 -l info --maxtasksperchild=50
                 plan: 4C1G5R
                 replicas: 5
             api-sworker:
-                command: celery worker -A blueapps.core.celery -P gevent -Q api_task_queue_service_schedule_priority -n api_task_schedule_worker@%h -c 100 -l info --maxtasksperchild=50
+                command: celery worker -A blueapps.core.celery -P threads -Q api_task_queue_service_schedule_priority -n api_task_schedule_worker@%h -c 100 -l info --maxtasksperchild=50
                 plan: 4C1G5R
                 replicas: 5
             api-task:
-                command: celery worker -A blueapps.core.celery -P gevent -Q task_prepare_api -n api_task_worker@%h -c 50 -l info
+                command: celery worker -A blueapps.core.celery -P threads -Q task_prepare_api -n api_task_worker@%h -c 50 -l info
                 plan: 4C1G5R
                 replicas: 2
             cworker:
@@ -157,19 +169,19 @@ modules:
                 plan: 4C1G5R
                 replicas: 3
             er-e:
-                command: celery worker -A blueapps.core.celery -P gevent -Q er_execute -n er_e_worker@%h -c 100 -l info
+                command: celery worker -A blueapps.core.celery -P threads -Q er_execute -n er_e_worker@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 2
             er-s:
-                command: celery worker -A blueapps.core.celery -P gevent -Q er_schedule -n er_s_worker@%h -c 100 -l info
+                command: celery worker -A blueapps.core.celery -P threads -Q er_schedule -n er_s_worker@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 2
             peri-er-e:
-                command: celery worker -A blueapps.core.celery -P gevent -Q er_execute_periodic_task -n peri_er_e_worker@%h -c 100 -l info
+                command: celery worker -A blueapps.core.celery -P threads -Q er_execute_periodic_task -n peri_er_e_worker@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 2
             peri-er-s:
-                command: celery worker -A blueapps.core.celery -P gevent -Q er_schedule_periodic_task -n peri_er_s_worker@%h -c 100 -l info
+                command: celery worker -A blueapps.core.celery -P threads -Q er_schedule_periodic_task -n peri_er_s_worker@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 2
             peri-pworker:
@@ -177,7 +189,7 @@ modules:
                 plan: 4C2G5R
                 replicas: 2
             peri-sworker:
-                command: celery worker -A blueapps.core.celery -P gevent -Q periodic_task_queue_service_schedule_priority -n periodic_task_schedule_worker@%h -c 100 -l info --maxtasksperchild=50
+                command: celery worker -A blueapps.core.celery -P threads -Q periodic_task_queue_service_schedule_priority -n periodic_task_schedule_worker@%h -c 100 -l info --maxtasksperchild=50
                 plan: 4C1G5R
                 replicas: 2
             pworker:
@@ -185,11 +197,11 @@ modules:
                 plan: 4C2G5R
                 replicas: 3
             stats-worker:
-                command: celery worker -A blueapps.core.celery -P gevent -Q pipeline_statistics_priority -n default@%h -c 100 -l info --maxtasksperchild=50
+                command: celery worker -A blueapps.core.celery -P threads -Q pipeline_statistics_priority -n default@%h -c 100 -l info --maxtasksperchild=50
                 plan: 4C1G5R
                 replicas: 1
             sworker:
-                command: celery worker -A blueapps.core.celery -P gevent -Q service_schedule,service_schedule_priority -c 100 -l info -n schedule_worker@%h --maxtasksperchild=50
+                command: celery worker -A blueapps.core.celery -P threads -Q service_schedule,service_schedule_priority -c 100 -l info -n schedule_worker@%h --maxtasksperchild=50
                 plan: 4C2G5R
                 replicas: 3
             web:
@@ -230,9 +242,15 @@ modules:
             - key: BKAPP_AUTO_UPDATE_COMPONENT_MODELS
               value: 0
               description: 是否自动更新插件模型
+            - key: GUNICORN_WORKER_NUM
+              value: 6
+              description: GunicornWorker数量
+            - key: GUNICORN_THREAD_NUM
+              value: 16
+              description: GunicornThread数量
         processes:
-            web: 
-                command: gunicorn wsgi -w 8 -b :$PORT --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=100 --log-level debug --timeout 120 -k gevent
+            web:
+                command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b :$PORT --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=500 -k gthread --threads $GUNICORN_THREAD_NUM
                 plan: 4C2G5R
                 replicas: 5
         svc_discovery:
