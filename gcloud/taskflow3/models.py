@@ -1053,7 +1053,7 @@ class TaskFlowInstance(models.Model):
             )
             return {"result": False, "message": message, "data": {}, "code": err_code.INVALID_OPERATION.code}
 
-        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id)
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
         return dispatcher.get_node_data(
             username=username,
             component_code=component_code,
@@ -1072,7 +1072,7 @@ class TaskFlowInstance(models.Model):
             )
             return {"result": False, "message": message, "data": {}, "code": err_code.REQUEST_PARAM_INVALID.code}
 
-        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id)
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
 
         node_data = {}
         if include_data:
@@ -1159,7 +1159,7 @@ class TaskFlowInstance(models.Model):
             )
             return {"result": False, "message": message}
 
-        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id)
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
 
         try:
             return dispatcher.dispatch(action, username, **kwargs)
@@ -1203,7 +1203,7 @@ class TaskFlowInstance(models.Model):
             )
             return {"result": False, "message": message}
 
-        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id)
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
 
         action_result = dispatcher.dispatch(command="forced_fail", operator=username)
         if not action_result["result"]:
@@ -1254,7 +1254,7 @@ class TaskFlowInstance(models.Model):
         # outputs data, if task has not executed, outputs is empty list
         instance_id = self.pipeline_instance.instance_id
 
-        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=instance_id)
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=instance_id, taskflow_id=self.id)
         outputs_result = dispatcher.get_outputs()
         if not outputs_result["result"]:
             logger.error("dispatcher.get_outputs failed: {}".format(outputs_result["message"]))
@@ -1275,7 +1275,7 @@ class TaskFlowInstance(models.Model):
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
 
-        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=act_id)
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=act_id, taskflow_id=self.id)
         return dispatcher.dispatch(command="callback", operator="", data=data, version=version)
 
     def get_stakeholders(self):
