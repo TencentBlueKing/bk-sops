@@ -256,3 +256,4 @@ class NodemanCreateTaskComponent(Component):
     code = "nodeman_create_task"
     bound_service = NodemanCreateTaskService
     form = "%scomponents/atoms/nodeman/create_task/v2_0.js" % settings.STATIC_URL
+    version = VERSION
