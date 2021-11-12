@@ -16,12 +16,12 @@
             type: "input",
             attrs: {
                 name: gettext("定时时间"),
-                placeholder: gettext("秒(1-8位有效数字) 或 时间(%Y-%m-%d %H:%M:%S)"),
+                placeholder: gettext("秒(s) 或 时间(%Y-%m-%d %H:%M:%S)"),
                 hookable: true,
                 validation: [
                     {
                         type: "required"
-                    },
+                    }
                 ]
             },
         },
