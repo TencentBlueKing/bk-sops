@@ -654,10 +654,6 @@
                     if (variable.pre_render_mako) {
                         variable.pre_render_mako = Boolean(variable.pre_render_mako)
                     }
-                    // 变量key值格式统一
-                    if (!/^\$\{\w+\}$/.test(variable.key)) {
-                        variable.key = '${' + variable.key + '}'
-                    }
                     // renderform表单校验
                     if (this.renderConfig.length > 0) {
                         const tagCode = this.renderConfig[0].tag_code
@@ -673,6 +669,11 @@
 
                     if (!result || !formValid) {
                         return false
+                    }
+
+                    // 变量key值格式统一
+                    if (!/^\$\{\w+\}$/.test(variable.key)) {
+                        variable.key = '${' + variable.key + '}'
                     }
 
                     const checkKeyResult = await this.checkKey({ key: this.theEditingData.key })
