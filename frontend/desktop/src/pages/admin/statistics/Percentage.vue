@@ -131,7 +131,7 @@
                     } else {
                         const { info, dimension_name: name, dimension_total: total } = this.dataList.find(item => item.dimension_id === val)
                         this.statsInfo = {
-                            name: this.isTemp ? i18n.t('流程') : i18n.t('业务'),
+                            name: this.isTemp ? i18n.t('流程') : i18n.t('任务'),
                             total
                         }
                         this.tableColumn[0].label = name
