@@ -255,7 +255,17 @@
             checkForPermission (item) {
                 if (item.category === 'flow') {
                     item.name = item.extra_info.name
-                    this.applyForPermission(['flow_create_task'], item.auth_actions, { flow: [item], project: [{ id: item.extra_info.project_id, name: item.extra_info.project_name }] })
+                    const { instance_id: id, name, extra_info: info } = item
+                    const resourceData = {
+                        flow: [{ id, name }],
+                        project: [
+                            {
+                                id: info.project_id,
+                                name: info.project_name
+                            }
+                        ]
+                    }
+                    this.applyForPermission(['flow_create_task'], item.auth_actions, resourceData)
                 }
             },
             onHideCreateTask () {
