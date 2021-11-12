@@ -166,4 +166,4 @@ class SleepTimerComponent(Component):
     code = "sleep_timer"
     bound_service = SleepTimerService
     form = settings.STATIC_URL + "components/atoms/bk/timer.js"
-    desc = _("最长定时时间受到环境配置影响，具体时长请咨询系统管理员")
+    desc = _("最长定时时间为三年，如有问题请咨询系统管理员")
