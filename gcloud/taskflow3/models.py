@@ -1051,7 +1051,7 @@ class TaskFlowInstance(models.Model):
             message = "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
                 node_id=node_id, task_id=self.id
             )
-            return {"result": False, "message": message, "data": {}, "code": err_code.INVALID_OPERATION.code}
+            return {"result": False, "message": message, "data": {}, "code": err_code.REQUEST_PARAM_INVALID.code}
 
         dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
         return dispatcher.get_node_data(
@@ -1060,7 +1060,7 @@ class TaskFlowInstance(models.Model):
             loop=loop,
             pipeline_instance=self.pipeline_instance,
             subprocess_stack=subprocess_stack or [],
-            project_id=self.project.id,
+            project_id=self.project_id,
         )
 
     def get_node_detail(
@@ -1157,14 +1157,14 @@ class TaskFlowInstance(models.Model):
             message = "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
                 node_id=node_id, task_id=self.id
             )
-            return {"result": False, "message": message}
+            return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
         dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
 
         try:
             return dispatcher.dispatch(action, username, **kwargs)
         except Exception as e:
-            message = "task[id=%s] node[id=%s] action failed:%s" % (self.id, node_id, e)
+            message = "task[id=%s] node[id=%s] action failed: %s" % (self.id, node_id, e)
             logger.exception(traceback.format_exc())
             return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
 
@@ -1201,7 +1201,7 @@ class TaskFlowInstance(models.Model):
             message = "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
                 node_id=node_id, task_id=self.id
             )
-            return {"result": False, "message": message}
+            return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
         dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
 
@@ -1254,7 +1254,7 @@ class TaskFlowInstance(models.Model):
         # outputs data, if task has not executed, outputs is empty list
         instance_id = self.pipeline_instance.instance_id
 
-        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=instance_id, taskflow_id=self.id)
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=instance_id)
         outputs_result = dispatcher.get_outputs()
         if not outputs_result["result"]:
             logger.error("dispatcher.get_outputs failed: {}".format(outputs_result["message"]))
@@ -1267,15 +1267,15 @@ class TaskFlowInstance(models.Model):
 
         return data
 
-    def callback(self, act_id, data, version=""):
-        if not self.has_node(act_id):
+    def callback(self, node_id, data, version=""):
+        if not self.has_node(node_id):
             return {
                 "result": False,
-                "message": "task[{tid}] does not have node[{nid}]".format(tid=self.id, nid=act_id),
+                "message": "task[{tid}] does not have node[{nid}]".format(tid=self.id, nid=node_id),
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
 
-        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=act_id, taskflow_id=self.id)
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
         return dispatcher.dispatch(command="callback", operator="", data=data, version=version)
 
     def get_stakeholders(self):
