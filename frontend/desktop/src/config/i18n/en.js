@@ -1252,7 +1252,8 @@ const en = {
     '所有变量值都会以字符串类型进行记录和判断，会忽略类型差异': 'All variable values will be recorded and judged in string type, and type differences will be ignored',
     '变量未找到': 'Variable not found',
     '至少保留一条触发条件': 'Keep at least one trigger condition',
-    '自动隐藏': 'Auto hide'
+    '自动隐藏': 'Auto hide',
+    '自动隐藏在显示状态下触发，当触发条件都满足时，才会在编辑页面隐藏，但是不会对传参产生影响': 'Auto-hide is triggered in the display state. When the trigger conditions are met, it will be hidden on the editing page, but it will not affect the parameter transfer.'
 }
 
 export default en

@@ -97,8 +97,12 @@
                     </div>
                 </div>
                 <!-- 自动隐藏 -->
-                <div class="form-item clearfix" v-if="!isSystemVar || !isProjectVar">
-                    <label>{{ $t('自动隐藏')}}</label>
+                <div class="form-item clearfix" v-if="theEditingData.show_type === 'show'">
+                    <label
+                        class="form-label condition-tip"
+                        v-bk-tooltips.top="$t('自动隐藏在显示状态下触发，当触发条件都满足时，才会在编辑页面隐藏，但是不会对传参产生影响')">
+                        {{ $t('自动隐藏')}}
+                    </label>
                     <div class="form-content">
                         <bk-select
                             v-model="theEditingData.is_condition_hide"
@@ -111,7 +115,9 @@
                     </div>
                 </div>
                 <!-- 触发条件 -->
-                <div class="form-item clearfix" v-if="theEditingData.is_condition_hide === 'true'">
+                <div
+                    class="form-item clearfix"
+                    v-if="theEditingData.show_type === 'show' && theEditingData.is_condition_hide === 'true'">
                     <label
                         class="form-label condition-tip"
                         v-bk-tooltips.top="$t('所有变量值都会以字符串类型进行记录和判断，会忽略类型差异')">
@@ -706,6 +712,9 @@
              * 变量自动显示/隐藏切换
              */
             onToggleHideCond (val) {
+                if (val === 'true' && !this.errorMsgText) {
+                    this.getTriggerCondInfo()
+                }
                 this.theEditingData.is_condition_hide = val
                 this.isShowErrorMsg = false
             },
@@ -904,13 +913,16 @@
             }
         }
     }
-    .condition-tip::after {
-        content: '';
-        position: absolute;
-        left: 10px;
-        bottom: -5px;
-        border-top: 1px dashed #000;
-        width: 50px;
+    .condition-tip {
+        line-height: 21px;
+        &::after {
+            content: '';
+            position: absolute;
+            left: 10px;
+            bottom: 0;
+            border-top: 1px dashed #979ba5;
+            width: 50px;
+        }
     }
     .trigger-condition {
         margin-left: 80px;
@@ -924,7 +936,7 @@
                 margin-right: 10px;
             }
             .select-operator {
-                width: 120px;
+                width: 105px;
                 margin-right: 10px;
             }
             .variable-value {
