@@ -129,15 +129,16 @@
             Object.values(this.constants).forEach(item => {
                 if (!item.hide_condition || !item.hide_condition.length) return
                 item.hide_condition.forEach(val => {
+                    const { constant_key: key, operator, value } = val
                     const parmas = {
                         target_key: item.key,
-                        operator: val.operator,
-                        value: val.value
+                        operator,
+                        value
                     }
-                    if (val.constant_key in conditionInfo) {
-                        conditionInfo[val.constant_key].push(parmas)
+                    if (key in conditionInfo) {
+                        conditionInfo[key].push(parmas)
                     } else {
-                        conditionInfo[val.constant_key] = [parmas]
+                        conditionInfo[key] = [parmas]
                     }
                 })
             })
