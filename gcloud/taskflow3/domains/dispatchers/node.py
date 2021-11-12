@@ -30,6 +30,7 @@ from pipeline.eri.runtime import BambooDjangoRuntime
 from pipeline.log.models import LogEntry
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.engine import exceptions as pipeline_exceptions
+from opentelemetry import trace
 
 from gcloud import err_code
 from gcloud.utils.handlers import handle_plain_log
@@ -68,7 +69,12 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         if command not in self.NODE_COMMANDS:
             return {"result": False, "message": "task command is invalid", "code": err_code.INVALID_OPERATION.code}
 
-        return getattr(self, "{}_v{}".format(command, self.engine_ver))(operator=operator, **kwargs)
+        with trace.get_tracer(__name__).start_as_current_span("node_operate") as span:
+            span.set_attribute("bk_sops.node_id", self.node_id)
+            span.set_attribute("bk_sops.engine_ver", self.engine_ver)
+            span.set_attribute("bk_sops.node_command", command)
+
+            return getattr(self, "{}_v{}".format(command, self.engine_ver))(operator=operator, **kwargs)
 
     @ensure_return_is_dict
     def retry_v1(self, operator: str, **kwargs) -> dict:

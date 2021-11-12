@@ -35,6 +35,8 @@ from pipeline.exceptions import (
     IsolateNodeError,
     StreamValidateError,
 )
+from opentelemetry import trace
+
 
 from gcloud import err_code
 from gcloud.taskflow3.signals import taskflow_started
@@ -91,7 +93,13 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         if command in self.OPERATION_TYPE_COMMANDS and not self.pipeline_instance.is_started:
             return {"result": False, "message": "task not started", "code": err_code.INVALID_OPERATION.code}
 
-        return getattr(self, "{}_v{}".format(command, self.engine_ver))(operator)
+        with trace.get_tracer(__name__).start_as_current_span("task_operate") as span:
+            span.set_attribute("bk_sops.task_id", self.taskflow_id)
+            span.set_attribute("bk_sops.pipeline_id", self.pipeline_instance.instance_id)
+            span.set_attribute("bk_sops.engine_ver", self.engine_ver)
+            span.set_attribute("bk_sops.task_command", command)
+
+            return getattr(self, "{}_v{}".format(command, self.engine_ver))(operator)
 
     def start_v1(self, executor: str) -> dict:
         try:
