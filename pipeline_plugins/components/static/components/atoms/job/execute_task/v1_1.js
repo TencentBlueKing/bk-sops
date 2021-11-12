@@ -324,7 +324,7 @@
                     }
                     let biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                     let bk_job_host = window.BK_JOB_HOST;
-                    let url = bk_job_host + '/' + biz_cc_id + "/api_plan/" + this.value;
+                    let url = bk_job_host + '/' + biz_cc_id + "/execute/task/" + this.value;
                     window.open(url, '_blank')
                 },
                 cols: 10
