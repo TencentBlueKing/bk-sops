@@ -31,7 +31,9 @@ def setup_trace_config():
         # local environment, use jaeger as trace service
         # docker run -p 16686:16686 -p 6831:6831/udp jaegertracing/all-in-one
         trace.set_tracer_provider(
-            TracerProvider(resource=Resource.create({SERVICE_NAME: os.getenv("BKAPP_OTEL_SERVICE_NAME")}))
+            TracerProvider(
+                resource=Resource.create({SERVICE_NAME: os.getenv("BKAPP_OTEL_SERVICE_NAME") or settings.APP_CODE})
+            )
         )
         jaeger_exporter = JaegerExporter(agent_host_name="localhost", agent_port=6831, udp_split_oversized_batches=True)
         trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(jaeger_exporter))

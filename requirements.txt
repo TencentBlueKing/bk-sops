@@ -73,7 +73,6 @@ opentelemetry-exporter-jaeger-thrift==1.6.2
 opentelemetry-instrumentation==0.25b2
 opentelemetry-instrumentation-celery==0.25b2
 opentelemetry-instrumentation-django==0.25b2
-opentelemetry-instrumentation-django==0.25b2
 opentelemetry-instrumentation-dbapi==0.25b2
 opentelemetry-instrumentation-redis==0.25b2
 opentelemetry-instrumentation-logging==0.25b2
