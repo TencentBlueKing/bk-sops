@@ -124,6 +124,7 @@
         },
         created () {
             this.checkValue(this.scheme, this.value)
+            // 设置变量自动隐藏对象
             const conditionInfo = {}
             Object.values(this.constants).forEach(item => {
                 if (!item.hide_condition || !item.hide_condition.length) return
@@ -141,6 +142,12 @@
                 })
             })
             this.conditionInfo = conditionInfo
+        },
+        mounted () {
+            if (!Object.keys(this.conditionInfo).length) return
+            for (const [key, value] of Object.entries(this.formData)) {
+                this.setVariableHideLogic(key, value)
+            }
         },
         methods: {
             /**
@@ -296,6 +303,13 @@
                 // 变量隐藏逻辑
                 if (!Object.keys(this.conditionInfo).length) return
                 const key = fieldArr[0]
+                this.setVariableHideLogic(key, val)
+            },
+            updateHook (field, val) {
+                this.$emit('onHookChange', field, val)
+            },
+            // 设置变量隐藏逻辑
+            setVariableHideLogic (key, val) {
                 if (key in this.conditionInfo) {
                     const values = this.conditionInfo[key]
                     values.forEach(item => {
@@ -309,9 +323,6 @@
                         }
                     })
                 }
-            },
-            updateHook (field, val) {
-                this.$emit('onHookChange', field, val)
             },
             /**
              * 获取 combine 类型组件的子组件实例
