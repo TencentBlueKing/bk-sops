@@ -84,7 +84,7 @@ class SleepTimerService(Service):
         )
     )
 
-    seconds_regex = re.compile(r"^\d{1,8}$")
+    seconds_regex = re.compile(r"^\d+$")
 
     def inputs_format(self):
         return [
@@ -166,4 +166,3 @@ class SleepTimerComponent(Component):
     code = "sleep_timer"
     bound_service = SleepTimerService
     form = settings.STATIC_URL + "components/atoms/bk/timer.js"
-    desc = _("最长定时时间受到环境配置影响，具体时长请咨询系统管理员")
