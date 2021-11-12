@@ -1245,7 +1245,14 @@ const en = {
     '还没有接入新的业务': "Haven't access the new business",
     '需要前往配置平台新建业务': 'Need to go to the bk-cmdb creat new business',
     '创建新业务': 'Create new business',
-    '删除连线': 'Delete Line'
+    '删除连线': 'Delete Line',
+    '触发条件': 'Trigger condition',
+    '符合条件时支持隐藏': 'Support hiding when eligible',
+    '关系组内的数据不能为空': 'The data in the relationship group cannot be empty',
+    '所有变量值都会以字符串类型进行记录和判断，会忽略类型差异': 'All variable values will be recorded and judged in string type, and type differences will be ignored',
+    '变量未找到': 'Variable not found',
+    '至少保留一条触发条件': 'Keep at least one trigger condition',
+    '自动隐藏': 'Auto hide'
 }
 
 export default en

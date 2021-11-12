@@ -99,7 +99,8 @@
         },
         data () {
             return {
-                value: tools.deepClone(this.formData)
+                value: tools.deepClone(this.formData),
+                conditionInfo: {}
             }
         },
         computed: {
@@ -123,6 +124,23 @@
         },
         created () {
             this.checkValue(this.scheme, this.value)
+            const conditionInfo = {}
+            Object.values(this.constants).forEach(item => {
+                if (!item.hide_condition || !item.hide_condition.length) return
+                item.hide_condition.forEach(val => {
+                    const parmas = {
+                        target_key: item.key,
+                        operator: val.operator,
+                        value: val.value
+                    }
+                    if (val.constant_key in conditionInfo) {
+                        conditionInfo[val.constant_key].push(parmas)
+                    } else {
+                        conditionInfo[val.constant_key] = [parmas]
+                    }
+                })
+            })
+            this.conditionInfo = conditionInfo
         },
         methods: {
             /**
@@ -275,6 +293,22 @@
                 }, fieldDataObj)
                 this.value = tools.deepClone(fieldDataObj) // 更新 value，通过下面触发 change 更新父组件 formData 后，watch 具有滞后性，导致 value 值不是最新的
                 this.$emit('change', fieldDataObj)
+                // 变量隐藏逻辑
+                if (!Object.keys(this.conditionInfo).length) return
+                const key = fieldArr[0]
+                if (key in this.conditionInfo) {
+                    const values = this.conditionInfo[key]
+                    values.forEach(item => {
+                        const isEqual = val === item.value
+                        const index = this.scheme.findIndex(config => config.tag_code === item.target_key)
+                        const targetTag = this.$children[index]
+                        if ((item.operator === '=' && isEqual) || (item.operator === '!=' && !isEqual)) {
+                            targetTag.onHideForm()
+                        } else {
+                            targetTag.onShowForm()
+                        }
+                    })
+                }
             },
             updateHook (field, val) {
                 this.$emit('onHookChange', field, val)
