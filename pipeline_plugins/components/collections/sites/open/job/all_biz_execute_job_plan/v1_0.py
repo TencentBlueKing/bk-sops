@@ -114,6 +114,7 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
 
         config_data = data.get_one_of_inputs("all_biz_job_config")
         biz_cc_id = config_data.get("all_biz_cc_id")
+        data.inputs.biz_cc_id = biz_cc_id
         original_global_var = deepcopy(config_data.get("job_global_var")) or []
         global_var_list = []
 
