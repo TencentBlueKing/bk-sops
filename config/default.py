@@ -476,7 +476,7 @@ for _setting in dir(ver_settings):
         locals()[_setting] = getattr(ver_settings, _setting)
 
 # version log config
-VERSION_LOG = {"PAGE_STYLE": "gitbook", "MD_FILES_DIR": "version_log/version_logs_md"}
+VERSION_LOG = {"FILE_TIME_FORMAT": "%Y-%m-%d"}
 
 # migrate api token
 MIGRATE_TOKEN = env.MIGRATE_TOKEN

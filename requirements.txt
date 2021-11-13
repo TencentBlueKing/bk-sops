@@ -43,7 +43,7 @@ celery-prometheus-exporter==1.7.0
 bk-monitor-report==1.0.4
 
 # version log
-mistune==0.8.4
+django-versionlog==1.3.0
 
 # iam sdk
 bk-iam==1.1.14
