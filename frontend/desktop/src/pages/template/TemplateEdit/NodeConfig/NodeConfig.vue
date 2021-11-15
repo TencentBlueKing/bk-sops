@@ -340,7 +340,10 @@
             },
             subflowListLoading (val) {
                 if (!val) {
-                    this.basicInfo = this.getNodeBasic(this.nodeConfig) // 获取子流程模板的名称
+                    // 获取子流程模板的名称
+                    Promise.resolve(this.getNodeBasic(this.nodeConfig)).then(res => {
+                        this.basicInfo = res
+                    })
                 }
             },
             isSelectorPanelShow: {
@@ -488,7 +491,7 @@
                     this.isBaseInfoLoading = false
                 }
             },
-            handleSubflowList (data) {
+            async handleSubflowList (data) {
                 const list = []
                 const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
                 const { params, query } = this.$route
@@ -501,7 +504,7 @@
                     }
                 })
                 this.atomTypeList.subflow.push(...list)
-                this.basicInfo = this.getNodeBasic(nodeConfig)
+                this.basicInfo = await this.getNodeBasic(nodeConfig)
             },
             handleTableScroll () {
                 if (!this.isPageOver && !this.isThrottled) {
