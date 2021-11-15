@@ -78,27 +78,62 @@
                             </LoopRuleSelect>
                         </div>
                     </div>
-                    <div
-                        v-if="isStartNow === 'clocked'"
-                        class="common-form-item">
-                        <label class="required">{{$t('启动时间')}}</label>
-                        <div class="common-form-content">
-                            <bk-date-picker
-                                ref="datePickerRef"
-                                :clearable="false"
-                                :type="'datetime'"
-                                :value="timeRange"
-                                :placeholder="$t('请选择启动时间')"
-                                v-validate="deatPickerRule"
-                                :options="pickerOptions"
-                                @open-change="onPickerOpenChange"
-                                @change="onPickerChange">
-                            </bk-date-picker>
-                            <span v-if="isDateError" class="common-error-tip error-msg">
-                                {{ !timeRange ? $t('启动时间不能为空') : $t('启动时间不能小于当前时间') }}
-                            </span>
+                    <template v-if="isStartNow === 'clocked'">
+                        <div class="common-form-item">
+                            <label class="required">{{$t('启动时间')}}</label>
+                            <div class="common-form-content">
+                                <bk-date-picker
+                                    ref="datePickerRef"
+                                    :clearable="false"
+                                    :type="'datetime'"
+                                    :value="timeRange"
+                                    :placeholder="$t('请选择启动时间')"
+                                    v-validate="deatPickerRule"
+                                    :options="pickerOptions"
+                                    @open-change="onPickerOpenChange"
+                                    @change="onPickerChange">
+                                </bk-date-picker>
+                                <span v-if="isDateError" class="common-error-tip error-msg">
+                                    {{ !timeRange ? $t('启动时间不能为空') : $t('启动时间不能小于当前时间') }}
+                                </span>
+                            </div>
                         </div>
-                    </div>
+                        <div class="common-form-item">
+                            <label>
+                                <p>{{$t('启动失败')}}</p>
+                                <p>{{$t('通知方式')}}</p>
+                            </label>
+                            <div class="common-form-content">
+                                <bk-table v-bkloading="{ isLoading: notifyTypeLoading }" class="notify-type-table" :data="notifyType">
+                                    <bk-table-column v-for="(col, index) in notifyTypeList" :key="index" :render-header="getNotifyTypeHeader">
+                                        <template slot-scope="props">
+                                            <bk-switcher
+                                                size="small"
+                                                theme="primary"
+                                                :value="props.row.includes(col.type)"
+                                                @change="onSelectNotifyType(props.$index, col.type, $event)">
+                                            </bk-switcher>
+                                        </template>
+                                    </bk-table-column>
+                                </bk-table>
+                            </div>
+                        </div>
+                        <div class="common-form-item">
+                            <label>{{$t('通知分组')}}</label>
+                            <div class="common-form-content">
+                                <bk-checkbox-group
+                                    v-model="receiverGroup"
+                                    v-bkloading="{ isLoading: notifyGroupLoading, opacity: 1, zIndex: 100 }">
+                                    <bk-checkbox
+                                        v-for="item in notifyGroup"
+                                        :key="item.id"
+                                        :value="item.id">
+                                        {{item.name}}
+                                    </bk-checkbox>
+                                </bk-checkbox-group>
+                            </div>
+                        </div>
+                    </template>
                 </div>
             </div>
             <div class="param-info" data-test-id="creatTask_form_paramInfo">
@@ -213,7 +248,13 @@
                     disabledDate (date) {
                         return date.getTime() + 86400000 < Date.now()
                     }
-                }
+                },
+                notifyTypeLoading: false,
+                notifyTypeList: [],
+                notifyType: [[]],
+                notifyGroupLoading: false,
+                projectNotifyGroup: [],
+                receiverGroup: []
             }
         },
         computed: {
@@ -222,7 +263,8 @@
                 'templateName': state => state.template.name,
                 'viewMode': state => state.view_mode,
                 'app_id': state => state.app_id,
-                'permissionMeta': state => state.permissionMeta
+                'permissionMeta': state => state.permissionMeta,
+                'projectBaseInfo': state => state.template.projectBaseInfo
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone,
@@ -259,6 +301,19 @@
             // 不显示【执行计划】的情况
             isExecuteSchemeHide () {
                 return this.common || this.viewMode === 'appmaker' || (['periodicTask', 'clockedTask', 'taskflow', 'function'].indexOf(this.entrance) > -1)
+            },
+            notifyGroup () {
+                let list = []
+                if (this.projectBaseInfo.notify_group) {
+                    const defaultList = list.concat(this.projectBaseInfo.notify_group.map(item => {
+                        return {
+                            id: item.value,
+                            name: item.text
+                        }
+                    }))
+                    list = defaultList.concat(this.projectNotifyGroup)
+                }
+                return list
             }
         },
         created () {
@@ -274,10 +329,13 @@
         },
         methods: {
             ...mapActions([
-                'queryUserPermission'
+                'queryUserPermission',
+                'getNotifyTypes',
+                'getNotifyGroup'
             ]),
             ...mapActions('template/', [
-                'loadTemplateData'
+                'loadTemplateData',
+                'loadProjectBaseInfo'
             ]),
             ...mapActions('appmaker/', [
                 'loadAppmakerDetail'
@@ -294,7 +352,8 @@
                 'createClocked'
             ]),
             ...mapMutations('template/', [
-                'setTemplateData'
+                'setTemplateData',
+                'setProjectBaseInfo'
             ]),
             async queryCommonTplCreateTaskPerm () {
                 try {
@@ -431,6 +490,54 @@
                 if (!state) {
                     const timeRange = new Date(this.timeRange).getTime() || 0
                     this.isDateError = timeRange <= new Date().getTime()
+                }
+            },
+            async getNotifyTypeList () {
+                try {
+                    this.notifyTypeLoading = true
+                    const res = await this.getNotifyTypes()
+                    this.notifyTypeList = res.data
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.notifyTypeLoading = false
+                }
+            },
+            getNotifyTypeHeader (h, data) {
+                const col = this.notifyTypeList[data.$index]
+                if (col.type) {
+                    return h('div', { 'class': 'notify-table-heder' }, [
+                        h('img', { 'class': 'notify-icon', attrs: { src: `data:image/png;base64,${col.icon}` } }, []),
+                        h('span', { style: 'word-break: break-all;' }, [col.label])
+                    ])
+                } else {
+                    return h('span', {}, [col.text])
+                }
+            },
+            onSelectNotifyType (row, type, val) {
+                const data = this.notifyType[row]
+                if (val) {
+                    data.push(type)
+                } else {
+                    const index = data.findIndex(item => item === type)
+                    if (index > -1) {
+                        data.splice(index, 1)
+                    }
+                }
+            },
+            async getProjectNotifyGroup () {
+                try {
+                    this.notifyGroupLoading = true
+                    if (!this.projectBaseInfo.notify_group) {
+                        const resp = await this.loadProjectBaseInfo()
+                        this.setProjectBaseInfo(resp.data)
+                    }
+                    const res = await this.getNotifyGroup({ project_id: this.$route.params.project_id })
+                    this.projectNotifyGroup = res.data
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.notifyGroupLoading = false
                 }
             },
             onCreateTask () {
@@ -635,6 +742,14 @@
                             template_id: this.template_id,
                             template_name: this.templateName,
                             template_source: 'project',
+                            notify_receivers: {
+                                receiver_group: this.receiverGroup,
+                                more_receiver: []
+                            },
+                            notify_type: {
+                                success: [],
+                                fail: this.notifyType[0]
+                            },
                             plan_start_time: this.timeRange
                         }
                         try {
@@ -657,13 +772,21 @@
                     return
                 }
                 this.isStartNow = value
-                this.timeRange = ''
                 this.$emit('togglePeriodicStep', !value, this.isSelectFunctionalType)
                 if (value === 'periodic') {
                     this.lastTaskName = this.taskName
                     this.taskName = this.templateName
                 } else {
                     this.taskName = this.lastTaskName || this.taskName
+                }
+                // 切换为计划任务时调用通知接口，切换其他则情况计划任务数据
+                if (value === 'clocked') {
+                    this.getNotifyTypeList()
+                    this.getProjectNotifyGroup()
+                } else {
+                    this.timeRange = ''
+                    this.notifyType = [[]]
+                    this.receiverGroup = []
                 }
             },
             paramsLoadingChange (val) {
@@ -785,6 +908,31 @@
     input {
         vertical-align: top;
     }
+}
+.notify-type-table {
+    width: 500px;
+    /deep/ .notify-table-heder {
+        display: flex;
+        align-items: center;
+        .notify-icon {
+            margin-right: 4px;
+            width: 18px;
+        }
+    }
+}
+.bk-form-checkbox {
+    margin-right: 20px;
+    margin-top: 6px;
+    min-width: 96px;
+    /deep/ .bk-checkbox-text {
+        color: $greyDefault;
+        font-size: 12px;
+    }
+}
+/deep/ .bk-checkbox-text {
+    display: inline-flex;
+    align-items: center;
+    width: 100px;
 }
 .action-wrapper {
     height: 72px;
