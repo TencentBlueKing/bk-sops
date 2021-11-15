@@ -555,7 +555,8 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
             # set meta field for meta var, so frontend can render meta form
             if constant.get("is_meta"):
                 constant["meta"] = deepcopy(constant)
-                constant["value"] = constant["value"]["default"]
+                # 下拉框类型默认值字段为default，表格类型为default_text
+                constant["value"] = constant["value"].get("default") or constant["value"].get("default_text", "")
             if key in constants:
                 constant["value"] = constants[key]
 
