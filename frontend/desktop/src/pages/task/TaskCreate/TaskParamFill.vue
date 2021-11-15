@@ -104,33 +104,21 @@
                                 <p>{{$t('通知方式')}}</p>
                             </label>
                             <div class="common-form-content">
-                                <bk-table v-bkloading="{ isLoading: notifyTypeLoading }" class="notify-type-table" :data="notifyType">
-                                    <bk-table-column v-for="(col, index) in notifyTypeList" :key="index" :render-header="getNotifyTypeHeader">
-                                        <template slot-scope="props">
-                                            <bk-switcher
-                                                size="small"
-                                                theme="primary"
-                                                :value="props.row.includes(col.type)"
-                                                @change="onSelectNotifyType(props.$index, col.type, $event)">
-                                            </bk-switcher>
-                                        </template>
-                                    </bk-table-column>
-                                </bk-table>
+                                <NotifyTypeConfig
+                                    :is-notify-group="false"
+                                    :notify-type="notifyType"
+                                    @onSelectNotifyType="onSelectNotifyType">
+                                </NotifyTypeConfig>
                             </div>
                         </div>
                         <div class="common-form-item">
                             <label>{{$t('通知分组')}}</label>
                             <div class="common-form-content">
-                                <bk-checkbox-group
-                                    v-model="receiverGroup"
-                                    v-bkloading="{ isLoading: notifyGroupLoading, opacity: 1, zIndex: 100 }">
-                                    <bk-checkbox
-                                        v-for="item in notifyGroup"
-                                        :key="item.id"
-                                        :value="item.id">
-                                        {{item.name}}
-                                    </bk-checkbox>
-                                </bk-checkbox-group>
+                                <NotifyTypeConfig
+                                    :is-notify-type="false"
+                                    :receiver-group="receiverGroup"
+                                    @onReceiverGroup="onReceiverGroup">
+                                </NotifyTypeConfig>
                             </div>
                         </div>
                     </template>
@@ -185,12 +173,14 @@
     import permission from '@/mixins/permission.js'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
     import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
+    import NotifyTypeConfig from '@/pages/template/TemplateEdit/TemplateSetting/NotifyTypeConfig.vue'
 
     export default {
         name: 'TaskParamFill',
         components: {
             ParameterInfo,
-            LoopRuleSelect
+            LoopRuleSelect,
+            NotifyTypeConfig
         },
         mixins: [permission],
         props: ['project_id', 'template_id', 'common', 'entrance', 'excludeNode'],
@@ -249,11 +239,7 @@
                         return date.getTime() + 86400000 < Date.now()
                     }
                 },
-                notifyTypeLoading: false,
-                notifyTypeList: [],
                 notifyType: [[]],
-                notifyGroupLoading: false,
-                projectNotifyGroup: [],
                 receiverGroup: []
             }
         },
@@ -301,19 +287,6 @@
             // 不显示【执行计划】的情况
             isExecuteSchemeHide () {
                 return this.common || this.viewMode === 'appmaker' || (['periodicTask', 'clockedTask', 'taskflow', 'function'].indexOf(this.entrance) > -1)
-            },
-            notifyGroup () {
-                let list = []
-                if (this.projectBaseInfo.notify_group) {
-                    const defaultList = list.concat(this.projectBaseInfo.notify_group.map(item => {
-                        return {
-                            id: item.value,
-                            name: item.text
-                        }
-                    }))
-                    list = defaultList.concat(this.projectNotifyGroup)
-                }
-                return list
             }
         },
         created () {
@@ -329,13 +302,10 @@
         },
         methods: {
             ...mapActions([
-                'queryUserPermission',
-                'getNotifyTypes',
-                'getNotifyGroup'
+                'queryUserPermission'
             ]),
             ...mapActions('template/', [
-                'loadTemplateData',
-                'loadProjectBaseInfo'
+                'loadTemplateData'
             ]),
             ...mapActions('appmaker/', [
                 'loadAppmakerDetail'
@@ -352,8 +322,7 @@
                 'createClocked'
             ]),
             ...mapMutations('template/', [
-                'setTemplateData',
-                'setProjectBaseInfo'
+                'setTemplateData'
             ]),
             async queryCommonTplCreateTaskPerm () {
                 try {
@@ -492,53 +461,11 @@
                     this.isDateError = timeRange <= new Date().getTime()
                 }
             },
-            async getNotifyTypeList () {
-                try {
-                    this.notifyTypeLoading = true
-                    const res = await this.getNotifyTypes()
-                    this.notifyTypeList = res.data
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.notifyTypeLoading = false
-                }
+            onSelectNotifyType (val) {
+                this.notifyType = val
             },
-            getNotifyTypeHeader (h, data) {
-                const col = this.notifyTypeList[data.$index]
-                if (col.type) {
-                    return h('div', { 'class': 'notify-table-heder' }, [
-                        h('img', { 'class': 'notify-icon', attrs: { src: `data:image/png;base64,${col.icon}` } }, []),
-                        h('span', { style: 'word-break: break-all;' }, [col.label])
-                    ])
-                } else {
-                    return h('span', {}, [col.text])
-                }
-            },
-            onSelectNotifyType (row, type, val) {
-                const data = this.notifyType[row]
-                if (val) {
-                    data.push(type)
-                } else {
-                    const index = data.findIndex(item => item === type)
-                    if (index > -1) {
-                        data.splice(index, 1)
-                    }
-                }
-            },
-            async getProjectNotifyGroup () {
-                try {
-                    this.notifyGroupLoading = true
-                    if (!this.projectBaseInfo.notify_group) {
-                        const resp = await this.loadProjectBaseInfo()
-                        this.setProjectBaseInfo(resp.data)
-                    }
-                    const res = await this.getNotifyGroup({ project_id: this.$route.params.project_id })
-                    this.projectNotifyGroup = res.data
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.notifyGroupLoading = false
-                }
+            onReceiverGroup (val) {
+                this.receiverGroup = val
             },
             onCreateTask () {
                 let hasNextPermission = false
@@ -779,11 +706,8 @@
                 } else {
                     this.taskName = this.lastTaskName || this.taskName
                 }
-                // 切换为计划任务时调用通知接口，切换其他则情况计划任务数据
-                if (value === 'clocked') {
-                    this.getNotifyTypeList()
-                    this.getProjectNotifyGroup()
-                } else {
+                // 切换其他则情况时计划任务数据
+                if (value !== 'clocked') {
                     this.timeRange = ''
                     this.notifyType = [[]]
                     this.receiverGroup = []
