@@ -61,6 +61,10 @@ TASKFLOW_DISPATCHERS_TASK_PIPELINE_MODEL = "gcloud.taskflow3.domains.dispatchers
 TASKFLOW_DISPATCHERS_TASK_BAMBOO_DJANGO_RUNTIME = "gcloud.taskflow3.domains.dispatchers.task.BambooDjangoRuntime"
 TASKFLOW_DISPATCHERS_TASK_CONTEXT = "gcloud.taskflow3.domains.dispatchers.task.Context"
 
+TASKFLOW_MODEL_ELAPSED_TIME = "gcloud.taskflow3.models.TaskFlowInstance.elapsed_time"
+TASKFLOW_MODEL_PIPELINE_TREE = "gcloud.taskflow3.models.TaskFlowInstance.pipeline_tree"
+TASKFLOW_MODEL_URL = "gcloud.taskflow3.models.TaskFlowInstance.url"
+
 PERIODIC_TASK_FILTER = "gcloud.periodictask.models.PeriodicTask.objects.filter"
 PERIODIC_TASK_GET = "gcloud.periodictask.models.PeriodicTask.objects.get"
 PERIODIC_TASK_CREATE = "gcloud.periodictask.models.PeriodicTask.objects.create"
