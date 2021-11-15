@@ -171,7 +171,7 @@ class JobExecuteTaskServiceBase(JobService):
             "bk_biz_id": biz_cc_id,
             "bk_job_id": data.get_one_of_inputs("job_task_id"),
             "global_vars": global_vars,
-            "bk_callback_url": get_node_callback_url(self.id, getattr(self, "version", "")),
+            "bk_callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
 
         job_result = client.job.execute_job(job_kwargs)

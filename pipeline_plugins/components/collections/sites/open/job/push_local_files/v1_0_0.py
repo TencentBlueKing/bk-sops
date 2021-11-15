@@ -82,7 +82,7 @@ class JobPushLocalFilesService(JobService):
             target_path=target_path,
             ips=ip_list,
             account=target_account,
-            callback_url=get_node_callback_url(self.id, getattr(self, "version", "")),
+            callback_url=get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         )
 
         if not push_result["result"]:
