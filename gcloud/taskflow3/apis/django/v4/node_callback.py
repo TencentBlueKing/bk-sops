@@ -14,7 +14,6 @@ import json
 import logging
 import traceback
 
-
 from django.conf import settings
 from django.http import JsonResponse
 from cryptography.fernet import Fernet
@@ -23,6 +22,7 @@ from django.views.decorators.http import require_POST
 
 from blueapps.account.decorators import login_exempt
 
+import env
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher
 
@@ -75,7 +75,7 @@ def node_callback(request, token):
 
     # 由于回调方不一定会进行多次回调，这里为了在业务层防止出现不可抗力（网络，DB 问题等）导致失败
     # 增加失败重试机制
-    for _ in range(3):
+    for _ in range(env.NODE_CALLBACK_RETRY_TIMES):
         callback_result = dispatchers.dispatch(
             command="callback", operator="", version=node_version, data=callback_data
         )

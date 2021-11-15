@@ -472,7 +472,7 @@ def node_callback(request, token):
     # 由于回调方不一定会进行多次回调，这里为了在业务层防止出现不可抗力（网络，DB 问题等）导致失败
     # 增加失败重试机制
     callback_result = None
-    for __ in range(3):
+    for __ in range(env.NODE_CALLBACK_RETRY_TIMES):
         callback_result = dispatcher.dispatch(command="callback", operator="", data=callback_data)
         logger.info("result of callback call({}): {}".format(token, callback_result))
         if callback_result["result"]:
