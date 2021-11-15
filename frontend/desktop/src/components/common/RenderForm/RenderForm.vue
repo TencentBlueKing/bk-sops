@@ -334,7 +334,7 @@
                         // 相关运算逻辑
                         let isMatch = false
                         const relatedVarValues = Object.values(relatedVarInfo)
-                        if (val.isOr) {
+                        if (item.isOr) {
                             isMatch = relatedVarValues.some(option => option)
                         } else {
                             isMatch = relatedVarValues.every(option => option)
