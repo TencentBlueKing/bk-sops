@@ -23,6 +23,7 @@ from gcloud.tests.mock_settings import *  # noqa
 class GetNodeDetailTestCase(TestCase):
     def test_node_does_not_exist(self):
         taskflow = TaskFlowInstance()
+        taskflow.id = 1
         taskflow.has_node = MagicMock(return_value=False)
 
         detail = taskflow.get_node_detail(node_id="node_id", username="username")
@@ -31,6 +32,7 @@ class GetNodeDetailTestCase(TestCase):
 
     def test_get_node_data_err(self):
         taskflow = TaskFlowInstance()
+        taskflow.id = 1
         taskflow.engine_ver = 2
         taskflow.has_node = MagicMock(return_value=True)
         dispatcher = MagicMock()
@@ -44,6 +46,7 @@ class GetNodeDetailTestCase(TestCase):
 
     def test_get_node_detail_err(self):
         taskflow = TaskFlowInstance()
+        taskflow.id = 1
         taskflow.engine_ver = 2
         taskflow.has_node = MagicMock(return_value=True)
         dispatcher = MagicMock()
@@ -59,6 +62,7 @@ class GetNodeDetailTestCase(TestCase):
 
     def test_include_data_is_false(self):
         taskflow = TaskFlowInstance()
+        taskflow.id = 1
         taskflow.engine_ver = 2
         taskflow.has_node = MagicMock(return_value=True)
         dispatcher = MagicMock()
@@ -85,7 +89,7 @@ class GetNodeDetailTestCase(TestCase):
                 include_data=include_data,
             )
 
-        dispatcher_init.assert_called_once_with(engine_ver=taskflow.engine_ver, node_id=node_id)
+        dispatcher_init.assert_called_once_with(engine_ver=taskflow.engine_ver, node_id=node_id, taskflow_id=1)
         dispatcher.get_node_data.assert_not_called()
         dispatcher.get_node_detail.assert_called_once_with(
             username=username,
@@ -98,6 +102,7 @@ class GetNodeDetailTestCase(TestCase):
 
     def test_success(self):
         taskflow = TaskFlowInstance()
+        taskflow.id = 1
         taskflow.engine_ver = 2
         taskflow.has_node = MagicMock(return_value=True)
         dispatcher = MagicMock()
@@ -125,7 +130,7 @@ class GetNodeDetailTestCase(TestCase):
                 project_id="project_id",
             )
 
-        dispatcher_init.assert_called_once_with(engine_ver=taskflow.engine_ver, node_id=node_id)
+        dispatcher_init.assert_called_once_with(engine_ver=taskflow.engine_ver, node_id=node_id, taskflow_id=1)
         dispatcher.get_node_data.assert_called_once_with(
             username=username,
             component_code=component_code,

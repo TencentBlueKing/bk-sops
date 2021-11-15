@@ -432,7 +432,7 @@ def get_node_log(request, project_id, node_id):
             }
         )
 
-    dispatcher = NodeCommandDispatcher(engine_ver=task.engine_ver, node_id=node_id)
+    dispatcher = NodeCommandDispatcher(engine_ver=task.engine_ver, node_id=node_id, taskflow_id=task_id)
     return JsonResponse(dispatcher.get_node_log(history_id))
 
 
@@ -449,7 +449,7 @@ def get_task_create_method(request):
 @require_POST
 def node_callback(request, token):
     """
-    old callback view, handle pipeline callback
+    old callback view, handle pipeline callback, will not longer use after 3.6.X+ version
     """
     logger.info("[old_node_callback]callback body for token({}): {}".format(token, request.body))
 
@@ -472,7 +472,7 @@ def node_callback(request, token):
     # 由于回调方不一定会进行多次回调，这里为了在业务层防止出现不可抗力（网络，DB 问题等）导致失败
     # 增加失败重试机制
     callback_result = None
-    for i in range(3):
+    for __ in range(env.NODE_CALLBACK_RETRY_TIMES):
         callback_result = dispatcher.dispatch(command="callback", operator="", data=callback_data)
         logger.info("result of callback call({}): {}".format(token, callback_result))
         if callback_result["result"]:

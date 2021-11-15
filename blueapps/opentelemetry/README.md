@@ -74,3 +74,16 @@ BKAPP_OTEL_SERVICE_NAME="worker" celery worker -A blueapps.core.celery -P thread
         - DjangoInstrumentor
         - CeleryInstrumentor
         - RedisInstrumentor
+
+### SaaS日志中添加 trace 信息
+配置ENABLE_OTEL_TRACE后，在config/default.py中获取到默认的日志配置LOGGING，使用对应的工具函数动态注入 trace 相关信息: 
+``` python
+from blueapps.opentelemetry.utils import inject_logging_trace_info
+
+# 需要添加的 trace 相关信息格式
+trace_format = "[trace_id]: %(otelTraceID)s [span_id]: %(otelSpanID)s [resource.service.name]: %(otelServiceName)s"
+# 需要注入格式的 formatters
+inject_formatters = ("verbose",)
+# 注入到日志配置，会直接在对应 formatter 格式之后添加 trace_format
+inject_logging_trace_info(LOGGING, inject_formatters, trace_format)
+```

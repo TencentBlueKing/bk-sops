@@ -58,9 +58,10 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         "retry_subprocess",
     }
 
-    def __init__(self, engine_ver: int, node_id: str):
+    def __init__(self, engine_ver: int, node_id: str, taskflow_id: int = None):
         self.engine_ver = engine_ver
         self.node_id = node_id
+        self.taskflow_id = taskflow_id
 
     def dispatch(self, command: str, operator: str, **kwargs) -> dict:
         if self.engine_ver not in self.VALID_ENGINE_VER:
@@ -70,6 +71,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
             return {"result": False, "message": "task command is invalid", "code": err_code.INVALID_OPERATION.code}
 
         with trace.get_tracer(__name__).start_as_current_span("node_operate") as span:
+            span.set_attribute("bk_sops.task_id", self.taskflow_id)
             span.set_attribute("bk_sops.node_id", self.node_id)
             span.set_attribute("bk_sops.engine_ver", self.engine_ver)
             span.set_attribute("bk_sops.node_command", command)
