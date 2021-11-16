@@ -37,6 +37,7 @@ from gcloud.common_template.models import CommonTemplate
 from gcloud.commons.tastypie import GCloudModelResource
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.constants import PROJECT
 from gcloud.core.resources import ProjectResource
 from gcloud.contrib.appmaker.models import AppMaker
@@ -356,6 +357,13 @@ class TaskFlowInstanceResource(GCloudModelResource):
         )
 
         super(TaskFlowInstanceResource, self).obj_create(bundle, **kwargs)
+
+        # crete auto retry strategy
+        arn_creator = AutoRetryNodeStrategyCreator(
+            taskflow_id=bundle.obj.id, root_pipeline_id=pipeline_instance.instance_id
+        )
+        arn_creator.batch_create_strategy(pipeline_instance.execution_data)
+
         return bundle
 
     @record_operation(RecordType.task.name, OperateType.delete.name)

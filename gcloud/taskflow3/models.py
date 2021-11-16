@@ -1416,3 +1416,14 @@ class TaskOperationTimesConfig(models.Model):
         verbose_name = _("任务操作次数限制配置 TaskOperationTimesConfig")
         verbose_name_plural = _("任务操作次数限制配置 TaskOperationTimesConfig")
         unique_together = ("project_id", "operation")
+
+
+class AutoRetryNodeStrategy(models.Model):
+    taskflow_id = models.BigIntegerField(verbose_name="taskflow id")
+    root_pipeline_id = models.CharField(verbose_name="root pipeline id", max_length=64)
+    node_id = models.CharField(verbose_name="task node id", max_length=64, primary_key=True)
+    retry_times = models.IntegerField(verbose_name="retry times", default=0)
+    max_retry_times = models.IntegerField(verbose_name="retry times", default=5)
+
+    class Meta:
+        index_together = [("root_pipeline_id", "node_id")]
