@@ -129,4 +129,7 @@ class ClockedTask(models.Model):
             members = ",".join(members).split(",")
             receivers.extend(members)
 
-        return list(set(receivers))
+        receivers = set(receivers).discard(self.creator)
+        receivers = [] if not receivers else list(receivers)
+
+        return [self.creator] + receivers
