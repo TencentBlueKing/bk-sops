@@ -13,8 +13,8 @@ import axios from 'axios'
 import axiosDefaults from 'axios/lib/defaults'
 import bus from '@/utils/bus.js'
 import isCrossOriginIFrame from '@/utils/isCrossOriginIFrame.js'
-import { checkDataType } from '@/utils/checkDataType'
 import { setJqueryAjaxConfig } from '@/config/setting.js'
+import { generateTraceId } from '@/utils/uuid.js'
 
 axiosDefaults.baseURL = window.SITE_URL
 axiosDefaults.xsrfCookieName = window.APP_CODE + '_csrftoken'
@@ -26,7 +26,10 @@ axiosDefaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
 setJqueryAjaxConfig()
 
 axios.interceptors.request.use(
-    config => config,
+    config => {
+        config.headers.common.traceparent = generateTraceId()
+        return config
+    },
     error => Promise.reject(error)
 )
 
@@ -49,10 +52,16 @@ axios.interceptors.response.use(
 
         const response = error.response
         console.log(response)
+        if (response.data.message) {
+            response.data.msg = response.data.message
+        }
+        if (response.data.responseText) {
+            response.data.msg = response.data.responseText
+        }
 
         switch (response.status) {
             case 400:
-                const msg = response.data.error || response.data.msg.error
+                const msg = response.data.error || response.data.msg || response.data.msg.error
                 bus.$emit('showErrMessage', msg)
                 break
             case 401:
@@ -101,22 +110,6 @@ axios.interceptors.response.use(
                 code: response.status,
                 msg
             }
-        }
-        if (response.data.message) {
-            if (checkDataType(response.data.message) === 'Object') {
-                const msg = []
-                Object.keys(response.data.message).forEach((key) => {
-                    msg.push(response.data.message[key].join(';'))
-                })
-                response.data.msg = msg.join(';')
-            } else if (checkDataType(response.data.message) === 'Array') {
-                response.data.msg = response.data.message.join(';')
-            } else {
-                response.data.msg = response.data.message
-            }
-        }
-        if (response.data.responseText) {
-            response.data.msg = response.data.responseText
         }
         return Promise.reject(response)
     }

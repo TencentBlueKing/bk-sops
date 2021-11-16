@@ -17,6 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from blueapps.conf.log import get_logging_config_dict
 from blueapps.conf.default_settings import *  # noqa
+from blueapps.opentelemetry.utils import inject_logging_trace_info
 from gcloud.exceptions import ApiRequestError
 from pipeline.celery.queues import ScalableQueues
 from bamboo_engine.config import Settings as BambooSettings
@@ -103,6 +104,7 @@ INSTALLED_APPS += (
     "drf_yasg",
     "plugin_service",
     "django_dbconn_retry",
+    "blueapps.opentelemetry.instrument_app",
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -170,7 +172,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.9.14"
+STATIC_VERSION = "3.9.24"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -476,7 +478,7 @@ for _setting in dir(ver_settings):
         locals()[_setting] = getattr(ver_settings, _setting)
 
 # version log config
-VERSION_LOG = {"PAGE_STYLE": "gitbook", "MD_FILES_DIR": "version_log/version_logs_md"}
+VERSION_LOG = {"FILE_TIME_FORMAT": "%Y-%m-%d"}
 
 # migrate api token
 MIGRATE_TOKEN = env.MIGRATE_TOKEN
@@ -500,7 +502,7 @@ VARIABLE_SPECIFIC_EXCEPTIONS = (ApiRequestError,)
 
 
 # SaaS统一日志配置
-def logging_addition_settings(logging_dict, environment="prod"):
+def logging_addition_settings(logging_dict: dict, environment="prod"):
 
     # formatters
     logging_dict["formatters"]["light"] = {"format": "%(message)s"}
@@ -572,17 +574,16 @@ def logging_addition_settings(logging_dict, environment="prod"):
     }
 
     # 日志中添加trace_id
-    logging_dict.update({"filters": {"trace_id_inject_filter": {"()": "gcloud.core.logging.TraceIDInjectFilter"}}})
-    for _, logging_handler in logging_dict["handlers"].items():
-        logging_handler.update({"filters": ["trace_id_inject_filter"]})
-    format_keywords = ["format", "fmt"]
-    for formatter_name, logging_formatter in logging_dict["formatters"].items():
-        if formatter_name != "simple":
-            for keyword in format_keywords:
-                if keyword in logging_formatter:
-                    logging_formatter.update(
-                        {keyword: logging_formatter[keyword].strip() + " [trace_id]: %(trace_id)s\n"}
-                    )
+    if env.ENABLE_OTEL_TRACE:
+        trace_format = (
+            "[trace_id]: %(otelTraceID)s [span_id]: %(otelSpanID)s [resource.service.name]: %(otelServiceName)s"
+        )
+    else:
+        logging_dict.update({"filters": {"trace_id_inject_filter": {"()": "gcloud.core.logging.TraceIDInjectFilter"}}})
+        for _, logging_handler in logging_dict["handlers"].items():
+            logging_handler.update({"filters": ["trace_id_inject_filter"]})
+        trace_format = "[trace_id]: %(trace_id)s"
+    inject_logging_trace_info(logging_dict, ("verbose",), trace_format)
 
 
 def monitor_report_config():
@@ -637,3 +638,7 @@ def monitor_report_config():
 # 自定义上报监控配置
 if env.BK_MONITOR_REPORT_ENABLE:
     monitor_report_config()
+
+ENABLE_OTEL_TRACE = env.ENABLE_OTEL_TRACE
+
+BK_APP_OTEL_INSTRUMENT_DB_API = env.BK_APP_OTEL_INSTRUMENT_DB_API
