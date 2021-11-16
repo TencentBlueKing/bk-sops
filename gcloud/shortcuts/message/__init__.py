@@ -17,6 +17,7 @@ from gcloud.shortcuts.message.common import (
     title_and_content_for_atom_failed,
     title_and_content_for_flow_finished,
     title_and_content_for_periodic_task_start_fail,
+    title_and_content_for_clocked_task_create_fail,
 )
 from gcloud.shortcuts.message.send_msg import send_message
 from gcloud.periodictask.models import PeriodicTask
@@ -71,5 +72,24 @@ def send_periodic_task_message(periodic_task, history):
         )
     )
     send_message(gcloud_periodic_task.creator, notify_type, receivers, title, content)
+
+    return True
+
+
+def send_clocked_task_message(clocked_task, ex_data):
+
+    notify_types = clocked_task.get_notify_type()
+    receivers_list = clocked_task.get_stakeholders()
+    receivers = ",".join(receivers_list)
+    creator = clocked_task.creator
+    title, content = title_and_content_for_clocked_task_create_fail(clocked_task, ex_data)
+    notify_type = notify_types.get("fail", [])
+
+    logger.info(
+        "clocked_task[id={task_id}] will send {msg_type} message({notify_type}) to: {receivers}".format(
+            task_id=clocked_task.id, msg_type="create fail", notify_type=notify_type, receivers=receivers
+        )
+    )
+    send_message(creator, notify_type, receivers, title, content)
 
     return True
