@@ -1221,7 +1221,8 @@ const en = {
     '变量保存数据与最新的CMDB集群配置存在差异，是否更新变量数据？': 'Variable data is different from the latest CMDB configuration, determine whether to update',
     '移动端': 'Mobile',
     'API网关': 'API Gateway',
-    '重置': 'Reset'
+    '重置': 'Reset',
+    '启动失败': 'Failed to activate'
 }
 
 export default en
