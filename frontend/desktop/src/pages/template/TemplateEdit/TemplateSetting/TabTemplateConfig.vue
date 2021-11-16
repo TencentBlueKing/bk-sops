@@ -82,32 +82,16 @@
                 </section>
                 <section class="form-section">
                     <h4>{{ $t('通知') }}</h4>
-                    <bk-form-item :label="$t('通知方式')">
-                        <bk-table v-bkloading="{ isLoading: notifyTypeLoading }" class="notify-type-table" :data="formData.notifyType">
-                            <bk-table-column v-for="(col, index) in notifyTypeList" :key="index" :render-header="getNotifyTypeHeader">
-                                <template slot-scope="props">
-                                    <bk-switcher
-                                        v-if="col.type"
-                                        size="small"
-                                        theme="primary"
-                                        :value="props.row.includes(col.type)"
-                                        @change="onSelectNotifyType(props.$index, col.type, $event)">
-                                    </bk-switcher>
-                                    <span v-else>{{ props.$index === 0 ? $t('成功') : $t('失败') }}</span>
-                                </template>
-                            </bk-table-column>
-                        </bk-table>
-                    </bk-form-item>
-                    <bk-form-item :label="$t('通知分组')">
-                        <bk-checkbox-group v-model="formData.receiverGroup" v-bkloading="{ isLoading: notifyGroupLoading, opacity: 1, zIndex: 100 }">
-                            <bk-checkbox
-                                v-for="item in notifyGroup"
-                                :key="item.id"
-                                :value="item.id">
-                                {{item.name}}
-                            </bk-checkbox>
-                        </bk-checkbox-group>
-                    </bk-form-item>
+                    <NotifyTypeConfig
+                        :label-width="140"
+                        :notify-type="formData.notifyType"
+                        :notify-type-list="[{ text: $t('任务状态') }]"
+                        :receiver-group="formData.receiverGroup"
+                        :common="common"
+                        @setNotifyTypeLoading="setNotifyTypeLoading"
+                        @setNotifyGroupLoading="setNotifyGroupLoading"
+                        @change="onSelectNotifyConfig">
+                    </NotifyTypeConfig>
                 </section>
                 <section class="form-section">
                     <h4>{{ $t('其他') }}</h4>
@@ -161,16 +145,18 @@
 </template>
 
 <script>
-    import { mapState, mapMutations, mapActions } from 'vuex'
+    import { mapState, mapMutations } from 'vuex'
     import MemberSelect from '@/components/common/Individualization/MemberSelect.vue'
     import tools from '@/utils/tools.js'
     import { NAME_REG, STRING_LENGTH, TASK_CATEGORIES } from '@/constants/index.js'
     import i18n from '@/config/i18n/index.js'
+    import NotifyTypeConfig from './NotifyTypeConfig.vue'
 
     export default {
         name: 'TabTemplateConfig',
         components: {
-            MemberSelect
+            MemberSelect,
+            NotifyTypeConfig
         },
         props: {
             projectInfoLoading: Boolean,
@@ -196,8 +182,6 @@
                     labels: template_labels,
                     defaultFlowType: default_flow_type
                 },
-                notifyTypeList: [],
-                projectNotifyGroup: [],
                 isSaveConfirmDialogShow: false,
                 notifyTypeLoading: false,
                 notifyGroupLoading: false,
@@ -225,31 +209,11 @@
         },
         computed: {
             ...mapState({
-                'projectBaseInfo': state => state.template.projectBaseInfo,
                 'timeout': state => state.template.time_out
             }),
             ...mapState('project', {
                 'authActions': state => state.authActions
-            }),
-            notifyGroup () {
-                let list = []
-                if (this.projectBaseInfo.notify_group) {
-                    const defaultList = list.concat(this.projectBaseInfo.notify_group.map(item => {
-                        return {
-                            id: item.value,
-                            name: item.text
-                        }
-                    }))
-                    list = defaultList.concat(this.projectNotifyGroup)
-                }
-                return list
-            }
-        },
-        created () {
-            this.getNotifyTypeList()
-            if (!this.common) {
-                this.getProjectNotifyGroup()
-            }
+            })
         },
         mounted () {
             this.$refs.nameInput.focus()
@@ -258,21 +222,6 @@
             ...mapMutations('template/', [
                 'setTplConfig'
             ]),
-            ...mapActions([
-                'getNotifyTypes',
-                'getNotifyGroup'
-            ]),
-            async getNotifyTypeList () {
-                try {
-                    this.notifyTypeLoading = true
-                    const res = await this.getNotifyTypes()
-                    this.notifyTypeList = [{ text: i18n.t('任务状态') }].concat(res.data)
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.notifyTypeLoading = false
-                }
-            },
             onSelectCategory (val) {
                 if (val) {
                     window.reportInfo({
@@ -295,17 +244,6 @@
                 const { href } = this.$router.resolve({ name: 'projectConfig', params: { id: this.$route.params.project_id } })
                 window.open(href, '_blank')
             },
-            async getProjectNotifyGroup () {
-                try {
-                    this.notifyGroupLoading = true
-                    const res = await this.getNotifyGroup({ project_id: this.$route.params.project_id })
-                    this.projectNotifyGroup = res.data
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.notifyGroupLoading = false
-                }
-            },
             getTemplateConfig () {
                 const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType } = this.formData
                 return {
@@ -324,26 +262,15 @@
                     this.$router.push({ name: 'projectConfig', params: { id: this.$route.params.project_id } })
                 }
             },
-            getNotifyTypeHeader (h, data) {
-                const col = this.notifyTypeList[data.$index]
-                if (col.type) {
-                    return h('div', { 'class': 'notify-table-heder' }, [
-                        h('img', { 'class': 'notify-icon', attrs: { src: `data:image/png;base64,${col.icon}` } }, []),
-                        h('span', { style: 'word-break: break-all;' }, [col.label])
-                    ])
-                } else {
-                    return h('span', {}, [col.text])
-                }
+            setNotifyTypeLoading (val) {
+                this.notifyTypeLoading = val
             },
-            onSelectNotifyType (row, type, val) {
-                const data = this.formData.notifyType[row]
-                if (val) {
-                    data.push(type)
-                } else {
-                    const index = data.findIndex(item => item === type)
-                    if (index > -1) {
-                        data.splice(index, 1)
-                    }
+            setNotifyGroupLoading (val) {
+                this.notifyGroupLoading = val
+            },
+            onSelectNotifyConfig (formData) {
+                for (const [key, value] of Object.entries(formData)) {
+                    this.formData[key] = value
                 }
             },
             onSaveConfig () {
@@ -424,30 +351,6 @@
     }
     /deep/ .bk-label {
         font-size: 12px;
-    }
-    .bk-form-checkbox {
-        margin-right: 20px;
-        margin-bottom: 6px;
-        min-width: 96px;
-        /deep/ .bk-checkbox-text {
-            color: $greyDefault;
-            font-size: 12px;
-        }
-    }
-    /deep/ .bk-checkbox-text {
-        display: inline-flex;
-        align-items: center;
-        width: 100px;
-    }
-    .notify-type-table {
-        /deep/ .notify-table-heder {
-            display: flex;
-            align-items: center;
-            .notify-icon {
-                margin-right: 4px;
-                width: 18px;
-            }
-        }
     }
     .user-selector {
         display: block;

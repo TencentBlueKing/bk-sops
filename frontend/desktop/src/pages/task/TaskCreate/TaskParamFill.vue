@@ -99,27 +99,14 @@
                             </div>
                         </div>
                         <div class="common-form-item">
-                            <label>
-                                <p>{{$t('启动失败')}}</p>
-                                <p>{{$t('通知方式')}}</p>
-                            </label>
-                            <div class="common-form-content">
-                                <NotifyTypeConfig
-                                    :is-notify-group="false"
-                                    :notify-type="notifyType"
-                                    @onSelectNotifyType="onSelectNotifyType">
-                                </NotifyTypeConfig>
-                            </div>
-                        </div>
-                        <div class="common-form-item">
-                            <label>{{$t('通知分组')}}</label>
-                            <div class="common-form-content">
-                                <NotifyTypeConfig
-                                    :is-notify-type="false"
-                                    :receiver-group="receiverGroup"
-                                    @onReceiverGroup="onReceiverGroup">
-                                </NotifyTypeConfig>
-                            </div>
+                            <NotifyTypeConfig
+                                :notify-type-label="$t('启动失败') + ' ' + $t('通知方式')"
+                                :notify-type="notifyType"
+                                :receiver-group="receiverGroup"
+                                :table-width="500"
+                                :common="common"
+                                @change="onSelectNotifyConfig">
+                            </NotifyTypeConfig>
                         </div>
                     </template>
                 </div>
@@ -461,8 +448,10 @@
                     this.isDateError = timeRange <= new Date().getTime()
                 }
             },
-            onSelectNotifyType (val) {
-                this.notifyType = val
+            onSelectNotifyConfig (formData) {
+                for (const [key, value] of Object.entries(formData)) {
+                    this[key] = value
+                }
             },
             onReceiverGroup (val) {
                 this.receiverGroup = val
@@ -833,30 +822,21 @@
         vertical-align: top;
     }
 }
-.notify-type-table {
-    width: 500px;
-    /deep/ .notify-table-heder {
-        display: flex;
-        align-items: center;
-        .notify-icon {
-            margin-right: 4px;
-            width: 18px;
+/deep/.notify-type-wrapper {
+    .bk-form-content {
+        margin-left: 120px !important;
+    }
+    .bk-label {
+        padding: 0;
+        margin-right: 20px;
+        color: #313238;
+    }
+    .bk-checkbox-group {
+        display: block;
+        .bk-form-checkbox {
+            margin-top: 7px;
         }
     }
-}
-.bk-form-checkbox {
-    margin-right: 20px;
-    margin-top: 6px;
-    min-width: 96px;
-    /deep/ .bk-checkbox-text {
-        color: $greyDefault;
-        font-size: 12px;
-    }
-}
-/deep/ .bk-checkbox-text {
-    display: inline-flex;
-    align-items: center;
-    width: 100px;
 }
 .action-wrapper {
     height: 72px;

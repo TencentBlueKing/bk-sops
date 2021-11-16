@@ -1,49 +1,65 @@
 <template>
     <div class="notify-type-wrapper">
-        <div
-            v-if="isNotifyType"
-            :style="{ 'width': `${defaultWidth}px` }"
-            v-bkloading="{ isLoading: notifyTypeLoading, opacity: 1, zIndex: 100 }">
-            <bk-table class="notify-type-table" :data="selectNotifyType">
-                <bk-table-column v-for="(col, index) in AllNotifyTypeList" :key="index" :render-header="getNotifyTypeHeader">
-                    <template slot-scope="props">
-                        <bk-switcher
-                            size="small"
-                            theme="primary"
-                            :value="props.row.includes(col.type)"
-                            @change="onSelectNotifyType(props.$index, col.type, $event)">
-                        </bk-switcher>
-                    </template>
-                </bk-table-column>
-            </bk-table>
-        </div>
-        <bk-checkbox-group
-            v-if="isNotifyGroup"
-            :value="selectReceiverGroup"
-            v-bkloading="{ isLoading: notifyGroupLoading, opacity: 1, zIndex: 100 }"
-            @change="onReceiverGroup">
-            <bk-checkbox
-                v-for="item in notifyGroup"
-                :key="item.id"
-                :value="item.id">
-                {{item.name}}
-            </bk-checkbox>
-        </bk-checkbox-group>
+        <bk-form
+            ref="notifyConfigForm"
+            class="notify-form-area"
+            :model="formData"
+            :label-width="labelWidth"
+            :rules="rules">
+            <bk-form-item :property="'notifyType'" :label="notifyTypeLabel">
+                <bk-table
+                    class="notify-type-table"
+                    :style="{ width: tableWidth ? `${tableWidth}px` : '100%' }"
+                    :data="formData.notifyType"
+                    v-bkloading="{ isLoading: notifyTypeLoading, opacity: 1, zIndex: 100 }">
+                    <bk-table-column
+                        v-for="(col, index) in AllNotifyTypeList"
+                        :key="index"
+                        :render-header="getNotifyTypeHeader">
+                        <template slot-scope="props">
+                            <bk-switcher
+                                v-if="col.type"
+                                size="small"
+                                theme="primary"
+                                :value="props.row.includes(col.type)"
+                                @change="onSelectNotifyType(props.$index, col.type, $event)">
+                            </bk-switcher>
+                            <span v-else>{{ props.$index === 0 ? $t('成功') : $t('失败') }}</span>
+                        </template>
+                    </bk-table-column>
+                </bk-table>
+            </bk-form-item>
+            <bk-form-item :property="'notifyGroup'" :label="notifyGroupLabel">
+                <bk-checkbox-group
+                    class="bk-checkbox-group"
+                    :value="formData.receiverGroup"
+                    v-bkloading="{ isLoading: notifyGroupLoading, opacity: 1, zIndex: 100 }"
+                    @change="onReceiverGroup">
+                    <bk-checkbox
+                        v-for="item in notifyGroup"
+                        :key="item.id"
+                        :value="item.id">
+                        {{item.name}}
+                    </bk-checkbox>
+                </bk-checkbox-group>
+            </bk-form-item>
+        </bk-form>
     </div>
 </template>
 
 <script>
     import { mapState, mapActions, mapMutations } from 'vuex'
+    import i18n from '@/config/i18n/index.js'
     import tools from '@/utils/tools.js'
     export default {
         props: {
-            isNotifyType: {
-                type: Boolean,
-                default: true
+            notifyTypeLabel: {
+                type: String,
+                default: i18n.t('通知方式')
             },
-            isNotifyGroup: {
-                type: Boolean,
-                default: true
+            notifyGroupLabel: {
+                type: String,
+                default: i18n.t('通知分组')
             },
             notifyType: {
                 type: Array,
@@ -57,19 +73,33 @@
                 type: Array,
                 default: () => []
             },
-            defaultWidth: {
+            tableWidth: {
                 type: Number,
-                default: 500
+                default: 0
+            },
+            labelWidth: {
+                type: Number,
+                default: 100
+            },
+            rules: {
+                type: Object,
+                default: () => {}
+            },
+            common: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
             return {
+                formData: {
+                    notifyType: [[]],
+                    receiverGroup: []
+                },
                 notifyTypeLoading: true,
                 AllNotifyTypeList: [],
-                selectNotifyType: [],
                 notifyGroupLoading: true,
-                projectNotifyGroup: [],
-                selectReceiverGroup: []
+                projectNotifyGroup: []
             }
         },
         computed: {
@@ -93,24 +123,31 @@
         watch: {
             notifyType: {
                 handler (val) {
-                    this.selectNotifyType = tools.deepClone(val)
+                    this.formData.notifyType = tools.deepClone(val)
                 },
                 immediate: true
             },
             receiverGroup: {
                 handler (val) {
-                    this.selectReceiverGroup = tools.deepClone(val)
+                    this.formData.receiverGroup = tools.deepClone(val)
                 },
                 immediate: true
+            },
+            notifyTypeLoading (val) {
+                this.$emit('setNotifyTypeLoading', val)
+            },
+            notifyGroupLoading (val) {
+                this.$emit('setNotifyGroupLoading', val)
             }
         },
         created () {
             this.getNotifyTypeList()
-            this.getProjectNotifyGroup()
+            if (!this.common) {
+                this.getProjectNotifyGroup()
+            }
         },
         methods: {
             ...mapActions([
-                'queryUserPermission',
                 'getNotifyTypes',
                 'getNotifyGroup'
             ]),
@@ -118,7 +155,6 @@
                 'loadProjectBaseInfo'
             ]),
             ...mapMutations('template/', [
-                'setTemplateData',
                 'setProjectBaseInfo'
             ]),
             async getNotifyTypeList () {
@@ -144,7 +180,7 @@
                 }
             },
             onSelectNotifyType (row, type, val) {
-                const data = this.selectNotifyType[row]
+                const data = this.formData.notifyType[row]
                 if (val) {
                     data.push(type)
                 } else {
@@ -153,10 +189,11 @@
                         data.splice(index, 1)
                     }
                 }
-                this.$emit('onSelectNotifyType', this.selectNotifyType)
+                this.$emit('change', this.formData)
             },
             onReceiverGroup (val) {
-                this.$emit('onReceiverGroup', val)
+                this.formData.receiverGroup = val
+                this.$emit('change', this.formData)
             },
             async getProjectNotifyGroup () {
                 try {
@@ -197,6 +234,7 @@
         width: 100px;
     }
     .notify-type-table {
+        min-height: 86px;
         /deep/ .notify-table-heder {
             display: flex;
             align-items: center;
