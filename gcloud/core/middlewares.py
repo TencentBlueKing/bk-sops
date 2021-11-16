@@ -70,7 +70,7 @@ class ObjectDoesNotExistExceptionMiddleware(MiddlewareMixin):
 
 class TraceIDInjectMiddleware(MiddlewareMixin):
     def process_request(self, request):
-        request.trace_id = uuid.uuid4().hex
+        request.trace_id = request.META.get("HTTP_TRACEPARENT", uuid.uuid4().hex)
         local.trace_id = request.trace_id
 
     def process_response(self, request, response):

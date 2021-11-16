@@ -609,7 +609,8 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
             # set meta field for meta var, so frontend can render meta form
             if constant.get("is_meta"):
                 constant["meta"] = deepcopy(constant)
-                constant["value"] = constant["value"]["default"]
+                # 下拉框类型默认值字段为default，表格类型为default_text
+                constant["value"] = constant["value"].get("default") or constant["value"].get("default_text", "")
             if key in constants:
                 constant["value"] = constants[key]
 
@@ -1105,16 +1106,16 @@ class TaskFlowInstance(models.Model):
             message = "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
                 node_id=node_id, task_id=self.id
             )
-            return {"result": False, "message": message, "data": {}, "code": err_code.INVALID_OPERATION.code}
+            return {"result": False, "message": message, "data": {}, "code": err_code.REQUEST_PARAM_INVALID.code}
 
-        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id)
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
         return dispatcher.get_node_data(
             username=username,
             component_code=component_code,
             loop=loop,
             pipeline_instance=self.pipeline_instance,
             subprocess_stack=subprocess_stack or [],
-            project_id=self.project.id,
+            project_id=self.project_id,
         )
 
     def get_node_detail(
@@ -1126,7 +1127,7 @@ class TaskFlowInstance(models.Model):
             )
             return {"result": False, "message": message, "data": {}, "code": err_code.REQUEST_PARAM_INVALID.code}
 
-        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id)
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
 
         node_data = {}
         if include_data:
@@ -1211,14 +1212,14 @@ class TaskFlowInstance(models.Model):
             message = "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
                 node_id=node_id, task_id=self.id
             )
-            return {"result": False, "message": message}
+            return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
-        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id)
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
 
         try:
             return dispatcher.dispatch(action, username, **kwargs)
         except Exception as e:
-            message = "task[id=%s] node[id=%s] action failed:%s" % (self.id, node_id, e)
+            message = "task[id=%s] node[id=%s] action failed: %s" % (self.id, node_id, e)
             logger.exception(traceback.format_exc())
             return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
 
@@ -1255,9 +1256,9 @@ class TaskFlowInstance(models.Model):
             message = "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
                 node_id=node_id, task_id=self.id
             )
-            return {"result": False, "message": message}
+            return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
-        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id)
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
 
         action_result = dispatcher.dispatch(command="forced_fail", operator=username)
         if not action_result["result"]:
@@ -1321,15 +1322,15 @@ class TaskFlowInstance(models.Model):
 
         return data
 
-    def callback(self, act_id, data, version=""):
-        if not self.has_node(act_id):
+    def callback(self, node_id, data, version=""):
+        if not self.has_node(node_id):
             return {
                 "result": False,
-                "message": "task[{tid}] does not have node[{nid}]".format(tid=self.id, nid=act_id),
+                "message": "task[{tid}] does not have node[{nid}]".format(tid=self.id, nid=node_id),
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
 
-        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=act_id)
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
         return dispatcher.dispatch(command="callback", operator="", data=data, version=version)
 
     def get_stakeholders(self):

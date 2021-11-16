@@ -61,6 +61,10 @@ TASKFLOW_DISPATCHERS_TASK_PIPELINE_MODEL = "gcloud.taskflow3.domains.dispatchers
 TASKFLOW_DISPATCHERS_TASK_BAMBOO_DJANGO_RUNTIME = "gcloud.taskflow3.domains.dispatchers.task.BambooDjangoRuntime"
 TASKFLOW_DISPATCHERS_TASK_CONTEXT = "gcloud.taskflow3.domains.dispatchers.task.Context"
 
+TASKFLOW_MODEL_ELAPSED_TIME = "gcloud.taskflow3.models.TaskFlowInstance.elapsed_time"
+TASKFLOW_MODEL_PIPELINE_TREE = "gcloud.taskflow3.models.TaskFlowInstance.pipeline_tree"
+TASKFLOW_MODEL_URL = "gcloud.taskflow3.models.TaskFlowInstance.url"
+
 PERIODIC_TASK_FILTER = "gcloud.periodictask.models.PeriodicTask.objects.filter"
 PERIODIC_TASK_GET = "gcloud.periodictask.models.PeriodicTask.objects.get"
 PERIODIC_TASK_CREATE = "gcloud.periodictask.models.PeriodicTask.objects.create"
@@ -96,6 +100,8 @@ APIGW_DECORATOR_BUSINESS_EXIST = "gcloud.apigw.decorators.business_exist"
 APIGW_START_TASK_TASKFLOW_INSTANCE = "gcloud.apigw.views.start_task.TaskFlowInstance"
 APIGW_START_TASK_PREPARE_AND_START_TASK = "gcloud.apigw.views.start_task.prepare_and_start_task"
 APIGW_CREATE_AND_START_TASK_PREPARE_AND_START_TASK = "gcloud.apigw.views.create_and_start_task.prepare_and_start_task"
+APIGW_OPERATE_TASK_TASKFLOW_INSTANCE = "gcloud.apigw.views.operate_task.TaskFlowInstance"
+APIGW_OPERATE_TASK_PREPARE_AND_START_TASK = "gcloud.apigw.views.operate_task.prepare_and_start_task"
 
 MAIN_PACKAGE_SOURCE_GET = "gcloud.external_plugins.models.main_source.MainPackageSource.objects.get"
 

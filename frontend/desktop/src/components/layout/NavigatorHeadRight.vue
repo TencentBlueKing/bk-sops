@@ -18,9 +18,9 @@
             <i class="common-icon-help"></i>
         </div>
         <div id="more-operation-html">
-            <div class="operate-item" @click="goToHelpDoc">{{ $t('产品文档') }}</div>
-            <div class="operate-item" @click="onOpenVersion">{{ $t('版本日志') }}</div>
-            <div class="operate-item" @click="goToFeedback">{{ $t('问题反馈') }}</div>
+            <div class="operate-item" data-test-id="navHeader_list_productDoc" @click="goToHelpDoc">{{ $t('产品文档') }}</div>
+            <div class="operate-item" data-test-id="navHeader_list_versionLog" @click="onOpenVersion">{{ $t('版本日志') }}</div>
+            <div class="operate-item" data-test-id="navHeader_list_feedback" @click="goToFeedback">{{ $t('问题反馈') }}</div>
         </div>
         <!-- 用户icon -->
         <div class="user-avatar">{{ username }}</div>

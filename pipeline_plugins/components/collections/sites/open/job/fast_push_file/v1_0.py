@@ -70,10 +70,7 @@ class JobFastPushFileService(JobService):
                 schema=StringItemSchema(description=_("文件分发目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"),
-                key="job_account",
-                type="string",
-                schema=StringItemSchema(description=_("文件分发目标机器账户")),
+                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("文件分发目标机器账户")),
             ),
             self.InputItem(
                 name=_("目标路径"),
@@ -129,7 +126,7 @@ class JobFastPushFileService(JobService):
             "ip_list": ip_list,
             "account": data.get_one_of_inputs("job_account"),
             "file_target_path": data.get_one_of_inputs("job_target_path"),
-            "bk_callback_url": get_node_callback_url(self.id, getattr(self, "version", "")),
+            "bk_callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
 
         if job_timeout:

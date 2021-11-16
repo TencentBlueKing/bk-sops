@@ -157,7 +157,7 @@ class AllBizJobFastExecuteScriptService(JobService):
             "bk_biz_id": biz_cc_id,
             "account": data.get_one_of_inputs("job_target_account"),
             "ip_list": ip_list,
-            "bk_callback_url": get_node_callback_url(self.id, getattr(self, "version", "")),
+            "bk_callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
 
         if script_param:
