@@ -83,7 +83,7 @@
             },
             rules: {
                 type: Object,
-                default: () => {}
+                default: () => ({})
             },
             common: {
                 type: Boolean,
