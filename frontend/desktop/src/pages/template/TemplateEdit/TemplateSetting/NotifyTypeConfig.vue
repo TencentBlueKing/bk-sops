@@ -6,14 +6,14 @@
             :model="formData"
             :label-width="labelWidth"
             :rules="rules">
-            <bk-form-item :property="'notifyType'" :label="notifyTypeLabel">
+            <bk-form-item property="notifyType" :label="notifyTypeLabel">
                 <bk-table
                     class="notify-type-table"
                     :style="{ width: tableWidth ? `${tableWidth}px` : '100%' }"
                     :data="formData.notifyType"
                     v-bkloading="{ isLoading: notifyTypeLoading, opacity: 1, zIndex: 100 }">
                     <bk-table-column
-                        v-for="(col, index) in AllNotifyTypeList"
+                        v-for="(col, index) in allNotifyTypeList"
                         :key="index"
                         :render-header="getNotifyTypeHeader">
                         <template slot-scope="props">
@@ -29,7 +29,7 @@
                     </bk-table-column>
                 </bk-table>
             </bk-form-item>
-            <bk-form-item :property="'notifyGroup'" :label="notifyGroupLabel">
+            <bk-form-item property="notifyGroup" :label="notifyGroupLabel">
                 <bk-checkbox-group
                     class="bk-checkbox-group"
                     :value="formData.receiverGroup"
@@ -97,7 +97,7 @@
                     receiverGroup: []
                 },
                 notifyTypeLoading: true,
-                AllNotifyTypeList: [],
+                allNotifyTypeList: [],
                 notifyGroupLoading: true,
                 projectNotifyGroup: []
             }
@@ -132,12 +132,6 @@
                     this.formData.receiverGroup = tools.deepClone(val)
                 },
                 immediate: true
-            },
-            notifyTypeLoading (val) {
-                this.$emit('setNotifyTypeLoading', val)
-            },
-            notifyGroupLoading (val) {
-                this.$emit('setNotifyGroupLoading', val)
             }
         },
         created () {
@@ -161,7 +155,7 @@
                 try {
                     this.notifyTypeLoading = true
                     const res = await this.getNotifyTypes()
-                    this.AllNotifyTypeList = [].concat(this.notifyTypeList, res.data)
+                    this.allNotifyTypeList = [].concat(this.notifyTypeList, res.data)
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -169,7 +163,7 @@
                 }
             },
             getNotifyTypeHeader (h, data) {
-                const col = this.AllNotifyTypeList[data.$index]
+                const col = this.allNotifyTypeList[data.$index]
                 if (col.type) {
                     return h('div', { 'class': 'notify-table-heder' }, [
                         h('img', { 'class': 'notify-icon', attrs: { src: `data:image/png;base64,${col.icon}` } }, []),

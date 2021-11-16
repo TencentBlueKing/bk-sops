@@ -88,8 +88,6 @@
                         :notify-type-list="[{ text: $t('任务状态') }]"
                         :receiver-group="formData.receiverGroup"
                         :common="common"
-                        @setNotifyTypeLoading="setNotifyTypeLoading"
-                        @setNotifyGroupLoading="setNotifyGroupLoading"
                         @change="onSelectNotifyConfig">
                     </NotifyTypeConfig>
                 </section>
@@ -121,7 +119,7 @@
                 </section>
             </bk-form>
             <div class="btn-wrap">
-                <bk-button class="save-btn" theme="primary" :disabled="notifyTypeLoading || notifyGroupLoading" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
+                <bk-button class="save-btn" theme="primary" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
                 <bk-button theme="default" @click="closeTab">{{ $t('取消') }}</bk-button>
             </div>
             <bk-dialog
@@ -135,7 +133,7 @@
                 <div class="template-config-dialog-content">
                     <div class="leave-tips">{{ $t('保存已修改的配置信息吗？') }}</div>
                     <div class="action-wrapper">
-                        <bk-button theme="primary" :disabled="notifyTypeLoading || notifyGroupLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
+                        <bk-button theme="primary" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
                         <bk-button theme="default" @click="closeTab">{{ $t('不保存') }}</bk-button>
                     </div>
                 </div>
@@ -183,8 +181,6 @@
                     defaultFlowType: default_flow_type
                 },
                 isSaveConfirmDialogShow: false,
-                notifyTypeLoading: false,
-                notifyGroupLoading: false,
                 rules: {
                     name: [
                         {
@@ -262,16 +258,10 @@
                     this.$router.push({ name: 'projectConfig', params: { id: this.$route.params.project_id } })
                 }
             },
-            setNotifyTypeLoading (val) {
-                this.notifyTypeLoading = val
-            },
-            setNotifyGroupLoading (val) {
-                this.notifyGroupLoading = val
-            },
             onSelectNotifyConfig (formData) {
-                for (const [key, value] of Object.entries(formData)) {
-                    this.formData[key] = value
-                }
+                const { notifyType, receiverGroup } = formData
+                this.formData.notifyType = notifyType
+                this.formData.receiverGroup = receiverGroup
             },
             onSaveConfig () {
                 this.$refs.configForm.validate().then(result => {

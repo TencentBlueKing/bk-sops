@@ -236,8 +236,7 @@
                 'templateName': state => state.template.name,
                 'viewMode': state => state.view_mode,
                 'app_id': state => state.app_id,
-                'permissionMeta': state => state.permissionMeta,
-                'projectBaseInfo': state => state.template.projectBaseInfo
+                'permissionMeta': state => state.permissionMeta
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone,
@@ -449,12 +448,9 @@
                 }
             },
             onSelectNotifyConfig (formData) {
-                for (const [key, value] of Object.entries(formData)) {
-                    this[key] = value
-                }
-            },
-            onReceiverGroup (val) {
-                this.receiverGroup = val
+                const { notifyType, receiverGroup } = formData
+                this.notifyType = notifyType
+                this.receiverGroup = receiverGroup
             },
             onCreateTask () {
                 let hasNextPermission = false
@@ -823,6 +819,12 @@
     }
 }
 /deep/.notify-type-wrapper {
+    .bk-form-item:first-child {
+        .bk-label {
+            width: 70px !important;
+            margin-left: 30px;
+        }
+    }
     .bk-form-content {
         margin-left: 120px !important;
     }
