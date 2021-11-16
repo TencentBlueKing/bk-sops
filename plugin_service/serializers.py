@@ -39,6 +39,11 @@ class PluginInfoSerializer(serializers.Serializer):
     logo_url = serializers.CharField(help_text="Logo地址")
 
 
+class PluginDeployedStatusSerializer(serializers.Serializer):
+    stag = serializers.DictField(help_text="预发布环境部署状态")
+    prod = serializers.DictField(help_text="正式环境部署状态")
+
+
 class PluginAppDetailResponseSerializer(serializers.Serializer):
     code = serializers.CharField(help_text="插件服务应用Code")
     name = serializers.CharField(help_text="插件服务应用名称")
@@ -56,10 +61,41 @@ class PluginListResponseSerializer(StandardResponseSerializer):
     data = PluginListSerializer(help_text="插件信息", many=True)
 
 
+class PluginDetailedInfoSerializer(serializers.Serializer):
+    plugin = PluginInfoSerializer(help_text="插件信息")
+    deployed_statuses = PluginDeployedStatusSerializer(help_text="部署状态信息")
+
+
+class PluginDetailListSerializer(serializers.Serializer):
+    next_offset = serializers.IntegerField(help_text="下一次请求偏移量")
+    return_plugin_count = serializers.IntegerField(help_text="本次返回插件条数")
+    plugins = PluginDetailedInfoSerializer(help_text="插件信息及部署状态信息", many=True)
+
+
+class PluginDetailListResponseSerializer(StandardResponseSerializer):
+    data = PluginDetailListSerializer(help_text="插件列表及详情信息")
+
+
 class PluginListQuerySerializer(serializers.Serializer):
     search_term = serializers.CharField(help_text="插件名称搜索过滤字段", required=False)
     limit = serializers.IntegerField(help_text="分页配置，接口一次最多100条", required=False, default=100)
     offset = serializers.IntegerField(help_text="分页配置", required=False, default=0)
+
+    def validate_limit(self, limit):
+        if limit < 0:
+            raise serializers.ValidationError("limit must be greater than 0")
+        if limit > 100:
+            raise serializers.ValidationError("limit must be smaller than 100")
+        return limit
+
+    def validate_offset(self, offset):
+        if offset < 0:
+            raise serializers.ValidationError("offset must be greater than 0")
+        return offset
+
+
+class PluginDetailListQuerySerializer(PluginListQuerySerializer):
+    exclude_not_deployed = serializers.BooleanField(help_text="是否排除当前环境未部署数据", required=False, default=True)
 
 
 class LogResponseSerializer(StandardResponseSerializer):
