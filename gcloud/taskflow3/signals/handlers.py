@@ -86,7 +86,9 @@ def _dispatch_auto_retry_node_task(root_pipeline_id, node_id, engine_ver):
                 "node_id": node_id,
                 "retry_times": strategy.retry_times,
                 "engine_ver": engine_ver,
-            }
+            },
+            queue="node_auto_retry",
+            routing_key="node_auto_retry",
         )
     except Exception:
         logger.exception("auto retry dispatch failed, root_pipeline_id: %s, node_id: %s" % (root_pipeline_id, node_id))
