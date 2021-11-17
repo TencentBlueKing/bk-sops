@@ -15,7 +15,7 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 import env
-from blueking.component.shortcuts import get_client_by_request, get_client_by_user
+from packages.blueking.component.shortcuts import get_client_by_request, get_client_by_user
 
 RUN_VER_NAME = _("蓝鲸智云企业版")
 
