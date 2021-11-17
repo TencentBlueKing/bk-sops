@@ -16,7 +16,7 @@ Batch query task status
 |   Field         |  Type       | Required |  Description     |
 |-----------------|-------------|---------|------------------|
 |   bk_biz_id   |   string   |   YES   |  the business ID             |
-|   task_id_list     |   array     |   YES   |  task id list,limit query up to 50 tasks  |
+|   task_id_list     |   array     |   YES   |  task id list, task number must smaller than 50  |
 |   scope       |   string     |   NO   | id scope, can be "cmdb_biz" or "project". if scope is "cmdb_biz" then bk_biz_id represent cmdb business ID, otherwise bk_biz_id represent proejct id. default is "cmdb_biz" |
 |   include_children_status     |   bool     |   NO   |  whether include children status in response  |
 
