@@ -21,6 +21,8 @@ from django_celery_beat.models import (
 
 from gcloud.constants import TEMPLATE_SOURCE, PROJECT
 from gcloud.utils.unique import uniqid
+from gcloud.core.models import StaffGroupSet, Project
+from gcloud.shortcuts.cmdb import get_business_group_members
 
 logger = logging.getLogger("root")
 
@@ -34,6 +36,8 @@ class ClockedTaskManager(models.Manager):
         template_id = kwargs["template_id"]
         task_params = kwargs["task_params"]
         template_name = kwargs["template_name"]
+        notify_type = kwargs.get("notify_type", "[]")
+        notify_receivers = kwargs.get("notify_receivers", "{}")
         with transaction.atomic():
             clocked, _ = DjangoCeleryBeatClockedSchedule.objects.get_or_create(clocked_time=plan_start_time)
             task = ClockedTask.objects.create(
@@ -44,6 +48,8 @@ class ClockedTaskManager(models.Manager):
                 creator=creator,
                 plan_start_time=plan_start_time,
                 task_params=task_params,
+                notify_type=notify_type,
+                notify_receivers=notify_receivers,
             )
             clocked_task_kwargs = {"clocked_task_id": task.id}
             clocked_task = DjangoCeleryBeatPeriodicTask.objects.create(
@@ -77,6 +83,9 @@ class ClockedTask(models.Model):
     creator = models.CharField(help_text="计划任务创建人", max_length=32)
     plan_start_time = models.DateTimeField(help_text="计划任务启动时间", db_index=True)
     task_params = models.TextField(help_text="任务创建相关数据", null=True)
+    notify_type = models.CharField(help_text="计划任务事件通知方式", max_length=128, default="[]")
+    # 形如 json.dumps({'receiver_group': ['Maintainers'], 'more_receiver': 'username1,username2'})
+    notify_receivers = models.TextField(help_text="计划任务事件通知人", default="{}")
 
     objects = ClockedTaskManager()
 
@@ -95,3 +104,32 @@ class ClockedTask(models.Model):
     def delete(self):
         DjangoCeleryBeatPeriodicTask.objects.get(id=self.clocked_task_id).delete()
         return super(ClockedTask, self).delete()
+
+    def get_notify_type(self):
+        notify_type = json.loads(self.notify_type)
+        return notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
+
+    def get_stakeholders(self):
+        notify_receivers = json.loads(self.notify_receivers)
+        receiver_group = notify_receivers.get("receiver_group", [])
+        receivers = [self.creator]
+        proj = Project.objects.get(id=self.project_id)
+        if proj.from_cmdb:
+            cc_group_members = get_business_group_members(proj.bk_biz_id, receiver_group)
+            receivers.extend(cc_group_members)
+
+        members = list(
+            StaffGroupSet.objects.filter(
+                project_id=self.project_id,
+                is_deleted=False,
+                id__in=[group for group in receiver_group if isinstance(group, int)],
+            ).values_list("members", flat=True)
+        )
+        if members:
+            members = ",".join(members).split(",")
+            receivers.extend(members)
+
+        receivers = set(receivers).discard(self.creator)
+        receivers = [] if not receivers else list(receivers)
+
+        return [self.creator] + receivers
