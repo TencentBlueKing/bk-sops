@@ -121,16 +121,16 @@
             bus.$on('showPermissionModal', data => {
                 this.$refs.permissionModal.show(data)
             })
-            bus.$on('showErrMessage', msg => {
-                window.show_msg(msg)
+            bus.$on('showErrMessage', info => {
+                window.show_msg(info.message, 'error', info.traceId)
             })
 
             /**
              * 兼容标准插件配置项里，异步请求用到的全局弹窗提示
              */
-            window.show_msg = (msg) => {
+            window.show_msg = (msg, type = 'error', traceId) => {
                 /* eslint-disable-next-line */
-                new ErrorNotify(msg, this)
+                new ErrorNotify(msg, type, traceId, this)
             }
             this.getPageFooter()
         },

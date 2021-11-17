@@ -126,7 +126,6 @@
     import i18n from '@/config/i18n/index.js'
     import { uuid } from '@/utils/uuid.js'
     import { mapState, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
     import bus from '@/utils/bus.js'
@@ -257,7 +256,7 @@
                     }) || []
                     this.$emit('updateTaskSchemeList', this.schemaList)
                 } catch (error) {
-                    errorHandler(error, this)
+                    console.error(error)
                 } finally {
                     this.isSchemeLoading = false
                 }
@@ -333,7 +332,10 @@
                 }
                 const isschemaNameExist = this.schemaList.some(item => item.name === this.schemaName)
                 if (isschemaNameExist) {
-                    errorHandler({ message: i18n.t('方案名称已存在') }, this)
+                    this.$bkMessage({
+                        message: i18n.t('方案名称已存在'),
+                        theme: 'warning'
+                    })
                     return
                 }
                 this.$validator.validateAll().then(async (result) => {
