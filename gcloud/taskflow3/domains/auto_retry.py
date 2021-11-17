@@ -46,7 +46,7 @@ class AutoRetryNodeStrategyCreator:
                         continue
 
                     try:
-                        max_retry_times = max(
+                        max_retry_times = min(
                             int(auto_retry.get("times", gcloud_constants.TASKFLOW_NODE_AUTO_RETRY_MAX_TIMES)),
                             gcloud_constants.TASKFLOW_NODE_AUTO_RETRY_MAX_TIMES,
                         )
