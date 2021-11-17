@@ -16,9 +16,22 @@
         </div>
     </body>
     <script type="text/javascript">
-        $(document).ready(function () {
+        if (window.opener) {
+            $(document).ready(function () {
+                // 关闭登录弹出框
+                window.opener.postMessage("login", '*');
+            });
+        } else {
+            $(document).ready(function () {
             // 关闭登录弹出框
-            window.opener && window.opener.postMessage("login", '*');
-        });
+                try{
+                    window.top.BLUEKING.corefunc.close_login_dialog();
+                }catch(err){
+                    try{
+                        window.parent.close_login_dialog();
+                    }catch(err){}
+                }
+            });
+        }
     </script>
 </html>
