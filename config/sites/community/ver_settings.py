@@ -17,7 +17,7 @@ import env
 REMOTE_ANALYSIS_URL = "%s/console/static/js/analysis.min.js" % env.BK_PAAS_HOST
 REMOTE_API_URL = "%s/console/static/bk_api/api.js" % env.BK_PAAS_HOST
 
-ESB_SDK_NAME = "blueking.component"
+ESB_SDK_NAME = "packages.blueking.component"
 
 CALLBACK_KEY = b"jbSH1_3PFsM8WRZZpUXJPhlJuvuA44A7Ov0nPhFk5ZY="
 DEFAULT_RSA_PRIV_KEY = """

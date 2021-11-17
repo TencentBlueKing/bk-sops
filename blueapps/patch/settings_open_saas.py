@@ -27,7 +27,8 @@ STATIC_URL = locals()["STATIC_URL"]
 RUN_VER = locals()["RUN_VER"]
 
 # ESB component
-ESB_SDK_NAME = "blueking.component"
+if not locals().get("ESB_SDK_NAME"):
+    ESB_SDK_NAME = "blueking.component"
 
 # 从 apigw jwt 中获取 app_code 的 键
 APIGW_APP_CODE_KEY = "bk_app_code"
@@ -37,8 +38,7 @@ APIGW_USER_USERNAME_KEY = "bk_username"
 
 # PAASV2对外版不需要bkoauth,DISABLED_APPS加入bkoauth
 INSTALLED_APPS = (
-    INSTALLED_APPS[0 : INSTALLED_APPS.index("bkoauth")]
-    + INSTALLED_APPS[INSTALLED_APPS.index("bkoauth") + 1 :]
+    INSTALLED_APPS[0 : INSTALLED_APPS.index("bkoauth")] + INSTALLED_APPS[INSTALLED_APPS.index("bkoauth") + 1 :]
 )
 
 # REMOTE_STATIC_URL
@@ -81,9 +81,7 @@ if is_open_saas_v2():  # V2
     # 日志
     BK_LOG_DIR = os.getenv("BK_LOG_DIR", "/data/apps/logs/")
     LOGGING = get_paas_v2_logging_config_dict(
-        is_local=IS_LOCAL,
-        bk_log_dir=BK_LOG_DIR,
-        log_level=locals().get("LOG_LEVEL", "INFO"),
+        is_local=IS_LOCAL, bk_log_dir=BK_LOG_DIR, log_level=locals().get("LOG_LEVEL", "INFO"),
     )
 
     # PAASV2对外版不需要whitenoise,MIDDLEWARE中去除'whitenoise.middleware.WhiteNoiseMiddleware'
