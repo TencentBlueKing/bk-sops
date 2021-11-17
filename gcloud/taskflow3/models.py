@@ -1426,4 +1426,6 @@ class AutoRetryNodeStrategy(models.Model):
     max_retry_times = models.IntegerField(verbose_name="retry times", default=5)
 
     class Meta:
+        verbose_name = _("节点自动重试策略 AutoRetryNodeStrategy")
+        verbose_name_plural = _("节点自动重试策略 AutoRetryNodeStrategy")
         index_together = [("root_pipeline_id", "node_id")]

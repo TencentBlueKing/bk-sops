@@ -36,9 +36,9 @@ class AutoRetryNodeStrategyCreator:
 
         def _initiate_strategy(pipeline_tree: dict):
             strategies = []
-            for act_id, act in pipeline_tree["activities"].items():
+            for act_id, act in pipeline_tree[pipeline_constants.PE.activities].items():
                 if act["type"] == pipeline_constants.PE.SubProcess:
-                    strategies.extend(_initiate_strategy(act["pipeline"]))
+                    strategies.extend(_initiate_strategy(act[pipeline_constants.PE.pipeline]))
                 else:
                     auto_retry = act.get("auto_retry", {})
                     enable = auto_retry.get("enable")
@@ -47,7 +47,7 @@ class AutoRetryNodeStrategyCreator:
 
                     try:
                         max_retry_times = min(
-                            int(auto_retry.get("times", gcloud_constants.TASKFLOW_NODE_AUTO_RETRY_MAX_TIMES)),
+                            abs(int(auto_retry.get("times", gcloud_constants.TASKFLOW_NODE_AUTO_RETRY_MAX_TIMES))),
                             gcloud_constants.TASKFLOW_NODE_AUTO_RETRY_MAX_TIMES,
                         )
                     except Exception:

@@ -66,9 +66,10 @@ def _ensure_node_can_retry(node_id, engine_ver):
             if BambooDjangoRuntime().get_sleep_process_info_with_current_node_id(node_id):
                 return True
         else:
-            raise Exception("invalid engine_ver: %s" % engine_ver)
+            raise ValueError("invalid engine_ver: %s" % engine_ver)
 
         time.sleep(0.1)
+        count += 1
 
     return False
 
