@@ -48,7 +48,7 @@
                     <div class="view-variable">
                         <bk-popover
                             v-if="!isSelectorPanelShow"
-                            :key="rendomKey"
+                            :key="randomKey"
                             ext-cls="variable-popover"
                             placement="bottom-end"
                             :tippy-options="{ hideOnClick: false }">
@@ -292,7 +292,7 @@
                 isVariablePanelShow: false, // 是否显示变量编辑面板
                 variableData: {}, // 当前编辑的变量
                 localConstants: {}, // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
-                rendomKey: new Date().getTime(), // 输入、输出参数勾选状态改变时更新popover
+                randomKey: new Date().getTime(), // 输入、输出参数勾选状态改变时更新popover
                 totalPage: 0,
                 currentPage: 0,
                 limit: Math.ceil(((window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight) - 120) / 40) + 5, // 浏览器高度判断每次请求数量
@@ -1132,8 +1132,8 @@
                 } else {
                     this.setVariableSourceInfo(data)
                 }
-                // 如果全局变量数据有变，需要修改tip样式
-                this.rendomKey = new Date().getTime()
+                // 如果全局变量数据有变，需要更新popover
+                this.randomKey = new Date().getTime()
             },
             // 更新全局变量的 source_info
             setVariableSourceInfo (data) {
