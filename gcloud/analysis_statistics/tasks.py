@@ -48,7 +48,7 @@ def format_date_time(time_str, time_format="%Y-%m-%d %H:%M:%S"):
     return date_time.replace(tzinfo=None)
 
 
-def recursive_collect_components_execution(activities, status_tree, task_instance, stack=None, engine_ver=1):
+def recursive_collect_components_execution(activities, status_tree, task_instance, engine_ver=1, stack=None):
     """
     @summary 递归流程树，获取所有执行结束的插件TaskflowExecutedNodeStatistics对象列表（成功/失败）
     @param activities: 当前流程树的任务节点信息
@@ -132,7 +132,11 @@ def recursive_collect_components_execution(activities, status_tree, task_instanc
                 copied_stack = deepcopy(stack)
                 copied_stack.insert(0, act_id)
                 component_list += recursive_collect_components_execution(
-                    sub_activities, exec_act["children"], instance, copied_stack
+                    activities=sub_activities,
+                    status_tree=exec_act["children"],
+                    task_instance=task_instance,
+                    stack=copied_stack,
+                    engine_ver=engine_ver,
                 )
     return component_list
 
@@ -296,7 +300,10 @@ def pipeline_archive_statistics_task(instance_id):
     data = taskflow_instance.pipeline_instance.execution_data
     try:
         component_list = recursive_collect_components_execution(
-            data[PE.activities], status_tree_result["data"]["children"], taskflow_instance, engine_ver
+            activities=data[PE.activities],
+            status_tree=status_tree_result["data"]["children"],
+            task_instance=taskflow_instance,
+            engine_ver=engine_ver,
         )
         TaskflowExecutedNodeStatistics.objects.bulk_create(component_list)
     except Exception:

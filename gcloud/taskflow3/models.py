@@ -380,7 +380,8 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         order_by_field = filters.get("order_by", "-instance_id")
 
         # 查询出有序的taskflow统计数据
-        task_instance_id_list = taskflow.values_list("id", flat=True)
+        total = taskflow.count()
+        task_instance_id_list = list(taskflow[(page - 1) * limit : page * limit].values_list("id", flat=True))
         taskflow_statistics_data = TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)
         # 注入instance_name和project_name
         instance_id_list = taskflow_statistics_data.values_list("instance_id", flat=True)
@@ -398,8 +399,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
             "subprocess_total",
             "gateways_total",
             "create_method",
-        ).order_by(order_by_field)[(page - 1) * limit : page * limit]
-        total = taskflow_statistics_data.count()
+        ).order_by(order_by_field)
         groups = [
             {
                 "instance_id": data["instance_id"],
@@ -609,7 +609,8 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
             # set meta field for meta var, so frontend can render meta form
             if constant.get("is_meta"):
                 constant["meta"] = deepcopy(constant)
-                constant["value"] = constant["value"]["default"]
+                # 下拉框类型默认值字段为default，表格类型为default_text
+                constant["value"] = constant["value"].get("default") or constant["value"].get("default_text", "")
             if key in constants:
                 constant["value"] = constants[key]
 
@@ -840,7 +841,8 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
                     if not gateway:  # had been removed
                         continue
 
-                    is_parallel = gateway[PE.type] in {PE.ParallelGateway, PE.ConditionalParallelGateway}
+                    # conditional parallel gateway do not need to trim
+                    is_parallel = gateway[PE.type] == PE.ParallelGateway
 
                     # only process parallel gateway
                     if not is_parallel:
@@ -1104,16 +1106,16 @@ class TaskFlowInstance(models.Model):
             message = "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
                 node_id=node_id, task_id=self.id
             )
-            return {"result": False, "message": message, "data": {}, "code": err_code.INVALID_OPERATION.code}
+            return {"result": False, "message": message, "data": {}, "code": err_code.REQUEST_PARAM_INVALID.code}
 
-        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id)
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
         return dispatcher.get_node_data(
             username=username,
             component_code=component_code,
             loop=loop,
             pipeline_instance=self.pipeline_instance,
             subprocess_stack=subprocess_stack or [],
-            project_id=self.project.id,
+            project_id=self.project_id,
         )
 
     def get_node_detail(
@@ -1125,7 +1127,7 @@ class TaskFlowInstance(models.Model):
             )
             return {"result": False, "message": message, "data": {}, "code": err_code.REQUEST_PARAM_INVALID.code}
 
-        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id)
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
 
         node_data = {}
         if include_data:
@@ -1210,14 +1212,14 @@ class TaskFlowInstance(models.Model):
             message = "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
                 node_id=node_id, task_id=self.id
             )
-            return {"result": False, "message": message}
+            return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
-        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id)
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
 
         try:
             return dispatcher.dispatch(action, username, **kwargs)
         except Exception as e:
-            message = "task[id=%s] node[id=%s] action failed:%s" % (self.id, node_id, e)
+            message = "task[id=%s] node[id=%s] action failed: %s" % (self.id, node_id, e)
             logger.exception(traceback.format_exc())
             return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
 
@@ -1254,9 +1256,9 @@ class TaskFlowInstance(models.Model):
             message = "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
                 node_id=node_id, task_id=self.id
             )
-            return {"result": False, "message": message}
+            return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
-        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id)
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
 
         action_result = dispatcher.dispatch(command="forced_fail", operator=username)
         if not action_result["result"]:
@@ -1320,15 +1322,15 @@ class TaskFlowInstance(models.Model):
 
         return data
 
-    def callback(self, act_id, data, version=""):
-        if not self.has_node(act_id):
+    def callback(self, node_id, data, version=""):
+        if not self.has_node(node_id):
             return {
                 "result": False,
-                "message": "task[{tid}] does not have node[{nid}]".format(tid=self.id, nid=act_id),
+                "message": "task[{tid}] does not have node[{nid}]".format(tid=self.id, nid=node_id),
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
 
-        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=act_id)
+        dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
         return dispatcher.dispatch(command="callback", operator="", data=data, version=version)
 
     def get_stakeholders(self):

@@ -124,6 +124,21 @@ class CCUpdateHostService(Service):
         else:
             cc_host_prop_value = data.get_one_of_inputs("cc_host_prop_value")
 
+        kwargs = {"bk_obj_id": "host", "bk_supplier_account": supplier_account, "bk_biz_id": int(biz_cc_id)}
+        result = client.cc.search_object_attribute(kwargs)
+        if not result["result"]:
+            message = cc_handle_api_error("cc.search_object_attribute", kwargs, result)
+            self.logger.error(message)
+            data.set_outputs("ex_data", message)
+            return False
+
+        # 判断主机属性值的类型，如果属性值类型在字典中则进行类型转换，否则默认
+        prop_type_dict = {"int": int, "bool": bool}
+        for item in result["data"]:
+            if item["bk_property_id"] == cc_host_property and item["bk_property_type"] in prop_type_dict.keys():
+                cc_host_prop_value = prop_type_dict[item["bk_property_type"]](cc_host_prop_value)
+                break
+
         cc_kwargs = {
             "bk_host_id": ",".join(host_result["data"]),
             "bk_supplier_account": supplier_account,

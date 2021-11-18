@@ -18,6 +18,7 @@
                 :action="url"
                 :multiple="multiple"
                 :limit="limit"
+                :with-credentials="withCredentials"
                 :auto-upload="auto_upload"
                 :headers="headers"
                 :data="data_params"
@@ -110,6 +111,10 @@
             required: false,
             default: '',
             desc: 'tips on upload button'
+        },
+        withCredentials: {
+            type: Boolean,
+            default: false
         },
         submit: {
             type: Function,

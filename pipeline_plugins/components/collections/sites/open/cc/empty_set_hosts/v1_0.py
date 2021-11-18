@@ -67,7 +67,7 @@ class CCEmptySetHostsService(Service):
                 name=_("文本路径-集群"),
                 key="cc_set_select_text",
                 type="string",
-                schema=StringItemSchema(description=_("集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C`，多个目标集群用换行分隔")),
+                schema=StringItemSchema(description=_("集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B`，多个目标集群用换行分隔")),
             ),
         ]
 
