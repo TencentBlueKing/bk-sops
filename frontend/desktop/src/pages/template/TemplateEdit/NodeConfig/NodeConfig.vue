@@ -341,7 +341,10 @@
             },
             subflowListLoading (val) {
                 if (!val) {
-                    this.basicInfo = this.getNodeBasic(this.nodeConfig) // 获取子流程模板的名称
+                    // 获取子流程模板的名称
+                    Promise.resolve(this.getNodeBasic(this.nodeConfig)).then(res => {
+                        this.basicInfo = res
+                    })
                 }
             },
             isSelectorPanelShow: {
@@ -427,7 +430,8 @@
                 'loadAtomConfig',
                 'loadSubflowConfig',
                 'loadPluginServiceMeta',
-                'loadPluginServiceDetail'
+                'loadPluginServiceDetail',
+                'loadPluginServiceAppDetail'
             ]),
             ...mapMutations('template/', [
                 'setSubprocessUpdated',
@@ -440,11 +444,11 @@
                 'loadTemplateList'
             ]),
             async initDefaultData () {
-                const nodeConfig = this.$store.state.template.activities[this.nodeId]
+                const nodeConfig = this.activities[this.nodeId]
                 const isThirdParty = nodeConfig.component && nodeConfig.component.code === 'remote_plugin'
                 if (nodeConfig.type === 'ServiceActivity') {
                     await this.setThirdPartyList(nodeConfig)
-                    this.basicInfo = this.getNodeBasic(nodeConfig)
+                    this.basicInfo = await this.getNodeBasic(nodeConfig)
                     this.$nextTick(() => {
                         this.isBaseInfoLoading = false
                     })
@@ -488,7 +492,7 @@
                     this.isBaseInfoLoading = false
                 }
             },
-            handleSubflowList (data) {
+            async handleSubflowList (data) {
                 const list = []
                 const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
                 const { params, query } = this.$route
@@ -501,7 +505,7 @@
                     }
                 })
                 this.atomTypeList.subflow.push(...list)
-                this.basicInfo = this.getNodeBasic(nodeConfig)
+                this.basicInfo = await this.getNodeBasic(nodeConfig)
             },
             handleTableScroll () {
                 if (!this.isPageOver && !this.isThrottled) {
@@ -737,7 +741,7 @@
             /**
              * 获取任务节点基础信息数据
              */
-            getNodeBasic (config) {
+            async getNodeBasic (config) {
                 if (config.type === 'ServiceActivity') {
                     const {
                         component, name, stage_name, labels, error_ignorable, can_retry,
@@ -752,7 +756,13 @@
                         if (component.code === 'remote_plugin') {
                             const atom = this.$parent.thirdPartyList[this.nodeId]
                             code = component.data.plugin_code.value
-                            basicInfoName = this.atomTypeList.pluginList.find(item => item.code === code).name
+                            const pluginInfo = this.atomTypeList.pluginList.find(item => item.code === code)
+                            if (pluginInfo) {
+                                basicInfoName = pluginInfo.name
+                            } else {
+                                const resp = await this.loadPluginServiceAppDetail({ plugin_code: code })
+                                basicInfoName = resp.data.name
+                            }
                             version = atom.version
                             desc = atom.desc
                         } else {

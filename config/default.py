@@ -172,7 +172,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.10.2"
+STATIC_VERSION = "3.10.3"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -478,7 +478,7 @@ for _setting in dir(ver_settings):
         locals()[_setting] = getattr(ver_settings, _setting)
 
 # version log config
-VERSION_LOG = {"PAGE_STYLE": "gitbook", "MD_FILES_DIR": "version_log/version_logs_md"}
+VERSION_LOG = {"FILE_TIME_FORMAT": "%Y-%m-%d"}
 
 # migrate api token
 MIGRATE_TOKEN = env.MIGRATE_TOKEN
