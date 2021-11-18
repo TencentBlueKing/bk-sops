@@ -1245,7 +1245,8 @@ const en = {
     '还没有接入新的业务': "Haven't access the new business",
     '需要前往配置平台新建业务': 'Need to go to the bk-cmdb creat new business',
     '创建新业务': 'Create new business',
-    '删除连线': 'Delete Line'
+    '删除连线': 'Delete Line',
+    '启动失败': 'Failed to activate'
 }
 
 export default en
