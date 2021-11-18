@@ -13,9 +13,9 @@ specific language governing permissions and limitations under the License.
 import ujson as json
 import base64
 
-from Crypto.Cipher import PKCS1_v1_5 as PKCS1_v1_5_cipher
-from Crypto.PublicKey import RSA
-from Crypto import Util
+from Cryptodome.Cipher import PKCS1_v1_5 as PKCS1_v1_5_cipher
+from Cryptodome.PublicKey import RSA
+from Cryptodome import Util
 from django.utils.translation import ugettext_lazy as _
 
 from api.collections.nodeman import BKNodeManClient
