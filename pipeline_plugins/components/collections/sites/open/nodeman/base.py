@@ -26,16 +26,6 @@ from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _("节点管理(Nodeman)")
 
-NODEMAN_PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlJ/9Fq0LdVzxXga97bk4
-q69cD0ZjcPGbZUZ6NIRNDa+TzDyhoBKs2vsssX2vEoiUe5oHePY/3g49HwXCHyPj
-iidWzRD2VEGqySkq/q4vXYDBZ+Hi6yf+VjdI+aTgcTTGbPk4LEoiZIbZC0GD93R5
-AYkwL3bQ1OXq2+oYatZ0hSQPKeN+1ZT2gAGC4D+bKp5tgXFqu+zVs6/C5FI7kbxP
-UW/XhgQnsrKVrCH60RCPHiXWfn3ENUo4Z3dndcXA31M283Tupp66yJNKb50OynWo
-Px64VRgYWvvssC8qtnUdVejn5/UFArb2ZOqpA7qcpKXjSl1v//Q8udPzSEjoXd4Y
-HwIDAQAB
------END PUBLIC KEY-----"""
-
 
 def get_host_id_by_inner_ip(executor, logger, bk_cloud_id: int, bk_biz_id: int, ip_list: list):
     """
