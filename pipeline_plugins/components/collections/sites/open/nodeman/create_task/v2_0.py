@@ -30,6 +30,8 @@ from gcloud.utils.ip import get_ip_by_regex
 from pipeline_plugins.components.collections.sites.open.nodeman.base import (
     NodeManBaseService,
     get_host_id_by_inner_ip,
+    get_nodeman_rsa_public_key,
+    encrypt_auth_key,
 )
 
 __group_name__ = _("节点管理(Nodeman)")
@@ -114,7 +116,12 @@ class NodemanCreateTaskService(NodeManBaseService):
                 except Exception:
                     # password is not encrypted
                     pass
-
+                # auth_key加密
+                success, ras_public_key = get_nodeman_rsa_public_key(executor, self.logger)
+                if not success:
+                    data.set_outputs("ex_data", _("获取节点管理公钥失败,请联系系统管理员"))
+                    return False
+                auth_key = encrypt_auth_key(auth_key, ras_public_key["name"], ras_public_key["content"])
                 # 表格每行基础参数
                 base_params = {
                     "bk_biz_id": bk_biz_id,
