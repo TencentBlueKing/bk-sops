@@ -109,3 +109,4 @@ static/bk_sops
 scripts/check_commit_message.py
 scripts/check_migrate/
 scripts/check_sensitive_info.sh
+version_logs_html
