@@ -140,7 +140,7 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
             "bk_biz_id": biz_cc_id,
             "job_plan_id": config_data.get("job_plan_id"),
             "global_var_list": global_var_list,
-            "callback_url": get_node_callback_url(self.id, getattr(self, "version", "")),
+            "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
 
         job_result = client.jobv3.execute_job_plan(job_kwargs)
