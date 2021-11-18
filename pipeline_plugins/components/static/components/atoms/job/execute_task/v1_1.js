@@ -202,8 +202,13 @@
                                                 }
                                                 return item;
                                             })
-                                            // 清除首尾的双引号"，然后在首尾各加上一个双引号"
-                                            $this._set_value('"' + new_global_var.replace(/^(\s|")+|(\s|")+$/g, '') + '"');
+                                           // 清除首尾的双引号"，然后在首尾各加上一个双引号"
+                                            for (var i = new_global_var.length - 1; i >= 0; i--) {
+                                                if (new_global_var[i] != null && new_global_var[i].value != null) {
+                                                    new_global_var[i].value = '\"' + new_global_var[i].value.toString().replace(/^(\s|")+|(\s|")+$/g, '') + '\"';
+                                                }
+                                            }
+                                            $this._set_value(new_global_var);
                                         }
                                         $this.set_loading(false);
                                         if (resp.result === false) {

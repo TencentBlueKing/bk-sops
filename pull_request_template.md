@@ -1,6 +1,0 @@
-- 新功能
-    - xxx
-- 优化项
-    - xxx
-- bug fix
-    - xxx

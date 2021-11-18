@@ -82,7 +82,7 @@ class JobPushLocalFilesService(JobService):
             target_path=target_path,
             ips=ip_list,
             account=target_account,
-            callback_url=get_node_callback_url(self.id, getattr(self, "version", "")),
+            callback_url=get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         )
 
         if not push_result["result"]:
@@ -103,3 +103,4 @@ class JobPushLocalFilesComponent(Component):
     bound_service = JobPushLocalFilesService
     form = "%scomponents/atoms/job/job_push_local_files/v1_0_0.js" % settings.STATIC_URL
     version = "1.0.0"
+    desc = "本地上传的文件不保证长期保存并可用于多次分发，推荐勾选上传变量并在创建任务时进行上传操作。如果希望多次分发相同文件，请使用快速分发文件插件。"

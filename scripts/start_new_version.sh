@@ -16,5 +16,8 @@ else
     sed -i "s/version: ${ver}/version: ${RELEASE_VERSION}/" app.yml
 fi
 
+datetime=`date +%Y-%m-%d`
+touch version_logs_md/V${RELEASE_VERSION}_${datetime}.md
+
 # i18n process
 # sh scripts/i18n/django_i18n.sh

@@ -65,7 +65,7 @@
                 <bk-button
                     theme="primary"
                     :disabled="!isHasSelected"
-                    :loading="exportPending"
+                    :loading="exportPending || tplLoading"
                     @click="onConfirm">
                     {{ $t('确定') }}
                 </bk-button>
@@ -101,6 +101,7 @@
                 isTplInPanelAllSelected: false,
                 isCheckedDisabled: false,
                 list: [],
+                selectIdList: [],
                 templateList: [],
                 keywords: '',
                 isHasSelected: 0,
@@ -132,6 +133,7 @@
                         this.templateList.forEach(template => {
                             this.$set(template, 'isChecked', idList.includes(template.id))
                         })
+                        this.selectIdList = idList
                         this.isHasSelected = selected.length
                         this.isTplInPanelAllSelected = selected.length === this.totalCount
                     }
@@ -241,16 +243,6 @@
                 }
                 return this.templateList.every(template => template.isChecked)
             },
-            // 判断模板列表是否勾选
-            getTplIsSelected () {
-                const selected = this.templateList.reduce((acc, cur) => {
-                    if (cur.isChecked) {
-                        acc.push(cur.id)
-                    }
-                    return acc
-                }, [])
-                return selected && selected.length
-            },
             // 搜索
             searchInputhandler () {
                 this.currentPage = 1
@@ -260,12 +252,14 @@
             onSelectTemplate (row) {
                 if (this.hasPermission(this.reqPerm, row.auth_actions)) {
                     row.isChecked = !row.isChecked
-                    this.isTplInPanelAllSelected = this.getTplIsAllSelected()
-                    if (this.selected.length === this.totalCount) {
-                        this.isHasSelected = row.isChecked ? this.isHasSelected + 1 : this.isHasSelected - 1
+                    if (row.isChecked) {
+                        this.selectIdList.push(row.id)
                     } else {
-                        this.isHasSelected = this.getTplIsSelected()
+                        const index = this.selectIdList.findIndex(item => item === row.id)
+                        this.selectIdList.splice(index, 1)
                     }
+                    this.isHasSelected = this.selectIdList.length
+                    this.isTplInPanelAllSelected = this.isHasSelected === this.totalCount
                 } else {
                     let permissionData
                     if (this.common) {
@@ -299,36 +293,66 @@
                 const isAllSelected = this.getTplIsAllSelected()
                 this.templateList.forEach(item => {
                     item.isChecked = !isAllSelected
+                    if (item.isChecked && !this.selectIdList.includes(item.id)) {
+                        this.selectIdList.push(item.id)
+                    } else if (!item.isChecked) {
+                        const index = this.selectIdList.findIndex(item => item === item.id)
+                        this.selectIdList.splice(index, 1)
+                    }
                 })
-                this.isHasSelected = this.getTplIsSelected()
+                this.isHasSelected = this.selectIdList.length
                 this.isTplInPanelAllSelected = !isAllSelected && this.isPageOver
             },
             // 跨页全选
-            onSelectAllClick () {
-                if (this.isCheckedDisabled) {
-                    return
-                }
-
-                this.templateList.forEach(template => {
-                    if (this.hasPermission(this.reqPerm, template.auth_actions)) {
-                        template.isChecked = !this.isTplInPanelAllSelected
+            async onSelectAllClick () {
+                try {
+                    if (this.isCheckedDisabled) {
+                        return
                     }
-                })
-                this.isTplInPanelAllSelected = !this.isTplInPanelAllSelected
-                this.isHasSelected = this.isTplInPanelAllSelected ? this.totalCount : 0
+
+                    this.isTplInPanelAllSelected = !this.isTplInPanelAllSelected
+                    this.isHasSelected = this.isTplInPanelAllSelected ? this.totalCount : 0
+                    // 拉取全量模板
+                    if (this.isTplInPanelAllSelected && !this.isPageOver) {
+                        this.tplLoading = true
+                        const templateList = this.templateList
+                        const data = {
+                            limit: this.totalCount - templateList.length,
+                            offset: templateList.length,
+                            pipeline_template__name__icontains: this.keywords || undefined
+                        }
+                        if (this.common) {
+                            data.common = 1
+                        } else {
+                            data.project__id = this.project_id
+                        }
+                        const respData = await this.loadTemplateList(data)
+                        this.totalCount = respData.meta.total_count
+                        this.totalPage = Math.ceil(respData.meta.total_count / this.pageSize)
+                        this.isPageOver = true
+                        templateList.push(...respData.objects)
+                    }
+                    this.selectIdList = []
+                    this.templateList.forEach(template => {
+                        if (this.hasPermission(this.reqPerm, template.auth_actions)) {
+                            template.isChecked = this.isTplInPanelAllSelected
+                            if (template.isChecked) {
+                                this.selectIdList.push(template.id)
+                            }
+                        }
+                    })
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.tplLoading = false
+                }
             },
             // 确定导出
             async onConfirm () {
-                const list = this.templateList.reduce((acc, cur) => {
-                    if (cur.isChecked) {
-                        acc.push(cur.id)
-                    }
-                    return acc
-                }, [])
                 try {
                     this.exportPending = true
                     const resp = await this.templateExport({
-                        list,
+                        list: this.isTplInPanelAllSelected ? [] : this.selectIdList,
                         type: this.type,
                         common: this.common,
                         is_full: this.isTplInPanelAllSelected
@@ -352,8 +376,9 @@
                 this.templateList.forEach(template => {
                     template.isChecked = false
                 })
+                this.selectIdList = []
                 this.keywords = ''
-                this.isHasSelected = false
+                this.isHasSelected = 0
                 this.isTplInPanelAllSelected = false
             }
         }

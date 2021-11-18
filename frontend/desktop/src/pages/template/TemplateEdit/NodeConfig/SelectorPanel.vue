@@ -17,6 +17,7 @@
             right-icon="bk-icon icon-search"
             :placeholder="$t('请输入名称')"
             :clearable="true"
+            data-test-id="templateEdit_form_searchPlugin"
             @input="onSearchInput"
             @clear="onClearSearch">
         </bk-input>
@@ -36,6 +37,7 @@
                             }]"
                             v-for="group in listInPanel"
                             :key="group.type"
+                            :data-test-id="`templateEdit_list_${group.sort_key_group_en}`"
                             @click="onSelectGroup(group.type)">
                             <img v-if="group.group_icon" class="group-icon-img" :src="group.group_icon" />
                             <i v-else :class="['group-icon-font', getIconCls(group.type)]"></i>
@@ -50,6 +52,7 @@
                                 :class="['list-item', { active: getSelectedStatus(item) }]"
                                 :key="index"
                                 :title="item.name"
+                                :data-test-id="`templateEdit_list_${item.code.replace(/_(\w)/g, (strMatch, p1) => p1.toUpperCase())}`"
                                 @click="$emit('select', item)">
                                 <span class="node-name" v-if="item.highlightName" v-html="item.highlightName"></span>
                                 <span class="node-name" v-else>{{ item.name }}</span>
@@ -687,82 +690,6 @@
                 text-overflow: ellipsis;
                 cursor: pointer;
             }
-        }
-    }
-    .tpl-loading {
-        height: 40px;
-        bottom: 0;
-        left: 0;
-        font-size: 14px;
-        text-align: center;
-        margin-top: 10px;
-    }
-}
-.third-praty-list {
-    height: calc(100vh - 102px);
-    overflow: auto;
-    @include scrollbar;
-    .plugin-item {
-        height: 80px;
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        padding: 0 59px 0 38px;
-        color: #63656e;
-        .plugin-logo {
-            width: 48px;
-            height: 48px;
-            margin-right: 16px;
-            flex-shrink: 0;
-        }
-        .plugin-title {
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-        .plugin-code {
-            font-size: 12px;
-        }
-        &.is-actived, &:hover {
-            background: hsl(218, 100%, 94%);
-        }
-    }
-    .tpl-loading {
-        height: 40px;
-        bottom: 0;
-        left: 0;
-        font-size: 14px;
-        text-align: center;
-        margin-top: 10px;
-    }
-}
-.third-praty-list {
-    height: calc(100vh - 102px);
-    overflow: auto;
-    @include scrollbar;
-    .plugin-item {
-        height: 80px;
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        padding: 0 59px 0 38px;
-        color: #63656e;
-        .plugin-logo {
-            width: 48px;
-            height: 48px;
-            margin-right: 16px;
-            flex-shrink: 0;
-        }
-        .plugin-title {
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-        .plugin-code {
-            font-size: 12px;
-        }
-        &.is-actived, &:hover {
-            background: hsl(218, 100%, 94%);
         }
     }
     .tpl-loading {

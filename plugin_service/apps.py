@@ -16,6 +16,3 @@ from django.apps import AppConfig
 
 class PluginServiceConfig(AppConfig):
     name = "plugin_service"
-
-    def ready(self):
-        from .plugin import RemotePluginComponent  # noqa

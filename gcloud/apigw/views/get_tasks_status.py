@@ -52,6 +52,14 @@ def get_tasks_status(request, project_id):
     task_ids = params.get("task_id_list", [])
     if not isinstance(task_ids, list):
         return {"result": False, "message": "task_id_list must be a list", "code": err_code.REQUEST_PARAM_INVALID.code}
+
+    if len(task_ids) > 50:
+        return {
+            "result": False,
+            "message": "task_id_list is too long, maximum length is 50",
+            "code": err_code.REQUEST_PARAM_INVALID.code
+        }
+
     include_children_status = params.get("include_children_status", False)
 
     tasks = TaskFlowInstance.objects.filter(id__in=task_ids, project__id=request.project.id)

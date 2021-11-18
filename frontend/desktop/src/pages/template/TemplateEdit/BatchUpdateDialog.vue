@@ -180,7 +180,8 @@
                 'getBatchForms'
             ]),
             ...mapActions('atomForm/', [
-                'loadAtomConfig'
+                'loadAtomConfig',
+                'loadPluginServiceDetail'
             ]),
             // 批量加载待更新流程模版当前版本和最新版本表单数据
             async loadSubflowForms () {
@@ -267,6 +268,7 @@
                         const formKey = item.custom_type || item.source_tag.split('.')[0]
                         if (!uniqueConfigMap[`${formKey}_${item.version}`]) {
                             uniqueConfigMap[`${formKey}_${item.version}`] = true
+                            item.id = subflowItem.id
                             variables.push(item)
                         }
                     })
@@ -275,7 +277,8 @@
                     const formKey = variable.custom_type || variable.source_tag.split('.')[0]
                     const { name, atom, classify } = atomFilter.getVariableArgs(variable)
                     const version = variable.version || 'legacy'
-                    const config = await this.getAtomConfig(atom, version, classify, name)
+                    const isThird = Boolean(variable.plugin_code)
+                    const config = await this.getAtomConfig({ plugin: atom, version, classify, name, isThird })
                     variablesConfig[`${formKey}_${variable.version}`] = config
                 }))
 
@@ -302,14 +305,37 @@
                     })
                 })
             },
-            async getAtomConfig (plugin, version, classify, name) {
+            async getAtomConfig (config) {
+                const { plugin, version, classify, name, isThird } = config
                 const project_id = this.common ? undefined : this.project_id
-                const pluginGroup = this.pluginConfigs[plugin]
-                if (pluginGroup && pluginGroup[version]) {
-                    return pluginGroup[version]
-                }
                 try {
-                    await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id })
+                    // 先取标准节点缓存的数据
+                    const pluginGroup = this.pluginConfigs[plugin]
+                    if (pluginGroup && pluginGroup[version]) {
+                        return pluginGroup[version]
+                    }
+                    // 第三方插件
+                    if (isThird) {
+                        const resp = await this.loadPluginServiceDetail({
+                            plugin_code: plugin,
+                            plugin_version: version,
+                            with_app_detail: true
+                        })
+                        if (!resp.result) return
+                        // 获取参数
+                        const { app, forms } = resp.data
+                        // 获取host
+                        const { host } = window.location
+                        const hostUrl = app.urls.find(item => item.includes(host)) || app.url
+                        $.context.bk_plugin_api_host[plugin] = hostUrl + '/'
+                        // 输入参数
+                        $.atoms[plugin] = {}
+                        const renderFrom = forms.renderform
+                        /* eslint-disable-next-line */
+                        eval(renderFrom)
+                    } else {
+                        await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id })
+                    }
                     const config = $.atoms[plugin]
                     return config
                 } catch (e) {

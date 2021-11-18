@@ -22,6 +22,48 @@ web_tree = json.loads(
     {
         "activities": {
             "n635e9dbdd4731b7922d2285032e873f": {
+                "constants": {
+                    "${ip}": {
+                        "custom_type": "ip_selector",
+                        "desc": "",
+                        "form_schema": {
+                            "type": "ip_selector",
+                            "attrs": {
+                                "name": "选择服务器",
+                                "hookable": true,
+                                "isMultiple": false,
+                                "validation": [
+                                    {
+                                        "type": "required"
+                                    }
+                                ],
+                                "default": {
+                                    "selectors": [
+                                        "ip"
+                                    ],
+                                    "topo": [],
+                                    "ip": [],
+                                    "filters": [],
+                                    "excludes": [],
+                                    "with_cloud_id": false,
+                                    "separator": ","
+                                }
+                            }
+                        },
+                        "index": 0,
+                        "key": "${ip}",
+                        "name": "ip",
+                        "show_type": "show",
+                        "source_info": {},
+                        "source_tag": "var_cmdb_ip_selector.ip_selector",
+                        "source_type": "custom",
+                        "validation": "",
+                        "pre_render_mako": false,
+                        "value": "${ip}",
+                        "version": "legacy",
+                        "is_meta": false
+                    }
+                },
                 "can_retry": true,
                 "hooked_constants": [],
                 "id": "n635e9dbdd4731b7922d2285032e873f",
@@ -460,6 +502,46 @@ web_tree = json.loads(
                         }
                     },
                     "constants": {
+                        "${ip}": {
+                            "custom_type": "ip_selector",
+                            "desc": "",
+                            "form_schema": {
+                                "type": "ip_selector",
+                                "attrs": {
+                                    "name": "选择服务器",
+                                    "hookable": true,
+                                    "isMultiple": false,
+                                    "validation": [
+                                        {
+                                            "type": "required"
+                                        }
+                                    ],
+                                    "default": {
+                                        "selectors": [
+                                            "ip"
+                                        ],
+                                        "topo": [],
+                                        "ip": [],
+                                        "filters": [],
+                                        "excludes": [],
+                                        "with_cloud_id": false,
+                                        "separator": ","
+                                    }
+                                }
+                            },
+                            "index": 0,
+                            "key": "${ip}",
+                            "name": "ip",
+                            "show_type": "show",
+                            "source_info": {},
+                            "source_tag": "var_cmdb_ip_selector.ip_selector",
+                            "source_type": "custom",
+                            "validation": "",
+                            "pre_render_mako": false,
+                            "value": "${ip}",
+                            "version": "legacy",
+                            "is_meta": false
+                        },
                         "${c}": {
                             "custom_type": "input",
                             "desc": "",
@@ -888,6 +970,58 @@ web_tree = json.loads(
             }
         },
         "constants": {
+            "${ip}": {
+                "name": "ip",
+                "key": "${ip}",
+                "desc": "",
+                "custom_type": "ip_selector",
+                "source_info": {
+                    "n635e9dbdd4731b7922d2285032e873f": [
+                        "${ip}"
+                    ]
+                },
+                "source_tag": "var_cmdb_ip_selector.ip_selector",
+                "value": {
+                    "selectors": [
+                        "ip"
+                    ],
+                    "topo": [],
+                    "ip": [],
+                    "filters": [],
+                    "excludes": [],
+                    "with_cloud_id": false,
+                    "separator": ","
+                },
+                "show_type": "show",
+                "source_type": "component_inputs",
+                "validation": "",
+                "index": 0,
+                "version": "legacy",
+                "form_schema": {
+                    "type": "ip_selector",
+                    "attrs": {
+                        "name": "ip",
+                        "hookable": true,
+                        "isMultiple": false,
+                        "validation": [
+                            {
+                                "type": "required"
+                            }
+                        ],
+                        "default": {
+                            "selectors": [
+                                "ip"
+                            ],
+                            "topo": [],
+                            "ip": [],
+                            "filters": [],
+                            "excludes": [],
+                            "with_cloud_id": false,
+                            "separator": ","
+                        }
+                    }
+                }
+            },
             "${d}": {
                 "custom_type": "input",
                 "desc": "",
@@ -1334,6 +1468,48 @@ pipeline_tree = json.loads(
     {
         "activities": {
             "n635e9dbdd4731b7922d2285032e873f": {
+                "constants": {
+                    "${ip}": {
+                        "custom_type": "ip_selector",
+                        "desc": "",
+                        "form_schema": {
+                            "type": "ip_selector",
+                            "attrs": {
+                                "name": "选择服务器",
+                                "hookable": true,
+                                "isMultiple": false,
+                                "validation": [
+                                    {
+                                        "type": "required"
+                                    }
+                                ],
+                                "default": {
+                                    "selectors": [
+                                        "ip"
+                                    ],
+                                    "topo": [],
+                                    "ip": [],
+                                    "filters": [],
+                                    "excludes": [],
+                                    "with_cloud_id": false,
+                                    "separator": ","
+                                }
+                            }
+                        },
+                        "index": 0,
+                        "key": "${ip}",
+                        "name": "ip",
+                        "show_type": "show",
+                        "source_info": {},
+                        "source_tag": "var_cmdb_ip_selector.ip_selector",
+                        "source_type": "custom",
+                        "validation": "",
+                        "pre_render_mako": false,
+                        "value": "${ip}",
+                        "version": "legacy",
+                        "is_meta": false
+                    }
+                },
                 "can_retry": true,
                 "hooked_constants": [],
                 "id": "n635e9dbdd4731b7922d2285032e873f",
@@ -1857,6 +2033,13 @@ pipeline_tree = json.loads(
                                 "type": "splice",
                                 "value": "${v5}",
                                 "is_param": false
+                            },
+                            "${ip}": {
+                                "custom_type": "ip_selector",
+                                "is_param": true,
+                                "source_tag": "var_cmdb_ip_selector.ip_selector",
+                                "type": "lazy",
+                                "value": "${ip}"
                             }
                         },
                         "outputs": [],
@@ -1871,6 +2054,10 @@ pipeline_tree = json.loads(
                     "${s1}": {
                         "type": "splice",
                         "value": "2"
+                    },
+                    "${ip}": {
+                        "type": "splice",
+                        "value": "${ip}"
                     }
                 }
             },
@@ -2303,6 +2490,21 @@ pipeline_tree = json.loads(
                     "type": "splice",
                     "value": "${1 if _result else xxx}",
                     "is_param": false
+                },
+                "${ip}": {
+                    "custom_type": "ip_selector",
+                    "is_param": true,
+                    "source_tag": "var_cmdb_ip_selector.ip_selector",
+                    "type": "lazy",
+                    "value": {
+                        "excludes": [],
+                        "filters": [],
+                        "ip": [],
+                        "selectors": ["ip"],
+                        "separator": ",",
+                        "topo": [],
+                        "with_cloud_id": false
+                    }
                 }
             },
             "outputs": [],
