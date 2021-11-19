@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import hashlib
 import re
 import logging
 import traceback
@@ -48,6 +49,8 @@ def common_process_request(request, manager):
 
     shims = "plugins_upload/job_push_local_files/{}".format(project_id)
 
+    file_md5 = hashlib.md5(file_obj.read()).hexdigest()
+
     try:
         file_tag = manager.save(name=file_name, content=file_obj, shims=shims)
     except Exception:
@@ -56,4 +59,4 @@ def common_process_request(request, manager):
         response.status_code = 500
         return response
 
-    return JsonResponse({"result": True, "tag": file_tag})
+    return JsonResponse({"result": True, "tag": file_tag, "md5": file_md5})
