@@ -16,14 +16,14 @@ import requests
 
 import ujson as json
 
-import env_v3
+import env
 from gcloud.conf import settings
 from gcloud.core.models import EnvironmentVariables
 
 logger = logging.getLogger("component")
 ENV = "stag" if settings.IS_LOCAL else "prod"
 LIGHT_APP_API = "{}/{}/system/light-applications/".format(
-    env_v3.BK_APIGW_URL_TMPL.format(api_name=env_v3.PAASV3_APIGW_NAME), ENV
+    env.BK_APIGW_URL_TMPL.format(api_name=env.PAASV3_APIGW_NAME), ENV
 )
 
 try:
