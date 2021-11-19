@@ -13,9 +13,11 @@ specific language governing permissions and limitations under the License.
 
 import os
 
-IS_OPEN_V3 = os.getenv("BKPAAS_MAJOR_VERSION", False)
+RUN_VER = os.getenv("RUN_VER", "open")
 
-if int(IS_OPEN_V3) == 3:
+IS_OPEN_V3 = int(os.getenv("BKPAAS_MAJOR_VERSION", False)) == 3 and RUN_VER == "open"
+
+if IS_OPEN_V3:
     from env_v3 import *  # noqa
 else:
     from env_v2 import *  # noqa
