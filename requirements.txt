@@ -77,3 +77,6 @@ opentelemetry-instrumentation-dbapi==0.25b2
 opentelemetry-instrumentation-redis==0.25b2
 opentelemetry-instrumentation-logging==0.25b2
 opentelemetry-instrumentation-requests==0.25b2
+
+# encrypt
+pyCryptodome==3.9.7

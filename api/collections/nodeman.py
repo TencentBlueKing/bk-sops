@@ -159,3 +159,15 @@ class BKNodeManClient(BKComponentClient):
                 "os": os,
             },
         )
+
+    def get_rsa_public_key(self, executor):
+        return self._request(
+            method="post",
+            url=_get_nodeman_api("core/api/encrypt_rsa/fetch_public_keys"),
+            data={
+                "bk_app_code": settings.APP_CODE,
+                "bk_app_secret": settings.SECRET_KEY,
+                "bk_username": executor,
+                "names": ["DEFAULT"],
+            },
+        )

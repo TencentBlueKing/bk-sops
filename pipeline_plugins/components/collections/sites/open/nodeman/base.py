@@ -11,6 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import ujson as json
+import base64
+
+from Crypto.Cipher import PKCS1_v1_5 as PKCS1_v1_5_cipher
+from Crypto.PublicKey import RSA
+from Crypto import Util
 from django.utils.translation import ugettext_lazy as _
 
 from api.collections.nodeman import BKNodeManClient
@@ -42,6 +47,75 @@ def get_host_id_by_inner_ip(executor, logger, bk_cloud_id: int, bk_biz_id: int, 
     return {host["inner_ip"]: host["bk_host_id"] for host in result["data"]["list"]}
 
 
+def get_nodeman_rsa_public_key(executor, logger):
+    """
+    拉取节点管理rsa公钥
+    """
+    client = BKNodeManClient(username=executor)
+    get_rsa_result = client.get_rsa_public_key(executor)
+    if not get_rsa_result["result"]:
+        error = handle_api_error(__group_name__, "nodeman.get_rsa_public_key", executor, get_rsa_result)
+        logger.error(error)
+        return False, None
+    content = get_rsa_result["data"][0]["content"]
+    name = get_rsa_result["data"][0]["name"]
+    return True, {"name": name, "content": content}
+
+
+def get_block_size(key_obj, is_encrypt=True) -> int:
+    """
+    获取加解密最大片长度，用于分割过长的文本，单位：bytes
+    :param key_obj:
+    :param is_encrypt:
+    :return:
+    """
+    block_size = Util.number.size(key_obj.n) / 8
+    reserve_size = 11
+    if not is_encrypt:
+        reserve_size = 0
+    return int(block_size - reserve_size)
+
+
+def block_list(lst, block_size):
+    """
+    序列切片
+    :param lst:
+    :param block_size:
+    :return:
+    """
+    for idx in range(0, len(lst), block_size):
+        yield lst[idx : idx + block_size]
+
+
+def encrypt_auth_key(auth_key, public_key_name, public_key):
+    public_key_obj = RSA.importKey(public_key)
+    message_bytes = auth_key.encode(encoding="utf-8")
+    encrypt_message_bytes = b""
+    block_size = get_block_size(public_key_obj)
+    cipher = PKCS1_v1_5_cipher.new(public_key_obj)
+    for block in block_list(message_bytes, block_size):
+        encrypt_message_bytes += cipher.encrypt(block)
+
+    encrypt_message = base64.b64encode(public_key_name.encode("utf-8")) + base64.b64encode(encrypt_message_bytes)
+    return encrypt_message.decode(encoding="utf-8")
+
+
+def decrypt_auth_key(encrypt_message, private_key):
+    """
+    解密
+    :param encrypt_message: 密文
+    :return: 解密后的信息
+    """
+    decrypt_message_bytes = b""
+    private_key_obj = RSA.importKey(private_key.strip("\n"))
+    encrypt_message_bytes = base64.b64decode(encrypt_message)
+    block_size = get_block_size(private_key_obj, is_encrypt=False)
+    cipher = PKCS1_v1_5_cipher.new(private_key_obj)
+    for block in block_list(encrypt_message_bytes, block_size):
+        decrypt_message_bytes += cipher.decrypt(block, "")
+    return decrypt_message_bytes.decode(encoding="utf-8")
+
+
 class NodeManBaseService(Service):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(5)
@@ -49,13 +123,22 @@ class NodeManBaseService(Service):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("任务 ID"), key="job_id", type="int", schema=IntItemSchema(description=_("提交的任务的 job_id")),
+                name=_("任务 ID"),
+                key="job_id",
+                type="int",
+                schema=IntItemSchema(description=_("提交的任务的 job_id")),
             ),
             self.OutputItem(
-                name=_("安装成功个数"), key="success_num", type="int", schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
+                name=_("安装成功个数"),
+                key="success_num",
+                type="int",
+                schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
             ),
             self.OutputItem(
-                name=_("安装失败个数"), key="fail_num", type="int", schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
+                name=_("安装失败个数"),
+                key="fail_num",
+                type="int",
+                schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
             ),
         ]
 
