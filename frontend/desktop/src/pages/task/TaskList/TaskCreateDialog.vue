@@ -107,7 +107,7 @@
                                                 'task-item',
                                                 {
                                                     'task-item-selected': selectedTpl.id === template.id,
-                                                    'permission-disable': selectedTplType === 'publicProcess' && !hasPermission(action, template.auth_actions)
+                                                    'permission-disable': selectedTplType === 'publicProcess' && !hasPermission(['common_flow_view'], template.auth_actions)
                                                 }
                                             ]"
                                             @click="onSelectTpl(template)">

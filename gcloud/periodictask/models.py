@@ -223,7 +223,8 @@ class PeriodicTask(models.Model):
             members = ",".join(members).split(",")
             receivers.extend(members)
 
-        return list(set(receivers))
+        # 这里保证执行人在列表第一位，且名单中通知人唯一，其他接收人不保证顺序
+        return sorted(set(receivers), key=receivers.index)
 
     def get_notify_type(self):
         notify_type = json.loads(self.template.notify_type)

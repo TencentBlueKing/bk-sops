@@ -25,5 +25,5 @@ class ComponentAPIException(ComponentBaseException):
         self.resp = resp
 
         if self.resp is not None:
-            error_message = '%s, resp=%s' % (error_message, self.resp.text)
+            error_message = "%s, resp=%s" % (error_message, self.resp.text)
         super(ComponentAPIException, self).__init__(error_message)

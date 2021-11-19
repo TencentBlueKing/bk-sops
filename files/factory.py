@@ -12,7 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 
 from . import env
+from .bartenders.job_repo import JobRepoBartender
 from .managers.bk_repo import BKRepoManager
+from .managers.job_repo import JobRepoManager
 from .managers.nfs import HostNFSManager
 from .managers.upload_module import UploadModuleManager
 from .bartenders.nfs import HostNFSBartender
@@ -67,6 +69,10 @@ class ManagerFactory(object):
             file_overwrite=True,
         )
 
+    @classmethod
+    def _create_job_repo_manager(cls):
+        return JobRepoManager()
+
 
 class BartenderFactory(object):
     @classmethod
@@ -88,3 +94,7 @@ class BartenderFactory(object):
     @classmethod
     def _create_bk_repo_bartender(cls, manager):
         return BKRepoBartender(manager)
+
+    @classmethod
+    def _create_job_repo_bartender(cls, manager):
+        return JobRepoBartender(manager)

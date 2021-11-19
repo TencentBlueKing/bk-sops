@@ -55,7 +55,7 @@ def mysetting(request):
     default_project = get_default_project_for_user(request.user.username)
     project_timezone = request.session.get("blueking_timezone", settings.TIME_ZONE)
     cur_pos = get_cur_pos_from_url(request)
-    frontend_entry_url = "{}bk_sops".format(settings.STATIC_URL)
+    frontend_entry_url = "{}bk_sops".format(settings.STATIC_URL) if settings.RUN_VER == "open" else "/static/bk_sops"
     ctx = {
         "MEDIA_URL": settings.MEDIA_URL,  # MEDIA_URL
         "STATIC_URL": settings.STATIC_URL,  # 本地静态文件访问

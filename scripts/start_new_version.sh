@@ -11,9 +11,11 @@ echo "current version: ${ver}"
 if [ "$C_OS" == "$MAC_OS" ];then
     sed -i "" "s/STATIC_VERSION = \"${ver}\"/STATIC_VERSION = \"${RELEASE_VERSION}\"/" config/default.py
     sed -i "" "s/version: ${ver}/version: ${RELEASE_VERSION}/" app.yml
+    sed -i "" "s/app_version: \"${ver}\"/app_version: \"${RELEASE_VERSION}\"/" app_desc.yaml
 else
     sed -i "s/STATIC_VERSION = \"${ver}\"/STATIC_VERSION = \"${RELEASE_VERSION}\"/" config/default.py
     sed -i "s/version: ${ver}/version: ${RELEASE_VERSION}/" app.yml
+    sed -i "s/app_version: \"${ver}\"/app_version: \"${RELEASE_VERSION}\"/" app_desc.yaml
 fi
 
 datetime=`date +%Y-%m-%d`

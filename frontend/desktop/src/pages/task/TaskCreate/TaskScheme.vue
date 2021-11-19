@@ -1,69 +1,73 @@
 <template>
     <div class="task-scheme" v-if="isSchemeShow">
-        <div class="schema-nav">
-            <div class="scheme-combine-shape" @click="toggleSchemePanel">
-                <i class="common-icon-paper"
-                    v-bk-tooltips="{
-                        content: $t('执行方案'),
-                        placements: ['top']
-                    }">
-                </i>
-            </div>
+        <div class="scheme-nav" @click="toggleSchemePanel">
+            <i class="bk-icon icon-angle-left"></i>
+            {{ $t('执行方案') }}
         </div>
-        <div class="schema-list-panel" v-if="showPanel">
-            <div class="scheme-title">
-                <span> {{$t('执行方案')}}</span>
-                <div>
-                    <bk-button
-                        size="small"
-                        theme="primary"
-                        data-test-id="creatTask_form_togglePreview"
-                        @click="onChangePreviewNode">
-                        {{ isPreview ? $t('关闭预览') : $t('节点预览')}}
-                    </bk-button>
-                    <bk-button
-                        size="small"
-                        data-test-id="creatTask_form_importTemporaryPlan"
-                        @click="onImportTemporaryPlan">
-                        {{ $t('导入临时方案') }}
-                    </bk-button>
-                </div>
+        <div class="scheme-list-panel" v-if="showPanel">
+            <div class="scheme-sideslider-header">
+                <span>{{$t('执行方案')}}</span>
+                <i @click="toggleSchemePanel" class="bk-icon icon-close-line"></i>
             </div>
-            <div class="scheme-header">
-                <div class="scheme-form" v-if="nameEditing">
-                    <bk-input
-                        ref="nameInput"
-                        v-model="schemaName"
-                        v-validate.persist="schemaNameRule"
-                        name="schemaName"
-                        class="bk-input-inline"
-                        :clearable="true"
-                        @blur="handlerBlur"
-                        @keyup.enter.native="onAddScheme"
-                        :placeholder="$t('方案名称')">
-                    </bk-input>
-                    <span v-if="veeErrors.has('schemaName')" class="common-error-tip error-msg">{{ veeErrors.first('schemaName') }}</span>
+            <div class="scheme-active-wrapper">
+                <div>
+                    <bk-button data-test-id="creatTask_form_creatScheme" :disabled="isCommonProcess" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
+                    <bk-button data-test-id="creatTask_form_importTemporaryPlan" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
                 </div>
-                <div
-                    v-else
-                    class="add-plan"
-                    data-test-id="creatTask_form_creatScheme"
-                    @click="onCreateScheme">
-                    <span class="common-icon-add"></span>
-                    {{ $t('新增方案') }}
-                </div>
+                <bk-button data-test-id="creatTask_form_togglePreview" @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
             </div>
             <div class="scheme-content" data-test-id="creatTask_form_schemeList">
-                <ul class="schemeList">
+                <p :class="['scheme-title', { 'data-empty': !schemeList.length && !nameEditing }]">
+                    <bk-checkbox
+                        :value="isAllChecked"
+                        :indeterminate="indeterminate"
+                        :disabled="!schemeList.length"
+                        @change="onAllCheckChange">
+                    </bk-checkbox>
+                    <span class="scheme-name">{{ $t('方案名称') }}</span>
+                </p>
+                <ul class="scheme-list" v-if="schemeList.length || nameEditing">
+                    <li class="add-scheme" :class="{ 'vee-errors': veeErrors.has('schemeName'), 'is-mepty': !schemeList.length }" v-if="nameEditing">
+                        <bk-input
+                            ref="nameInput"
+                            v-model="schemeName"
+                            v-validate.persist="schemeNameRule"
+                            name="schemeName"
+                            class="bk-input-inline"
+                            :clearable="true"
+                            @blur="handlerBlur"
+                            @keyup.enter.native="onAddScheme"
+                            :placeholder="$t('方案名称')">
+                        </bk-input>
+                        <p class="common-error-tip error-msg">
+                            {{ veeErrors.first('schemeName') }}
+                        </p>
+                    </li>
                     <li
-                        v-for="item in schemaList"
+                        v-for="item in schemeList"
                         class="scheme-item"
-                        :key="item.id">
-                        <bk-checkbox @change="onCheckChange($event, item)"></bk-checkbox>
+                        :class="{ 'is-checked': Boolean(planDataObj[item.uuid]) }"
+                        :key="item.uuid">
+                        <bk-checkbox
+                            :value="Boolean(planDataObj[item.uuid])"
+                            @change="onCheckChange($event, item)">
+                        </bk-checkbox>
                         <span class="scheme-name" :title="item.name">{{item.name}}</span>
-                        <i v-if="isSchemeEditable" class="bk-icon icon-close-circle-shape" @click.stop="onDeleteScheme(item)"></i>
+                        <span v-if="item.isDefault" class="default-label">{{$t('默认')}}</span>
+                        <i
+                            v-if="isSchemeEditable"
+                            class="bk-icon icon-close-circle-shape"
+                            @click.stop="onDeleteScheme(item)">
+                        </i>
                     </li>
                 </ul>
+                <!-- 无数据提示 -->
+                <bk-exception
+                    v-else
+                    class="exception-wrap-item exception-part"
+                    type="empty"
+                    scene="part">
+                </bk-exception>
             </div>
         </div>
     </div>
@@ -75,7 +79,7 @@
     import permission from '@/mixins/permission.js'
 
     export default {
-        name: 'TaskSchema',
+        name: 'TaskScheme',
         mixins: [permission],
         props: {
             template_id: {
@@ -121,19 +125,25 @@
                 default () {
                     return []
                 }
+            },
+            planDataObj: {
+                type: Object,
+                default: () => {}
             }
         },
         data () {
             return {
                 showPanel: true,
                 nameEditing: false,
-                schemaName: '',
-                schemaNameRule: {
+                schemeName: '',
+                schemeNameRule: {
                     required: true,
                     max: STRING_LENGTH.SCHEME_NAME_MAX_LENGTH,
                     regex: NAME_REG
                 },
-                schemaList: [],
+                schemeList: [],
+                defaultIdList: [],
+                defaultSchemeId: null,
                 deleting: false,
                 isPreview: false
             }
@@ -146,6 +156,14 @@
             haveCreateSchemeTpl () {
                 const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
                 return this.hasPermission([tplAction], this.tplActions)
+            },
+            isAllChecked () {
+                const selectPlanLength = Object.keys(this.planDataObj).length
+                return selectPlanLength && selectPlanLength === this.schemeList.length
+            },
+            indeterminate () {
+                const selectPlanLength = Object.keys(this.planDataObj).length
+                return Boolean(selectPlanLength) && selectPlanLength !== this.schemeList.length
             }
         },
         watch: {
@@ -154,30 +172,95 @@
             }
         },
         created () {
-            this.loadSchemeList()
+            this.initLoad()
         },
         methods: {
             ...mapActions('task/', [
                 'loadTaskScheme',
                 'createTaskScheme',
-                'deleteTaskScheme'
+                'deleteTaskScheme',
+                'getDefaultTaskScheme',
+                'updateDefaultScheme'
             ]),
             // 选择方案并进行切换更新选择的节点
             onCheckChange (e, scheme) {
                 this.$emit('selectScheme', scheme, e)
             },
+            async initLoad () {
+                try {
+                    await this.loadDefaultSchemeList()
+                    this.loadSchemeList()
+                } catch (error) {
+                    console.warn(error)
+                }
+            },
             // 获取方案列表
             async loadSchemeList () {
                 try {
-                    this.schemaList = await this.loadTaskScheme({
+                    this.schemeList = await this.loadTaskScheme({
                         project_id: this.project_id,
                         template_id: this.template_id,
                         isCommon: this.isCommonProcess
                     }) || []
-                    this.$emit('updateTaskSchemeList', this.schemaList, false)
+                    const defaultObj = {}
+                    this.schemeList.forEach(scheme => {
+                        this.$set(scheme, 'isDefault', false)
+                        this.$set(scheme, 'uuid', scheme.id)
+                        if (this.defaultIdList.includes(scheme.uuid)) {
+                            scheme.isDefault = true
+                            defaultObj[scheme.uuid] = JSON.parse(scheme.data)
+                        }
+                    })
+                    this.$emit('updateTaskSchemeList', this.schemeList, false)
+                    this.$emit('setDefaultScheme', defaultObj)
+                    this.$emit('setDefaultSelected', Boolean(this.defaultSchemeId))
                 } catch (e) {
                     console.log(e)
                 }
+            },
+            // 获取默认方案列表
+            async loadDefaultSchemeList () {
+                try {
+                    const resp = await this.getDefaultTaskScheme({
+                        project_id: this.project_id,
+                        template_id: Number(this.template_id)
+                    })
+                    if (resp.data.length) {
+                        const { id, scheme_ids: schemeIds } = resp.data[0]
+                        this.defaultSchemeId = id
+                        this.defaultIdList = schemeIds
+                    }
+                } catch (error) {
+                    console.warn(error)
+                }
+            },
+            /**
+             * 更新默认方案
+            */
+            async onSaveDefaultExecuteScheme () {
+                try {
+                    const ids = this.schemeList.reduce((acc, cur) => {
+                        if (cur.isDefault) {
+                            acc.push(cur.uuid)
+                        }
+                        return acc
+                    }, [])
+                    const params = {
+                        project_id: this.project_id,
+                        template_id: Number(this.template_id),
+                        scheme_ids: ids,
+                        id: this.defaultSchemeId
+                    }
+                    await this.updateDefaultScheme(params)
+                } catch (error) {
+                    console.warn(error)
+                }
+            },
+            /**
+             * 执行方案全选/半选
+             */
+            onAllCheckChange (val) {
+                this.$emit('selectAllScheme', val)
             },
             /**
              * 任务方案面板是否显示
@@ -201,6 +284,7 @@
                     hasCreatePermission = this.checkSchemeRelativePermission([tplAction])
                 }
                 if (hasCreatePermission && !this.isPreviewMode) {
+                    this.veeErrors.clear()
                     this.nameEditing = true
                     this.$nextTick(() => {
                         this.$refs.nameInput.focus()
@@ -211,19 +295,22 @@
              * 添加方案输入框失焦事件
              */
             handlerBlur () {
-                this.nameEditing = this.schemaName.trim() !== ''
+                this.nameEditing = this.schemeName.trim() !== ''
+                if (!this.nameEditing) {
+                    this.veeErrors.clear()
+                }
             },
             /**
              * 添加方案
              */
             onAddScheme () {
-                if (this.schemaName === '') {
+                if (this.schemeName === '') {
                     this.nameEditing = false
                     return
                 }
 
-                const isschemaNameExist = this.schemaList.some(item => item.name === this.schemaName)
-                if (isschemaNameExist) {
+                const isschemeNameExist = this.schemeList.some(item => item.name === this.schemeName)
+                if (isschemeNameExist) {
                     this.$bkMessage({
                         message: i18n.t('方案名称已存在'),
                         theme: 'error'
@@ -232,31 +319,31 @@
                 }
                 this.$validator.validateAll().then(async (result) => {
                     if (!result) {
-                        this.schemaName = ''
+                        this.schemeName = ''
                         this.nameEditing = false
                         return
                     }
-                    this.schemaName = this.schemaName.trim()
+                    this.schemeName = this.schemeName.trim()
                     const selectedNodes = this.selectedNodes.slice()
                     const scheme = {
                         project_id: this.project_id,
                         template_id: this.template_id,
-                        name: this.schemaName,
+                        name: this.schemeName,
                         data: JSON.stringify(selectedNodes),
                         isCommon: this.isCommonProcess
                     }
                     try {
                         const resp = await this.createTaskScheme(scheme)
-                        this.schemaList.push(resp.data)
+                        this.schemeList.push(resp.data)
                         this.$bkMessage({
                             message: i18n.t('新增方案成功'),
                             theme: 'success'
                         })
-                        this.$emit('updateTaskSchemeList', this.schemaList, true)
+                        this.$emit('updateTaskSchemeList', this.schemeList, true)
                     } catch (e) {
                         console.log(e)
                     } finally {
-                        this.schemaName = ''
+                        this.schemeName = ''
                         this.nameEditing = false
                     }
                 })
@@ -271,13 +358,19 @@
                 if (this.deleting || !hasPermission) return
                 this.deleting = true
                 try {
-                    await this.deleteTaskScheme({ id: scheme.id, isCommon: this.isCommonProcess })
-                    this.loadSchemeList()
+                    await this.deleteTaskScheme({ id: scheme.uuid, isCommon: this.isCommonProcess })
+                    if (scheme.isDefault) {
+                        scheme.isDefault = false
+                        await this.onSaveDefaultExecuteScheme()
+                    }
+                    const index = this.schemeList.findIndex(item => item.uuid === scheme.uuid)
+                    this.schemeList.splice(index, 1)
+                    this.onCheckChange(false, scheme)
                     this.$bkMessage({
                         message: i18n.t('方案删除成功'),
                         theme: 'success'
                     })
-                    this.$emit('updateTaskSchemeList', this.schemaList, true)
+                    this.$emit('updateTaskSchemeList', this.schemeList, true)
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -332,107 +425,140 @@
         right: 0;
         height: 100%;
     }
-    .schema-list-panel {
+    .scheme-list-panel {
         position: absolute;
         top: 0;
-        right: 56px;
-        width: 420px;
+        right: 0;
+        width: 640px;
         height: 100%;
+        padding: 0 24px;
+        display: flex;
+        flex-direction: column;
         background: $whiteDefault;
         border-left: 1px solid $commonBorderColor;
         box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
         z-index: 5;
         transition: right 0.5s ease-in-out;
-        .scheme-title {
+        .scheme-sideslider-header {
+            height: 54px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            height: 35px;
-            margin: 20px 20px 0;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #cacecb;
-        }
-        .scheme-header {
-            position: relative;
-            font-size: 14px;
-            margin: 0px 20px;
-            padding-top: 3px;
-            border-bottom: 1px solid #ebebeb;
-            .scheme-form {
-                margin-bottom: 4px;
-                position: relative;
-                .bk-input-inline {
-                    margin-right: 10px;
-                }
-                .bk-form-input {
-                    width: 200px;
-                }
-            }
-            .add-plan {
-                margin: 7px 0 10px 0;
-                width: 100%;
+            font-size: 16px;
+            color: #313238;
+            border-bottom: 1px solid #dcdee5;
+            .icon-close-line {
+                color: #63656e;
+                font-size: 14px;
+                font-weight: 600;
+                margin-right: 3px;
                 cursor: pointer;
-                .common-icon-add {
-                    font-size: 18px;
+                &:hover {
                     color: #3a84ff;
-                    margin-right: 3px;
                 }
             }
-            .base-input {
-                height: 32px;
-                line-height: 32px;
-                padding-bottom: 2px;
+        }
+        .scheme-active-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 16px 0px 15px;
+            /deep/.bk-button {
+                width: auto;
+                margin-left: 10px;
+                &:first-child {
+                    width: 80px;
+                    margin-left: 0;
+                }
+                .icon-plus-line {
+                    font-size: 16px;
+                    margin-right: 3px;
+                    color: #979ba5;
+                }
+            }
+        }
+        .add-scheme {
+            position: relative;
+            padding: 4px 0 5px 16px;
+            border-bottom: 1px solid #f0f1f5;
+            .bk-input-inline {
+                width: 320px;
+            }
+            .common-error-tip {
+                display: none;
+            }
+            &.is-mepty {
+                border-bottom: none;
             }
         }
         .scheme-content {
-            height: calc(100% - 127px);
-            overflow: hidden;
-            overflow-y: auto;
-            @include scrollbar;
-            .scheme-item {
+            max-height: calc(100% - 127px);
+            border: 1px solid #dee0e6;
+            .scheme-title, .scheme-item {
                 position: relative;
-                margin: 0 20px;
                 height: 42px;
-                font-weight: 400;
                 display: flex;
                 align-items: center;
-                font-size: 14px;
-                cursor: pointer;
+                font-size: 12px;
+                padding-left: 16px;
                 border-bottom: 1px solid #ebebeb;
+            }
+            .scheme-list {
+                height: calc(100% - 41px);
+                overflow: hidden;
+                overflow-y: auto;
+                @include scrollbar;
+            }
+            .scheme-name {
+                max-width: 400px;
+                margin-left: 10px;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                color: #313238;
+            }
+            .default-label {
+                height: 22px;
+                line-height: 22px;
+                font-size: 12px;
+                padding: 0 10px;
+                border-radius: 2px;
+                margin-left: 10px;
+                color: #14a568;
+                background: #e4faf0;
+            }
+            .icon-close-circle-shape {
+                position: absolute;
+                top: 15px;
+                right: 10px;
+                font-size: 14px;
+                color: #cecece;
+                opacity: 0;
+                cursor: pointer;
                 &:hover {
-                    margin: 0;
-                    padding: 0 20px;
-                    background-color: #d9e8f8;
-                    .icon-close-circle-shape {
-                        opacity: 1;
-                        right: 25px;
-                    }
-                }
-                .scheme-name {
-                    display: inline-block;
-                    width: 240px;
-                    margin-left: 10px;
-                    overflow: hidden;
-                    white-space: nowrap;
-                    text-overflow: ellipsis;
-                    color: #313238;
-                }
-                .icon-close-circle-shape {
-                    position: absolute;
-                    top: 15px;
-                    right: 5px;
-                    width: 12px;
-                    height: 12px;
-                    text-align: center;
-                    line-height: 12px;
-                    color: #cecece;
-                    opacity: 0;
-                    cursor: pointer;
-                    &:hover {
-                        color: #979ba5;
-                    }
+                    color: #979ba5;
                 }
             }
+            .scheme-item {
+                &:hover {
+                    background: #f0f1f5;
+                    .icon-close-circle-shape {
+                        opacity: 1;
+                    }
+                }
+                &.is-checked {
+                    background: #eaf3ff;
+                    .icon-close-circle-shape {
+                        opacity: 1;
+                    }
+                }
+                &:last-child {
+                    border-bottom: none;
+                }
+            }
+        }
+        .exception-part {
+            margin: 55px 0;
         }
         .scheme-preview-mode {
             position: relative;
@@ -455,27 +581,27 @@
             }
         }
     }
-    .schema-nav {
+    .scheme-nav {
         position: absolute;
         right: 0;
-        float: right;
-        width: 56px;
-        background: #ffffff;
-        border-left: 1px solid #cacedb;
-        height: 100%;
+        top: 20px;
+        width: 72px;
+        height: 24px;
         z-index: 5;
-        .scheme-combine-shape {
-            margin: 27px 0 0 12px;
-            width: 32px;
-            height: 32px;
-            background-color: #525F77;
-            border-radius:2px;
-            text-align: center;
-            line-height: 32px;
-            cursor: pointer;
-            .common-icon-paper {
-                color: #ffffff;
-            }
+        background: #fafbfd;
+        border: 1px solid #3a84ff;
+        border-right: none;
+        border-radius: 12px 0px 0px 12px;
+        font-size: 12px;
+        line-height: 22px;
+        vertical-align: middle;
+        color: #3a84ff;
+        cursor: pointer;
+        .bk-icon {
+            font-size: 16px;
+            position: relative;
+            left: 4px;
+            top: 1px;
         }
     }
     .disable-item {
@@ -499,5 +625,16 @@
     .bk-input-inline {
         display: inline-block;
         width: 200px;
+    }
+</style>
+<style lang="scss">
+    .vee-errors {
+        .bk-form-input {
+            border-color: #ff5757;
+        }
+        .common-error-tip {
+            margin-top: 5px;
+            display: block !important;
+        }
     }
 </style>

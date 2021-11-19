@@ -73,6 +73,7 @@ INSTALLED_APPS += (
     "gcloud.analysis_statistics",
     "gcloud.analysis_statistics.data_migrate",
     "gcloud.clocked_task",
+    "gcloud.template_base",
     "pipeline",
     "pipeline.component_framework",
     "pipeline.variable_framework",
@@ -171,7 +172,8 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.9.24"
+
+STATIC_VERSION = "3.10.3"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -329,7 +331,7 @@ BK_IAM_MIGRATION_APP_NAME = "bksops_iam_migrations"
 AUTH_LEGACY_RESOURCES = ["project", "common_flow", "flow", "mini_app", "periodic_task", "task"]
 
 # 用户管理配置
-BK_USER_MANAGE_HOST = "{}/o/{}".format(BK_PAAS_HOST, "bk_user_manage")
+BK_USER_MANAGE_HOST = env.BK_USER_MANAGE_HOST
 
 # 人员选择数据来源
 BK_MEMBER_SELECTOR_DATA_HOST = env.BK_MEMBER_SELECTOR_DATA_HOST

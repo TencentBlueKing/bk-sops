@@ -12,10 +12,10 @@
 <template>
     <div
         ref="shortcutWrap"
-        v-if="idOfNodeShortcutPanel === node.id"
-        :style="{ top: shortcutPanelTop }"
+        :style="{ left: `${position.left}px`, top: `${position.top}px` }"
         class="shortcut-panel"
-        @mouseover.stop>
+        @mouseover.stop
+        @click.stop>
         <ul class="nodes-wrap">
             <li
                 v-for="(item, index) in nodeTypeList"
@@ -28,22 +28,33 @@
                 @click.stop="onAppendNode(item.key)">
             </li>
         </ul>
-        <ul class="operate-btns" v-if="isShowConfigIcon">
+        <ul class="operate-btns" v-if="nodeOperate || deleteLine">
+            <template v-if="nodeOperate">
+                <li
+                    v-bk-tooltips="{
+                        content: $t('节点配置'),
+                        delay: 500
+                    }"
+                    class="btn-item common-icon-bkflow-setting"
+                    @click.stop="onConfigBtnClick">
+                </li>
+                <li
+                    v-bk-tooltips="{
+                        content: $t('复制节点'),
+                        delay: 500
+                    }"
+                    class="btn-item common-icon-bkflow-copy"
+                    @click.stop="onCopyBtnClick">
+                </li>
+            </template>
             <li
+                v-if="deleteLine"
                 v-bk-tooltips="{
-                    content: $t('节点配置'),
+                    content: $t('删除连线'),
                     delay: 500
                 }"
-                class="btn-item common-icon-bkflow-setting"
-                @click.stop="onConfigBtnClick">
-            </li>
-            <li
-                v-bk-tooltips="{
-                    content: $t('复制节点'),
-                    delay: 500
-                }"
-                class="btn-item common-icon-bkflow-copy"
-                @click.stop="onCopyBtnClick">
+                class="btn-item common-icon-bkflow-delete"
+                @click.stop="$emit('onDeleteLineClick')">
             </li>
         </ul>
     </div>
@@ -71,9 +82,22 @@
                 type: Boolean,
                 default: true
             },
-            idOfNodeShortcutPanel: {
-                type: String,
-                default: ''
+            nodeOperate: {
+                type: Boolean,
+                default: false
+            },
+            deleteLine: {
+                type: Boolean,
+                default: false
+            },
+            position: {
+                type: Object,
+                default () {
+                    return {
+                        left: 0,
+                        top: 0
+                    }
+                }
             }
         },
         data () {
@@ -88,34 +112,16 @@
                 ]
             }
         },
-        computed: {
-            currentLocation () {
-                return this.canvasData.locations.find(m => m.id === this.idOfNodeShortcutPanel) || {}
-            },
-            // 是否显示节点配置 icon
-            isShowConfigIcon () {
-                return ['tasknode', 'subflow'].indexOf(this.currentLocation.type) !== -1
-            },
-            shortcutPanelTop () {
-                if (this.isGatewayNode(this.node.type)) {
-                    return '38px'
-                }
-                if (this.node.type === 'startpoint') {
-                    return '48px'
-                }
-                return '58px'
-            }
-        },
         methods: {
             onConfigBtnClick () {
-                this.$emit('onConfigBtnClick', this.idOfNodeShortcutPanel)
+                this.$emit('onConfigBtnClick', this.node.id)
             },
             /**
              * 添加节点
              * @param {String} type -添加节点类型
              */
             onAppendNode (type, isFillParam = false) {
-                const { x, y, id, type: currType } = this.currentLocation
+                const { x, y, id, type: currType } = this.node
                 const endX = x + 200
                 const newNodeId = 'node' + uuid()
                 let location = {}
@@ -229,11 +235,10 @@
 <style lang="scss">
 .shortcut-panel {
     position: absolute;
-    left: calc(50% + 20px);
-    top: 56px;
     width: 120px;
     background: rgba(255, 255, 255, .9);
     cursor: default;
+    z-index: 6;
     .nodes-wrap {
         display: flex;
         align-items: center;
