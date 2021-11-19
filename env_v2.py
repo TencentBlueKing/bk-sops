@@ -16,8 +16,6 @@ import json
 from blueapps.conf.default_settings import *  # noqa
 
 
-RUN_VER = os.getenv("RUN_VER", "open")
-
 OPEN_VER = os.getenv("OPEN_VER", "community")
 
 BK_PAAS_HOST = os.getenv("BK_PAAS_HOST", BK_URL)
