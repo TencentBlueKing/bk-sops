@@ -210,6 +210,11 @@
                         </node-item>
                     </li>
                 </ul>
+                <div
+                    v-if="pluginLoading"
+                    v-bkloading="{ isLoading: true }"
+                    class="loding-wrap">
+                </div>
             </div>
         </div>
     </transition>
@@ -559,6 +564,12 @@
         height: 687px;
         overflow: auto;
         @include scrollbar;
+    }
+    .loding-wrap {
+        position: absolute !important;
+        bottom: 0px;
+        top: 150px;
+        width: 100%;
     }
     .node-item {
         background: #f0f1f5;

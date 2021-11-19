@@ -183,6 +183,11 @@
                     </div>
                 </li>
             </ul>
+            <div
+                v-if="pluginLoading"
+                v-bkloading="{ isLoading: true }"
+                class="loding-wrap">
+            </div>
         </div>
     </div>
 </template>
@@ -209,7 +214,8 @@
             isSubflow: Boolean,
             basicInfo: Object,
             isThirdParty: Boolean,
-            common: [String, Number]
+            common: [String, Number],
+            pluginLoading: Boolean
         },
         data () {
             const listData = this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
@@ -268,8 +274,7 @@
         },
         methods: {
             ...mapActions('atomForm/', [
-                'loadPluginServiceMeta',
-                'loadPluginServiceAppDetail'
+                'loadPluginServiceMeta'
             ]),
             ...mapActions('templateList', [
                 'loadTemplateList'
@@ -440,14 +445,13 @@
             async onThirdPratyClick (plugin) {
                 try {
                     const resp = await this.loadPluginServiceMeta({ plugin_code: plugin.code })
-                    const appDetail = await this.loadPluginServiceAppDetail({ plugin_code: plugin.code })
                     const { code, versions, description } = resp.data
                     const versionList = versions.map(version => {
                         return { version }
                     })
                     const group = {
                         code,
-                        name: appDetail.data.name,
+                        name: plugin.name,
                         list: versionList,
                         desc: description,
                         id: 'remote_plugin'
@@ -702,7 +706,7 @@
     }
 }
 .third-praty-list {
-    height: calc(100vh - 102px);
+    height: calc(100vh - 110px);
     overflow: auto;
     @include scrollbar;
     .plugin-item {
@@ -729,6 +733,13 @@
         &.is-actived, &:hover {
             background: hsl(218, 100%, 94%);
         }
+    }
+    .loding-wrap {
+        position: absolute !important;
+        bottom: 0px;
+        top: 50px;
+        right: 0;
+        width: 100%;
     }
     .tpl-loading {
         height: 40px;
