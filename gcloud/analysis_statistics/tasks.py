@@ -212,7 +212,7 @@ def tasktemplate_post_save_statistics_task(template_id):
         # 子流程节点
         else:
             try:
-                template_id = PipelineTemplate.objects.get(template_id=act["template_id"]).id
+                template_id = PipelineTemplate.objects.filter(template_id=act["template_id"]).values("id")[0]["id"]
             except KeyError:
                 logger.error(
                     "[tasktemplate_post_save_statistics_task]template_id={}的流程保存运营数据失败,子流程数据缺少template_id。".format(
