@@ -30,6 +30,7 @@ class UploadModuleBartender(UploadRequestBartender):
         file_name = request.POST.get("file_name")
         file_path = request.POST.get("file_local_path")
         source_ip = request.POST.get("file_locate_ip")
+        file_local_md5 = request.POST.get("file_local_md5")
 
         if not file_name:
             logger.error("[FILE_UPLOAD]invalid file_name: {}".format(file_name))
@@ -65,4 +66,4 @@ class UploadModuleBartender(UploadRequestBartender):
             return response
 
         logger.info("[FILE_UPLOAD] will return: {}".format(file_tag))
-        return JsonResponse({"result": True, "tag": file_tag})
+        return JsonResponse({"result": True, "tag": file_tag, "md5": file_local_md5})
