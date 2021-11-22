@@ -34,7 +34,8 @@ class BkNotifyComponentTest(TestCase, ComponentTestMixin):
             GET_NOTIFY_RECEIVERS_FAIL_CASE,
             SEND_MSG_FAIL_CASE,
             SEND_MSG_SUCCESS_CASE,
-            SEND_MSG_SUCCESS_RECEIVER_ORDER_CASE
+            SEND_MSG_SUCCESS_RECEIVER_ORDER_CASE,
+            SEND_MSG_SUCCESS_WITH_STAFF_GROUP_CASE,
         ]
 
 
@@ -46,17 +47,25 @@ class MockClient(object):
         self.cmsi.send_msg = MagicMock(return_value=cmsi_send_msg_return)
 
 
+class MockStaffGroupSet:
+    def __init__(self, expected_values_list):
+        self.values_list = MagicMock(return_value=expected_values_list)
+        self.filter = MagicMock(return_value=self.values_list)
+        self.objects = MagicMock()
+        self.objects.filter = self.filter
+
+
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.bk.notify.v1_0.get_client_by_user"
 HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.bk.notify.v1_0.handle_api_error"
 NOTIFY_HANDLE_API_ERROR = "gcloud.utils.cmdb.handle_api_error"
 BK_HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.bk.notify.v1_0.bk_handle_api_error"
+GET_MEMBERS_WITH_GROUP_IDS = (
+    "pipeline_plugins.components.collections.sites.open.bk.notify.v1_0.StaffGroupSet.objects.get_members_with_group_ids"
+)
 
 COMMON_PARENT = {"executor": "tester", "biz_cc_id": 2, "biz_supplier_account": 0}
 
-CC_SEARCH_BUSINESS_FAIL_RETURN = {
-    "result": False,
-    "message": "search business fail"
-}
+CC_SEARCH_BUSINESS_FAIL_RETURN = {"result": False, "message": "search business fail"}
 
 CC_SEARCH_BUSINESS_SUCCESS_RETURN = {
     "result": True,
@@ -67,21 +76,15 @@ CC_SEARCH_BUSINESS_SUCCESS_RETURN = {
                 "bk_biz_maintainer": "m1,m2",
                 "bk_biz_productor": "p1,p2",
                 "bk_biz_developer": "d1,d2",
-                "bk_biz_tester": "t1,t2"
+                "bk_biz_tester": "t1,t2",
             }
-        ]
-    }
+        ],
+    },
 }
 
-CMSI_SEND_MSG_FAIL_RETURN = {
-    "result": False,
-    "message": "send msg fail"
-}
+CMSI_SEND_MSG_FAIL_RETURN = {"result": False, "message": "send msg fail"}
 
-CMSI_SEND_MSG_SUCCESS_RETURN = {
-    "result": True,
-    "message": "success"
-}
+CMSI_SEND_MSG_SUCCESS_RETURN = {"result": True, "message": "success"}
 
 
 GET_NOTIFY_RECEIVERS_FAIL_CASE = ComponentTestCase(
@@ -89,23 +92,20 @@ GET_NOTIFY_RECEIVERS_FAIL_CASE = ComponentTestCase(
     inputs={
         "biz_cc_id": 2,
         "bk_notify_type": ["mail", "weixin"],
-        "bk_receiver_info": {
-            "bk_receiver_group": ["Maintainers", "ProductPm"],
-            "bk_more_receiver": "a,b",
-        },
+        "bk_receiver_info": {"bk_receiver_group": ["Maintainers", "ProductPm"], "bk_more_receiver": "a,b"},
         "notify": True,
         "bk_notify_title": "title",
-        "bk_notify_content": "content"
+        "bk_notify_content": "content",
     },
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(success=False,
-                                       outputs={"ex_data": "search business fail"}),
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "search business fail"}),
     execute_call_assertion=[],
     schedule_assertion=None,
     patchers=[
-        Patcher(target=GET_CLIENT_BY_USER,
-                return_value=MockClient(cc_search_business_return=CC_SEARCH_BUSINESS_FAIL_RETURN)),
-        Patcher(target=NOTIFY_HANDLE_API_ERROR, return_value="search business fail")
+        Patcher(
+            target=GET_CLIENT_BY_USER, return_value=MockClient(cc_search_business_return=CC_SEARCH_BUSINESS_FAIL_RETURN)
+        ),
+        Patcher(target=NOTIFY_HANDLE_API_ERROR, return_value="search business fail"),
     ],
 )
 
@@ -115,71 +115,68 @@ SEND_MSG_FAIL_CASE = ComponentTestCase(
     inputs={
         "biz_cc_id": 2,
         "bk_notify_type": ["mail", "weixin"],
-        "bk_receiver_info": {
-            "bk_receiver_group": ["Maintainers", "ProductPm"],
-            "bk_more_receiver": "a,b",
-        },
+        "bk_receiver_info": {"bk_receiver_group": ["Maintainers", "ProductPm"], "bk_more_receiver": "a,b"},
         "notify": False,
         "bk_notify_title": "title",
-        "bk_notify_content": "content"
+        "bk_notify_content": "content",
     },
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(success=False,
-                                       outputs={"ex_data": "send msg fail;send msg fail;"}),
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "send msg fail;send msg fail;"}),
     execute_call_assertion=[],
     schedule_assertion=None,
     patchers=[
-        Patcher(target=GET_CLIENT_BY_USER,
-                return_value=MockClient(cc_search_business_return=CC_SEARCH_BUSINESS_SUCCESS_RETURN,
-                                        cmsi_send_msg_return=CMSI_SEND_MSG_FAIL_RETURN)),
-        Patcher(target=BK_HANDLE_API_ERROR,
-                return_value="send msg fail")
+        Patcher(
+            target=GET_CLIENT_BY_USER,
+            return_value=MockClient(
+                cc_search_business_return=CC_SEARCH_BUSINESS_SUCCESS_RETURN,
+                cmsi_send_msg_return=CMSI_SEND_MSG_FAIL_RETURN,
+            ),
+        ),
+        Patcher(target=BK_HANDLE_API_ERROR, return_value="send msg fail"),
     ],
 )
 
-SEND_MSG_SUCCESS_CLIENT = MockClient(cc_search_business_return=CC_SEARCH_BUSINESS_SUCCESS_RETURN,
-                                     cmsi_send_msg_return=CMSI_SEND_MSG_SUCCESS_RETURN)
+SEND_MSG_SUCCESS_CLIENT = MockClient(
+    cc_search_business_return=CC_SEARCH_BUSINESS_SUCCESS_RETURN, cmsi_send_msg_return=CMSI_SEND_MSG_SUCCESS_RETURN
+)
 
 SEND_MSG_SUCCESS_CASE = ComponentTestCase(
     name="send msg success case",
     inputs={
         "biz_cc_id": 2,
         "bk_notify_type": ["mail", "weixin"],
-        "bk_receiver_info": {
-            "bk_receiver_group": ["Maintainers", "ProductPm"],
-            "bk_more_receiver": "a,b",
-        },
+        "bk_receiver_info": {"bk_receiver_group": ["Maintainers", "ProductPm"], "bk_more_receiver": "a,b"},
         "notify": True,
         "bk_notify_title": "title",
-        "bk_notify_content": "content"
+        "bk_notify_content": "content",
     },
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(success=True,
-                                       outputs={}),
+    execute_assertion=ExecuteAssertion(success=True, outputs={}),
     execute_call_assertion=[
         CallAssertion(
             func=SEND_MSG_SUCCESS_CLIENT.cmsi.send_msg,
             calls=[
-                Call({
-                    "receiver__username": ",".join(sorted(set("b,p1,p2,m1,m2,a,tester".split(",")))),
-                    "title": "title",
-                    "content": "<pre>content</pre>",
-                    "msg_type": "mail"
-                }),
-                Call({
-                    "receiver__username": ",".join(sorted(set("b,p1,p2,m1,m2,a,tester".split(",")))),
-                    "title": "title",
-                    "content": "content",
-                    "msg_type": "weixin"
-                })
+                Call(
+                    {
+                        "receiver__username": "tester,a,b,m1,m2,p1,p2",
+                        "title": "title",
+                        "content": "<pre>content</pre>",
+                        "msg_type": "mail",
+                    }
+                ),
+                Call(
+                    {
+                        "receiver__username": "tester,a,b,m1,m2,p1,p2",
+                        "title": "title",
+                        "content": "content",
+                        "msg_type": "weixin",
+                    }
+                ),
             ],
         )
     ],
     schedule_assertion=None,
-    patchers=[
-        Patcher(target=GET_CLIENT_BY_USER,
-                return_value=SEND_MSG_SUCCESS_CLIENT),
-    ],
+    patchers=[Patcher(target=GET_CLIENT_BY_USER, return_value=SEND_MSG_SUCCESS_CLIENT)],
 )
 
 
@@ -188,39 +185,74 @@ SEND_MSG_SUCCESS_RECEIVER_ORDER_CASE = ComponentTestCase(
     inputs={
         "biz_cc_id": 2,
         "bk_notify_type": ["mail", "weixin"],
-        "bk_receiver_info": {
-            "bk_receiver_group": [],
-            "bk_more_receiver": "c,a,b",
-        },
+        "bk_receiver_info": {"bk_receiver_group": [], "bk_more_receiver": "c,a,b"},
         "notify": True,
         "bk_notify_title": "title",
-        "bk_notify_content": "content"
+        "bk_notify_content": "content",
     },
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(success=True,
-                                       outputs={}),
+    execute_assertion=ExecuteAssertion(success=True, outputs={}),
     execute_call_assertion=[
         CallAssertion(
             func=SEND_MSG_SUCCESS_CLIENT.cmsi.send_msg,
             calls=[
-                Call({
-                    "receiver__username": "c,a,b,tester",
-                    "title": "title",
-                    "content": "<pre>content</pre>",
-                    "msg_type": "mail"
-                }),
-                Call({
-                    "receiver__username": "c,a,b,tester",
-                    "title": "title",
-                    "content": "content",
-                    "msg_type": "weixin"
-                })
+                Call(
+                    {
+                        "receiver__username": "tester,c,a,b",
+                        "title": "title",
+                        "content": "<pre>content</pre>",
+                        "msg_type": "mail",
+                    }
+                ),
+                Call(
+                    {"receiver__username": "tester,c,a,b", "title": "title", "content": "content", "msg_type": "weixin"}
+                ),
             ],
         )
     ],
     schedule_assertion=None,
+    patchers=[Patcher(target=GET_CLIENT_BY_USER, return_value=SEND_MSG_SUCCESS_CLIENT)],
+)
+
+
+SEND_MSG_SUCCESS_WITH_STAFF_GROUP_CASE = ComponentTestCase(
+    name="send msg success with staff group case",
+    inputs={
+        "biz_cc_id": 2,
+        "bk_notify_type": ["mail", "weixin"],
+        "bk_receiver_info": {"bk_receiver_group": [], "bk_staff_group": [1, 2], "bk_more_receiver": "c,a,b"},
+        "notify": True,
+        "bk_notify_title": "title",
+        "bk_notify_content": "content",
+    },
+    parent_data=COMMON_PARENT,
+    execute_assertion=ExecuteAssertion(success=True, outputs={}),
+    execute_call_assertion=[
+        CallAssertion(
+            func=SEND_MSG_SUCCESS_CLIENT.cmsi.send_msg,
+            calls=[
+                Call(
+                    {
+                        "receiver__username": "tester,c,a,b,sg_a,sg_b",
+                        "title": "title",
+                        "content": "<pre>content</pre>",
+                        "msg_type": "mail",
+                    }
+                ),
+                Call(
+                    {
+                        "receiver__username": "tester,c,a,b,sg_a,sg_b",
+                        "title": "title",
+                        "content": "content",
+                        "msg_type": "weixin",
+                    }
+                ),
+            ],
+        ),
+    ],
+    schedule_assertion=None,
     patchers=[
-        Patcher(target=GET_CLIENT_BY_USER,
-                return_value=SEND_MSG_SUCCESS_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=SEND_MSG_SUCCESS_CLIENT),
+        Patcher(target=GET_MEMBERS_WITH_GROUP_IDS, return_value=["sg_a", "sg_b"]),
     ],
 )

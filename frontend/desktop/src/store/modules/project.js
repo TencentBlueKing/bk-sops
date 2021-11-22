@@ -51,10 +51,14 @@ const project = {
             return axios.post(`core/api/change_default_project/${id}/`).then(response => response.data)
         },
         // 加载用户有权限的项目列表
-        loadUserProjectList ({ commit }, params) {
+        loadUserProjectList ({ state, commit }, params) {
             return axios.get(`api/v3/user_project/`, { params }).then((response) => {
                 if (params.limit === 0) { // 拉全量项目时更新项目列表，区分项目管理页面的分页数据
                     commit('setUserProjectList', response.data.objects)
+                    if (!state.project_id && state.userProjectList.length) {
+                        const projectId = state.userProjectList[0].id
+                        commit('setProjectId', projectId)
+                    }
                 }
                 return response.data
             })

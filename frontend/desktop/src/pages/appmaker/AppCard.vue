@@ -224,6 +224,7 @@
                             extra_info: {
                                 app_id: data.id,
                                 project_id: data.project.id,
+                                project_name: data.project.name,
                                 template_id: data.template_id,
                                 name: data.name,
                                 id: data.id

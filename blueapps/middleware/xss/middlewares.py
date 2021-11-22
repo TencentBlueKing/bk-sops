@@ -37,7 +37,9 @@ class CheckXssMiddleware(MiddlewareMixin):
 
             # 获取豁免参数名
             self.__escape_param_list = (
-                getattr(view, "escape_exempt_param", []) if getattr(view, "escape_exempt_param", False) else []
+                getattr(view, "escape_exempt_param", [])
+                if getattr(view, "escape_exempt_param", False)
+                else []
             )
 
             escape_type = None

@@ -21,37 +21,35 @@ class CollectionsSOPS(object):
         self.client = client
 
         self.create_task = ComponentAPI(
-            client=self.client, method='POST',
-            path='/api/c/compapi{bk_api_ver}/sops/create_task/',
-            description='创建任务'
+            client=self.client, method="POST", path="/api/c/compapi{bk_api_ver}/sops/create_task/", description="创建任务"
         )
         self.get_task_status = ComponentAPI(
-            client=self.client, method='GET',
-            path='/api/c/compapi{bk_api_ver}/sops/get_task_status/',
-            description='查询任务或节点状态'
+            client=self.client,
+            method="GET",
+            path="/api/c/compapi{bk_api_ver}/sops/get_task_status/",
+            description="查询任务或节点状态",
         )
         self.get_template_info = ComponentAPI(
-            client=self.client, method='GET',
-            path='/api/c/compapi{bk_api_ver}/sops/get_template_info/',
-            description='查询单个模板详情'
+            client=self.client,
+            method="GET",
+            path="/api/c/compapi{bk_api_ver}/sops/get_template_info/",
+            description="查询单个模板详情",
         )
         self.get_template_list = ComponentAPI(
-            client=self.client, method='GET',
-            path='/api/c/compapi{bk_api_ver}/sops/get_template_list/',
-            description='查询模板列表'
+            client=self.client,
+            method="GET",
+            path="/api/c/compapi{bk_api_ver}/sops/get_template_list/",
+            description="查询模板列表",
         )
         self.operate_task = ComponentAPI(
-            client=self.client, method='POST',
-            path='/api/c/compapi{bk_api_ver}/sops/operate_task/',
-            description='操作任务'
+            client=self.client, method="POST", path="/api/c/compapi{bk_api_ver}/sops/operate_task/", description="操作任务"
         )
         self.query_task_count = ComponentAPI(
-            client=self.client, method='POST',
-            path='/api/c/compapi{bk_api_ver}/sops/query_task_count/',
-            description='查询任务分类统计'
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/sops/query_task_count/",
+            description="查询任务分类统计",
         )
         self.start_task = ComponentAPI(
-            client=self.client, method='POST',
-            path='/api/c/compapi{bk_api_ver}/sops/start_task/',
-            description='开始任务'
+            client=self.client, method="POST", path="/api/c/compapi{bk_api_ver}/sops/start_task/", description="开始任务"
         )

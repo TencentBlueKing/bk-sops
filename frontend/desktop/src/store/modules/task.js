@@ -94,6 +94,52 @@ const task = {
             return axios.post('api/v3/scheme/batch_operate/', params).then(response => response.data)
         },
         /**
+         * 获取默认执行方案列表
+         * @param {String} payload 方案参数
+         */
+        getDefaultTaskScheme ({ commit }, payload) {
+            const { project_id, template_id } = payload
+            const params = {
+                template_id,
+                project_id
+            }
+            return axios.get('template/api/default_scheme/', { params }).then(response => response.data)
+        },
+        /**
+         * 保存默认执行方案列表
+         * @param {String} payload 方案参数
+         */
+        saveDefaultScheme ({ commit }, payload) {
+            const { project_id, template_id, scheme_ids } = payload
+            const params = {
+                template_id,
+                project_id,
+                scheme_ids
+            }
+            return axios.post('template/api/default_scheme/', params).then(response => response.data)
+        },
+        /**
+         * 更新默认执行方案列表
+         * @param {String} payload 方案参数
+         */
+        updateDefaultScheme ({ commit }, payload) {
+            const { project_id, template_id, scheme_ids, id } = payload
+            const params = {
+                template_id,
+                project_id,
+                scheme_ids
+            }
+            return axios.put(`template/api/default_scheme/${id}/`, params).then(response => response.data)
+        },
+        /**
+         * 删除默认执行方案列表
+         * @param {String} payload 方案参数
+         */
+        deleteDefaultScheme ({ commit }, payload) {
+            const { id } = payload
+            return axios.delete(`template/api/default_scheme/${id}/`).then(response => response.data)
+        },
+        /**
          * 获取任务节点预览数据
          * @param {Object} payload 筛选条件
          */
@@ -294,6 +340,14 @@ const task = {
                     instance_id
                 }
             }).then(response => response.data)
+        },
+        /**
+         * 获取任务所有全局变量当前渲染后的值
+         * @param {Object} data 节点配置数据
+         */
+        getRenderCurConstants ({ commit }, data) {
+            const { task_id } = data
+            return axios.get(`taskflow/api/render_current_constants/${task_id}/`).then(response => response.data)
         },
         /**
          * 获取模版操作记录

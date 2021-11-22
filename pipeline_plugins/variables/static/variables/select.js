@@ -68,7 +68,7 @@
                         attrs: {
                             name: gettext("默认值"),
                             placeholder: gettext("请输入下拉框的默认值，单选为 value 的格式，多选为 value,value,... 的格式"),
-                            hookable: true,
+                            hookable: true
                         }
                     }
                 ]
@@ -118,6 +118,7 @@
                     attrs: {
                         name: gettext("下拉框"),
                         hookable: true,
+                        allowCreate: true,
                         items: items,
                         multiple: multiple,
                         value: default_val,

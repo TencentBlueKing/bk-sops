@@ -48,11 +48,15 @@ def common_process_request(request, manager):
         return response
 
     shims = "plugins_upload/job_push_local_files/{}".format(project_id)
+    kwargs = {
+        "project_id": int(project_id),
+        "username": request.user.username,
+    }
 
     file_md5 = hashlib.md5(file_obj.read()).hexdigest()
 
     try:
-        file_tag = manager.save(name=file_name, content=file_obj, shims=shims)
+        file_tag = manager.save(name=file_name, content=file_obj, shims=shims, **kwargs)
     except Exception:
         logger.error("file upload save err: {}".format(traceback.format_exc()))
         response = JsonResponse({"result": False, "message": _("文件上传归档失败，请联系管理员")})

@@ -17,11 +17,7 @@
             attrs: {
                 name: gettext("文本框"),
                 hookable: true,
-                validation: [
-                    {
-                        type: "required"
-                    }
-                ]
+                validation: []
             }
         },
     ]

@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from packages.blueking.component.base import ComponentAPI
+from ..base import ComponentAPI
 
 
 class CollectionsMonitor(object):
@@ -21,17 +21,17 @@ class CollectionsMonitor(object):
         self.client = client
 
         self.query_strategy = ComponentAPI(
-            client=self.client, method='POST',
-            path='/api/c/compapi/v2/monitor_v3/search_alarm_strategy/',
-            description=u'查询策略'
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi/v2/monitor_v3/search_alarm_strategy/",
+            description=u"查询策略",
         )
         self.create_shield = ComponentAPI(
-            client=self.client, method='POST',
-            path='/api/c/compapi/v2/monitor_v3/add_shield/',
-            description=u'创建告警屏蔽'
+            client=self.client, method="POST", path="/api/c/compapi/v2/monitor_v3/add_shield/", description=u"创建告警屏蔽"
         )
         self.disable_shield = ComponentAPI(
-            client=self.client, method='POST',
-            path='/api/c/compapi/v2/monitor_v3/disable_shield/',
-            description=u'解除告警屏蔽'
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi/v2/monitor_v3/disable_shield/",
+            description=u"解除告警屏蔽",
         )

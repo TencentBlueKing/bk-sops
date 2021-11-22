@@ -44,8 +44,16 @@ class AppExceptionMiddleware(MiddlewareMixin):
         if isinstance(exception, BlueException):
             logger.log(
                 exception.LOG_LEVEL,
-                (u"""捕获主动抛出异常, 具体异常堆栈->[%s] status_code->[%s] & """ u"""client_message->[%s] & args->[%s] """)
-                % (traceback.format_exc(), exception.ERROR_CODE, exception.message, exception.args,),
+                (
+                    u"""捕获主动抛出异常, 具体异常堆栈->[%s] status_code->[%s] & """
+                    u"""client_message->[%s] & args->[%s] """
+                )
+                % (
+                    traceback.format_exc(),
+                    exception.ERROR_CODE,
+                    exception.message,
+                    exception.args,
+                ),
             )
 
             response = JsonResponse(exception.response_data())
@@ -71,7 +79,14 @@ class AppExceptionMiddleware(MiddlewareMixin):
             if check_function():
                 return None
 
-        response = JsonResponse({"result": False, "code": "50000", "message": _(u"系统异常,请联系管理员处理"), "data": None,})
+        response = JsonResponse(
+            {
+                "result": False,
+                "code": "50000",
+                "message": _(u"系统异常,请联系管理员处理"),
+                "data": None,
+            }
+        )
         response.status_code = 500
 
         # notify sentry
@@ -82,7 +97,11 @@ class AppExceptionMiddleware(MiddlewareMixin):
 
     def get_check_functions(self):
         """获取需要判断的函数列表"""
-        return [getattr(self, func) for func in dir(self) if func.startswith("check") and callable(getattr(self, func))]
+        return [
+            getattr(self, func)
+            for func in dir(self)
+            if func.startswith("check") and callable(getattr(self, func))
+        ]
 
     def check_is_debug(self):
         """判断是否是开发模式"""

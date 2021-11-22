@@ -79,9 +79,25 @@
                 view_mode: state => state.view_mode
             }),
             ...mapState('project', {
-                'project_id': state => state.project_id
+                'project_id': state => state.project_id,
+                'projectList': state => state.userProjectList
             }),
+            commonRouteList () {
+                if (!this.project_id && !this.projectList.length) {
+                    const commonRouteList = tools.deepClone(COMMON_ROUTE_LIST)
+                    return commonRouteList.map(group => {
+                        return group.map(item => {
+                            if (item.hasProjectId) {
+                                item.url = '/guide'
+                            }
+                            return item
+                        })
+                    })
+                }
+                return COMMON_ROUTE_LIST
+            },
             routerList () {
+                const commonRouteList = this.commonRouteList || COMMON_ROUTE_LIST
                 if (this.view_mode === 'appmaker') {
                     return APPMAKER_ROUTE_LIST
                 } else if (this.hasAdminPerm) {
@@ -90,9 +106,9 @@
                         // 暂时用写死的方式去掉管理员入口导航的运营数据
                         adminRouteList[0][0].children = adminRouteList[0][0].children.filter(item => item.id !== 'operation')
                     }
-                    return COMMON_ROUTE_LIST.concat(adminRouteList)
+                    return commonRouteList.concat(adminRouteList)
                 }
-                return COMMON_ROUTE_LIST
+                return commonRouteList
             }
         },
         watch: {

@@ -118,3 +118,20 @@ class TaskflowStatistics(models.Model):
 
     def __unicode__(self):
         return "{}_{}_{}_{}".format(self.instance_id, self.atom_total, self.subprocess_total, self.gateways_total)
+
+
+class ProjectStatisticsDimension(models.Model):
+    dimension_id = models.CharField(verbose_name="统计维度id(cmdb业务模型属性id)", max_length=32, null=False)
+    dimension_name = models.CharField(verbose_name="统计维度名称(cmdb业务模型属性名称)", max_length=32, null=False)
+
+    class Meta:
+        verbose_name = _("业务统计数据维度")
+        verbose_name_plural = _("业务统计数据维度")
+
+
+class TaskTmplExecuteTopN(models.Model):
+    topn = models.IntegerField(verbose_name="流程执行次数topn")
+
+    class Meta:
+        verbose_name = _("流程执行次数topn统计面板配置")
+        verbose_name_plural = _("流程执行次数topn统计面板配置")
