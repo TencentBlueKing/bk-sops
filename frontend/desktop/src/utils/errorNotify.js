@@ -1,18 +1,18 @@
 // 接口异常通知提示，出现在页面右上角，10s后自动关闭，鼠标hover时暂停计时
 export default class ErrorNotify {
-    constructor (msg, vueInstance) {
+    constructor (msg, type = 'error', traceId, vueInstance) {
         this.notify = vueInstance.$bkNotify({
-            title: '',
-            theme: 'error',
+            theme: type,
             offsetY: 80,
             limit: 5,
             limitLine: 0,
             delay: 0,
+            title: traceId ? `trace_id: ${traceId}` : '',
             message: msg
         })
 
         // 内容区域及进度条样式处理
-        this.notify.$el.style.width = '560px'
+        this.notify.$el.style.width = '580px'
         this.notify.$el.querySelector('.bk-notify-content-text').style.cssText = 'max-height: 140px; overflow: auto;'
         const progressWrap = document.createElement('div')
         const bar = document.createElement('div')

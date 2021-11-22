@@ -128,7 +128,6 @@
     import { uuid } from '@/utils/uuid.js'
     import tools from '@/utils/tools.js'
     import { mapState, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
     import bus from '@/utils/bus.js'
@@ -302,7 +301,7 @@
                     this.$emit('setDefaultScheme', defaultObj)
                     this.$emit('setDefaultSelected', Boolean(this.defaultSchemeId))
                 } catch (error) {
-                    errorHandler(error, this)
+                    console.error(error)
                 }
             },
             // 获取默认方案列表
@@ -321,7 +320,9 @@
                         this.isUpdate = false
                     }
                 } catch (error) {
-                    errorHandler(error, this)
+                    console.error(error)
+                } finally {
+                    this.isSchemeLoading = false
                 }
             },
             /**
@@ -476,9 +477,12 @@
                     })
                     return
                 }
-                const isschemeNameExist = this.schemeList.some(item => item.name === this.schemeName)
-                if (isschemeNameExist) {
-                    errorHandler({ message: i18n.t('方案名称已存在') }, this)
+                const isschemaNameExist = this.schemaList.some(item => item.name === this.schemaName)
+                if (isschemaNameExist) {
+                    this.$bkMessage({
+                        message: i18n.t('方案名称已存在'),
+                        theme: 'warning'
+                    })
                     return
                 }
                 this.$validator.validateAll().then(async (result) => {

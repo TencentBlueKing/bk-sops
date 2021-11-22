@@ -37,7 +37,10 @@ axios.interceptors.response.use(
     response => {
         if (response.data.hasOwnProperty('result')) {
             if (!response.data.result) {
-                const info = Object.assign({}, response.data, { theme: 'error', lines: 2 })
+                const info = {
+                    message: response.data,
+                    traceId: response.headers['sops-trace-id']
+                }
                 bus.$emit('showErrMessage', info)
             }
         }
@@ -62,7 +65,11 @@ axios.interceptors.response.use(
         switch (response.status) {
             case 400:
                 const msg = response.data.error || response.data.msg || response.data.msg.error
-                bus.$emit('showErrMessage', msg)
+                const errorInfo = {
+                    traceId: response.headers['sops-trace-id'],
+                    message: msg
+                }
+                bus.$emit('showErrMessage', errorInfo)
                 break
             case 401:
                 const data = response.data
@@ -71,9 +78,6 @@ axios.interceptors.response.use(
                     topWindow.BLUEKING.corefunc.open_login_dialog(data.login_url, data.width, data.height, response.config.method)
                 }
                 break
-            case 403:
-            case 405:
-            case 406:
             case 499:
                 const permissions = response.data.permission
                 let isViewApply = false
