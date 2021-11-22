@@ -197,6 +197,13 @@
                                     attrs: {
                                         name: gettext("目标路径"),
                                     }
+                                },
+                                {
+                                    tag_code: "md5",
+                                    type: "text",
+                                    attrs: {
+                                        name: gettext("文件MD5"),
+                                    }
                                 }
                             ],
                         }
