@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 import re
 import logging
 import traceback
+import hashlib
 
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
@@ -52,6 +53,9 @@ def common_process_request(request, manager):
         "username": request.user.username,
     }
 
+    # 计算文件md5
+    file_local_md5 = hashlib.md5(file_obj.read()).hexdigest()
+
     try:
         file_tag = manager.save(name=file_name, content=file_obj, shims=shims, **kwargs)
     except Exception:
@@ -60,4 +64,4 @@ def common_process_request(request, manager):
         response.status_code = 500
         return response
 
-    return JsonResponse({"result": True, "tag": file_tag})
+    return JsonResponse({"result": True, "tag": file_tag, "md5": file_local_md5})
