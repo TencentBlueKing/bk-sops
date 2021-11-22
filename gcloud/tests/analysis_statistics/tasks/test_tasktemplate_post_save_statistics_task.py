@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
+from pipeline.models import PipelineTemplate
+
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 from gcloud.tests.test_data import *  # noqa
@@ -53,6 +55,7 @@ class TestTaskTemplatePostSaveStatisticsTask(TestCase):
     def test_task_success_case(self):
         result = tasktemplate_post_save_statistics_task(TEST_TASK_INSTANCE_ID)
         TaskTemplate.objects.get.assert_called_once_with(id=TEST_TASK_INSTANCE_ID)
+        PipelineTemplate.objects.filter.assert_called_once_with(template_id=TEST_ID_LIST[5])
         TemplateNodeStatistics.objects.filter.assert_called_with(template_id=tasktmpl.id)
         TemplateStatistics.objects.update_or_create.assert_called_once_with(
             task_template_id=tasktmpl.id,

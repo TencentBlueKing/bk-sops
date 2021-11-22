@@ -215,9 +215,7 @@ def tasktemplate_post_save_statistics_task(template_id):
                 template_id = PipelineTemplate.objects.filter(template_id=act["template_id"]).values("id")[0]["id"]
             except Exception:
                 logger.exception(
-                    "[tasktemplate_post_save_statistics_task]template_id={}的流程保存运营数据失败,子流程数据缺少template_id。".format(
-                        template.id
-                    )
+                    "[tasktemplate_post_save_statistics_task]template_id={}的流程保存运营数据失败".format(template.id)
                 )
                 return False
             components = TemplateNodeStatistics.objects.filter(template_id=template_id).values(
