@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import datetime
+import os
 import re
 import logging
 
@@ -54,7 +55,7 @@ class PauseService(Service):
                 name=_("API回调数据"),
                 key="callback_data",
                 type="object",
-                schema=ObjectItemSchema(description=_("通过node_callback API接口回调并传入数据,支持dict数据"), property_schemas={},),
+                schema=ObjectItemSchema(description=_("通过node_callback API接口回调并传入数据,支持dict数据"), property_schemas={}, ),
             ),
         ]
 
@@ -70,6 +71,7 @@ class PauseComponent(Component):
 class SleepTimerService(Service):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(0)
+    BK_TIMEMING_TICK_INTERVAL = int(os.getenv("BK_TIMEMING_TICK_INTERVAL", 60 * 60 * 24))
     #  匹配年月日 时分秒 正则 yyyy-MM-dd HH:mm:ss
     date_regex = re.compile(
         r"%s %s"
@@ -82,7 +84,7 @@ class SleepTimerService(Service):
         )
     )
 
-    seconds_regex = re.compile(r"^\d{1,8}$")
+    seconds_regex = re.compile(r"^\d+$")
 
     def inputs_format(self):
         return [
@@ -130,7 +132,7 @@ class SleepTimerService(Service):
             data.set_outputs("ex_data", message)
             return False
 
-        self.logger.info("wake time: {}".format(eta))
+        self.logger.info("planning time: {}".format(eta))
         data.outputs.timing_time = eta
 
         return True
@@ -144,9 +146,18 @@ class SleepTimerService(Service):
         if t_delta.total_seconds() < 1:
             self.finish_schedule()
 
+        # 如果定时时间距离当前时间的时长大于唤醒消息的有效期，则设置下一次唤醒时间为消息有效期之内的时长
+        # 避免唤醒消息超过消息的有效期被清除，导致定时节点永远不会被唤醒
+        if t_delta.total_seconds() > self.BK_TIMEMING_TICK_INTERVAL > 60 * 5:
+            self.interval.interval = self.BK_TIMEMING_TICK_INTERVAL - 60 * 5
+            wake_time = now + datetime.timedelta(seconds=self.interval.interval)
+            self.logger.info("wake time: {}".format(wake_time))
+
+            return True
+
         # 这里减去 0.5s 的目的是尽可能的减去 execute 执行带来的误差
         self.interval.interval = t_delta.total_seconds() - 0.5
-
+        self.logger.info("wake time: {}".format(timing_time))
         return True
 
 
@@ -155,4 +166,3 @@ class SleepTimerComponent(Component):
     code = "sleep_timer"
     bound_service = SleepTimerService
     form = settings.STATIC_URL + "components/atoms/bk/timer.js"
-    desc = _("最长定时时间受到环境配置影响，具体时长请咨询系统管理员")

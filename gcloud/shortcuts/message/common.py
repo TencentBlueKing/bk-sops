@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from django.utils.translation import ugettext as _
 
+from gcloud.core.models import Project
+
 
 def title_and_content_for_atom_failed(taskflow, pipeline_inst, node_name, executor):
     title = _("【标准运维APP通知】执行失败")
@@ -47,5 +49,18 @@ def title_and_content_for_periodic_task_start_fail(periodic_task, history):
         start_time=history.start_at,
         task_name=periodic_task.name,
         ex_data=history.ex_data,
+    )
+    return title, content
+
+
+def title_and_content_for_clocked_task_create_fail(clocked_task, ex_data):
+    try:
+        proj = Project.objects.get(id=clocked_task.project_id)
+        cc_name = proj.name
+    except Exception:
+        cc_name = clocked_task.project_id
+    title = _("【标准运维APP通知】计划任务创建失败")
+    content = _("您在【{cc_name}】业务中的计划任务【{task_name}】于{plan_start_time}创建失败，" "错误信息：【{ex_data}】").format(
+        cc_name=cc_name, task_name=clocked_task.task_name, plan_start_time=clocked_task.plan_start_time, ex_data=ex_data
     )
     return title, content

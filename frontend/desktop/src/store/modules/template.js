@@ -442,9 +442,12 @@ const template = {
         },
         // 配置分支网关条件
         setBranchCondition (state, condition) {
-            const { id, nodeId, name, value } = condition
+            const { id, nodeId, name, value, loc } = condition
             state.gateways[nodeId].conditions[id].name = name
             state.gateways[nodeId].conditions[id].evaluate = value
+            if (loc !== undefined) {
+                state.gateways[nodeId].conditions[id].loc = loc
+            }
         },
         // 节点增加、删除、编辑、复制,操作，数据更新
         setLocation (state, payload) {

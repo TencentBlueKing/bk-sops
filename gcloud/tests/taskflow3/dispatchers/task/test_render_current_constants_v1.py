@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
+from pipeline.core.data.var import Variable
 from gcloud import err_code
 from gcloud.taskflow3.domains.dispatchers.task import TaskCommandDispatcher
 from gcloud.taskflow3.domains.context import TaskContext
@@ -64,6 +65,7 @@ class RenderCurrentConstantsV1TestCase(TestCase):
         )
 
     def test_normal(self):
+        self.maxDiff = None
         pipeline_instance = MagicMock()
         pipeline_instance.is_started = True
         pipeline_instance.is_finished = False
@@ -71,29 +73,31 @@ class RenderCurrentConstantsV1TestCase(TestCase):
         pipeline_instance.instance_id = "instance_id_token"
         pipeline_model = MagicMock()
 
+        class VariableMagicMock(MagicMock, Variable):
+            pass
+
         class TestTaskContext(TaskContext):
             def __init__(self):
                 self.value = "TestTaskContext"
 
-        class TestValueVar:
+        class TestValueVar(Variable):
             def __init__(self, value):
                 self.value = value
 
-        var1 = TestTaskContext()
+        var1 = TestValueVar(value=TestTaskContext())
 
-        var2 = MagicMock()
+        var2 = VariableMagicMock()
         var2.get = MagicMock(return_value="val2")
 
-        var3 = TestValueVar("val3")
-
-        var4 = MagicMock()
+        var4 = VariableMagicMock()
         var4.get = MagicMock(side_effect=Exception)
 
         pipeline_model.process.root_pipeline.context.variables = {
             "k1": var1,
             "k2": var2,
-            "k3": var3,
             "k4": var4,
+            "k5": "v5",
+            "k6": 6,
         }
 
         pipeline_model_cls = MagicMock()
@@ -111,10 +115,11 @@ class RenderCurrentConstantsV1TestCase(TestCase):
             {
                 "result": True,
                 "data": [
-                    {"key": "k1", "value": "TestTaskContext"},
+                    {"key": "k1", "value": {"value": "TestTaskContext"}},
                     {"key": "k2", "value": "val2"},
-                    {"key": "k3", "value": "val3"},
                     {"key": "k4", "value": "[ERROR]value resolve error"},
+                    {"key": "k5", "value": "v5"},
+                    {"key": "k6", "value": 6},
                 ],
                 "code": err_code.SUCCESS.code,
                 "message": "",

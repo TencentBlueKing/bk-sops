@@ -36,6 +36,7 @@ class NodemanCreateTaskComponentTest(TestCase, ComponentTestMixin):
             OPERATE_FAIL_CASE,
             REMOVE_SUCCESS_CASE,
             CHOOSABLE_PARAMS_CASE,
+            INSTALL_SUCCESS_CASE_WITH_TTJ
         ]
 
     def component_cls(self):
@@ -44,7 +45,8 @@ class NodemanCreateTaskComponentTest(TestCase, ComponentTestMixin):
 
 class MockClient(object):
     def __init__(
-        self, install_return=None, operate_return=None, remove_host=None, details_return=None, get_job_log_return=None
+            self, install_return=None, operate_return=None, remove_host=None, details_return=None,
+            get_job_log_return=None
     ):
         self.name = "name"
         self.job_install = MagicMock(return_value=install_return)
@@ -202,7 +204,7 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
+        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})], ),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
@@ -323,7 +325,7 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
+        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})], ),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
@@ -403,7 +405,7 @@ INSTALL_FAIL_CASE = ComponentTestCase(
         },
     ),
     schedule_call_assertion=[
-        CallAssertion(func=DETAILS_FAIL_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
+        CallAssertion(func=DETAILS_FAIL_CLIENT.job_details, calls=[Call(**{"job_id": "1"})], ),
         CallAssertion(
             func=DETAILS_FAIL_CLIENT.get_job_log,
             calls=[Call(**{"job_id": "1", "instance_id": "host|instance|host|1.1.1.1-0-0"})],
@@ -444,7 +446,7 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
+        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})], ),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
@@ -654,5 +656,82 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
         Patcher(
             target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1, "2.2.2.2": 1, "127.0.0.1": 1, "127.0.0.2": 1},
         ),
+    ],
+)
+
+INSTALL_SUCCESS_CASE_WITH_TTJ = ComponentTestCase(
+    name="nodeman v2.0 install task with tjj success case",
+    inputs={
+        "bk_biz_id": "1",
+        "nodeman_op_target": {"nodeman_bk_cloud_id": "1", "nodeman_node_type": "AGENT"},
+        "nodeman_ticket": {
+            "nodeman_tjj_ticket": "xxxxx"
+        },
+        "nodeman_op_info": {
+            "nodeman_ap_id": "1",
+            "nodeman_op_type": "INSTALL",
+            "nodeman_ip_str": "",
+            "nodeman_hosts": [
+                {
+                    "bk_biz_id": "1",
+                    "bk_cloud_id": "1",
+                    "inner_ip": "1.1.1.1",
+                    "os_type": "LINUX",
+                    "port": "22",
+                    "account": "test",
+                    "auth_type": "PASSWORD",
+                    "auth_key": "123",
+                    "outer_ip": "1.1.1.1",
+                    "login_ip": "1.1.1.1",
+                    "data_ip": "1.1.1.1",
+                }
+            ],
+        },
+    },
+    parent_data={"executor": "tester"},
+    execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
+    schedule_assertion=ScheduleAssertion(
+        success=True,
+        callback_data=None,
+        schedule_finished=True,
+        outputs={"fail_num": 0, "job_id": "1", "success_num": 1},
+    ),
+    execute_call_assertion=[
+        CallAssertion(
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_install,
+            calls=[
+                Call(
+                    **{
+                        "job_type": "INSTALL_AGENT",
+                        "hosts": [
+                            {
+                                "bk_biz_id": "1",
+                                "bk_cloud_id": "1",
+                                "inner_ip": "1.1.1.1",
+                                "os_type": "LINUX",
+                                "port": "22",
+                                "account": "test",
+                                "auth_type": "PASSWORD",
+                                "ap_id": "1",
+                                "is_manual": False,  # 不手动操作
+                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "password": "123",
+                                "outer_ip": "1.1.1.1",
+                                "login_ip": "1.1.1.1",
+                                "data_ip": "1.1.1.1",
+                            }
+                        ],
+                        "tcoa_ticket": 'xxxxx'
+                    }
+                )
+            ],
+        ),
+    ],
+    schedule_call_assertion=[
+        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})], ),
+    ],
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
+        Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
     ],
 )

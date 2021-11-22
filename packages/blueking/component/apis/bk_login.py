@@ -21,37 +21,41 @@ class CollectionsBkLogin(object):
         self.client = client
 
         self.get_all_users = ComponentAPI(
-            client=self.client, method='GET',
-            path='/api/c/compapi{bk_api_ver}/bk_login/get_all_users/',
-            description='获取所有用户信息'
+            client=self.client,
+            method="GET",
+            path="/api/c/compapi{bk_api_ver}/bk_login/get_all_users/",
+            description="获取所有用户信息",
         )
         self.get_batch_users = ComponentAPI(
-            client=self.client, method='POST',
-            path='/api/c/compapi{bk_api_ver}/bk_login/get_batch_users/',
-            description='批量获取用户信息'
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/bk_login/get_batch_users/",
+            description="批量获取用户信息",
         )
         self.get_batch_users_platform_role = ComponentAPI(
-            client=self.client, method='POST',
-            path='/api/c/compapi{bk_api_ver}/bk_login/get_batch_users_platform_role/',
-            description='批量获取用户各平台角色信息'
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/bk_login/get_batch_users_platform_role/",
+            description="批量获取用户各平台角色信息",
         )
         self.get_user = ComponentAPI(
-            client=self.client, method='GET',
-            path='/api/c/compapi{bk_api_ver}/bk_login/get_user/',
-            description='获取用户信息'
+            client=self.client, method="GET", path="/api/c/compapi{bk_api_ver}/bk_login/get_user/", description="获取用户信息"
         )
         self.get_all_user = ComponentAPI(
-            client=self.client, method='GET',
-            path='/api/c/compapi{bk_api_ver}/bk_login/get_all_user/',
-            description='获取所有用户信息'
+            client=self.client,
+            method="GET",
+            path="/api/c/compapi{bk_api_ver}/bk_login/get_all_user/",
+            description="获取所有用户信息",
         )
         self.get_batch_user = ComponentAPI(
-            client=self.client, method='GET',
-            path='/api/c/compapi{bk_api_ver}/bk_login/get_batch_user/',
-            description='获取多个用户信息'
+            client=self.client,
+            method="GET",
+            path="/api/c/compapi{bk_api_ver}/bk_login/get_batch_user/",
+            description="获取多个用户信息",
         )
         self.get_batch_user_platform_role = ComponentAPI(
-            client=self.client, method='GET',
-            path='/api/c/compapi{bk_api_ver}/bk_login/get_batch_user_platform_role/',
-            description='获取多个用户在平台应用的角色'
+            client=self.client,
+            method="GET",
+            path="/api/c/compapi{bk_api_ver}/bk_login/get_batch_user_platform_role/",
+            description="获取多个用户在平台应用的角色",
         )

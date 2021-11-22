@@ -662,6 +662,7 @@
                         const res = await this.addToCollectList([{
                             extra_info: {
                                 project_id: task.project.id,
+                                project_name: task.project.name,
                                 template_id: task.template_id,
                                 name: task.name,
                                 id: task.id

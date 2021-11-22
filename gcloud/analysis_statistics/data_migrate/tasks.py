@@ -332,6 +332,12 @@ def migrate_component_execute_data(start, end):
     return True
 
 
+def format_process(process_num):
+    if process_num > 100:
+        return 100
+    return process_num
+
+
 @periodic_task(run_every=TzAwareCrontab(minute="*/2"))
 def migrate_schedule():
     logger.info("[migrate_schedule] start the statistics migrate schedule ·········")
@@ -419,16 +425,16 @@ def migrate_schedule():
     )
 
     # 计算各表迁移进度百分比
-    template_migrate_process = (
+    template_migrate_process = format_process(
         round(migrate_log.template_in_pipeline_migrated / migrate_log.template_in_pipeline_count, 2) * 100
     )
-    component_migrate_process = (
+    component_migrate_process = format_process(
         round(migrate_log.component_in_template_migrated / migrate_log.component_in_template_count, 2) * 100
     )
-    instance_migrate_process = (
+    instance_migrate_process = format_process(
         round(migrate_log.instance_in_pipeline_migrated / migrate_log.instance_in_pipeline_count, 2) * 100
     )
-    component_execute_migrate_process = (
+    component_execute_migrate_process = format_process(
         round(migrate_log.component_execute_data_migrated / migrate_log.component_execute_data_count, 2) * 100
     )
     logger.info(

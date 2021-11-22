@@ -333,6 +333,11 @@ class ProjectConfigManager(models.Manager):
         return executor_proxy
 
 
+class StaffGroupSetManager(models.Manager):
+    def get_members_with_group_ids(self, group_ids):
+        return list(self.filter(id__in=group_ids, is_deleted=False).values_list("members", flat=True))
+
+
 class StaffGroupSet(models.Model):
     """
     人员分组设置
@@ -342,6 +347,8 @@ class StaffGroupSet(models.Model):
     name = models.CharField(_("分组名称"), max_length=255)
     members = models.TextField(_("分组成员"), default="", help_text=_("多个成员以英文,分隔"), null=True, blank=True)
     is_deleted = models.BooleanField(_("是否已删除"), default=False)
+
+    objects = StaffGroupSetManager()
 
     class Meta:
         verbose_name = _("人员分组设置 StaffGroupSet")

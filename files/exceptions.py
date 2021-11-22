@@ -18,3 +18,7 @@ class FilesError(Exception):
 
 class InvalidOperationError(FilesError):
     pass
+
+
+class ApiResultError(FilesError):
+    pass

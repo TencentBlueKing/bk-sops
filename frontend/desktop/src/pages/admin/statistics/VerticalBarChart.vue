@@ -308,6 +308,7 @@
         border-radius: 2px;
         box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.06);
         overflow: hidden;
+        margin-bottom: 20px;
         .chart-title {
             margin: 0;
             font-size: 14px;
