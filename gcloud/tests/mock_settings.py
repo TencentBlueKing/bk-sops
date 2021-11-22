@@ -167,6 +167,7 @@ COUNT_PIPELINE_TREE_NODES = "pipeline.contrib.statistics.utils.count_pipeline_tr
 PIPELINE_INSTANCE_GET = "pipeline.models.PipelineInstance.objects.get"
 PIPELINE_INSTANCE_FILTER = "pipeline.models.PipelineInstance.objects.filter"
 PIPELINE_TEMPLATE_GET = "pipeline.models.PipelineTemplate.objects.get"
+PIPELINE_TEMPLATE_FILTER = "pipeline.models.PipelineTemplate.objects.filter"
 TEMPLATE_BASE_MODELS_TEMPLATE_RELATIONSHIP = "gcloud.template_base.models.TemplateRelationship"
 TEMPLATE_BASE_MODELS_TEMPLATE_CURRENT_VERSION = "gcloud.template_base.models.TemplateCurrentVersion"
 TEMPLATE_BASE_MODELS_TEMPLATE_RELATIONSHIP = "gcloud.template_base.models.TemplateRelationship"

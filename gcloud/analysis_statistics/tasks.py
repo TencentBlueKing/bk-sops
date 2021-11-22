@@ -23,6 +23,7 @@ from bamboo_engine import api as bamboo_engine_api
 from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
 from pipeline.contrib.statistics.utils import count_pipeline_tree_nodes
 from pipeline.core.constants import PE
+from pipeline.models import PipelineTemplate
 from pipeline.engine import api as pipeline_api
 from pipeline.engine import states
 from pipeline.engine.utils import calculate_elapsed_time
@@ -211,12 +212,10 @@ def tasktemplate_post_save_statistics_task(template_id):
         # 子流程节点
         else:
             try:
-                template_id = act["template_id"]
-            except KeyError:
-                logger.error(
-                    "[tasktemplate_post_save_statistics_task]template_id={}的流程保存运营数据失败,子流程数据缺少template_id。".format(
-                        template.id
-                    )
+                template_id = PipelineTemplate.objects.filter(template_id=act["template_id"]).values("id")[0]["id"]
+            except Exception:
+                logger.exception(
+                    "[tasktemplate_post_save_statistics_task]template_id={}的流程保存运营数据失败".format(template.id)
                 )
                 return False
             components = TemplateNodeStatistics.objects.filter(template_id=template_id).values(
