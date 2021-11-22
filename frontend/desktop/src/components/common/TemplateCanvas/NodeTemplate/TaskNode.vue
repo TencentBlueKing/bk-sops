@@ -58,9 +58,9 @@
                 <i class="bk-icon icon-arrows-right-shape"></i>
             </div>
             <!-- 节点循环次数 -->
-            <div v-if="node.loop > 1" class="task-status-icon task-node-loop">
-                <i class="common-icon-loading-circle"></i>
-                <span>{{ node.loop }}</span>
+            <div v-if="node.loop > 1" :class="['task-status-icon task-node-loop', { 'loop-plural': node.loop > 9 }]">
+                <i :class="`common-icon-loading-${ node.loop > 9 ? 'oval' : 'round' }`"></i>
+                <span>{{ node.loop > 99 ? '99+' : node.loop }}</span>
             </div>
             <!-- 节点顶部右侧生命周期 icon -->
             <div class="node-phase-icon" v-if="[1, 2].includes(node.phase)">

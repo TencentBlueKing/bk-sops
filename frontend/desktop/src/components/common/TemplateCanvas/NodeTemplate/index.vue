@@ -496,12 +496,25 @@
             }
             &.task-node-loop {
                 position: relative;
-                font-size: 16px;
-                > span {
+                height: 16px;
+                width: 16px;
+                color: #3a84ff;
+                background: #fff !important;
+                > i {
                     position: absolute;
-                    top: 1px;
-                    left: 5px;
-                    font-size: 12px;
+                    font-size: 14px;
+                }
+                > span {
+                    position: relative;
+                    top: -0.5px;
+                    font-weight: 700;
+                    font-size: 18px;
+                    transform: scale(.5);
+                }
+                &.loop-plural {
+                    width: 26px;
+                    height: 16px;
+                    border-radius: 8px;
                 }
             }
             @keyframes loading {
