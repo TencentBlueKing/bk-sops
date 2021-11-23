@@ -15,9 +15,7 @@ from django.conf import settings
 import env
 from api.client import BKComponentClient
 
-NODEMAN_API_ENTRY = env.BK_NODEMAN_API_ENTRY or "{}/{}".format(
-    settings.BK_PAAS_ESB_HOST, "api/c/compapi/v2/nodeman"
-)
+NODEMAN_API_ENTRY = env.BK_NODEMAN_API_ENTRY or "{}/{}".format(settings.BK_PAAS_ESB_HOST, "api/c/compapi/v2/nodeman")
 
 NODEMAN_API_ENTRY_V2 = env.BK_NODEMAN_API_ENTRY or "{}/{}".format(
     settings.BK_PAAS_ESB_HOST,
@@ -73,14 +71,11 @@ class BKNodeManClient(BKComponentClient):
             },
         )
 
-    def job_install(self, job_type, hosts):
+    def job_install(self, job_type, hosts, tcoa_ticket):
         return self._request(
             method="post",
             url=_get_nodeman_api_v2("job/install"),
-            data={
-                "job_type": job_type,
-                "hosts": hosts,
-            },
+            data={"job_type": job_type, "hosts": hosts, "tcoa_ticket": tcoa_ticket},
         )
 
     def remove_host(self, bk_biz_id, bk_host_id, is_proxy):

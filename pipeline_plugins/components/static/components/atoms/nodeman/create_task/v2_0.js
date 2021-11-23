@@ -19,6 +19,21 @@
         }
     }
 
+    let IsSupportTjj = true
+    $.ajax({
+        url: $.context.get('site_url') + 'pipeline/nodeman_is_support_tjj/',
+        type: 'GET',
+        dataType: 'json',
+        async: false,
+        success: function (resp) {
+            if (resp.data) {
+                IsSupportTjj = false
+            }
+        },
+        error: function () {
+            show_msg('request nodeman is support tjj error', 'error');
+        }
+    })
     $.atoms.nodeman_create_task = [
         {
             tag_code: "bk_biz_id",
@@ -143,7 +158,7 @@
             attrs: {
                 name: "ticket信息",
                 hookable: true,
-                hidden: true,
+                hidden: IsSupportTjj,
                 children: [{
                     tag_code: "nodeman_ticket_save",
                     type: "radio",
@@ -172,6 +187,7 @@
                 },
                     {
                         type: "text",
+                        tag_code: "nodeman_tjj_tip",
                         attrs: {
                             name: "说明",
                             hookable: true,
@@ -241,31 +257,6 @@
                         ],
                     }]
             },
-            events: [
-                {
-                    source: "bk_biz_id",
-                    type: "init",
-                    action: function (value) {
-                        const self = this
-                        $.ajax({
-                            url: $.context.get('site_url') + 'pipeline/nodeman_is_support_tjj/',
-                            type: 'GET',
-                            dataType: 'json',
-                            async: false,
-                            success: function (resp) {
-                                if (resp.data) {
-                                    self.show()
-                                }
-                            },
-                            error: function () {
-                                show_msg('request nodeman is support tjj error', 'error');
-                            }
-                        })
-                    }
-                },
-            ]
-
-
         },
         {
             tag_code: "nodeman_op_info",
@@ -485,7 +476,21 @@
                                                 type: "required"
                                             }
                                         ]
-                                    }
+                                    },
+                                    events: [
+                                        {
+                                            source: "auth_type",
+                                            type: "change",
+                                            action: function (value) {
+                                                if (this.value === "TJJ_PASSWORD") {
+                                                    this._set_value("")
+                                                }
+                                                if (value === "TJJ_PASSWORD") {
+                                                    this._set_value(value)
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             ],
                             hookable: true,
