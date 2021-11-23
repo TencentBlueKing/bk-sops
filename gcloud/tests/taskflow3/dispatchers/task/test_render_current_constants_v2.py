@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.test import TestCase
 
 from bamboo_engine.eri.models import DataInput
+from bamboo_engine import exceptions
 
 from gcloud import err_code
 from gcloud.taskflow3.domains.dispatchers.task import TaskCommandDispatcher, SystemObject
@@ -92,5 +93,33 @@ class RenderCurrentConstantsV2TestCase(TestCase):
                 "data": None,
                 "code": err_code.UNKNOWN_ERROR.code,
                 "message": "context hydrate error: exception message",
+            },
+        )
+
+    def test_get_data_inputs_not_found(self):
+        pipeline_instance = MagicMock()
+        pipeline_instance.instance_id = "instance_id_token"
+
+        runtime = MagicMock()
+        runtime.get_context = MagicMock(return_value="context_value_return")
+        runtime.get_data_inputs = MagicMock(side_effect=exceptions.NotFoundError)
+
+        runtime_cls = MagicMock(return_value=runtime)
+
+        with mock.patch(TASKFLOW_DISPATCHERS_TASK_BAMBOO_DJANGO_RUNTIME, runtime_cls):
+            dispatcher = TaskCommandDispatcher(
+                engine_ver=2, taskflow_id=1, pipeline_instance=pipeline_instance, project_id=1
+            )
+            result = dispatcher.render_current_constants_v2()
+
+        runtime.get_context.assert_called_once_with(pipeline_instance.instance_id)
+        runtime.get_data_inputs.assert_called_once_with(pipeline_instance.instance_id)
+        self.assertEqual(
+            result,
+            {
+                "result": False,
+                "data": None,
+                "code": err_code.CONTENT_NOT_EXIST.code,
+                "message": "data not found, task is not running",
             },
         )

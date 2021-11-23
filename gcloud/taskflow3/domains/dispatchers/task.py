@@ -20,6 +20,7 @@ from django.utils import timezone
 from bamboo_engine import api as bamboo_engine_api
 from bamboo_engine import states as bamboo_engine_states
 from bamboo_engine.context import Context
+from bamboo_engine import exceptions as bamboo_engine_exceptions
 from pipeline.eri.runtime import BambooDjangoRuntime
 from pipeline.service import task_service
 from pipeline.models import PipelineInstance
@@ -469,9 +470,17 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
     def render_current_constants_v2(self):
         runtime = BambooDjangoRuntime()
         context_values = runtime.get_context(self.pipeline_instance.instance_id)
-        root_pipeline_inputs = {
-            key: di.value for key, di in runtime.get_data_inputs(self.pipeline_instance.instance_id).items()
-        }
+        try:
+            root_pipeline_inputs = {
+                key: di.value for key, di in runtime.get_data_inputs(self.pipeline_instance.instance_id).items()
+            }
+        except bamboo_engine_exceptions.NotFoundError:
+            return {
+                "result": False,
+                "data": None,
+                "code": err_code.CONTENT_NOT_EXIST.code,
+                "message": "data not found, task is not running",
+            }
         context = Context(runtime, context_values, root_pipeline_inputs)
 
         try:
