@@ -9,7 +9,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-(function () {
+ (function () {
     $.atoms.all_biz_execute_job_plan = [
         {
             tag_code: "all_biz_job_config",
@@ -248,7 +248,7 @@
                                             this.set_loading(true);
                                             const cc_id = this.get_parent && this.get_parent().get_child('all_biz_cc_id')._get_value();
                                             $.ajax({
-                                                url: $.context.get('site_url') + 'pipeline/jobv3_get_job_plan_detail/' + cc_id + '/' + plan_id + '/',
+                                                url: $.context.get('site_url') + 'pipeline/job_get_job_detail_by_biz/' + cc_id + '/' + plan_id + '/',
                                                 type: 'GET',
                                                 dataType: 'json',
                                                 success: function (resp) {
@@ -294,7 +294,7 @@
                                     this.set_loading(true);
                                     const cc_id = this.get_parent && this.get_parent().get_child('all_biz_cc_id')._get_value();
                                     $.ajax({
-                                        url: $.context.get('site_url') + 'pipeline/jobv3_get_job_plan_detail/' + cc_id + '/' + value + '/',
+                                        url: $.context.get('site_url') + 'pipeline/job_get_job_detail_by_biz/' + cc_id + '/' + value + '/',
                                         type: 'GET',
                                         dataType: 'json',
                                         success: function (resp) {
