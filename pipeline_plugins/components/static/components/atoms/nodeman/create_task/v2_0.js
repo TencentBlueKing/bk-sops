@@ -19,7 +19,7 @@
         }
     }
 
-    let IsSupportTjj = true
+    let NODEMAN_TJJ_IS_HIDDEN = true
     $.ajax({
         url: $.context.get('site_url') + 'pipeline/nodeman_is_support_tjj/',
         type: 'GET',
@@ -27,7 +27,7 @@
         async: false,
         success: function (resp) {
             if (resp.data) {
-                IsSupportTjj = false
+                NODEMAN_TJJ_IS_HIDDEN = false
             }
         },
         error: function () {
@@ -158,7 +158,7 @@
             attrs: {
                 name: "ticket信息",
                 hookable: true,
-                hidden: IsSupportTjj,
+                hidden: NODEMAN_TJJ_IS_HIDDEN,
                 children: [{
                     tag_code: "nodeman_ticket_save",
                     type: "radio",
