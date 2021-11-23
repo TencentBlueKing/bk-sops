@@ -111,6 +111,7 @@
                     :common="common"
                     :is-third-party="isThirdParty"
                     :sublist-loading="subAtomListLoading"
+                    :plugin-loading="pluginLoading"
                     @updatePluginList="updatePluginList"
                     @back="isSelectorPanelShow = false"
                     @viewSubflow="onViewSubflow"
@@ -269,12 +270,13 @@
             templateLabels: Array,
             common: [String, Number],
             subflowListLoading: Boolean,
-            backToVariablePanel: Boolean
+            backToVariablePanel: Boolean,
+            pluginLoading: Boolean
         },
         data () {
             return {
                 subflowUpdated: false, // 子流程是否更新
-                pluginLoading: false, // 普通任务节点数据加载
+                taskNodeLoading: false, // 普通任务节点数据加载
                 subflowLoading: false, // 子流程任务节点数据加载
                 constantsLoading: false, // 子流程输入参数配置项加载
                 subflowVersionUpdating: false, // 子流程更新
@@ -325,10 +327,10 @@
                 return this.atomList.find(item => item.code === this.basicInfo.plugin)
             },
             inputLoading () { // 以下任一方法处于 pending 状态，输入参数展示 loading 效果
-                return this.isBaseInfoLoading || this.pluginLoading || this.subflowLoading || this.constantsLoading || this.subflowVersionUpdating
+                return this.isBaseInfoLoading || this.taskNodeLoading || this.subflowLoading || this.constantsLoading || this.subflowVersionUpdating
             },
             outputLoading () {
-                return this.isBaseInfoLoading || this.pluginLoading || this.subflowLoading
+                return this.isBaseInfoLoading || this.taskNodeLoading || this.subflowLoading
             },
             selectorTitle () {
                 return this.isSubflow ? i18n.t('选择子流程') : i18n.t('选择标准插件')
@@ -586,7 +588,7 @@
              */
             async getPluginDetail () {
                 const { plugin, version } = this.basicInfo
-                this.pluginLoading = true
+                this.taskNodeLoading = true
                 try {
                     // 获取输入输出参数
                     this.inputs = await this.getAtomConfig({ plugin, version, isThird: this.isThirdParty })
@@ -596,7 +598,7 @@
                 } catch (e) {
                     console.log(e)
                 } finally {
-                    this.pluginLoading = false
+                    this.taskNodeLoading = false
                 }
             },
             /**

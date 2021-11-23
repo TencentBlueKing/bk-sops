@@ -169,8 +169,8 @@
             </div>
         </div>
         <!-- 第三方插件 -->
-        <div v-show="curPluginTab === 'third_praty_plugin'" class="third-praty-list">
-            <ul>
+        <div v-show="curPluginTab === 'third_praty_plugin'" v-bkloading="{ isLoading: pluginLoading }">
+            <ul class="third-praty-list">
                 <li
                     :class="['plugin-item', { 'is-actived': plugin.code === basicInfo.plugin }]"
                     v-for="(plugin, index) in atomTypeList.pluginList"
@@ -209,7 +209,8 @@
             isSubflow: Boolean,
             basicInfo: Object,
             isThirdParty: Boolean,
-            common: [String, Number]
+            common: [String, Number],
+            pluginLoading: Boolean
         },
         data () {
             const listData = this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
@@ -268,8 +269,7 @@
         },
         methods: {
             ...mapActions('atomForm/', [
-                'loadPluginServiceMeta',
-                'loadPluginServiceAppDetail'
+                'loadPluginServiceMeta'
             ]),
             ...mapActions('templateList', [
                 'loadTemplateList'
@@ -440,14 +440,13 @@
             async onThirdPratyClick (plugin) {
                 try {
                     const resp = await this.loadPluginServiceMeta({ plugin_code: plugin.code })
-                    const appDetail = await this.loadPluginServiceAppDetail({ plugin_code: plugin.code })
                     const { code, versions, description } = resp.data
                     const versionList = versions.map(version => {
                         return { version }
                     })
                     const group = {
                         code,
-                        name: appDetail.data.name,
+                        name: plugin.name,
                         list: versionList,
                         desc: description,
                         id: 'remote_plugin'
@@ -702,7 +701,7 @@
     }
 }
 .third-praty-list {
-    height: calc(100vh - 102px);
+    height: calc(100vh - 110px);
     overflow: auto;
     @include scrollbar;
     .plugin-item {
