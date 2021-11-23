@@ -189,10 +189,8 @@
                 </template>
                 <no-data v-else></no-data>
             </div>
-            <div
-                v-show="curPluginTab === 'third_praty_plugin'"
-                class="third-praty-list">
-                <ul>
+            <div v-show="curPluginTab === 'third_praty_plugin'" v-bkloading="{ isLoading: pluginLoading }">
+                <ul class="third-praty-list">
                     <li v-for="(item, index) in pluginList" :key="index">
                         <node-item
                             class="node-item"
@@ -210,11 +208,6 @@
                         </node-item>
                     </li>
                 </ul>
-                <div
-                    v-if="pluginLoading"
-                    v-bkloading="{ isLoading: true }"
-                    class="loding-wrap">
-                </div>
             </div>
         </div>
     </transition>
@@ -564,12 +557,6 @@
         height: 687px;
         overflow: auto;
         @include scrollbar;
-    }
-    .loding-wrap {
-        position: absolute !important;
-        bottom: 0px;
-        top: 150px;
-        width: 100%;
     }
     .node-item {
         background: #f0f1f5;

@@ -169,8 +169,8 @@
             </div>
         </div>
         <!-- 第三方插件 -->
-        <div v-show="curPluginTab === 'third_praty_plugin'" class="third-praty-list">
-            <ul>
+        <div v-show="curPluginTab === 'third_praty_plugin'" v-bkloading="{ isLoading: pluginLoading }">
+            <ul class="third-praty-list">
                 <li
                     :class="['plugin-item', { 'is-actived': plugin.code === basicInfo.plugin }]"
                     v-for="(plugin, index) in atomTypeList.pluginList"
@@ -183,11 +183,6 @@
                     </div>
                 </li>
             </ul>
-            <div
-                v-if="pluginLoading"
-                v-bkloading="{ isLoading: true }"
-                class="loding-wrap">
-            </div>
         </div>
     </div>
 </template>
@@ -733,13 +728,6 @@
         &.is-actived, &:hover {
             background: hsl(218, 100%, 94%);
         }
-    }
-    .loding-wrap {
-        position: absolute !important;
-        bottom: 0px;
-        top: 50px;
-        right: 0;
-        width: 100%;
     }
     .tpl-loading {
         height: 40px;
