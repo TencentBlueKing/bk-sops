@@ -151,11 +151,8 @@ export const getFormMixins = (attrs = {}) => {
             // 父父组件目前包括 RenderForm(根组件)、FormGroup(combine 类型)、TagDataTable(表格类型)
             this.atomEvents.forEach((item) => {
                 const eventSource = `${item.source}_${item.type}`
-                this.eventActions[eventSource] = item.action
-                this.$parent.$parent.$off(eventSource) // 移除已绑定的相同事件名称的监听器
-                this.$parent.$parent.$on(eventSource, (data) => {
-                    this.eventActions[eventSource].call(this, data)
-                })
+                this.eventActions[eventSource] = this.getEventHandler(item.action)
+                this.$parent.$parent.$on(eventSource, this.eventActions[eventSource])
             })
 
             // 注册标准插件配置项 methods 属性里的方法到 Tag 实例组件
@@ -174,8 +171,14 @@ export const getFormMixins = (attrs = {}) => {
 
             // 组件插入到 DOM 后， 在父父组件上发布该 Tag 组件的 init 事件，触发标准插件配置项里监听的函数
             this.$nextTick(() => {
-                this.$parent.$parent.$emit(`${this.tagCode}_init`, this.value)
+                this.emit_event(this.tagCode, 'init', this.value)
                 this.$emit('init', this.value)
+            })
+        },
+        beforeDestroy () {
+            this.atomEvents.forEach((item) => {
+                const eventSource = `${item.source}_${item.type}`
+                this.$parent.$parent.$off(eventSource, this.eventActions[eventSource])
             })
         },
         methods: {
@@ -259,6 +262,11 @@ export const getFormMixins = (attrs = {}) => {
                 }
 
                 return { valid, message }
+            },
+            getEventHandler (action) {
+                return (data) => {
+                    action.call(this, data)
+                }
             },
             emit_event (name, type, data) {
                 this.$parent.$parent.$emit(`${name}_${type}`, data)
