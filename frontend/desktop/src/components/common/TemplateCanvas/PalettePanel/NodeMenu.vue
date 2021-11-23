@@ -139,7 +139,7 @@
                                 </bk-collapse-item>
                             </bk-collapse>
                         </template>
-                        <div v-else class="node-item-wrap">
+                        <div v-else class="subflow-node-list">
                             <template v-for="(node, index) in listInPanel">
                                 <node-item
                                     v-if="node.hasPermission"
@@ -549,9 +549,7 @@
         }
     }
     .node-list-wrap {
-        height: calc(100% - 107px);
-        overflow-y: auto;
-        @include scrollbar;
+        height: calc(100% - 100px);
     }
     .third-praty-list {
         height: 687px;
@@ -624,6 +622,11 @@
     }
     .node-item-wrap {
         overflow: hidden;
+    }
+    .subflow-node-list {
+        height: 100%;
+        overflow-y: auto;
+        @include scrollbar;
     }
     .node-empty {
         padding: 16px 0;

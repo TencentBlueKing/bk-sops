@@ -159,10 +159,6 @@
             activeNodeListType (val) {
                 if (val === 'subflow') {
                     this.getSubflowList()
-                    this.$nextTick(() => {
-                        this.listNode = document.querySelector('.node-list-wrap')
-                        this.listNode.addEventListener('scroll', this.handleTableScroll)
-                    })
                 } else {
                     this.currentPage = 0
                     this.atomTypeList.subflow.length = 0
@@ -191,6 +187,12 @@
                     }
                     const resp = await this.loadTemplateList(data)
                     this.handleSubflowList(resp)
+                    if (!this.listNode) {
+                        this.$nextTick(() => {
+                            this.listNode = document.querySelector('.subflow-node-list')
+                            this.listNode.addEventListener('scroll', this.handleTableScroll)
+                        })
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
