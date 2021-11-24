@@ -473,25 +473,24 @@
                                         editable: true,
                                         validation: [
                                             {
-                                                type: "required"
+                                                type: "custom",
+                                                args: function (value, parent_value) {
+                                                    let auth_type = parent_value.auth_type
+                                                    let result = {
+                                                        result: true,
+                                                        error_message: ""
+                                                    }
+                                                    if (auth_type !== "TJJ_PASSWORD" && !value.length) {
+                                                        result.result = false;
+                                                        result.error_message = gettext("请输入认证密钥");
+                                                    }
+                                                    return result
+                                                }
                                             }
                                         ],
                                         showPassword: true
                                     },
-                                    events: [
-                                        {
-                                            source: "auth_type",
-                                            type: "change",
-                                            action: function (value) {
-                                                if (this.value === "TJJ_PASSWORD") {
-                                                    this._set_value("")
-                                                }
-                                                if (value === "TJJ_PASSWORD") {
-                                                    this._set_value(value)
-                                                }
-                                            }
-                                        }
-                                    ]
+                                    events: []
                                 }
                             ],
                             hookable: true,
