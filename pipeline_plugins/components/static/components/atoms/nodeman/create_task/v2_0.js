@@ -466,7 +466,7 @@
                                 },
                                 {
                                     tag_code: "auth_key",
-                                    type: "password",
+                                    type: "input",
                                     attrs: {
                                         name: gettext("认证密钥"),
                                         width: "400px",
@@ -475,7 +475,8 @@
                                             {
                                                 type: "required"
                                             }
-                                        ]
+                                        ],
+                                        showPassword: true
                                     },
                                     events: [
                                         {
