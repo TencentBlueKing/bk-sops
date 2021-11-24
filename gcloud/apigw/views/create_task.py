@@ -23,6 +23,7 @@ from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.core.models import EngineConfig
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
@@ -32,7 +33,7 @@ from gcloud.conf import settings
 from gcloud.constants import PROJECT
 from gcloud.utils.strings import standardize_pipeline_node_name
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
+from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.apigw.views.utils import logger
 from gcloud.apigw.validators import CreateTaskValidator
@@ -164,11 +165,7 @@ def create_task(request, template_id, project_id):
             exclude_task_nodes_id = get_exclude_nodes_by_execute_nodes(params["execute_task_nodes_id"], tmpl)
         try:
             data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
-                tmpl,
-                pipeline_instance_kwargs,
-                params["constants"],
-                exclude_task_nodes_id,
-                params["simplify_vars"],
+                tmpl, pipeline_instance_kwargs, params["constants"], exclude_task_nodes_id, params["simplify_vars"],
             )
         except Exception as e:
             return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
@@ -187,6 +184,11 @@ def create_task(request, template_id, project_id):
             project_id=project.id, template_id=template_id, template_source=template_source
         ),
     )
+
+    # crete auto retry strategy
+    arn_creator = AutoRetryNodeStrategyCreator(taskflow_id=task.id, root_pipeline_id=task.pipeline_instance.instance_id)
+    arn_creator.batch_create_strategy(task.pipeline_instance.execution_data)
+
     return {
         "result": True,
         "data": {"task_id": task.id, "task_url": task.url, "pipeline_tree": task.pipeline_tree},

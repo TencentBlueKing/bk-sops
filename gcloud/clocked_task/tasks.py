@@ -18,6 +18,7 @@ from django.db import transaction
 
 from gcloud.clocked_task.models import ClockedTask
 from gcloud.core.models import Project, EngineConfig
+from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tasktmpl3.models import TaskTemplate
 
@@ -69,6 +70,13 @@ def clocked_task_start(clocked_task_id, *args, **kwargs):
                 ),
             )
             ClockedTask.objects.filter(id=clocked_task_id).update(task_id=taskflow_instance.id)
+
+            # crete auto retry strategy
+            arn_creator = AutoRetryNodeStrategyCreator(
+                taskflow_id=task.id, root_pipeline_id=task.pipeline_instance.instance_id
+            )
+            arn_creator.batch_create_strategy(task.pipeline_instance.execution_data)
+
         taskflow_instance.task_action("start", clocked_task.creator)
     except Exception:
         logger.exception("[clocked_task_start] task create error")
