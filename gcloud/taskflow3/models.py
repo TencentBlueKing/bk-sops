@@ -1236,7 +1236,7 @@ class TaskFlowInstance(models.Model):
             self.current_flow = "execute_task"
         self.is_deleted = False
         self.save()
-        return self.pk
+        return self
 
     def set_task_context(self, constants):
         dispatcher = TaskCommandDispatcher(
