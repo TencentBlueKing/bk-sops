@@ -53,7 +53,7 @@ class PluginServiceApiClient:
             headers.pop("Content-Type")
             files = dict(
                 [
-                    (key, value.file.getvalue())
+                    (key, (value.name, value.file.getvalue()))
                     for key, value in request_params["data"].items()
                     if isinstance(value, InMemoryUploadedFile)
                 ]
