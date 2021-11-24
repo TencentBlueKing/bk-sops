@@ -457,6 +457,7 @@ ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 from pipeline.celery.settings import *  # noqa
 from pipeline.eri.celery import queues as eri_queues  # noqa
 from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver  # noqa
+from gcloud.taskflow3.celery import settings as taskflow3_celery_settings  # noqa
 
 API_TASK_QUEUE_NAME_V2 = "api"
 PERIODIC_TASK_QUEUE_NAME_V2 = "periodic_task"
@@ -464,6 +465,7 @@ CELERY_QUEUES.extend(eri_queues.CELERY_QUEUES)
 CELERY_QUEUES.extend(eri_queues.QueueResolver(API_TASK_QUEUE_NAME_V2).queues())
 CELERY_QUEUES.extend(eri_queues.QueueResolver(PERIODIC_TASK_QUEUE_NAME_V2).queues())
 CELERY_QUEUES.extend(PrepareAndStartTaskQueueResolver(API_TASK_QUEUE_NAME_V2).queues())
+CELERY_QUEUES.extend(taskflow3_celery_settings.CELERY_QUEUES)
 
 # CELERY与RabbitMQ增加60秒心跳设置项
 BROKER_HEARTBEAT = 60
