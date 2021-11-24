@@ -214,14 +214,15 @@
                     },
                     {
                         tag_code: "nodeman_tjj_ticket",
-                        type: "password",
+                        type: "input",
                         attrs: {
                             name: "TJJ认证ticket",
                             hookable: true,
                             hidden: true,
                             placeholder: "用户ticket",
                             disabled: true,
-                            validation: []
+                            validation: [],
+                            showPassword: true
                         },
                         events: [
                             {
@@ -466,7 +467,7 @@
                                 },
                                 {
                                     tag_code: "auth_key",
-                                    type: "password",
+                                    type: "input",
                                     attrs: {
                                         name: gettext("认证密钥"),
                                         width: "400px",
@@ -475,7 +476,8 @@
                                             {
                                                 type: "required"
                                             }
-                                        ]
+                                        ],
+                                        showPassword: true
                                     },
                                     events: [
                                         {
