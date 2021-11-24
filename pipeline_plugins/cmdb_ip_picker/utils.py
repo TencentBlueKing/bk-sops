@@ -428,7 +428,7 @@ def format_condition_value(conditions):
     formatted = []
     for val in conditions:
         if isinstance(val, str):
-            formatted += [item.strip() for item in re.split(r"\n|\\n", val.strip()) if item.strip()]
+            formatted += [item.strip() for item in re.split(r"\n|\\n", val.strip())]
         else:
             formatted.append(val)
     return list(set(formatted))
