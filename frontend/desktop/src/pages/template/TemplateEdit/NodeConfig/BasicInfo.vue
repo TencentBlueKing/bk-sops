@@ -61,29 +61,49 @@
                     @clear="onLabelClear">
                 </bk-search-select>
             </bk-form-item>
-            <bk-form-item :label="$t('失败处理')" class="error-handle">
-                <bk-checkbox
-                    :value="formData.ignorable"
-                    @change="onErrorHandlerChange($event, 'ignorable')">
-                    <i class="error-handle-icon common-icon-dark-circle-i"></i>
-                    {{ $t('自动忽略') }}
-                </bk-checkbox>
-                <bk-checkbox
-                    :value="formData.skippable"
-                    :disabled="formData.ignorable"
-                    @change="onErrorHandlerChange($event, 'skippable')">
-                    <i class="error-handle-icon common-icon-dark-circle-s"></i>
-                    {{ $t('手动跳过') }}
-                </bk-checkbox>
-                <bk-checkbox
-                    :value="formData.retryable"
-                    :disabled="formData.ignorable"
-                    @change="onErrorHandlerChange($event, 'retryable')">
-                    <i class="error-handle-icon common-icon-dark-circle-r"></i>
-                    {{ $t('手动重试') }}
-                </bk-checkbox>
+            <bk-form-item :label="$t('失败处理')">
+                <div class="error-handle">
+                    <bk-checkbox
+                        :value="formData.ignorable"
+                        @change="onErrorHandlerChange($event, 'ignorable')">
+                        <i class="error-handle-icon common-icon-dark-circle-i"></i>
+                        {{ $t('自动忽略') }}
+                    </bk-checkbox>
+                    <bk-checkbox
+                        :value="formData.skippable"
+                        :disabled="formData.ignorable"
+                        @change="onErrorHandlerChange($event, 'skippable')">
+                        <i class="error-handle-icon common-icon-dark-circle-s"></i>
+                        {{ $t('手动跳过') }}
+                    </bk-checkbox>
+                    <bk-checkbox
+                        :value="formData.retryable"
+                        :disabled="formData.ignorable"
+                        @change="onErrorHandlerChange($event, 'retryable')">
+                        <i class="error-handle-icon common-icon-dark-circle-r"></i>
+                        {{ $t('手动重试') }}
+                    </bk-checkbox>
+                    <bk-checkbox
+                        :value="formData.autoRetry.enable"
+                        :disabled="formData.ignorable"
+                        @change="onErrorHandlerChange($event, 'autoRetry')">
+                        <i class="error-handle-icon common-icon-dark-circle-r"></i>
+                        {{ $t('自动重试') }}
+                    </bk-checkbox>
+                    <span v-if="formData.autoRetry.enable" class="auto-retry-times">
+                        <bk-input
+                            :value="formData.autoRetry.times"
+                            type="number"
+                            style="width: 60px; margin: 0 4px;"
+                            :max="10"
+                            :min="1"
+                            @change="onRetryTimeChange">
+                        </bk-input>
+                        {{ $t('次') }}
+                    </span>
+                </div>
                 <p
-                    v-if="!formData.ignorable && !formData.skippable && !formData.retryable"
+                    v-if="!formData.ignorable && !formData.skippable && !formData.retryable && !formData.autoRetry.enable"
                     class="error-handle-tips">
                     {{ $t('未选择失败处理方式，标准插件节点如果执行失败，会导致任务中断后不可继续') }}
                 </p>
@@ -170,6 +190,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
+    import tools from '@/utils/tools.js'
     import { mapState, mapActions, mapMutations } from 'vuex'
     import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
 
@@ -188,7 +209,7 @@
                 labelLoading: false,
                 subflowLoading: false,
                 version: this.basicInfo.version,
-                formData: { ...this.basicInfo },
+                formData: tools.deepClone(this.basicInfo),
                 pluginRules: {
                     plugin: [
                         {
@@ -299,7 +320,7 @@
         },
         watch: {
             basicInfo (val) {
-                this.formData = { ...val }
+                this.formData = tools.deepClone(val)
             }
         },
         created () {
@@ -404,11 +425,26 @@
                 this.updateData()
             },
             onErrorHandlerChange (val, type) {
-                this.formData[type] = val
-                if (type === 'ignorable' && val) {
+                this.formData.autoRetry.times = 1
+                if (type === 'autoRetry') {
+                    this.formData.autoRetry.enable = val
                     this.formData.retryable = false
-                    this.formData.skippable = false
+                } else {
+                    if (type === 'retryable') {
+                        this.formData.autoRetry.enable = false
+                        this.formData.autoRetry.times = 1
+                    }
+                    if (type === 'ignorable' && val) {
+                        this.formData.retryable = false
+                        this.formData.skippable = false
+                        this.formData.autoRetry.enable = false
+                    }
+                    this.formData[type] = val
                 }
+                this.updateData()
+            },
+            onRetryTimeChange (val) {
+                this.formData.autoRetry.times = Number(val)
                 this.updateData()
             },
             onSelectableChange (val) {
@@ -423,12 +459,12 @@
                 this.updateData()
             },
             updateData () {
-                const { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, alwaysUseLatest } = this.formData
+                const { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, alwaysUseLatest, autoRetry } = this.formData
                 let data
                 if (this.isSubflow) {
                     data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, latestVersion: this.version }
                 } else {
-                    data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable }
+                    data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, autoRetry }
                 }
                 this.$emit('update', data)
             },
@@ -455,8 +491,14 @@
         padding-right: 30px;
     }
     .error-handle {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        height: 32px;
         /deep/ .bk-form-checkbox {
-            margin-right: 30px;
+            &:not(:last-of-type) {
+                margin-right: 30px;
+            }
             &.is-disabled .bk-checkbox-text {
                 color: #c4c6cc;
             }
@@ -465,11 +507,16 @@
             padding-right: 4px;
             color: #a6b0c7;
         }
-        .error-handle-tips {
+        .auto-retry-times {
+            display: inline-flex;
             font-size: 12px;
-            line-height: 1;
-            color: #ffb400;
+            color: #999999;
         }
+    }
+    .error-handle-tips {
+        font-size: 12px;
+        line-height: 1;
+        color: #ffb400;
     }
     /deep/ .bk-form {
         .bk-label {
