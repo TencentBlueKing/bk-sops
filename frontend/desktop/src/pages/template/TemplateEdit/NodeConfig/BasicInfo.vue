@@ -65,29 +65,30 @@
                 <div class="error-handle">
                     <bk-checkbox
                         :value="formData.ignorable"
+                        :disabled="formData.autoRetry.enable"
                         @change="onErrorHandlerChange($event, 'ignorable')">
-                        <i class="error-handle-icon common-icon-dark-circle-i"></i>
-                        {{ $t('自动忽略') }}
+                        <span class="error-handle-icon"><span class="text">AS</span></span>
+                        {{ $t('自动跳过') }}
                     </bk-checkbox>
                     <bk-checkbox
                         :value="formData.skippable"
                         :disabled="formData.ignorable"
                         @change="onErrorHandlerChange($event, 'skippable')">
-                        <i class="error-handle-icon common-icon-dark-circle-s"></i>
+                        <span class="error-handle-icon"><span class="text">MS</span></span>
                         {{ $t('手动跳过') }}
                     </bk-checkbox>
                     <bk-checkbox
                         :value="formData.retryable"
                         :disabled="formData.ignorable"
                         @change="onErrorHandlerChange($event, 'retryable')">
-                        <i class="error-handle-icon common-icon-dark-circle-r"></i>
+                        <span class="error-handle-icon"><span class="text">MR</span></span>
                         {{ $t('手动重试') }}
                     </bk-checkbox>
                     <bk-checkbox
                         :value="formData.autoRetry.enable"
                         :disabled="formData.ignorable"
                         @change="onErrorHandlerChange($event, 'autoRetry')">
-                        <i class="error-handle-icon common-icon-dark-circle-r"></i>
+                        <span class="error-handle-icon"><span class="text">AR</span></span>
                         {{ $t('自动重试') }}
                     </bk-checkbox>
                     <span v-if="formData.autoRetry.enable" class="auto-retry-times">
@@ -497,15 +498,24 @@
         height: 32px;
         /deep/ .bk-form-checkbox {
             &:not(:last-of-type) {
-                margin-right: 30px;
+                margin-right: 20px;
             }
             &.is-disabled .bk-checkbox-text {
                 color: #c4c6cc;
             }
         }
         .error-handle-icon {
-            padding-right: 4px;
-            color: #a6b0c7;
+            display: inline-block;
+            padding: 0 3px;
+            line-height: 12px;
+            color: #ffffff;
+            background: #979ba5;
+            border-radius: 2px;
+            .text {
+                display: inline-block;
+                font-size: 12px;
+                transform: scale(0.8);
+            }
         }
         .auto-retry-times {
             display: inline-flex;
