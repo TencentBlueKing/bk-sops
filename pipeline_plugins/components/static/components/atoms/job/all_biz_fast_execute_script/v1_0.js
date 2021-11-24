@@ -144,6 +144,11 @@
                         type: "input",
                         attrs: {
                             name: gettext("云区域ID(默认为0)"),
+                            validation: [
+                                {
+                                    type: "required"
+                                }
+                            ]
                         }
                     },
                     {
