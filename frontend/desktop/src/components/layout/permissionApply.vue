@@ -90,7 +90,7 @@
                     this.hasClicked = true
                     let url = this.url
                     if (this.permissionData.type === 'project' & !this.url) {
-                        url = window.BK_IAM_SAAS_HOST + '/perm-apply'
+                        url = window.BK_IAM_SAAS_HOST
                     }
                     openOtherApp(window.BK_IAM_APP_CODE, url)
                 }
