@@ -39,9 +39,10 @@
                     @change="onNodeCheckClick">
                 </bk-checkbox>
             </template>
-            <span v-if="node.error_ignorable && node.mode === 'edit'" class="dark-circle common-icon-dark-circle-i"></span>
-            <span v-if="node.isSkipped || node.skippable" class="dark-circle common-icon-dark-circle-s"></span>
-            <span v-if="node.can_retry || node.retryable || (node.auto_retry && node.auto_retry.enable)" class="dark-circle common-icon-dark-circle-r"></span>
+            <span v-if="node.error_ignorable && node.mode === 'edit'" class="error-handle-icon"><span class="text">AS</span></span>
+            <span v-if="node.isSkipped || node.skippable" class="error-handle-icon"><span class="text">MS</span></span>
+            <span v-if="node.can_retry || node.retryable" class="error-handle-icon"><span class="text">MR</span></span>
+            <span v-if="node.auto_retry && node.auto_retry.enable" class="error-handle-icon"><span class="text">AR</span></span>
         </div>
         <!-- 节点右上角执行相关的icon区域 -->
         <div class="node-execute-icon">
