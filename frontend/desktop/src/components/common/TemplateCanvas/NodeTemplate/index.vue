@@ -431,7 +431,7 @@
                 .dark-circle {
                     float: left;
                     margin-right: 2px;
-                    font-size: 12px;
+                    font-size: 14px;
                     color: #979ba5;
                 }
                 .error-handle-icon {

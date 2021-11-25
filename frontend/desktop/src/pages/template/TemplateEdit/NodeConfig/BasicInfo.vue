@@ -79,7 +79,7 @@
                     </bk-checkbox>
                     <bk-checkbox
                         :value="formData.retryable"
-                        :disabled="formData.ignorable"
+                        :disabled="formData.ignorable || formData.autoRetry.enable"
                         @change="onErrorHandlerChange($event, 'retryable')">
                         <span class="error-handle-icon"><span class="text">MR</span></span>
                         {{ $t('手动重试') }}
@@ -112,6 +112,7 @@
                     <p>{{ $t('自动忽略：标准插件节点如果执行失败，会自动忽略错误并把节点状态设置为成功。') }}</p>
                     <p>{{ $t('手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。') }}</p>
                     <p>{{ $t('手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。') }}</p>
+                    <p>{{ $t('自动重试：标准插件节点如果执行失败，系统会自动以原参数进行重试。') }}</p>
                 </div>
                 <i v-bk-tooltips="errorHandleTipsConfig" ref="tooltipsHtml" class="bk-icon icon-question-circle form-item-tips"></i>
             </bk-form-item>
@@ -429,15 +430,15 @@
                 this.formData.autoRetry.times = 1
                 if (type === 'autoRetry') {
                     this.formData.autoRetry.enable = val
-                    this.formData.retryable = false
+                    this.formData.retryable = true
                 } else {
                     if (type === 'retryable') {
                         this.formData.autoRetry.enable = false
                         this.formData.autoRetry.times = 1
                     }
                     if (type === 'ignorable' && val) {
+                        this.formData.skippable = true
                         this.formData.retryable = false
-                        this.formData.skippable = false
                         this.formData.autoRetry.enable = false
                     }
                     this.formData[type] = val
