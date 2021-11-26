@@ -1245,7 +1245,8 @@ const en = {
     '还没有接入新的业务': "Haven't access the new business",
     '需要前往配置平台新建业务': 'Need to go to the bk-cmdb creat new business',
     '创建新业务': 'Create new business',
-    '删除连线': 'Delete Line'
+    '删除连线': 'Delete Line',
+    '子流程更新时，如果新旧版本存在相同表单，表单数据会默认取原表单数据': 'When the sub-process is updated, if the new and old versions have the same form, the form data will default to the original form data'
 }
 
 export default en
