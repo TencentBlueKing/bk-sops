@@ -1245,7 +1245,17 @@ const en = {
     '还没有接入新的业务': "Haven't access the new business",
     '需要前往配置平台新建业务': 'Need to go to the bk-cmdb creat new business',
     '创建新业务': 'Create new business',
-    '删除连线': 'Delete Line'
+    '删除连线': 'Delete Line',
+    '表格设置': 'Table Settings',
+    '字段显示设置': 'Displaying Fields Setting',
+    '（最多{max}项）': '（{max} fiels most）',
+    '表格行高': 'Table Line Height',
+    '小': 'small',
+    '中': 'medium',
+    '大': 'large',
+    '默认排序表头设置': 'Default Order Setting',
+    '（请在下面可排序字段中选择）': '( Please select )',
+    '切换': 'Switch'
 }
 
 export default en
