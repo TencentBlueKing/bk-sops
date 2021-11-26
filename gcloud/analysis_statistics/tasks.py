@@ -74,8 +74,15 @@ def recursive_collect_components_execution(activities, status_tree, task_instanc
             if act[PE.type] == PE.ServiceActivity:
                 # 结束、失败、撤销
                 if exec_act["state"] in states.ARCHIVED_STATES:
+                    component_code = act["component"]["code"]
+                    component_version = act["component"].get("version", LEGACY_PLUGINS_VERSION)
+                    is_remote = False
+                    if component_code == "remote_plugin":
+                        component_code = act["component"]["data"]["plugin_code"]["value"]
+                        component_version = act["component"]["data"]["plugin_version"]["value"]
+                        is_remote = True
                     component_kwargs = {
-                        "component_code": act["component"]["code"],
+                        "component_code": component_code,
                         "instance_id": instance.id,
                         "task_instance_id": task_instance_id,
                         "is_sub": is_sub,
@@ -92,13 +99,14 @@ def recursive_collect_components_execution(activities, status_tree, task_instanc
                         "is_skip": exec_act["skip"],
                         "is_retry": False,
                         "status": exec_act["state"] == "FINISHED",
-                        "version": act["component"].get("version", LEGACY_PLUGINS_VERSION),
+                        "version": component_version,
                         "template_id": instance.template.id,
                         "task_template_id": task_template.id,
                         "project_id": task_template.project.id,
                         "instance_create_time": instance.create_time,
                         "instance_start_time": instance.start_time,
                         "instance_finish_time": instance.finish_time,
+                        "is_remote": is_remote,
                     }
                     component_list.append(TaskflowExecutedNodeStatistics(**component_kwargs))
                     if exec_act["retry"] > 0:
@@ -196,17 +204,26 @@ def tasktemplate_post_save_statistics_task(template_id):
     for act_id, act in data[PE.activities].items():
         # 标准插件节点
         if act["type"] == PE.ServiceActivity:
+            # 判断是否第三方插件
+            component_code = act["component"]["code"]
+            component_version = act["component"].get("version", LEGACY_PLUGINS_VERSION)
+            is_remote = False
+            if component_code == "remote_plugin":
+                component_code = act["component"]["data"]["plugin_code"]["value"]
+                component_version = act["component"]["data"]["plugin_version"]["value"]
+                is_remote = True
             component = TemplateNodeStatistics(
-                component_code=act["component"]["code"],
+                component_code=component_code,
                 template_id=template.pipeline_template.id,
                 task_template_id=task_template_id,
                 project_id=template.project.id,
                 category=template.category,
                 node_id=act_id,
-                version=act["component"].get("version", LEGACY_PLUGINS_VERSION),
+                version=component_version,
                 template_creator=template.pipeline_template.creator,
                 template_create_time=template.pipeline_template.create_time,
                 template_edit_time=template.pipeline_template.edit_time,
+                is_remote=is_remote,
             )
             component_list.append(component)
         # 子流程节点

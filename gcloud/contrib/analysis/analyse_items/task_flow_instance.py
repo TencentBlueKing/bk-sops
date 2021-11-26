@@ -63,7 +63,7 @@ def produce_filter(filters):
     orm_filters = {}
     for cond, value in list(filters.items()):
         # 如果conditions内容为空或为空字符，不可加入查询条件中
-        if value in ["None", ""] or cond in ["component_code", "order_by", "type"]:
+        if value in ["None", ""] or cond in ["component_code", "order_by", "type", "is_remote"]:
             continue
         if PIPELINE_REGEX.match(cond):
             filter_cond = "pipeline_instance__%s" % cond
