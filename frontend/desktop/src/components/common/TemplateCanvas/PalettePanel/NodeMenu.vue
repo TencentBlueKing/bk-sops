@@ -190,7 +190,7 @@
                 <no-data v-else></no-data>
             </div>
             <div v-show="curPluginTab === 'third_praty_plugin'" v-bkloading="{ isLoading: pluginLoading }">
-                <ul class="third-praty-list">
+                <ul class="third-praty-list" v-if="pluginList.length">
                     <li v-for="(item, index) in pluginList" :key="index">
                         <node-item
                             class="node-item"
@@ -208,6 +208,7 @@
                         </node-item>
                     </li>
                 </ul>
+                <bk-exception v-else class="exception-part" type="search-empty" scene="part"> </bk-exception>
             </div>
         </div>
     </transition>
@@ -555,6 +556,9 @@
         height: 687px;
         overflow: auto;
         @include scrollbar;
+    }
+    .exception-part {
+        margin-top: 100px;
     }
     .node-item {
         background: #f0f1f5;
