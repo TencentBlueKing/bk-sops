@@ -430,6 +430,7 @@ Upload component.
   - `headers`: http request header
   - `data_params`: additional parameter for file upload, e.g. { filename: 'test.zip', filetype: 'zip' }
   - `auto_upload`: whether to enable auto upload. Set to true by default. Auto upload (Automatically uploads after the file is selected). Manual upload (User needs to click the upload button after the file is selected and use custom submit method callback)
+  - `withCredentials`: Cookie credential information can be sent
   - `submit`: custom upload method
   - `limit`: number of upload files
   - `placeholder`: placeholder.

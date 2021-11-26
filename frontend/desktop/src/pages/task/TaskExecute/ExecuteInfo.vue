@@ -47,7 +47,7 @@
                 </div>
             </div>
             <div class="scroll-area">
-                <section class="info-section">
+                <section class="info-section" data-test-id="taskExcute_from_excuteInfo">
                     <h4 class="common-section-title">{{ $t('执行信息') }}</h4>
                     <table class="operation-table" v-if="executeCols && isReadyStatus">
                         <tr v-for="col in executeCols" :key="col.id">
@@ -72,11 +72,11 @@
                     </table>
                     <NoData v-else></NoData>
                 </section>
-                <section class="info-section" v-if="executeInfo.id && location.type !== 'subflow'">
+                <section class="info-section" data-test-id="taskExcute_from_operatFlow" v-if="executeInfo.id && location.type !== 'subflow'">
                     <h4 class="common-section-title">{{ $t('操作流水') }}</h4>
                     <OperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></OperationFlow>
                 </section>
-                <section class="info-section" v-if="nodeDetailConfig.component_code">
+                <section class="info-section" data-test-id="taskExcute_from_inputParams" v-if="nodeDetailConfig.component_code">
                     <div class="common-section-title input-parameter">
                         <div class="input-title">{{ $t('输入参数') }}</div>
                         <div class="origin-value" v-if="!adminView">
@@ -100,7 +100,7 @@
                         <VueJsonPretty :data="inputsInfo"></VueJsonPretty>
                     </div>
                 </section>
-                <section class="info-section" v-if="['tasknode', 'subflow'].includes(location.type)">
+                <section class="info-section" data-test-id="taskExcute_from_outputParams" v-if="['tasknode', 'subflow'].includes(location.type)">
                     <div class="common-section-title output-parameter">
                         <div class="output-title">{{ $t('输出参数') }}</div>
                         <div class="origin-value" v-if="!adminView">
@@ -134,7 +134,10 @@
                         <NoData v-else></NoData>
                     </div>
                 </section>
-                <section class="info-section" v-if="isRenderOutputForm && outputRenderConfig && outputRenderConfig.length !== 0 && !loading">
+                <section
+                    class="info-section"
+                    data-test-id="taskExcute_from_outputFrom"
+                    v-if="isRenderOutputForm && outputRenderConfig && outputRenderConfig.length !== 0 && !loading">
                     <h4 class="common-section-title">{{ $t('输出表单') }}</h4>
                     <div class="code-block-wrap">
                         <RenderForm
@@ -144,7 +147,7 @@
                         </RenderForm>
                     </div>
                 </section>
-                <section class="info-section" v-if="executeInfo.ex_data">
+                <section class="info-section" data-test-id="taskExcute_from_exceptionInfo" v-if="executeInfo.ex_data">
                     <h4 class="common-section-title">{{ $t('异常信息') }}</h4>
                     <div v-html="failInfo"></div>
                     <IpLogContent
@@ -153,7 +156,7 @@
                         :node-info="executeInfo">
                     </IpLogContent>
                 </section>
-                <section class="info-section log-info">
+                <section class="info-section log-info" data-test-id="taskExcute_from_nodeLog">
                     <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
                     <!-- 内置插件/第三方插件tab -->
                     <bk-tab v-if="isThirdPartyNode" :active.sync="curPluginTab" type="unborder-card">
@@ -172,7 +175,7 @@
                         <NoData v-else></NoData>
                     </div>
                 </section>
-                <section class="info-section" v-if="historyInfo && historyInfo.length">
+                <section class="info-section" data-test-id="taskExcute_from_excuteLog" v-if="historyInfo && historyInfo.length">
                     <h4 class="common-section-title">{{ $t('执行记录') }}</h4>
                     <bk-table
                         class="retry-table"
@@ -237,17 +240,20 @@
                 <bk-button
                     v-if="nodeDetailConfig.component_code === 'pause_node'"
                     theme="primary"
+                    data-test-id="taskExcute_form_resumeBtn"
                     @click="onResumeClick">
                     {{ $t('继续执行') }}
                 </bk-button>
                 <bk-button
                     v-if="nodeDetailConfig.component_code === 'sleep_timer'"
                     theme="primary"
+                    data-test-id="taskExcute_form_modifyTimeBtn"
                     @click="onModifyTimeClick">
                     {{ $t('修改时间') }}
                 </bk-button>
                 <bk-button
                     v-if="location.type !== 'subflow'"
+                    data-test-id="taskExcute_form_mandatoryFailBtn"
                     @click="mandatoryFailure">
                     {{ $t('强制失败') }}
                 </bk-button>
@@ -256,12 +262,14 @@
                 <bk-button
                     theme="primary"
                     v-if="isShowRetryBtn"
+                    data-test-id="taskExcute_form_retryBtn"
                     @click="onRetryClick">
                     {{ $t('重试') }}
                 </bk-button>
                 <bk-button
                     theme="default"
                     v-if="isShowSkipBtn"
+                    data-test-id="taskExcute_form_skipBtn"
                     @click="onSkipClick">
                     {{ $t('跳过') }}
                 </bk-button>
@@ -489,6 +497,7 @@
                 isRenderOutputForm: false,
                 executeInfo: {},
                 inputsInfo: {},
+                pluginOutputs: [],
                 outputsInfo: [],
                 logInfo: '',
                 historyInfo: [],
@@ -738,8 +747,31 @@
                                 return true
                             })
                         } else {
-                            // 普通插件展示 preset 为 true 的输出参数
-                            this.outputsInfo = this.isThirdPartyNode ? outputs : outputs.filter(output => output.preset)
+                            let outputsInfo = []
+                            if (this.isThirdPartyNode) {
+                                const excludeList = []
+                                outputsInfo = outputs.filter(item => {
+                                    if (!item.preset) {
+                                        excludeList.push(item)
+                                    }
+                                    return item.preset
+                                })
+                                excludeList.forEach(item => {
+                                    const output = this.pluginOutputs.find(output => output.key === item.key)
+                                    if (output) {
+                                        const { name, key } = output
+                                        const info = {
+                                            key,
+                                            name,
+                                            value: item.value
+                                        }
+                                        outputsInfo.push(info)
+                                    }
+                                })
+                            } else { // 普通插件展示 preset 为 true 的输出参数
+                                outputsInfo = outputs.filter(output => output.preset)
+                            }
+                            this.outputsInfo = outputsInfo
                         }
                         this.outputsInfo.forEach(out => {
                             this.$set(this.outputRenderData, out.key, out.value)
@@ -842,7 +874,7 @@
                                 with_app_detail: true
                             })
                             if (!resp.result) return
-                            const { app, outputs: respsOutputs, forms } = resp.data
+                            const { outputs: respsOutputs, forms } = resp.data
                             // 输出参数
                             const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
                             const outputs = []
@@ -854,11 +886,12 @@
                                     schema: { description: val.description || '--' }
                                 })
                             }
+                            this.pluginOutputs = outputs
                             this.outputRenderConfig = [...storeOutputs, ...outputs]
                             // 设置host
-                            const { host } = window.location
-                            const hostUrl = app.urls.find(item => item.includes(host)) || app.url
-                            $.context.bk_plugin_api_host[this.thirdPartyNodeCode] = hostUrl + '/'
+                            const { origin } = window.location
+                            const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${this.thirdPartyNodeCode}/`
+                            $.context.bk_plugin_api_host[this.thirdPartyNodeCode] = hostUrl
                             // 输入参数
                             const renderFrom = forms.renderform
                             /* eslint-disable-next-line */

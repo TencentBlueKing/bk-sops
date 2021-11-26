@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
+from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -22,6 +23,8 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver
+from gcloud.taskflow3.celery.tasks import prepare_and_start_task
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskOperateInterceptor
 from gcloud.utils.throttle import check_task_operation_throttle
@@ -52,6 +55,24 @@ def operate_task(request, task_id, project_id):
             "result": False,
             "message": "project id: {} reach the limit of starting tasks".format(project.id),
             "code": err_code.INVALID_OPERATION.code,
+        }
+
+    if action == "start":
+        if TaskFlowInstance.objects.is_task_started(project_id=project.id, id=task_id):
+            return {"result": False, "code": err_code.INVALID_OPERATION.code, "message": "task already started"}
+
+        queue, routing_key = PrepareAndStartTaskQueueResolver(
+            settings.API_TASK_QUEUE_NAME_V2
+        ).resolve_task_queue_and_routing_key()
+
+        prepare_and_start_task.apply_async(
+            kwargs=dict(task_id=task_id, project_id=project.id, username=username), queue=queue, routing_key=routing_key
+        )
+
+        return {
+            "message": "success",
+            "result": True,
+            "code": err_code.SUCCESS.code,
         }
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)

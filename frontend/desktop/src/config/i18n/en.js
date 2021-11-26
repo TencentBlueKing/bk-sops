@@ -786,7 +786,7 @@ const en = {
     '步骤名称': 'Stage Name',
     '失败处理': 'Failure Processing',
     '是否可选': 'Optional',
-    '自动忽略': 'Auto Ignore',
+    '自动跳过': 'Auto Skip',
     '手动跳过': 'Manual Skip',
     '手动重试': 'Manual Retry',
     '未选择失败处理方式，标准插件节点如果执行失败，会导致任务中断后不可继续': "No failure process set, you won't be able to operate it if this node failed",
@@ -1246,6 +1246,8 @@ const en = {
     '需要前往配置平台新建业务': 'Need to go to the bk-cmdb creat new business',
     '创建新业务': 'Create new business',
     '删除连线': 'Delete Line',
+    '自动重试': 'Auto Retry',
+    '次': 'Times',
     '子流程更新时，如果新旧版本存在相同表单，表单数据会默认取原表单数据': 'When the sub-process is updated, if the new and old versions have the same form, the form data will default to the original form data'
 }
 

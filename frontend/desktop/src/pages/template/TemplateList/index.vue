@@ -32,6 +32,7 @@
                             :class="['create-template-btn', {
                                 'btn-permission-disable': !hasPermission(['flow_create'], authActions)
                             }]"
+                            data-test-id="process_form_creatProcess"
                             @click="checkCreatePermission">
                             {{$t('新建')}}
                         </bk-button>
@@ -41,8 +42,8 @@
                                 <i :class="['bk-icon icon-angle-down']"></i>
                             </div>
                             <ul class="import-option-list" slot="dropdown-content">
-                                <li @click="isImportDialogShow = true">{{ $t('导入') }}DAT{{ $t('文件') }}</li>
-                                <li @click="isImportYamlDialogShow = true">{{ $t('导入') }}YAML{{ $t('文件') }}</li>
+                                <li data-test-id="process_list_importDatFile" @click="isImportDialogShow = true">{{ $t('导入') }}DAT{{ $t('文件') }}</li>
+                                <li data-test-id="process_list_importYamlFile" @click="isImportYamlDialogShow = true">{{ $t('导入') }}YAML{{ $t('文件') }}</li>
                             </ul>
                         </bk-dropdown-menu>
                         <bk-dropdown-menu style="margin-left: 14px;">
@@ -58,6 +59,7 @@
                                             content: operat.content,
                                             disabled: !selectedTpls.length || (operat.isOther ? hasBatchEditAuth : hasBatchViewAuth) }"
                                         :class="{ 'disabled': operat.isOther ? !hasBatchEditAuth : !hasBatchViewAuth }"
+                                        :data-test-id="`process_list_${operat.customAttr}`"
                                         @click="onOperatClick(operat.type)">
                                         {{ operat.value }}
                                     </li>
@@ -70,7 +72,7 @@
                         </div>
                     </template>
                 </advance-search-form>
-                <div class="template-table-content">
+                <div class="template-table-content" data-test-id="process_table_processList">
                     <bk-table
                         class="template-table"
                         :data="templateList"
@@ -439,20 +441,24 @@
                 {
                     type: 'dat',
                     content: noViewAuthTip,
-                    value: i18n.t('导出为') + 'DAT'
+                    value: i18n.t('导出为') + 'DAT',
+                    customAttr: 'exportDatFile'
                 }, {
                     type: 'yaml',
                     content: noViewAuthTip,
-                    value: i18n.t('导出为') + 'YAML'
+                    value: i18n.t('导出为') + 'YAML',
+                    customAttr: 'exportYamlFile'
                 }, {
                     type: 'collect',
                     content: noViewAuthTip,
-                    value: i18n.t('收藏')
+                    value: i18n.t('收藏'),
+                    customAttr: 'collectProcess'
                 }, {
                     type: 'delete',
                     content: noEditAuthTip,
                     value: i18n.t('删除'),
-                    isOther: true
+                    isOther: true,
+                    customAttr: 'deleteProcess'
                 }
             ]
             return {

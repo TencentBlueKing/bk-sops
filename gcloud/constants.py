@@ -185,3 +185,6 @@ class AnalysisElement(object):
 
 
 AE = AnalysisElement()
+
+TASKFLOW_NODE_AUTO_RETRY_MAX_TIMES = 10
+TASKFLOW_NODE_AUTO_RETRY_BATCH_CREATE_COUNT = 5000

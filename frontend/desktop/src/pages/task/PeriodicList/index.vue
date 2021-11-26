@@ -26,12 +26,13 @@
                             theme="primary"
                             size="normal"
                             style="min-width: 120px;"
+                            data-test-id="periodicList_from_creatTask"
                             @click="onCreatePeriodTask">
                             {{$t('新建')}}
                         </bk-button>
                     </template>
                 </advance-search-form>
-                <div class="periodic-table-content">
+                <div class="periodic-table-content" data-test-id="periodicList_from_taskList">
                     <bk-table
                         :data="periodicList"
                         :pagination="pagination"

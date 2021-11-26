@@ -15,10 +15,23 @@ export const random4 = () => {
         .substring(1)
 }
 
-export const uuid = () => {
+export const uuid = (group = 8) => {
     let id = ''
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < group - 1; i++) {
         id += random4()
     }
     return id
+}
+
+export const makeId = (length = 32) => {
+    let result = ''
+    const characters = 'abcdef0123456789'
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length))
+    }
+    return result
+}
+
+export const generateTraceId = () => {
+    return `00-${makeId(32)}-${makeId(16)}-01`
 }
