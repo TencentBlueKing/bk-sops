@@ -22,7 +22,6 @@ from plugin_service.plugin_client import PluginServiceApiClient
 from plugin_service import env
 from gcloud.analysis_statistics.models import TemplateNodeStatistics
 
-
 # 缓存时间 1小时
 REMOTE_PLUGIN_NAME_CACHE_KEY = "remote_plugin_name"
 REMOTE_PLUGIN_NAME_CACHE_TIME = 60 * 60
