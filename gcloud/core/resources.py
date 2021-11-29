@@ -41,6 +41,7 @@ from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.utils import get_user_projects
 from gcloud.iam_auth.resource_helpers import SimpleResourceHelper
 from gcloud.iam_auth.authorization_helpers import ProjectIAMAuthorizationHelper
+from gcloud.utils.components import get_remote_plugin_detail_list
 
 logger = logging.getLogger("root")
 iam = get_iam_client()
@@ -217,8 +218,23 @@ class ComponentModelResource(GCloudModelResource):
 
         component_phase_dict = DeprecatedPlugin.objects.get_components_phase_dict()
         altered_objects = []
-
+        # 注入第三方插件
+        remote_plugins = get_remote_plugin_detail_list()
+        data["objects"].extend(remote_plugins)
         for bundle in data["objects"]:
+            # 第三方插件
+            if isinstance(bundle, dict):
+                bundle = self.build_bundle(data=bundle)
+                bundle.data["output"] = None
+                bundle.data["form"] = None
+                bundle.data["output_form"] = None
+                bundle.data["desc"] = None
+                bundle.data["form_is_embedded"] = None
+                bundle.data["is_remote"] = True
+                bundle.data["group_icon"] = None
+                bundle.data["name"] = _(bundle.data["name"])
+                altered_objects.append(bundle)
+                continue
             # 远程插件不显示在列表中
             if bundle.data["code"] == "remote_plugin":
                 continue
