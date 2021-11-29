@@ -29,11 +29,8 @@ TEST_OFFSET = 0
 
 
 class TestGetRemotePluginName(TestCase):
-    def setUp(self):
-        self.env = mock.patch.dict("os.environ", {"BKAPP_USE_PLUGIN_SERVICE": "1"})
-
     def test_call_success(self):
-        with self.env:
+        with mock.patch("gcloud.utils.components.env.USE_PLUGIN_SERVICE", "1"):
             with mock.patch(GET_PAAS_PLUGIN_INFO, MagicMock(return_value=TEST_RESULT)):
                 plugin_info = get_remote_plugin_name(limit=TEST_LIMIT, offset=TEST_OFFSET)
                 PluginServiceApiClient.get_paas_plugin_info.assert_called_once_with(

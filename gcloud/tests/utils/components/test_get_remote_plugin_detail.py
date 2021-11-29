@@ -37,16 +37,12 @@ class MockTemplateNodeStatistics(MagicMock):
 
 
 class TestGetRemotePluginDetailList(TestCase):
-    def setUp(self):
-        self.env = mock.patch.dict("os.environ", {"BKAPP_USE_PLUGIN_SERVICE": "1"})
-
     def test_call_success(self):
-        with self.env:
+        with mock.patch("gcloud.utils.components.env.USE_PLUGIN_SERVICE", "1"):
             with mock.patch(TEMPLATENODE_STATISTICS_FILTER, MagicMock(return_value=MockTemplateNodeStatistics())):
                 with mock.patch(GET_PAAS_PLUGIN_INFO, MagicMock(return_value=TEST_API_RESULT)):
                     plugin_info = get_remote_plugin_detail_list(limit=TEST_LIMIT, offset=TEST_OFFSET)
                     TemplateNodeStatistics.objects.filter.assert_called_once_with(is_remote=True)
-
                     PluginServiceApiClient.get_paas_plugin_info.assert_called_once_with(
                         search_term=None, environment="prod", limit=TEST_LIMIT, offset=TEST_OFFSET
                     )
