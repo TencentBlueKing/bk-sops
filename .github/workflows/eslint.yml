@@ -4,9 +4,9 @@ name: frontend code eslint
 
 on:
   push:
-    branches: [ V3.6.X**, release* ]
+    branches: [ master, develop, release* ]
   pull_request:
-    branches: [ V3.6.X**, release* ]
+    branches: [ master, develop, release* ]
 
 jobs:
   eslint:

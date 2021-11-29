@@ -24,13 +24,34 @@
             </p>
             <div class="scheme-active-wrapper" v-else>
                 <div>
-                    <bk-button :disabled="isCommonProcess" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
-                    <bk-button :disabled="isCommonProcess" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
-                    <bk-button :disabled="isCommonProcess" @click="onSetDefaultPlan">{{ $t('设置默认方案') }}</bk-button>
+                    <bk-button
+                        data-test-id="templateEdit_form_addScheme"
+                        :disabled="isCommonProcess"
+                        icon="plus-line"
+                        @click="onCreateScheme">
+                        {{ $t('新增') }}
+                    </bk-button>
+                    <bk-button
+                        data-test-id="templateEdit_form_importTemporaryPlan"
+                        :disabled="isCommonProcess"
+                        @click="onImportTemporaryPlan">
+                        {{ $t('导入临时方案') }}
+                    </bk-button>
+                    <bk-button
+                        data-test-id="templateEdit_form_setDefaultPlan"
+                        :disabled="isCommonProcess"
+                        @click="onSetDefaultPlan">
+                        {{ $t('设置默认方案') }}
+                    </bk-button>
                 </div>
-                <bk-button @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
+                <bk-button
+                    data-test-id="templateEdit_form_previewNode"
+                    @click="onChangePreviewNode">
+                    {{ isPreview ? $t('关闭预览') : $t('节点预览')}}
+                </bk-button>
             </div>
             <section
+                data-test-id="templateEdit_form_schemeList"
                 :class="['scheme-wrapper', { 'is-diasbled': isCommonProcess, 'is-default-scheme': isDefaultSchemeIng }]"
                 v-bkloading="{ isLoading: isSchemeLoading }">
                 <p :class="['scheme-title', { 'data-empty': !schemeList.length && !nameEditing }]">
@@ -106,8 +127,18 @@
                 </bk-exception>
             </section>
             <section class="scheme-footer">
-                <bk-button theme="primary" :loading="executeSchemeSaving || isSaveDefaultLoading" @click="onSaveExecuteSchemeClick">{{ $t('保存') }}</bk-button>
-                <bk-button @click="toggleSchemePanel">{{ $t('返回') }}</bk-button>
+                <bk-button
+                    data-test-id="templateEdit_form_saveScheme"
+                    theme="primary"
+                    :loading="executeSchemeSaving || isSaveDefaultLoading"
+                    @click="onSaveExecuteSchemeClick">
+                    {{ $t('保存') }}
+                </bk-button>
+                <bk-button
+                    data-test-id="templateEdit_form_returnBtn"
+                    @click="toggleSchemePanel">
+                    {{ $t('返回') }}
+                </bk-button>
             </section>
         </div>
     </div>

@@ -20,7 +20,7 @@ class FormatConditionVlaueTestCase(TestCase):
     def test__normal(self):
         self.assertEqual(format_condition_value(["111", "222"]), list({"111", "222"}))
         self.assertEqual(format_condition_value(["111", "222\n333"]), list({"111", "222", "333"}))
-        self.assertEqual(format_condition_value(["", "222\n", " 333  "]), list({"222", "333"}))
+        self.assertEqual(format_condition_value(["", "222\n", " 333  "]), list({"", "222", "333"}))
 
     def test__number_case(self):
         self.assertEqual(set(format_condition_value([111, 222, 333])), set([111, 222, 333]))

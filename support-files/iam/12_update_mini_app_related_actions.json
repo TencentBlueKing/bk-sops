@@ -1,0 +1,46 @@
+{
+    "system_id": "bk_sops",
+    "operations": [
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "mini_app_view",
+                "related_actions": [
+                    "project_view",
+                    "flow_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "mini_app_edit",
+                "related_actions": [
+                    "project_view",
+                    "flow_view",
+                    "mini_app_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "mini_app_delete",
+                "related_actions": [
+                    "project_view"
+                ]
+            }
+        },
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "mini_app_create_task",
+                "related_actions": [
+                    "project_view",
+                    "flow_view",
+                    "mini_app_view"
+                ]
+            }
+        }
+    ]
+}

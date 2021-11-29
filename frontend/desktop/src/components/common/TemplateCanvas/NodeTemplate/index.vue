@@ -434,6 +434,20 @@
                     font-size: 12px;
                     color: #979ba5;
                 }
+                .error-handle-icon {
+                    float: left;
+                    margin-right: 2px;
+                    padding: 0 3px;
+                    line-height: 12px;
+                    color: #ffffff;
+                    background: #979ba5;
+                    border-radius: 2px;
+                    .text {
+                        display: inline-block;
+                        font-size: 12px;
+                        transform: scale(0.8);
+                    }
+                }
             }
             .state-icon {
                 position: absolute;
