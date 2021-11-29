@@ -114,9 +114,6 @@
                                             <div class="task-item-name-box">
                                                 <div class="task-item-name">{{template.name}}</div>
                                             </div>
-                                            <div class="apply-permission-mask">
-                                                <bk-button theme="primary" size="small">{{$t('申请权限')}}</bk-button>
-                                            </div>
                                         </li>
                                     </ul>
                                 </li>
