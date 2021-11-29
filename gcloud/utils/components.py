@@ -11,13 +11,42 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from functools import wraps
+
 from django.utils.translation import ugettext_lazy as _
+from django.core.cache import cache
+
+from pipeline.component_framework.models import ComponentModel
 
 from plugin_service.plugin_client import PluginServiceApiClient
 from plugin_service import env
 from gcloud.analysis_statistics.models import TemplateNodeStatistics
 
 
+# 缓存时间 1小时
+REMOTE_PLUGIN_NAME_CACHE_KEY = "remote_plugin_name"
+REMOTE_PLUGIN_NAME_CACHE_TIME = 60 * 60
+REMOTE_PLUGIN_DETAIL_CACHE_KEY = "remote_plugin_detail"
+REMOTE_PLUGIN_DETAIL_CACHE_TIME = 60 * 60
+
+
+def query_cache(key, expires):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            value = cache.get(key)
+            if value:
+                return value
+            value = func(*args, **kwargs)
+            cache.set(key, value, expires)
+            return value
+
+        return wrapper
+
+    return decorator
+
+
+@query_cache(REMOTE_PLUGIN_NAME_CACHE_KEY, REMOTE_PLUGIN_NAME_CACHE_TIME)
 def get_remote_plugin_name(limit=100, offset=0):
     """
     @summary: 拉取第三方插件名
@@ -42,10 +71,10 @@ def get_remote_plugin_name(limit=100, offset=0):
             CUR_TOTAL += 1
         TOTAL = result.get("count", 0)
         offset += 1
-        limit += limit
     return plugin_info
 
 
+@query_cache(REMOTE_PLUGIN_DETAIL_CACHE_KEY, REMOTE_PLUGIN_DETAIL_CACHE_TIME)
 def get_remote_plugin_detail_list(limit=100, offset=0):
     """
     @summary: 拉取第三方插件详细信息
@@ -66,6 +95,7 @@ def get_remote_plugin_detail_list(limit=100, offset=0):
     )
     remote_plugin_dict = {}
     for plugin in remote_plugins:
+        # plugin ["code","version"]
         remote_plugin_dict.setdefault(plugin[0], {plugin[1]}).add(plugin[1])
     while CUR_TOTAL < TOTAL:
         result = PluginServiceApiClient.get_paas_plugin_info(
@@ -80,14 +110,23 @@ def get_remote_plugin_detail_list(limit=100, offset=0):
                 continue
             plugin_info.extend(
                 [
-                    {"name": plugin["name"], "version": version, "code": plugin["code"], "group_name": "第三方插件"}
+                    {
+                        "name": plugin["name"],
+                        "version": version,
+                        "code": plugin["code"],
+                        "group_name": "第三方插件",
+                        "is_remote": True,
+                    }
                     for version in versions
                 ]
             )
         TOTAL = result.get("count", 0)
         offset += 1
-        limit += limit
     return plugin_info
+
+
+def component_name(group_name, name, version):
+    return "{}-{}-{}".format(_(group_name), _(name), version)
 
 
 def format_component_name(components: list, components_list: list):
@@ -102,7 +141,7 @@ def format_component_name(components: list, components_list: list):
         version = comp["version"]
         # 插件名国际化
         name = comp["name"].split("-")
-        name = "{}-{}-{}".format(_(name[0]), _(name[1]), version)
+        name = component_name(name[0], name[1], version)
         code = "{}-{}".format(comp["code"], comp["version"])
         value = 0
         for oth_com_tmp in components_list:
@@ -127,12 +166,33 @@ def format_component_name_with_remote(components: list, comp_name_dict: dict):
         if not comp["is_remote"]:
             # 系统内置插件
             name = comp_name_dict.get(comp["component_code"], comp["component_code"]).split("-")
-            name = "{}-{}-{}".format(_(name[0]), _(name[1]), version)
+            name = component_name(name[0], name[1], version)
         else:
             # 第三方插件
             name = remote_plugin_dict.get(comp["component_code"], comp["component_code"]).split("-")
-            name = "{}-{}-{}".format(_("第三方插件"), _(name[0]), version)
+            name = component_name("第三方插件", name[0], version)
         code = "{}-{}".format(comp["component_code"], comp["version"])
         value = comp["value"]
         groups.append({"code": code, "name": name, "value": value})
     return groups
+
+
+def get_inner_components():
+    components = ComponentModel.objects.values("code", "version", "name")
+    component_list = []
+    for comp in components:
+        code = comp["code"]
+        name = comp["name"].split("-")
+        group_name = _(name[0])
+        name = _(name[1])
+        version = comp["version"]
+        component_list.append(
+            {"name": name, "group_name": group_name, "version": version, "code": code, "is_remote": False}
+        )
+    return component_list
+
+
+def get_all_components():
+    inner_components = get_inner_components()
+    remote_components = get_remote_plugin_detail_list()
+    return inner_components + remote_components

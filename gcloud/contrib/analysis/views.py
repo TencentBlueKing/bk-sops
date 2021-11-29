@@ -25,6 +25,7 @@ from gcloud.core.models import Project
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.statistics import StatisticsViewInpterceptor
 from gcloud.err_code import REQUEST_PARAM_INVALID
+from gcloud.utils.components import get_all_components
 
 
 @require_GET
@@ -130,3 +131,13 @@ def query_appmaker_by_group(*args):
         # 根据类型分组
         success, content = app_maker.dispatch(group_by, filters)
     return success, content
+
+
+@require_GET
+@iam_intercept(StatisticsViewInpterceptor())
+def get_component_list(request):
+    """
+    获取所有插件列表（含第三方插件）
+    """
+    components = get_all_components()
+    return JsonResponse({"result": True, "data": components})

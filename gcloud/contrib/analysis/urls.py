@@ -25,5 +25,5 @@ urlpatterns = [
     url(r"^atom/$", views.analysis_home),
     url(r"^get_task_category/$", views.get_task_category),
     url(r"^get_biz_useage/(?P<query>\w+)/$", views.get_biz_useage),
-    url(r"^get_biz_useage/(?P<query>\w+)/$", views.get_biz_useage),
+    url(r"get_component_list/", views.get_component_list),
 ]
