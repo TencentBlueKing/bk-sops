@@ -106,8 +106,7 @@
                                             :class="[
                                                 'task-item',
                                                 {
-                                                    'task-item-selected': selectedTpl.id === template.id,
-                                                    'permission-disable': selectedTplType === 'publicProcess' && !hasPermission(['common_flow_view'], template.auth_actions)
+                                                    'task-item-selected': selectedTpl.id === template.id
                                                 }
                                             ]"
                                             @click="onSelectTpl(template)">
@@ -249,7 +248,7 @@
             action () {
                 if (this.entrance === 'taskflow') {
                     return this.selectedTplType === 'businessProcess' ? ['flow_create_task'] : ['common_flow_create_task']
-                } else if (this.entrance === 'periodic') {
+                } else if (this.entrance === 'periodicTask') {
                     return this.selectedTplType === 'businessProcess' ? ['flow_create_periodic_task'] : ['common_flow_create_periodic_task']
                 } else {
                     return ['flow_create_clocked_task']
