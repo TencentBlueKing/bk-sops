@@ -644,7 +644,6 @@
                  */
                 const has_subprocess = (subprocessUpdateVal === 1 || subprocessUpdateVal === -1) ? true : (subprocessUpdateVal === 0 ? false : undefined)
                 const subprocess_has_update = subprocessUpdateVal === 1 ? true : (subprocessUpdateVal === -1 ? false : undefined)
-                const orderBy = this.ordering ? (/^-/.test(this.ordering) ? `-pipeline_template__${this.ordering.replace(/^-/, '')}` : `pipeline_template__${this.ordering}`) : undefined
                 const data = {
                     project__id: this.project_id,
                     limit: this.pagination.limit,
@@ -653,7 +652,7 @@
                     pipeline_template__creator__contains: creator || undefined,
                     category: category || undefined,
                     label_ids: label_ids && label_ids.length ? label_ids.join(',') : undefined,
-                    order_by: orderBy,
+                    order_by: this.ordering,
                     subprocess_has_update,
                     has_subprocess
                 }
