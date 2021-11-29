@@ -47,8 +47,10 @@ TEST_ACTIVIES = {
         "outgoing": TEST_ID_LIST[7],
         "optional": True,
         "component": {
-            "code": "test",
+            "code": "remote_plugin",
             "data": {
+                "plugin_code": {"value": "test"},
+                "plugin_version": {"value": "testversion"},
                 "input_test": {"hook": True, "value": "${custom_key2}"},
                 "radio_test": {"hook": False, "value": "2"},
             },

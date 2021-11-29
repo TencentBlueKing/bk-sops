@@ -11,42 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from functools import wraps
+from cachetools import cached, TTLCache
 
 from django.utils.translation import ugettext_lazy as _
-from django.core.cache import cache
 
 from pipeline.component_framework.models import ComponentModel
 
 from plugin_service.plugin_client import PluginServiceApiClient
 from plugin_service import env
 from gcloud.analysis_statistics.models import TemplateNodeStatistics
+from gcloud.apigw.utils import api_hash_key
 
 
-# 缓存时间 1小时
-REMOTE_PLUGIN_NAME_CACHE_KEY = "remote_plugin_name"
-REMOTE_PLUGIN_NAME_CACHE_TIME = 60 * 60
-REMOTE_PLUGIN_DETAIL_CACHE_KEY = "remote_plugin_detail"
-REMOTE_PLUGIN_DETAIL_CACHE_TIME = 60 * 60
-
-
-def query_cache(key, expires):
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            value = cache.get(key)
-            if value:
-                return value
-            value = func(*args, **kwargs)
-            cache.set(key, value, expires)
-            return value
-
-        return wrapper
-
-    return decorator
-
-
-@query_cache(REMOTE_PLUGIN_NAME_CACHE_KEY, REMOTE_PLUGIN_NAME_CACHE_TIME)
+@cached(cache=TTLCache(maxsize=1024, ttl=60), key=api_hash_key)
 def get_remote_plugin_name(limit=100, offset=0):
     """
     @summary: 拉取第三方插件名
@@ -74,7 +51,7 @@ def get_remote_plugin_name(limit=100, offset=0):
     return plugin_info
 
 
-@query_cache(REMOTE_PLUGIN_DETAIL_CACHE_KEY, REMOTE_PLUGIN_DETAIL_CACHE_TIME)
+@cached(cache=TTLCache(maxsize=1024, ttl=60), key=api_hash_key)
 def get_remote_plugin_detail_list(limit=100, offset=0):
     """
     @summary: 拉取第三方插件详细信息
