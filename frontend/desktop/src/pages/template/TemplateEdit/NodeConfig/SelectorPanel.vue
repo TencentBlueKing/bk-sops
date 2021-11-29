@@ -22,7 +22,11 @@
             @clear="onClearSearch">
         </bk-input>
         <!-- 内置插件/第三方插件tab -->
-        <bk-tab v-if="!isSubflow" :active.sync="curPluginTab" type="unborder-card">
+        <bk-tab
+            v-if="!isSubflow"
+            :active.sync="curPluginTab"
+            type="unborder-card"
+            @tab-change="setSearchInputShow">
             <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('内置插件') }"></bk-tab-panel>
             <bk-tab-panel v-bind="{ name: 'third_praty_plugin', label: $t('第三方插件') }"></bk-tab-panel>
         </bk-tab>
@@ -170,7 +174,7 @@
         </div>
         <!-- 第三方插件 -->
         <div v-show="curPluginTab === 'third_praty_plugin'" v-bkloading="{ isLoading: pluginLoading }">
-            <ul class="third-praty-list">
+            <ul class="third-praty-list" v-if="atomTypeList.pluginList.length">
                 <li
                     :class="['plugin-item', { 'is-actived': plugin.code === basicInfo.plugin }]"
                     v-for="(plugin, index) in atomTypeList.pluginList"
@@ -183,6 +187,7 @@
                     </div>
                 </li>
             </ul>
+            <bk-exception v-else class="exception-part" type="search-empty" scene="part"> </bk-exception>
         </div>
     </div>
 </template>
@@ -326,11 +331,22 @@
                     this.$refs.selectorArea.scrollTop = 0
                 }
             },
+            setSearchInputShow () {
+                const isThirdParty = this.curPluginTab === 'third_praty_plugin'
+                if (!isThirdParty && this.searchStr) {
+                    this.searchStr = ''
+                    this.$emit('updatePluginList', undefined, 'search')
+                }
+            },
             onClearSearch () {
                 this.searchInputhandler()
             },
             async searchInputhandler () {
                 let result = []
+                if (this.curPluginTab === 'third_praty_plugin') {
+                    this.$emit('updatePluginList', this.searchStr, 'search')
+                    return
+                }
                 if (!this.isSubflow) {
                     if (this.searchStr === '') {
                         result = this.listData.slice(0)
@@ -737,6 +753,9 @@
         text-align: center;
         margin-top: 10px;
     }
+}
+.exception-part {
+    margin-top: 100px;
 }
 </style>
 <style lang="scss">
