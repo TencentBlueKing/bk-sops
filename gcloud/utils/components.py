@@ -40,11 +40,8 @@ def query_cache(key, expires):
             value = func(*args, **kwargs)
             cache.set(key, value, expires)
             return value
-
         return wrapper
-
     return decorator
-
 
 @query_cache(REMOTE_PLUGIN_NAME_CACHE_KEY, REMOTE_PLUGIN_NAME_CACHE_TIME)
 def get_remote_plugin_name(limit=100, offset=0):
@@ -72,7 +69,6 @@ def get_remote_plugin_name(limit=100, offset=0):
         TOTAL = result.get("count", 0)
         offset += 1
     return plugin_info
-
 
 @query_cache(REMOTE_PLUGIN_DETAIL_CACHE_KEY, REMOTE_PLUGIN_DETAIL_CACHE_TIME)
 def get_remote_plugin_detail_list(limit=100, offset=0):
@@ -128,11 +124,6 @@ def get_remote_plugin_detail_list(limit=100, offset=0):
 def component_name(group_name, name, version):
     return "{}-{}-{}".format(_(group_name), _(name), version)
 
-from plugin_service.plugin_client import PluginServiceApiClient
-from plugin_service import env
-from gcloud.analysis_statistics.models import TemplateNodeStatistics
-
-
 def get_remote_plugin_name(limit=100, offset=0):
     """
     @summary: 拉取第三方插件名
@@ -159,7 +150,6 @@ def get_remote_plugin_name(limit=100, offset=0):
         offset += 1
         limit += limit
     return plugin_info
-
 
 def get_remote_plugin_detail_list(limit=100, offset=0):
     """
@@ -204,7 +194,6 @@ def get_remote_plugin_detail_list(limit=100, offset=0):
         limit += limit
     return plugin_info
 
-
 def format_component_name(components: list, components_list: list):
     """
     @summary: 插件名格式化
@@ -225,7 +214,6 @@ def format_component_name(components: list, components_list: list):
                 value += oth_com_tmp["value"]
         groups.append({"code": code, "name": name, "value": value})
     return groups
-
 
 def format_component_name_with_remote(components: list, comp_name_dict: dict):
     """
@@ -252,7 +240,6 @@ def format_component_name_with_remote(components: list, comp_name_dict: dict):
         groups.append({"code": code, "name": name, "value": value})
     return groups
 
-
 def get_inner_components():
     components = ComponentModel.objects.values("code", "version", "name")
     component_list = []
@@ -266,7 +253,6 @@ def get_inner_components():
             {"name": name, "group_name": group_name, "version": version, "code": code, "is_remote": False}
         )
     return component_list
-
 
 def get_all_components():
     inner_components = get_inner_components()
