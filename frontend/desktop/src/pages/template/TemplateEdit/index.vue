@@ -138,6 +138,7 @@
                 v-model="isBatchUpdateDialogShow"
                 :close-icon="false"
                 :fullscreen="true"
+                data-test-id="templateEdit_from_batchUpdateDialog"
                 :show-footer="false">
                 <batch-update-dialog
                     v-if="isBatchUpdateDialogShow"
@@ -155,6 +156,7 @@
                 :header-position="'left'"
                 :title="$t('离开页面')"
                 :value="isLeaveDialogShow"
+                data-test-id="templateEdit_from_leaveDialog"
                 @confirm="onLeaveConfirm"
                 @cancel="onLeaveCancel">
                 <div class="leave-tips">{{ $t('系统不会保存您所做的更改，确认离开？') }}</div>
@@ -166,6 +168,7 @@
                 :mask-close="false"
                 :show-footer="false"
                 :value="multipleTabDialogShow"
+                data-test-id="templateEdit_from_commonDialog"
                 @cancel="multipleTabDialogShow = false">
                 <div class="multiple-tab-dialog-content">
                     <h3>{{ $t('确定保存修改的内容？') }}</h3>
@@ -182,6 +185,7 @@
                 :mask-close="false"
                 :show-footer="false"
                 :value="isExectueSchemeDialog"
+                data-test-id="templateEdit_from_tempEditDialog"
                 @cancel="isExectueSchemeDialog = false">
                 <div class="template-edit-dialog-content">
                     <div class="save-tpl-tips">{{ tplEditDialogTip }}</div>
@@ -198,6 +202,7 @@
                 :mask-close="false"
                 :show-footer="false"
                 :value="isShowDialog"
+                data-test-id="templateEdit_from_conditeEditDialog"
                 @cancel="isShowDialog = false">
                 <div class="condition-edit-confirm-dialog-content">
                     <div class="leave-tips">{{ $t('保存已修改的信息吗？') }}</div>
@@ -323,10 +328,10 @@
                 },
                 typeOfNodeNameEmpty: '', // 新建流程未选择插件的节点类型
                 pagination: {
-                    limit: 100,
+                    limit: 15,
                     offset: 0,
-                    isLoading: false,
-                    totalPage: null
+                    count: 0,
+                    isLoading: false
                 },
                 totalPage: 0,
                 currentPage: 0,
@@ -541,9 +546,10 @@
                     }
                     const data = await this.loadSingleAtomList(params)
 
+                    // 获取第三方插件列表每页多少条
+                    this.getPaginationLimit()
                     const { limit, offset } = this.pagination
                     const resp = await this.loadPluginServiceList({
-                        search_term: '',
                         limit,
                         offset
                     })
@@ -571,7 +577,8 @@
                     this.handleAtomGroup(atomList)
                     this.markNodesPhase()
                     // 第三方插件
-                    this.pagination.totalPage = Math.ceil(resp.data.count / this.pagination.limit)
+                    this.pagination.count = resp.data.count
+                    this.pagination.offset = offset + limit
                     this.atomTypeList.pluginList = resp.data.plugins
                 } catch (e) {
                     console.log(e)
@@ -580,8 +587,17 @@
                 }
             },
             /**
-             * 加载项目基础信息
+             * 获取第三方插件列表每页多少条
+             * 60 侧滑头高度
+             * 50 tab高度
+             * 80 第三方插件高度
              */
+            getPaginationLimit () {
+                const bodyHeight = document.body.clientHeight
+                const thirdListHeight = bodyHeight - 60 - 50
+                const limit = Math.ceil(thirdListHeight / 80)
+                this.pagination.limit = limit + 1
+            },
             async getProjectBaseInfo () {
                 this.projectInfoLoading = true
                 try {
@@ -1499,20 +1515,22 @@
             async updatePluginList (val = undefined, type) {
                 try {
                     if (type === 'scroll') {
-                        const { limit, offset, totalPage, isLoading } = this.pagination
-                        if (offset !== totalPage && !isLoading) {
+                        // 获取第三方插件列表每页多少条
+                        this.getPaginationLimit()
+                        const { limit, offset, count, isLoading } = this.pagination
+                        if (offset < count && !isLoading) {
                             this.pagination.isLoading = true
-                            this.pagination.offset++
-                            const params = { search_term: val, limit: limit, offset }
+                            const params = { search_term: val, limit, offset }
                             const resp = await this.loadPluginServiceList(params)
                             const { count, plugins } = resp.data
-                            this.pagination.totalPage = Math.ceil(count / this.pagination.limit)
+                            this.pagination.count = count
+                            this.pagination.offset = offset + limit
                             this.atomTypeList.pluginList.push(...plugins)
                             this.pagination.isLoading = false
                         }
                     } else {
                         const { limit, offset } = this.pagination
-                        const params = { search_term: val, limit: limit, offset }
+                        const params = { search_term: val, limit, offset }
                         const resp = await this.loadPluginServiceList(params)
                         this.atomTypeList.pluginList = resp.data.plugins
                     }

@@ -30,6 +30,7 @@ from pipeline.eri.runtime import BambooDjangoRuntime
 from pipeline.log.models import LogEntry
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.engine import exceptions as pipeline_exceptions
+from opentelemetry import trace
 
 from gcloud import err_code
 from gcloud.utils.handlers import handle_plain_log
@@ -57,9 +58,10 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         "retry_subprocess",
     }
 
-    def __init__(self, engine_ver: int, node_id: str):
+    def __init__(self, engine_ver: int, node_id: str, taskflow_id: int = None):
         self.engine_ver = engine_ver
         self.node_id = node_id
+        self.taskflow_id = taskflow_id
 
     def dispatch(self, command: str, operator: str, **kwargs) -> dict:
         if self.engine_ver not in self.VALID_ENGINE_VER:
@@ -68,7 +70,13 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         if command not in self.NODE_COMMANDS:
             return {"result": False, "message": "task command is invalid", "code": err_code.INVALID_OPERATION.code}
 
-        return getattr(self, "{}_v{}".format(command, self.engine_ver))(operator=operator, **kwargs)
+        with trace.get_tracer(__name__).start_as_current_span("node_operate") as span:
+            span.set_attribute("bk_sops.task_id", self.taskflow_id)
+            span.set_attribute("bk_sops.node_id", self.node_id)
+            span.set_attribute("bk_sops.engine_ver", self.engine_ver)
+            span.set_attribute("bk_sops.node_command", command)
+
+            return getattr(self, "{}_v{}".format(command, self.engine_ver))(operator=operator, **kwargs)
 
     @ensure_return_is_dict
     def retry_v1(self, operator: str, **kwargs) -> dict:

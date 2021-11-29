@@ -116,6 +116,7 @@ TRANSFER_MODULE_SUCCESS_INPUTS = {
     "cc_module_select_method": "manual",
     "cc_host_transfer_detail": [{"cc_transfer_host_ip": "2.5.5.6", "cc_transfer_host_target_module": "蓝鲸>Tun>set"}],
     "cc_transfer_host_template_break_line": "",
+    "is_append": True,
     "_loop": 1,
 }
 
@@ -162,6 +163,7 @@ TRANSFER_MODULE_AUTO_COMPLETE_BIZ_SUCCESS_INPUTS = {
     "cc_module_select_method": "manual",
     "cc_host_transfer_detail": [{"cc_transfer_host_ip": "2.5.5.6", "cc_transfer_host_target_module": "Tun>set"}],
     "cc_transfer_host_template_break_line": "",
+    "is_append": True,
     "_loop": 1,
 }
 

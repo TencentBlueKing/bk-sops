@@ -786,7 +786,7 @@ const en = {
     '步骤名称': 'Stage Name',
     '失败处理': 'Failure Processing',
     '是否可选': 'Optional',
-    '自动忽略': 'Auto Ignore',
+    '自动跳过': 'Auto Skip',
     '手动跳过': 'Manual Skip',
     '手动重试': 'Manual Retry',
     '未选择失败处理方式，标准插件节点如果执行失败，会导致任务中断后不可继续': "No failure process set, you won't be able to operate it if this node failed",
@@ -1224,6 +1224,7 @@ const en = {
     '变量保存数据与最新的CMDB集群配置存在差异，是否更新变量数据？': 'Variable data is different from the latest CMDB configuration, determine whether to update',
     '移动端': 'Mobile',
     'API网关': 'API Gateway',
+    '重置': 'Reset',
     '模板执行次数TOPx': 'TOP{x} template execution times',
     '模板使用统计': 'Template usage statistics',
     '已使用': 'Used',
@@ -1244,7 +1245,9 @@ const en = {
     '还没有接入新的业务': "Haven't access the new business",
     '需要前往配置平台新建业务': 'Need to go to the bk-cmdb creat new business',
     '创建新业务': 'Create new business',
-    '删除连线': 'Delete Line'
+    '删除连线': 'Delete Line',
+    '自动重试': 'Auto Retry',
+    '次': 'Times'
 }
 
 export default en
