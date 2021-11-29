@@ -128,6 +128,82 @@ def get_remote_plugin_detail_list(limit=100, offset=0):
 def component_name(group_name, name, version):
     return "{}-{}-{}".format(_(group_name), _(name), version)
 
+from plugin_service.plugin_client import PluginServiceApiClient
+from plugin_service import env
+from gcloud.analysis_statistics.models import TemplateNodeStatistics
+
+
+def get_remote_plugin_name(limit=100, offset=0):
+    """
+    @summary: 拉取第三方插件名
+    @param: limit: 拉取第三方插件数据默认limit，默认为100
+    @param: offset: 拉取第三方插件分页起点，默认为0
+    return plugin_info:dict() 第三方插件信息
+    """
+    TOTAL = limit
+    CUR_TOTAL = 0
+
+    plugin_info = {}
+    if not env.USE_PLUGIN_SERVICE == "1":
+        return plugin_info
+    while CUR_TOTAL < TOTAL:
+        result = PluginServiceApiClient.get_paas_plugin_info(
+            search_term=None, environment="prod", limit=limit, offset=offset
+        )
+        if result.get("result") is False:
+            return plugin_info
+        for plugin in result["results"]:
+            plugin_info.setdefault(plugin["code"], plugin["name"])
+            CUR_TOTAL += 1
+        TOTAL = result.get("count", 0)
+        offset += 1
+        limit += limit
+    return plugin_info
+
+
+def get_remote_plugin_detail_list(limit=100, offset=0):
+    """
+    @summary: 拉取第三方插件详细信息
+    @param: limit: 拉取第三方插件数据默认limit，默认为100
+    @param: offset: 拉取第三方插件分页起点，默认为0
+    return plugin_info:list() 第三方插件信息
+    """
+    TOTAL = limit
+    CUR_TOTAL = 0
+
+    plugin_info = []
+    if not env.USE_PLUGIN_SERVICE == "1":
+        return plugin_info
+
+    # 取所有第三方插件code和version
+    remote_plugins = list(
+        TemplateNodeStatistics.objects.filter(is_remote=True).values_list("component_code", "version")
+    )
+    remote_plugin_dict = {}
+    for plugin in remote_plugins:
+        remote_plugin_dict.setdefault(plugin[0], {plugin[1]}).add(plugin[1])
+    while CUR_TOTAL < TOTAL:
+        result = PluginServiceApiClient.get_paas_plugin_info(
+            search_term=None, environment="prod", limit=limit, offset=offset
+        )
+        if result.get("result") is False:
+            return plugin_info
+        for plugin in result["results"]:
+            CUR_TOTAL += 1
+            versions = remote_plugin_dict.get(plugin["code"])
+            if not versions:
+                continue
+            plugin_info.extend(
+                [
+                    {"name": plugin["name"], "version": version, "code": plugin["code"], "group_name": "第三方插件"}
+                    for version in versions
+                ]
+            )
+        TOTAL = result.get("count", 0)
+        offset += 1
+        limit += limit
+    return plugin_info
+
 
 def format_component_name(components: list, components_list: list):
     """
