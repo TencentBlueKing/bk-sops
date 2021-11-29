@@ -106,17 +106,13 @@
                                             :class="[
                                                 'task-item',
                                                 {
-                                                    'task-item-selected': selectedTpl.id === template.id,
-                                                    'permission-disable': selectedTplType === 'publicProcess' && !hasPermission(['common_flow_view'], template.auth_actions)
+                                                    'task-item-selected': selectedTpl.id === template.id
                                                 }
                                             ]"
                                             @click="onSelectTpl(template)">
                                             <div class="task-item-icon">{{template.name.substr(0,1).toUpperCase()}}</div>
                                             <div class="task-item-name-box">
                                                 <div class="task-item-name">{{template.name}}</div>
-                                            </div>
-                                            <div class="apply-permission-mask">
-                                                <bk-button theme="primary" size="small">{{$t('申请权限')}}</bk-button>
                                             </div>
                                         </li>
                                     </ul>
@@ -249,7 +245,7 @@
             action () {
                 if (this.entrance === 'taskflow') {
                     return this.selectedTplType === 'businessProcess' ? ['flow_create_task'] : ['common_flow_create_task']
-                } else if (this.entrance === 'periodic') {
+                } else if (this.entrance === 'periodicTask') {
                     return this.selectedTplType === 'businessProcess' ? ['flow_create_periodic_task'] : ['common_flow_create_periodic_task']
                 } else {
                     return ['flow_create_clocked_task']
