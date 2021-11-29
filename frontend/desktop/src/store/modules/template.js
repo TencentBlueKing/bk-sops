@@ -71,7 +71,11 @@ const generateInitActivities = (location, line) => {
             stage_name: '',
             type: 'ServiceActivity',
             retryable: true,
-            skippable: true
+            skippable: true,
+            auto_retry: {
+                enable: false,
+                times: 1
+            }
         }
     }
 }
@@ -271,7 +275,8 @@ const template = {
                                     optional: node.optional,
                                     error_ignorable: node.error_ignorable,
                                     retryable: node.can_retry || node.retryable,
-                                    skippable: node.isSkipped || node.skippable
+                                    skippable: node.isSkipped || node.skippable,
+                                    auto_retry: node.auto_retry || { enable: false, times: 1 }
                                 })
                                 return loc
                             }
@@ -286,8 +291,8 @@ const template = {
         // 更新模板各相关字段数据
         setTemplateData (state, data) {
             const {
-                name, template_id, pipeline_tree, notify_receivers, template_labels,
-                notify_type, description, executor_proxy, time_out, category, subprocess_info, default_flow_type
+                name, template_id, pipeline_tree, notify_receivers, template_labels, notify_type,
+                description, executor_proxy, time_out, category, subprocess_info, default_flow_type, auto_retry
             } = data
 
             const pipelineData = JSON.parse(pipeline_tree)
@@ -303,6 +308,7 @@ const template = {
             state.category = category
             state.subprocess_info = subprocess_info
             state.default_flow_type = default_flow_type
+            state.auto_retry = auto_retry
             this.commit('template/setPipelineTree', pipelineData)
         },
         setProjectBaseInfo (state, data) {
@@ -361,6 +367,7 @@ const template = {
             state.executor_proxy = ''
             state.template_labels = []
             state.default_flow_type = 'common'
+            state.auto_retry = { enable: false, times: 1 }
         },
         // 增加全局变量
         addVariable (state, variable) {
@@ -640,7 +647,8 @@ const template = {
                             stage_name: '',
                             type: 'ServiceActivity',
                             retryable: true,
-                            skippable: true
+                            skippable: true,
+                            auto_retry: { enable: false, times: 1 }
                         }
                     } else if (location.type === 'subflow') {
                         activity = {

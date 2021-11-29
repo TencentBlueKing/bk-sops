@@ -786,7 +786,7 @@ const en = {
     '步骤名称': 'Stage Name',
     '失败处理': 'Failure Processing',
     '是否可选': 'Optional',
-    '自动忽略': 'Auto Ignore',
+    '自动跳过': 'Auto Skip',
     '手动跳过': 'Manual Skip',
     '手动重试': 'Manual Retry',
     '未选择失败处理方式，标准插件节点如果执行失败，会导致任务中断后不可继续': "No failure process set, you won't be able to operate it if this node failed",
@@ -1255,7 +1255,9 @@ const en = {
     '大': 'large',
     '默认排序表头设置': 'Default Order Setting',
     '（请在下面可排序字段中选择）': '( Please select )',
-    '切换': 'Switch'
+    '切换': 'Switch',
+    '自动重试': 'Auto Retry',
+    '次': 'Times'
 }
 
 export default en

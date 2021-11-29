@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
@@ -11,11 +10,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-TASKTMPL_ORDERBY_OPTIONS = [
-    {"name": "模板ID", "value": "id"},
-    {"name": "创建时间", "value": "pipeline_template__create_time"},
-    {"name": "修改时间", "value": "pipeline_template__edit_time"},
-    {"name": "模板类型", "value": "category"},
-]
+from kombu import Exchange, Queue
 
-UserConfOption = {"tasktmpl_ordering": TASKTMPL_ORDERBY_OPTIONS}
+CELERY_QUEUES = [
+    Queue(
+        "node_auto_retry",
+        Exchange("default", type="direct"),
+        routing_key="node_auto_retry",
+        queue_arguments={"x-max-priority": 255},
+    )
+]
