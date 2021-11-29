@@ -11,11 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import ujson as json
-import base64
 
-from Crypto.Cipher import PKCS1_v1_5 as PKCS1_v1_5_cipher
-from Crypto.PublicKey import RSA
-from Crypto import Util
 from django.utils.translation import ugettext_lazy as _
 
 from api.collections.nodeman import BKNodeManClient
@@ -60,44 +56,6 @@ def get_nodeman_rsa_public_key(executor, logger):
     content = get_rsa_result["data"][0]["content"]
     name = get_rsa_result["data"][0]["name"]
     return True, {"name": name, "content": content}
-
-
-def get_block_size(key_obj, is_encrypt=True) -> int:
-    """
-    获取加解密最大片长度，用于分割过长的文本，单位：bytes
-    :param key_obj:
-    :param is_encrypt:
-    :return:
-    """
-    block_size = Util.number.size(key_obj.n) / 8
-    reserve_size = 11
-    if not is_encrypt:
-        reserve_size = 0
-    return int(block_size - reserve_size)
-
-
-def block_list(lst, block_size):
-    """
-    序列切片
-    :param lst:
-    :param block_size:
-    :return:
-    """
-    for idx in range(0, len(lst), block_size):
-        yield lst[idx : idx + block_size]
-
-
-def encrypt_auth_key(auth_key, public_key_name, public_key):
-    public_key_obj = RSA.importKey(public_key)
-    message_bytes = auth_key.encode(encoding="utf-8")
-    encrypt_message_bytes = b""
-    block_size = get_block_size(public_key_obj)
-    cipher = PKCS1_v1_5_cipher.new(public_key_obj)
-    for block in block_list(message_bytes, block_size):
-        encrypt_message_bytes += cipher.encrypt(block)
-
-    encrypt_message = base64.b64encode(public_key_name.encode("utf-8")) + base64.b64encode(encrypt_message_bytes)
-    return encrypt_message.decode(encoding="utf-8")
 
 
 class NodeManBaseService(Service):
