@@ -59,3 +59,20 @@ def encrypt_auth_key(auth_key, public_key_name, public_key):
 
     encrypt_message = base64.b64encode(public_key_name.encode("utf-8")) + base64.b64encode(encrypt_message_bytes)
     return encrypt_message.decode(encoding="utf-8")
+
+
+def decrypt_auth_key(encrypt_message, private_key):
+    """
+    @summary: rsa分块解密
+    @param encrypt_message: 密文
+    @param private_key: rsa私钥
+    @return: 解密后的信息
+    """
+    decrypt_message_bytes = b""
+    private_key_obj = RSA.importKey(private_key.strip("\n"))
+    encrypt_message_bytes = base64.b64decode(encrypt_message)
+    block_size = _get_block_size(private_key_obj, is_encrypt=False)
+    cipher = PKCS1_v1_5_cipher.new(private_key_obj)
+    for block in _block_list(encrypt_message_bytes, block_size):
+        decrypt_message_bytes += cipher.decrypt(block, "")
+    return decrypt_message_bytes.decode(encoding="utf-8")
