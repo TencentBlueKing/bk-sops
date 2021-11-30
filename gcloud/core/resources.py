@@ -217,6 +217,7 @@ class ComponentModelResource(GCloudModelResource):
 
         component_phase_dict = DeprecatedPlugin.objects.get_components_phase_dict()
         altered_objects = []
+
         for bundle in data["objects"]:
             # 远程插件不显示在列表中
             if bundle.data["code"] == "remote_plugin":
@@ -231,7 +232,6 @@ class ComponentModelResource(GCloudModelResource):
             bundle.data["output_form"] = component.output_form
             bundle.data["desc"] = component.desc
             bundle.data["form_is_embedded"] = component.form_is_embedded()
-            bundle.data["is_remote"] = False
             # 国际化
             name = bundle.data["name"].split("-")
             bundle.data["group_name"] = _(name[0])
