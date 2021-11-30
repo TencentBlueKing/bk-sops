@@ -149,12 +149,14 @@
                                             v-if="!hasPermission(['flow_create_task'], props.row.auth_actions)"
                                             v-cursor
                                             class="text-permission-disable"
+                                            data-test-id="process_table_newTaskBtn"
                                             @click="onTemplatePermissonCheck(['flow_create_task'], props.row)">
                                             {{$t('新建任务')}}
                                         </a>
                                         <router-link
                                             v-else
                                             class="template-operate-btn"
+                                            data-test-id="process_table_newTaskBtn"
                                             :to="getJumpUrl('newTask', props.row.id)">
                                             {{$t('新建任务')}}
                                         </router-link>
@@ -162,17 +164,20 @@
                                             v-if="!hasPermission(['flow_view'], props.row.auth_actions)"
                                             v-cursor
                                             class="text-permission-disable"
+                                            data-test-id="process_table_cloneBtn"
                                             @click="onTemplatePermissonCheck(['flow_view'], props.row)">
                                             {{$t('克隆')}}
                                         </a>
                                         <router-link
                                             v-else
                                             class="template-operate-btn"
+                                            data-test-id="process_table_cloneBtn"
                                             :to="getJumpUrl('clone', props.row.id)">
                                             {{$t('克隆')}}
                                         </router-link>
                                         <router-link
                                             class="template-operate-btn"
+                                            data-test-id="process_table_executeHistoryBtn"
                                             :to="getExecuteHistoryUrl(props.row.id)">
                                             {{ $t('执行历史')}}
                                         </router-link>
@@ -187,7 +192,7 @@
                                             :on-show="onShowMoreOperation">
                                             <i class="bk-icon icon-more drop-icon-ellipsis"></i>
                                             <ul slot="content">
-                                                <li class="opt-btn">
+                                                <li class="opt-btn" data-test-id="process_table_collectBtn">
                                                     <a
                                                         v-cursor="{ active: !hasPermission(['flow_view'], props.row.auth_actions) }"
                                                         href="javascript:void(0);"
@@ -199,7 +204,7 @@
                                                         {{ isCollected(props.row.id) ? $t('取消收藏') : $t('收藏') }}
                                                     </a>
                                                 </li>
-                                                <li class="opt-btn">
+                                                <li class="opt-btn" data-test-id="process_table_editBtn">
                                                     <a
                                                         v-if="!hasPermission(['flow_edit'], props.row.auth_actions)"
                                                         v-cursor
@@ -214,7 +219,7 @@
                                                         {{$t('编辑')}}
                                                     </router-link>
                                                 </li>
-                                                <li class="opt-btn">
+                                                <li class="opt-btn" data-test-id="process_table_deleteBtn">
                                                     <a
                                                         v-cursor="{ active: !hasPermission(['flow_delete'], props.row.auth_actions) }"
                                                         href="javascript:void(0);"
