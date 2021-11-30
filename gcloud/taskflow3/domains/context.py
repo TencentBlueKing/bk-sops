@@ -53,9 +53,9 @@ class TaskContext(object):
         project = Project.objects.get(id=self.project_id)
         project_tz = timezone.pytz.timezone(project.time_zone)
         self.task_start_time = datetime.datetime.now(tz=project_tz).strftime("%Y-%m-%d %H:%M:%S")
-        # 任务Url
+        # 任务URL
         self.task_url = (
-            settings.BKPAAS_SERVICE_ADDRESSES_BKSAAS.rstrip("/")
+            settings.BK_SOPS_HOST.rstrip("/")
             + f"/taskflow/execute/{self.project_id}/?instance_id={self.task_id}"
         )
 
@@ -84,7 +84,7 @@ class TaskContext(object):
         details = {
             cls.to_flat_key("task_url"): {
                 "key": cls.to_flat_key("task_url"),
-                "name": _("任务Url"),
+                "name": _("任务URL"),
                 "index": "-9",
                 "desc": "",
             },
