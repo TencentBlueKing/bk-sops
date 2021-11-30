@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from cachetools import cached, TTLCache
+from cachetools.keys import hashkey
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -20,10 +21,9 @@ from pipeline.component_framework.models import ComponentModel
 from plugin_service.plugin_client import PluginServiceApiClient
 from plugin_service import env
 from gcloud.analysis_statistics.models import TemplateNodeStatistics
-from gcloud.apigw.utils import api_hash_key
 
 
-@cached(cache=TTLCache(maxsize=1024, ttl=60), key=api_hash_key)
+@cached(cache=TTLCache(maxsize=1024, ttl=60), key=hashkey)
 def get_remote_plugin_name(limit=100, offset=0):
     """
     @summary: 拉取第三方插件名
@@ -51,7 +51,7 @@ def get_remote_plugin_name(limit=100, offset=0):
     return plugin_info
 
 
-@cached(cache=TTLCache(maxsize=1024, ttl=60), key=api_hash_key)
+@cached(cache=TTLCache(maxsize=1024, ttl=60), key=hashkey)
 def get_remote_plugin_detail_list(limit=100, offset=0):
     """
     @summary: 拉取第三方插件详细信息
@@ -102,8 +102,16 @@ def get_remote_plugin_detail_list(limit=100, offset=0):
     return plugin_info
 
 
-def component_name(group_name, name, version):
-    return "{}-{}-{}".format(_(group_name), _(name), version)
+def component_name(name, version):
+    name = name.split("-")
+    group_name = name[0] if len(name) != 1 else "第三方插件"
+    plugin_name = name[-1]
+    name = "{}-{}-{}".format(_(group_name), _(plugin_name), version)
+    return name
+
+
+def format_plugin_code(code, version):
+    return "{}-{}".format(code, version)
 
 
 def format_component_name(components: list, components_list: list):
@@ -116,10 +124,8 @@ def format_component_name(components: list, components_list: list):
     groups = []
     for comp in components:
         version = comp["version"]
-        # 插件名国际化
-        name = comp["name"].split("-")
-        name = component_name(name[0], name[1], version)
-        code = "{}-{}".format(comp["code"], comp["version"])
+        name = component_name(comp["name"], version)
+        code = format_plugin_code(comp["code"], version)
         value = 0
         for oth_com_tmp in components_list:
             if comp["code"] == oth_com_tmp["component_code"] and comp["version"] == oth_com_tmp["version"]:
@@ -142,13 +148,13 @@ def format_component_name_with_remote(components: list, comp_name_dict: dict):
         # 插件名国际化
         if not comp["is_remote"]:
             # 系统内置插件
-            name = comp_name_dict.get(comp["component_code"], comp["component_code"]).split("-")
-            name = component_name(name[0], name[1], version)
+            name = comp_name_dict.get(comp["component_code"], comp["component_code"])
+            name = component_name(name, version)
         else:
             # 第三方插件
-            name = remote_plugin_dict.get(comp["component_code"], comp["component_code"]).split("-")
-            name = component_name("第三方插件", name[0], version)
-        code = "{}-{}".format(comp["component_code"], comp["version"])
+            name = remote_plugin_dict.get(comp["component_code"], comp["component_code"])
+            name = component_name(name, version)
+        code = format_plugin_code(comp["component_code"], version)
         value = comp["value"]
         groups.append({"code": code, "name": name, "value": value})
     return groups
