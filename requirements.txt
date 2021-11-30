@@ -63,6 +63,9 @@ mock==2.0.0
 fakeredis==1.4.5
 gevent==1.2.2
 
+# rsa
+pyCryptodome==3.9.7
+
 # otel
 opentelemetry-api==1.6.2
 opentelemetry-sdk==1.6.2
