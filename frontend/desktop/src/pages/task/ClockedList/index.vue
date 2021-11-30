@@ -15,12 +15,13 @@
                             theme="primary"
                             size="normal"
                             style="min-width: 120px;"
+                            data-test-id="clockedList_form_creatTask"
                             @click="onCreateClockedTask">
                             {{$t('新建')}}
                         </bk-button>
                     </template>
                 </advance-search-form>
-                <div class="clocked-table-content">
+                <div class="clocked-table-content" data-test-id="clockedList_table_taskList">
                     <bk-table
                         :data="clockedList"
                         :pagination="pagination"
