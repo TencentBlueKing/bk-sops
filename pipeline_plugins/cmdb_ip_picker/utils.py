@@ -139,6 +139,8 @@ class IPPickerDataGenerator:
 
 
 class IPPickerHandler:
+    PROPERTY_FILTER_TYPES = ("set", "module", "host")
+
     def __init__(
         self, selector, username, bk_biz_id, bk_supplier_account, is_manual=False, filters=None, excludes=None
     ):
@@ -146,27 +148,70 @@ class IPPickerHandler:
         self.username = username
         self.bk_biz_id = bk_biz_id
         self.bk_supplier_account = bk_supplier_account
-        self.filters = filters
-        self.excludes = excludes
+        self.filters = format_condition_dict(filters)
+        self.excludes = format_condition_dict(excludes)
         self.biz_topo_tree: dict = None
         self.host_info: list = None
+        self.property_filters: dict = {}
         self.error = None
 
         # 数据准备
+        for property_filter_type in self.PROPERTY_FILTER_TYPES:
+            key = f"{property_filter_type}_property_filter"
+            self.property_filters[key] = {"condition": "AND", "rules": []}
+
         # 获取业务下的topo树
-        if self.selector == "topo" or is_manual or self.filters or self.excludes:
+        if self.selector == "topo" or is_manual:
             topo_result = get_cmdb_topo_tree(username, bk_biz_id, bk_supplier_account)
             if not topo_result["result"]:
                 self.error = topo_result
                 return
             self.biz_topo_tree = topo_result["data"][0]
-        # 获取业务下的所有主机信息
-        if self.selector in ["ip", "topo"] or self.filters or self.excludes:
-            host_info_result = self.fetch_host_info()
-            if not host_info_result["result"]:
-                self.error = host_info_result
-                return
-            self.host_info = host_info_result["data"]
+
+        # 预处理过滤筛选条件
+        if self.filters:
+            self.inject_filter_params("filter", self.filters)
+        if self.excludes:
+            self.inject_filter_params("exclude", self.excludes)
+
+    def inject_filter_params(self, condition_type, condition_data):
+        """
+        将IP选择器中的过滤条件转换为list_biz_host_topo接口请求过滤参数，注入到property_filters
+        :params condition_type: 条件类型
+        :params condition_data: 条件数据, 筛选时传入类型为dict，其他为list
+        :params 待注入的接口请求参数
+        """
+        if condition_type in ["filter", "exclude"]:
+            field_mappings = {"module": "bk_module_name", "set": "bk_set_name", "host": "bk_host_innerip"}
+            operator = "in" if condition_type == "filter" else "not_in"
+            for field, value in condition_data.items():
+                # 忽略业务的过滤条件，因为只会拉取特定业务下的主机
+                if field not in field_mappings:
+                    continue
+                property_filter_key = f"{field}_property_filter"
+                self.property_filters[property_filter_key]["rules"].append(
+                    {"field": field_mappings[field], "operator": operator, "value": value}
+                )
+        elif condition_type == "ip":
+            input_host_ids = [condition["bk_host_id"] for condition in condition_data]
+            self.property_filters["host_property_filter"]["rules"].append(
+                {"field": "bk_host_id", "operator": "in", "value": input_host_ids}
+            )
+        elif condition_type == "topo":
+            # 因为set_property_filter和module_property_filter的条件是与关系，所以这里统一转换成module来进行过滤
+            topo_filter = [
+                [{"field": condition["bk_obj_id"], "value": [condition["bk_inst_id"]]}] for condition in condition_data
+            ]
+            module_ids = set()
+            for tf in topo_filter:
+                filters_dct = format_condition_dict(tf)
+                filter_modules = get_modules_by_condition(self.biz_topo_tree, filters_dct, "bk_inst_id")
+                filter_modules_ids = get_modules_id(filter_modules)
+                module_ids.update(set(filter_modules_ids))
+            if module_ids:
+                self.property_filters["module_property_filter"]["rules"].append(
+                    {"field": "bk_module_id", "operator": "in", "value": list(module_ids)}
+                )
 
     def dispatch(self, params):
         handle_func = getattr(self, f"{self.selector}_picker_handler")
@@ -177,48 +222,33 @@ class IPPickerHandler:
         静态IP选择情况
         :params inputted_ips: ip主机信息列表, list
         """
-        host_data_result = self.prepare_host_data(inputted_ips)
-        if not host_data_result["result"]:
-            return host_data_result
-        return {"result": True, "data": host_data_result["data"]["host_data"], "message": ""}
+        self.inject_filter_params(condition_type="ip", condition_data=inputted_ips)
+        host_info_result = self.fetch_host_ip_with_property_filter()
+        if not host_info_result["result"]:
+            return host_info_result
+        return {"result": True, "data": host_info_result["data"], "message": ""}
 
     def topo_picker_handler(self, inputted_topo):
         """
         topo选择情况
         :params inputted_topo: 拓扑结构信息列表, list
         """
-        host_data_result = self.prepare_host_data()
-        if not host_data_result["result"]:
-            return host_data_result
-        host_data = host_data_result["data"]["host_data"]
-        user_select_topo_host = {}
-        topo_filter = [[{"field": t["bk_obj_id"], "value": [t["bk_inst_id"]]}] for t in inputted_topo]
-        # 这里需要单独对每个 filter 进行过滤，因为 filter_hosts 过滤的是同时满足所有条件的主机
-        for tf in topo_filter:
-            user_select_topo_host.update(
-                {host["bk_host_id"]: host for host in filter_hosts(tf, self.biz_topo_tree, host_data, "bk_inst_id")}
-            )
-        data = user_select_topo_host.values()
-
-        logger.info("[topo_picker_handler] data topo filter: {data}".format(data=data))
-        return {"result": True, "data": data, "message": ""}
+        self.inject_filter_params(condition_type="topo", condition_data=inputted_topo)
+        host_info_result = self.fetch_host_ip_with_property_filter()
+        if not host_info_result["result"]:
+            return host_info_result
+        return {"result": True, "data": host_info_result["data"], "message": ""}
 
     def group_picker_handler(self, inputted_group):
         """
         动态分组选择情况
         :params inputted_group: 动态分组信息列表, list
         """
-        host_modules_ids = None
-        if self.filters or self.excludes:
-            host_data_result = self.prepare_host_data()
-            if not host_data_result["result"]:
-                return host_data_result
-            host_modules_ids = host_data_result["data"]["host_modules_ids"]
         dynamic_group_ids = [dynamic_group["id"] for dynamic_group in inputted_group]
         dynamic_groups_host = {}
         for dynamic_group_id in dynamic_group_ids:
             success, result = cmdb.get_dynamic_group_host_list(
-                self.username, self.bk_biz_id, self.bk_supplier_account, dynamic_group_id, host_modules_ids
+                self.username, self.bk_biz_id, self.bk_supplier_account, dynamic_group_id
             )
             if not success:
                 return {
@@ -230,18 +260,32 @@ class IPPickerHandler:
             dynamic_groups_host.update({host["bk_host_id"]: host for host in result["data"]})
         data = dynamic_groups_host.values()
 
+        # 如果带有过滤条件，则需要拉取主机后进行过滤
+        if self.filters or self.excludes:
+            host_info_result = self.fetch_host_ip_with_property_filter()
+            if not host_info_result["result"]:
+                return host_info_result
+            match_host_id = set([host["bk_host_id"] for host in host_info_result["data"]])
+            data = filter(lambda host: host["bk_host_id"] in match_host_id, data)
+
         logger.info("[group_picker_handler] data from dynamic group: {data}".format(data=data))
         return {"result": True, "data": data, "message": ""}
 
-    def fetch_host_info(self):
+    def fetch_host_ip_with_property_filter(self):
         """
-        获取业务下所有主机信息
+        获取业务下过滤后的主机IP列表
         """
+        for property_filter_type in self.PROPERTY_FILTER_TYPES:
+            key = f"{property_filter_type}_property_filter"
+            if not self.property_filters[key]["rules"]:
+                self.property_filters.pop(key)
+
         host_info = cmdb.get_business_host_topo(
             self.username,
             self.bk_biz_id,
             self.bk_supplier_account,
             ["bk_host_id", "bk_host_innerip", "bk_host_outerip", "bk_host_name", "bk_cloud_id"],
+            property_filters=self.property_filters,
         )
 
         logger.info("[fetch_host_info] cmdb.get_business_host_topo return: {host_info}".format(host_info=host_info))
@@ -253,7 +297,17 @@ class IPPickerHandler:
                 "data": [],
                 "message": "get_business_host_topo return empty",
             }
+        host_info = self.format_host_info(host_info)
         return {"result": True, "code": NO_ERROR, "data": host_info, "message": ""}
+
+    @staticmethod
+    def format_host_info(host_info: list):
+        """对返回的主机数据进行一些自定义格式化调整"""
+        formatted_host_info = [
+            {**host["host"], "bk_host_innerip": format_sundry_ip(host["host"].get("bk_host_innerip", ""))}
+            for host in host_info
+        ]
+        return formatted_host_info
 
     def prepare_host_data(self, inputted_ips=None):
         """
@@ -296,28 +350,6 @@ class IPPickerHandler:
 
         logger.info("[prepare_host_data] filter data collect: {data}".format(data=data))
         return {"result": True, "data": {"host_modules_ids": host_modules_ids, "host_data": data}, "message": ""}
-
-    def filter_host_data(self, host_data):
-        """
-        根据筛选和排除条件过滤主机信息列表
-        :params host_data: 未过滤的主机信息列表, list
-        :return data: 过滤之后的主机信息列表, list
-        """
-        if self.filters:
-            host_data = filter_hosts(self.filters, self.biz_topo_tree, host_data, "bk_inst_name")
-
-            logger.info("[filter_host_data] data condition filter: {data}".format(data=host_data))
-
-        if self.excludes:
-            # 先把 data 中符合全部排除条件的 hosts 找出来，然后筛除
-            exclude_hosts = filter_hosts(self.excludes, self.biz_topo_tree, host_data, "bk_inst_name")
-            exclude_host_ip_list = [host["bk_host_innerip"] for host in exclude_hosts]
-            new_data = [host for host in host_data if host["bk_host_innerip"] not in exclude_host_ip_list]
-            host_data = new_data
-
-            logger.info("[filter_host_data] data condition excludes: {data}".format(data=host_data))
-
-        return {"result": True, "data": host_data, "message": ""}
 
 
 def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
@@ -364,10 +396,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
         kwargs[input_type] = gen_result["data"]
 
     host_data_result = ip_picker_handler.dispatch(kwargs)
-    if not host_data_result["result"]:
-        return host_data_result
-    filtered_result = ip_picker_handler.filter_host_data(host_data_result["data"])
-    return filtered_result
+    return host_data_result
 
 
 def filter_hosts(filters, biz_topo_tree, hosts, comp_key):
