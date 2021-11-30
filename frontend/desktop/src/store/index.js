@@ -201,6 +201,12 @@ const store = new Vuex.Store({
          */
         getIamUrl ({ commit }, data) {
             return axios.post('iam/api/apply_perms_url/', data).then(response => response.data)
+        },
+        getUserConfig ({ commit }, data) {
+            return axios.post('/user/get_userconf_by_fields/', data).then(response => response.data)
+        },
+        setUserConfig ({ commit }, data) {
+            return axios.post('/user/set_userconf/', data).then(response => response.data)
         }
     },
     modules
