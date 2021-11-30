@@ -311,7 +311,7 @@
         },
         methods: {
             ...mapActions('atomForm', [
-                'loadSingleAtomList'
+                'loadAnalysisComponentList'
             ]),
             ...mapActions('admin', [
                 'queryAtomData'
@@ -336,8 +336,8 @@
             async getAtomList () {
                 try {
                     this.atomListLoading = true
-                    const res = await this.loadSingleAtomList()
-                    this.atomListData = res.map(item => {
+                    const res = await this.loadAnalysisComponentList()
+                    this.atomListData = res.data.map(item => {
                         return {
                             id: item.code,
                             name: `${item.group_name}-${item.name}-${item.version}`,
