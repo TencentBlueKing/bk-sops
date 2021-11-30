@@ -117,7 +117,7 @@ class NodemanCreateTaskService(NodeManBaseService):
                 # auth_key加密
                 success, ras_public_key = get_nodeman_rsa_public_key(executor, self.logger)
                 if not success:
-                    data.set_outputs("ex_data", _("获取节点管理公钥失败,请查看节点管理（nodeman）日志获取错误详情."))
+                    data.set_outputs("ex_data", _("获取节点管理公钥失败,请查看节点日志获取错误详情."))
                     return False
                 auth_key = encrypt_auth_key(auth_key, ras_public_key["name"], ras_public_key["content"])
                 # 表格每行基础参数
