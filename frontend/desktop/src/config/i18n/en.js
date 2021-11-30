@@ -794,6 +794,7 @@ const en = {
     '自动忽略：标准插件节点如果执行失败，会自动忽略错误并把节点状态设置为成功。': 'Auto Ignore: this node will set to success automatically if failed.',
     '手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。': 'Manual Skip: you can skip this node manually if it failed.',
     '手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。': 'Manual Retry: you can retry this node manually if it failed.',
+    '自动重试：标准插件节点如果执行失败，系统会自动以原参数进行重试。': 'Auto Retry: if the standard plug-in node fails to be executed, the system automatically retries using the original parameters',
     '基础信息': 'Basic Info',
     '请选择子流程': 'Please Select SubProcess',
     '选择子流程': 'Select Subprocess',
