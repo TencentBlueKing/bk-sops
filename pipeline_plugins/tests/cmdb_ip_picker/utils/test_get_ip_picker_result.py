@@ -27,7 +27,7 @@ class MockCMDBReturnEmpty(object):
 class MockCMDB(object):
     @staticmethod
     def get_business_host_topo(*args, **kwargs):
-        return [
+        host_info = [
             {
                 "host": {
                     "bk_host_innerip": "1.1.1.1",
@@ -59,6 +59,47 @@ class MockCMDB(object):
                 "module": [{"bk_module_id": 8, "bk_module_name": "test1"}],
             },
         ]
+
+        def match_single_rule(filter_type, data, rule):
+            match_data = None
+            if filter_type == "host":
+                match_data = data[filter_type]
+            elif filter_type == "module":
+                match_data = data[filter_type][0]
+            if match_data:
+                host_value = match_data[rule["field"]]
+                return host_value in rule["value"] if rule["operator"] == "in" else host_value not in rule["value"]
+
+            if filter_type == "set":
+                set_name_ip_mappings = {"set2": ["2.2.2.2"], "set3": ["3.3.3.3"]}
+                if rule["field"] == "bk_set_name":
+                    ips = []
+                    [ips.extend(ip) for set_name, ip in set_name_ip_mappings.items() if set_name in rule["value"]]
+                    host_ip = data["host"]["bk_host_innerip"]
+                    return host_ip in ips if rule["operator"] == "in" else host_ip not in ips
+
+            # 其他过滤类型没有用到
+            raise NotImplementedError
+
+        if "property_filters" in kwargs:
+            property_filter = kwargs["property_filters"]
+            property_filter_type = ("module", "host", "set")
+            result = []
+            for host in host_info:
+                flag = True
+                for filter_type in property_filter_type:
+                    key = f"{filter_type}_property_filter"
+                    if key not in property_filter:
+                        continue
+                    rules = property_filter[key]["rules"]
+                    # rules 之间目前都是 AND 关系
+                    if any([not match_single_rule(filter_type, host, rule) for rule in rules]):
+                        flag = False
+                        break
+                if flag:
+                    result.append(host)
+            return result
+        return host_info
 
     @staticmethod
     def get_dynamic_group_host_list(*args, **kwargs):
@@ -100,7 +141,7 @@ class MockCMDB(object):
                 },
             ],
         }
-        return True, {"code": 0, "message": "success", "data": dynamic_group_data[args[-2]]}
+        return True, {"code": 0, "message": "success", "data": dynamic_group_data[args[-1]]}
 
 
 def mock_cc_get_ips_info_by_str(username, bk_biz_id, ip_str):
@@ -464,7 +505,7 @@ class GetIPPickerResultTestCase(TestCase):
             "ip": [
                 {
                     "bk_host_name": "host1",
-                    "bk_host_id": 2,
+                    "bk_host_id": 1,
                     "agent": 1,
                     "cloud": [
                         {
@@ -552,38 +593,6 @@ class GetIPPickerResultTestCase(TestCase):
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
     @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
-    def test__filters_middle_layer_in_topo(self):
-        mock_get_client_by_user.success = True
-        topo_kwargs = {
-            "bk_biz_id": self.bk_biz_id,
-            "selectors": ["topo"],
-            "topo": [{"bk_obj_id": "biz", "bk_inst_id": 2}],
-            "ip": [],
-            "filters": [{"field": "layer", "value": ["中间层"]}],
-            "excludes": [],
-        }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
-        ip = [host["bk_host_innerip"] for host in ip_data]
-        self.assertEqual(ip, ["2.2.2.2", "3.3.3.3"])
-
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
-    def test__filters_and_excludes_middle_layer_in_topo(self):
-        mock_get_client_by_user.success = True
-        topo_kwargs = {
-            "bk_biz_id": self.bk_biz_id,
-            "selectors": ["topo"],
-            "topo": [{"bk_obj_id": "biz", "bk_inst_id": 2}],
-            "ip": [],
-            "filters": [{"field": "layer", "value": ["中间层"]}],
-            "excludes": [{"field": "set", "value": ["set2"]}],
-        }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
-        ip = [host["bk_host_innerip"] for host in ip_data]
-        self.assertEqual(ip, ["3.3.3.3"])
-
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
-    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
     def test__filter_ip_in_topo(self):
         mock_get_client_by_user.success = True
         topo_kwargs = {
@@ -607,9 +616,9 @@ class GetIPPickerResultTestCase(TestCase):
             "selectors": ["ip"],
             "topo": [],
             "ip": [
-                {"bk_host_innerip": "1.1.1.1", "cloud": [{"id": 0}]},
-                {"bk_host_innerip": "2.2.2.2", "cloud": [{"id": 0}]},
-                {"bk_host_innerip": "3.3.3.3", "cloud": [{"id": 0}]},
+                {"bk_host_innerip": "1.1.1.1", "cloud": [{"id": 0}], "bk_host_id": 1},
+                {"bk_host_innerip": "2.2.2.2", "cloud": [{"id": 0}], "bk_host_id": 2},
+                {"bk_host_innerip": "3.3.3.3", "cloud": [{"id": 0}], "bk_host_id": 3},
             ],
             "filters": [{"field": "host", "value": ["1.1.1.1", "2.2.2.2"]}],
             "excludes": [],
@@ -643,9 +652,9 @@ class GetIPPickerResultTestCase(TestCase):
             "selectors": ["ip"],
             "topo": [],
             "ip": [
-                {"bk_host_innerip": "1.1.1.1", "cloud": [{"id": 0}]},
-                {"bk_host_innerip": "2.2.2.2", "cloud": [{"id": 0}]},
-                {"bk_host_innerip": "3.3.3.3", "cloud": [{"id": 0}]},
+                {"bk_host_innerip": "1.1.1.1", "cloud": [{"id": 0}], "bk_host_id": 1},
+                {"bk_host_innerip": "2.2.2.2", "cloud": [{"id": 0}], "bk_host_id": 2},
+                {"bk_host_innerip": "3.3.3.3", "cloud": [{"id": 0}], "bk_host_id": 3},
             ],
             "excludes": [{"field": "host", "value": ["1.1.1.1", "2.2.2.2"]}],
             "filters": [],
