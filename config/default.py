@@ -502,9 +502,6 @@ PAGE_NOT_FOUND_URL_KEY = "page_not_found"
 PLUGIN_SPECIFIC_EXCEPTIONS = (ApiRequestError,)
 VARIABLE_SPECIFIC_EXCEPTIONS = (ApiRequestError,)
 
-# 系统访问地址
-BKPAAS_SERVICE_ADDRESSES_BKSAAS = env.BKPAAS_SERVICE_ADDRESSES_BKSAAS
-
 
 # SaaS统一日志配置
 def logging_addition_settings(logging_dict: dict, environment="prod"):
