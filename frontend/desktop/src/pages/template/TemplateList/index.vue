@@ -96,7 +96,7 @@
                             :min-width="item.min_width"
                             :render-header="renderTableHeader"
                             :sort-orders="['descending', 'ascending', null]"
-                            :sortable="item.sortable">
+                            :sortable="sortableCols.find(col => col.value === item.id) ? 'custom' : false">
                             <template slot-scope="{ row }">
                                 <!--流程名称-->
                                 <div v-if="item.id === 'name'">
@@ -232,12 +232,14 @@
                             </template>
                         </bk-table-column>
                         <bk-table-column type="setting">
-                            <bk-table-setting-content
+                            <table-setting-content
                                 :fields="setting.fieldList"
                                 :selected="setting.selectedFields"
                                 :size="setting.size"
+                                :sortable-cols="sortableCols"
+                                :order="ordering"
                                 @setting-change="handleSettingChange">
-                            </bk-table-setting-content>
+                            </table-setting-content>
                         </bk-table-column>
                         <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
                     </bk-table>
@@ -290,6 +292,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
+    import TableSettingContent from '@/components/common/TableSettingContent.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
     import ListPageTipsTitle from '../ListPageTipsTitle.vue'
@@ -363,13 +366,11 @@
         {
             id: 'create_time',
             label: i18n.t('创建时间'),
-            sortable: 'custom',
             width: 200
         },
         {
             id: 'edit_time',
             label: i18n.t('更新时间'),
-            sortable: 'custom',
             width: 200
         },
         {
@@ -403,6 +404,7 @@
             ExportTemplateDialog,
             ListPageTipsTitle,
             AdvanceSearchForm,
+            TableSettingContent,
             NoData
         },
         mixins: [permission],
@@ -465,6 +467,7 @@
                 firstLoading: true,
                 listLoading: false,
                 projectInfoLoading: true, // 模板分类信息 loading
+                configLoading: true,
                 searchStr: '',
                 searchForm,
                 isSearchFormOpen, // 高级搜索表单默认展开
@@ -473,6 +476,7 @@
                 expiredSubflowTplList: [],
                 selectedTpls: [], // 选中的流程模板
                 templateList: [],
+                sortableCols: [],
                 isDeleteDialogShow: false,
                 isImportDialogShow: false,
                 isImportYamlDialogShow: false,
@@ -506,7 +510,7 @@
                 collectingId: '', // 正在被收藏/取消收藏的模板id
                 collectListLoading: false,
                 collectionList: [],
-                ordering: null, // 排序参数
+                ordering: '', // 排序参数
                 darkColorList: DARK_COLOR_LIST,
                 tableFields: TABLE_FIELDS,
                 defaultSelected: ['id', 'name', 'label', 'edit_time', 'subprocess_has_update', 'creator_name'],
@@ -562,7 +566,7 @@
             this.getExpiredSubflowData()
             this.getCollectList()
             this.onSearchInput = tools.debounce(this.searchInputhandler, 500)
-            await this.getTemplateList()
+            await this.initData()
             this.firstLoading = false
         },
         beforeRouteLeave (to, from, next) {
@@ -576,7 +580,9 @@
             ...mapActions([
                 'loadCollectList',
                 'addToCollectList',
-                'deleteCollect'
+                'deleteCollect',
+                'getUserConfig',
+                'setUserConfig'
             ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo'
@@ -594,6 +600,20 @@
             ...mapMutations('template/', [
                 'setProjectBaseInfo'
             ]),
+            async initData () {
+                try {
+                    this.configLoading = true
+                    const res = await this.getUserConfig({ username: window.USERNAME, project_id: this.project_id, field_list: ['tasktmpl_ordering'] })
+                    const { options, value } = res.data.tasktmpl_ordering
+                    this.sortableCols = options
+                    this.ordering = value
+                    this.getTemplateList()
+                } catch (e) {
+                    console.error(e)
+                } finally {
+                    this.configLoading = false
+                }
+            },
             async getTemplateList () {
                 this.listLoading = true
                 try {
@@ -632,9 +652,9 @@
                     pipeline_template__creator__contains: creator || undefined,
                     category: category || undefined,
                     label_ids: label_ids && label_ids.length ? label_ids.join(',') : undefined,
+                    order_by: this.ordering,
                     subprocess_has_update,
-                    has_subprocess,
-                    order_by: this.ordering || undefined
+                    has_subprocess
                 }
 
                 if (queryTime[0] && queryTime[1]) {
@@ -937,7 +957,7 @@
                 this.isDeleteDialogShow = true
             },
             // 表格功能选项
-            handleSettingChange ({ fields, size }) {
+            handleSettingChange ({ fields, size, order }) {
                 this.setting.size = size
                 this.setting.selectedFields = fields
                 const fieldIds = fields.map(m => m.id)
@@ -945,13 +965,17 @@
                     fieldList: fieldIds,
                     size
                 }))
+                if (order && order !== this.ordering) {
+                    this.ordering = order
+                    this.getTemplateList()
+                    this.setUserConfig({ username: window.USERNAME, project_id: this.project_id, field: 'tasktmpl_ordering', value: order })
+                }
             },
             handleSortChange ({ prop, order }) {
-                const params = 'pipeline_template__' + prop
                 if (order === 'ascending') {
-                    this.ordering = params
+                    this.ordering = prop
                 } else if (order === 'descending') {
-                    this.ordering = '-' + params
+                    this.ordering = '-' + prop
                 } else {
                     this.ordering = ''
                 }
