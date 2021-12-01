@@ -43,8 +43,8 @@ TEST_TOTAL = 2
 TEST_COMP_NAME = (("code1", "group-name1"), ("code2", "name2"))
 
 TEST_GROUPS = [
-    {"code": "code1-1.0", "name": "组-name1-1.0", "value": 1},
-    {"code": "code2-1.0", "name": "第三方插件-code2-1.0", "value": 1},
+    {"code": "code1", "name": "组-name1-1.0", "value": 1},
+    {"code": "code2", "name": "第三方插件-code2-1.0", "value": 1},
 ]
 
 
