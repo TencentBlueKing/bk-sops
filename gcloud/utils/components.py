@@ -160,7 +160,7 @@ def get_inner_components():
     component_list = []
     for comp in components:
         code = comp["code"]
-        name_partitions = comp["name"].split("-")
+        name_partitions = comp["name"].split("-", 1)
         group_name = _(name_partitions[0])
         name = _(name_partitions[-1])
         version = comp["version"]
