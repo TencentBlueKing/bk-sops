@@ -96,6 +96,63 @@
                         </bk-select>
                     </div>
                 </div>
+                <!-- 自动隐藏 -->
+                <div class="form-item clearfix" v-if="theEditingData.show_type === 'show'">
+                    <label
+                        class="form-label condition-tip"
+                        v-bk-tooltips.top="$t('自动隐藏在显示状态下触发，当触发条件都满足时，才会在编辑页面隐藏，但是不会对传参产生影响')">
+                        {{ $t('自动隐藏')}}
+                    </label>
+                    <div class="form-content">
+                        <bk-select
+                            v-model="theEditingData.is_condition_hide"
+                            :disabled="theEditingData.source_type === 'component_outputs'"
+                            :clearable="false"
+                            @change="onToggleHideCond">
+                            <bk-option id="true" :name="$t('是')"></bk-option>
+                            <bk-option id="false" :name="$t('否')"></bk-option>
+                        </bk-select>
+                    </div>
+                </div>
+                <!-- 触发条件 -->
+                <div
+                    class="form-item clearfix"
+                    v-if="theEditingData.show_type === 'show' && theEditingData.is_condition_hide === 'true'">
+                    <label
+                        class="form-label condition-tip"
+                        v-bk-tooltips.top="$t('所有变量值都会以字符串类型进行记录和判断，会忽略类型差异')">
+                        {{ $t('触发条件')}}
+                    </label>
+                    <div class="trigger-condition" @click="isShowErrorMsg = false">
+                        <div class="condition-item" v-for="(item, index) in hideConditionList" :key="index">
+                            <bk-select
+                                ext-cls="select-variable"
+                                v-model="item.constant_key">
+                                <bk-option
+                                    v-for="variable in variableList"
+                                    :key="variable.key"
+                                    :id="variable.key"
+                                    :name="variable.name">
+                                </bk-option>
+                            </bk-select>
+                            <bk-select
+                                ext-cls="select-operator"
+                                v-model="item.operator">
+                                <bk-option id="=" name="="></bk-option>
+                                <bk-option id="!=" name="!="></bk-option>
+                            </bk-select>
+                            <bk-input
+                                ext-cls="variable-value"
+                                v-model="item.value">
+                            </bk-input>
+                            <div class="icon-operat">
+                                <i class="bk-icon icon-plus-circle-shape" @click="addHideCondition"></i>
+                                <i class="bk-icon icon-minus-circle-shape" @click="deleteHideCondition(index)"></i>
+                            </div>
+                        </div>
+                        <p class="common-error-tip error-msg" v-if="isShowErrorMsg">{{ errorMsgText }}</p>
+                    </div>
+                </div>
                 <!-- 模板预渲染 -->
                 <div class="form-item clearfix" v-if="!isSystemVar || !isProjectVar">
                     <label class="form-label">{{ $t('模板预渲染')}}</label>
@@ -189,8 +246,10 @@
         },
         data () {
             const theEditingData = tools.deepClone(this.variableData)
-            const isHookedVar = ['component_inputs', 'component_outputs'].includes(theEditingData.source_type)
-            const currentValType = isHookedVar ? 'component' : theEditingData.custom_type
+            const { source_type, custom_type, hide_condition: hideCondition } = theEditingData
+            const isHookedVar = ['component_inputs', 'component_outputs'].includes(source_type)
+            const currentValType = isHookedVar ? 'component' : custom_type
+            const hideConditionList = hideCondition && hideCondition.length ? hideCondition : [{ constant_key: '', operator: '', value: '' }]
 
             return {
                 theEditingData,
@@ -200,6 +259,10 @@
                     { id: 'show', name: i18n.t('显示') },
                     { id: 'hide', name: i18n.t('隐藏') }
                 ],
+                hideConditionList,
+                isShowErrorMsg: false,
+                variableList: [],
+                errorMsgText: '',
                 preRenderList: [ // 下拉框组件选项 id 不支持传布尔值
                     { id: 'true', name: i18n.t('是') },
                     { id: 'false', name: i18n.t('否') }
@@ -346,6 +409,7 @@
                 }
                 this.getAtomConfig()
             }
+            this.getTriggerCondInfo()
         },
         methods: {
             ...mapActions('template/', [
@@ -361,6 +425,32 @@
                 'editVariable',
                 'setOutputs'
             ]),
+            // 获取触发条件数据
+            getTriggerCondInfo () {
+                if (!this.theEditingData.is_condition_hide) return
+                const includesType = ['input', 'select', 'textarea']
+                const variableList = Object.values(this.constants).filter(item => {
+                    return this.variableData.key !== item.key
+                        && item.source_type !== 'component_outputs'
+                        && includesType.includes(item.form_schema.type)
+                })
+                const variableKeys = variableList.map(item => item.key)
+                const list = []
+                this.hideConditionList.forEach(item => {
+                    if (!variableKeys.includes(item.constant_key)) {
+                        list.push(item.constant_key)
+                    }
+                })
+                let text = list.join(',')
+                if (text) {
+                    text = text + this.$t('变量未找到')
+                } else {
+                    text = this.$t('关系组内的数据不能为空')
+                }
+                this.variableList = variableList
+                this.errorMsgText = text
+                this.isShowErrorMsg = Boolean(list.length)
+            },
             // 获取变量类型
             async getVarTypeList () {
                 this.varTypeListLoading = true
@@ -617,6 +707,37 @@
                     })
                 }
             },
+            /**
+             * 变量自动显示/隐藏切换
+             */
+            onToggleHideCond (val) {
+                if (val === 'true' && !this.errorMsgText) {
+                    this.getTriggerCondInfo()
+                }
+                this.theEditingData.is_condition_hide = val
+                this.isShowErrorMsg = false
+            },
+            // 添加触发条件
+            addHideCondition () {
+                const condition = {
+                    constant_key: '',
+                    operator: '',
+                    value: ''
+                }
+                this.hideConditionList.push(condition)
+            },
+            // 删除触发条件
+            deleteHideCondition (index) {
+                const length = this.hideConditionList.length
+                if (length === 1) {
+                    this.$bkMessage({
+                        message: this.$t('至少保留一条触发条件'),
+                        theme: 'warning'
+                    })
+                } else {
+                    this.hideConditionList.splice(index, 1)
+                }
+            },
             // 选择是否为模板预渲染
             onSelectPreRenderMako (val) {
                 this.theEditingData.pre_render_mako = val === 'true'
@@ -650,6 +771,17 @@
                     const variable = this.theEditingData
                     variable.name = variable.name.trim()
 
+                    // 触发条件
+                    if (variable.is_condition_hide === 'true') {
+                        const isTrue = this.hideConditionList.every(condition => {
+                            return Object.values(condition).every(val => val)
+                        })
+                        this.isShowErrorMsg = !isTrue
+                        if (!isTrue) return
+                        variable.hide_condition = this.hideConditionList
+                    } else {
+                        variable.hide_condition = undefined
+                    }
                     // 变量预渲染
                     if (variable.pre_render_mako) {
                         variable.pre_render_mako = Boolean(variable.pre_render_mako)
@@ -777,6 +909,57 @@
             }
             .tag-form {
                 margin-left: 0;
+            }
+        }
+    }
+    .condition-tip {
+        line-height: 21px;
+        &::after {
+            content: '';
+            position: absolute;
+            left: 10px;
+            bottom: 0;
+            border-top: 1px dashed #979ba5;
+            width: 50px;
+        }
+    }
+    .trigger-condition {
+        margin-left: 80px;
+        min-height: 36px;
+        .condition-item {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            .select-variable {
+                width: 200px;
+                margin-right: 10px;
+            }
+            .select-operator {
+                width: 105px;
+                margin-right: 10px;
+            }
+            .variable-value {
+                width: 260px;
+                margin-right: 10px;
+            }
+            .icon-operat {
+                line-height: 32px;
+                margin-left: 16px;
+                font-size: 18px;
+                .bk-icon {
+                    color: #c4c6cc;
+                    margin-right: 6px;
+                    cursor: pointer;
+                    &:hover {
+                        color: #979ba5;
+                    }
+                    &:last-child {
+                        margin-right: 0;
+                    }
+                }
+            }
+            &:first-child {
+                margin-top: 0;
             }
         }
     }

@@ -673,6 +673,40 @@ class GetIPPickerResultTestCase(TestCase):
 
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
     @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    def test__exclude_empty_ip_str_in_group(self):
+        mock_get_client_by_user.success = True
+        group_kwargs = {
+            "bk_biz_id": self.bk_biz_id,
+            "selectors": ["group"],
+            "topo": [],
+            "group": [{"id": "group1"}, {"id": "group2"}],
+            "ip": [],
+            "excludes": [{"field": "host", "value": [""]}],
+            "filters": [],
+        }
+        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, group_kwargs)["data"]
+        ip = [host["bk_host_innerip"] for host in ip_data]
+        self.assertEqual(ip, ["1.1.1.1", "2.2.2.2", "3.3.3.3"])
+
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    def test__filter_empty_ip_str_in_group(self):
+        mock_get_client_by_user.success = True
+        group_kwargs = {
+            "bk_biz_id": self.bk_biz_id,
+            "selectors": ["group"],
+            "topo": [],
+            "group": [{"id": "group1"}, {"id": "group2"}],
+            "ip": [],
+            "excludes": [],
+            "filters": [{"field": "host", "value": [""]}],
+        }
+        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, group_kwargs)["data"]
+        ip = [host["bk_host_innerip"] for host in ip_data]
+        self.assertEqual(ip, [])
+
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
     def test__filters_topo_and_excludes_ip_in_topo(self):
         mock_get_client_by_user.success = True
         topo_kwargs = {

@@ -40,6 +40,7 @@ TASKINSTANCE_PREVIEW_TREE = "gcloud.taskflow3.models.TaskFlowInstance.objects.pr
 TASKINSTANCE_OBJECTS_CALLBACK = "gcloud.taskflow3.models.TaskFlowInstance.objects.callback"
 TASKINSTANCE_CALLBACK = "gcloud.taskflow3.models.TaskFlowInstance.callback"
 TASKINSTANCE_HAS_NODE = "gcloud.taskflow3.models.TaskFlowInstance.has_node"
+TASKINSTANCE_SAVE = "gcloud.taskflow3.models.TaskFlowInstance.save"
 
 TASKFLOW_MODEL_TASK_COMMAND_DISPATCHER = "gcloud.taskflow3.models.TaskCommandDispatcher"
 TASKFLOW_MODEL_TASK_COMMAND_DISPATCHER_GET_STATUS = "gcloud.taskflow3.models.TaskCommandDispatcher.get_task_status"

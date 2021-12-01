@@ -87,7 +87,7 @@
                             <template slot-scope="props">
                                 <div class="task-operation">
                                     <!-- 事后鉴权，后续对接新版权限中心 -->
-                                    <a v-if="props.row.template_deleted" class="task-operation-btn disabled">{{$t('再创建')}}</a>
+                                    <a v-if="props.row.template_deleted || props.row.template_source === 'onetime'" class="task-operation-btn disabled">{{$t('再创建')}}</a>
                                     <a
                                         v-else-if="!hasCreateTaskPerm(props.row)"
                                         v-cursor

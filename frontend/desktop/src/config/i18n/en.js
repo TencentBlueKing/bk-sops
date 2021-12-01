@@ -723,7 +723,7 @@ const en = {
     '节点日志': 'Node Logs',
     '日志': 'Logs',
     '第': ' ',
-    '次执行': 'Execution',
+    '次循环': 'Cycles',
     '执行次数': 'Count of executions',
     '请选择执行分支': 'Please select a execution branch',
     '可选执行分支': 'Branches',
@@ -794,6 +794,7 @@ const en = {
     '自动忽略：标准插件节点如果执行失败，会自动忽略错误并把节点状态设置为成功。': 'Auto Ignore: this node will set to success automatically if failed.',
     '手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。': 'Manual Skip: you can skip this node manually if it failed.',
     '手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。': 'Manual Retry: you can retry this node manually if it failed.',
+    '自动重试：标准插件节点如果执行失败，系统会自动以原参数进行重试。': 'Auto Retry: if the standard plug-in node fails to be executed, the system automatically retries using the original parameters',
     '基础信息': 'Basic Info',
     '请选择子流程': 'Please Select SubProcess',
     '选择子流程': 'Select Subprocess',
@@ -1249,7 +1250,15 @@ const en = {
     '删除连线': 'Delete Line',
     '自动重试': 'Auto Retry',
     '次': 'Times',
-    '子流程更新时，如果新旧版本存在相同表单，表单数据会默认取原表单数据': 'When the sub-process is updated, if the new and old versions have the same form, the form data will default to the original form data'
+    '子流程更新时，如果新旧版本存在相同表单，表单数据会默认取原表单数据': 'When the sub-process is updated, if the new and old versions have the same form, the form data will default to the original form data',
+    '触发条件': 'Trigger condition',
+    '符合条件时支持隐藏': 'Support hiding when eligible',
+    '关系组内的数据不能为空': 'The data in the relationship group cannot be empty',
+    '所有变量值都会以字符串类型进行记录和判断，会忽略类型差异': 'All variable values will be recorded and judged in string type, and type differences will be ignored',
+    '变量未找到': 'Variable not found',
+    '至少保留一条触发条件': 'Keep at least one trigger condition',
+    '自动隐藏': 'Auto hide',
+    '自动隐藏在显示状态下触发，当触发条件都满足时，才会在编辑页面隐藏，但是不会对传参产生影响': 'Auto-hide is triggered in the display state. When the trigger conditions are met, it will be hidden on the editing page, but it will not affect the parameter transfer.'
 }
 
 export default en

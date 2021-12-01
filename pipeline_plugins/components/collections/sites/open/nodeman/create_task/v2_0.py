@@ -16,8 +16,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from api.collections.nodeman import BKNodeManClient
 from pipeline.component_framework.component import Component
-from pipeline.utils.crypt import rsa_decrypt_password
-
 from pipeline.core.flow.io import (
     IntItemSchema,
     StringItemSchema,
@@ -27,9 +25,11 @@ from pipeline.core.flow.io import (
 
 from gcloud.conf import settings
 from gcloud.utils.ip import get_ip_by_regex
+from gcloud.utils.crypto import encrypt_auth_key, decrypt_auth_key
 from pipeline_plugins.components.collections.sites.open.nodeman.base import (
     NodeManBaseService,
     get_host_id_by_inner_ip,
+    get_nodeman_rsa_public_key,
 )
 
 __group_name__ = _("节点管理(Nodeman)")
@@ -110,11 +110,16 @@ class NodemanCreateTaskService(NodeManBaseService):
 
                 # 处理表格中每行的key/psw
                 try:
-                    auth_key = rsa_decrypt_password(auth_key, settings.RSA_PRIV_KEY)
+                    auth_key = decrypt_auth_key(auth_key, settings.RSA_PRIV_KEY)
                 except Exception:
                     # password is not encrypted
                     pass
-
+                # auth_key加密
+                success, ras_public_key = get_nodeman_rsa_public_key(executor, self.logger)
+                if not success:
+                    data.set_outputs("ex_data", _("获取节点管理公钥失败,请查看节点日志获取错误详情."))
+                    return False
+                auth_key = encrypt_auth_key(auth_key, ras_public_key["name"], ras_public_key["content"])
                 # 表格每行基础参数
                 base_params = {
                     "bk_biz_id": bk_biz_id,
