@@ -1097,6 +1097,18 @@ class TaskFlowInstance(models.Model):
 
         return False
 
+    @property
+    def function_task_claimant(self):
+        """
+        获取当前任务实例的职能化认领单的认领人
+        """
+        # 如果任务流程类型不是职能化任务流程，直接返回
+        if self.flow_type != "common_func":
+            return None
+
+        # 如果是职能化任务流程，返回对应的职能化认领单实例
+        return self.function_task.filter(task=self).values_list("claimant", flat=True).first()
+
     @classmethod
     def task_url(cls, project_id, task_id):
         return "%staskflow/execute/%s/?instance_id=%s" % (settings.APP_HOST, project_id, task_id)
@@ -1352,6 +1364,10 @@ class TaskFlowInstance(models.Model):
         if members:
             members = ",".join(members).split(",")
             receivers.extend(members)
+
+        # 如果职能化单认领人存在，则通知上加上认领人
+        if self.function_task_claimant:
+            receivers.append(self.function_task_claimant)
 
         # 这里保证执行人在列表第一位，其他接收人不保证顺序
         receiver_set = set(receivers)
