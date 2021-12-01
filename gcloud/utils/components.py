@@ -102,9 +102,9 @@ def get_remote_plugin_detail_list(limit=100, offset=0):
     return plugin_info
 
 
-def component_name(name, version):
+def component_name(name, version, is_remote=False):
     name = name.split("-")
-    group_name = name[0] if len(name) != 1 else "第三方插件"
+    group_name = "第三方插件" if is_remote else name[0]
     plugin_name = name[-1]
     name = "{}-{}-{}".format(_(group_name), _(plugin_name), version)
     return name
@@ -145,18 +145,13 @@ def format_component_name_with_remote(components: list, comp_name_dict: dict):
     groups = []
     for comp in components:
         version = comp["version"]
-        # 插件名国际化
-        if not comp["is_remote"]:
-            # 系统内置插件
-            name = comp_name_dict.get(comp["component_code"], comp["component_code"])
-            name = component_name(name, version)
-        else:
-            # 第三方插件
-            name = remote_plugin_dict.get(comp["component_code"], comp["component_code"])
-            name = component_name(name, version)
-        code = format_plugin_code(comp["component_code"], version)
+        component_code = comp["component_code"]
         value = comp["value"]
-        groups.append({"code": code, "name": name, "value": value})
+        is_remote = comp["is_remote"]
+        # 插件名国际化
+        component_dict = remote_plugin_dict if is_remote else comp_name_dict
+        name = component_name(component_dict.get(component_code, component_code), version, is_remote)
+        groups.append({"code": component_code, "name": name, "value": value})
     return groups
 
 
@@ -165,9 +160,9 @@ def get_inner_components():
     component_list = []
     for comp in components:
         code = comp["code"]
-        name = comp["name"].split("-")
-        group_name = _(name[0])
-        name = _(name[1])
+        name_partitions = comp["name"].split("-")
+        group_name = _(name_partitions[0])
+        name = _(name_partitions[-1])
         version = comp["version"]
         component_list.append(
             {"name": name, "group_name": group_name, "version": version, "code": code, "is_remote": False}

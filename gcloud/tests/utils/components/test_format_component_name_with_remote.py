@@ -26,8 +26,8 @@ TEST_COMPONENTS = [
 ]
 TEST_COMP_NAME_DICT = {"code2": "inner-name2"}
 TEST_GROUPS = [
-    {"code": "code1-1.0", "name": "第三方插件-name1-1.0", "value": 1},
-    {"code": "code2-1.0", "name": "inner-name2-1.0", "value": 1},
+    {"code": "code1", "name": "第三方插件-name1-1.0", "value": 1},
+    {"code": "code2", "name": "inner-name2-1.0", "value": 1},
 ]
 
 
