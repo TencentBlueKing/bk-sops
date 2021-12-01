@@ -148,8 +148,8 @@ class IPPickerHandler:
         self.username = username
         self.bk_biz_id = bk_biz_id
         self.bk_supplier_account = bk_supplier_account
-        self.filters = format_condition_dict(filters)
-        self.excludes = format_condition_dict(excludes)
+        self.filters = format_condition_dict(filters or [])
+        self.excludes = format_condition_dict(excludes or [])
         self.biz_topo_tree: dict = None
         self.host_info: list = None
         self.property_filters: dict = {}
@@ -161,7 +161,7 @@ class IPPickerHandler:
             self.property_filters[key] = {"condition": "AND", "rules": []}
 
         # 获取业务下的topo树
-        if self.selector == "topo" or is_manual:
+        if self.selector == "topo" or is_manual or self.filters or self.excludes:
             topo_result = get_cmdb_topo_tree(username, bk_biz_id, bk_supplier_account)
             if not topo_result["result"]:
                 self.error = topo_result
@@ -170,48 +170,44 @@ class IPPickerHandler:
 
         # 预处理过滤筛选条件
         if self.filters:
-            self.inject_filter_params("filter", self.filters)
+            self._inject_condition_params("filter", self.filters)
         if self.excludes:
-            self.inject_filter_params("exclude", self.excludes)
+            self._inject_condition_params("exclude", self.excludes)
 
-    def inject_filter_params(self, condition_type, condition_data):
-        """
-        将IP选择器中的过滤条件转换为list_biz_host_topo接口请求过滤参数，注入到property_filters
-        :params condition_type: 条件类型
-        :params condition_data: 条件数据, 筛选时传入类型为dict，其他为list
-        :params 待注入的接口请求参数
-        """
-        if condition_type in ["filter", "exclude"]:
-            field_mappings = {"module": "bk_module_name", "set": "bk_set_name", "host": "bk_host_innerip"}
-            operator = "in" if condition_type == "filter" else "not_in"
-            for field, value in condition_data.items():
-                # 忽略业务的过滤条件，因为只会拉取特定业务下的主机
-                if field not in field_mappings:
-                    continue
-                property_filter_key = f"{field}_property_filter"
-                self.property_filters[property_filter_key]["rules"].append(
-                    {"field": field_mappings[field], "operator": operator, "value": value}
-                )
-        elif condition_type == "ip":
-            input_host_ids = [condition["bk_host_id"] for condition in condition_data]
+    def _inject_condition_params(self, condition_type: str, condition_data: dict):
+        operator = "in" if condition_type == "filter" else "not_in"
+        hosts = condition_data.get("host", [])
+        if hosts:
             self.property_filters["host_property_filter"]["rules"].append(
-                {"field": "bk_host_id", "operator": "in", "value": input_host_ids}
+                {"field": "bk_host_innerip", "operator": operator, "value": hosts}
             )
-        elif condition_type == "topo":
-            # 因为set_property_filter和module_property_filter的条件是与关系，所以这里统一转换成module来进行过滤
-            topo_filter = [
-                [{"field": condition["bk_obj_id"], "value": [condition["bk_inst_id"]]}] for condition in condition_data
-            ]
-            module_ids = set()
-            for tf in topo_filter:
-                filters_dct = format_condition_dict(tf)
-                filter_modules = get_modules_by_condition(self.biz_topo_tree, filters_dct, "bk_inst_id")
-                filter_modules_ids = get_modules_id(filter_modules)
-                module_ids.update(set(filter_modules_ids))
-            if module_ids:
-                self.property_filters["module_property_filter"]["rules"].append(
-                    {"field": "bk_module_id", "operator": "in", "value": list(module_ids)}
-                )
+        if set(condition_data.keys()) - {"host"}:
+            # 把拓扑筛选条件转换成 modules 筛选条件
+            filter_modules = get_modules_by_condition(self.biz_topo_tree, condition_data, "bk_inst_name")
+            filter_modules_ids = get_modules_id(filter_modules)
+            self.property_filters["module_property_filter"]["rules"].append(
+                {"field": "bk_module_id", "operator": operator, "value": filter_modules_ids}
+            )
+
+    def _inject_host_params(self, host_list):
+        input_host_ids = [host["bk_host_id"] for host in host_list]
+        self.property_filters["host_property_filter"]["rules"].append(
+            {"field": "bk_host_id", "operator": "in", "value": input_host_ids}
+        )
+
+    def _inject_topo_params(self, topo_list):
+        # 因为set_property_filter和module_property_filter的条件是与关系，所以这里统一转换成module来进行过滤
+        topo_filter = [[{"field": topo["bk_obj_id"], "value": [topo["bk_inst_id"]]}] for topo in topo_list]
+        module_ids = set()
+        for tf in topo_filter:
+            filters_dct = format_condition_dict(tf)
+            filter_modules = get_modules_by_condition(self.biz_topo_tree, filters_dct, "bk_inst_id")
+            filter_modules_ids = get_modules_id(filter_modules)
+            module_ids.update(set(filter_modules_ids))
+        if module_ids:
+            self.property_filters["module_property_filter"]["rules"].append(
+                {"field": "bk_module_id", "operator": "in", "value": list(module_ids)}
+            )
 
     def dispatch(self, params):
         handle_func = getattr(self, f"{self.selector}_picker_handler")
@@ -222,7 +218,7 @@ class IPPickerHandler:
         静态IP选择情况
         :params inputted_ips: ip主机信息列表, list
         """
-        self.inject_filter_params(condition_type="ip", condition_data=inputted_ips)
+        self._inject_host_params(inputted_ips)
         host_info_result = self.fetch_host_ip_with_property_filter()
         if not host_info_result["result"]:
             return host_info_result
@@ -233,7 +229,7 @@ class IPPickerHandler:
         topo选择情况
         :params inputted_topo: 拓扑结构信息列表, list
         """
-        self.inject_filter_params(condition_type="topo", condition_data=inputted_topo)
+        self._inject_topo_params(inputted_topo)
         host_info_result = self.fetch_host_ip_with_property_filter()
         if not host_info_result["result"]:
             return host_info_result
@@ -266,7 +262,7 @@ class IPPickerHandler:
             if not host_info_result["result"]:
                 return host_info_result
             match_host_id = set([host["bk_host_id"] for host in host_info_result["data"]])
-            data = filter(lambda host: host["bk_host_id"] in match_host_id, data)
+            data = [host for host in data if host["bk_host_id"] in match_host_id]
 
         logger.info("[group_picker_handler] data from dynamic group: {data}".format(data=data))
         return {"result": True, "data": data, "message": ""}
@@ -308,48 +304,6 @@ class IPPickerHandler:
             for host in host_info
         ]
         return formatted_host_info
-
-    def prepare_host_data(self, inputted_ips=None):
-        """
-        准备主机信息列表数据
-        :params inputted_ips: ip主机信息列表，只有静态IP选择情况下需要传入, list
-        :return host_modules_ids: ip主机与所属模块id映射关系, dict
-        :return host_data: 经过与业务下主机进行匹配后的主机信息列表, list
-        """
-        ip_list = (
-            [
-                "{cloud}:{ip}".format(cloud=get_bk_cloud_id_for_host(host, "cloud"), ip=host["bk_host_innerip"])
-                for host in inputted_ips
-            ]
-            if inputted_ips
-            else []
-        )
-        data = []
-        host_modules_ids = {}
-        if self.host_info is None:
-            return {"result": False, "data": {}, "message": "[prepare_host_data] host_info should not be None"}
-        for host in self.host_info:
-            host_modules_id = get_modules_id(host["module"])
-            host_innerip = format_sundry_ip(host["host"].get("bk_host_innerip", ""))
-            host_modules_ids[host_innerip] = host_modules_id
-            if (
-                self.selector == "topo"
-                or "{cloud}:{ip}".format(cloud=host["host"].get("bk_cloud_id", DEFAULT_BK_CLOUD_ID), ip=host_innerip)
-                in ip_list
-            ):
-                data.append(
-                    {
-                        "bk_host_id": host["host"]["bk_host_id"],
-                        "bk_host_innerip": host_innerip,
-                        "bk_host_outerip": host["host"].get("bk_host_outerip", ""),
-                        "bk_host_name": host["host"].get("bk_host_name", ""),
-                        "bk_cloud_id": host["host"].get("bk_cloud_id", DEFAULT_BK_CLOUD_ID),
-                        "host_modules_id": host_modules_id,
-                    }
-                )
-
-        logger.info("[prepare_host_data] filter data collect: {data}".format(data=data))
-        return {"result": True, "data": {"host_modules_ids": host_modules_ids, "host_data": data}, "message": ""}
 
 
 def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
@@ -399,37 +353,6 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
     return host_data_result
 
 
-def filter_hosts(filters, biz_topo_tree, hosts, comp_key):
-    """筛选出同时满足所有过滤条件的主机
-
-    :param filters: 过滤条件
-    :type filters: list
-    :param biz_topo_tree: 业务拓扑
-    :type biz_topo_tree: dict
-    :param hosts: 筛选主机列表
-    :type hosts: list
-    :param comp_key: 过滤条件值在业务拓扑 biz_topo_tree 中所属的字段
-    :type comp_key: str
-    :return: 在 hosts 上筛选后的主机列表
-    :rtype: list
-    """
-    filters_dct = format_condition_dict(filters)
-    filter_host = set(filters_dct.pop("host", []))
-
-    if filters_dct:
-        # 把拓扑筛选条件转换成 modules 筛选条件
-        filter_modules = get_modules_by_condition(biz_topo_tree, filters_dct, comp_key)
-        filter_modules_id = get_modules_id(filter_modules)
-        data = [host for host in hosts if set(host["host_modules_id"]) & set(filter_modules_id)]
-    else:
-        # 如果没有拓扑筛选条件，则不进行拓扑筛选操作，直接在 hosts 上再次进行 host ip 过滤
-        data = hosts
-
-    if filter_host:
-        data = [host for host in data if host["bk_host_innerip"] in filter_host]
-    return data
-
-
 def format_condition_dict(conditons):
     """
     @summary: 将 field 相同的聚合成字典中的一条记录
@@ -460,7 +383,7 @@ def format_condition_value(conditions):
             formatted += [item.strip() for item in re.split(r"\n|\\n", val.strip()) if item.strip()]
         else:
             formatted.append(val)
-    return list(set(formatted))
+    return sorted(set(formatted), key=formatted.index)
 
 
 def get_modules_of_bk_obj(bk_obj):
