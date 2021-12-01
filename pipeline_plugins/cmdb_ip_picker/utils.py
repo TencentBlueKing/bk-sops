@@ -175,6 +175,9 @@ class IPPickerHandler:
             self._inject_condition_params("exclude", self.excludes)
 
     def _inject_condition_params(self, condition_type: str, condition_data: dict):
+        """
+        根据过滤条件注入对应的主机过滤参数
+        """
         operator = "in" if condition_type == "filter" else "not_in"
         hosts = condition_data.get("host", [])
         if hosts:
@@ -190,12 +193,18 @@ class IPPickerHandler:
             )
 
     def _inject_host_params(self, host_list):
+        """
+        根据主机数据注入主机过滤参数
+        """
         input_host_ids = [host["bk_host_id"] for host in host_list]
         self.property_filters["host_property_filter"]["rules"].append(
             {"field": "bk_host_id", "operator": "in", "value": input_host_ids}
         )
 
     def _inject_topo_params(self, topo_list):
+        """
+        根据拓扑数据注入拓扑过滤参数
+        """
         # 因为set_property_filter和module_property_filter的条件是与关系，所以这里统一转换成module来进行过滤
         topo_filter = [[{"field": topo["bk_obj_id"], "value": [topo["bk_inst_id"]]}] for topo in topo_list]
         module_ids = set()
