@@ -10,17 +10,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-from rest_framework.decorators import api_view
-
-from gcloud.conf.user.serializer import SetUserConfSerializer
-from gcloud.conf.user.models import UserConf
-from gcloud.conf.user.decorator import intercept_res, inject_params
-
-
-@api_view(["POST"])
-@intercept_res
-@inject_params(SetUserConfSerializer)
-def set_userconf(request, params):
-    success, data = UserConf.objects.set_userconf(**params)
-    return success, data

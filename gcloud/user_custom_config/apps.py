@@ -11,11 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-TASKTMPL_ORDERBY_OPTIONS = [
-    {"name": "模板ID", "value": "id"},
-    {"name": "创建时间", "value": "pipeline_template__create_time"},
-    {"name": "修改时间", "value": "pipeline_template__edit_time"},
-    {"name": "模板类型", "value": "category"},
-]
+from django.apps import AppConfig
 
-UserConfOption = {"tasktmpl_ordering": TASKTMPL_ORDERBY_OPTIONS}
+
+class UserConfig(AppConfig):
+    name = "gcloud.user_custom_config"
+    verbose_name = "GcloudUserCustomConfig"

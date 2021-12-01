@@ -36,7 +36,6 @@ urlpatterns_custom = [
     url(r"^weixin/login/", include("weixin.core.urls")),
     url(r"^admin/", include("gcloud.contrib.admin.urls")),
     url(r"^plugin_service/", include("plugin_service.urls")),
-    url(r"^user/", include("gcloud.conf.user.urls")),
 ]
 
 schema_view = get_schema_view(

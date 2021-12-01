@@ -44,6 +44,8 @@ from gcloud.contrib.collection.resources import CollectionResources
 from gcloud.periodictask.resources import PeriodicTaskResource
 from gcloud.external_plugins.resources import PackageSourceResource, SyncTaskResource
 from gcloud.template_base.apis.drf.viewsets.template import ProjectTemplateViewSet, CommonTemplateViewSet
+from gcloud.user_custom_config.viewsets.user_custom_config import UserCustomConfViewset
+from gcloud.user_custom_config.viewsets.user_custom_config_options import UserCustomConfigOptions
 
 v3_api = Api(api_name="v3")
 v3_api.register(BusinessResource())
@@ -80,6 +82,8 @@ v4_drf_router = DefaultRouter()
 v4_drf_router.register(r"project_template/(?P<project_id>\d+)", ProjectTemplateViewSet, basename="project_template")
 v4_drf_router.register(r"common_template", CommonTemplateViewSet, basename="common_template")
 v4_drf_router.register(r"clocked_task", ClockedTaskViewSet, basename="clocked_task")
+v4_drf_router.register(r"user_custom_config/(?P<project_id>\d+)", UserCustomConfViewset, basename="user_custom_config")
+v4_drf_router.register(r"user_custom_config_options", UserCustomConfigOptions, basename="user_custom_config_options")
 
 # Standard bits...
 urlpatterns = [

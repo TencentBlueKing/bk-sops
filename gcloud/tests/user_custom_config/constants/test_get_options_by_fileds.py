@@ -11,18 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.test import TestCase
 
-from rest_framework import serializers
-
-
-class SetUserConfSerializer(serializers.Serializer):
-    username = serializers.CharField(help_text="用户名")
-    project_id = serializers.IntegerField(help_text="所属项目ID")
-    field = serializers.CharField(help_text="用户配置项名称")
-    value = serializers.CharField(help_text="用户配置项值")
+from gcloud.user_custom_config.constants import get_options_by_fileds, UserConfOption
 
 
-class GetUserConfSerializer(serializers.Serializer):
-    username = serializers.CharField(help_text="用户名")
-    project_id = serializers.IntegerField(help_text="所属项目ID")
-    field_list = serializers.ListField(help_text="用户配置项名称")
+class TestGetOptionsByFields(TestCase):
+    def test_get_success_by_none(self):
+        data = get_options_by_fileds()
+        self.assertEqual(data, UserConfOption)
+
+    def test_get_success_by_exist_field(self):
+        data = get_options_by_fileds(["task_template_ordering"])
+        self.assertEqual(data, UserConfOption)

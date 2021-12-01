@@ -42,7 +42,7 @@ from gcloud.iam_auth.resource_helpers import FlowResourceHelper
 from gcloud.iam_auth.authorization_helpers import FlowIAMAuthorizationHelper
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
-from gcloud.conf.user.constants import TASKTMPL_ORDERBY_OPTIONS
+from gcloud.user_custom_config.constants import TASKTMPL_ORDERBY_OPTIONS
 
 logger = logging.getLogger("root")
 iam = get_iam_client()

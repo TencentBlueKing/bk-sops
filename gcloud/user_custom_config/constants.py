@@ -11,9 +11,23 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import url
 
-from gcloud.conf.user.views.set_userconf import set_userconf
-from gcloud.conf.user.views.get_userconf_by_fields import get_userconf_by_fields
+TASKTMPL_ORDERBY_OPTIONS = [
+    {"name": "模板ID", "value": "id"},
+    {"name": "创建时间", "value": "pipeline_template__create_time"},
+    {"name": "修改时间", "value": "pipeline_template__edit_time"},
+    {"name": "模板类型", "value": "category"},
+]
 
-urlpatterns = [url("^set_userconf/$", set_userconf), url("^get_userconf_by_fields/$", get_userconf_by_fields)]
+UserConfOption = {
+    "task_template_ordering": TASKTMPL_ORDERBY_OPTIONS,
+}
+
+
+def get_options_by_fileds(configs=[]):
+    data = {}
+    if not configs:
+        return UserConfOption
+    for key in configs:
+        data[key] = UserConfOption[key]
+    return data

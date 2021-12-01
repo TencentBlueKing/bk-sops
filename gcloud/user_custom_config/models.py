@@ -15,37 +15,36 @@ specific language governing permissions and limitations under the License.
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.conf.user.constants import UserConfOption
+from gcloud.user_custom_config.constants import UserConfOption
 
 
 class UserConfManager(models.Manager):
-    def set_userconf(self, username, project_id, field, value):
+    def set_userconf(self, **kwargs):
+        username = kwargs.get("username")
+        project_id = kwargs.get("project_id")
+        kwargs.pop("username")
+        kwargs.pop("project_id")
         user_conf = self.get_or_create(username=username, project_id=project_id)[0]
-        if not hasattr(user_conf, field):
-            return False, f"Field:{field} is not exists!"
-        setattr(user_conf, field, value)
+        for key, value in kwargs.items():
+            setattr(user_conf, key, value)
         user_conf.save()
-        return True, None
+        return user_conf
 
-    def get_conf_by_user(self, username, project_id, field_list):
+    def get_conf(self, **kwargs):
+        username = kwargs.get("username")
+        project_id = kwargs.get("project_id")
         user_conf = self.get_or_create(username=username, project_id=project_id)[0]
-        for field_name in field_list:
-            if not hasattr(user_conf, field_name):
-                return False, f"Field:{field_name} is not exists!"
-        content = {
-            field_name: {
-                "value": getattr(user_conf, field_name),
-                "name": field_name,
-                "options": UserConfOption.get(field_name, {}),
-            }
-            for field_name in field_list
-        }
-        return True, content
+        return user_conf
 
 
-class UserConf(models.Model):
+class UserCustomProjectConfig(models.Model):
     username = models.CharField(_("用户名"), max_length=255)
     project_id = models.IntegerField(_("所属项目ID"))
-    tasktmpl_ordering = models.CharField(_("模板列表默认排序字段"), max_length=255, default="-id")
+    task_template_ordering = models.CharField(
+        _("模板列表默认排序字段"), max_length=255, default=UserConfOption["task_template_ordering"][0]["value"]
+    )
 
     objects = UserConfManager()
+
+    class Meta:
+        index_together = ["username", "project_id"]
