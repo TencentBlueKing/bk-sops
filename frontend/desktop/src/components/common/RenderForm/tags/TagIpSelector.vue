@@ -196,8 +196,6 @@
                                         if (!result) {
                                             value.isDiff = true
                                             hasDiff = true
-                                        } else {
-                                            value.isDiff = false
                                         }
                                         return value
                                     })
