@@ -128,13 +128,33 @@
             updateDiffData () {
                 const selectors = this.activeSelector
                 const selectList = selectors === 'ip' ? this.staticIps : selectors === 'topo' ? this.dynamicIps : this.dynamicGroups
-                selectList.forEach((item, index) => {
-                    if (item.isDiff) {
+                selectList.forEach((value, index) => {
+                    let result = true
+                    // 删除掉没匹配上的
+                    if (selectors === 'ip') {
+                        result = this.staticIpList.find(item => item.bk_host_id === value.bk_host_id)
+                    } else if (selectors === 'topo') {
+                        result = this.loopDynamicIpList(this.dynamicIpList, value.bk_obj_id, value.bk_inst_id)
+                    } else {
+                        result = this.dynamicGroupList.find(item => item.bk_host_id === value.bk_host_id)
+                    }
+                    if (!result) {
                         selectList.splice(index, 1)
                     }
                 })
                 this.$emit('change', selectors, selectList)
                 this.curSelectorTab.hasDiff = false
+            },
+            loopDynamicIpList (list, objId, instId) {
+                return list.some(item => {
+                    if (item.bk_obj_id === objId && item.bk_inst_id === instId) {
+                        return false
+                    } else if (item.child && item.child.length) {
+                        this.loopDynamicIpList(item.child, objId, instId)
+                    } else {
+                        return true
+                    }
+                })
             },
             onStaticIpChange (val) {
                 this.$emit('change', 'ip', val)
