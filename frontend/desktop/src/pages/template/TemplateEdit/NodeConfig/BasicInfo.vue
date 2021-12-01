@@ -151,7 +151,7 @@
                     class="common-icon-clock-inversion update-tooltip"
                     v-if="!inputLoading && subflowHasUpdate"
                     v-bk-tooltips="{
-                        content: $t('版本更新'),
+                        html: `<p>${ $t('版本更新') }</p><p>${ $t('子流程更新时，如果新旧版本存在相同表单，表单数据会默认取原表单数据') }</p>`,
                         placements: ['bottom-end']
                     }"
                     @click="onUpdateSubflowVersion">

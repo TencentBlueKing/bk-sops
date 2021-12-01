@@ -8,6 +8,11 @@
             </div>
             <i class="bk-dialog-close bk-icon icon-close" @click="onCloseDialog"></i>
         </div>
+        <bk-alert ref="diffAlert" type="warning" style="margin: 10px;" :show-icon="false">
+            <div class="diff-alert" slot="title">
+                <span>{{ $t('子流程更新时，如果新旧版本存在相同表单，表单数据会默认取原表单数据') }}</span>
+            </div>
+        </bk-alert>
         <div class="subflow-form-wrap" v-bkloading="{ isLoading: subflowFormsLoading, opacity: 1 }">
             <section
                 v-for="subflow in subflowForms"
@@ -773,6 +778,14 @@
             margin-right: 12px;
             font-size: 14px;
             color: #313238;
+        }
+    }
+    .diff-alert {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        /deep/ .bk-link-text {
+            font-size: 12px;
         }
     }
 </style>
