@@ -32,7 +32,7 @@ from gcloud.core.models import Project
 from gcloud.utils.managermixins import ClassificationCountMixin
 from gcloud.utils.dates import format_datetime
 from gcloud.analysis_statistics.models import TemplateStatistics, TemplateNodeStatistics, TaskflowStatistics
-from gcloud.utils.components import format_component_name
+from gcloud.utils.components import format_component_name_with_remote
 from gcloud.analysis_statistics.models import ProjectStatisticsDimension, TaskTmplExecuteTopN
 from gcloud.shortcuts.cmdb import get_business_attrinfo
 
@@ -79,18 +79,17 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
 
     def group_by_atom_cite(self, tasktmpl, *args):
         # 查询不同原子引用的个数
-        components = ComponentModel.objects.values("code", "version", "name")
-        total = components.count()
+        total = ComponentModel.objects.count()
+        comp_name_dict = dict(ComponentModel.objects.values_list("code", "name"))
         groups = []
         task_template_id_list = tasktmpl.values_list("id", flat=True)
         # 查询出符合条件的不同原子引用
-        template_node_template_data = (
-            TemplateNodeStatistics.objects.values("component_code", "version")
+        template_node_template_data = list(
+            TemplateNodeStatistics.objects.values("component_code", "version", "is_remote")
             .filter(task_template_id__in=task_template_id_list)
             .annotate(value=Count("id"))
         )
-
-        groups = format_component_name(components, template_node_template_data)
+        groups = format_component_name_with_remote(template_node_template_data, comp_name_dict)
         return total, groups
 
     def group_by_atom_template(self, tasktmpl, filters, page, limit):
@@ -103,10 +102,14 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         # 获取标准插件code
         component_code = filters.get("component_code")
         version = filters.get("version")
+        is_remote = filters.get("is_remote")
         # 获取到组件code对应的template_id_list
         if component_code:
             template_node_template_data = TemplateNodeStatistics.objects.filter(
-                task_template_id__in=tasktmpl_id_list, component_code=component_code, version=version
+                task_template_id__in=tasktmpl_id_list,
+                component_code=component_code,
+                version=version,
+                is_remote=is_remote,
             )
         else:
             template_node_template_data = TemplateNodeStatistics.objects.filter(

@@ -232,6 +232,12 @@ const atomForm = {
         loadPluginServiceAppDetail ({ commit }, params) {
             const { plugin_code } = params
             return axios.get(`/plugin_service/app_detail/?plugin_code=${plugin_code}`).then(response => response.data)
+        },
+        /**
+         * 加载全量标准插件
+         */
+        loadAnalysisComponentList ({ commit }) {
+            return axios.get('/analysis/get_component_list/').then(response => response.data)
         }
     }
 }
