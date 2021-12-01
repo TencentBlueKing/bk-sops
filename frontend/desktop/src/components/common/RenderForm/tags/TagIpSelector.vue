@@ -16,6 +16,7 @@
                 ref="ipSelector"
                 :editable="editable && !disabled"
                 :is-multiple="isMultiple"
+                :selector-tabs="selectorTabs"
                 :static-ip-list="staticIpList"
                 :dynamic-ip-list="dynamicIpList"
                 :topo-model-list="topoModelList"
@@ -69,6 +70,31 @@
             }
         }
     }
+    const selectorTabs = [
+        {
+            type: 'staticIp',
+            id: 'ip',
+            name: gettext('静态 IP'),
+            hasDiff: false
+        },
+        {
+            type: 'dynamicIp',
+            id: 'topo',
+            name: gettext('动态 IP'),
+            hasDiff: false
+        },
+        {
+            type: 'dynamicGroup',
+            id: 'group',
+            name: gettext('动态分组'),
+            hasDiff: false
+        },
+        {
+            type: 'manualInput',
+            id: 'manual',
+            name: gettext('手动输入')
+        }
+    ]
     export default {
         name: 'TagIpSelector',
         components: {
@@ -79,6 +105,7 @@
             return {
                 loading: false,
                 isvalidate: false,
+                selectorTabs,
                 staticIpList: [],
                 dynamicIpList: [],
                 topoModelList: [],
@@ -144,14 +171,16 @@
                     })
                 ]).then(values => {
                     if (Array.isArray(values)) {
+                        let hasDiff = false
+                        const value = tools.deepClone(this.value)
+                        const { ip, topo, group } = value
                         values.forEach((v, index) => {
                             switch (index) {
                                 case 0:
                                     this.staticIpList = v.data
                                     if (!this.hook) { // 表单没有被勾选
-                                        const value = tools.deepClone(this.value)
                                         const ips = []
-                                        value.ip.forEach(item => {
+                                        ip.forEach(item => {
                                             // 拿到新的静态ip列表后替换对应的已保存ip属性，如果已保存ip在新列表中不存在，则过滤掉
                                             const ipItem = this.staticIpList.find(i => i.bk_host_innerip === item.bk_host_innerip)
                                             if (ipItem) {
@@ -161,23 +190,70 @@
                                         value.ip = ips
                                         this.updateForm(value)
                                     }
+                                    // 判断静态IP数据与最新的CMDB静态ip配置是否存在差异
+                                    value.ip = ip.map(value => {
+                                        const result = this.staticIpList.find(item => item.bk_host_id === value.bk_host_id)
+                                        if (!result) {
+                                            value.isDiff = true
+                                            hasDiff = true
+                                        } else {
+                                            value.isDiff = false
+                                        }
+                                        return value
+                                    })
+                                    this.selectorTabs[0].hasDiff = hasDiff
                                     break
                                 case 1:
                                     this.dynamicIpList = v.data
+                                    // 判断动态IP数据与最新的CMDB动态IP配置是否存在差异
+                                    value.topo = topo.map(item => {
+                                        const result = this.loopDynamicIpList(this.dynamicIpList, item.bk_obj_id, item.bk_inst_id)
+                                        if (!result) {
+                                            item.isDiff = true
+                                            hasDiff = true
+                                        }
+                                        return item
+                                    })
+                                    this.selectorTabs[1].hasDiff = hasDiff
                                     break
                                 case 2:
                                     this.topoModelList = v.data
                                     break
                                 case 3:
                                     this.dynamicGroupList = v.data.info
+                                    // 判断动态分组数据与最新的CMDB动态分组配置是否存在差异
+                                    const dynamicGroups = group || []
+                                    value.group = dynamicGroups.map(value => {
+                                        const result = this.dynamicGroupList.find(item => item.id === value.id)
+                                        if (!result) {
+                                            value.isDiff = true
+                                            hasDiff = true
+                                        }
+                                        return value
+                                    })
+                                    this.selectorTabs[2].hasDiff = hasDiff
                                     break
                             }
                         })
+                        if (hasDiff) {
+                            this.updateForm(this.value)
+                        }
                     }
                     this.loading = false
                 }).catch(e => {
                     this.loading = false
                     console.log(e)
+                })
+            },
+            loopDynamicIpList (list, objId, instId) {
+                return list.find(item => {
+                    if (item.bk_obj_id === objId && item.bk_inst_id === instId) {
+                        return true
+                    } else if (item.child && item.child.length) {
+                        this.loopDynamicIpList(item.child, objId, instId)
+                    } else {
+                        return false
+                    }
                 })
             },
             customValidate () {

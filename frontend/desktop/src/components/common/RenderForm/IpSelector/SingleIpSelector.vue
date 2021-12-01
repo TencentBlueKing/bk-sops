@@ -16,14 +16,19 @@
                 v-for="(selector) in selectorTabs"
                 :key="selector.type"
                 :class="['ip-tab-radio', { 'disabled': !editable }]"
-                @click="onChooseSelector(selector.id)">
+                @click="onChooseSelector(selector)">
                 <span :class="['radio', { 'checked': activeSelector === selector.id }]"></span>
                 <span class="radio-text">{{selector.name}}</span>
             </div>
         </div>
-        <bk-alert v-if="hasDiff" ref="diffAlert" type="warning" style="margin-bottom: 10px;" :show-icon="false">
+        <bk-alert
+            v-if="curSelectorTab.hasDiff"
+            ref="diffAlert"
+            type="warning"
+            style="margin-bottom: 10px;"
+            :show-icon="false">
             <div class="diff-alert" slot="title">
-                <span>{{ $t('变量保存数据与最新的CMDB集群配置存在差异，是否更新变量数据？') }}</span>
+                <span>{{ $t('表单保存数据与最新的CMDB') + curSelectorTab.name.replace(/\s/, '') + $t('配置存在差异，是否更新变量数据？') }}</span>
                 <bk-link theme="primary" @click="updateDiffData">{{ $t('确认') }}</bk-link>
             </div>
         </bk-alert>
@@ -94,69 +99,42 @@
         data () {
             return {
                 activeSelector: this.selectors[0],
-                diffList: [], // 值为true则表示该value不存在
-                hasDiff: false
+                curSelectorTab: {}
             }
         },
         watch: {
+            selectorTabs: {
+                handler (tabs) {
+                    const curSelectorTab = tabs.find(item => item.id === this.activeSelector)
+                    this.curSelectorTab = curSelectorTab
+                },
+                immediate: true
+            },
             selectors (val, oldVal) {
                 if (val.toString() !== oldVal.toString()) {
                     this.activeSelector = val[0]
-                }
-            },
-            staticIpList (list) {
-                if (this.activeSelector === 'ip') {
-                    this.diffList = this.staticIps.map(value => {
-                        return list.every(item => (item.bk_host_id !== value.bk_host_id))
-                    }) || []
-                    this.hasDiff = this.diffList.some(item => item)
-                }
-            },
-            dynamicIpList (list) {
-                if (this.activeSelector === 'topo') {
-                    this.diffList = this.dynamicIps.map(item => {
-                        return this.loopDynamicIpList(list, item.bk_obj_id, item.bk_inst_id)
-                    }) || []
-                    this.hasDiff = this.diffList.some(item => item)
-                }
-            },
-            dynamicGroupList (list) {
-                if (this.activeSelector === 'group') {
-                    this.diffList = this.dynamicGroups.map(value => {
-                        return list.every(item => item.id !== value.id)
-                    }) || []
-                    this.hasDiff = this.diffList.some(item => item)
+                    this.curSelectorTab = this.selectorTabs.find(item => item.id === val[0])
                 }
             }
         },
         methods: {
-            onChooseSelector (id) {
+            onChooseSelector (selector) {
                 if (!this.editable) {
                     return
                 }
-                this.$emit('change', 'selectors', [id])
-            },
-            loopDynamicIpList (list, objId, instId) {
-                return list.every(item => {
-                    if (item.bk_obj_id === objId && item.bk_inst_id === instId) {
-                        return false
-                    } else if (item.child && item.child.length) {
-                        this.loopDynamicIpList(item.child, objId, instId)
-                    } else {
-                        return true
-                    }
-                })
+                this.curSelectorTab = selector
+                this.$emit('change', 'selectors', [selector.id])
             },
             updateDiffData () {
                 const selectors = this.activeSelector
                 const selectList = selectors === 'ip' ? this.staticIps : selectors === 'topo' ? this.dynamicIps : this.dynamicGroups
-                this.diffList.forEach((item, index) => {
-                    if (!item) return
-                    selectList.splice(index, 1)
+                selectList.forEach((item, index) => {
+                    if (item.isDiff) {
+                        selectList.splice(index, 1)
+                    }
                 })
                 this.$emit('change', selectors, selectList)
-                this.diffList = []
-                this.hasDiff = false
+                this.curSelectorTab.hasDiff = false
             },
             onStaticIpChange (val) {
                 this.$emit('change', 'ip', val)
