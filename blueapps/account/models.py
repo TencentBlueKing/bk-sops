@@ -43,7 +43,14 @@ logger = logging.getLogger("app")
 
 
 class UserManager(BaseUserManager):
-    def _create_user(self, username, is_staff=False, is_superuser=False, password=None, **extra_fields):
+    def _create_user(
+            self,
+            username,
+            is_staff=False,
+            is_superuser=False,
+            password=None,
+            **extra_fields
+    ):
         now = timezone.now()
         if not username:
             raise ValueError(_("The given username must be set"))
@@ -72,7 +79,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         _("username"),
         max_length=64,
         unique=True,
-        help_text=_("Required. 64 characters or fewer. Letters, " "digits and underlined only."),
+        help_text=_(
+            "Required. 64 characters or fewer. Letters, " "digits and underlined only."
+        ),
         validators=[
             validators.RegexValidator(
                 r"^[a-zA-Z0-9_]+$",
@@ -88,19 +97,25 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
 
     nickname = models.CharField(
-        _("nick name"), max_length=64, blank=True, help_text=_("Required. 64 characters or fewer."),
+        _("nick name"),
+        max_length=64,
+        blank=True,
+        help_text=_("Required. 64 characters or fewer."),
     )
     is_staff = models.BooleanField(
-        _("staff status"), default=False, help_text=_("Designates whether the user can log into this " "admin site."),
+        _("staff status"),
+        default=False,
+        help_text=_("Designates whether the user can log into this " "admin site."),
     )
     is_active = models.BooleanField(
         _("active"),
         default=True,
         help_text=_(
-            "Designates whether this user should be treated as " "active. Unselect this instead of deleting accounts."
+            "Designates whether this user should be treated as "
+            "active. Unselect this instead of deleting accounts."
         ),
     )
-    date_joined = models.DateTimeField(_("date joined"), default=timezone.now,)
+    date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
     objects = UserManager()
 
@@ -147,7 +162,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         except Exception:  # pylint: disable=broad-except
             logger.error(
                 "cmsi.send_sms_for_external_user failed. "
-                "username->[%s], code->[%s] for->[%s]" % (self.username, code, traceback.format_exc())
+                "username->[%s], code->[%s] for->[%s]"
+                % (self.username, code, traceback.format_exc())
             )
             return {"result": False, "message": _("ESB发送短信接口错误，可能由权限问题导致")}
         return {"result": result["result"], "message": result["message"]}
@@ -167,9 +183,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 
         elif v_info_cnt == 1:
             cur = v_info[0]
-            if cur.updated_at >= now - datetime.timedelta(minutes=SV_CONF["VALID_MINUTES"]):
+            if cur.updated_at >= now - datetime.timedelta(
+                    minutes=SV_CONF["VALID_MINUTES"]
+            ):
                 # 早前生成过验证码，且未过期
-                if cur.updated_at < now - datetime.timedelta(minutes=SV_CONF["RETRY_MINUTES"]):
+                if cur.updated_at < now - datetime.timedelta(
+                        minutes=SV_CONF["RETRY_MINUTES"]
+                ):
                     # 重发已生成的
                     ret = self.send_sms(cur.code)
                     if ret["result"]:
@@ -192,7 +212,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def verify_code(self, code):
         check = VerifyInfo.objects.filter(
-            user=self, code=code, updated_at__gt=timezone.now() - datetime.timedelta(minutes=SV_CONF["VALID_MINUTES"]),
+            user=self,
+            code=code,
+            updated_at__gt=timezone.now()
+                           - datetime.timedelta(minutes=SV_CONF["VALID_MINUTES"]),
         ).count()
         if check == 1:
             # 一个验证码只能用一次 用完删除
@@ -206,14 +229,20 @@ class UserProperty(models.Model):
     Add user extra property
     """
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="properties",)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="properties")
     key = models.CharField(
         max_length=64,
-        help_text=_("Required. 64 characters or fewer. Letters, " "digits and underlined only."),
+        help_text=_(
+            "Required. 64 characters or fewer. Letters, " "digits and underlined only."
+        ),
         validators=[
             validators.RegexValidator(
                 r"^[a-zA-Z0-9_]+$",
-                _("Enter a valid key. " "This value may contain only letters, " "numbers and underlined characters."),
+                _(
+                    "Enter a valid key. "
+                    "This value may contain only letters, "
+                    "numbers and underlined characters."
+                ),
                 "invalid",
             ),
         ],

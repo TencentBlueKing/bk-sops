@@ -31,6 +31,7 @@ class TemplateNodeStatistics(models.Model):
     template_creator = models.CharField(_("创建者"), max_length=255, null=True, blank=True)
     template_create_time = models.DateTimeField(_("模版创建时间"), null=True)
     template_edit_time = models.DateTimeField(_("模板最近编辑时间"), null=True)
+    is_remote = models.BooleanField(_("是否第三方插件"), default=False)
 
     class Meta:
         verbose_name = _("Pipeline标准插件被引用数据")
@@ -61,11 +62,11 @@ class TaskflowExecutedNodeStatistics(models.Model):
     instance_create_time = models.DateTimeField(_("Pipeline实例创建时间"), db_index=True)
     instance_start_time = models.DateTimeField(_("Pipeline实例启动时间"), null=True, blank=True)
     instance_finish_time = models.DateTimeField(_("Pipeline实例结束时间"), null=True, blank=True)
+    is_remote = models.BooleanField(_("是否第三方插件"), default=False)
 
     class Meta:
         verbose_name = _("Pipeline标准插件执行数据")
         verbose_name_plural = _("Pipeline标准插件执行数据")
-        ordering = ["-id"]
 
     def __unicode__(self):
         return "{}_{}".format(self.component_code, self.instance_id)

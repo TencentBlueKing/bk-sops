@@ -17,8 +17,7 @@
             attrs: {
                 name: gettext("输入框"),
                 hookable: true,
-                validation: [
-                ]
+                validation: []
             }
         },
     ]

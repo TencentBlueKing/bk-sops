@@ -94,7 +94,11 @@ if "RABBITMQ_VHOST" in os.environ:
     RABBITMQ_USER = os.getenv("RABBITMQ_USER")
     RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD")
     BROKER_URL = "amqp://{user}:{password}@{host}:{port}/{vhost}".format(
-        user=RABBITMQ_USER, password=RABBITMQ_PASSWORD, host=RABBITMQ_HOST, port=RABBITMQ_PORT, vhost=RABBITMQ_VHOST,
+        user=RABBITMQ_USER,
+        password=RABBITMQ_PASSWORD,
+        host=RABBITMQ_HOST,
+        port=RABBITMQ_PORT,
+        vhost=RABBITMQ_VHOST,
     )
 
 # WEIXIN Settings
@@ -113,4 +117,6 @@ WEIXIN_BK_URL = os.getenv("BKPAAS_WEIXIN_URL", "https://mt.bk.tencent.com")
 WEIXIN_STATIC_URL = os.getenv("BKPAAS_WEIXIN_STATIC_URL", "%sstatic/weixin/" % SITE_URL)
 
 # APP 微信远程静态资源目录
-WEIXIN_REMOTE_STATIC_URL = os.getenv("BKPAAS_WEIXIN_REMOTE_STATIC_URL", "%s/static_api/" % WEIXIN_BK_URL)
+WEIXIN_REMOTE_STATIC_URL = os.getenv(
+    "BKPAAS_WEIXIN_REMOTE_STATIC_URL", "%s/static_api/" % WEIXIN_BK_URL
+)

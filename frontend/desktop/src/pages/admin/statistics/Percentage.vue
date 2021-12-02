@@ -116,64 +116,17 @@
             dataList (val) {
                 if (val.length) {
                     const { dimension_id } = this.dataList[0]
-                    this.dimensionId = dimension_id
+                    this.statsObj = {}
+                    if (this.dimensionId) {
+                        this.initData()
+                    } else {
+                        this.dimensionId = dimension_id
+                    }
                 }
             },
-            dimensionId: {
-                handler (val) {
-                    if (!val) return
-                    // 表格数据
-                    if (this.dimensionId in this.statsObj) {
-                        const { statsList, name, total } = this.statsObj[this.dimensionId]
-                        this.statsList = statsList
-                        this.statsInfo.total = total
-                        this.tableColumn[0].label = name
-                    } else {
-                        const { info, dimension_name: name, dimension_total: total } = this.dataList.find(item => item.dimension_id === val)
-                        this.statsInfo = {
-                            name: this.isTemp ? i18n.t('流程') : i18n.t('业务'),
-                            total
-                        }
-                        this.tableColumn[0].label = name
-                        const statsList = info.map(item => {
-                            item.color = this.randomColor()
-                            item.amount = item.value
-                            item.percentage = Math.round(item.value / total * 10000) / 100.00 + '%'
-                            return item
-                        })
-                        statsList.push({
-                            name: i18n.t('总计'),
-                            amount: total,
-                            percentage: '100%'
-                        })
-                        this.statsList = statsList
-                        this.statsObj[this.dimensionId] = {
-                            statsList,
-                            name,
-                            total
-                        }
-                    }
-                    // 环形图数据
-                    this.canvasId = val.replace(/\_/g, '-')
-                    const labels = []
-                    const bgcColor = []
-                    const data = []
-                    let counts = 0
-                    const circleDataList = this.statsList.slice(0, -1)
-                    circleDataList.forEach(item => {
-                        labels.push(item.name)
-                        bgcColor.push(item.color)
-                        data.push(item.value)
-                        counts = counts + (item.value ? 1 : 0)
-                    })
-                    this.hasAmountBizTotal = counts
-                    this.$nextTick(() => {
-                        if (this.chart) {
-                            this.updateChart(labels, bgcColor, data, counts)
-                        } else {
-                            this.initChart(labels, bgcColor, data, counts)
-                        }
-                    })
+            dimensionId (val) {
+                if (val) {
+                    this.initData()
                 }
             }
         },
@@ -183,6 +136,60 @@
             }
         },
         methods: {
+            initData () {
+                // 表格数据
+                if (this.dimensionId in this.statsObj) {
+                    const { statsList, name, total } = this.statsObj[this.dimensionId]
+                    this.statsList = statsList
+                    this.statsInfo.total = total
+                    this.tableColumn[0].label = name
+                } else {
+                    const { info, dimension_name: name, dimension_total: total } = this.dataList.find(item => item.dimension_id === this.dimensionId)
+                    this.statsInfo = {
+                        name: this.isTemp ? i18n.t('流程') : i18n.t('任务'),
+                        total
+                    }
+                    this.tableColumn[0].label = name || i18n.t('名称')
+                    const statsList = info.map(item => {
+                        item.color = this.randomColor()
+                        item.amount = item.value
+                        item.percentage = Math.round(item.value / total * 10000) / 100.00 + '%'
+                        return item
+                    })
+                    statsList.push({
+                        name: i18n.t('总计'),
+                        amount: total,
+                        percentage: '100%'
+                    })
+                    this.statsList = statsList
+                    this.statsObj[this.dimensionId] = {
+                        statsList,
+                        name,
+                        total
+                    }
+                }
+                // 环形图数据
+                this.canvasId = this.dimensionId.replace(/\_/g, '-')
+                const labels = []
+                const bgcColor = []
+                const data = []
+                let counts = 0
+                const circleDataList = this.statsList.slice(0, -1)
+                circleDataList.forEach(item => {
+                    labels.push(item.name)
+                    bgcColor.push(item.color)
+                    data.push(item.value)
+                    counts = counts + (item.value ? 1 : 0)
+                })
+                this.hasAmountBizTotal = counts
+                this.$nextTick(() => {
+                    if (this.chart) {
+                        this.updateChart(labels, bgcColor, data, counts)
+                    } else {
+                        this.initChart(labels, bgcColor, data, counts)
+                    }
+                })
+            },
             initChart (labels, backgroundColor, data, counts) {
                 const context = document.querySelector(`.${this.canvasId}-canvas`)
                 this.chart = new BKChart(context, {

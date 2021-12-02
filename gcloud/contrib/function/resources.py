@@ -66,5 +66,6 @@ class FunctionTaskResource(GCloudModelResource):
             "status": ALL,
             "create_time": ["gte", "lte"],
             "claim_time": ["gte", "lte"],
+            "claimant": ALL,
         }
         q_fields = ["task__pipeline_instance__name"]

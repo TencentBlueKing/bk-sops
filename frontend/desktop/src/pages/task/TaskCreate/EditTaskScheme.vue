@@ -24,25 +24,9 @@
             </p>
             <div class="scheme-active-wrapper" v-else>
                 <div>
-                    <bk-button
-                        data-test-id="templateEdit_form_addScheme"
-                        :disabled="isCommonProcess"
-                        icon="plus-line"
-                        @click="onCreateScheme">
-                        {{ $t('新增') }}
-                    </bk-button>
-                    <bk-button
-                        data-test-id="templateEdit_form_importTemporaryPlan"
-                        :disabled="isCommonProcess"
-                        @click="onImportTemporaryPlan">
-                        {{ $t('导入临时方案') }}
-                    </bk-button>
-                    <bk-button
-                        data-test-id="templateEdit_form_setDefaultPlan"
-                        :disabled="isCommonProcess"
-                        @click="onSetDefaultPlan">
-                        {{ $t('设置默认方案') }}
-                    </bk-button>
+                    <bk-button data-test-id="templateEdit_form_addScheme" :disabled="isCommonProcess" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
+                    <bk-button data-test-id="templateEdit_form_importTemporaryPlan" :disabled="isCommonProcess" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
+                    <bk-button data-test-id="templateEdit_form_setDeafultScheme" :disabled="isCommonProcess" @click="onSetDefaultPlan">{{ $t('设置默认方案') }}</bk-button>
                 </div>
                 <bk-button
                     data-test-id="templateEdit_form_previewNode"
@@ -148,7 +132,6 @@
     import { uuid } from '@/utils/uuid.js'
     import tools from '@/utils/tools.js'
     import { mapState, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
     import bus from '@/utils/bus.js'
@@ -320,8 +303,9 @@
                     })
                     this.$emit('updateTaskSchemeList', this.schemeList)
                     this.$emit('setDefaultScheme', defaultObj)
+                    this.$emit('setDefaultSelected', Boolean(this.defaultSchemeId))
                 } catch (error) {
-                    errorHandler(error, this)
+                    console.error(error)
                 }
             },
             // 获取默认方案列表
@@ -340,7 +324,9 @@
                         this.isUpdate = false
                     }
                 } catch (error) {
-                    errorHandler(error, this)
+                    console.error(error)
+                } finally {
+                    this.isSchemeLoading = false
                 }
             },
             /**
@@ -495,9 +481,12 @@
                     })
                     return
                 }
-                const isschemeNameExist = this.schemeList.some(item => item.name === this.schemeName)
-                if (isschemeNameExist) {
-                    errorHandler({ message: i18n.t('方案名称已存在') }, this)
+                const isschemaNameExist = this.schemaList.some(item => item.name === this.schemaName)
+                if (isschemaNameExist) {
+                    this.$bkMessage({
+                        message: i18n.t('方案名称已存在'),
+                        theme: 'warning'
+                    })
                     return
                 }
                 this.$validator.validateAll().then(async (result) => {

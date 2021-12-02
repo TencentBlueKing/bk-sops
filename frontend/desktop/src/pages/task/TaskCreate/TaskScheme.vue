@@ -11,26 +11,12 @@
             </div>
             <div class="scheme-active-wrapper">
                 <div>
-                    <bk-button
-                        data-test-id="creatTask_form_creatScheme"
-                        :disabled="isCommonProcess"
-                        icon="plus-line"
-                        @click="onCreateScheme">
-                        {{ $t('新增') }}
-                    </bk-button>
-                    <bk-button
-                        data-test-id="creatTask_form_importTemporaryPlan"
-                        @click="onImportTemporaryPlan">
-                        {{ $t('导入临时方案') }}
-                    </bk-button>
+                    <bk-button data-test-id="creatTask_form_creatScheme" :disabled="isCommonProcess" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
+                    <bk-button data-test-id="creatTask_form_importTemporaryPlan" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
                 </div>
-                <bk-button
-                    data-test-id="creatTask_form_togglePreview"
-                    @click="onChangePreviewNode">
-                    {{ isPreview ? $t('关闭预览') : $t('节点预览')}}
-                </bk-button>
+                <bk-button data-test-id="creatTask_form_togglePreview" @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
             </div>
-            <div class="scheme-content">
+            <div class="scheme-content" data-test-id="creatTask_form_schemeList">
                 <p :class="['scheme-title', { 'data-empty': !schemeList.length && !nameEditing }]">
                     <bk-checkbox
                         :value="isAllChecked"
@@ -227,6 +213,7 @@
                     })
                     this.$emit('updateTaskSchemeList', this.schemeList, false)
                     this.$emit('setDefaultScheme', defaultObj)
+                    this.$emit('setDefaultSelected', Boolean(this.defaultSchemeId))
                 } catch (e) {
                     console.log(e)
                 }

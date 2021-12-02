@@ -23,6 +23,7 @@ from bamboo_engine import api as bamboo_engine_api
 from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
 from pipeline.contrib.statistics.utils import count_pipeline_tree_nodes
 from pipeline.core.constants import PE
+from pipeline.models import PipelineTemplate
 from pipeline.engine import api as pipeline_api
 from pipeline.engine import states
 from pipeline.engine.utils import calculate_elapsed_time
@@ -73,8 +74,15 @@ def recursive_collect_components_execution(activities, status_tree, task_instanc
             if act[PE.type] == PE.ServiceActivity:
                 # 结束、失败、撤销
                 if exec_act["state"] in states.ARCHIVED_STATES:
+                    component_code = act["component"]["code"]
+                    component_version = act["component"].get("version", LEGACY_PLUGINS_VERSION)
+                    is_remote = False
+                    if component_code == "remote_plugin":
+                        component_code = act["component"]["data"]["plugin_code"]["value"]
+                        component_version = act["component"]["data"]["plugin_version"]["value"]
+                        is_remote = True
                     component_kwargs = {
-                        "component_code": act["component"]["code"],
+                        "component_code": component_code,
                         "instance_id": instance.id,
                         "task_instance_id": task_instance_id,
                         "is_sub": is_sub,
@@ -91,13 +99,14 @@ def recursive_collect_components_execution(activities, status_tree, task_instanc
                         "is_skip": exec_act["skip"],
                         "is_retry": False,
                         "status": exec_act["state"] == "FINISHED",
-                        "version": act["component"].get("version", LEGACY_PLUGINS_VERSION),
+                        "version": component_version,
                         "template_id": instance.template.id,
                         "task_template_id": task_template.id,
                         "project_id": task_template.project.id,
                         "instance_create_time": instance.create_time,
                         "instance_start_time": instance.start_time,
                         "instance_finish_time": instance.finish_time,
+                        "is_remote": is_remote,
                     }
                     component_list.append(TaskflowExecutedNodeStatistics(**component_kwargs))
                     if exec_act["retry"] > 0:
@@ -195,28 +204,35 @@ def tasktemplate_post_save_statistics_task(template_id):
     for act_id, act in data[PE.activities].items():
         # 标准插件节点
         if act["type"] == PE.ServiceActivity:
+            # 判断是否第三方插件
+            component_code = act["component"]["code"]
+            component_version = act["component"].get("version", LEGACY_PLUGINS_VERSION)
+            is_remote = False
+            if component_code == "remote_plugin":
+                component_code = act["component"]["data"]["plugin_code"]["value"]
+                component_version = act["component"]["data"]["plugin_version"]["value"]
+                is_remote = True
             component = TemplateNodeStatistics(
-                component_code=act["component"]["code"],
+                component_code=component_code,
                 template_id=template.pipeline_template.id,
                 task_template_id=task_template_id,
                 project_id=template.project.id,
                 category=template.category,
                 node_id=act_id,
-                version=act["component"].get("version", LEGACY_PLUGINS_VERSION),
+                version=component_version,
                 template_creator=template.pipeline_template.creator,
                 template_create_time=template.pipeline_template.create_time,
                 template_edit_time=template.pipeline_template.edit_time,
+                is_remote=is_remote,
             )
             component_list.append(component)
         # 子流程节点
         else:
             try:
-                template_id = act["template_id"]
-            except KeyError:
-                logger.error(
-                    "[tasktemplate_post_save_statistics_task]template_id={}的流程保存运营数据失败,子流程数据缺少template_id。".format(
-                        template.id
-                    )
+                template_id = PipelineTemplate.objects.filter(template_id=act["template_id"]).values("id")[0]["id"]
+            except Exception:
+                logger.exception(
+                    "[tasktemplate_post_save_statistics_task]template_id={}的流程保存运营数据失败".format(template.id)
                 )
                 return False
             components = TemplateNodeStatistics.objects.filter(template_id=template_id).values(

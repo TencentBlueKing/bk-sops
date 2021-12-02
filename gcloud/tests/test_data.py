@@ -65,6 +65,7 @@ TEST_PIPELINE_TREE = {
         },
         TEST_ID_LIST[5]: {
             "id": TEST_ID_LIST[5],
+            "template_id": TEST_ID_LIST[5],
             "type": "SubProcess",
             "name": "subproc 1",
             "pipeline": {

@@ -120,10 +120,7 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
                 schema=StringItemSchema(description=_("执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"),
-                key="job_account",
-                type="string",
-                schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
+                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
             ),
             self.InputItem(
                 name=_("IP 存在性校验"),
@@ -182,7 +179,7 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
             "script_timeout": data.get_one_of_inputs("job_script_timeout"),
             "account": data.get_one_of_inputs("job_account"),
             "ip_list": ip_list,
-            "bk_callback_url": get_node_callback_url(self.id, getattr(self, "version", "")),
+            "bk_callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
 
         script_param = str(data.get_one_of_inputs("job_script_param"))

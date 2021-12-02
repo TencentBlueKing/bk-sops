@@ -846,6 +846,7 @@
                         return {
                             extra_info: {
                                 project_id: this.project_id,
+                                project_name: tpl.project.name,
                                 template_id: tpl.id,
                                 name: tpl.name,
                                 id: tpl.id
@@ -1117,6 +1118,7 @@
                         const res = await this.addToCollectList([{
                             extra_info: {
                                 project_id: template.project.id,
+                                project_name: template.project.name,
                                 template_id: template.template_id,
                                 template_source: template.template_source,
                                 name: template.name,
