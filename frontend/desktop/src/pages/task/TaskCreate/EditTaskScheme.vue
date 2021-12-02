@@ -112,13 +112,17 @@
             </section>
             <section class="scheme-footer">
                 <bk-button
+                    data-test-id="templateEdit_form_saveScheme"
                     theme="primary"
                     :loading="executeSchemeSaving || isSaveDefaultLoading"
-                    data-test-id="templateEdit_form_saveScheme"
                     @click="onSaveExecuteSchemeClick">
                     {{ $t('保存') }}
                 </bk-button>
-                <bk-button data-test-id="templateEdit_form_returnBtn" @click="toggleSchemePanel">{{ $t('返回') }}</bk-button>
+                <bk-button
+                    data-test-id="templateEdit_form_returnBtn"
+                    @click="toggleSchemePanel">
+                    {{ $t('返回') }}
+                </bk-button>
             </section>
         </div>
     </div>
