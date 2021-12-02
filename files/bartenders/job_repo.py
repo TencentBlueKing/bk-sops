@@ -11,6 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from .base import UploadRequestBartender
+from .utils import common_process_request
 
-def fetch_business_location(username, bk_biz_ids=None):
-    return []
+
+class JobRepoBartender(UploadRequestBartender):
+    def process_request(self, request):
+        return common_process_request(request, self.manager)

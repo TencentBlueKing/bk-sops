@@ -58,6 +58,15 @@ class NodemanCreateTaskService(NodeManBaseService):
         bk_cloud_id = nodeman_op_target.get("nodeman_bk_cloud_id", "")
         node_type = nodeman_op_target.get("nodeman_node_type", "")
 
+        nodeman_ticket = data.get_one_of_inputs("nodeman_ticket", {})
+        nodeman_tjj_ticket = nodeman_ticket.get("nodeman_tjj_ticket", "")
+        if nodeman_tjj_ticket:
+            try:
+                nodeman_tjj_ticket = decrypt_auth_key(nodeman_tjj_ticket, settings.RSA_PRIV_KEY)
+            except Exception:
+                # password is not encrypted
+                pass
+
         nodeman_op_info = data.inputs.nodeman_op_info
         op_type = nodeman_op_info.get("nodeman_op_type", "")
         nodeman_hosts = nodeman_op_info.get("nodeman_hosts", [])
@@ -167,11 +176,10 @@ class NodemanCreateTaskService(NodeManBaseService):
 
             all_hosts.extend(row_host_params_list)
 
-            kwargs = {
-                "job_type": job_name,
-                "hosts": all_hosts,
-                "action": "job_install",
-            }
+            kwargs = {"job_type": job_name, "hosts": all_hosts, "action": "job_install"}
+
+            if nodeman_tjj_ticket:
+                kwargs.update({"tcoa_ticket": nodeman_tjj_ticket})
         else:
             data.set_outputs("ex_data", _("无效的操作请求:{}".format(job_name)))
             return False
@@ -184,10 +192,7 @@ class NodemanCreateTaskService(NodeManBaseService):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"),
-                key="bk_biz_id",
-                type="int",
-                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"), key="bk_biz_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("操作对象"),

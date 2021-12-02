@@ -18,6 +18,7 @@ from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from plugin_service import env
 from plugin_service.conf import PLUGIN_LOGGER
 from plugin_service.api_decorators import inject_plugin_client, validate_params
 from plugin_service.exceptions import PluginServiceException
@@ -32,6 +33,8 @@ from plugin_service.serializers import (
     PluginCodeQuerySerializer,
     PluginListQuerySerializer,
     PluginAppDetailResponseSerializer,
+    PluginDetailListQuerySerializer,
+    PluginDetailListResponseSerializer,
 )
 
 logger = logging.getLogger(PLUGIN_LOGGER)
@@ -52,6 +55,64 @@ def get_plugin_list(request: Request):
     offset = request.validated_data.get("offset")
     result = PluginServiceApiClient.get_plugin_list(search_term=search_term, limit=limit, offset=offset)
     return JsonResponse(result)
+
+
+@swagger_auto_schema(
+    method="GET",
+    operation_summary="获取插件服务列表及详情信息",
+    query_serializer=PluginDetailListQuerySerializer,
+    responses={200: PluginDetailListResponseSerializer},
+)
+@api_view(["GET"])
+@validate_params(PluginDetailListQuerySerializer)
+def get_plugin_detail_list(request: Request):
+    """获取插件服务列表及详情信息"""
+    search_term = request.validated_data.get("search_term")
+    limit = request.validated_data.get("limit")
+    offset = request.validated_data.get("offset")
+    exclude_not_deployed = request.validated_data.get("exclude_not_deployed")
+
+    if exclude_not_deployed:
+        plugins = []
+        cur_offset = offset
+        # 考虑到会有一些未部署到对应环境的情况，这里适当放大limit，减少请求次数
+        cur_limit = limit * 2
+        while True:
+            result = PluginServiceApiClient.get_plugin_detail_list(
+                search_term=search_term, limit=cur_limit, offset=cur_offset
+            )
+            if not result["result"]:
+                return JsonResponse(result)
+            cur_plugins = result["data"]["plugins"]
+            plugins.extend(
+                [
+                    (idx + cur_offset, plugin)
+                    for idx, plugin in enumerate(cur_plugins)
+                    if plugin["deployed_statuses"][env.APIGW_ENVIRONMENT]["deployed"]
+                ]
+            )
+            cur_offset = cur_offset + cur_limit
+            if result["data"]["count"] <= cur_offset or len(plugins) >= limit:
+                break
+        plugins = plugins[:limit]
+        next_offset = plugins[-1][0] + 1 if len(plugins) > 0 else cur_offset
+        response = {
+            "result": True,
+            "message": None,
+            "data": {
+                "next_offset": next_offset,
+                "plugins": [plugin[1] for plugin in plugins],
+                "return_plugin_count": len(plugins),
+            },
+        }
+    else:
+        result = PluginServiceApiClient.get_plugin_detail_list(search_term=search_term, limit=limit, offset=offset)
+        if not result["result"]:
+            return JsonResponse(result)
+        response = result
+        plugins = result["data"]["plugins"]
+        response["data"] = {"next_offset": limit + offset, "plugins": plugins, "return_plugin_count": len(plugins)}
+    return JsonResponse(response)
 
 
 @swagger_auto_schema(
@@ -142,13 +203,17 @@ def get_plugin_api_data(request: Request, plugin_code: str, data_api_path: str):
         message = f"[get_plugin_api_data] error: {e}"
         logger.error(message)
         return JsonResponse({"message": message, "result": False, "data": None})
+    # 注入插件特定前缀HEADER
+    http_headers = dict(
+        [(key[5:].replace("_", "-"), value) for key, value in request.META.items() if key.startswith("HTTP_BK_PLUGIN_")]
+    )
     params = {
         "method": request.method,
         "url": "/" + data_api_path,
         "username": request.user.username,
         "data": request.data,
     }
-    result = client.dispatch_plugin_api_request(params)
+    result = client.dispatch_plugin_api_request(params, inject_headers=http_headers)
     # 如果请求成功，只返回接口原始data数据
     result = result["data"] if result.get("result") else result
     return Response(result)

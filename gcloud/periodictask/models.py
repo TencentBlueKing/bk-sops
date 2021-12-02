@@ -79,11 +79,6 @@ class PeriodicTaskManager(models.Manager):
         PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree, template.__class__)
         PipelineTemplate.objects.replace_id(pipeline_tree)
 
-        engine_ver = EngineConfig.objects.get_engine_ver(
-            project_id=project.id, template_id=template.id, template_source=template_source
-        )
-        trigger_task = ""
-        queue = settings.PERIODIC_TASK_QUEUE_NAME
         extra_info = {
             "project_id": project.id,
             "category": template.category,
@@ -91,11 +86,10 @@ class PeriodicTaskManager(models.Manager):
             "template_source": template_source,
             "template_num_id": template.id,
             "pipeline_formator": "pipeline_web.parser.format.format_web_data_to_pipeline",
-            "engine_ver": engine_ver,
+            "engine_ver": EngineConfig.ENGINE_VER_V2,
         }
-        if engine_ver != EngineConfig.ENGINE_VER_V1:
-            queue = settings.PERIODIC_TASK_QUEUE_NAME_V2
-            trigger_task = BAMBOO_ENGINE_TRIGGER_TASK
+        queue = settings.PERIODIC_TASK_QUEUE_NAME_V2
+        trigger_task = BAMBOO_ENGINE_TRIGGER_TASK
 
         return PipelinePeriodicTask.objects.create_task(
             name=name,
@@ -206,7 +200,7 @@ class PeriodicTask(models.Model):
     def get_stakeholders(self):
         notify_receivers = json.loads(self.template.notify_receivers)
         receiver_group = notify_receivers.get("receiver_group", [])
-        receivers = []
+        receivers = [self.creator]
 
         if self.project.from_cmdb:
             cc_group_members = get_business_group_members(self.project.bk_biz_id, receiver_group)
@@ -223,10 +217,8 @@ class PeriodicTask(models.Model):
             members = ",".join(members).split(",")
             receivers.extend(members)
 
-        # 这里保证执行人在列表第一位，其他接收人不保证顺序
-        receiver_set = set(receivers)
-        receiver_set.discard(self.creator)
-        return [self.creator] + list(receiver_set)
+        # 这里保证执行人在列表第一位，且名单中通知人唯一，其他接收人不保证顺序
+        return sorted(set(receivers), key=receivers.index)
 
     def get_notify_type(self):
         notify_type = json.loads(self.template.notify_type)

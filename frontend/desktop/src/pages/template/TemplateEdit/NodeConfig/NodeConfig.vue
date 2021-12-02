@@ -48,11 +48,12 @@
                     <div class="view-variable">
                         <bk-popover
                             v-if="!isSelectorPanelShow"
+                            :key="randomKey"
                             ext-cls="variable-popover"
                             placement="bottom-end"
                             :tippy-options="{ hideOnClick: false }">
                             <div style="cursor: pointer;">{{ $t('全局变量') }}</div>
-                            <div :class="['variable-list', { 'list-change': isChange }]" slot="content">
+                            <div class="variable-list" slot="content">
                                 <div class="header-area">
                                     <span>{{ $t('全局变量') }}</span>
                                     <bk-link theme="primary" icon="bk-icon icon-plus" @click="openVariablePanel">{{ $t('新建变量') }}</bk-link>
@@ -111,6 +112,7 @@
                     :common="common"
                     :is-third-party="isThirdParty"
                     :sublist-loading="subAtomListLoading"
+                    :plugin-loading="pluginLoading"
                     @updatePluginList="updatePluginList"
                     @back="isSelectorPanelShow = false"
                     @viewSubflow="onViewSubflow"
@@ -269,12 +271,13 @@
             templateLabels: Array,
             common: [String, Number],
             subflowListLoading: Boolean,
-            backToVariablePanel: Boolean
+            backToVariablePanel: Boolean,
+            pluginLoading: Boolean
         },
         data () {
             return {
                 subflowUpdated: false, // 子流程是否更新
-                pluginLoading: false, // 普通任务节点数据加载
+                taskNodeLoading: false, // 普通任务节点数据加载
                 subflowLoading: false, // 子流程任务节点数据加载
                 constantsLoading: false, // 子流程输入参数配置项加载
                 subflowVersionUpdating: false, // 子流程更新
@@ -291,7 +294,7 @@
                 isVariablePanelShow: false, // 是否显示变量编辑面板
                 variableData: {}, // 当前编辑的变量
                 localConstants: {}, // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
-                isChange: false, // 输入、输出参数勾选状态是否有变化
+                randomKey: new Date().getTime(), // 输入、输出参数勾选状态改变时更新popover
                 totalPage: 0,
                 currentPage: 0,
                 limit: Math.ceil(((window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight) - 120) / 40) + 5, // 浏览器高度判断每次请求数量
@@ -325,10 +328,10 @@
                 return this.atomList.find(item => item.code === this.basicInfo.plugin)
             },
             inputLoading () { // 以下任一方法处于 pending 状态，输入参数展示 loading 效果
-                return this.isBaseInfoLoading || this.pluginLoading || this.subflowLoading || this.constantsLoading || this.subflowVersionUpdating
+                return this.isBaseInfoLoading || this.taskNodeLoading || this.subflowLoading || this.constantsLoading || this.subflowVersionUpdating
             },
             outputLoading () {
-                return this.isBaseInfoLoading || this.pluginLoading || this.subflowLoading
+                return this.isBaseInfoLoading || this.taskNodeLoading || this.subflowLoading
             },
             selectorTitle () {
                 return this.isSubflow ? i18n.t('选择子流程') : i18n.t('选择标准插件')
@@ -586,7 +589,7 @@
              */
             async getPluginDetail () {
                 const { plugin, version } = this.basicInfo
-                this.pluginLoading = true
+                this.taskNodeLoading = true
                 try {
                     // 获取输入输出参数
                     this.inputs = await this.getAtomConfig({ plugin, version, isThird: this.isThirdParty })
@@ -596,7 +599,7 @@
                 } catch (e) {
                     console.log(e)
                 } finally {
-                    this.pluginLoading = false
+                    this.taskNodeLoading = false
                 }
             },
             /**
@@ -1138,12 +1141,12 @@
             // 输入、输出参数勾选状态变化
             onHookChange (type, data) {
                 if (type === 'create') {
-                    // 如果全局变量数据有变，需要修改tip样式
-                    this.isChange = true
                     this.$set(this.localConstants, data.key, data)
                 } else {
                     this.setVariableSourceInfo(data)
                 }
+                // 如果全局变量数据有变，需要更新popover
+                this.randomKey = new Date().getTime()
             },
             // 更新全局变量的 source_info
             setVariableSourceInfo (data) {
@@ -1546,11 +1549,6 @@
             }
             .bk-link-text {
                 font-size: 12px;
-            }
-        }
-        .list-change {
-            .bk-table-body-wrapper {
-                padding-bottom: 25px;
             }
         }
         td {

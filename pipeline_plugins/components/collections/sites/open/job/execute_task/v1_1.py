@@ -46,4 +46,6 @@ class JobExecuteTaskComponent(Component):
     form = "%scomponents/atoms/job/execute_task/v1_1.js" % settings.STATIC_URL
     output_form = "%scomponents/atoms/job/job_execute_task_output.js" % settings.STATIC_URL
     version = "1.1"
-    desc = "当用户选择JOB成功历史后，插件将不再创建新的JOB实例，直接继承JOB成功状态."
+    desc = "1.当用户选择JOB成功历史后，插件将不再创建新的JOB实例，直接继承JOB成功状态." \
+           "2.在接收到用户编辑的全局变量后，v1.0及以上版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n" \
+           "如果不需要双引号包裹，可以使用legacy版本插件，也可以手动在表格中去掉。"

@@ -22,7 +22,11 @@
             @clear="onClearSearch">
         </bk-input>
         <!-- 内置插件/第三方插件tab -->
-        <bk-tab v-if="!isSubflow" :active.sync="curPluginTab" type="unborder-card">
+        <bk-tab
+            v-if="!isSubflow"
+            :active.sync="curPluginTab"
+            type="unborder-card"
+            @tab-change="setSearchInputShow">
             <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('内置插件') }"></bk-tab-panel>
             <bk-tab-panel v-bind="{ name: 'third_praty_plugin', label: $t('第三方插件') }"></bk-tab-panel>
         </bk-tab>
@@ -169,8 +173,8 @@
             </div>
         </div>
         <!-- 第三方插件 -->
-        <div v-show="curPluginTab === 'third_praty_plugin'" class="third-praty-list">
-            <ul>
+        <div v-show="curPluginTab === 'third_praty_plugin'" v-bkloading="{ isLoading: pluginLoading }">
+            <ul class="third-praty-list" v-if="atomTypeList.pluginList.length">
                 <li
                     :class="['plugin-item', { 'is-actived': plugin.code === basicInfo.plugin }]"
                     v-for="(plugin, index) in atomTypeList.pluginList"
@@ -183,6 +187,7 @@
                     </div>
                 </li>
             </ul>
+            <bk-exception v-else class="exception-part" type="search-empty" scene="part"> </bk-exception>
         </div>
     </div>
 </template>
@@ -209,7 +214,8 @@
             isSubflow: Boolean,
             basicInfo: Object,
             isThirdParty: Boolean,
-            common: [String, Number]
+            common: [String, Number],
+            pluginLoading: Boolean
         },
         data () {
             const listData = this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
@@ -268,8 +274,7 @@
         },
         methods: {
             ...mapActions('atomForm/', [
-                'loadPluginServiceMeta',
-                'loadPluginServiceAppDetail'
+                'loadPluginServiceMeta'
             ]),
             ...mapActions('templateList', [
                 'loadTemplateList'
@@ -326,11 +331,22 @@
                     this.$refs.selectorArea.scrollTop = 0
                 }
             },
+            setSearchInputShow () {
+                const isThirdParty = this.curPluginTab === 'third_praty_plugin'
+                if (!isThirdParty && this.searchStr) {
+                    this.searchStr = ''
+                    this.$emit('updatePluginList', undefined, 'search')
+                }
+            },
             onClearSearch () {
                 this.searchInputhandler()
             },
             async searchInputhandler () {
                 let result = []
+                if (this.curPluginTab === 'third_praty_plugin') {
+                    this.$emit('updatePluginList', this.searchStr, 'search')
+                    return
+                }
                 if (!this.isSubflow) {
                     if (this.searchStr === '') {
                         result = this.listData.slice(0)
@@ -447,14 +463,13 @@
             async onThirdPratyClick (plugin) {
                 try {
                     const resp = await this.loadPluginServiceMeta({ plugin_code: plugin.code })
-                    const appDetail = await this.loadPluginServiceAppDetail({ plugin_code: plugin.code })
                     const { code, versions, description } = resp.data
                     const versionList = versions.map(version => {
                         return { version }
                     })
                     const group = {
                         code,
-                        name: appDetail.data.name,
+                        name: plugin.name,
                         list: versionList,
                         desc: description,
                         id: 'remote_plugin'
@@ -712,7 +727,7 @@
     }
 }
 .third-praty-list {
-    height: calc(100vh - 102px);
+    height: calc(100vh - 110px);
     overflow: auto;
     @include scrollbar;
     .plugin-item {
@@ -748,6 +763,9 @@
         text-align: center;
         margin-top: 10px;
     }
+}
+.exception-part {
+    margin-top: 100px;
 }
 </style>
 <style lang="scss">

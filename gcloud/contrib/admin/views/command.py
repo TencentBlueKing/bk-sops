@@ -16,7 +16,9 @@ superuser command
 from django.conf import settings
 from django.core.cache import cache
 from django.http import JsonResponse
+from iam.api.client import Client
 
+import env
 from gcloud import err_code
 from gcloud.core.decorators import check_is_superuser
 from gcloud.core.tasks import migrate_pipeline_parent_data_task
@@ -49,3 +51,21 @@ def migrate_pipeline_parent_data(request):
     """
     migrate_pipeline_parent_data_task.apply_async()
     return JsonResponse({"reuslt": True, "data": None, "message": "migrte start."})
+
+
+@check_is_superuser()
+def upsert_iam_system_provider_config(request):
+    """
+    重新注册iam的第三方系统资源信息
+    """
+    new_resource_host = request.GET.get("new_resource_host")
+    provider_config = {"host": new_resource_host or env.BK_IAM_RESOURCE_API_HOST, "auth": "basic"}
+    data = {"provider_config": provider_config}
+    iam_client = Client(
+        env.BKAPP_SOPS_IAM_APP_CODE,
+        env.BKAPP_SOPS_IAM_APP_SECRET_KEY,
+        settings.BK_IAM_INNER_HOST,
+        settings.BK_PAAS_ESB_HOST,
+    )
+    ok, message = iam_client.update_system(system_id=env.BKAPP_BK_IAM_SYSTEM_ID, data=data)
+    return JsonResponse({"result": ok, "data": None, "message": message})

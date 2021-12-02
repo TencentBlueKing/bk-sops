@@ -1,3 +1,12 @@
 #!/bin/bash
-python manage.py migrate
-python manage.py createcachetable django_cache
+echo "current module: $BKPAAS_APP_MODULE_NAME"
+
+if [ "$BKPAAS_APP_MODULE_NAME" == "default" ]; then
+    echo "current module is 'default', run post_compile"
+    python manage.py migrate
+    python manage.py createcachetable django_cache
+    python manage.py update_component_models
+    python manage.py update_variable_models
+else
+    echo "current module is not 'default', skip post_compile"
+fi

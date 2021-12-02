@@ -15,7 +15,7 @@ from functools import wraps
 
 
 def login_exempt(view_func):
-    """"Mark a view function as being exempt from login view protection"""
+    """Mark a view function as being exempt from login view protection"""
 
     def wrapped_view(*args, **kwargs):
         return view_func(*args, **kwargs)

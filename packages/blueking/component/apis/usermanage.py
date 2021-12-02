@@ -21,13 +21,15 @@ class CollectionsUserManage(object):
         self.client = client
 
         self.retrieve_user = ComponentAPI(
-            client=self.client, method='GET',
-            path='/api/c/compapi{bk_api_ver}/usermanage/retrieve_user/',
-            description='查询用户具体详情'
+            client=self.client,
+            method="GET",
+            path="/api/c/compapi{bk_api_ver}/usermanage/retrieve_user/",
+            description="查询用户具体详情",
         )
 
         self.list_users = ComponentAPI(
-            client=self.client, method='GET',
-            path='/api/c/compapi{bk_api_ver}/usermanage/list_users/',
-            description='获取用户列表'
+            client=self.client,
+            method="GET",
+            path="/api/c/compapi{bk_api_ver}/usermanage/list_users/",
+            description="获取用户列表",
         )

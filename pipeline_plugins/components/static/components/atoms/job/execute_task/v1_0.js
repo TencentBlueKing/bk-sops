@@ -202,7 +202,7 @@
                                                 }
                                                 return item;
                                             })
-                                           // 清除首尾的双引号"，然后在首尾各加上一个双引号"
+                                            // 清除首尾的双引号"，然后在首尾各加上一个双引号"
                                             for (var i = new_global_var.length - 1; i >= 0; i--) {
                                                 if (new_global_var[i] != null && new_global_var[i].value != null) {
                                                     new_global_var[i].value = '\"' + new_global_var[i].value.toString().replace(/^(\s|")+|(\s|")+$/g, '') + '\"';
@@ -247,7 +247,9 @@
                                 } else {
                                     // 清除首尾的双引号"，然后在首尾各加上一个双引号"
                                     for (var i = resp.data.global_var.length - 1; i >= 0; i--) {
-                                        resp.data.global_var[i].value = '\"' + resp.data.global_var[i].value.toString().replace(/^(\s|")+|(\s|")+$/g, '') + '\"';
+                                        if (resp.data.global_var[i] !== null && resp.data.global_var[i].value != null) {
+                                            resp.data.global_var[i].value = '\"' + resp.data.global_var[i].value.toString().replace(/^(\s|")+|(\s|")+$/g, '') + '\"';
+                                        }
                                     }
                                     $this._set_value(resp.data.global_var);
                                 }
