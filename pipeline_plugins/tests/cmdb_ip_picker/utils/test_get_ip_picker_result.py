@@ -16,247 +16,12 @@ from mock import patch
 from django.test import TestCase
 
 from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
-
-
-class MockCMDBReturnEmpty(object):
-    @staticmethod
-    def get_business_host_topo(*args, **kwargs):
-        return []
-
-
-class MockCMDB(object):
-    @staticmethod
-    def get_business_host_topo(*args, **kwargs):
-        return [
-            {
-                "host": {
-                    "bk_host_innerip": "1.1.1.1",
-                    "bk_host_outerip": "1.1.1.1",
-                    "bk_host_name": "1.1.1.1",
-                    "bk_host_id": 1,
-                    "bk_cloud_id": 0,
-                },
-                "module": [{"bk_module_id": 3, "bk_module_name": "空闲机"}],
-            },
-            {
-                "host": {
-                    "bk_host_innerip": "2.2.2.2",
-                    "bk_host_outerip": "2.2.2.2",
-                    "bk_host_name": "2.2.2.2",
-                    "bk_host_id": 2,
-                    "bk_cloud_id": 0,
-                },
-                "module": [{"bk_module_id": 5, "bk_module_name": "test1"}],
-            },
-            {
-                "host": {
-                    "bk_host_innerip": "3.3.3.3",
-                    "bk_host_outerip": "3.3.3.3",
-                    "bk_host_name": "3.3.3.3",
-                    "bk_host_id": 3,
-                    "bk_cloud_id": 0,
-                },
-                "module": [{"bk_module_id": 8, "bk_module_name": "test1"}],
-            },
-        ]
-
-    @staticmethod
-    def get_dynamic_group_host_list(*args, **kwargs):
-        dynamic_group_data = {
-            "group1": [
-                {
-                    "bk_host_innerip": "1.1.1.1",
-                    "bk_host_outerip": "1.1.1.1",
-                    "bk_host_name": "1.1.1.1",
-                    "bk_host_id": 1,
-                    "bk_cloud_id": 0,
-                    "host_modules_id": [3],
-                },
-                {
-                    "bk_host_innerip": "2.2.2.2",
-                    "bk_host_outerip": "2.2.2.2",
-                    "bk_host_name": "2.2.2.2",
-                    "bk_host_id": 2,
-                    "bk_cloud_id": 0,
-                    "host_modules_id": [5],
-                },
-            ],
-            "group2": [
-                {
-                    "bk_host_innerip": "2.2.2.2",
-                    "bk_host_outerip": "2.2.2.2",
-                    "bk_host_name": "2.2.2.2",
-                    "bk_host_id": 2,
-                    "bk_cloud_id": 0,
-                    "host_modules_id": [5],
-                },
-                {
-                    "bk_host_innerip": "3.3.3.3",
-                    "bk_host_outerip": "3.3.3.3",
-                    "bk_host_name": "3.3.3.3",
-                    "bk_host_id": 3,
-                    "bk_cloud_id": 0,
-                    "host_modules_id": [8],
-                },
-            ],
-        }
-        return True, {"code": 0, "message": "success", "data": dynamic_group_data[args[-2]]}
-
-
-def mock_cc_get_ips_info_by_str(username, bk_biz_id, ip_str):
-    return {
-        "result": True,
-        "ip_count": 2,
-        "ip_result": [
-            {
-                "ModuleID": 8,
-                "HostID": 3,
-                "InnerIP": "3.3.3.3",
-                "SetID": 4,
-                "Sets": [{"bk_set_id": 4}],
-                "Modules": [{"bk_module_id": 8}],
-                "Source": 0,
-            },
-            {
-                "ModuleID": 5,
-                "HostID": 2,
-                "InnerIP": "2.2.2.2",
-                "SetID": 3,
-                "Sets": [{"bk_set_id": 3}],
-                "Modules": [{"bk_module_id": 5}],
-                "Source": 0,
-            },
-        ],
-        "invalid_ip": [],
-    }
-
-
-def mock_get_client_by_user(username):
-    class MockCC(object):
-        def __init__(self, success):
-            self.success = success
-
-        def search_biz_inst_topo(self, kwargs):
-            return {
-                "result": self.success,
-                "data": [
-                    {
-                        "default": 0,
-                        "bk_obj_name": "业务",
-                        "bk_obj_id": "biz",
-                        "child": [
-                            {
-                                "bk_bj_name": "middle_layer",
-                                "bk_obj_id": "layer",
-                                "bk_inst_id": 1,
-                                "bk_inst_name": "中间层",
-                                "child": [
-                                    {
-                                        "default": 0,
-                                        "bk_obj_name": "集群",
-                                        "bk_obj_id": "set",
-                                        "child": [
-                                            {
-                                                "default": 0,
-                                                "bk_obj_name": "模块",
-                                                "bk_obj_id": "module",
-                                                "bk_inst_id": 5,
-                                                "bk_inst_name": "test1",
-                                            },
-                                            {
-                                                "default": 0,
-                                                "bk_obj_name": "模块",
-                                                "bk_obj_id": "module",
-                                                "bk_inst_id": 6,
-                                                "bk_inst_name": "test2",
-                                            },
-                                            {
-                                                "default": 0,
-                                                "bk_obj_name": "模块",
-                                                "bk_obj_id": "module",
-                                                "bk_inst_id": 7,
-                                                "bk_inst_name": "test3",
-                                            },
-                                        ],
-                                        "bk_inst_id": 3,
-                                        "bk_inst_name": "set2",
-                                    },
-                                    {
-                                        "default": 0,
-                                        "bk_obj_name": "集群",
-                                        "bk_obj_id": "set",
-                                        "child": [
-                                            {
-                                                "default": 0,
-                                                "bk_obj_name": "模块",
-                                                "bk_obj_id": "module",
-                                                "bk_inst_id": 8,
-                                                "bk_inst_name": "test1",
-                                            },
-                                            {
-                                                "default": 0,
-                                                "bk_obj_name": "模块",
-                                                "bk_obj_id": "module",
-                                                "bk_inst_id": 9,
-                                                "bk_inst_name": "test2",
-                                            },
-                                        ],
-                                        "bk_inst_id": 4,
-                                        "bk_inst_name": "set3",
-                                    },
-                                ],
-                            },
-                        ],
-                        "bk_inst_id": 2,
-                        "bk_inst_name": "蓝鲸",
-                    }
-                ],
-                "message": "error",
-            }
-
-        def search_dynamic_group(self, page, **kwargs):
-            return {
-                "result": True,
-                "data": {
-                    "count": 1,
-                    "info": [
-                        {"id": "group1", "bk_obj_id": "host", "name": "group1-name"},
-                        {"id": "group2", "bk_obj_id": "host", "name": "group2-name"},
-                    ],
-                },
-            }
-
-        def get_biz_internal_module(self, kwargs):
-            return {
-                "result": self.success,
-                "data": {
-                    "bk_set_id": 2,
-                    "bk_set_name": "空闲机池",
-                    "module": [
-                        {
-                            "default": 1,
-                            "bk_obj_id": "module",
-                            "bk_module_id": 3,
-                            "bk_obj_name": "模块",
-                            "bk_module_name": "空闲机",
-                        },
-                        {
-                            "default": 1,
-                            "bk_obj_id": "module",
-                            "bk_module_id": 4,
-                            "bk_obj_name": "模块",
-                            "bk_module_name": "故障机",
-                        },
-                    ],
-                },
-                "message": "error",
-            }
-
-    class MockClient(object):
-        def __init__(self, success):
-            self.cc = MockCC(success)
-
-    return MockClient(mock_get_client_by_user.success)
+from pipeline_plugins.tests.cmdb_ip_picker.utils.common_settings import (
+    MockCMDBReturnEmpty,
+    mock_get_client_by_user,
+    MockCMDB,
+    mock_cc_get_ips_info_by_str,
+)
 
 
 class GetIPPickerResultTestCase(TestCase):
@@ -464,7 +229,7 @@ class GetIPPickerResultTestCase(TestCase):
             "ip": [
                 {
                     "bk_host_name": "host1",
-                    "bk_host_id": 2,
+                    "bk_host_id": 1,
                     "agent": 1,
                     "cloud": [
                         {
@@ -607,9 +372,9 @@ class GetIPPickerResultTestCase(TestCase):
             "selectors": ["ip"],
             "topo": [],
             "ip": [
-                {"bk_host_innerip": "1.1.1.1", "cloud": [{"id": 0}]},
-                {"bk_host_innerip": "2.2.2.2", "cloud": [{"id": 0}]},
-                {"bk_host_innerip": "3.3.3.3", "cloud": [{"id": 0}]},
+                {"bk_host_innerip": "1.1.1.1", "cloud": [{"id": 0}], "bk_host_id": 1},
+                {"bk_host_innerip": "2.2.2.2", "cloud": [{"id": 0}], "bk_host_id": 2},
+                {"bk_host_innerip": "3.3.3.3", "cloud": [{"id": 0}], "bk_host_id": 3},
             ],
             "filters": [{"field": "host", "value": ["1.1.1.1", "2.2.2.2"]}],
             "excludes": [],
@@ -643,9 +408,9 @@ class GetIPPickerResultTestCase(TestCase):
             "selectors": ["ip"],
             "topo": [],
             "ip": [
-                {"bk_host_innerip": "1.1.1.1", "cloud": [{"id": 0}]},
-                {"bk_host_innerip": "2.2.2.2", "cloud": [{"id": 0}]},
-                {"bk_host_innerip": "3.3.3.3", "cloud": [{"id": 0}]},
+                {"bk_host_innerip": "1.1.1.1", "cloud": [{"id": 0}], "bk_host_id": 1},
+                {"bk_host_innerip": "2.2.2.2", "cloud": [{"id": 0}], "bk_host_id": 2},
+                {"bk_host_innerip": "3.3.3.3", "cloud": [{"id": 0}], "bk_host_id": 3},
             ],
             "excludes": [{"field": "host", "value": ["1.1.1.1", "2.2.2.2"]}],
             "filters": [],
