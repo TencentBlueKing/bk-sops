@@ -33,6 +33,7 @@ class UserCustomProjectConfigOptionsSerializer(serializers.Serializer):
 
     # field_a,field_b
     configs = serializers.CharField(help_text="要获取的用户自定义配置项,多个以逗号分割", default="")
+    project_id = serializers.CharField(help_text="项目ID", required=True)
 
     def is_valid(self, raise_exception=False):
         super().is_valid(raise_exception)
@@ -43,4 +44,5 @@ class UserCustomProjectConfigOptionsSerializer(serializers.Serializer):
                 if not raise_exception:
                     return False
                 raise ValidationError(detail=_errors_detail)
+        self.validated_data["configs"] = configs
         return True

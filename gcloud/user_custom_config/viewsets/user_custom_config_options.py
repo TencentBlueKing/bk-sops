@@ -27,7 +27,9 @@ class UserCustomConfigOptions(ApiMixin, APIView):
 
     @action(methods=["get"], detail=False)
     def get(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.query_params)
+        project_id = kwargs.get("project_id")
+        configs = request.query_params.get("configs")
+        serializer = self.get_serializer(data={"project_id": project_id, "configs": configs})
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
         data = get_options_by_fileds(validated_data["configs"])

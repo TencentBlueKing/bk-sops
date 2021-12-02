@@ -83,7 +83,9 @@ v4_drf_router.register(r"project_template/(?P<project_id>\d+)", ProjectTemplateV
 v4_drf_router.register(r"common_template", CommonTemplateViewSet, basename="common_template")
 v4_drf_router.register(r"clocked_task", ClockedTaskViewSet, basename="clocked_task")
 v4_drf_router.register(r"user_custom_config/(?P<project_id>\d+)", UserCustomConfViewset, basename="user_custom_config")
-v4_drf_router.register(r"user_custom_config_options", UserCustomConfigOptions, basename="user_custom_config_options")
+v4_drf_router.register(
+    r"user_custom_config_options/(?P<project_id>\d+)", UserCustomConfigOptions, basename="user_custom_config_options"
+)
 
 # Standard bits...
 urlpatterns = [
