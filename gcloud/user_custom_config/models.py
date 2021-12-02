@@ -22,10 +22,10 @@ class UserConfManager(models.Manager):
     def set_userconf(self, **kwargs):
         username = kwargs.get("username")
         project_id = kwargs.get("project_id")
-        kwargs.pop("username")
-        kwargs.pop("project_id")
         user_conf = self.get_or_create(username=username, project_id=project_id)[0]
         for key, value in kwargs.items():
+            if key in {"username", "project_id"}:
+                continue
             setattr(user_conf, key, value)
         user_conf.save()
         return user_conf

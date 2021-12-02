@@ -24,7 +24,7 @@ UserConfOption = {
 }
 
 
-def get_options_by_fileds(configs=[]):
+def get_options_by_fileds(configs=None):
     data = {}
     if not configs:
         return UserConfOption
