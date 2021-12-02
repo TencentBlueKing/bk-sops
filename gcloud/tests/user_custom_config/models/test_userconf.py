@@ -22,9 +22,6 @@ TEST_PROJECT_ID = 12345
 
 
 class TestUserConf(TestCase):
-    def tearDown(self):
-        UserCustomProjectConfig.objects.all().delete()
-
     def test_set_userconf(self):
         user_conf = UserCustomProjectConfig.objects.set_userconf(
             username=TEST_USER, project_id=TEST_PROJECT_ID, tasktmpl_ordering="id"
