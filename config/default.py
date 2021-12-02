@@ -74,6 +74,7 @@ INSTALLED_APPS += (
     "gcloud.analysis_statistics.data_migrate",
     "gcloud.clocked_task",
     "gcloud.template_base",
+    "gcloud.user_custom_config",
     "pipeline",
     "pipeline.component_framework",
     "pipeline.variable_framework",
