@@ -129,8 +129,10 @@
              * 兼容标准插件配置项里，异步请求用到的全局弹窗提示
              */
             window.show_msg = (msg, type = 'error', traceId) => {
-                /* eslint-disable-next-line */
-                new ErrorNotify(msg, type, traceId, this)
+                this.$nextTick(() => {
+                    /* eslint-disable-next-line */
+                    new ErrorNotify(msg, type, traceId, this)
+                })
             }
             this.getPageFooter()
         },
