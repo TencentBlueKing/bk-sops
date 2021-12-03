@@ -181,3 +181,8 @@ COMPONENTINTEMPLATE_FILTER = "pipeline.contrib.statistics.models.ComponentInTemp
 COMPONENTEXECUTEDATA_FILTER = "pipeline.contrib.statistics.models.ComponentExecuteData.objects.filter"
 
 PIPELINE_TEMPLATE_POSTSAVE_HANDLER = "pipeline.signals.handlers.pipeline_template_pre_save_handler"
+
+GCLOUD_CLOCKED_TASK_TASKS_PROJECT = "gcloud.clocked_task.tasks.Project"
+GCLOUD_CLOCKED_TASK_TASKS_TASK_TEMPLATE = "gcloud.clocked_task.tasks.TaskTemplate"
+GCLOUD_CLOCKED_TASK_TASKS_TASKFLOW_INSTANCE = "gcloud.clocked_task.tasks.TaskFlowInstance"
+GCLOUD_CLOCKED_TASK_TASKS_ARN_CREATOR = "gcloud.clocked_task.tasks.AutoRetryNodeStrategyCreator"
