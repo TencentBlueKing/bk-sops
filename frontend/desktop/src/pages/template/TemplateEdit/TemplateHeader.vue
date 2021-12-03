@@ -61,7 +61,7 @@
                     }]"
                     :loading="createTaskSaving"
                     v-cursor="{ active: !createTaskBtnActive }"
-                    data-test-id="templateEdit_form_creatTask"
+                    data-test-id="templateEdit_form_createTask"
                     @click.stop="onSaveClick(true)">
                     {{createTaskBtnText}}
                 </bk-button>
