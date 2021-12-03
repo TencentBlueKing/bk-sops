@@ -253,6 +253,9 @@
     font-size: 16px;
     font-weight: normal;
 }
+/deep/.btn-footer {
+    z-index: 2;
+}
 .config-section {
     .title {
         color: #313238;
