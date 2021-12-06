@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import json
 import logging
+import time
 import traceback
 
 from django.conf import settings
@@ -86,5 +87,7 @@ def node_callback(request, token):
         )
         if callback_result["result"]:
             break
+        # 考虑callback时Process状态还没及时修改为sleep的情况
+        time.sleep(0.5)
 
     return JsonResponse(callback_result)
