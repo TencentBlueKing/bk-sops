@@ -42,7 +42,7 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [],
             "excludes": [],
         }
-        self.assertFalse(
+        self.assertTrue(
             get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["result"]
         )
 

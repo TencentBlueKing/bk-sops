@@ -292,16 +292,8 @@ class IPPickerHandler:
             ["bk_host_id", "bk_host_innerip", "bk_host_outerip", "bk_host_name", "bk_cloud_id"],
             property_filters=self.property_filters,
         )
-
         logger.info("[fetch_host_info] cmdb.get_business_host_topo return: {host_info}".format(host_info=host_info))
 
-        if not host_info:
-            return {
-                "result": False,
-                "code": ERROR_CODES.PARAMETERS_ERROR,
-                "data": [],
-                "message": "get_business_host_topo return empty",
-            }
         host_info = self.format_host_info(host_info)
         return {"result": True, "code": NO_ERROR, "data": host_info, "message": ""}
 
