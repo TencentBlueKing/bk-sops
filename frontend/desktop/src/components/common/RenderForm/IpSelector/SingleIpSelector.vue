@@ -136,7 +136,7 @@
                     } else if (selectors === 'topo') {
                         result = this.loopDynamicIpList(this.dynamicIpList, value.bk_obj_id, value.bk_inst_id)
                     } else {
-                        result = this.dynamicGroupList.find(item => item.bk_host_id === value.bk_host_id)
+                        result = this.dynamicGroupList.find(item => item.id === value.id)
                     }
                     if (!result) {
                         selectList.splice(index, 1)
