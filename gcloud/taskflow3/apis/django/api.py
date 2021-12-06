@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
+import time
 import traceback
 
 import ujson as json
@@ -477,5 +478,7 @@ def node_callback(request, token):
         logger.info("result of callback call({}): {}".format(token, callback_result))
         if callback_result["result"]:
             break
+        # 考虑callback时Process状态还没及时修改为sleep的情况
+        time.sleep(0.5)
 
     return JsonResponse(callback_result)
