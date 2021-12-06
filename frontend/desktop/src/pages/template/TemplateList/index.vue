@@ -510,7 +510,7 @@
                 collectingId: '', // 正在被收藏/取消收藏的模板id
                 collectListLoading: false,
                 collectionList: [],
-                ordering: '', // 排序参数
+                ordering: this.$store.state.project.config.task_template_ordering, // 排序参数
                 darkColorList: DARK_COLOR_LIST,
                 tableFields: TABLE_FIELDS,
                 defaultSelected: ['id', 'name', 'label', 'edit_time', 'subprocess_has_update', 'creator_name'],
@@ -580,9 +580,7 @@
             ...mapActions([
                 'loadCollectList',
                 'addToCollectList',
-                'deleteCollect',
-                'getUserConfig',
-                'setUserConfig'
+                'deleteCollect'
             ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo'
@@ -595,7 +593,9 @@
                 'batchDeleteTpl'
             ]),
             ...mapActions('project/', [
-                'getProjectLabelsWithDefault'
+                'getProjectLabelsWithDefault',
+                'getUserProjectConfigOptions',
+                'setUserProjectConfig'
             ]),
             ...mapMutations('template/', [
                 'setProjectBaseInfo'
@@ -603,10 +603,8 @@
             async initData () {
                 try {
                     this.configLoading = true
-                    const res = await this.getUserConfig({ username: window.USERNAME, project_id: this.project_id, field_list: ['tasktmpl_ordering'] })
-                    const { options, value } = res.data.tasktmpl_ordering
-                    this.sortableCols = options
-                    this.ordering = value
+                    const res = await this.getUserProjectConfigOptions({ id: this.project_id, params: { configs: 'task_template_ordering' } })
+                    this.sortableCols = res.data.task_template_ordering
                     this.getTemplateList()
                 } catch (e) {
                     console.error(e)
@@ -969,7 +967,7 @@
                 if (order && order !== this.ordering) {
                     this.ordering = order
                     this.getTemplateList()
-                    this.setUserConfig({ username: window.USERNAME, project_id: this.project_id, field: 'tasktmpl_ordering', value: order })
+                    this.setUserProjectConfig({ id: this.project_id, params: { task_template_ordering: order } })
                 }
             },
             handleSortChange ({ prop, order }) {
