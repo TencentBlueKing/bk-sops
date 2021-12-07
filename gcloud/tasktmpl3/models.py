@@ -112,17 +112,10 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                 is_remote=is_remote,
             )
         else:
-            template_node_template_data = TemplateNodeStatistics.objects.filter(
-                task_template_id__in=tasktmpl_id_list,
-            )
+            template_node_template_data = TemplateNodeStatistics.objects.filter(task_template_id__in=tasktmpl_id_list,)
         total = template_node_template_data.count()
         atom_template_data = template_node_template_data.values(
-            "template_id",
-            "task_template_id",
-            "project_id",
-            "category",
-            "template_create_time",
-            "template_creator",
+            "template_id", "task_template_id", "project_id", "category", "template_create_time", "template_creator",
         )[(page - 1) * limit : page * limit]
         groups = []
         # 在template_node_tempalte_data中注入project_name和template_name
@@ -165,11 +158,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         template_node_template_list = TemplateNodeStatistics.objects.filter(component_code=component_code)
         total = template_node_template_list.count()
         atom_template_data = template_node_template_list.values(
-            "template_id",
-            "project_id",
-            "category",
-            "template_edit_time",
-            "template_creator",
+            "template_id", "project_id", "category", "template_edit_time", "template_creator",
         )[(page - 1) * limit : page * limit]
         # 获取project_name、template_name数据
         project_id_list = template_node_template_list.values_list("project_id", flat=True)
@@ -445,7 +434,9 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                     biz_cc_id_field["value"] = bk_biz_id
 
             for constant in template["tree"]["constants"].values():
-                if constant["source_tag"].endswith(".biz_cc_id") and constant["value"]:
+                if (
+                    constant["source_tag"].endswith(".biz_cc_id") or constant["source_tag"].endswith(".bk_biz_id")
+                ) and constant["value"]:
                     constant["value"] = bk_biz_id
 
     def import_templates(self, template_data, override, project_id, operator=None):
