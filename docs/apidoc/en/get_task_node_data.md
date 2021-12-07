@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/get_task_node_data/
+
+### Request Method
+
+GET
+
 ### Functional description
 
 Get task node data

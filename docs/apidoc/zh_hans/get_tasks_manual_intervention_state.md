@@ -1,3 +1,11 @@
+### 请求地址
+
+/v2/sops/get_tasks_manual_intervention_state/
+
+### 请求方法
+
+POST
+
 ### 功能描述
 
 获取一批任务的是否需要人工干预的判断状态

@@ -1,3 +1,11 @@
+### 请求地址
+
+/v2/sops/create_periodic_task/
+
+### 请求方法
+
+POST
+
 ### 功能描述
 
 创建周期任务

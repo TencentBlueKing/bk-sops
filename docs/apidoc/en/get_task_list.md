@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/get_task_list/
+
+### Request Method
+
+GET
+
 ### Functional description
 
 Get tasks list for a business, support task name keyword searching

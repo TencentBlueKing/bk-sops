@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/get_tasks_status/
+
+### Request Method
+
+POST
+
 ### Functional description
 
 Batch query task status
@@ -163,7 +171,7 @@ same as data.status
 
 #### data.current_flow（flow_type is common）
 
-| 名称         | 含义                                           |
+| Field         | Description                                           |
 | ------------ | ---------------------------------------------- |
 | select_steps | the task is in the stage of selecting steps    |
 | fill_params  | the task is in the stage of filling parameters |
@@ -172,7 +180,7 @@ same as data.status
 
 #### data.current_flow（flow_type is common_func）
 
-| 名称         | 含义                                                         |
+| Field         | Description                                                         |
 | ------------ | ------------------------------------------------------------ |
 | select_steps | the functionalization task is in the stage of selecting steps |
 | func_submit  | the functionalization task is in the stage of submitting     |

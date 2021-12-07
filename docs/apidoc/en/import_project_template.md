@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/import_project_template/
+
+### Request Method
+
+POST
+
 ### Functional description
 
 Import project templates

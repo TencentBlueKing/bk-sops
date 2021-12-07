@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/get_task_status/
+
+### Request Method
+
+GET
+
 ### Functional description
 
 Query a task or task node execution status

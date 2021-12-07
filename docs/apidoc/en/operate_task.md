@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/operate_task/
+
+### Request Method
+
+POST
+
 ### Functional description
 
 Task actions such as start, pause, resume, revoke, etc.
