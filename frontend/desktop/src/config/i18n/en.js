@@ -1259,7 +1259,17 @@ const en = {
     '至少保留一条触发条件': 'Keep at least one trigger condition',
     '自动隐藏': 'Auto hide',
     '自动隐藏在显示状态下触发，当触发条件都满足时，才会在编辑页面隐藏，但是不会对传参产生影响': 'Auto-hide is triggered in the display state. When the trigger conditions are met, it will be hidden on the editing page, but it will not affect the parameter transfer.',
-    '启动失败': 'Failed to activate'
+    '启动失败': 'Failed to activate',
+    '表格设置': 'Table Settings',
+    '字段显示设置': 'Displaying Fields Setting',
+    '（最多{max}项）': '（{max} fiels most）',
+    '表格行高': 'Table Line Height',
+    '小': 'small',
+    '中': 'medium',
+    '大': 'large',
+    '默认排序表头设置': 'Default Order Setting',
+    '（请在下面可排序字段中选择）': '( Please select )',
+    '切换': 'Switch'
 }
 
 export default en
