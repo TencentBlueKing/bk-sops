@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/node_callback/
+
+### Request Method
+
+POST
+
 ### Functional description
 
 callback specific node

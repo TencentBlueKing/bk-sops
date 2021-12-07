@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/start_task/
+
+### Request Method
+
+POST
+
 ### Functional description
 
 Start a task

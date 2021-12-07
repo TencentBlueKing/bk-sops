@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/get_template_info/
+
+### Request Method
+
+GET
+
 ### Functional description
 
 Query individual flow template details of the business

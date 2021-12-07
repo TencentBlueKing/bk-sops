@@ -1,3 +1,11 @@
+### 请求地址
+
+/v2/sops/get_common_template_info/
+
+### 请求方法
+
+GET
+
 ### 功能描述
 
 查询公共流程模板详情

@@ -1,3 +1,11 @@
+### 请求地址
+
+/v2/sops/get_functionalization_task_list/
+
+### 请求方法
+
+GET
+
 ### 功能描述
 
 获取职能化任务列表，支持根据任务状态、原任务id和职能化任务id进行筛选。

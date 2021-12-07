@@ -1,3 +1,11 @@
+### 请求地址
+
+/v2/sops/modify_constants_for_periodic_task/
+
+### 请求方法
+
+POST
+
 ### 功能描述
 
 修改周期任务的全局参数

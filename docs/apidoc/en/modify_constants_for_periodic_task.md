@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/modify_constants_for_periodic_task/
+
+### Request Method
+
+POST
+
 ### Functional description
 
 modify global parameters for periodic task
