@@ -18,13 +18,23 @@ import ujson as json
 from gcloud.utils.dates import format_datetime
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
+from gcloud.apigw.views.get_common_template_list import COMMON_FLOW_ACTIONS
 
 from .utils import APITest
+
+
+MOCK_GET_COMMON_FLOW_ALLOWED_ACTIONS = (
+    "gcloud.apigw.views.get_common_template_list.get_common_flow_allowed_actions_for_user"
+)
 
 
 TEST_PROJECT_ID = "123"
 TEST_PROJECT_NAME = "biz name"
 TEST_BIZ_CC_ID = "123"
+TEST_APP_CODE = "app_code"
+TEST_USERNAME = "username"
+TEST_COMMON_TEMPLATES_ALLOWED_ACTIONS = {"1": {"TEST_ACTION": True}, "2": {"TEST_ACTION": True}}
+TEST_ID_LIST = [1, 2]
 
 
 class GetCommontemplateListAPITest(APITest):
@@ -41,26 +51,39 @@ class GetCommontemplateListAPITest(APITest):
         task_templates = [task_tmpl1, task_tmpl2]
 
         with mock.patch(
-            COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(filter_result=task_templates)),
+            COMMONTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(filter_result=task_templates)),
         ):
-            assert_data = [
-                {
-                    "id": tmpl.id,
-                    "name": tmpl.pipeline_template.name,
-                    "creator": tmpl.pipeline_template.creator,
-                    "create_time": format_datetime(tmpl.pipeline_template.create_time),
-                    "editor": tmpl.pipeline_template.editor,
-                    "edit_time": format_datetime(tmpl.pipeline_template.edit_time),
-                    "category": tmpl.category,
-                }
-                for tmpl in task_templates
-            ]
+            with mock.patch(
+                MOCK_GET_COMMON_FLOW_ALLOWED_ACTIONS, MagicMock(return_value=TEST_COMMON_TEMPLATES_ALLOWED_ACTIONS)
+            ) as mock_get_actions:
+                assert_data = [
+                    {
+                        "id": tmpl.id,
+                        "name": tmpl.pipeline_template.name,
+                        "creator": tmpl.pipeline_template.creator,
+                        "create_time": format_datetime(tmpl.pipeline_template.create_time),
+                        "editor": tmpl.pipeline_template.editor,
+                        "edit_time": format_datetime(tmpl.pipeline_template.edit_time),
+                        "category": tmpl.category,
+                        "auth_actions": ["TEST_ACTION"],
+                    }
+                    for tmpl in task_templates
+                ]
 
-            response = self.client.get(path=self.url())
+                response = self.client.get(
+                    path=self.url(),
+                    HTTP_BK_APP_CODE=TEST_APP_CODE,
+                    HTTP_BK_USERNAME=TEST_USERNAME,
+                )
+                mock_get_actions.assert_called_once_with(
+                    "",
+                    COMMON_FLOW_ACTIONS,
+                    TEST_ID_LIST,
+                )
+                self.assertEqual(response.status_code, 200)
 
-            self.assertEqual(response.status_code, 200)
+                data = json.loads(response.content)
 
-            data = json.loads(response.content)
-
-            self.assertTrue(data["result"], msg=data)
-            self.assertEqual(data["data"], assert_data)
+                self.assertTrue(data["result"], msg=data)
+                self.assertEqual(data["data"], assert_data)
