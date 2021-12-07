@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/create_periodic_task/
+
+### Request Method
+
+POST
+
 ### Functional description
 
 Create a periodic task

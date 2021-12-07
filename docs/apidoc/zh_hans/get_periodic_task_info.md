@@ -1,3 +1,11 @@
+### 请求地址
+
+/v2/sops/get_periodic_task_list/
+
+### 请求方法
+
+GET
+
 ### 功能描述
 
 查询某个周期任务的详情

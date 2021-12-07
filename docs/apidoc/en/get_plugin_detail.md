@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/get_plugin_detail/
+
+### Request Method
+
+GET
+
 ### Functional description
 
 Get plugin info based on plugin code for a business

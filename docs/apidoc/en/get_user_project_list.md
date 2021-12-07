@@ -1,3 +1,11 @@
+### 请求地址
+
+/v2/sops/get_user_project_list/
+
+### 请求方法
+
+GET
+
 ### Functional description
 
 Get user project list

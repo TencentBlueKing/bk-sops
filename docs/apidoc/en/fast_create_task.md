@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/fast_create_task/
+
+### Request Method
+
+POST
+
 ### Functional description
 
 Create onetime task quickly

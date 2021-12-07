@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/get_common_template_list/
+
+### Request Method
+
+GET
+
 ### Functional description
 
 Query common flow templates list

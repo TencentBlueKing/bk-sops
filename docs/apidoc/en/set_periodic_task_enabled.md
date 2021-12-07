@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/set_periodic_task_enabled/
+
+### Request Method
+
+POST
+
 ### Functional description
 
 modify task activation status

@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/get_tasks_status/
+
+### Request Method
+
+POST
+
 ### Functional description
 
 Batch query task status
