@@ -19,6 +19,7 @@ const project = {
         projectName: '',
         userProjectList: [], // 用户有权限的项目列表
         timeZone: window.TIMEZONE,
+        config: {}, // 用户在项目下的配置
         authActions: []
     },
     mutations: {
@@ -43,6 +44,9 @@ const project = {
         },
         setProjectActions (state, data) {
             state.authActions = data
+        },
+        setProjectConfig (state, data) {
+            state.config = { ...state.config, ...data }
         }
     },
     actions: {
@@ -153,6 +157,20 @@ const project = {
             return axios.get('api/v3/new_label/get_label_template_ids/', {
                 params: { label_ids: ids, project_id }
             }).then(response => response.data)
+        },
+        getUserProjectConfigOptions ({ commit }, data) {
+            const { id, params } = data
+            return axios.get(`api/v4/user_custom_config_options/${id}/get/`, { params }).then(response => response.data)
+        },
+        getUserProjectConfigs ({ commit }, id) {
+            return axios.get(`api/v4/user_custom_config/${id}/get/`).then(response => response.data)
+        },
+        setUserProjectConfig ({ commit }, data) {
+            const { id, params } = data
+            return axios.post(`api/v4/user_custom_config/${id}/set/`, params).then(response => {
+                commit('setProjectConfig', response.data.data)
+                return response.data
+            })
         }
     }
 }

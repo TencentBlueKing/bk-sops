@@ -148,6 +148,7 @@
             ]),
             ...mapActions('project', [
                 'loadProjectDetail',
+                'getUserProjectConfigs',
                 'changeDefaultProject'
             ]),
             ...mapMutations('appmaker/', [
@@ -162,7 +163,8 @@
                 'setProjectName',
                 'setProjectActions',
                 'setProjectId',
-                'setBizId'
+                'setBizId',
+                'setProjectConfig'
             ]),
             ...mapMutations([
                 'setPageFooter',
@@ -185,11 +187,13 @@
                 try {
                     this.projectDetailLoading = true
                     const projectDetail = await this.loadProjectDetail(this.project_id)
+                    const projectConfig = await this.getUserProjectConfigs(this.project_id)
                     const { name, id, bk_biz_id, auth_actions } = projectDetail
                     this.setProjectId(id)
                     this.setBizId(bk_biz_id)
                     this.setProjectName(name)
                     this.setProjectActions(auth_actions)
+                    this.setProjectConfig(projectConfig.data)
                     this.clearAtomForm() // notice: 清除标准插件配置项里的全局变量缓存
                     this.setTimeZone(projectDetail.timeZone)
                     if (this.$route.name === 'templateEdit' && this.$route.query.common) {
