@@ -26,6 +26,7 @@
             ref="diffAlert"
             type="warning"
             style="margin-bottom: 10px;"
+            :class="{ 'alert-disabled': !editable }"
             :show-icon="false">
             <div class="diff-alert" slot="title">
                 <span>{{ $t('表单保存数据与最新的CMDB') + curSelectorTab.name.replace(/\s/, '') + $t('配置存在差异，是否更新变量数据？') }}</span>
@@ -126,6 +127,7 @@
                 this.$emit('change', 'selectors', [selector.id])
             },
             updateDiffData () {
+                if (!this.editable) return
                 const selectors = this.activeSelector
                 const selectList = selectors === 'ip' ? this.staticIps : selectors === 'topo' ? this.dynamicIps : this.dynamicGroups
                 selectList.forEach((value, index) => {
@@ -225,6 +227,14 @@
     align-items: center;
     /deep/ .bk-link-text {
         font-size: 12px;
+    }
+}
+.alert-disabled {
+    color: #ccc;
+    cursor: not-allowed;
+    /deep/ .bk-link-text {
+        color: #ccc;
+        cursor: not-allowed;
     }
 }
 </style>
