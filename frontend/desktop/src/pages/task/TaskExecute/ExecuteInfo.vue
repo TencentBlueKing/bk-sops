@@ -323,6 +323,10 @@
         {
             title: i18n.t('插件名称'),
             id: 'plugin_name'
+        },
+        {
+            title: i18n.t('节点ID'),
+            id: 'id'
         }
     ]
 
@@ -406,6 +410,10 @@
         {
             title: i18n.t('插件名称'),
             id: 'plugin_name'
+        },
+        {
+            title: i18n.t('节点ID'),
+            id: 'id'
         }
     ]
 
