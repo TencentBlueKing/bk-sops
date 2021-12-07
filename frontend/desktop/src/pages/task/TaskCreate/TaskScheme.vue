@@ -213,7 +213,7 @@
                     })
                     this.$emit('updateTaskSchemeList', this.schemeList, false)
                     this.$emit('setDefaultScheme', defaultObj)
-                    this.$emit('setDefaultSelected', Boolean(this.defaultSchemeId))
+                    this.$emit('setDefaultSelected', false)
                 } catch (e) {
                     console.log(e)
                 }

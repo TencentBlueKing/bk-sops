@@ -394,7 +394,8 @@
                         listData = this.nodes.filter(group => group.group_name === this.selectedGroup)
                     }
                     if (this.searchStr !== '') {
-                        const reg = new RegExp(this.searchStr, 'i')
+                        const searchStr = this.escapeRegExp(this.searchStr)
+                        const reg = new RegExp(searchStr, 'i')
                         listData.forEach(group => {
                             if (group.list.length > 0) {
                                 group.list.forEach(node => {
@@ -412,7 +413,8 @@
                         })
                     }
                 } else {
-                    const reg = new RegExp(this.searchStr, 'i')
+                    const searchStr = this.escapeRegExp(this.searchStr)
+                    const reg = new RegExp(searchStr, 'i')
                     this.nodes.forEach(node => {
                         let matchLabel = true
                         let matchName = true
@@ -431,6 +433,12 @@
                 }
 
                 this.searchResult = result
+            },
+            escapeRegExp (str) {
+                if (typeof str !== 'string') {
+                    return ''
+                }
+                return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')
             },
             handleClickOutSide (e) {
                 if (!this.isFixedNodeMenu) {

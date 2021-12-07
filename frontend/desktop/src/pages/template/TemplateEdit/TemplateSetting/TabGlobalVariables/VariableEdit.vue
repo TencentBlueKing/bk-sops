@@ -150,6 +150,7 @@
                                 <i class="bk-icon icon-minus-circle-shape" @click="deleteHideCondition(index)"></i>
                             </div>
                         </div>
+                        <p class="warning-msg">{{ $t('注意：如果命中条件，变量会保留填参页面的输入值并隐藏。如果变量为表单必填参数且输入值为空，可能会导致任务执行失败') }}</p>
                         <p class="common-error-tip error-msg" v-if="isShowErrorMsg">{{ errorMsgText }}</p>
                     </div>
                 </div>
@@ -963,6 +964,11 @@
                 margin-top: 0;
             }
         }
+    }
+    .warning-msg {
+        font-size: 12px;
+        color: #ff9c01;
+        margin-top: 10px;
     }
     .error-msg {
         margin-top: 10px;

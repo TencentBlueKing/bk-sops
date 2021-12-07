@@ -174,7 +174,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.12.0"
+STATIC_VERSION = "3.13.0"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -646,3 +646,6 @@ if env.BK_MONITOR_REPORT_ENABLE:
 ENABLE_OTEL_TRACE = env.ENABLE_OTEL_TRACE
 
 BK_APP_OTEL_INSTRUMENT_DB_API = env.BK_APP_OTEL_INSTRUMENT_DB_API
+
+# 系统访问地址
+BK_SOPS_HOST = env.BK_SOPS_HOST

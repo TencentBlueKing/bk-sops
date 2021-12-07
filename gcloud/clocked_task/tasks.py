@@ -73,9 +73,9 @@ def clocked_task_start(clocked_task_id, *args, **kwargs):
 
             # crete auto retry strategy
             arn_creator = AutoRetryNodeStrategyCreator(
-                taskflow_id=task.id, root_pipeline_id=task.pipeline_instance.instance_id
+                taskflow_id=taskflow_instance.id, root_pipeline_id=taskflow_instance.pipeline_instance.instance_id
             )
-            arn_creator.batch_create_strategy(task.pipeline_instance.execution_data)
+            arn_creator.batch_create_strategy(taskflow_instance.pipeline_instance.execution_data)
 
         taskflow_instance.task_action("start", clocked_task.creator)
     except Exception as ex:
