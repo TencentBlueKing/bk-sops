@@ -747,7 +747,7 @@
                 if (config.type === 'ServiceActivity') {
                     const {
                         component, name, stage_name, labels, error_ignorable, can_retry,
-                        retryable, isSkipped, skippable, optional
+                        retryable, isSkipped, skippable, optional, auto_retry
                     } = config
                     let basicInfoName = i18n.t('请选择插件')
                     let code = ''
@@ -794,7 +794,8 @@
                         // 这里取值做兼容处理，新旧数据不可能同时存在，优先取旧数据字段
                         skippable: isSkipped === undefined ? skippable : isSkipped,
                         retryable: can_retry === undefined ? retryable : can_retry,
-                        selectable: optional
+                        selectable: optional,
+                        autoRetry: auto_retry || { enable: false, times: 1 }
                     }
                 } else {
                     const { template_id, name, stage_name, labels, optional, always_use_latest } = config
@@ -1223,7 +1224,7 @@
                         always_use_latest: alwaysUseLatest
                     })
                 } else {
-                    const { ignorable, nodeName, stageName, nodeLabel, plugin, retryable, skippable, selectable, version } = this.basicInfo
+                    const { ignorable, nodeName, stageName, nodeLabel, plugin, retryable, skippable, selectable, version, autoRetry } = this.basicInfo
                     const data = {} // 标准插件节点在 activity 的 component.data 值
                     Object.keys(this.inputsParamValue).forEach(key => {
                         const formVal = this.inputsParamValue[key]
@@ -1261,7 +1262,8 @@
                         stage_name: stageName,
                         labels: nodeLabel,
                         error_ignorable: ignorable,
-                        optional: selectable
+                        optional: selectable,
+                        auto_retry: autoRetry
                     })
                     delete config.can_retry
                     delete config.isSkipped
@@ -1382,8 +1384,8 @@
                         ['stageName', 'nodeName'].forEach(item => {
                             this.basicInfo[item] = this.basicInfo[item].trim()
                         })
-                        const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional, desc, nodeName } = this.basicInfo
-                        const nodeData = { status: '', skippable, retryable, optional }
+                        const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional, desc, nodeName, autoRetry } = this.basicInfo
+                        const nodeData = { status: '', skippable, retryable, optional, auto_retry: autoRetry }
                         if (!this.isSubflow) {
                             const phase = this.getAtomPhase()
                             nodeData.phase = phase

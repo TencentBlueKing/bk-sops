@@ -23,9 +23,9 @@ from pipeline.signals import post_pipeline_finish, post_pipeline_revoke
 from pipeline.eri.signals import post_set_state
 from pipeline.engine.signals import pipeline_end, pipeline_revoke
 
-from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.models import TaskFlowInstance, AutoRetryNodeStrategy, EngineConfig
 from gcloud.taskflow3.signals import taskflow_finished, taskflow_revoked
-from gcloud.taskflow3.celery.tasks import send_taskflow_message
+from gcloud.taskflow3.celery.tasks import send_taskflow_message, auto_retry_node
 from gcloud.shortcuts.message import ATOM_FAILED, TASK_FINISHED
 
 logger = logging.getLogger("celery")
@@ -67,6 +67,36 @@ def _send_node_fail_message(node_id, pipeline_id):
         logger.exception("pipeline_fail_handler[taskflow_id=%s] task delay error: %s" % (taskflow.id, e))
 
 
+def _dispatch_auto_retry_node_task(root_pipeline_id, node_id, engine_ver):
+    try:
+        strategy = AutoRetryNodeStrategy.objects.get(root_pipeline_id=root_pipeline_id, node_id=node_id)
+    except AutoRetryNodeStrategy.DoesNotExist:
+        # auto retry not set
+        return False
+
+    # auto retry times exceed limit
+    if strategy.retry_times + 1 > strategy.max_retry_times:
+        return False
+
+    try:
+        auto_retry_node.apply_async(
+            kwargs={
+                "taskflow_id": strategy.taskflow_id,
+                "root_pipeline_id": root_pipeline_id,
+                "node_id": node_id,
+                "retry_times": strategy.retry_times,
+                "engine_ver": engine_ver,
+            },
+            queue="node_auto_retry",
+            routing_key="node_auto_retry",
+        )
+    except Exception:
+        logger.exception("auto retry dispatch failed, root_pipeline_id: %s, node_id: %s" % (root_pipeline_id, node_id))
+        return False
+
+    return True
+
+
 @receiver(post_pipeline_finish, sender=PipelineInstance)
 def pipeline_finish_handler(sender, instance_id, **kwargs):
     _finish_taskflow_and_send_signal(instance_id, taskflow_finished, True)
@@ -79,12 +109,26 @@ def pipeline_revoke_handler(sender, instance_id, **kwargs):
 
 @receiver(activity_failed)
 def pipeline_fail_handler(sender, pipeline_id, pipeline_activity_id, **kwargs):
+    auto_retry_dispatched = _dispatch_auto_retry_node_task(
+        root_pipeline_id=pipeline_id, node_id=pipeline_activity_id, engine_ver=EngineConfig.ENGINE_VER_V1
+    )
+
+    if auto_retry_dispatched:
+        return
+
     _send_node_fail_message(node_id=pipeline_activity_id, pipeline_id=pipeline_id)
 
 
 @receiver(post_set_state)
 def bamboo_engine_eri_post_set_state_handler(sender, node_id, to_state, version, root_id, parent_id, loop, **kwargs):
     if to_state == bamboo_engine_states.FAILED:
+        auto_retry_dispatched = _dispatch_auto_retry_node_task(
+            root_pipeline_id=root_id, node_id=node_id, engine_ver=EngineConfig.ENGINE_VER_V2
+        )
+
+        if auto_retry_dispatched:
+            return
+
         _send_node_fail_message(node_id=node_id, pipeline_id=root_id)
 
     elif to_state == bamboo_engine_states.REVOKED and node_id == root_id:

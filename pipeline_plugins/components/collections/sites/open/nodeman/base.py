@@ -42,6 +42,21 @@ def get_host_id_by_inner_ip(executor, logger, bk_cloud_id: int, bk_biz_id: int, 
     return {host["inner_ip"]: host["bk_host_id"] for host in result["data"]["list"]}
 
 
+def get_nodeman_rsa_public_key(executor, logger):
+    """
+    拉取节点管理rsa公钥
+    """
+    client = BKNodeManClient(username=executor)
+    get_rsa_result = client.get_rsa_public_key(executor)
+    if not get_rsa_result["result"]:
+        error = handle_api_error(__group_name__, "nodeman.get_rsa_public_key", executor, get_rsa_result)
+        logger.error(error)
+        return False, None
+    content = get_rsa_result["data"][0]["content"]
+    name = get_rsa_result["data"][0]["name"]
+    return True, {"name": name, "content": content}
+
+
 class NodeManBaseService(Service):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(5)
@@ -49,13 +64,22 @@ class NodeManBaseService(Service):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("任务 ID"), key="job_id", type="int", schema=IntItemSchema(description=_("提交的任务的 job_id")),
+                name=_("任务 ID"),
+                key="job_id",
+                type="int",
+                schema=IntItemSchema(description=_("提交的任务的 job_id")),
             ),
             self.OutputItem(
-                name=_("安装成功个数"), key="success_num", type="int", schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
+                name=_("安装成功个数"),
+                key="success_num",
+                type="int",
+                schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
             ),
             self.OutputItem(
-                name=_("安装失败个数"), key="fail_num", type="int", schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
+                name=_("安装失败个数"),
+                key="fail_num",
+                type="int",
+                schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
             ),
         ]
 

@@ -16,6 +16,7 @@
                 <ip-search-input
                     class="ip-search-wrap"
                     :placeholder="i18n.searchNode"
+                    :editable="editable"
                     @search="onTopoSearch">
                 </ip-search-input>
                 <div class="tree-wrap">
@@ -41,7 +42,7 @@
                 </div>
                 <div class="ip-list">
                     <div
-                        class="ip-item"
+                        :class="['ip-item', { 'disabled': !editable }]"
                         v-for="item in selectedIpsPath"
                         v-bk-overflow-tips
                         :key="item.key">
@@ -149,6 +150,13 @@
                     })
                     this.$refs.topoTree.setDisabled(defaultDisabledIds, { disabled: true })
                 }
+                // 禁止编辑时将topo树最外层的节点设置为禁止状态
+                if (!this.editable) {
+                    this.topoList.forEach(item => {
+                        const nodeId = item.uniqueId || item.id
+                        this.$refs.topoTree.setDisabled(nodeId, { disabled: true })
+                    })
+                }
             },
             /**
              * 遍历获取子节点列表
@@ -240,6 +248,7 @@
                 })
             },
             onDeleteSelected (key) {
+                if (!this.editable) return
                 const index = this.selectedNodeList.findIndex(item => item === key)
                 if (index > -1) {
                     this.selectedNodeList.splice(index, 1)
@@ -334,6 +343,16 @@
         white-space: nowrap;
         text-overflow: ellipsis;
         overflow: hidden;
+        &.disabled {
+            color: #ccc;
+            cursor: not-allowed;
+            i {
+                cursor: not-allowed;
+                &:hover {
+                    color: #dcdee6;
+                }
+            }
+        }
     }
     .common-icon-dark-circle-close {
         position: absolute;

@@ -14,7 +14,7 @@
             ref="renderForm"
             :scheme="scheme"
             :hooked="hooked"
-            :constants="constants"
+            :constants="isSubflow ? subflowForms : constants"
             :form-option="option"
             :form-data="formData"
             @change="onInputsValChange"

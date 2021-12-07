@@ -36,7 +36,7 @@ class NodemanCreateTaskComponentTest(TestCase, ComponentTestMixin):
             OPERATE_FAIL_CASE,
             REMOVE_SUCCESS_CASE,
             CHOOSABLE_PARAMS_CASE,
-            INSTALL_SUCCESS_CASE_WITH_TTJ
+            INSTALL_SUCCESS_CASE_WITH_TTJ,
         ]
 
     def component_cls(self):
@@ -45,8 +45,13 @@ class NodemanCreateTaskComponentTest(TestCase, ComponentTestMixin):
 
 class MockClient(object):
     def __init__(
-            self, install_return=None, operate_return=None, remove_host=None, details_return=None,
-            get_job_log_return=None
+        self,
+        install_return=None,
+        operate_return=None,
+        remove_host=None,
+        details_return=None,
+        get_job_log_return=None,
+        get_rsa_public_key_return=None,
     ):
         self.name = "name"
         self.job_install = MagicMock(return_value=install_return)
@@ -54,6 +59,7 @@ class MockClient(object):
         self.remove_host = MagicMock(return_value=remove_host)
         self.job_details = MagicMock(return_value=details_return)
         self.get_job_log = MagicMock(return_value=get_job_log_return)
+        self.get_rsa_public_key = MagicMock(return_value=get_rsa_public_key_return)
 
 
 # mock path
@@ -64,6 +70,7 @@ HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.nodeman.b
 GET_HOST_ID_BY_INNER_IP = (
     "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v2_0.get_host_id_by_inner_ip"
 )
+ENCRYPT_AUTH_KEY = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v2_0.encrypt_auth_key"
 
 # mock clients
 CASE_FAIL_CLIENT = MockClient(
@@ -93,6 +100,27 @@ INSTALL_OR_OPERATE_SUCCESS_CLIENT = MockClient(
             },
             "list": [],
         },
+    },
+    get_rsa_public_key_return={
+        "message": "",
+        "code": 0,
+        "data": [
+            {
+                "content": """-----BEGIN PUBLIC KEY-----
+                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlJ/9Fq0LdVzxXga97bk4
+                q69cD0ZjcPGbZUZ6NIRNDa+TzDyhoBKs2vsssX2vEoiUe5oHePY/3g49HwXCHyPj
+                iidWzRD2VEGqySkq/q4vXYDBZ+Hi6yf+VjdI+aTgcTTGbPk4LEoiZIbZC0GD93R5
+                AYkwL3bQ1OXq2+oYatZ0hSQPKeN+1ZT2gAGC4D+bKp5tgXFqu+zVs6/C5FI7kbxP
+                UW/XhgQnsrKVrCH60RCPHiXWfn3ENUo4Z3dndcXA31M283Tupp66yJNKb50OynWo
+                Px64VRgYWvvssC8qtnUdVejn5/UFArb2ZOqpA7qcpKXjSl1v//Q8udPzSEjoXd4Y
+                HwIDAQAB\n-----END PUBLIC KEY-----""",
+                "block_size": 245,
+                "name": "DEFAULT",
+                "description": "默认RSA密钥",
+            }
+        ],
+        "result": True,
+        "request_id": "d474b1688d524662b613c76a78310412",
     },
 )
 
@@ -136,6 +164,27 @@ DETAILS_FAIL_CLIENT = MockClient(
             }
         ],
         "result": True,
+    },
+    get_rsa_public_key_return={
+        "message": "",
+        "code": 0,
+        "data": [
+            {
+                "content": """-----BEGIN PUBLIC KEY-----
+                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlJ/9Fq0LdVzxXga97bk4
+                q69cD0ZjcPGbZUZ6NIRNDa+TzDyhoBKs2vsssX2vEoiUe5oHePY/3g49HwXCHyPj
+                iidWzRD2VEGqySkq/q4vXYDBZ+Hi6yf+VjdI+aTgcTTGbPk4LEoiZIbZC0GD93R5
+                AYkwL3bQ1OXq2+oYatZ0hSQPKeN+1ZT2gAGC4D+bKp5tgXFqu+zVs6/C5FI7kbxP
+                UW/XhgQnsrKVrCH60RCPHiXWfn3ENUo4Z3dndcXA31M283Tupp66yJNKb50OynWo
+                Px64VRgYWvvssC8qtnUdVejn5/UFArb2ZOqpA7qcpKXjSl1v//Q8udPzSEjoXd4Y
+                HwIDAQAB\n-----END PUBLIC KEY-----""",
+                "block_size": 245,
+                "name": "DEFAULT",
+                "description": "默认RSA密钥",
+            }
+        ],
+        "result": True,
+        "request_id": "d474b1688d524662b613c76a78310412",
     },
 )
 
@@ -192,7 +241,7 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
                                 "peer_exchange_switch_for_agent": 0,  # 不加速
-                                "password": "123",
+                                "password": "encrypt_auth_key",
                                 "outer_ip": "1.1.1.1",
                                 "login_ip": "1.1.1.1",
                                 "data_ip": "1.1.1.1",
@@ -204,11 +253,12 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})], ),
+        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
+        Patcher(target=ENCRYPT_AUTH_KEY, return_value="encrypt_auth_key"),
     ],
 )
 
@@ -278,7 +328,7 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
                                 "peer_exchange_switch_for_agent": 0,  # 不加速
-                                "password": "123",
+                                "password": "encrypt_auth_key",
                                 "outer_ip": "1.1.1.1",
                                 "login_ip": "1.1.1.1",
                                 "data_ip": "1.1.1.1",
@@ -295,7 +345,7 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
                                 "peer_exchange_switch_for_agent": 0,  # 不加速
-                                "password": "123",
+                                "password": "encrypt_auth_key",
                                 "outer_ip": "4.4.4.4",
                                 "login_ip": "6.6.6.6",
                                 "data_ip": "8.8.8.8",
@@ -312,7 +362,7 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
                                 "peer_exchange_switch_for_agent": 0,  # 不加速
-                                "password": "123",
+                                "password": "encrypt_auth_key",
                                 "outer_ip": "5.5.5.5",
                                 "login_ip": "7.7.7.7",
                                 "data_ip": "9.9.9.9",
@@ -325,12 +375,13 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})], ),
+        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1, "2.2.2.2": 2, "3.3.3.3": 3}),
+        Patcher(target=ENCRYPT_AUTH_KEY, return_value="encrypt_auth_key"),
     ],
 )
 
@@ -381,7 +432,7 @@ INSTALL_FAIL_CASE = ComponentTestCase(
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
                                 "peer_exchange_switch_for_agent": 0,  # 不加速
-                                "password": "123",
+                                "password": "encrypt_auth_key",
                                 "outer_ip": "1.1.1.1",
                                 "login_ip": "1.1.1.1",
                                 "data_ip": "1.1.1.1",
@@ -405,7 +456,7 @@ INSTALL_FAIL_CASE = ComponentTestCase(
         },
     ),
     schedule_call_assertion=[
-        CallAssertion(func=DETAILS_FAIL_CLIENT.job_details, calls=[Call(**{"job_id": "1"})], ),
+        CallAssertion(func=DETAILS_FAIL_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
         CallAssertion(
             func=DETAILS_FAIL_CLIENT.get_job_log,
             calls=[Call(**{"job_id": "1", "instance_id": "host|instance|host|1.1.1.1-0-0"})],
@@ -416,6 +467,7 @@ INSTALL_FAIL_CASE = ComponentTestCase(
         Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=DETAILS_FAIL_CLIENT),
         Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1}),
         Patcher(target=HANDLE_API_ERROR, return_value="failed"),
+        Patcher(target=ENCRYPT_AUTH_KEY, return_value="encrypt_auth_key"),
     ],
 )
 
@@ -446,7 +498,7 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})], ),
+        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
@@ -587,7 +639,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
                                 "peer_exchange_switch_for_agent": 0,  # 不加速
-                                "password": "123",
+                                "password": "encrypt_auth_key",
                                 "outer_ip": "3.3.3.3",
                                 "login_ip": "5.5.5.5",
                                 "data_ip": "7.7.7.7",
@@ -604,7 +656,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
                                 "peer_exchange_switch_for_agent": 0,  # 不加速
-                                "password": "123",
+                                "password": "encrypt_auth_key",
                                 "outer_ip": "4.4.4.4",
                                 "login_ip": "6.6.6.6",
                                 "data_ip": "8.8.8.8",
@@ -621,7 +673,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
                                 "peer_exchange_switch_for_agent": 0,  # 不加速
-                                "password": "123",
+                                "password": "encrypt_auth_key",
                                 "outer_ip": "3.3.3.3",
                                 "login_ip": "5.5.5.5",
                                 "data_ip": "7.7.7.7",
@@ -638,7 +690,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
                                 "peer_exchange_switch_for_agent": 0,  # 不加速
-                                "password": "123",
+                                "password": "encrypt_auth_key",
                                 "data_ip": "7.7.7.7",
                                 "bk_host_id": 1,
                             },
@@ -656,6 +708,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
         Patcher(
             target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1, "2.2.2.2": 1, "127.0.0.1": 1, "127.0.0.2": 1},
         ),
+        Patcher(target=ENCRYPT_AUTH_KEY, return_value="encrypt_auth_key"),
     ],
 )
 
@@ -664,9 +717,7 @@ INSTALL_SUCCESS_CASE_WITH_TTJ = ComponentTestCase(
     inputs={
         "bk_biz_id": "1",
         "nodeman_op_target": {"nodeman_bk_cloud_id": "1", "nodeman_node_type": "AGENT"},
-        "nodeman_ticket": {
-            "nodeman_tjj_ticket": "xxxxx"
-        },
+        "nodeman_ticket": {"nodeman_tjj_ticket": "xxxxx"},
         "nodeman_op_info": {
             "nodeman_ap_id": "1",
             "nodeman_op_type": "INSTALL",
@@ -715,23 +766,24 @@ INSTALL_SUCCESS_CASE_WITH_TTJ = ComponentTestCase(
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
                                 "peer_exchange_switch_for_agent": 0,  # 不加速
-                                "password": "123",
+                                "password": "encrypt_auth_key",
                                 "outer_ip": "1.1.1.1",
                                 "login_ip": "1.1.1.1",
                                 "data_ip": "1.1.1.1",
                             }
                         ],
-                        "tcoa_ticket": 'xxxxx'
+                        "tcoa_ticket": "xxxxx",
                     }
                 )
             ],
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})], ),
+        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
+        Patcher(target=ENCRYPT_AUTH_KEY, return_value="encrypt_auth_key"),
     ],
 )

@@ -124,6 +124,8 @@ class MockTaskFlowInstance(object):
         self.project = kwargs.get("project", MockProject())
         self.create_method = kwargs.get("create_method", "create_method")
         self.pipeline_instance__id = 1
+        self.executor = kwargs.get("executor", "executor")
+        self.executor_proxy = kwargs.get("executor_proxy", "executor_proxy")
 
 
 class MockPeriodicTask(object):

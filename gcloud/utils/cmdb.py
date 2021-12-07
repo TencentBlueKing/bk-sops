@@ -25,7 +25,7 @@ logger_celery = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
-def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, ip_list=None):
+def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, ip_list=None, property_filters=None):
     """获取业务下所有主机信息
     :param username: 请求用户名
     :type username: str
@@ -37,6 +37,8 @@ def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, i
     :type host_fields: list
     :param ip_list: 主机内网 IP 列表
     :type ip_list: list
+    :param property_filters: 查询主机时的相关属性过滤条件, 当传递该参数时，ip_list参数生成的过滤条件失效
+    :type property_filters: dict
     :return: [
         {
             "host": {
@@ -66,7 +68,9 @@ def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, i
     client = get_client_by_user(username)
     kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
 
-    if ip_list:
+    if property_filters is not None:
+        kwargs.update(property_filters)
+    elif ip_list:
         kwargs["host_property_filter"] = {
             "condition": "AND",
             "rules": [{"field": "bk_host_innerip", "operator": "in", "value": ip_list}],
@@ -190,17 +194,14 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
     return result
 
 
-def get_dynamic_group_host_list(username, bk_biz_id, bk_supplier_account, dynamic_group_id, host_modules_ids=None):
+def get_dynamic_group_host_list(username, bk_biz_id, bk_supplier_account, dynamic_group_id):
     """获取动态分组中对应主机列表"""
     client = get_client_by_user(username)
     kwargs = {
         "bk_biz_id": bk_biz_id,
         "bk_supplier_account": bk_supplier_account,
         "id": dynamic_group_id,
-        "fields": ["bk_host_innerip", "bk_cloud_id"],
+        "fields": ["bk_host_innerip", "bk_cloud_id", "bk_host_id"],
     }
     host_list = batch_request(client.cc.execute_dynamic_group, kwargs, limit=200)
-    if host_modules_ids:
-        for host in host_list:
-            host["host_modules_id"] = host_modules_ids[host["bk_host_innerip"]]
     return True, {"code": 0, "message": "success", "data": host_list}

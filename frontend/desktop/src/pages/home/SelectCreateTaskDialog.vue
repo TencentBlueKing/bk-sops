@@ -225,7 +225,7 @@
                         name: this.createTaskItem.extra_info.name
                     }],
                     project: [{
-                        id: project.name,
+                        id: project.id,
                         name: project.name
                     }]
                 }
