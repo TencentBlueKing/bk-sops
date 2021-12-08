@@ -293,7 +293,7 @@
                 
                 indexChangedVar.forEach((item, index) => {
                     item.index = index + delta
-                    console.log(item.index)
+                    if (item.key in this.internalVariable) return
                     this.editVariable({ key: item.key, variable: tools.deepClone(item) })
                 })
             },
