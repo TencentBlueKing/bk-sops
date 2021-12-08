@@ -186,7 +186,15 @@ def calculate_constants_type(to_calculate, calculated, change_calculated=False):
     for key, info in list(to_calculate.items()):
         ref = ConstantTemplate(info["value"]).get_reference()
         constant_type = "splice" if ref else "plain"
-        data.setdefault(key, {"type": constant_type, "value": info["value"], "is_param": info.get("is_param", False)})
+        data.setdefault(
+            key,
+            {
+                "type": constant_type,
+                "value": info["value"],
+                "is_param": info.get("is_param", False),
+                "need_render": info.get("need_render", True),
+            },
+        )
 
     return data
 
