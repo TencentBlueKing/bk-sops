@@ -24,6 +24,8 @@ from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.apigw.views.utils import logger, format_template_list_data
 from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.conf import FLOW_ACTIONS
+from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 from packages.bkoauth.decorators import apigw_required
 
@@ -58,4 +60,15 @@ def get_template_list(request, project_id):
         templates = TaskTemplate.objects.select_related("pipeline_template").filter(**filter_kwargs)
     else:
         templates = CommonTemplate.objects.select_related("pipeline_template").filter(**filter_kwargs)
-    return {"result": True, "data": format_template_list_data(templates, project), "code": err_code.SUCCESS.code}
+
+    template_list, template_id_list = format_template_list_data(templates, project, need_ids=True)
+
+    # 注入用户有权限的actions
+    flow_allowed_actions = get_flow_allowed_actions_for_user(request.user.username, FLOW_ACTIONS, template_id_list)
+    for template_info in template_list:
+        template_id = template_info["id"]
+        for action, allowed in flow_allowed_actions.get(str(template_id), {}).items():
+            if allowed:
+                template_info.setdefault("auth_actions", []).append(action)
+
+    return {"result": True, "data": template_list, "code": err_code.SUCCESS.code}
