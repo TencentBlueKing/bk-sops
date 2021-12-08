@@ -44,6 +44,11 @@ class PluginDeployedStatusSerializer(serializers.Serializer):
     prod = serializers.DictField(help_text="正式环境部署状态")
 
 
+class PluginProfileSerializer(serializers.Serializer):
+    contact = serializers.CharField(help_text="插件联系人")
+    introduction = serializers.CharField(help_text="插件简介")
+
+
 class PluginAppDetailResponseSerializer(serializers.Serializer):
     code = serializers.CharField(help_text="插件服务应用Code")
     name = serializers.CharField(help_text="插件服务应用名称")
@@ -64,6 +69,7 @@ class PluginListResponseSerializer(StandardResponseSerializer):
 class PluginDetailedInfoSerializer(serializers.Serializer):
     plugin = PluginInfoSerializer(help_text="插件信息")
     deployed_statuses = PluginDeployedStatusSerializer(help_text="部署状态信息")
+    profile = PluginProfileSerializer(help_text="插件描述信息")
 
 
 class PluginDetailListSerializer(serializers.Serializer):
