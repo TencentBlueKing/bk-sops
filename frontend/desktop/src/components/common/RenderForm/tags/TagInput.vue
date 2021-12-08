@@ -29,15 +29,15 @@
                                 v-for="item in varList"
                                 :key="item"
                                 @click.stop="onSelectVal(item)">
-                                {{item}}
+                                {{ item }}
                             </li>
                         </ul>
                     </div>
                 </transition>
             </template>
-            <span v-else class="rf-view-value">{{(value === 'undefined' || value === '') ? '--' : value}}</span>
+            <span v-else class="rf-view-value">{{ viewValue }}</span>
         </div>
-        <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
+        <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{ validateInfo.message }}</span>
     </div>
 </template>
 <script>
@@ -113,6 +113,13 @@
                 },
                 set (val) {
                     this.updateForm(val)
+                }
+            },
+            viewValue () {
+                if (this.value === '' || this.value === undefined) {
+                    return '--'
+                } else {
+                    return this.showPassword ? '******' : this.value
                 }
             }
         },
