@@ -19,6 +19,7 @@
         :title="$t('确认删除')"
         :value="isDeleteDialogShow"
         :draggable="true"
+        data-test-id="clockedList_dialog_deleteClockedDialog"
         @confirm="onDeleteClockedConfirm"
         @cancel="onDeleteClockedCancel">
         <div class="dialog-content" v-bkloading="{ isLoading: deleting, opacity: 1, zIndex: 100 }">

@@ -79,7 +79,7 @@ def get_plugin_detail_list(request: Request):
         cur_limit = limit * 2
         while True:
             result = PluginServiceApiClient.get_plugin_detail_list(
-                search_term=search_term, limit=cur_limit, offset=cur_offset
+                search_term=search_term, limit=cur_limit, offset=cur_offset, order_by="name"
             )
             if not result["result"]:
                 return JsonResponse(result)
@@ -106,7 +106,9 @@ def get_plugin_detail_list(request: Request):
             },
         }
     else:
-        result = PluginServiceApiClient.get_plugin_detail_list(search_term=search_term, limit=limit, offset=offset)
+        result = PluginServiceApiClient.get_plugin_detail_list(
+            search_term=search_term, limit=limit, offset=offset, order_by="name"
+        )
         if not result["result"]:
             return JsonResponse(result)
         response = result
