@@ -186,6 +186,9 @@ def calculate_constants_type(to_calculate, calculated, change_calculated=False):
     for key, info in list(to_calculate.items()):
         ref = ConstantTemplate(info["value"]).get_reference()
         constant_type = "splice" if ref else "plain"
+        # is_param和need_render禁止同时为True
+        if info.get("is_param") and info.get("need_render"):
+            raise exceptions.DataException("is_param and need_render cannot be selected at the same time")
         data.setdefault(
             key,
             {
