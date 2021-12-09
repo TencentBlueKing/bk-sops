@@ -11,29 +11,35 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import logging
+from enum import Enum
 from typing import List
 
-from django.utils.translation import ugettext_lazy as _
-from pipeline.conf import settings
-from pipeline.core.data.var import LazyVariable
 
-from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain, FieldType
+class FieldType(Enum):
+    STRING = "string"
+    INT = "int"
+    FLOAT = "float"
+    BOOL = "bool"
+    LIST = "list"
+    DICT = "dict"
+    OBJECT = "object"
 
 
-logger = logging.getLogger("root")
+class FieldExplain:
+    def __init__(self, key: str, type: FieldType, description: str):
+        self.key = key
+        self.type = type
+        self.description = description
+
+    def to_dict(self):
+        return {"key": self.key, "type": self.type.value, "description": self.description}
 
 
-class BkUserSelector(LazyVariable, SelfExplainVariable):
-    code = "bk_user_selector"
-    name = _("人员选择器")
-    type = "general"
-    tag = "bk_manage_user_selector.bk_user_selector"
-    form = "%svariables/bk_manage_user_selector.js" % settings.STATIC_URL
-
-    def get_value(self):
-        return self.value
+class SelfExplainVariable:
+    @classmethod
+    def self_explain(cls, **kwargs) -> dict:
+        return {"tag": cls.tag, "fields": [field.to_dict() for field in cls._self_explain(**kwargs)]}
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=FieldType.STRING, description="人员列表，以,分隔")]
+        raise NotImplementedError()

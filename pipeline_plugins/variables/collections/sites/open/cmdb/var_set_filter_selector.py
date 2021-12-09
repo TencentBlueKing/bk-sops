@@ -13,12 +13,14 @@ specific language governing permissions and limitations under the License.
 
 import logging
 from functools import reduce
+from typing import List
 
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
 from gcloud.exceptions import ApiRequestError
 from pipeline.core.data.var import LazyVariable
+from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain, FieldType
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -76,7 +78,7 @@ class SetInfo(object):
         return self._pipeline_var_str_value
 
 
-class VarSetFilterSelector(LazyVariable):
+class VarSetFilterSelector(LazyVariable, SelfExplainVariable):
     code = "set_filter_selector"
     name = _("集群选择器")
     type = "general"
@@ -86,6 +88,42 @@ class VarSetFilterSelector(LazyVariable):
         "该变量返回对象类型，可通过${KEY.bk_sets}获得筛选的所有集群信息，对于所有集群都有的属性(如attr)，"
         "可以通过${KEY.attr}获得所有集群该属性的值列表，可以通过${KEY.flat__attr}获得所有集群该属性的值拼接结果字符串"
     )
+
+    @classmethod
+    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
+        fields = [
+            FieldExplain(key="${KEY}", type=FieldType.OBJECT, description="选择的集群信息"),
+        ]
+
+        client = get_client_by_user(settings.SYSTEM_USE_API_ACCOUNT)
+        params = {"bk_obj_id": "set"}
+        if "bk_biz_id" in kwargs:
+            params["bk_biz_id"] = kwargs["bk_biz_id"]
+        resp = client.cc.search_object_attribute(params)
+        resp_data = []
+
+        if not resp["result"]:
+            logger.error("[_self_explain] %s search_object_attribute err: %s" % (cls.tag, resp["message"]))
+        else:
+            resp_data = resp["data"]
+
+        for item in resp_data:
+            fields.append(
+                FieldExplain(
+                    key="${KEY.%s}" % item["bk_property_id"],
+                    type=FieldType.LIST,
+                    description="集群属性(%s)列表" % item["bk_property_name"],
+                )
+            )
+            fields.append(
+                FieldExplain(
+                    key="${KEY.flat__%s}" % item["bk_property_id"],
+                    type=FieldType.STRING,
+                    description="集群属性(%s)列表，以,分隔" % item["bk_property_name"],
+                )
+            )
+
+        return fields
 
     def get_value(self):
         """

@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
+from typing import List
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -31,6 +32,7 @@ from pipeline_plugins.variables.utils import (
     find_module_with_relation,
     get_biz_internal_module,
 )
+from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain, FieldType
 
 ALL_SELECTED_STR = "all"
 
@@ -38,13 +40,17 @@ logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
-class SetModuleIpSelector(LazyVariable):
+class SetModuleIpSelector(LazyVariable, SelfExplainVariable):
     code = "set_module_ip_selector"
     name = _("集群模块IP选择器")
     type = "dynamic"
     tag = "set_module_ip_selector.ip_selector"
     form = "%svariables/cmdb/var_set_module_ip_selector.js" % settings.STATIC_URL
     desc = "集群模块IP选择器只能拉取使用服务模板创建的模块，不适用于自定义拓扑的场景，自定义拓扑请使用IP选择器，输出为选择IP以 ',' 分隔的字符串"  # noqa
+
+    @classmethod
+    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
+        return [FieldExplain(key="${KEY}", type=FieldType.STRING, description="选择的IP列表，以,分隔")]
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
