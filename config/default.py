@@ -74,6 +74,7 @@ INSTALLED_APPS += (
     "gcloud.analysis_statistics.data_migrate",
     "gcloud.clocked_task",
     "gcloud.template_base",
+    "gcloud.user_custom_config",
     "pipeline",
     "pipeline.component_framework",
     "pipeline.variable_framework",
@@ -173,7 +174,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.12.1"
+STATIC_VERSION = "3.13.1"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -458,6 +459,7 @@ ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 from pipeline.celery.settings import *  # noqa
 from pipeline.eri.celery import queues as eri_queues  # noqa
 from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver  # noqa
+from gcloud.taskflow3.celery import settings as taskflow3_celery_settings  # noqa
 
 API_TASK_QUEUE_NAME_V2 = "api"
 PERIODIC_TASK_QUEUE_NAME_V2 = "periodic_task"
@@ -465,6 +467,7 @@ CELERY_QUEUES.extend(eri_queues.CELERY_QUEUES)
 CELERY_QUEUES.extend(eri_queues.QueueResolver(API_TASK_QUEUE_NAME_V2).queues())
 CELERY_QUEUES.extend(eri_queues.QueueResolver(PERIODIC_TASK_QUEUE_NAME_V2).queues())
 CELERY_QUEUES.extend(PrepareAndStartTaskQueueResolver(API_TASK_QUEUE_NAME_V2).queues())
+CELERY_QUEUES.extend(taskflow3_celery_settings.CELERY_QUEUES)
 
 # CELERY与RabbitMQ增加60秒心跳设置项
 BROKER_HEARTBEAT = 60
@@ -643,3 +646,6 @@ if env.BK_MONITOR_REPORT_ENABLE:
 ENABLE_OTEL_TRACE = env.ENABLE_OTEL_TRACE
 
 BK_APP_OTEL_INSTRUMENT_DB_API = env.BK_APP_OTEL_INSTRUMENT_DB_API
+
+# 系统访问地址
+BK_SOPS_HOST = env.BK_SOPS_HOST

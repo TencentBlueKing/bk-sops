@@ -352,7 +352,8 @@
                         result = this.listData.slice(0)
                         this.activeGroup = this.getDefaultActiveGroup()
                     } else {
-                        const reg = new RegExp(this.searchStr, 'i')
+                        const searchStr = this.escapeRegExp(this.searchStr)
+                        const reg = new RegExp(searchStr, 'i')
                         this.listData.forEach(group => {
                             const { group_icon, group_name, type } = group
                             const list = []
@@ -388,7 +389,8 @@
                 } else if (this.searchStr !== '') {
                     this.searchLoading = true
                     try {
-                        const reg = new RegExp(this.searchStr, 'i')
+                        const searchStr = this.escapeRegExp(this.searchStr)
+                        const reg = new RegExp(searchStr, 'i')
                         const data = {
                             pipeline_template__name__icontains: this.searchStr || undefined
                         }
@@ -426,6 +428,12 @@
                 }
 
                 this.listInPanel = result
+            },
+            escapeRegExp (str) {
+                if (typeof str !== 'string') {
+                    return ''
+                }
+                return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')
             },
             handleSubflowList (data) {
                 const list = []
@@ -652,13 +660,16 @@
         max-height: calc(100vh - 204px);
         overflow: auto;
         @include scrollbar;
+        .no-data-wrapper {
+            margin: 100px 0;
+        }
     }
     .tpl-item {
         display: flex;
         min-height: 40px;
         align-items: center;
         color: #63656e;
-        border-bottom: 1px solid #dcdee5;
+        border-top: 1px solid #dcdee5;
         cursor: pointer;
         &:hover:not(.text-permission-disable), &.active:not(.text-permission-disable) {
             background: #e1ecff;
@@ -666,7 +677,7 @@
                 color: #3a84ff;
             }
         }
-        &:last-child {
+        &:first-of-type {
             border: none;
         }
         .name-content {
@@ -759,12 +770,14 @@
 }
 </style>
 <style lang="scss">
+@import '@/scss/mixins/scrollbar.scss';
     .tpl-label-popover {
         background: #ffffff;
         .tippy-tooltip {
             padding: 7px 0;
             max-height: 180px;
             overflow: auto;
+            @include scrollbar;
         }
         .tpl-label-item {
             padding: 4px 13px;

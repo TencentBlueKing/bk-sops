@@ -76,10 +76,6 @@
     import SeparatorSelect from '../SeparatorSelect.vue'
 
     const i18n = {
-        staticIp: gettext('静态 IP'),
-        dynamicIp: gettext('动态 IP'),
-        dynamicGroup: gettext('动态分组'),
-        manualInput: gettext('手动输入'),
         filterTitle: gettext('筛选条件和排除条件'),
         showCloudArea: gettext('变量值是否带云区域：')
     }
@@ -123,28 +119,7 @@
             selectorTabs: {
                 type: Array,
                 default () {
-                    return [
-                        {
-                            type: 'staticIp',
-                            id: 'ip',
-                            name: i18n.staticIp
-                        },
-                        {
-                            type: 'dynamicIp',
-                            id: 'topo',
-                            name: i18n.dynamicIp
-                        },
-                        {
-                            type: 'dynamicGroup',
-                            id: 'group',
-                            name: i18n.dynamicGroup
-                        },
-                        {
-                            type: 'manualInput',
-                            id: 'manual',
-                            name: i18n.manualInput
-                        }
-                    ]
+                    return []
                 }
             },
             editable: {

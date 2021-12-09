@@ -42,6 +42,7 @@ from gcloud.iam_auth.resource_helpers import FlowResourceHelper
 from gcloud.iam_auth.authorization_helpers import FlowIAMAuthorizationHelper
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
+from gcloud.user_custom_config.constants import TASKTMPL_ORDERBY_OPTIONS
 
 logger = logging.getLogger("root")
 iam = get_iam_client()
@@ -84,7 +85,9 @@ class TaskTemplateResource(GCloudModelResource):
             "subprocess_has_update": ALL,
             "has_subprocess": ALL,
         }
-        ordering = ["pipeline_template"]
+        ordering = [
+            "pipeline_template",
+        ] + [order["value"] for order in TASKTMPL_ORDERBY_OPTIONS]
         q_fields = ["id", "pipeline_template__name"]
         paginator_class = TemplateFilterPaginator
         # iam config
