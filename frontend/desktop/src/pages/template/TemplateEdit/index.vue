@@ -60,6 +60,7 @@
                     :canvas-data="canvasData"
                     :node-memu-open.sync="nodeMenuOpen"
                     :plugin-loading="pagination.isLoading"
+                    :node-variable-info="nodeVariableInfo"
                     @updatePluginList="getThirdPluginList"
                     @hook:mounted="canvasMounted"
                     @onConditionClick="onOpenConditionEdit"
@@ -70,6 +71,7 @@
                     @onFormatPosition="onFormatPosition"
                     @onReplaceLineAndLocation="onReplaceLineAndLocation"
                     @onShowNodeConfig="onShowNodeConfig"
+                    @onTogglePerspective="onTogglePerspective"
                     @getAtomList="getAtomList"
                     @updateCondition="setBranchCondition($event)">
                 </TemplateCanvas>
@@ -342,7 +344,9 @@
                 isPageOver: false,
                 isThrottled: false, // 滚动节流 是否进入cd
                 envVariableData: {},
-                validateConnectFailList: [] // 节点校验失败列表
+                validateConnectFailList: [], // 节点校验失败列表
+                isPerspective: false, // 流程是否透视
+                nodeVariableInfo: {} // 节点输入输出变量
             }
         },
         computed: {
@@ -354,6 +358,7 @@
                 'lines': state => state.template.line,
                 'constants': state => state.template.constants,
                 'gateways': state => state.template.gateways,
+                'internalVariable': state => state.template.internalVariable,
                 'category': state => state.template.category,
                 'subprocess_info': state => state.template.subprocess_info,
                 'username': state => state.username,
@@ -434,6 +439,12 @@
                 if (!val) {
                     this.atomTypeList.subflow.length = 0
                 }
+            },
+            constants (val) {
+                if (this.isPerspective) {
+                    // 获取节点与变量的依赖关系
+                    this.getNodeVariableCitedData()
+                }
             }
         },
         beforeRouteEnter (to, from, next) {
@@ -488,7 +499,8 @@
                 'saveTemplateData',
                 'loadCustomVarCollection',
                 'getLayoutedPipeline',
-                'loadInternalVariable'
+                'loadInternalVariable',
+                'getVariableCite'
             ]),
             ...mapActions('atomForm/', [
                 'loadSingleAtomList',
@@ -886,6 +898,40 @@
                 })
                 this.atomTypeList.tasknode = grouped
             },
+            // 获取节点与变量的依赖关系
+            async getNodeVariableCitedData () {
+                try {
+                    const constants = { ...this.internalVariable, ...this.constants }
+                    const data = {
+                        activities: this.activities,
+                        gateways: this.gateways,
+                        constants
+                    }
+                    const resp = await this.getVariableCite(data)
+                    if (!resp.result) return
+                    const variableCited = resp.data.defined
+                    const nodeCitedInfo = Object.keys(variableCited).reduce((acc, key) => {
+                        const values = variableCited[key]
+                        if (values.activities.length) {
+                            values.activities.forEach(nodeId => {
+                                const nodeInfo = constants[key]
+                                const type = nodeInfo.source_type !== 'component_outputs' ? 'input' : 'output'
+                                if (!(nodeId in acc)) {
+                                    acc[nodeId] = {
+                                        'input': [],
+                                        'output': []
+                                    }
+                                }
+                                acc[nodeId][type].push(key)
+                            })
+                        }
+                        return acc
+                    }, {})
+                    this.nodeVariableInfo = nodeCitedInfo
+                } catch (e) {
+                    console.log(e)
+                }
+            },
             /**
             /**
              * 打开节点配置面板
@@ -1103,6 +1149,14 @@
                         this.thirdPartyList[id] = group
                     }
                     this.showConfigPanel(id)
+                }
+            },
+            // 流程透视
+            onTogglePerspective (val) {
+                this.isPerspective = val
+                if (val) {
+                    // 获取节点与变量的依赖关系
+                    this.getNodeVariableCitedData()
                 }
             },
             /**

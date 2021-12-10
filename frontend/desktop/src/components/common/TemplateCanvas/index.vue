@@ -62,6 +62,7 @@
                     :editable="editable"
                     :zoom-ratio="zoomRatio"
                     :is-show-hot-key="isShowHotKey"
+                    :is-perspective="isPerspective"
                     @onShowMap="onToggleMapShow"
                     @onZoomIn="onZoomIn"
                     @onZoomOut="onZoomOut"
@@ -70,6 +71,7 @@
                     @onFormatPosition="onFormatPosition"
                     @onToggleAllNode="onToggleAllNode"
                     @onToggleHotKeyInfo="onToggleHotKeyInfo"
+                    @onTogglePerspective="onTogglePerspective"
                     @onDownloadCanvas="onDownloadCanvas">
                 </tool-panel>
             </template>
@@ -79,6 +81,9 @@
                     :is-node-check-open="isNodeCheckOpen"
                     :editable="editable"
                     :has-admin-perm="hasAdminPerm"
+                    :node-variable-info="nodeVariableInfo"
+                    :activities="canvasData.activities"
+                    :is-perspective="isPerspective"
                     @onNodeDblclick="onNodeDblclick"
                     @onNodeClick="onNodeClick"
                     @onNodeMousedown="onNodeMousedown"
@@ -219,6 +224,10 @@
             pluginLoading: {
                 type: Boolean,
                 default: false
+            },
+            nodeVariableInfo: {
+                type: Object,
+                default: () => ({})
             }
         },
         data () {
@@ -253,6 +262,7 @@
                 isDisableEndPoint: false,
                 isSelectionOpen: false,
                 isShowHotKey: false,
+                isPerspective: false,
                 isCanCreateline: false,
                 selectedNodes: [],
                 copyNodes: [],
@@ -1098,6 +1108,12 @@
             onToggleHotKeyInfo (val) {
                 this.showSmallMap = false
                 this.isShowHotKey = !this.isShowHotKey
+            },
+            onTogglePerspective () {
+                this.showSmallMap = false
+                this.isShowHotKey = false
+                this.isPerspective = !this.isPerspective
+                this.$emit('onTogglePerspective', this.isPerspective)
             },
             onCloseHotkeyInfo () {
                 this.isShowHotKey = false
