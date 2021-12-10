@@ -183,7 +183,12 @@
                     <img class="plugin-logo" :src="plugin.logo_url" alt="">
                     <div>
                         <p class="plugin-title">{{ plugin.name }}</p>
-                        <p class="plugin-code">{{ plugin.code }}</p>
+                        <p
+                            class="plugin-desc"
+                            v-bk-overflow-tips="{ placement: 'bottom-end', extCls: 'plugin-desc-tips' }">
+                            {{ plugin.introduction }}
+                        </p>
+                        <p class="plugin-contact">{{ plugin.contact }}</p>
                     </div>
                 </li>
             </ul>
@@ -738,6 +743,7 @@
         cursor: pointer;
         padding: 0 59px 0 38px;
         color: #63656e;
+        font-size: 12px;
         .plugin-logo {
             width: 48px;
             height: 48px;
@@ -749,8 +755,15 @@
             font-weight: 700;
             margin-bottom: 4px;
         }
-        .plugin-code {
-            font-size: 12px;
+        .plugin-desc {
+            width: 645px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .plugin-contact {
+            color: #c4c6cc;
+            font-weight: 700;
         }
         &.is-actived, &:hover {
             background: hsl(218, 100%, 94%);
@@ -810,6 +823,11 @@
         }
         .bk-tab-section {
             display: none;
+        }
+    }
+    .plugin-desc-tips {
+        .tippy-arrow {
+            left: 370px !important;
         }
     }
 </style>

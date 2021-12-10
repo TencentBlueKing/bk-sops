@@ -200,6 +200,7 @@
                                 code: 'remote_plugin',
                                 template_id: templateId,
                                 name: item.code,
+                                desc: item.introduction,
                                 group_icon: '',
                                 group_name: '',
                                 nodeName: item.name,

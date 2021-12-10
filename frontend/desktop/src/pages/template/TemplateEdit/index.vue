@@ -1583,7 +1583,9 @@
                     const { next_offset, plugins, return_plugin_count } = resp.data
                     this.pagination.pageOver = limit !== return_plugin_count
                     this.pagination.offset = next_offset
-                    const pluginList = plugins.map(item => item.plugin)
+                    const pluginList = plugins.map(item => {
+                        return Object.assign({}, item.plugin, item.profile)
+                    })
                     if (isScrollLoad) {
                         this.atomTypeList.pluginList.push(...pluginList)
                     } else {
