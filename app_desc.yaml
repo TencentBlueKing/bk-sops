@@ -135,7 +135,7 @@ modules:
               value: 100000
               description: celery exporter 存储任务最大值
             - key: CELERY_EXPORTER_QUEUE
-              value: default api_task_queue_pipeline_priority api_task_queue_service_schedule_priority periodic_task_queue_pipeline_priority periodic_task_queue_service_schedule_priority pipeline pipeline_additional_task pipeline_additional_task_priority pipeline_priority pipeline_statistics_priority service_schedule service_schedule_priority task_prepare_api
+              value: default api_task_queue_pipeline_priority api_task_queue_service_schedule_priority periodic_task_queue_pipeline_priority periodic_task_queue_service_schedule_priority pipeline pipeline_additional_task pipeline_additional_task_priority pipeline_priority pipeline_statistics_priority service_schedule service_schedule_priority task_prepare_api node_auto_retry
               description: celery exporter 队列
             - key: BKAPP_AUTO_UPDATE_VARIABLE_MODELS
               value: 0
