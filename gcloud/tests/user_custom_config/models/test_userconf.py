@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 from django.test import TestCase
 
 from gcloud.user_custom_config.models import UserCustomProjectConfig
-from gcloud.user_custom_config.constants import UserConfOption
 
 TEST_USER = "test_user"
 TEST_NOT_EXIST_USERCONF = "user1"
@@ -24,7 +23,7 @@ TEST_PROJECT_ID = 12345
 class TestUserConf(TestCase):
     def test_set_userconf(self):
         user_conf = UserCustomProjectConfig.objects.set_userconf(
-            username=TEST_USER, project_id=TEST_PROJECT_ID, tasktmpl_ordering="id"
+            username=TEST_USER, project_id=TEST_PROJECT_ID, task_template_ordering="id"
         )
         self.assertEqual(user_conf.task_template_ordering, "id")
         self.assertEqual(user_conf.username, TEST_USER)
@@ -32,6 +31,6 @@ class TestUserConf(TestCase):
 
     def test_get_conf(self):
         user_conf = UserCustomProjectConfig.objects.set_userconf(username=TEST_USER, project_id=TEST_PROJECT_ID)
-        self.assertEqual(user_conf.task_template_ordering, UserConfOption["task_template_ordering"][0]["value"])
+        self.assertEqual(user_conf.task_template_ordering, "-id")
         self.assertEqual(user_conf.username, TEST_USER)
         self.assertEqual(user_conf.project_id, TEST_PROJECT_ID)
