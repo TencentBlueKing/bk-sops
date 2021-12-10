@@ -15,14 +15,16 @@
             <div class="group-wrapper">
                 <ip-search-input
                     class="ip-search-wrap"
+                    :editable="editable"
                     :placeholder="i18n.searchGroup"
                     @search="onGroupSearch">
                 </ip-search-input>
                 <div class="group-list">
                     <template v-if="groupList.length > 0">
-                        <div class="group-item" v-for="group in groupList" :key="group.id">
+                        <div :class="['group-item', { 'disabled': !editable }]" v-for="group in groupList" :key="group.id">
                             <bk-checkbox
                                 class="group-checkbox"
+                                :disabled="!editable"
                                 :value="isChecked(group.id)"
                                 @change="onGroupSelectChange(group)">
                             </bk-checkbox>
@@ -39,7 +41,7 @@
                 </div>
                 <div class="selected-list">
                     <div
-                        class="selected-item"
+                        :class="['selected-item', { 'disabled': !editable }]"
                         v-for="item in selectedGroups"
                         :key="item.id">
                         {{ item.name }}
@@ -103,6 +105,7 @@
                 }
             },
             onGroupSelectChange (group) {
+                if (!this.editable) return
                 const index = this.selectedGroups.findIndex(item => item.id === group.id)
                 if (index === -1) {
                     this.selectedGroups.push(group)
@@ -141,6 +144,13 @@
         height: 30px;
         line-height: 30px;
         color: #606266;
+        &.disabled {
+            color: #ccc;
+            cursor: not-allowed;
+            /deep/.bk-checkbox:hover {
+                border-color: #dcdfe6;
+            }
+        }
     }
     .group-checkbox {
         margin-right: 8px;
@@ -176,6 +186,16 @@
         position: relative;
         padding: 0 28px 0 8px;
         line-height: 32px;
+        &.disabled {
+            color: #ccc;
+            cursor: not-allowed;
+            i {
+                cursor: not-allowed;
+                &:hover {
+                    color: #dcdee6;
+                }
+            }
+        }
     }
     .common-icon-dark-circle-close {
         position: absolute;

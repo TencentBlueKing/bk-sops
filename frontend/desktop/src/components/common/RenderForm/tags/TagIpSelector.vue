@@ -105,7 +105,7 @@
             return {
                 loading: false,
                 isvalidate: false,
-                selectorTabs,
+                selectorTabs: tools.deepClone(selectorTabs),
                 staticIpList: [],
                 dynamicIpList: [],
                 topoModelList: [],

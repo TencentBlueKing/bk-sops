@@ -1260,7 +1260,18 @@ const en = {
     '自动隐藏': 'Auto hide',
     '自动隐藏在显示状态下触发，当触发条件都满足时，才会在编辑页面隐藏，但是不会对传参产生影响': 'Auto-hide is triggered in the display state. When the trigger conditions are met, it will be hidden on the editing page, but it will not affect the parameter transfer.',
     '启动失败': 'Failed to activate',
-    '节点ID': 'Node ID'
+    '节点ID': 'Node ID',
+    '表格设置': 'Table Settings',
+    '字段显示设置': 'Displaying Fields Setting',
+    '（最多{max}项）': '（{max} fiels most）',
+    '表格行高': 'Table Line Height',
+    '小': 'small',
+    '中': 'medium',
+    '大': 'large',
+    '默认排序表头设置': 'Default Order Setting',
+    '（请在下面可排序字段中选择）': '( Please select )',
+    '切换': 'Switch',
+    '注意：如果命中条件，变量会保留填参页面的输入值并隐藏。如果变量为表单必填参数且输入值为空，可能会导致任务执行失败': 'Note: If the condition is hit, the variable will retain the input value on the parameter page and hide it. If the variable is a required parameter of the form and the input value is empty, it may cause the task execution to fail'
 }
 
 export default en

@@ -352,7 +352,8 @@
                         result = this.listData.slice(0)
                         this.activeGroup = this.getDefaultActiveGroup()
                     } else {
-                        const reg = new RegExp(this.searchStr, 'i')
+                        const searchStr = this.escapeRegExp(this.searchStr)
+                        const reg = new RegExp(searchStr, 'i')
                         this.listData.forEach(group => {
                             const { group_icon, group_name, type } = group
                             const list = []

@@ -12,7 +12,7 @@
 <template>
     <div class="param-fill-wrapper">
         <div class="form-area">
-            <div :class="['task-info', { 'functor-task-info': entrance === 'function' }]" data-test-id="creatTask_form_taskInfo">
+            <div :class="['task-info', { 'functor-task-info': entrance === 'function' }]" data-test-id="createTask_form_taskInfo">
                 <div class="task-info-title">
                     <span>{{ $t('任务信息') }}</span>
                 </div>
@@ -24,7 +24,7 @@
                                 v-model="taskName"
                                 v-validate="taskNameRule"
                                 class="step-form-content-size"
-                                data-test-id="creatTask_form_taskName"
+                                data-test-id="createTask_form_taskName"
                                 name="taskName">
                             </bk-input>
                             <span v-show="veeErrors.has('taskName')" class="common-error-tip error-msg">{{ veeErrors.first('taskName') }}</span>
@@ -32,7 +32,7 @@
                     </div>
                     <div
                         v-if="!isExecuteSchemeHide"
-                        data-test-id="creatTask_form_executePlan"
+                        data-test-id="createTask_form_executePlan"
                         class="common-form-item">
                         <label class="required">{{$t('执行计划')}}</label>
                         <div class="common-form-content">
@@ -49,7 +49,7 @@
                     </div>
                     <div
                         v-if="isTaskTypeShow"
-                        data-test-id="creatTask_form_processType"
+                        data-test-id="createTask_form_processType"
                         class="common-form-item">
                         <label class="required">{{ $t('流程类型') }}</label>
                         <div class="common-form-content">
@@ -111,7 +111,7 @@
                     </template>
                 </div>
             </div>
-            <div class="param-info" data-test-id="creatTask_form_paramInfo">
+            <div class="param-info" data-test-id="createTask_form_paramInfo">
                 <div class="param-info-title">
                     <span>
                         {{ $t('参数信息') }}
@@ -131,7 +131,7 @@
         <div class="action-wrapper">
             <bk-button
                 class="preview-step-button"
-                data-test-id="creatTask_form_previousStep"
+                data-test-id="createTask_form_previousStep"
                 @click="onGotoSelectNode">
                 {{ $t('上一步') }}
             </bk-button>
@@ -143,7 +143,7 @@
                 :loading="isSubmit"
                 :disabled="paramsLoading || commonTplCreateTaskPermLoading || nextBtnDisable"
                 v-cursor="{ active: common ? !hasCommonTplCreateTaskPerm : !hasPermission(nextStepPerm, actions) }"
-                data-test-id="creatTask_form_creatTask"
+                data-test-id="createTask_form_createTask"
                 @click="onCreateTask">
                 {{$t('下一步')}}
             </bk-button>
