@@ -985,6 +985,9 @@
                 }
                 this.pagination.current = 1
                 this.getTemplateList()
+                if (this.ordering) {
+                    this.setUserProjectConfig({ id: this.project_id, params: { task_template_ordering: this.ordering } })
+                }
             },
             renderTableHeader (h, { column, $index }) {
                 if (column.property !== 'category_name') {
