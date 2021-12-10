@@ -308,7 +308,8 @@
             async loadDefaultSchemeList () {
                 try {
                     const resp = await this.getDefaultTaskScheme({
-                        project_id: this.project_id,
+                        project_id: this.isCommonProcess ? undefined : this.project_id,
+                        template_type: this.isCommonProcess ? 'common' : undefined,
                         template_id: Number(this.template_id)
                     })
                     if (resp.data.length) {
@@ -404,8 +405,9 @@
                 try {
                     const ids = Object.keys(this.defaultPlanDataObj).map(item => Number(item))
                     const params = {
-                        project_id: this.project_id,
+                        project_id: this.isCommonProcess ? undefined : this.project_id,
                         template_id: Number(this.template_id),
+                        template_type: this.isCommonProcess ? 'common' : undefined,
                         scheme_ids: ids,
                         id: this.defaultSchemeId
                     }

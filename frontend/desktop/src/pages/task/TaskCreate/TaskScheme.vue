@@ -222,7 +222,8 @@
             async loadDefaultSchemeList () {
                 try {
                     const resp = await this.getDefaultTaskScheme({
-                        project_id: this.project_id,
+                        project_id: this.isCommonProcess ? undefined : this.project_id,
+                        template_type: this.isCommonProcess ? 'common' : undefined,
                         template_id: Number(this.template_id)
                     })
                     if (resp.data.length) {
@@ -246,7 +247,8 @@
                         return acc
                     }, [])
                     const params = {
-                        project_id: this.project_id,
+                        project_id: this.isCommonProcess ? undefined : this.project_id,
+                        template_type: this.isCommonProcess ? 'common' : undefined,
                         template_id: Number(this.template_id),
                         scheme_ids: ids,
                         id: this.defaultSchemeId
