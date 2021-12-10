@@ -92,8 +92,8 @@ class VarSetModuleSelector(LazyVariable):
     desc = """
     用于获取集群和模块的信息（名称或ID）
     引用${KEY}，返回类型为字符串，值的格式为set: {用英文逗号连接的集群名称}, modules: {用英文逗号连接的模块名称}
-    引用${KEY.set_name}，返回类型为列表，列表值为集群名称
-    引用${KEY.set_id}，返回类型为列表，列表值为集群ID
+    引用${KEY.set_name}，返回类型为字符串，值为集群名称
+    引用${KEY.set_id}，返回类型为数字，值为集群ID
     引用${KEY.module_name}，返回类型为列表，列表值为模块名称
     引用${KEY.flat__module_name}，返回类型为字符串，值为用英文逗号,连接的模块名称
     引用${KEY.module_id}，返回类型为列表，列表值为模块ID

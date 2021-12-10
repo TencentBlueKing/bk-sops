@@ -34,10 +34,7 @@ class OperateTaskAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID,
-                name=TEST_PROJECT_NAME,
-                bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True,
+                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
             )
         ),
     )
@@ -48,9 +45,7 @@ class OperateTaskAPITest(APITest):
 
         with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=task)):
             response = self.client.post(
-                path=self.url().format(
-                    task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID
-                ),
+                path=self.url().format(task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID),
                 data=json.dumps({"action": assert_action}),
                 content_type="application/json",
             )
@@ -60,3 +55,38 @@ class OperateTaskAPITest(APITest):
             data = json.loads(response.content)
 
             self.assertEqual(data, assert_return)
+
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+            )
+        ),
+    )
+    def test_operate_task__start_action(self):
+        assert_action = "start"
+        taskflow_instance = MagicMock()
+        taskflow_instance.objects.is_task_started = MagicMock(return_value=False)
+        prepare_and_start_task = MagicMock()
+
+        with mock.patch(APIGW_OPERATE_TASK_TASKFLOW_INSTANCE, taskflow_instance):
+            with mock.patch(APIGW_OPERATE_TASK_PREPARE_AND_START_TASK, prepare_and_start_task):
+                response = self.client.post(
+                    path=self.url().format(task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID),
+                    data=json.dumps({"action": assert_action}),
+                    content_type="application/json",
+                )
+
+                taskflow_instance.objects.is_task_started.assert_called_once_with(
+                    project_id=TEST_PROJECT_ID, id=TEST_TASKFLOW_ID
+                )
+                prepare_and_start_task.apply_async.assert_called_once_with(
+                    kwargs=dict(task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID, username=""),
+                    queue="task_prepare_api",
+                    routing_key="task_prepare_api",
+                )
+
+                data = json.loads(response.content)
+
+                self.assertTrue(data["result"])

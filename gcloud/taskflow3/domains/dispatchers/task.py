@@ -20,12 +20,14 @@ from django.utils import timezone
 from bamboo_engine import api as bamboo_engine_api
 from bamboo_engine import states as bamboo_engine_states
 from bamboo_engine.context import Context
+from bamboo_engine import exceptions as bamboo_engine_exceptions
 from pipeline.eri.runtime import BambooDjangoRuntime
 from pipeline.service import task_service
 from pipeline.models import PipelineInstance
 from pipeline.parser.context import get_pipeline_context
 from pipeline.engine import api as pipeline_api
 from pipeline.engine.models import PipelineModel
+from pipeline.core.data.var import Variable
 from pipeline_web.parser.format import format_web_data_to_pipeline
 from pipeline.engine import exceptions as pipeline_exceptions
 from pipeline.exceptions import (
@@ -34,6 +36,8 @@ from pipeline.exceptions import (
     IsolateNodeError,
     StreamValidateError,
 )
+from opentelemetry import trace
+
 
 from gcloud import err_code
 from gcloud.taskflow3.signals import taskflow_started
@@ -90,7 +94,13 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         if command in self.OPERATION_TYPE_COMMANDS and not self.pipeline_instance.is_started:
             return {"result": False, "message": "task not started", "code": err_code.INVALID_OPERATION.code}
 
-        return getattr(self, "{}_v{}".format(command, self.engine_ver))(operator)
+        with trace.get_tracer(__name__).start_as_current_span("task_operate") as span:
+            span.set_attribute("bk_sops.task_id", self.taskflow_id)
+            span.set_attribute("bk_sops.pipeline_id", self.pipeline_instance.instance_id)
+            span.set_attribute("bk_sops.engine_ver", self.engine_ver)
+            span.set_attribute("bk_sops.task_command", command)
+
+            return getattr(self, "{}_v{}".format(command, self.engine_ver))(operator)
 
     def start_v1(self, executor: str) -> dict:
         try:
@@ -444,12 +454,13 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         data = []
         for key, var in context.variables.items():
             try:
-                if isinstance(var.value, TaskContext):
-                    data.append({"key": key, "value": var.value.__dict__})
-                elif hasattr(var, "get"):
-                    data.append({"key": key, "value": var.get()})
+                if issubclass(var.__class__, Variable):
+                    if isinstance(var.value, TaskContext):
+                        data.append({"key": key, "value": var.value.__dict__})
+                    else:
+                        data.append({"key": key, "value": var.get()})
                 else:
-                    data.append({"key": key, "value": var.value})
+                    data.append({"key": key, "value": var})
             except Exception:
                 logger.exception("[render_current_constants_v1] error occurred at value resolve for %s" % key)
                 data.append({"key": key, "value": "[ERROR]value resolve error"})
@@ -459,11 +470,29 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
     def render_current_constants_v2(self):
         runtime = BambooDjangoRuntime()
         context_values = runtime.get_context(self.pipeline_instance.instance_id)
-        root_pipeline_inputs = {
-            key: di.value for key, di in runtime.get_data_inputs(self.pipeline_instance.instance_id).items()
-        }
+        try:
+            root_pipeline_inputs = {
+                key: di.value for key, di in runtime.get_data_inputs(self.pipeline_instance.instance_id).items()
+            }
+        except bamboo_engine_exceptions.NotFoundError:
+            return {
+                "result": False,
+                "data": None,
+                "code": err_code.CONTENT_NOT_EXIST.code,
+                "message": "data not found, task is not running",
+            }
         context = Context(runtime, context_values, root_pipeline_inputs)
-        hydrated_context = context.hydrate()
+
+        try:
+            hydrated_context = context.hydrate()
+        except Exception as e:
+            logger.exception("[render_current_constants_v2] error occurred at context hydrate")
+            return {
+                "result": False,
+                "data": None,
+                "code": err_code.UNKNOWN_ERROR.code,
+                "message": "context hydrate error: %s" % str(e),
+            }
 
         data = []
         for key, value in hydrated_context.items():

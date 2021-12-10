@@ -11,10 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
+import time
 import traceback
 
 import ujson as json
 from cryptography.fernet import Fernet
+from django.db import transaction
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
@@ -56,6 +58,7 @@ from gcloud.taskflow3.apis.django.validators import (
     GetNodeLogValidator,
 )
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher, TaskCommandDispatcher
+from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.taskflow import (
     DataViewInterceptor,
@@ -312,9 +315,15 @@ def task_clone(request, project_id):
         kwargs["create_method"] = data.get("create_method")
         kwargs["create_info"] = data.get("create_info", "")
 
-    new_task_id = task.clone(username, **kwargs)
+    with transaction.atomic():
+        new_task = task.clone(username, **kwargs)
 
-    ctx = {"result": True, "data": {"new_instance_id": new_task_id}, "message": "", "code": err_code.SUCCESS.code}
+        arn_creator = AutoRetryNodeStrategyCreator(
+            taskflow_id=new_task.id, root_pipeline_id=new_task.pipeline_instance.instance_id
+        )
+        arn_creator.batch_create_strategy(pipeline_tree=task.pipeline_instance.execution_data)
+
+    ctx = {"result": True, "data": {"new_instance_id": new_task.id}, "message": "", "code": err_code.SUCCESS.code}
 
     return JsonResponse(ctx)
 
@@ -432,7 +441,7 @@ def get_node_log(request, project_id, node_id):
             }
         )
 
-    dispatcher = NodeCommandDispatcher(engine_ver=task.engine_ver, node_id=node_id)
+    dispatcher = NodeCommandDispatcher(engine_ver=task.engine_ver, node_id=node_id, taskflow_id=task_id)
     return JsonResponse(dispatcher.get_node_log(history_id))
 
 
@@ -449,7 +458,7 @@ def get_task_create_method(request):
 @require_POST
 def node_callback(request, token):
     """
-    old callback view, handle pipeline callback
+    old callback view, handle pipeline callback, will not longer use after 3.6.X+ version
     """
     logger.info("[old_node_callback]callback body for token({}): {}".format(token, request.body))
 
@@ -472,10 +481,12 @@ def node_callback(request, token):
     # 由于回调方不一定会进行多次回调，这里为了在业务层防止出现不可抗力（网络，DB 问题等）导致失败
     # 增加失败重试机制
     callback_result = None
-    for i in range(3):
+    for __ in range(env.NODE_CALLBACK_RETRY_TIMES):
         callback_result = dispatcher.dispatch(command="callback", operator="", data=callback_data)
         logger.info("result of callback call({}): {}".format(token, callback_result))
         if callback_result["result"]:
             break
+        # 考虑callback时Process状态还没及时修改为sleep的情况
+        time.sleep(0.5)
 
     return JsonResponse(callback_result)

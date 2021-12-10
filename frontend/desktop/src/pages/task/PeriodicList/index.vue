@@ -26,12 +26,13 @@
                             theme="primary"
                             size="normal"
                             style="min-width: 120px;"
+                            data-test-id="periodicList_form_createTask"
                             @click="onCreatePeriodTask">
                             {{$t('新建')}}
                         </bk-button>
                     </template>
                 </advance-search-form>
-                <div class="periodic-table-content">
+                <div class="periodic-table-content" data-test-id="periodicList_table_taskList">
                     <bk-table
                         :data="periodicList"
                         :pagination="pagination"
@@ -96,6 +97,7 @@
                                                 'periodic-start-btn': !props.row.enabled,
                                                 'text-permission-disable': !hasPermission(['periodic_task_edit'], props.row.auth_actions)
                                             }]"
+                                            data-test-id="periodicList_table_enableBtn"
                                             @click="onSetEnable(props.row, $event)">
                                             {{!props.row.enabled ? $t('启动') : $t('暂停')}}
                                         </a>
@@ -107,6 +109,7 @@
                                                 'text-permission-disable': !hasPermission(['periodic_task_edit'], props.row.auth_actions)
                                             }]"
                                             :title="props.row.enabled ? $t('请暂停任务后再执行编辑操作') : ''"
+                                            data-test-id="periodicList_table_editBtn"
                                             @click="onModifyCronPeriodic(props.row, $event)">
                                             {{ $t('编辑') }}
                                         </a>
@@ -114,10 +117,12 @@
                                     <a
                                         v-else
                                         href="javascript:void(0);"
+                                        data-test-id="periodicList_table_recordBtn"
                                         @click="onRecordView(props.row, $event)">
                                         {{ $t('启动记录') }}
                                     </a>
                                     <router-link
+                                        data-test-id="process_table_executeHistoryBtn"
                                         :to="{
                                             name: 'taskList',
                                             params: { project_id: props.row.project.id },
@@ -135,7 +140,7 @@
                                         :tippy-options="{ boundary: 'window', duration: [0, 0] }">
                                         <i class="bk-icon icon-more drop-icon-ellipsis"></i>
                                         <ul slot="content">
-                                            <li class="opt-btn">
+                                            <li class="opt-btn" data-test-id="periodicList_table_collectBtn">
                                                 <a
                                                     v-cursor="{ active: !hasPermission(['periodic_task_edit'], props.row.auth_actions) }"
                                                     href="javascript:void(0);"
@@ -147,7 +152,7 @@
                                                     {{ isCollected(props.row.id) ? $t('取消收藏') : $t('收藏') }}
                                                 </a>
                                             </li>
-                                            <li class="opt-btn">
+                                            <li class="opt-btn" data-test-id="periodicList_table_deleteBtn">
                                                 <a
                                                     v-cursor="{ active: !hasPermission(['periodic_task_delete'], props.row.auth_actions) }"
                                                     href="javascript:void(0);"
@@ -661,6 +666,7 @@
                         const res = await this.addToCollectList([{
                             extra_info: {
                                 project_id: task.project.id,
+                                project_name: task.project.name,
                                 template_id: task.template_id,
                                 name: task.name,
                                 id: task.id

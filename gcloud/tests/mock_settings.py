@@ -40,6 +40,7 @@ TASKINSTANCE_PREVIEW_TREE = "gcloud.taskflow3.models.TaskFlowInstance.objects.pr
 TASKINSTANCE_OBJECTS_CALLBACK = "gcloud.taskflow3.models.TaskFlowInstance.objects.callback"
 TASKINSTANCE_CALLBACK = "gcloud.taskflow3.models.TaskFlowInstance.callback"
 TASKINSTANCE_HAS_NODE = "gcloud.taskflow3.models.TaskFlowInstance.has_node"
+TASKINSTANCE_SAVE = "gcloud.taskflow3.models.TaskFlowInstance.save"
 
 TASKFLOW_MODEL_TASK_COMMAND_DISPATCHER = "gcloud.taskflow3.models.TaskCommandDispatcher"
 TASKFLOW_MODEL_TASK_COMMAND_DISPATCHER_GET_STATUS = "gcloud.taskflow3.models.TaskCommandDispatcher.get_task_status"
@@ -60,6 +61,10 @@ TASKFLOW_DISPATCHERS_NODE_SYSTEM_OBJ = "gcloud.taskflow3.domains.dispatchers.nod
 TASKFLOW_DISPATCHERS_TASK_PIPELINE_MODEL = "gcloud.taskflow3.domains.dispatchers.task.PipelineModel"
 TASKFLOW_DISPATCHERS_TASK_BAMBOO_DJANGO_RUNTIME = "gcloud.taskflow3.domains.dispatchers.task.BambooDjangoRuntime"
 TASKFLOW_DISPATCHERS_TASK_CONTEXT = "gcloud.taskflow3.domains.dispatchers.task.Context"
+
+TASKFLOW_MODEL_ELAPSED_TIME = "gcloud.taskflow3.models.TaskFlowInstance.elapsed_time"
+TASKFLOW_MODEL_PIPELINE_TREE = "gcloud.taskflow3.models.TaskFlowInstance.pipeline_tree"
+TASKFLOW_MODEL_URL = "gcloud.taskflow3.models.TaskFlowInstance.url"
 
 PERIODIC_TASK_FILTER = "gcloud.periodictask.models.PeriodicTask.objects.filter"
 PERIODIC_TASK_GET = "gcloud.periodictask.models.PeriodicTask.objects.get"
@@ -96,6 +101,8 @@ APIGW_DECORATOR_BUSINESS_EXIST = "gcloud.apigw.decorators.business_exist"
 APIGW_START_TASK_TASKFLOW_INSTANCE = "gcloud.apigw.views.start_task.TaskFlowInstance"
 APIGW_START_TASK_PREPARE_AND_START_TASK = "gcloud.apigw.views.start_task.prepare_and_start_task"
 APIGW_CREATE_AND_START_TASK_PREPARE_AND_START_TASK = "gcloud.apigw.views.create_and_start_task.prepare_and_start_task"
+APIGW_OPERATE_TASK_TASKFLOW_INSTANCE = "gcloud.apigw.views.operate_task.TaskFlowInstance"
+APIGW_OPERATE_TASK_PREPARE_AND_START_TASK = "gcloud.apigw.views.operate_task.prepare_and_start_task"
 
 MAIN_PACKAGE_SOURCE_GET = "gcloud.external_plugins.models.main_source.MainPackageSource.objects.get"
 
@@ -159,7 +166,9 @@ CALCULATE_ELAPSED_TIME = "pipeline.engine.utils.calculate_elapsed_time"
 COUNT_PIPELINE_TREE_NODES = "pipeline.contrib.statistics.utils.count_pipeline_tree_nodes"
 
 PIPELINE_INSTANCE_GET = "pipeline.models.PipelineInstance.objects.get"
+PIPELINE_INSTANCE_FILTER = "pipeline.models.PipelineInstance.objects.filter"
 PIPELINE_TEMPLATE_GET = "pipeline.models.PipelineTemplate.objects.get"
+PIPELINE_TEMPLATE_FILTER = "pipeline.models.PipelineTemplate.objects.filter"
 TEMPLATE_BASE_MODELS_TEMPLATE_RELATIONSHIP = "gcloud.template_base.models.TemplateRelationship"
 TEMPLATE_BASE_MODELS_TEMPLATE_CURRENT_VERSION = "gcloud.template_base.models.TemplateCurrentVersion"
 TEMPLATE_BASE_MODELS_TEMPLATE_RELATIONSHIP = "gcloud.template_base.models.TemplateRelationship"
@@ -172,3 +181,8 @@ COMPONENTINTEMPLATE_FILTER = "pipeline.contrib.statistics.models.ComponentInTemp
 COMPONENTEXECUTEDATA_FILTER = "pipeline.contrib.statistics.models.ComponentExecuteData.objects.filter"
 
 PIPELINE_TEMPLATE_POSTSAVE_HANDLER = "pipeline.signals.handlers.pipeline_template_pre_save_handler"
+
+GCLOUD_CLOCKED_TASK_TASKS_PROJECT = "gcloud.clocked_task.tasks.Project"
+GCLOUD_CLOCKED_TASK_TASKS_TASK_TEMPLATE = "gcloud.clocked_task.tasks.TaskTemplate"
+GCLOUD_CLOCKED_TASK_TASKS_TASKFLOW_INSTANCE = "gcloud.clocked_task.tasks.TaskFlowInstance"
+GCLOUD_CLOCKED_TASK_TASKS_ARN_CREATOR = "gcloud.clocked_task.tasks.AutoRetryNodeStrategyCreator"

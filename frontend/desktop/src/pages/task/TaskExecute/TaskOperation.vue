@@ -135,6 +135,7 @@
             :title="$t('跳过节点')"
             :loading="pending.skip"
             :value="isSkipDialogShow"
+            data-test-id="taskExcute_dialog_skipNodeDialog"
             @confirm="nodeTaskSkip(skipNodeId)"
             @cancel="onSkipCancel">
             <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否跳过该任务节点？') }}</div>
@@ -148,6 +149,7 @@
             :title="$t('强制失败')"
             :loading="pending.forceFail"
             :value="isForceFailDialogShow"
+            data-test-id="taskExcute_dialog_forceFailDialog"
             @confirm="nodeForceFail(forceFailId)"
             @cancel="onForceFailCancel">
             <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否将该任务节点强制执行失败？') }}</div>
@@ -161,6 +163,7 @@
             :title="$t('继续执行')"
             :loading="pending.parseNodeResume"
             :value="isNodeResumeDialogShow"
+            data-test-id="taskExcute_dialog_resumeDialog"
             @confirm="nodeResume(nodeResumeId)"
             @cancel="onTaskNodeResumeCancel">
             <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否完成暂停节点继续向后执行？') }}</div>
@@ -179,6 +182,7 @@
             :mask-close="false"
             :show-footer="false"
             :value="isShowDialog"
+            data-test-id="taskExcute_dialog_confirmSaveDialog"
             @cancel="isShowDialog = false">
             <div class="task-operation-confirm-dialog-content">
                 <div class="leave-tips">{{ $t('保存已修改的信息吗？') }}</div>
@@ -835,7 +839,7 @@
             updateNodeInfo () {
                 const nodes = this.instanceStatus.children
                 for (const id in nodes) {
-                    let code, skippable, retryable, errorIgnorable
+                    let code, skippable, retryable, errorIgnorable, autoRetry
                     const currentNode = nodes[id]
                     const nodeActivities = this.pipelineData.activities[id]
 
@@ -844,6 +848,7 @@
                         skippable = nodeActivities.isSkipped || nodeActivities.skippable
                         retryable = nodeActivities.can_retry || nodeActivities.retryable
                         errorIgnorable = nodeActivities.error_ignorable
+                        autoRetry = nodeActivities.auto_retry
                     }
 
                     const data = {
@@ -854,8 +859,9 @@
                         status: currentNode.state,
                         skip: currentNode.skip,
                         retry: currentNode.retry,
+                        error_ignored: currentNode.error_ignored,
                         error_ignorable: errorIgnorable,
-                        error_ignored: currentNode.error_ignored
+                        auto_retry: autoRetry
                     }
 
                     this.setTaskNodeStatus(id, data)

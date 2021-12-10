@@ -10,10 +10,10 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="my-collection" v-bkloading="{ isLoading: collectionBodyLoading, opacity: 1, zIndex: 100 }">
+    <div class="my-collection" data-test-id="home_form_myCollection" v-bkloading="{ isLoading: collectionBodyLoading, opacity: 1, zIndex: 100 }">
         <h3 class="panel-title">
             {{ $t('我的收藏') }}
-            <span class="add-btn" @click="onAddCollection">{{ $t('添加') }}</span>
+            <span class="add-btn" data-test-id="home_form_addCollect" @click="onAddCollection">{{ $t('添加') }}</span>
         </h3>
         <div
             v-for="(grounp, index) in collectionGrounpList"
@@ -255,7 +255,17 @@
             checkForPermission (item) {
                 if (item.category === 'flow') {
                     item.name = item.extra_info.name
-                    this.applyForPermission(['flow_create_task'], item.auth_actions, { flow: [item], project: [{ id: item.extra_info.project_id, name: item.extra_info.project_name }] })
+                    const { instance_id: id, name, extra_info: info } = item
+                    const resourceData = {
+                        flow: [{ id, name }],
+                        project: [
+                            {
+                                id: info.project_id,
+                                name: info.project_name
+                            }
+                        ]
+                    }
+                    this.applyForPermission(['flow_create_task'], item.auth_actions, resourceData)
                 }
             },
             onHideCreateTask () {

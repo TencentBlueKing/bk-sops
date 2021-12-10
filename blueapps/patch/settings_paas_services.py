@@ -52,7 +52,11 @@ APM_TOKEN = os.environ.get("APM_TOKEN")
 if APM_ID and APM_TOKEN:
     INSTALLED_APPS += ("ddtrace.contrib.django",)
     DATADOG_TRACE = {
-        "TAGS": {"env": os.getenv("BKPAAS_ENVIRONMENT", "dev"), "apm_id": APM_ID, "apm_token": APM_TOKEN,},
+        "TAGS": {
+            "env": os.getenv("BKPAAS_ENVIRONMENT", "dev"),
+            "apm_id": APM_ID,
+            "apm_token": APM_TOKEN,
+        },
     }
     # requests for APIGateway/ESB
     # remove pymysql while Django Defaultdb has been traced already

@@ -34,7 +34,8 @@ class JobExecuteTaskComponent(Component):
     name = _("执行作业")
     code = "job_execute_task"
     bound_service = JobExecuteTaskService
-    form = "%scomponents/atoms/job/job_execute_task/v1_0.js" % settings.STATIC_URL
+    form = "%scomponents/atoms/job/execute_task/v1_0.js" % settings.STATIC_URL
     output_form = "%scomponents/atoms/job/job_execute_task_output.js" % settings.STATIC_URL
     version = "1.0"
-    desc = "在用户编辑开始编辑全局变量之前，v1.0版本会先生成一对双引号，将得到的字符串作为调用API时的参数。"
+    desc = "在接收到用户编辑的全局变量后，v1.0版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n" \
+           "如果不需要双引号包裹，可以使用legacy版本插件，也可以手动在表格中去掉。"

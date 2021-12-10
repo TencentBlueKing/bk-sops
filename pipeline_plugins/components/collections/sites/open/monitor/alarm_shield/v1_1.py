@@ -211,7 +211,7 @@ class MonitorAlarmShieldService(Service):
             )
         # 获取模块id列表
         module_ids = get_module_id_list_by_name(bk_biz_id, username, set_list, service_template_list)
-        target = [{"bk_obj_id": "module", "bk_inst_id": module_id} for module_id in module_ids]
+        target = [{"bk_obj_id": "module", "bk_inst_id": module_id["bk_module_id"]} for module_id in module_ids]
 
         return {"scope_type": "node", "target": target}
 

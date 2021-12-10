@@ -17,6 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from blueapps.conf.log import get_logging_config_dict
 from blueapps.conf.default_settings import *  # noqa
+from blueapps.opentelemetry.utils import inject_logging_trace_info
 from gcloud.exceptions import ApiRequestError
 from pipeline.celery.queues import ScalableQueues
 from bamboo_engine.config import Settings as BambooSettings
@@ -73,6 +74,7 @@ INSTALLED_APPS += (
     "gcloud.analysis_statistics.data_migrate",
     "gcloud.clocked_task",
     "gcloud.template_base",
+    "gcloud.user_custom_config",
     "pipeline",
     "pipeline.component_framework",
     "pipeline.variable_framework",
@@ -103,6 +105,7 @@ INSTALLED_APPS += (
     "drf_yasg",
     "plugin_service",
     "django_dbconn_retry",
+    "blueapps.opentelemetry.instrument_app",
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -170,7 +173,8 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.9.4"
+
+STATIC_VERSION = "3.13.1"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -328,7 +332,7 @@ BK_IAM_MIGRATION_APP_NAME = "bksops_iam_migrations"
 AUTH_LEGACY_RESOURCES = ["project", "common_flow", "flow", "mini_app", "periodic_task", "task"]
 
 # 用户管理配置
-BK_USER_MANAGE_HOST = "{}/o/{}".format(BK_PAAS_HOST, "bk_user_manage")
+BK_USER_MANAGE_HOST = env.BK_USER_MANAGE_HOST
 
 # 人员选择数据来源
 BK_MEMBER_SELECTOR_DATA_HOST = env.BK_MEMBER_SELECTOR_DATA_HOST
@@ -455,6 +459,7 @@ ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 from pipeline.celery.settings import *  # noqa
 from pipeline.eri.celery import queues as eri_queues  # noqa
 from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver  # noqa
+from gcloud.taskflow3.celery import settings as taskflow3_celery_settings  # noqa
 
 API_TASK_QUEUE_NAME_V2 = "api"
 PERIODIC_TASK_QUEUE_NAME_V2 = "periodic_task"
@@ -462,6 +467,7 @@ CELERY_QUEUES.extend(eri_queues.CELERY_QUEUES)
 CELERY_QUEUES.extend(eri_queues.QueueResolver(API_TASK_QUEUE_NAME_V2).queues())
 CELERY_QUEUES.extend(eri_queues.QueueResolver(PERIODIC_TASK_QUEUE_NAME_V2).queues())
 CELERY_QUEUES.extend(PrepareAndStartTaskQueueResolver(API_TASK_QUEUE_NAME_V2).queues())
+CELERY_QUEUES.extend(taskflow3_celery_settings.CELERY_QUEUES)
 
 # CELERY与RabbitMQ增加60秒心跳设置项
 BROKER_HEARTBEAT = 60
@@ -476,7 +482,7 @@ for _setting in dir(ver_settings):
         locals()[_setting] = getattr(ver_settings, _setting)
 
 # version log config
-VERSION_LOG = {"PAGE_STYLE": "gitbook", "MD_FILES_DIR": "version_log/version_logs_md"}
+VERSION_LOG = {"FILE_TIME_FORMAT": "%Y-%m-%d"}
 
 # migrate api token
 MIGRATE_TOKEN = env.MIGRATE_TOKEN
@@ -500,7 +506,7 @@ VARIABLE_SPECIFIC_EXCEPTIONS = (ApiRequestError,)
 
 
 # SaaS统一日志配置
-def logging_addition_settings(logging_dict, environment="prod"):
+def logging_addition_settings(logging_dict: dict, environment="prod"):
 
     # formatters
     logging_dict["formatters"]["light"] = {"format": "%(message)s"}
@@ -572,17 +578,16 @@ def logging_addition_settings(logging_dict, environment="prod"):
     }
 
     # 日志中添加trace_id
-    logging_dict.update({"filters": {"trace_id_inject_filter": {"()": "gcloud.core.logging.TraceIDInjectFilter"}}})
-    for _, logging_handler in logging_dict["handlers"].items():
-        logging_handler.update({"filters": ["trace_id_inject_filter"]})
-    format_keywords = ["format", "fmt"]
-    for formatter_name, logging_formatter in logging_dict["formatters"].items():
-        if formatter_name != "simple":
-            for keyword in format_keywords:
-                if keyword in logging_formatter:
-                    logging_formatter.update(
-                        {keyword: logging_formatter[keyword].strip() + " [trace_id]: %(trace_id)s\n"}
-                    )
+    if env.ENABLE_OTEL_TRACE:
+        trace_format = (
+            "[trace_id]: %(otelTraceID)s [span_id]: %(otelSpanID)s [resource.service.name]: %(otelServiceName)s"
+        )
+    else:
+        logging_dict.update({"filters": {"trace_id_inject_filter": {"()": "gcloud.core.logging.TraceIDInjectFilter"}}})
+        for _, logging_handler in logging_dict["handlers"].items():
+            logging_handler.update({"filters": ["trace_id_inject_filter"]})
+        trace_format = "[trace_id]: %(trace_id)s"
+    inject_logging_trace_info(logging_dict, ("verbose",), trace_format)
 
 
 def monitor_report_config():
@@ -637,3 +642,10 @@ def monitor_report_config():
 # 自定义上报监控配置
 if env.BK_MONITOR_REPORT_ENABLE:
     monitor_report_config()
+
+ENABLE_OTEL_TRACE = env.ENABLE_OTEL_TRACE
+
+BK_APP_OTEL_INSTRUMENT_DB_API = env.BK_APP_OTEL_INSTRUMENT_DB_API
+
+# 系统访问地址
+BK_SOPS_HOST = env.BK_SOPS_HOST

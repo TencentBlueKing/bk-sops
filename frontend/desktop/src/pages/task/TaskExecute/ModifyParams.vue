@@ -39,13 +39,14 @@
                     }"
                     :loading="pending"
                     v-cursor="{ active: !hasSavePermission }"
+                    data-test-id="taskExcute_form_saveMofifyParamsBtn"
                     @click="onModifyParams">
                     {{ $t('保存') }}
                 </bk-button>
-                <bk-button theme="default" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
+                <bk-button theme="default" data-test-id="taskExcute_form_cancelBtn" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
             </div>
             
-            <bk-button v-else theme="default" @click="onCancelRetry">{{ $t('关闭') }}</bk-button>
+            <bk-button v-else theme="default" data-test-id="taskExcute_form_closeBtn" @click="onCancelRetry">{{ $t('关闭') }}</bk-button>
         </div>
 
     </div>

@@ -86,13 +86,25 @@ class XssHtml(HTMLParser):
     tags_own_attrs = {
         "img": ["src", "width", "height", "alt", "align"],
         "a": ["href", "target", "rel", "title"],
-        "embed": ["src", "width", "height", "type", "allowfullscreen", "loop", "play", "wmode", "menu",],
+        "embed": [
+            "src",
+            "width",
+            "height",
+            "type",
+            "allowfullscreen",
+            "loop",
+            "play",
+            "wmode",
+            "menu",
+        ],
         "table": ["border", "cellpadding", "cellspacing"],
     }
 
     def __init__(self, allows=None):
         HTMLParser.__init__(self)
-        self.allow_tags = self.allow_tags if not allows else allows
+        if allows is None:
+            allows = []
+        self.allow_tags = allows if allows else self.allow_tags
         self.result = []
         self.start = []
         self.data = []
@@ -230,7 +242,12 @@ class XssHtml(HTMLParser):
         return attrs
 
     def __htmlspecialchars(self, html):
-        return html.replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;").replace("'", "&#039;")
+        return (
+            html.replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace('"', "&quot;")
+            .replace("'", "&#039;")
+        )
 
 
 if "__main__" == __name__:

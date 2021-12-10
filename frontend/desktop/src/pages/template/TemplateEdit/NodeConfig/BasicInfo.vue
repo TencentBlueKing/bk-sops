@@ -29,7 +29,7 @@
                 </bk-input>
                 <p v-if="formData.desc" class="plugin-info-desc" v-html="formData.desc"></p>
             </bk-form-item>
-            <bk-form-item :label="$t('插件版本')" :required="true" property="version">
+            <bk-form-item :label="$t('插件版本')" data-test-id="templateEdit_form_pluginVersion" :required="true" property="version">
                 <bk-select
                     v-model="formData.version"
                     :clearable="false"
@@ -42,13 +42,13 @@
                     </bk-option>
                 </bk-select>
             </bk-form-item>
-            <bk-form-item :label="$t('节点名称')" :required="true" property="nodeName">
+            <bk-form-item :label="$t('节点名称')" data-test-id="templateEdit_form_nodeName" :required="true" property="nodeName">
                 <bk-input v-model="formData.nodeName" @change="updateData"></bk-input>
             </bk-form-item>
-            <bk-form-item :label="$t('步骤名称')" property="stageName">
+            <bk-form-item :label="$t('步骤名称')" data-test-id="templateEdit_form_stageName" property="stageName">
                 <bk-input v-model="formData.stageName" @change="updateData"></bk-input>
             </bk-form-item>
-            <bk-form-item :label="$t('节点标签')" property="label">
+            <bk-form-item :label="$t('节点标签')" data-test-id="templateEdit_form_nodeLabel" property="label">
                 <bk-search-select
                     primary-key="code"
                     :clearable="true"
@@ -61,29 +61,50 @@
                     @clear="onLabelClear">
                 </bk-search-select>
             </bk-form-item>
-            <bk-form-item :label="$t('失败处理')" class="error-handle">
-                <bk-checkbox
-                    :value="formData.ignorable"
-                    @change="onErrorHandlerChange($event, 'ignorable')">
-                    <i class="error-handle-icon common-icon-dark-circle-i"></i>
-                    {{ $t('自动忽略') }}
-                </bk-checkbox>
-                <bk-checkbox
-                    :value="formData.skippable"
-                    :disabled="formData.ignorable"
-                    @change="onErrorHandlerChange($event, 'skippable')">
-                    <i class="error-handle-icon common-icon-dark-circle-s"></i>
-                    {{ $t('手动跳过') }}
-                </bk-checkbox>
-                <bk-checkbox
-                    :value="formData.retryable"
-                    :disabled="formData.ignorable"
-                    @change="onErrorHandlerChange($event, 'retryable')">
-                    <i class="error-handle-icon common-icon-dark-circle-r"></i>
-                    {{ $t('手动重试') }}
-                </bk-checkbox>
+            <bk-form-item :label="$t('失败处理')">
+                <div class="error-handle">
+                    <bk-checkbox
+                        :value="formData.ignorable"
+                        :disabled="formData.autoRetry.enable"
+                        @change="onErrorHandlerChange($event, 'ignorable')">
+                        <span class="error-handle-icon"><span class="text">AS</span></span>
+                        {{ $t('自动跳过') }}
+                    </bk-checkbox>
+                    <bk-checkbox
+                        :value="formData.skippable"
+                        :disabled="formData.ignorable"
+                        @change="onErrorHandlerChange($event, 'skippable')">
+                        <span class="error-handle-icon"><span class="text">MS</span></span>
+                        {{ $t('手动跳过') }}
+                    </bk-checkbox>
+                    <bk-checkbox
+                        :value="formData.retryable"
+                        :disabled="formData.ignorable || formData.autoRetry.enable"
+                        @change="onErrorHandlerChange($event, 'retryable')">
+                        <span class="error-handle-icon"><span class="text">MR</span></span>
+                        {{ $t('手动重试') }}
+                    </bk-checkbox>
+                    <bk-checkbox
+                        :value="formData.autoRetry.enable"
+                        :disabled="formData.ignorable"
+                        @change="onErrorHandlerChange($event, 'autoRetry')">
+                        <span class="error-handle-icon"><span class="text">AR</span></span>
+                        {{ $t('自动重试') }}
+                    </bk-checkbox>
+                    <span v-if="formData.autoRetry.enable" class="auto-retry-times">
+                        <bk-input
+                            :value="formData.autoRetry.times"
+                            type="number"
+                            style="width: 60px; margin: 0 4px;"
+                            :max="10"
+                            :min="1"
+                            @change="onRetryTimeChange">
+                        </bk-input>
+                        {{ $t('次') }}
+                    </span>
+                </div>
                 <p
-                    v-if="!formData.ignorable && !formData.skippable && !formData.retryable"
+                    v-if="!formData.ignorable && !formData.skippable && !formData.retryable && !formData.autoRetry.enable"
                     class="error-handle-tips">
                     {{ $t('未选择失败处理方式，标准插件节点如果执行失败，会导致任务中断后不可继续') }}
                 </p>
@@ -91,6 +112,7 @@
                     <p>{{ $t('自动忽略：标准插件节点如果执行失败，会自动忽略错误并把节点状态设置为成功。') }}</p>
                     <p>{{ $t('手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。') }}</p>
                     <p>{{ $t('手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。') }}</p>
+                    <p>{{ $t('自动重试：标准插件节点如果执行失败，系统会自动以原参数进行重试。') }}</p>
                 </div>
                 <i v-bk-tooltips="errorHandleTipsConfig" ref="tooltipsHtml" class="bk-icon icon-question-circle form-item-tips"></i>
             </bk-form-item>
@@ -129,7 +151,7 @@
                     class="common-icon-clock-inversion update-tooltip"
                     v-if="!inputLoading && subflowHasUpdate"
                     v-bk-tooltips="{
-                        content: $t('版本更新'),
+                        html: `<p>${ $t('版本更新') }</p><p>${ $t('子流程更新时，如果新旧版本存在相同表单，表单数据会默认取原表单数据') }</p>`,
                         placements: ['bottom-end']
                     }"
                     @click="onUpdateSubflowVersion">
@@ -170,6 +192,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
+    import tools from '@/utils/tools.js'
     import { mapState, mapActions, mapMutations } from 'vuex'
     import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
 
@@ -188,7 +211,7 @@
                 labelLoading: false,
                 subflowLoading: false,
                 version: this.basicInfo.version,
-                formData: { ...this.basicInfo },
+                formData: tools.deepClone(this.basicInfo),
                 pluginRules: {
                     plugin: [
                         {
@@ -299,7 +322,7 @@
         },
         watch: {
             basicInfo (val) {
-                this.formData = { ...val }
+                this.formData = tools.deepClone(val)
             }
         },
         created () {
@@ -404,11 +427,26 @@
                 this.updateData()
             },
             onErrorHandlerChange (val, type) {
-                this.formData[type] = val
-                if (type === 'ignorable' && val) {
-                    this.formData.retryable = false
-                    this.formData.skippable = false
+                this.formData.autoRetry.times = 1
+                if (type === 'autoRetry') {
+                    this.formData.autoRetry.enable = val
+                    this.formData.retryable = true
+                } else {
+                    if (type === 'retryable') {
+                        this.formData.autoRetry.enable = false
+                        this.formData.autoRetry.times = 1
+                    }
+                    if (type === 'ignorable' && val) {
+                        this.formData.skippable = true
+                        this.formData.retryable = false
+                        this.formData.autoRetry.enable = false
+                    }
+                    this.formData[type] = val
                 }
+                this.updateData()
+            },
+            onRetryTimeChange (val) {
+                this.formData.autoRetry.times = Number(val)
                 this.updateData()
             },
             onSelectableChange (val) {
@@ -423,12 +461,12 @@
                 this.updateData()
             },
             updateData () {
-                const { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, alwaysUseLatest } = this.formData
+                const { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, alwaysUseLatest, autoRetry } = this.formData
                 let data
                 if (this.isSubflow) {
                     data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, latestVersion: this.version }
                 } else {
-                    data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable }
+                    data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, autoRetry }
                 }
                 this.$emit('update', data)
             },
@@ -455,21 +493,41 @@
         padding-right: 30px;
     }
     .error-handle {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        height: 32px;
         /deep/ .bk-form-checkbox {
-            margin-right: 30px;
+            &:not(:last-of-type) {
+                margin-right: 20px;
+            }
             &.is-disabled .bk-checkbox-text {
                 color: #c4c6cc;
             }
         }
         .error-handle-icon {
-            padding-right: 4px;
-            color: #a6b0c7;
+            display: inline-block;
+            padding: 0 3px;
+            line-height: 12px;
+            color: #ffffff;
+            background: #979ba5;
+            border-radius: 2px;
+            .text {
+                display: inline-block;
+                font-size: 12px;
+                transform: scale(0.8);
+            }
         }
-        .error-handle-tips {
+        .auto-retry-times {
+            display: inline-flex;
             font-size: 12px;
-            line-height: 1;
-            color: #ffb400;
+            color: #999999;
         }
+    }
+    .error-handle-tips {
+        font-size: 12px;
+        line-height: 1;
+        color: #ffb400;
     }
     /deep/ .bk-form {
         .bk-label {

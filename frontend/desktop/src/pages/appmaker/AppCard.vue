@@ -11,7 +11,7 @@
 */
 <template>
     <div class="card-wrapper">
-        <div class="card-content">
+        <div class="card-content" :data-test-id="`appmaker_form_${appData.code.replace(/_(\w)/g, (strMatch, p1) => p1.toUpperCase())}`">
             <div class="card-basic">
                 <div class="logo" @click="onGotoAppMaker">
                     <div v-if="isShowDefaultLogo" class="default-logo">
@@ -36,11 +36,13 @@
                         }]"
                         :title="$t('修改轻应用')"
                         v-cursor="{ active: !hasPermission(['mini_app_edit'], appData.auth_actions) }"
+                        data-test-id="appmaker_form_editBtn"
                         @click.stop="onCardEdit">
                     </span>
                     <router-link
                         class="common-icon-clock-reload operate-btn"
                         :title="$t('执行历史')"
+                        data-test-id="appmaker_form_executeHistoryBtn"
                         :to="getExecuteHistoryUrl(appData)">
                     </router-link>
                     <bk-popover
@@ -61,16 +63,18 @@
                                     'disable': collectingId === appData.id || collectedLoading,
                                     'text-permission-disable': !hasPermission(['mini_app_view'], appData.auth_actions)
                                 }"
+                                data-test-id="appmaker_form_collectBtn"
                                 @click="onCollectAppMaker(appData, $event)">
                                 {{ isCollected(appData.id) ? $t('取消收藏') : $t('收藏') }}
                             </li>
-                            <li class="opt-btn" @click="onCopyUrl(appData)">{{$t('复制链接')}}</li>
+                            <li class="opt-btn" data-test-id="appmaker_form_copyUrlBtn" @click="onCopyUrl(appData)">{{$t('复制链接')}}</li>
                             <li
                                 :class="{
                                     'opt-btn': true,
                                     'text-permission-disable': !hasPermission(['mini_app_delete'], appData.auth_actions)
                                 }"
                                 v-cursor="{ active: !hasPermission(['mini_app_delete'], appData.auth_actions) }"
+                                data-test-id="appmaker_form_deleteBtn"
                                 @click="onCardDelete">
                                 {{$t('删除')}}
                             </li>
@@ -224,6 +228,7 @@
                             extra_info: {
                                 app_id: data.id,
                                 project_id: data.project.id,
+                                project_name: data.project.name,
                                 template_id: data.template_id,
                                 name: data.name,
                                 id: data.id

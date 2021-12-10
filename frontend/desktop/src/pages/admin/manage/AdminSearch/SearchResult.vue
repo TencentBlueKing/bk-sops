@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="search-result">
+    <div class="search-result" data-test-id="adminMessage_form_searchResult">
         <div class="search-input">
             <bk-input v-model.trim="searchStr" right-icon="bk-icon icon-search" @enter="onSearch"></bk-input>
         </div>

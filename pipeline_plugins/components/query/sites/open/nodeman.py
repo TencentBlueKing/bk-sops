@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
+import os
 
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
@@ -20,6 +21,8 @@ from api.collections.nodeman import BKNodeManClient
 from gcloud.utils.handlers import handle_api_error
 
 logger = logging.getLogger("root")
+
+BKAPP_NODEMAN_SUPPORT_TJJ = os.environ.get("BKAPP_NODEMAN_SUPPORT_TJJ", "False") == "True"
 
 
 def nodeman_get_cloud_area(request):
@@ -97,9 +100,24 @@ def nodeman_get_plugin_version(request, plugin, os_type):
     return JsonResponse(plugin_version_list)
 
 
+def nodeman_is_support_tjj(request):
+    """
+    获取当前环境下的节点管理是否支持铁将军认证
+    @param request:
+    @return:
+    """
+    return JsonResponse({
+        "result": True,
+        "message": "success",
+        "code": 0,
+        "data": BKAPP_NODEMAN_SUPPORT_TJJ
+    })
+
+
 nodeman_urlpatterns = [
     url(r"^nodeman_get_cloud_area/$", nodeman_get_cloud_area),
     url(r"^nodeman_get_ap_list/$", nodeman_get_ap_list),
+    url(r"^nodeman_is_support_tjj/$", nodeman_is_support_tjj),
     url(r"^nodeman_get_plugin_list/(?P<category>\w+)/$", nodeman_get_plugin_list),
     url(r"^nodeman_get_plugin_version/(?P<plugin>\w+)/(?P<os_type>\w+)/$", nodeman_get_plugin_version),
 ]

@@ -19,10 +19,11 @@
         :title="dialogTitle"
         :auto-close="false"
         :value="isEditDialogShow"
+        data-test-id="appmaker_form_appEditDialog"
         @confirm="onConfirm"
         @cancel="onCancel">
         <div class="app-edit-content" v-bkloading="{ isLoading: templateLoading, opacity: 1, zIndex: 100 }">
-            <div class="common-form-item">
+            <div class="common-form-item" data-test-id="appmaker_list_flows">
                 <label class="required">{{$t('流程模板')}}</label>
                 <div class="common-form-content">
                     <bk-select
@@ -43,7 +44,7 @@
                     <span v-show="appTemplateEmpty" class="common-error-tip error-msg">{{$t('流程模板不能为空')}}</span>
                 </div>
             </div>
-            <div class="common-form-item">
+            <div class="common-form-item" data-test-id="appmaker_list_appName">
                 <label class="required">{{$t('应用名称')}}</label>
                 <div class="common-form-content">
                     <bk-input
@@ -56,7 +57,7 @@
                     <span v-show="veeErrors.has('appName')" class="common-error-tip error-msg">{{ veeErrors.first('appName') }}</span>
                 </div>
             </div>
-            <div class="common-form-item">
+            <div class="common-form-item" data-test-id="appmaker_list_appCategory">
                 <label>{{$t('类别')}}</label>
                 <div class="common-form-content">
                     <bk-select
@@ -74,7 +75,7 @@
                     </bk-select>
                 </div>
             </div>
-            <div class="common-form-item">
+            <div class="common-form-item" data-test-id="appmaker_list_appScheme">
                 <label>{{$t('执行方案')}}</label>
                 <div class="common-form-content">
                     <bk-select
@@ -101,7 +102,7 @@
                     </i>
                 </div>
             </div>
-            <div class="common-form-item">
+            <div class="common-form-item" data-test-id="appmaker_list_appLog">
                 <label>{{$t('应用LOGO')}}</label>
                 <div class="common-form-content">
                     <div class="app-logo-content">
@@ -162,7 +163,7 @@
                     <div class="upload-tip">{{$t('只能上传JPG/PNG类型文件，建议大小为100px*100px，不能超过 100K')}}</div>
                 </div>
             </div>
-            <div class="common-form-item">
+            <div class="common-form-item" data-test-id="appmaker_list_appDesc">
                 <label>{{$t('应用简介')}}</label>
                 <div class="common-form-content">
                     <bk-input
@@ -184,10 +185,11 @@
                         'btn-permission-disable': !hasConfirmPerm
                     }"
                     v-cursor="{ active: appData.appTemplate && !hasConfirmPerm }"
+                    data-test-id="appmaker_form_confirmEditBtn"
                     @click="onConfirm">
                     {{$t('确认')}}
                 </bk-button>
-                <bk-button type="default" @click="onCancel">{{$t('取消')}}</bk-button>
+                <bk-button type="default" data-test-id="appmaker_form_cancelEditBtn" @click="onCancel">{{$t('取消')}}</bk-button>
             </div>
         </div>
     </bk-dialog>

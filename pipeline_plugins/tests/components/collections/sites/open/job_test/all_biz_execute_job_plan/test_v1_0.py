@@ -212,12 +212,14 @@ EXECUTE_JOB_PLAN_FAIL_CALLBACK_URL_MOCK = MagicMock(return_value="callback_url")
 EXECUTE_JOB_PLAN_SUCCESS_CASE = ComponentTestCase(
     name="get var failed but execute result must be success",
     inputs={
-        "all_biz_cc_id": 2,
-        "job_plan_id": 1000010,
-        "job_global_var": [
-            {"id": 1000030, "type": 1, "name": "name", "value": "test", "description": ""},
-            {"id": 1000031, "type": 3, "name": "ip", "value": "0:192.168.20.218", "description": ""},
-        ],
+        "all_biz_job_config": {
+            "all_biz_cc_id": 2,
+            "job_plan_id": 1000010,
+            "job_global_var": [
+                {"id": 1000030, "type": 1, "name": "name", "value": "test", "description": ""},
+                {"id": 1000031, "type": 3, "name": "ip", "value": "0:192.168.20.218", "description": ""},
+            ],
+        }
     },
     parent_data={"executor": "executor_token", "biz_cc_id": 2},
     execute_assertion=ExecuteAssertion(
@@ -253,19 +255,9 @@ EXECUTE_JOB_PLAN_SUCCESS_CASE = ComponentTestCase(
                         "job_plan_id": 1000010,
                         "global_var_list": [
                             {"id": 1000030, "value": "test"},
-                            {
-                                "id": 1000031,
-                                "server": {
-                                    "ip_list": [
-                                        {
-                                            "ip": "192.168.20.218",
-                                            "bk_cloud_id": "0",
-                                        }
-                                    ]
-                                },
-                            },
+                            {"id": 1000031, "server": {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": "0"}]}},
                         ],
-                        "bk_callback_url": "callback_url",
+                        "callback_url": "callback_url",
                     }
                 )
             ],
@@ -289,13 +281,15 @@ EXECUTE_JOB_PLAN_SUCCESS_CASE = ComponentTestCase(
 INVALID_IP_FAIL_CASE = ComponentTestCase(
     name="all biz execute job plan invalid ip fail test case",
     inputs={
-        "all_biz_cc_id": 2,
-        "job_plan_id": 1000010,
-        "job_global_var": [
-            {"id": 1000030, "type": 1, "name": "name", "value": "test", "description": ""},
-            {"id": 1000031, "type": 3, "name": "ip", "value": "0:192.168.20.256", "description": ""},
-        ],
-        "ip_is_legal": True,
+        "all_biz_job_config": {
+            "all_biz_cc_id": 2,
+            "job_plan_id": 1000010,
+            "job_global_var": [
+                {"id": 1000030, "type": 1, "name": "name", "value": "test", "description": ""},
+                {"id": 1000031, "type": 3, "name": "ip", "value": "0:192.168.20.256", "description": ""},
+            ],
+            "ip_is_legal": True,
+        }
     },
     parent_data={"executor": "executor", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "IP 校验失败，请确认输入的 IP 0:192.168.20.256 是否合法"}),
@@ -307,12 +301,14 @@ INVALID_IP_FAIL_CASE = ComponentTestCase(
 EXECUTE_JOB_PLAN_NOT_SUCCESS_CASE = ComponentTestCase(
     name="execute job plan not success case",
     inputs={
-        "all_biz_cc_id": 2,
-        "job_plan_id": 1000010,
-        "job_global_var": [
-            {"id": 1000030, "type": 1, "name": "name", "value": "test", "description": ""},
-            {"id": 1000031, "type": 3, "name": "ip", "value": "0:192.168.20.218", "description": ""},
-        ],
+        "all_biz_job_config": {
+            "all_biz_cc_id": 2,
+            "job_plan_id": 1000010,
+            "job_global_var": [
+                {"id": 1000030, "type": 1, "name": "name", "value": "test", "description": ""},
+                {"id": 1000031, "type": 3, "name": "ip", "value": "0:192.168.20.218", "description": ""},
+            ],
+        }
     },
     parent_data={"executor": "executor_token", "biz_cc_id": 2},
     execute_assertion=ExecuteAssertion(
@@ -353,19 +349,9 @@ EXECUTE_JOB_PLAN_NOT_SUCCESS_CASE = ComponentTestCase(
                         "job_plan_id": 1000010,
                         "global_var_list": [
                             {"id": 1000030, "value": "test"},
-                            {
-                                "id": 1000031,
-                                "server": {
-                                    "ip_list": [
-                                        {
-                                            "ip": "192.168.20.218",
-                                            "bk_cloud_id": "0",
-                                        }
-                                    ]
-                                },
-                            },
+                            {"id": 1000031, "server": {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": "0"}]}},
                         ],
-                        "bk_callback_url": "callback_url",
+                        "callback_url": "callback_url",
                     }
                 )
             ],
@@ -381,12 +367,14 @@ EXECUTE_JOB_PLAN_NOT_SUCCESS_CASE = ComponentTestCase(
 EXECUTE_JOB_PLAN_CALL_FAIL_CASE = ComponentTestCase(
     name="all biz execute job plan failed case",
     inputs={
-        "all_biz_cc_id": 999101,
-        "job_plan_id": 1000010,
-        "job_global_var": [
-            {"id": 1000030, "type": 1, "name": "name", "value": "123", "description": ""},
-            {"id": 1000031, "type": 3, "name": "ip", "value": "0:192.168.20.218", "description": ""},
-        ],
+        "all_biz_job_config": {
+            "all_biz_cc_id": 999101,
+            "job_plan_id": 1000010,
+            "job_global_var": [
+                {"id": 1000030, "type": 1, "name": "name", "value": "123", "description": ""},
+                {"id": 1000031, "type": 3, "name": "ip", "value": "0:192.168.20.218", "description": ""},
+            ],
+        }
     },
     parent_data={"executor": "executor", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(
@@ -403,7 +391,7 @@ EXECUTE_JOB_PLAN_CALL_FAIL_CASE = ComponentTestCase(
                             {"id": 1000030, "value": "123"},
                             {"id": 1000031, "server": {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": "0"}]}},
                         ],
-                        "bk_callback_url": "callback_url",
+                        "callback_url": "callback_url",
                     }
                 ),
                 error="Job plan does not exist",
@@ -422,19 +410,9 @@ EXECUTE_JOB_PLAN_CALL_FAIL_CASE = ComponentTestCase(
                         "job_plan_id": 1000010,
                         "global_var_list": [
                             {"id": 1000030, "value": "123"},
-                            {
-                                "id": 1000031,
-                                "server": {
-                                    "ip_list": [
-                                        {
-                                            "ip": "192.168.20.218",
-                                            "bk_cloud_id": "0",
-                                        }
-                                    ]
-                                },
-                            },
+                            {"id": 1000031, "server": {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": "0"}]}},
                         ],
-                        "bk_callback_url": "callback_url",
+                        "callback_url": "callback_url",
                     }
                 )
             ],
@@ -449,12 +427,14 @@ EXECUTE_JOB_PLAN_CALL_FAIL_CASE = ComponentTestCase(
 INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
     name="all biz execute job plan invalid callback case",
     inputs={
-        "all_biz_cc_id": 2,
-        "job_plan_id": 1000010,
-        "job_global_var": [
-            {"id": 1000030, "type": 1, "name": "name", "value": "test", "description": ""},
-            {"id": 1000031, "type": 3, "name": "ip", "value": "0:192.168.20.218", "description": ""},
-        ],
+        "all_biz_job_config": {
+            "all_biz_cc_id": 2,
+            "job_plan_id": 1000010,
+            "job_global_var": [
+                {"id": 1000030, "type": 1, "name": "name", "value": "test", "description": ""},
+                {"id": 1000031, "type": 3, "name": "ip", "value": "0:192.168.20.218", "description": ""},
+            ],
+        }
     },
     parent_data={"executor": "executor_token", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(
@@ -489,19 +469,9 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
                         "job_plan_id": 1000010,
                         "global_var_list": [
                             {"id": 1000030, "value": "test"},
-                            {
-                                "id": 1000031,
-                                "server": {
-                                    "ip_list": [
-                                        {
-                                            "ip": "192.168.20.218",
-                                            "bk_cloud_id": "0",
-                                        }
-                                    ]
-                                },
-                            },
+                            {"id": 1000031, "server": {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": "0"}]}},
                         ],
-                        "bk_callback_url": "callback_url",
+                        "callback_url": "callback_url",
                     }
                 )
             ],
@@ -517,12 +487,14 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
 GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
     name="all biz execute job plan get global var fail case",
     inputs={
-        "all_biz_cc_id": 2,
-        "job_plan_id": 1000010,
-        "job_global_var": [
-            {"id": 1000030, "type": 1, "name": "name", "value": "test", "description": ""},
-            {"id": 1000031, "type": 3, "name": "ip", "value": "0:192.168.20.218", "description": ""},
-        ],
+        "all_biz_job_config": {
+            "all_biz_cc_id": 2,
+            "job_plan_id": 1000010,
+            "job_global_var": [
+                {"id": 1000030, "type": 1, "name": "name", "value": "test", "description": ""},
+                {"id": 1000031, "type": 3, "name": "ip", "value": "0:192.168.20.218", "description": ""},
+            ],
+        }
     },
     parent_data={"executor": "executor_token", "biz_cc_id": 2},
     execute_assertion=ExecuteAssertion(
@@ -560,19 +532,9 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
                         "job_plan_id": 1000010,
                         "global_var_list": [
                             {"id": 1000030, "value": "test"},
-                            {
-                                "id": 1000031,
-                                "server": {
-                                    "ip_list": [
-                                        {
-                                            "ip": "192.168.20.218",
-                                            "bk_cloud_id": "0",
-                                        }
-                                    ]
-                                },
-                            },
+                            {"id": 1000031, "server": {"ip_list": [{"ip": "192.168.20.218", "bk_cloud_id": "0"}]}},
                         ],
-                        "bk_callback_url": "callback_url",
+                        "callback_url": "callback_url",
                     }
                 )
             ],

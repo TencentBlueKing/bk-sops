@@ -48,11 +48,12 @@
                     <div class="view-variable">
                         <bk-popover
                             v-if="!isSelectorPanelShow"
+                            :key="randomKey"
                             ext-cls="variable-popover"
                             placement="bottom-end"
                             :tippy-options="{ hideOnClick: false }">
                             <div style="cursor: pointer;">{{ $t('全局变量') }}</div>
-                            <div :class="['variable-list', { 'list-change': isChange }]" slot="content">
+                            <div class="variable-list" slot="content">
                                 <div class="header-area">
                                     <span>{{ $t('全局变量') }}</span>
                                     <bk-link theme="primary" icon="bk-icon icon-plus" @click="openVariablePanel">{{ $t('新建变量') }}</bk-link>
@@ -111,6 +112,7 @@
                     :common="common"
                     :is-third-party="isThirdParty"
                     :sublist-loading="subAtomListLoading"
+                    :plugin-loading="pluginLoading"
                     @updatePluginList="updatePluginList"
                     @back="isSelectorPanelShow = false"
                     @viewSubflow="onViewSubflow"
@@ -132,7 +134,7 @@
                         <template v-if="!isSubflow || !subflowListLoading">
                             <div class="config-form">
                                 <!-- 基础信息 -->
-                                <section class="config-section">
+                                <section class="config-section" data-test-id="templateEdit_form_nodeBaseInfo">
                                     <h3>{{$t('基础信息')}}</h3>
                                     <div class="basic-info-wrapper" v-bkloading="{ isLoading: isBaseInfoLoading }">
                                         <template v-if="!isBaseInfoLoading">
@@ -154,7 +156,7 @@
                                     </div>
                                 </section>
                                 <!-- 输入参数 -->
-                                <section class="config-section">
+                                <section class="config-section" data-test-id="templateEdit_form_inputParamsInfo">
                                     <h3>{{$t('输入参数')}}</h3>
                                     <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading, zIndex: 100 }">
                                         <template v-if="!inputLoading">
@@ -178,7 +180,7 @@
                                     </div>
                                 </section>
                                 <!-- 输出参数 -->
-                                <section class="config-section">
+                                <section class="config-section" data-test-id="templateEdit_form_outputParamsInfo">
                                     <h3>{{$t('输出参数')}}</h3>
                                     <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading, zIndex: 100 }">
                                         <template v-if="!outputLoading">
@@ -197,8 +199,19 @@
                                 </section>
                             </div>
                             <div class="btn-footer">
-                                <bk-button theme="primary" :disabled="inputLoading || (isSubflow && subflowListLoading)" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
-                                <bk-button theme="default" @click="onClosePanel()">{{ $t('取消') }}</bk-button>
+                                <bk-button
+                                    theme="primary"
+                                    :disabled="inputLoading || (isSubflow && subflowListLoading)"
+                                    data-test-id="templateEdit_form_saveNodeConfig"
+                                    @click="onSaveConfig">
+                                    {{ $t('保存') }}
+                                </bk-button>
+                                <bk-button
+                                    theme="default"
+                                    data-test-id="templateEdit_form_cancelNodeConfig"
+                                    @click="onClosePanel()">
+                                    {{ $t('取消') }}
+                                </bk-button>
                             </div>
                         </template>
                     </div>
@@ -258,12 +271,13 @@
             templateLabels: Array,
             common: [String, Number],
             subflowListLoading: Boolean,
-            backToVariablePanel: Boolean
+            backToVariablePanel: Boolean,
+            pluginLoading: Boolean
         },
         data () {
             return {
                 subflowUpdated: false, // 子流程是否更新
-                pluginLoading: false, // 普通任务节点数据加载
+                taskNodeLoading: false, // 普通任务节点数据加载
                 subflowLoading: false, // 子流程任务节点数据加载
                 constantsLoading: false, // 子流程输入参数配置项加载
                 subflowVersionUpdating: false, // 子流程更新
@@ -280,7 +294,7 @@
                 isVariablePanelShow: false, // 是否显示变量编辑面板
                 variableData: {}, // 当前编辑的变量
                 localConstants: {}, // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
-                isChange: false, // 输入、输出参数勾选状态是否有变化
+                randomKey: new Date().getTime(), // 输入、输出参数勾选状态改变时更新popover
                 totalPage: 0,
                 currentPage: 0,
                 limit: Math.ceil(((window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight) - 120) / 40) + 5, // 浏览器高度判断每次请求数量
@@ -314,10 +328,10 @@
                 return this.atomList.find(item => item.code === this.basicInfo.plugin)
             },
             inputLoading () { // 以下任一方法处于 pending 状态，输入参数展示 loading 效果
-                return this.isBaseInfoLoading || this.pluginLoading || this.subflowLoading || this.constantsLoading || this.subflowVersionUpdating
+                return this.isBaseInfoLoading || this.taskNodeLoading || this.subflowLoading || this.constantsLoading || this.subflowVersionUpdating
             },
             outputLoading () {
-                return this.isBaseInfoLoading || this.pluginLoading || this.subflowLoading
+                return this.isBaseInfoLoading || this.taskNodeLoading || this.subflowLoading
             },
             selectorTitle () {
                 return this.isSubflow ? i18n.t('选择子流程') : i18n.t('选择标准插件')
@@ -329,7 +343,10 @@
             },
             subflowListLoading (val) {
                 if (!val) {
-                    this.basicInfo = this.getNodeBasic(this.nodeConfig) // 获取子流程模板的名称
+                    // 获取子流程模板的名称
+                    Promise.resolve(this.getNodeBasic(this.nodeConfig)).then(res => {
+                        this.basicInfo = res
+                    })
                 }
             },
             isSelectorPanelShow: {
@@ -396,7 +413,6 @@
                 }
             })
             this.localConstants = tools.deepClone(this.constants)
-            this.getSubflowList()
         },
         async mounted () {
             const defaultData = await this.initDefaultData()
@@ -416,7 +432,8 @@
                 'loadAtomConfig',
                 'loadSubflowConfig',
                 'loadPluginServiceMeta',
-                'loadPluginServiceDetail'
+                'loadPluginServiceDetail',
+                'loadPluginServiceAppDetail'
             ]),
             ...mapMutations('template/', [
                 'setSubprocessUpdated',
@@ -429,11 +446,11 @@
                 'loadTemplateList'
             ]),
             async initDefaultData () {
-                const nodeConfig = this.$store.state.template.activities[this.nodeId]
+                const nodeConfig = this.activities[this.nodeId]
                 const isThirdParty = nodeConfig.component && nodeConfig.component.code === 'remote_plugin'
                 if (nodeConfig.type === 'ServiceActivity') {
                     await this.setThirdPartyList(nodeConfig)
-                    this.basicInfo = this.getNodeBasic(nodeConfig)
+                    this.basicInfo = await this.getNodeBasic(nodeConfig)
                     this.$nextTick(() => {
                         this.isBaseInfoLoading = false
                     })
@@ -477,7 +494,7 @@
                     this.isBaseInfoLoading = false
                 }
             },
-            handleSubflowList (data) {
+            async handleSubflowList (data) {
                 const list = []
                 const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
                 const { params, query } = this.$route
@@ -490,7 +507,7 @@
                     }
                 })
                 this.atomTypeList.subflow.push(...list)
-                this.basicInfo = this.getNodeBasic(nodeConfig)
+                this.basicInfo = await this.getNodeBasic(nodeConfig)
             },
             handleTableScroll () {
                 if (!this.isPageOver && !this.isThrottled) {
@@ -572,7 +589,7 @@
              */
             async getPluginDetail () {
                 const { plugin, version } = this.basicInfo
-                this.pluginLoading = true
+                this.taskNodeLoading = true
                 try {
                     // 获取输入输出参数
                     this.inputs = await this.getAtomConfig({ plugin, version, isThird: this.isThirdParty })
@@ -582,7 +599,7 @@
                 } catch (e) {
                     console.log(e)
                 } finally {
-                    this.pluginLoading = false
+                    this.taskNodeLoading = false
                 }
             },
             /**
@@ -607,27 +624,29 @@
                         })
                         if (!resp.result) return
                         // 获取参数
-                        const { app, outputs: respsOutputs, forms } = resp.data
-                        // 获取第三方插件公共输出参数
-                        if (!this.pluginOutput['remote_plugin']) {
-                            await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
+                        const { outputs: respsOutputs, forms } = resp.data
+                        if (!this.isSubflow) {
+                            // 获取第三方插件公共输出参数
+                            if (!this.pluginOutput['remote_plugin']) {
+                                await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
+                            }
+                            // 输出参数
+                            const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
+                            const outputs = []
+                            for (const [key, val] of Object.entries(respsOutputs.properties)) {
+                                outputs.push({
+                                    name: val.title,
+                                    key,
+                                    type: val.type,
+                                    schema: { description: val.description || '--' }
+                                })
+                            }
+                            this.outputs = [...storeOutputs, ...outputs]
                         }
-                        // 输出参数
-                        const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
-                        const outputs = []
-                        for (const [key, val] of Object.entries(respsOutputs.properties)) {
-                            outputs.push({
-                                name: val.title,
-                                key,
-                                type: val.type,
-                                schema: { description: val.description || '--' }
-                            })
-                        }
-                        this.outputs = [...storeOutputs, ...outputs]
                         // 获取host
-                        const { host } = window.location
-                        const hostUrl = app.urls.find(item => item.includes(host)) || app.url
-                        $.context.bk_plugin_api_host[plugin] = hostUrl + '/'
+                        const { origin } = window.location
+                        const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${plugin}/`
+                        $.context.bk_plugin_api_host[plugin] = hostUrl
                         // 输入参数
                         $.atoms[plugin] = {}
                         const renderFrom = forms.renderform
@@ -724,11 +743,11 @@
             /**
              * 获取任务节点基础信息数据
              */
-            getNodeBasic (config) {
+            async getNodeBasic (config) {
                 if (config.type === 'ServiceActivity') {
                     const {
                         component, name, stage_name, labels, error_ignorable, can_retry,
-                        retryable, isSkipped, skippable, optional
+                        retryable, isSkipped, skippable, optional, auto_retry
                     } = config
                     let basicInfoName = i18n.t('请选择插件')
                     let code = ''
@@ -739,7 +758,13 @@
                         if (component.code === 'remote_plugin') {
                             const atom = this.$parent.thirdPartyList[this.nodeId]
                             code = component.data.plugin_code.value
-                            basicInfoName = this.atomTypeList.pluginList.find(item => item.code === code).name
+                            const pluginInfo = this.atomTypeList.pluginList.find(item => item.code === code)
+                            if (pluginInfo) {
+                                basicInfoName = pluginInfo.name
+                            } else {
+                                const resp = await this.loadPluginServiceAppDetail({ plugin_code: code })
+                                basicInfoName = resp.data.name
+                            }
                             version = atom.version
                             desc = atom.desc
                         } else {
@@ -769,7 +794,8 @@
                         // 这里取值做兼容处理，新旧数据不可能同时存在，优先取旧数据字段
                         skippable: isSkipped === undefined ? skippable : isSkipped,
                         retryable: can_retry === undefined ? retryable : can_retry,
-                        selectable: optional
+                        selectable: optional,
+                        autoRetry: auto_retry || { enable: false, times: 1 }
                     }
                 } else {
                     const { template_id, name, stage_name, labels, optional, always_use_latest } = config
@@ -1115,12 +1141,12 @@
             // 输入、输出参数勾选状态变化
             onHookChange (type, data) {
                 if (type === 'create') {
-                    // 如果全局变量数据有变，需要修改tip样式
-                    this.isChange = true
                     this.$set(this.localConstants, data.key, data)
                 } else {
                     this.setVariableSourceInfo(data)
                 }
+                // 如果全局变量数据有变，需要更新popover
+                this.randomKey = new Date().getTime()
             },
             // 更新全局变量的 source_info
             setVariableSourceInfo (data) {
@@ -1198,7 +1224,7 @@
                         always_use_latest: alwaysUseLatest
                     })
                 } else {
-                    const { ignorable, nodeName, stageName, nodeLabel, plugin, retryable, skippable, selectable, version } = this.basicInfo
+                    const { ignorable, nodeName, stageName, nodeLabel, plugin, retryable, skippable, selectable, version, autoRetry } = this.basicInfo
                     const data = {} // 标准插件节点在 activity 的 component.data 值
                     Object.keys(this.inputsParamValue).forEach(key => {
                         const formVal = this.inputsParamValue[key]
@@ -1236,7 +1262,8 @@
                         stage_name: stageName,
                         labels: nodeLabel,
                         error_ignorable: ignorable,
-                        optional: selectable
+                        optional: selectable,
+                        auto_retry: autoRetry
                     })
                     delete config.can_retry
                     delete config.isSkipped
@@ -1354,8 +1381,11 @@
             onSaveConfig () {
                 this.validate().then(result => {
                     if (result) {
-                        const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional, desc, nodeName } = this.basicInfo
-                        const nodeData = { status: '', skippable, retryable, optional }
+                        ['stageName', 'nodeName'].forEach(item => {
+                            this.basicInfo[item] = this.basicInfo[item].trim()
+                        })
+                        const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional, desc, nodeName, autoRetry } = this.basicInfo
+                        const nodeData = { status: '', skippable, retryable, optional, auto_retry: autoRetry }
                         if (!this.isSubflow) {
                             const phase = this.getAtomPhase()
                             nodeData.phase = phase
@@ -1519,11 +1549,6 @@
             }
             .bk-link-text {
                 font-size: 12px;
-            }
-        }
-        .list-change {
-            .bk-table-body-wrapper {
-                padding-bottom: 25px;
             }
         }
         td {

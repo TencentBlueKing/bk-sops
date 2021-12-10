@@ -66,6 +66,7 @@
                     }
                     let biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                     let bk_job_host = window.BK_JOB_HOST;
+                    if (bk_job_host.charAt(bk_job_host.length - 1) == "/") bk_job_host = bk_job_host.substr(0, bk_job_host.length - 1);
                     let url = bk_job_host + '/' + biz_cc_id + "/api_plan/" + this.value;
                     window.open(url, '_blank')
                 },
@@ -203,7 +204,12 @@
                                                 return item;
                                             })
                                             // 清除首尾的双引号"，然后在首尾各加上一个双引号"
-                                            $this._set_value('"' + new_global_var.replace(/^(\s|")+|(\s|")+$/g, '') + '"');
+                                            for (var i = new_global_var.length - 1; i >= 0; i--) {
+                                                if (new_global_var[i] != null && new_global_var[i].value != null) {
+                                                    new_global_var[i].value = '\"' + new_global_var[i].value.toString().replace(/^(\s|")+|(\s|")+$/g, '') + '\"';
+                                                }
+                                            }
+                                            $this._set_value(new_global_var);
                                         }
                                         $this.set_loading(false);
                                         if (resp.result === false) {
@@ -240,8 +246,12 @@
                                 if (resp.result === false) {
                                     show_msg(resp.message, 'error');
                                 } else {
-                                    // 清除首尾的双引号"，然后在首尾各加上一个双引号"
-                                    $this._set_value('"' + resp.data.global_var.replace(/^(\s|")+|(\s|")+$/g, '') + '"');
+                                    for (var i = resp.data.global_var.length - 1; i >= 0; i--) {
+                                        if (resp.data.global_var[i] !== null && resp.data.global_var[i].value != null) {
+                                            resp.data.global_var[i].value = '\"' + resp.data.global_var[i].value.toString().replace(/^(\s|")+|(\s|")+$/g, '') + '\"';
+                                        }
+                                    }
+                                    $this._set_value(resp.data.global_var);
                                 }
 
                                 $this.set_loading(false);
@@ -315,7 +325,8 @@
                     }
                     let biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                     let bk_job_host = window.BK_JOB_HOST;
-                    let url = bk_job_host + '/' + biz_cc_id + "/api_plan/" + this.value;
+                    if (bk_job_host.charAt(bk_job_host.length - 1) == "/") bk_job_host = bk_job_host.substr(0, bk_job_host.length - 1);
+                    let url = bk_job_host + '/' + biz_cc_id + "/execute/task/" + this.value;
                     window.open(url, '_blank')
                 },
                 cols: 10

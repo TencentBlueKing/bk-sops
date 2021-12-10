@@ -46,6 +46,9 @@ MOD = "blueapps.account.sites.{VER}.conf.ConfFixture".format(VER=settings.RUN_VE
 ConfFixture = _ConfFixture(MOD)
 
 AUTH_USER_MODEL = "account.User"
+# apigw cache key with 1 year
+APIGW_CACHE_KEY = "public_key_cache"
+APIGW_CACHE_EXPIRES = 1 * 365 * 86400
 
 ######################
 # 二次验证配置默认参数 #

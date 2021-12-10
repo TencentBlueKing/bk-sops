@@ -63,6 +63,35 @@ TEST_PIPELINE_TREE = {
                 },
             },
         },
+        TEST_ID_LIST[5]: {
+            "id": TEST_ID_LIST[5],
+            "template_id": TEST_ID_LIST[5],
+            "type": "SubProcess",
+            "name": "subproc 1",
+            "pipeline": {
+                "activities": {
+                    "9": {
+                        "type": "ServiceActivity",
+                        "id": "9",
+                        "name": "act_9",
+                        "component": {"code": "bk_notify", "data": {}, "version": "legacy"},
+                    },
+                    "10": {
+                        "type": "ServiceActivity",
+                        "id": "10",
+                        "name": "act_10",
+                        "component": {"code": "bk_notify", "data": {}, "version": "v1.0"},
+                    },
+                    "11": {  # node without version
+                        "type": "ServiceActivity",
+                        "id": "11",
+                        "name": "act_11",
+                        "component": {"code": "bk_job", "data": {}},
+                    },
+                },
+                "constants": {},
+            },
+        },
     },
     "flows": {  # 存放该 Pipeline 中所有的线
         TEST_ID_LIST[5]: {"id": TEST_ID_LIST[5], "source": TEST_ID_LIST[1], "target": TEST_ID_LIST[3]},

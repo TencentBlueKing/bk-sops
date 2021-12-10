@@ -12,7 +12,7 @@
 <template>
     <div class="param-fill-wrapper">
         <div class="form-area">
-            <div :class="['task-info', { 'functor-task-info': entrance === 'function' }]">
+            <div :class="['task-info', { 'functor-task-info': entrance === 'function' }]" data-test-id="createTask_form_taskInfo">
                 <div class="task-info-title">
                     <span>{{ $t('任务信息') }}</span>
                 </div>
@@ -24,6 +24,7 @@
                                 v-model="taskName"
                                 v-validate="taskNameRule"
                                 class="step-form-content-size"
+                                data-test-id="createTask_form_taskName"
                                 name="taskName">
                             </bk-input>
                             <span v-show="veeErrors.has('taskName')" class="common-error-tip error-msg">{{ veeErrors.first('taskName') }}</span>
@@ -31,6 +32,7 @@
                     </div>
                     <div
                         v-if="!isExecuteSchemeHide"
+                        data-test-id="createTask_form_executePlan"
                         class="common-form-item">
                         <label class="required">{{$t('执行计划')}}</label>
                         <div class="common-form-content">
@@ -47,6 +49,7 @@
                     </div>
                     <div
                         v-if="isTaskTypeShow"
+                        data-test-id="createTask_form_processType"
                         class="common-form-item">
                         <label class="required">{{ $t('流程类型') }}</label>
                         <div class="common-form-content">
@@ -75,30 +78,40 @@
                             </LoopRuleSelect>
                         </div>
                     </div>
-                    <div
-                        v-if="isStartNow === 'clocked'"
-                        class="common-form-item">
-                        <label class="required">{{$t('启动时间')}}</label>
-                        <div class="common-form-content">
-                            <bk-date-picker
-                                ref="datePickerRef"
-                                :clearable="false"
-                                :type="'datetime'"
-                                :value="timeRange"
-                                :placeholder="$t('请选择启动时间')"
-                                v-validate="deatPickerRule"
-                                :options="pickerOptions"
-                                @open-change="onPickerOpenChange"
-                                @change="onPickerChange">
-                            </bk-date-picker>
-                            <span v-if="isDateError" class="common-error-tip error-msg">
-                                {{ !timeRange ? $t('启动时间不能为空') : $t('启动时间不能小于当前时间') }}
-                            </span>
+                    <template v-if="isStartNow === 'clocked'">
+                        <div class="common-form-item">
+                            <label class="required">{{$t('启动时间')}}</label>
+                            <div class="common-form-content">
+                                <bk-date-picker
+                                    ref="datePickerRef"
+                                    :clearable="false"
+                                    :type="'datetime'"
+                                    :value="timeRange"
+                                    :placeholder="$t('请选择启动时间')"
+                                    v-validate="deatPickerRule"
+                                    :options="pickerOptions"
+                                    @open-change="onPickerOpenChange"
+                                    @change="onPickerChange">
+                                </bk-date-picker>
+                                <span v-if="isDateError" class="common-error-tip error-msg">
+                                    {{ !timeRange ? $t('启动时间不能为空') : $t('启动时间不能小于当前时间') }}
+                                </span>
+                            </div>
                         </div>
-                    </div>
+                        <div class="common-form-item">
+                            <NotifyTypeConfig
+                                :notify-type-label="$t('启动失败') + ' ' + $t('通知方式')"
+                                :notify-type="notifyType"
+                                :receiver-group="receiverGroup"
+                                :table-width="500"
+                                :common="common"
+                                @change="onSelectNotifyConfig">
+                            </NotifyTypeConfig>
+                        </div>
+                    </template>
                 </div>
             </div>
-            <div class="param-info">
+            <div class="param-info" data-test-id="createTask_form_paramInfo">
                 <div class="param-info-title">
                     <span>
                         {{ $t('参数信息') }}
@@ -118,6 +131,7 @@
         <div class="action-wrapper">
             <bk-button
                 class="preview-step-button"
+                data-test-id="createTask_form_previousStep"
                 @click="onGotoSelectNode">
                 {{ $t('上一步') }}
             </bk-button>
@@ -129,6 +143,7 @@
                 :loading="isSubmit"
                 :disabled="paramsLoading || commonTplCreateTaskPermLoading || nextBtnDisable"
                 v-cursor="{ active: common ? !hasCommonTplCreateTaskPerm : !hasPermission(nextStepPerm, actions) }"
+                data-test-id="createTask_form_createTask"
                 @click="onCreateTask">
                 {{$t('下一步')}}
             </bk-button>
@@ -145,12 +160,14 @@
     import permission from '@/mixins/permission.js'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
     import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
+    import NotifyTypeConfig from '@/pages/template/TemplateEdit/TemplateSetting/NotifyTypeConfig.vue'
 
     export default {
         name: 'TaskParamFill',
         components: {
             ParameterInfo,
-            LoopRuleSelect
+            LoopRuleSelect,
+            NotifyTypeConfig
         },
         mixins: [permission],
         props: ['project_id', 'template_id', 'common', 'entrance', 'excludeNode'],
@@ -208,7 +225,9 @@
                     disabledDate (date) {
                         return date.getTime() + 86400000 < Date.now()
                     }
-                }
+                },
+                notifyType: [[]],
+                receiverGroup: []
             }
         },
         computed: {
@@ -428,6 +447,11 @@
                     this.isDateError = timeRange <= new Date().getTime()
                 }
             },
+            onSelectNotifyConfig (formData) {
+                const { notifyType, receiverGroup } = formData
+                this.notifyType = notifyType
+                this.receiverGroup = receiverGroup
+            },
             onCreateTask () {
                 let hasNextPermission = false
                 if (this.common) {
@@ -630,6 +654,14 @@
                             template_id: this.template_id,
                             template_name: this.templateName,
                             template_source: 'project',
+                            notify_receivers: {
+                                receiver_group: this.receiverGroup,
+                                more_receiver: []
+                            },
+                            notify_type: {
+                                success: [],
+                                fail: this.notifyType[0]
+                            },
                             plan_start_time: this.timeRange
                         }
                         try {
@@ -652,13 +684,18 @@
                     return
                 }
                 this.isStartNow = value
-                this.timeRange = ''
                 this.$emit('togglePeriodicStep', !value, this.isSelectFunctionalType)
                 if (value === 'periodic') {
                     this.lastTaskName = this.taskName
                     this.taskName = this.templateName
                 } else {
                     this.taskName = this.lastTaskName || this.taskName
+                }
+                // 切换其他则情况时计划任务数据
+                if (value !== 'clocked') {
+                    this.timeRange = ''
+                    this.notifyType = [[]]
+                    this.receiverGroup = []
                 }
             },
             paramsLoadingChange (val) {
@@ -779,6 +816,28 @@
     position: relative;
     input {
         vertical-align: top;
+    }
+}
+/deep/.notify-type-wrapper {
+    .bk-form-item:first-child {
+        .bk-label {
+            width: 70px !important;
+            margin-left: 30px;
+        }
+    }
+    .bk-form-content {
+        margin-left: 120px !important;
+    }
+    .bk-label {
+        padding: 0;
+        margin-right: 20px;
+        color: #313238;
+    }
+    .bk-checkbox-group {
+        display: block;
+        .bk-form-checkbox {
+            margin-top: 7px;
+        }
     }
 }
 .action-wrapper {

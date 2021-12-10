@@ -25,10 +25,10 @@
                 :rules="rules">
                 <section class="form-section">
                     <h4>{{ $t('基础') }}</h4>
-                    <bk-form-item :property="'name'" :label="$t('流程名称')" :required="true">
+                    <bk-form-item :property="'name'" :label="$t('流程名称')" :required="true" data-test-id="tabTemplateConfig_form_name">
                         <bk-input ref="nameInput" v-model.trim="formData.name" :placeholder="$t('请输入流程模板名称')"></bk-input>
                     </bk-form-item>
-                    <bk-form-item v-if="!common" :label="$t('标签')">
+                    <bk-form-item v-if="!common" :label="$t('标签')" data-test-id="tabTemplateConfig_form_label">
                         <bk-select
                             v-model="formData.labels"
                             ext-popover-cls="label-select"
@@ -49,13 +49,13 @@
                                     <i class="bk-option-icon bk-icon icon-check-1"></i>
                                 </div>
                             </bk-option>
-                            <div slot="extension" @click="onEditLabel" class="label-select-extension">
+                            <div slot="extension" @click="onEditLabel" class="label-select-extension" data-test-id="tabTemplateConfig_form_editLabel">
                                 <i class="common-icon-edit"></i>
                                 <span>{{ $t('编辑标签') }}</span>
                             </div>
                         </bk-select>
                     </bk-form-item>
-                    <bk-form-item property="category" :label="$t('分类')">
+                    <bk-form-item property="category" :label="$t('分类')" data-test-id="tabTemplateConfig_form_category">
                         <bk-select
                             v-model="formData.category"
                             class="category-select"
@@ -65,6 +65,7 @@
                                 v-for="(item, index) in taskCategories"
                                 :key="index"
                                 :id="item.id"
+                                :data-test-id="`tabTemplateConfig_form_category${item.id}`"
                                 :name="item.name">
                             </bk-option>
                         </bk-select>
@@ -82,36 +83,18 @@
                 </section>
                 <section class="form-section">
                     <h4>{{ $t('通知') }}</h4>
-                    <bk-form-item :label="$t('通知方式')">
-                        <bk-table v-bkloading="{ isLoading: notifyTypeLoading }" class="notify-type-table" :data="formData.notifyType">
-                            <bk-table-column v-for="(col, index) in notifyTypeList" :key="index" :render-header="getNotifyTypeHeader">
-                                <template slot-scope="props">
-                                    <bk-switcher
-                                        v-if="col.type"
-                                        size="small"
-                                        theme="primary"
-                                        :value="props.row.includes(col.type)"
-                                        @change="onSelectNotifyType(props.$index, col.type, $event)">
-                                    </bk-switcher>
-                                    <span v-else>{{ props.$index === 0 ? $t('成功') : $t('失败') }}</span>
-                                </template>
-                            </bk-table-column>
-                        </bk-table>
-                    </bk-form-item>
-                    <bk-form-item :label="$t('通知分组')">
-                        <bk-checkbox-group v-model="formData.receiverGroup" v-bkloading="{ isLoading: notifyGroupLoading, opacity: 1, zIndex: 100 }">
-                            <bk-checkbox
-                                v-for="item in notifyGroup"
-                                :key="item.id"
-                                :value="item.id">
-                                {{item.name}}
-                            </bk-checkbox>
-                        </bk-checkbox-group>
-                    </bk-form-item>
+                    <NotifyTypeConfig
+                        :label-width="140"
+                        :notify-type="formData.notifyType"
+                        :notify-type-list="[{ text: $t('任务状态') }]"
+                        :receiver-group="formData.receiverGroup"
+                        :common="common"
+                        @change="onSelectNotifyConfig">
+                    </NotifyTypeConfig>
                 </section>
                 <section class="form-section">
                     <h4>{{ $t('其他') }}</h4>
-                    <bk-form-item v-if="!common" :label="$t('执行代理人')">
+                    <bk-form-item v-if="!common" :label="$t('执行代理人')" data-test-id="tabTemplateConfig_form_executorProxy">
                         <member-select
                             :multiple="false"
                             :value="formData.executorProxy"
@@ -125,10 +108,10 @@
                             {{ $t('模板级别的执行代理人会覆盖业务级别的执行代理人配置，') + $t('若模板配置了执行代理人，业务的执行代理人白名单不会生效。') }}
                         </div>
                     </bk-form-item>
-                    <bk-form-item property="notifyType" :label="$t('备注')">
+                    <bk-form-item property="notifyType" :label="$t('备注')" data-test-id="tabTemplateConfig_form_notifyType">
                         <bk-input type="textarea" v-model.trim="formData.description" :rows="5" :placeholder="$t('请输入流程模板备注信息')"></bk-input>
                     </bk-form-item>
-                    <bk-form-item property="defaultFlowType" :label="$t('任务类型偏好')">
+                    <bk-form-item property="defaultFlowType" :label="$t('任务类型偏好')" data-test-id="tabTemplateConfig_form_defaultFlowType">
                         <bk-select v-model="formData.defaultFlowType" :clearable="false">
                             <bk-option id="common" :name="$t('默认任务')"></bk-option>
                             <bk-option id="common_func" :name="$t('职能化任务')"></bk-option>
@@ -137,8 +120,8 @@
                 </section>
             </bk-form>
             <div class="btn-wrap">
-                <bk-button class="save-btn" theme="primary" :disabled="notifyTypeLoading || notifyGroupLoading" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
-                <bk-button theme="default" @click="closeTab">{{ $t('取消') }}</bk-button>
+                <bk-button class="save-btn" theme="primary" data-test-id="tabTemplateConfig_form_saveBtn" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
+                <bk-button theme="default" data-test-id="tabTemplateConfig_form_cancelBtn" @click="closeTab">{{ $t('取消') }}</bk-button>
             </div>
             <bk-dialog
                 width="400"
@@ -147,12 +130,13 @@
                 :mask-close="false"
                 :show-footer="false"
                 :value="isSaveConfirmDialogShow"
+                data-test-id="tabTemplateConfig_dialog_confirmDialog"
                 @cancel="isSaveConfirmDialogShow = false">
                 <div class="template-config-dialog-content">
                     <div class="leave-tips">{{ $t('保存已修改的配置信息吗？') }}</div>
                     <div class="action-wrapper">
-                        <bk-button theme="primary" :disabled="notifyTypeLoading || notifyGroupLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
-                        <bk-button theme="default" @click="closeTab">{{ $t('不保存') }}</bk-button>
+                        <bk-button theme="primary" data-test-id="tabTemplateConfig_form_saveBtn" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
+                        <bk-button theme="default" data-test-id="tabTemplateConfig_form_cancelBtn" @click="closeTab">{{ $t('不保存') }}</bk-button>
                     </div>
                 </div>
             </bk-dialog>
@@ -161,16 +145,18 @@
 </template>
 
 <script>
-    import { mapState, mapMutations, mapActions } from 'vuex'
+    import { mapState, mapMutations } from 'vuex'
     import MemberSelect from '@/components/common/Individualization/MemberSelect.vue'
     import tools from '@/utils/tools.js'
     import { NAME_REG, STRING_LENGTH, TASK_CATEGORIES } from '@/constants/index.js'
     import i18n from '@/config/i18n/index.js'
+    import NotifyTypeConfig from './NotifyTypeConfig.vue'
 
     export default {
         name: 'TabTemplateConfig',
         components: {
-            MemberSelect
+            MemberSelect,
+            NotifyTypeConfig
         },
         props: {
             projectInfoLoading: Boolean,
@@ -196,11 +182,7 @@
                     labels: template_labels,
                     defaultFlowType: default_flow_type
                 },
-                notifyTypeList: [],
-                projectNotifyGroup: [],
                 isSaveConfirmDialogShow: false,
-                notifyTypeLoading: false,
-                notifyGroupLoading: false,
                 rules: {
                     name: [
                         {
@@ -225,31 +207,11 @@
         },
         computed: {
             ...mapState({
-                'projectBaseInfo': state => state.template.projectBaseInfo,
                 'timeout': state => state.template.time_out
             }),
             ...mapState('project', {
                 'authActions': state => state.authActions
-            }),
-            notifyGroup () {
-                let list = []
-                if (this.projectBaseInfo.notify_group) {
-                    const defaultList = list.concat(this.projectBaseInfo.notify_group.map(item => {
-                        return {
-                            id: item.value,
-                            name: item.text
-                        }
-                    }))
-                    list = defaultList.concat(this.projectNotifyGroup)
-                }
-                return list
-            }
-        },
-        created () {
-            this.getNotifyTypeList()
-            if (!this.common) {
-                this.getProjectNotifyGroup()
-            }
+            })
         },
         mounted () {
             this.$refs.nameInput.focus()
@@ -258,21 +220,6 @@
             ...mapMutations('template/', [
                 'setTplConfig'
             ]),
-            ...mapActions([
-                'getNotifyTypes',
-                'getNotifyGroup'
-            ]),
-            async getNotifyTypeList () {
-                try {
-                    this.notifyTypeLoading = true
-                    const res = await this.getNotifyTypes()
-                    this.notifyTypeList = [{ text: i18n.t('任务状态') }].concat(res.data)
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.notifyTypeLoading = false
-                }
-            },
             onSelectCategory (val) {
                 if (val) {
                     window.reportInfo({
@@ -295,17 +242,6 @@
                 const { href } = this.$router.resolve({ name: 'projectConfig', params: { id: this.$route.params.project_id } })
                 window.open(href, '_blank')
             },
-            async getProjectNotifyGroup () {
-                try {
-                    this.notifyGroupLoading = true
-                    const res = await this.getNotifyGroup({ project_id: this.$route.params.project_id })
-                    this.projectNotifyGroup = res.data
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.notifyGroupLoading = false
-                }
-            },
             getTemplateConfig () {
                 const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType } = this.formData
                 return {
@@ -324,27 +260,10 @@
                     this.$router.push({ name: 'projectConfig', params: { id: this.$route.params.project_id } })
                 }
             },
-            getNotifyTypeHeader (h, data) {
-                const col = this.notifyTypeList[data.$index]
-                if (col.type) {
-                    return h('div', { 'class': 'notify-table-heder' }, [
-                        h('img', { 'class': 'notify-icon', attrs: { src: `data:image/png;base64,${col.icon}` } }, []),
-                        h('span', { style: 'word-break: break-all;' }, [col.label])
-                    ])
-                } else {
-                    return h('span', {}, [col.text])
-                }
-            },
-            onSelectNotifyType (row, type, val) {
-                const data = this.formData.notifyType[row]
-                if (val) {
-                    data.push(type)
-                } else {
-                    const index = data.findIndex(item => item === type)
-                    if (index > -1) {
-                        data.splice(index, 1)
-                    }
-                }
+            onSelectNotifyConfig (formData) {
+                const { notifyType, receiverGroup } = formData
+                this.formData.notifyType = notifyType
+                this.formData.receiverGroup = receiverGroup
             },
             onSaveConfig () {
                 this.$refs.configForm.validate().then(result => {
@@ -424,30 +343,6 @@
     }
     /deep/ .bk-label {
         font-size: 12px;
-    }
-    .bk-form-checkbox {
-        margin-right: 20px;
-        margin-bottom: 6px;
-        min-width: 96px;
-        /deep/ .bk-checkbox-text {
-            color: $greyDefault;
-            font-size: 12px;
-        }
-    }
-    /deep/ .bk-checkbox-text {
-        display: inline-flex;
-        align-items: center;
-        width: 100px;
-    }
-    .notify-type-table {
-        /deep/ .notify-table-heder {
-            display: flex;
-            align-items: center;
-            .notify-icon {
-                margin-right: 4px;
-                width: 18px;
-            }
-        }
     }
     .user-selector {
         display: block;

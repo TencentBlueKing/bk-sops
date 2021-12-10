@@ -4,9 +4,9 @@ name: frontend code eslint
 
 on:
   push:
-    branches: [ V3.6.X**, release* ]
+    branches: [ master, develop, release* ]
   pull_request:
-    branches: [ V3.6.X**, release* ]
+    branches: [ master, develop, release* ]
 
 jobs:
   eslint:
@@ -14,7 +14,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12'
+
       - name: Install dependencies
         run: |
               cd frontend/desktop/

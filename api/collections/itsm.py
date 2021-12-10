@@ -16,7 +16,7 @@ from django.conf import settings
 import env
 from api.client import BKComponentClient
 
-ITSM_API_ENTRY = env.BK_ITSM_API_ENTRY or "{}/{}".format(settings.BK_PAAS_INNER_HOST, "api/c/compapi/v2/itsm")
+ITSM_API_ENTRY = env.BK_ITSM_API_ENTRY or "{}/{}".format(settings.BK_PAAS_ESB_HOST, "api/c/compapi/v2/itsm")
 
 
 def _get_itsm_api(api_name):

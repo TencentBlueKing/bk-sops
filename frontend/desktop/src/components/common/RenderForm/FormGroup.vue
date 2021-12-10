@@ -152,10 +152,8 @@
             if (scheme.events) {
                 scheme.events.map(item => {
                     const eventSource = `${item.source}_${item.type}`
-                    this.eventActions[eventSource] = item.action
-                    this.$parent.$on(eventSource, (data) => {
-                        this.eventActions[eventSource].call(this, data)
-                    })
+                    this.eventActions[eventSource] = this.getEventHandler(item.action)
+                    this.$parent.$on(eventSource, this.eventActions[eventSource])
                 })
             }
 
@@ -169,10 +167,18 @@
                 })
             }
         },
+        beforeDestroy () {
+            if (this.scheme.events) {
+                this.scheme.events.forEach((item) => {
+                    const eventSource = `${item.source}_${item.type}`
+                    this.$parent.$off(eventSource, this.eventActions[eventSource])
+                })
+            }
+        },
         mounted () {
             // 组件插入到 DOM 后， 在父组件上发布该 combine 组件的 init 事件，触发标准插件配置项里监听的函数
             this.$nextTick(() => {
-                this.$parent.$emit(`${this.tagCode}_init`, this.value)
+                this.emit_event(this.tagCode, 'init', this.value)
             })
         },
         methods: {
@@ -206,6 +212,11 @@
                     })
                 }
                 return childComponent
+            },
+            getEventHandler (action) {
+                return (data) => {
+                    action.call(this, data)
+                }
             },
             emit_event (name, type, data) {
                 this.$parent.$emit(`${name}_${type}`, data)

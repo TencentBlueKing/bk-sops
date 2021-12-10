@@ -41,7 +41,9 @@ class BlueSettings(object):
             elif hasattr(self._default_settings, key):
                 return getattr(self._default_settings, key)
 
-        raise AttributeError("%r object has no attribute %r" % (self.__class__.__name__, key))
+        raise AttributeError(
+            "%r object has no attribute %r" % (self.__class__.__name__, key)
+        )
 
 
 settings = BlueSettings()

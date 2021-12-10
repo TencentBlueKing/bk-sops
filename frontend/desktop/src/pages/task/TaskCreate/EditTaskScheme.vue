@@ -24,13 +24,18 @@
             </p>
             <div class="scheme-active-wrapper" v-else>
                 <div>
-                    <bk-button :disabled="isCommonProcess" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
-                    <bk-button :disabled="isCommonProcess" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
-                    <bk-button :disabled="isCommonProcess" @click="onSetDefaultPlan">{{ $t('设置默认方案') }}</bk-button>
+                    <bk-button data-test-id="templateEdit_form_addScheme" :disabled="isCommonProcess" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
+                    <bk-button data-test-id="templateEdit_form_importTemporaryPlan" :disabled="isCommonProcess" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
+                    <bk-button data-test-id="templateEdit_form_setDeafultScheme" :disabled="isCommonProcess" @click="onSetDefaultPlan">{{ $t('设置默认方案') }}</bk-button>
                 </div>
-                <bk-button @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
+                <bk-button
+                    data-test-id="templateEdit_form_previewNode"
+                    @click="onChangePreviewNode">
+                    {{ isPreview ? $t('关闭预览') : $t('节点预览')}}
+                </bk-button>
             </div>
             <section
+                data-test-id="templateEdit_form_schemeList"
                 :class="['scheme-wrapper', { 'is-diasbled': isCommonProcess, 'is-default-scheme': isDefaultSchemeIng }]"
                 v-bkloading="{ isLoading: isSchemeLoading }">
                 <p :class="['scheme-title', { 'data-empty': !schemeList.length && !nameEditing }]">
@@ -106,8 +111,18 @@
                 </bk-exception>
             </section>
             <section class="scheme-footer">
-                <bk-button theme="primary" :loading="executeSchemeSaving || isSaveDefaultLoading" @click="onSaveExecuteSchemeClick">{{ $t('保存') }}</bk-button>
-                <bk-button @click="toggleSchemePanel">{{ $t('返回') }}</bk-button>
+                <bk-button
+                    data-test-id="templateEdit_form_saveScheme"
+                    theme="primary"
+                    :loading="executeSchemeSaving || isSaveDefaultLoading"
+                    @click="onSaveExecuteSchemeClick">
+                    {{ $t('保存') }}
+                </bk-button>
+                <bk-button
+                    data-test-id="templateEdit_form_returnBtn"
+                    @click="toggleSchemePanel">
+                    {{ $t('返回') }}
+                </bk-button>
             </section>
         </div>
     </div>
@@ -117,7 +132,6 @@
     import { uuid } from '@/utils/uuid.js'
     import tools from '@/utils/tools.js'
     import { mapState, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
     import bus from '@/utils/bus.js'
@@ -289,8 +303,9 @@
                     })
                     this.$emit('updateTaskSchemeList', this.schemeList)
                     this.$emit('setDefaultScheme', defaultObj)
+                    this.$emit('setDefaultSelected', false)
                 } catch (error) {
-                    errorHandler(error, this)
+                    console.error(error)
                 }
             },
             // 获取默认方案列表
@@ -309,7 +324,9 @@
                         this.isUpdate = false
                     }
                 } catch (error) {
-                    errorHandler(error, this)
+                    console.error(error)
+                } finally {
+                    this.isSchemeLoading = false
                 }
             },
             /**
@@ -464,9 +481,12 @@
                     })
                     return
                 }
-                const isschemeNameExist = this.schemeList.some(item => item.name === this.schemeName)
-                if (isschemeNameExist) {
-                    errorHandler({ message: i18n.t('方案名称已存在') }, this)
+                const isSchemeNameExist = this.schemeList.some(item => item.name === this.schemeName)
+                if (isSchemeNameExist) {
+                    this.$bkMessage({
+                        message: i18n.t('方案名称已存在'),
+                        theme: 'warning'
+                    })
                     return
                 }
                 this.$validator.validateAll().then(async (result) => {
