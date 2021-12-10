@@ -314,11 +314,11 @@
                     const varTypeList = tools.deepClone(this.varTypeList)
                     const listData = this.variableList.reduce((acc, cur) => {
                         if (cur.key in this.internalVariable) {
-                            cur.type = i18n.t('组件')
+                            this.$set(cur, 'type', i18n.t('组件'))
                         } else {
                             const result = varTypeList.find(item => item.code === cur.custom_type && item.tag === cur.source_tag)
                             if (result) {
-                                cur.type = result.name
+                                this.$set(cur, 'type', result.name)
                                 result.checked = false
                                 acc.push(result)
                             }
