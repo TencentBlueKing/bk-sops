@@ -15,8 +15,6 @@ specific language governing permissions and limitations under the License.
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.user_custom_config.constants import UserConfOption
-
 
 class UserConfManager(models.Manager):
     def set_userconf(self, **kwargs):
@@ -38,9 +36,7 @@ class UserConfManager(models.Manager):
 class UserCustomProjectConfig(models.Model):
     username = models.CharField(_("用户名"), max_length=255)
     project_id = models.IntegerField(_("所属项目ID"))
-    task_template_ordering = models.CharField(
-        _("模板列表默认排序字段"), max_length=255, default=UserConfOption["task_template_ordering"][0]["value"]
-    )
+    task_template_ordering = models.CharField(_("模板列表默认排序字段"), max_length=255, default="-id")
 
     objects = UserConfManager()
 
