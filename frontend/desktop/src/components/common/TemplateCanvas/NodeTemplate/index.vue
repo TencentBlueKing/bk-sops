@@ -35,10 +35,10 @@
                 @click.stop="onNodeRemove">
             </i>
         </div>
-        <!-- 节点输入输出变量 -->
-        <div class="perspective-tips-context" v-if="isPerspective && node.name && node.id in activities">
+        <!-- 节点输入输出变量(node.name用来判断节点是否选择过插件) -->
+        <div class="perspective-tips-context" v-if="isPerspective && node.name && ['tasknode', 'subflow'].includes(node.type)">
             <div class="tips-content">
-                <p>{{ $t('引入变量') }}</p>
+                <p>{{ $t('引用变量') }}</p>
                 <template v-if="nodeVar.input.length">
                     <p v-for="item in nodeVar.input" :key="item">{{ item }}</p>
                 </template>
@@ -184,6 +184,7 @@
 </script>
 <style lang="scss">
     @import '@/scss/mixins/multiLineEllipsis.scss';
+    @import '@/scss/mixins/scrollbar.scss';
 
     $blueDark: #738abe;
     $redDark: #ea3636;
@@ -597,6 +598,7 @@
             padding-top: 10px;
             display: none;
             .tips-content {
+                max-height: 120px;
                 padding: 4px 10px;
                 font-size: 12px;
                 color: #63656e;
@@ -605,6 +607,8 @@
                 border: 1px solid #dcdee5;
                 border-radius: 2px;
                 box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.09);
+                overflow-y: auto;
+                @include scrollbar;
             }
             &::after {
                 content: '';

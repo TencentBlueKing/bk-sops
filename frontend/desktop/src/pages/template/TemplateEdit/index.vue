@@ -927,6 +927,12 @@
                         }
                         return acc
                     }, {})
+                    // 去重
+                    Object.keys(nodeCitedInfo).forEach(key => {
+                        const values = nodeCitedInfo[key]
+                        values.input = [...new Set(values.input)]
+                        values.output = [...new Set(values.output)]
+                    })
                     this.nodeVariableInfo = nodeCitedInfo
                 } catch (e) {
                     console.log(e)
