@@ -35,6 +35,21 @@
                 @click.stop="onNodeRemove">
             </i>
         </div>
+        <!-- 节点输入输出变量 -->
+        <div class="perspective-tips-context" v-if="isPerspective && node.name && node.id in activities">
+            <div class="tips-content">
+                <p>{{ $t('引入变量') }}</p>
+                <template v-if="nodeVar.input.length">
+                    <p v-for="item in nodeVar.input" :key="item">{{ item }}</p>
+                </template>
+                <template v-else>{{ '--' }}</template>
+                <p>{{ $t('输出变量') }}</p>
+                <template v-if="nodeVar.output.length">
+                    <p v-for="item in nodeVar.output" :key="item">{{ item }}</p>
+                </template>
+                <template v-else>{{ '--' }}</template>
+            </div>
+        </div>
     </div>
 </template>
 <script>
@@ -62,6 +77,18 @@
             hasAdminPerm: {
                 type: Boolean,
                 default: false
+            },
+            nodeVariableInfo: {
+                type: Object,
+                default: () => ({})
+            },
+            activities: {
+                type: Object,
+                default: () => ({})
+            },
+            isPerspective: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
@@ -86,6 +113,13 @@
         computed: {
             nodeTemplate () {
                 return this.components[this.node.type.toLowerCase()]
+            },
+            nodeVar () {
+                const { id } = this.node
+                if (id in this.nodeVariableInfo) {
+                    return this.nodeVariableInfo[id]
+                }
+                return { input: [], output: [] }
             }
         },
         methods: {
@@ -553,6 +587,42 @@
                 &.phase-error {
                     color: $redDark;
                 }
+            }
+        }
+        .perspective-tips-context {
+            position: absolute;
+            top: 52px;
+            left: -140px;
+            width: 188px;
+            padding-top: 10px;
+            display: none;
+            .tips-content {
+                padding: 4px 10px;
+                font-size: 12px;
+                color: #63656e;
+                line-height: 16px;
+                background: #fff;
+                border: 1px solid #dcdee5;
+                border-radius: 2px;
+                box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.09);
+            }
+            &::after {
+                content: '';
+                width: 11px;
+                height: 11px;
+                position: absolute;
+                top: 5px;
+                left: 155px;
+                background: #fff;
+                transform: rotate(45deg);
+            }
+            &:hover {
+                display: block;
+            }
+        }
+        &:hover {
+            .perspective-tips-context {
+                display: block;
             }
         }
     }
