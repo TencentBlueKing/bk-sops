@@ -16,6 +16,7 @@
                 ref="ipSelector"
                 :editable="editable && !disabled"
                 :is-multiple="isMultiple"
+                :selector-tabs="selectorTabs"
                 :static-ip-list="staticIpList"
                 :dynamic-ip-list="dynamicIpList"
                 :topo-model-list="topoModelList"
@@ -69,6 +70,31 @@
             }
         }
     }
+    const selectorTabs = [
+        {
+            type: 'staticIp',
+            id: 'ip',
+            name: gettext('静态 IP'),
+            hasDiff: false
+        },
+        {
+            type: 'dynamicIp',
+            id: 'topo',
+            name: gettext('动态 IP'),
+            hasDiff: false
+        },
+        {
+            type: 'dynamicGroup',
+            id: 'group',
+            name: gettext('动态分组'),
+            hasDiff: false
+        },
+        {
+            type: 'manualInput',
+            id: 'manual',
+            name: gettext('手动输入')
+        }
+    ]
     export default {
         name: 'TagIpSelector',
         components: {
@@ -79,6 +105,7 @@
             return {
                 loading: false,
                 isvalidate: false,
+                selectorTabs: tools.deepClone(selectorTabs),
                 staticIpList: [],
                 dynamicIpList: [],
                 topoModelList: [],
@@ -144,32 +171,40 @@
                     })
                 ]).then(values => {
                     if (Array.isArray(values)) {
+                        let hasDiff = false
+                        const value = tools.deepClone(this.value)
+                        const { ip, topo, group } = value
                         values.forEach((v, index) => {
                             switch (index) {
                                 case 0:
                                     this.staticIpList = v.data
                                     if (!this.hook) { // 表单没有被勾选
-                                        const value = tools.deepClone(this.value)
-                                        const ips = []
-                                        value.ip.forEach(item => {
-                                            // 拿到新的静态ip列表后替换对应的已保存ip属性，如果已保存ip在新列表中不存在，则过滤掉
-                                            const ipItem = this.staticIpList.find(i => i.bk_host_innerip === item.bk_host_innerip)
-                                            if (ipItem) {
-                                                ips.push(tools.deepClone(ipItem))
-                                            }
+                                        hasDiff = ip.some(value => {
+                                            // 拿到新的静态ip列表后替换对应的已保存ip属性，如果已保存ip在新列表中不存在，则提示用户手动更新
+                                            return this.staticIpList.every(item => item.bk_host_id !== value.bk_host_id)
                                         })
-                                        value.ip = ips
-                                        this.updateForm(value)
+                                        this.selectorTabs[0].hasDiff = hasDiff
                                     }
                                     break
                                 case 1:
                                     this.dynamicIpList = v.data
+                                    // 判断动态IP数据与最新的CMDB动态IP配置是否存在差异
+                                    hasDiff = topo.some(item => {
+                                        return this.loopDynamicIpList(this.dynamicIpList, item.bk_obj_id, item.bk_inst_id)
+                                    })
+                                    this.selectorTabs[1].hasDiff = hasDiff
                                     break
                                 case 2:
                                     this.topoModelList = v.data
                                     break
                                 case 3:
                                     this.dynamicGroupList = v.data.info
+                                    // 判断动态分组数据与最新的CMDB动态分组配置是否存在差异
+                                    const dynamicGroups = group || []
+                                    hasDiff = dynamicGroups.some(value => {
+                                        return this.dynamicGroupList.every(item => item.id !== value.id)
+                                    })
+                                    this.selectorTabs[2].hasDiff = hasDiff
                                     break
                             }
                         })
@@ -178,6 +213,17 @@
                 }).catch(e => {
                     this.loading = false
                     console.log(e)
+                })
+            },
+            loopDynamicIpList (list, objId, instId) {
+                return list.some(item => {
+                    if (item.bk_obj_id === objId && item.bk_inst_id === instId) {
+                        return false
+                    } else if (item.child && item.child.length) {
+                        this.loopDynamicIpList(item.child, objId, instId)
+                    } else {
+                        return true
+                    }
                 })
             },
             customValidate () {

@@ -24,7 +24,7 @@
                         <bk-button
                             theme="primary"
                             style="min-width: 120px;"
-                            data-test-id="taskList_form_creatTask"
+                            data-test-id="taskList_form_createTask"
                             @click="onCreateTask">
                             {{$t('新建')}}
                         </bk-button>
@@ -87,17 +87,19 @@
                             <template slot-scope="props">
                                 <div class="task-operation">
                                     <!-- 事后鉴权，后续对接新版权限中心 -->
-                                    <a v-if="props.row.template_deleted" class="task-operation-btn disabled">{{$t('再创建')}}</a>
+                                    <a v-if="props.row.template_deleted || props.row.template_source === 'onetime'" class="task-operation-btn disabled" data-test-id="taskList_table_recreateBtn">{{$t('再创建')}}</a>
                                     <a
                                         v-else-if="!hasCreateTaskPerm(props.row)"
                                         v-cursor
                                         class="text-permission-disable task-operation-btn"
+                                        data-test-id="taskList_table_recreateBtn"
                                         @click="onTaskPermissonCheck([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row)">
                                         {{$t('再创建')}}
                                     </a>
                                     <router-link
                                         v-else
                                         class="task-operation-btn"
+                                        data-test-id="taskList_table_recreateBtn"
                                         :to="getCreateTaskUrl(props.row)">
                                         {{$t('再创建')}}
                                     </router-link>
@@ -107,6 +109,7 @@
                                             'text-permission-disable': !hasPermission(['task_clone'], props.row.auth_actions)
                                         }]"
                                         href="javascript:void(0);"
+                                        data-test-id="taskList_table_cloneBtn"
                                         @click="onCloneTaskClick(props.row, $event)">
                                         {{ $t('克隆') }}
                                     </a>
@@ -116,6 +119,7 @@
                                             'text-permission-disable': !hasPermission(['task_delete'], props.row.auth_actions)
                                         }]"
                                         href="javascript:void(0);"
+                                        data-test-id="taskList_table_deleteBtn"
                                         @click="onDeleteTask(props.row, $event)">
                                         {{ $t('删除') }}
                                     </a>

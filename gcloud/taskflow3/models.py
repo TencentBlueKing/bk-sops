@@ -304,7 +304,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         # 获得参数中的标准插件code
         component_code = filters.get("component_code")
         version = filters.get("version")
-        is_remote = filters.get("is_remote")
+        is_remote = filters.get("is_remote", False)
         if component_code:
             instance_id_list = TaskflowExecutedNodeStatistics.objects.filter(
                 is_sub=False, component_code=component_code, version=version, is_remote=is_remote
@@ -1111,6 +1111,18 @@ class TaskFlowInstance(models.Model):
 
         return False
 
+    @property
+    def function_task_claimant(self):
+        """
+        获取当前任务实例的职能化认领单的认领人
+        """
+        # 如果任务流程类型不是职能化任务流程，直接返回
+        if self.flow_type != "common_func":
+            return None
+
+        # 如果是职能化任务流程，返回对应的职能化认领单实例
+        return self.function_task.filter(task=self).values_list("claimant", flat=True).first()
+
     @classmethod
     def task_url(cls, project_id, task_id):
         return "%staskflow/execute/%s/?instance_id=%s" % (settings.APP_HOST, project_id, task_id)
@@ -1250,7 +1262,7 @@ class TaskFlowInstance(models.Model):
             self.current_flow = "execute_task"
         self.is_deleted = False
         self.save()
-        return self.pk
+        return self
 
     def set_task_context(self, constants):
         dispatcher = TaskCommandDispatcher(
@@ -1367,6 +1379,12 @@ class TaskFlowInstance(models.Model):
             members = ",".join(members).split(",")
             receivers.extend(members)
 
+        # 如果职能化单认领人存在，则通知上加上认领人
+        if self.function_task_claimant:
+            receivers.append(self.function_task_claimant)
+
+        receiver_set = set(receivers)
+        receiver_set.discard(self.executor)
         # 这里保证执行人在列表第一位，且名单中通知人唯一，其他接收人不保证顺序
         return sorted(set(receivers), key=receivers.index)
 
@@ -1428,3 +1446,16 @@ class TaskOperationTimesConfig(models.Model):
         verbose_name = _("任务操作次数限制配置 TaskOperationTimesConfig")
         verbose_name_plural = _("任务操作次数限制配置 TaskOperationTimesConfig")
         unique_together = ("project_id", "operation")
+
+
+class AutoRetryNodeStrategy(models.Model):
+    taskflow_id = models.BigIntegerField(verbose_name="taskflow id")
+    root_pipeline_id = models.CharField(verbose_name="root pipeline id", max_length=64)
+    node_id = models.CharField(verbose_name="task node id", max_length=64, primary_key=True)
+    retry_times = models.IntegerField(verbose_name="retry times", default=0)
+    max_retry_times = models.IntegerField(verbose_name="retry times", default=5)
+
+    class Meta:
+        verbose_name = _("节点自动重试策略 AutoRetryNodeStrategy")
+        verbose_name_plural = _("节点自动重试策略 AutoRetryNodeStrategy")
+        index_together = [("root_pipeline_id", "node_id")]

@@ -29,7 +29,7 @@
 <script>
     import '@/utils/i18n.js'
     import { mapState } from 'vuex'
-    import JSEncrypt from 'jsencrypt'
+    import EncryptRSA from '@/utils/encryptRSA.js'
     import { getFormMixins } from '../formMixins.js'
 
     export const attrs = {
@@ -98,9 +98,9 @@
                     val = ''
                     return
                 }
-                const crypt = new JSEncrypt()
-                crypt.setKey(pubKey)
-                val = crypt.encrypt(this.password)
+                const crypt = new EncryptRSA()
+                crypt.setPublicKey(pubKey)
+                val = crypt.encryptChunk(this.password)
             
                 this.encrypted = true
                 this.tempValue = this.password

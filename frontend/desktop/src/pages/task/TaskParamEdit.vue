@@ -15,6 +15,7 @@
             ref="renderForm"
             v-if="!isConfigLoading"
             :scheme="renderConfig"
+            :constants="variables"
             :form-option="renderOption"
             v-model="renderData">
         </RenderForm>

@@ -618,6 +618,9 @@
         .rf-form-item {
             margin: 0;
         }
+        /deep/.el-table .rf-tag-form {
+            margin-right: 0;
+        }
         /deep/ .rf-view-textarea-value textarea {
             text-align: center;
         }
