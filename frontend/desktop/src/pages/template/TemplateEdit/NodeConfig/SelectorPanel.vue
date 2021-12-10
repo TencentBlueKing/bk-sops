@@ -262,10 +262,12 @@
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         mounted () {
-            this.scrollDom = document.querySelector('.third-praty-list')
-            if (this.scrollDom) {
-                this.scrollDom.addEventListener('scroll', this.handlePluginScroll)
-            }
+            this.$nextTick(() => {
+                this.scrollDom = document.querySelector('.third-praty-list')
+                if (this.scrollDom) {
+                    this.scrollDom.addEventListener('scroll', this.handlePluginScroll)
+                }
+            })
         },
         beforeDestroy () {
             if (this.scrollDom) {
