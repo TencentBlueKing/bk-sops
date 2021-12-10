@@ -165,7 +165,7 @@ modules:
                 plan: 4C1G5R
                 replicas: 2
             cworker:
-                command: python manage.py celery worker -Q pipeline_additional_task,pipeline_additional_task_priority -n common_worker@%h -c 6 -l info --maxtasksperchild=50
+                command: python manage.py celery worker -Q pipeline_additional_task,pipeline_additional_task_priority,node_auto_retry -n common_worker@%h -c 6 -l info --maxtasksperchild=50
                 plan: 4C1G5R
                 replicas: 3
             er-e:
