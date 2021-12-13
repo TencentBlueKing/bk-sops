@@ -16,13 +16,15 @@ import logging
 from celery import task
 from django.conf import settings
 
-from pipeline.engine.models import PipelineProcess
+from pipeline.engine.models import PipelineProcess, Status
+from pipeline.eri.models import State, Process
 from pipeline.eri.runtime import BambooDjangoRuntime
 
-from gcloud.taskflow3.models import TaskFlowInstance, AutoRetryNodeStrategy, EngineConfig
+import metrics
+from gcloud.taskflow3.domains.node_timeout_strategy import node_timeout_handler
+from gcloud.taskflow3.models import TaskFlowInstance, AutoRetryNodeStrategy, EngineConfig, TimeoutNodeConfig
 from gcloud.taskflow3.domains.dispatchers.node import NodeCommandDispatcher
 from gcloud.shortcuts.message import send_task_flow_message
-
 
 logger = logging.getLogger("celery")
 
@@ -99,3 +101,35 @@ def auto_retry_node(taskflow_id, root_pipeline_id, node_id, retry_times, engine_
         retry_times=retry_times + 1
     )
     settings.redis_inst.delete(lock_name)
+
+
+@task
+@metrics.setup_histogram(metrics.TASKFLOW_TIMEOUT_NODES_PROCESSING_TIME)
+def execute_node_timeout_strategy(node_id, version):
+    timeout_config = (
+        TimeoutNodeConfig.objects.filter(node_id=node_id).only("task_id", "root_pipeline_id", "action").first()
+    )
+    task_id, action, root_pipeline_id = (
+        timeout_config.task_id,
+        timeout_config.action,
+        timeout_config.root_pipeline_id,
+    )
+    task_inst = TaskFlowInstance.objects.get(pk=task_id)
+
+    # 判断当前节点是否符合策略执行要求
+    is_process_current_node = Process.objects.filter(
+        root_pipeline_id=root_pipeline_id, current_node_id=node_id
+    ).exists()
+    if task_inst.engine_ver == EngineConfig.ENGINE_VER_V1:
+        node_match = Status.objects.filter(id=node_id, version=version).exists()
+    else:
+        node_match = State.objects.filter(node_id=node_id, version=version).exists()
+    if not (node_match and is_process_current_node):
+        message = (
+            f"[execute_node_timeout_strategy]node {node_id} with version {version} in task {task_id} has been passed."
+        )
+        logger.error(message)
+        return {"result": False, "message": message, "data": None}
+
+    handler = node_timeout_handler[action]
+    return handler.deal_with_timeout_node(task_inst, node_id)

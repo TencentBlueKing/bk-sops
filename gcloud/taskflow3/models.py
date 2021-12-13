@@ -23,6 +23,7 @@ from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.constants import PE
+from pipeline.core import constants as pipeline_constants
 from pipeline.component_framework.constant import ConstantPool
 from pipeline.models import PipelineInstance
 from pipeline.engine import states
@@ -36,7 +37,7 @@ from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 from gcloud import err_code
 from gcloud.conf import settings
-from gcloud.constants import TASK_FLOW_TYPE, TASK_CATEGORY
+from gcloud.constants import TASK_FLOW_TYPE, TASK_CATEGORY, TASKFLOW_NODE_TIMEOUT_CONFIG_BATCH_CREAT_COUNT
 from gcloud.core.models import Project, EngineConfig, StaffGroupSet
 from gcloud.core.utils import convert_readable_username
 from gcloud.contrib.appmaker.models import AppMaker
@@ -1458,4 +1459,61 @@ class AutoRetryNodeStrategy(models.Model):
     class Meta:
         verbose_name = _("节点自动重试策略 AutoRetryNodeStrategy")
         verbose_name_plural = _("节点自动重试策略 AutoRetryNodeStrategy")
+        index_together = [("root_pipeline_id", "node_id")]
+
+
+class TimeoutNodeConfigManager(models.Manager):
+    def batch_create_node_timeout_config(self, taskflow_id: int, root_pipeline_id: str, pipeline_tree: dict):
+        """批量创建节点超时配置"""
+
+        def _initiate_config(tree_data: dict) -> list:
+            configs = []
+            for act_id, act in tree_data[pipeline_constants.PE.activities].items():
+                if act["type"] == pipeline_constants.PE.SubProcess:
+                    result = _initiate_config(tree_data)
+                    if not result["result"]:
+                        return result
+                    configs.extend(result["data"])
+                elif act["type"] == pipeline_constants.PE.ServiceActivity:
+                    timeout_config = act.get("timeout_config", {})
+                    enable = timeout_config.get("enable")
+                    if not enable:
+                        continue
+                    timeout_seconds = timeout_config.get("seconds")
+                    action = timeout_config.get("action")
+                    if not timeout_seconds or not isinstance(timeout_seconds, int):
+                        message = (
+                            f"node {act_id} in taskflow {taskflow_id} has a illegal timemout seconds: {timeout_seconds}"
+                        )
+                        logger.error(message)
+                        # 对于不符合格式要求的情况，则不设置对应超时时间
+                        continue
+                    configs.append(
+                        TimeoutNodeConfig(
+                            task_id=taskflow_id,
+                            action=action,
+                            root_pipeline_id=root_pipeline_id,
+                            node_id=act_id,
+                            timeout=timeout_seconds,
+                        )
+                    )
+            return configs
+
+        timeout_configs = _initiate_config(pipeline_tree)
+        self.bulk_create(timeout_configs, batch_size=TASKFLOW_NODE_TIMEOUT_CONFIG_BATCH_CREAT_COUNT)
+
+
+class TimeoutNodeConfig(models.Model):
+    ACTION_TYPE = (("forced_fail", _("强制失败")), ("forced_fail_and_skip", _("强制失败并跳过")))
+    task_id = models.BigIntegerField(verbose_name="taskflow id")
+    root_pipeline_id = models.CharField(verbose_name="root pipeline id", max_length=64)
+    action = models.CharField(verbose_name="action", choices=ACTION_TYPE, max_length=32)
+    node_id = models.CharField(verbose_name="task node id", max_length=64, primary_key=True)
+    timeout = models.IntegerField(verbose_name="node timeout time")
+
+    objects = TimeoutNodeConfigManager()
+
+    class Meta:
+        verbose_name = _("节点超时配置 TimeoutNodeConfig")
+        verbose_name_plural = _("节点超时配置 TimeoutNodeConfig")
         index_together = [("root_pipeline_id", "node_id")]

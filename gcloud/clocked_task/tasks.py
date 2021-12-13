@@ -19,7 +19,7 @@ from django.db import transaction
 from gcloud.clocked_task.models import ClockedTask
 from gcloud.core.models import Project, EngineConfig
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
-from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.shortcuts.message import send_clocked_task_message
 
@@ -76,6 +76,13 @@ def clocked_task_start(clocked_task_id, *args, **kwargs):
                 taskflow_id=task.id, root_pipeline_id=task.pipeline_instance.instance_id
             )
             arn_creator.batch_create_strategy(task.pipeline_instance.execution_data)
+
+            # create timeout config
+            TimeoutNodeConfig.objects.batch_create_node_timeout_config(
+                taskflow_id=task.id,
+                root_pipeline_id=task.pipeline_instance.instance_id,
+                pipeline_tree=task.pipeline_instance.execution_data,
+            )
 
         taskflow_instance.task_action("start", clocked_task.creator)
     except Exception as ex:
