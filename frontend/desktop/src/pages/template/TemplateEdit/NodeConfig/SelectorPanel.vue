@@ -186,7 +186,7 @@
                         <p
                             class="plugin-desc"
                             v-bk-overflow-tips="{ placement: 'bottom-end', extCls: 'plugin-desc-tips' }">
-                            {{ plugin.introduction }}
+                            {{ plugin.introduction || '--' }}
                         </p>
                         <p class="plugin-contact">{{ plugin.contact }}</p>
                     </div>

@@ -24,7 +24,7 @@
                 <p
                     class="plugin-desc"
                     v-bk-overflow-tips="{ placement: 'bottom-end', extCls: 'plugin-code-tips', width: 300 }">
-                    {{ node.desc }}
+                    {{ node.desc || '--' }}
                 </p>
             </div>
         </div>
