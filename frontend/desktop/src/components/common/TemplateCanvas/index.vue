@@ -118,11 +118,14 @@
             @onCloseHotkeyInfo="onCloseHotkeyInfo">
         </help-info>
         <div class="small-map" ref="smallMap" v-if="showSmallMap">
-            <img :src="smallMapImg" alt="">
-            <div
-                ref="selectBox"
-                class="select-box"
-                @mousedown.prevent="onMouseDownSelect">
+            <div class="small-map-body" v-bkloading="{ isLoading: smallMapLoading }">
+                <img :src="smallMapImg" alt="">
+                <div
+                    ref="selectBox"
+                    class="select-box"
+                    v-show="!smallMapLoading"
+                    @mousedown.prevent="onMouseDownSelect">
+                </div>
             </div>
         </div>
     </div>
@@ -241,6 +244,7 @@
                 smallMapHeight: 216, // 216 小地图高度
                 smallMapImg: '',
                 showSmallMap: false,
+                smallMapLoading: true, // 小地图loading
                 isMouseEnterX: '', // 鼠标在选择框中按下的offsetX值
                 isMouseEnterY: '', // 鼠标在选择框中按下的offsetY值
                 windowWidth: document.documentElement.offsetWidth - 60, // 60 header的宽度
@@ -342,14 +346,19 @@
             },
             onToggleMapShow () {
                 this.showSmallMap = !this.showSmallMap
-                if (this.showSmallMap) {
-                    this.onGenerateCanvas().then(res => {
-                        this.smallMapImg = res
-                    })
-                    this.$nextTick(() => {
-                        this.getInitialValue()
-                    })
-                }
+                this.smallMapLoading = true
+                this.smallMapImg = ''
+                setTimeout(() => {
+                    if (this.showSmallMap) {
+                        this.onGenerateCanvas().then(res => {
+                            this.smallMapImg = res
+                            this.smallMapLoading = false
+                        })
+                        this.$nextTick(() => {
+                            this.getInitialValue()
+                        })
+                    }
+                }, 0)
             },
             onZoomIn (pos) {
                 if (pos) {
@@ -1799,6 +1808,9 @@
         background-color: #fafbfd;
         transition: all 0.5s ease;
         box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
+        .small-map-body {
+            height: 100%;
+        }
         img {
             height: 100%;
             width: 100%;
