@@ -52,16 +52,16 @@
                                 <i :class="['bk-icon icon-angle-down']"></i>
                             </div>
                             <ul class="batch-operation-list" slot="dropdown-content">
-                                <template v-for="operat in operatList">
+                                <template v-for="operate in operateList">
                                     <li
-                                        :key="operat.type"
+                                        :key="operate.type"
                                         v-bk-tooltips="{
-                                            content: operat.content,
-                                            disabled: !selectedTpls.length || (operat.isOther ? hasBatchEditAuth : hasBatchViewAuth) }"
-                                        :class="{ 'disabled': operat.isOther ? !hasBatchEditAuth : !hasBatchViewAuth }"
-                                        :data-test-id="`process_list_${operat.customAttr}`"
-                                        @click="onOperatClick(operat.type)">
-                                        {{ operat.value }}
+                                            content: operate.content,
+                                            disabled: !selectedTpls.length || (operate.isOther ? hasBatchEditAuth : hasBatchViewAuth) }"
+                                        :class="{ 'disabled': operate.isOther ? !hasBatchEditAuth : !hasBatchViewAuth }"
+                                        :data-test-id="`process_list_${operate.customAttr}`"
+                                        @click="onOperateClick(operate.type)">
+                                        {{ operate.value }}
                                     </li>
                                 </template>
                             </ul>
@@ -444,7 +444,7 @@
             // 获取操作列表
             const noViewAuthTip = i18n.t('已选流程模板没有查看权限，请取消选择或申请权限')
             const noEditAuthTip = i18n.t('已选流程模板没有编辑权限，请取消选择或申请权限')
-            const operatList = [
+            const operateList = [
                 {
                     type: 'dat',
                     content: noViewAuthTip,
@@ -477,7 +477,7 @@
                 searchForm,
                 isSearchFormOpen, // 高级搜索表单默认展开
                 exportType: 'dat', // 模板导出类型
-                operatList,
+                operateList,
                 expiredSubflowTplList: [],
                 selectedTpls: [], // 选中的流程模板
                 templateList: [],
@@ -914,8 +914,22 @@
                             const index = this.selectedTpls.findIndex(tpl => tpl.id === id)
                             this.selectedTpls.splice(index, 1)
                         })
+                        this.$bkMessage({
+                            message: i18n.t('流程') + i18n.t('删除成功！'),
+                            theme: 'success'
+                        })
                         this.pagination.current = 1
                         this.getTemplateList()
+                    } else if (Object.keys(res.data.references).length) {
+                        const deleteArr = []
+                        Object.values(res.data.references).forEach(item => {
+                            const value = item.template[0]
+                            deleteArr.push(`${value.name}(${value.id})`)
+                        })
+                        this.$bkMessage({
+                            message: i18n.t('流程') + deleteArr.join(i18n.t('，')) + i18n.t('删除失败！'),
+                            theme: 'error'
+                        })
                     }
                 }
                 return Promise.resolve()
@@ -931,7 +945,7 @@
                 this.isImportYamlDialogShow = false
                 this.getTemplateList()
             },
-            onOperatClick (type) {
+            onOperateClick (type) {
                 switch (type) {
                     case 'collect':
                         if (!this.hasBatchViewAuth) return
