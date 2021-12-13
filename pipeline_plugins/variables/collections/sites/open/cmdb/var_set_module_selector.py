@@ -14,15 +14,15 @@ specific language governing permissions and limitations under the License.
 import logging
 from typing import List
 
-from gcloud.conf import settings
 from django.utils.translation import ugettext_lazy as _
-
-from api.utils.request import batch_request
-from gcloud.exceptions import ApiRequestError
 from pipeline.core.data.var import LazyVariable
 
+from api.utils.request import batch_request
+from gcloud.conf import settings
+from gcloud.exceptions import ApiRequestError
+from gcloud.constants import Type
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain, FieldType
+from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -105,13 +105,13 @@ class VarSetModuleSelector(LazyVariable, SelfExplainVariable):
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
         return [
-            FieldExplain(key="${KEY}", type=FieldType.STRING, description="选择了的集群模块的信息"),
-            FieldExplain(key="${KEY.set_name}", type=FieldType.STRING, description="选择的集群名称"),
-            FieldExplain(key="${KEY.set_id}", type=FieldType.INT, description="选择的集群ID"),
-            FieldExplain(key="${KEY.module_name}", type=FieldType.LIST, description="选择的模块名列表"),
-            FieldExplain(key="${KEY.flat__module_name}", type=FieldType.STRING, description="选择的模块名列表，以,连接"),
-            FieldExplain(key="${KEY.module_id}", type=FieldType.LIST, description="选择的模块ID列表"),
-            FieldExplain(key="${KEY.flat__module_id}", type=FieldType.STRING, description="选择的模块ID列表，以,连接"),
+            FieldExplain(key="${KEY}", type=Type.STRING, description="选择了的集群模块的信息"),
+            FieldExplain(key="${KEY.set_name}", type=Type.STRING, description="选择的集群名称"),
+            FieldExplain(key="${KEY.set_id}", type=Type.INT, description="选择的集群ID"),
+            FieldExplain(key="${KEY.module_name}", type=Type.LIST, description="选择的模块名列表"),
+            FieldExplain(key="${KEY.flat__module_name}", type=Type.STRING, description="选择的模块名列表，以,连接"),
+            FieldExplain(key="${KEY.module_id}", type=Type.LIST, description="选择的模块ID列表"),
+            FieldExplain(key="${KEY.flat__module_id}", type=Type.STRING, description="选择的模块ID列表，以,连接"),
         ]
 
     def get_value(self):

@@ -18,10 +18,11 @@ from gcloud.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from api.utils.request import batch_request
+from gcloud.constants import Type
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils.handlers import handle_api_error
 from pipeline.core.data.var import LazyVariable
-from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain, FieldType
+from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -103,7 +104,7 @@ class VarSetGroupSelector(LazyVariable, SelfExplainVariable):
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        fields = [FieldExplain(key="${KEY}", type=FieldType.STRING, description="选择的IP列表，以,分隔")]
+        fields = [FieldExplain(key="${KEY}", type=Type.STRING, description="选择的IP列表，以,分隔")]
 
         client = get_client_by_user(settings.SYSTEM_USE_API_ACCOUNT)
         params = {"bk_obj_id": "set"}
@@ -118,14 +119,14 @@ class VarSetGroupSelector(LazyVariable, SelfExplainVariable):
             fields.append(
                 FieldExplain(
                     key="${KEY.%s}" % item["bk_property_id"],
-                    type=FieldType.LIST,
+                    type=Type.LIST,
                     description="集群属性(%s)列表" % item["bk_property_name"],
                 )
             )
             fields.append(
                 FieldExplain(
                     key="${KEY.flat__%s}" % item["bk_property_id"],
-                    type=FieldType.STRING,
+                    type=Type.STRING,
                     description="集群属性(%s)列表，以,分隔" % item["bk_property_name"],
                 )
             )

@@ -18,7 +18,8 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.conf import settings
 from pipeline.core.data.var import LazyVariable
 
-from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain, FieldType
+from gcloud.constants import Type
+from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain
 
 
 logger = logging.getLogger("root")
@@ -36,4 +37,4 @@ class BkUserSelector(LazyVariable, SelfExplainVariable):
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=FieldType.STRING, description="人员列表，以,分隔")]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="人员列表，以,分隔")]

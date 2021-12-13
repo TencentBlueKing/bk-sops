@@ -16,7 +16,7 @@ from typing import List
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
-from gcloud.constants import BIZ_INTERNAL_SET
+from gcloud.constants import BIZ_INTERNAL_SET, Type
 from gcloud.core.models import Project
 from pipeline.core.data.var import LazyVariable
 from pipeline_plugins.base.utils.inject import supplier_account_for_project
@@ -32,7 +32,7 @@ from pipeline_plugins.variables.utils import (
     find_module_with_relation,
     get_biz_internal_module,
 )
-from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain, FieldType
+from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain
 
 ALL_SELECTED_STR = "all"
 
@@ -50,7 +50,7 @@ class SetModuleIpSelector(LazyVariable, SelfExplainVariable):
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=FieldType.STRING, description="选择的IP列表，以,分隔")]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="选择的IP列表，以,分隔")]
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:

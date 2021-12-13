@@ -18,9 +18,10 @@ from typing import List
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
+from gcloud.constants import Type
 from gcloud.exceptions import ApiRequestError
 from pipeline.core.data.var import LazyVariable
-from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain, FieldType
+from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -92,7 +93,7 @@ class VarSetFilterSelector(LazyVariable, SelfExplainVariable):
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
         fields = [
-            FieldExplain(key="${KEY}", type=FieldType.OBJECT, description="选择的集群信息"),
+            FieldExplain(key="${KEY}", type=Type.OBJECT, description="选择的集群信息"),
         ]
 
         client = get_client_by_user(settings.SYSTEM_USE_API_ACCOUNT)
@@ -111,14 +112,14 @@ class VarSetFilterSelector(LazyVariable, SelfExplainVariable):
             fields.append(
                 FieldExplain(
                     key="${KEY.%s}" % item["bk_property_id"],
-                    type=FieldType.LIST,
+                    type=Type.LIST,
                     description="集群属性(%s)列表" % item["bk_property_name"],
                 )
             )
             fields.append(
                 FieldExplain(
                     key="${KEY.flat__%s}" % item["bk_property_id"],
-                    type=FieldType.STRING,
+                    type=Type.STRING,
                     description="集群属性(%s)列表，以,分隔" % item["bk_property_name"],
                 )
             )

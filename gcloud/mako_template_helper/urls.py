@@ -11,26 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from typing import List
+from django.conf.urls import url
 
-from gcloud.constants import Type
+from gcloud.mako_template_helper.apis.viewsets.mako_operations import MakoOperationsView
 
-
-class FieldExplain:
-    def __init__(self, key: str, type: Type, description: str):
-        self.key = key
-        self.type = type
-        self.description = description
-
-    def to_dict(self):
-        return {"key": self.key, "type": self.type.value, "description": self.description}
-
-
-class SelfExplainVariable:
-    @classmethod
-    def self_explain(cls, **kwargs) -> dict:
-        return {"tag": cls.tag, "fields": [field.to_dict() for field in cls._self_explain(**kwargs)]}
-
-    @classmethod
-    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        raise NotImplementedError()
+urlpatterns = [url(r"", MakoOperationsView.as_view())]

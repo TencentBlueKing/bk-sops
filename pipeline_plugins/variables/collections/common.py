@@ -20,13 +20,14 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 
+from gcloud.constants import Type
 from gcloud.core.models import StaffGroupSet
 from gcloud.utils.cmdb import get_notify_receivers
 from gcloud.conf import settings as gcloud_settings
 from pipeline.core.data.var import SpliceVariable, LazyVariable, RegisterVariableMeta
 from pipeline.core.flow.io import StringItemSchema, IntItemSchema
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain, FieldType
+from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain
 
 logger = logging.getLogger("root")
 get_client_by_user = gcloud_settings.ESB_GET_CLIENT_BY_USER
@@ -46,7 +47,7 @@ class Input(CommonPlainVariable, SelfExplainVariable):
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=FieldType.STRING, description="用户输入的值")]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户输入的值")]
 
 
 class Textarea(CommonPlainVariable, SelfExplainVariable):
@@ -59,7 +60,7 @@ class Textarea(CommonPlainVariable, SelfExplainVariable):
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=FieldType.STRING, description="用户输入的值")]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户输入的值")]
 
 
 class Datetime(CommonPlainVariable, SelfExplainVariable):
@@ -73,7 +74,7 @@ class Datetime(CommonPlainVariable, SelfExplainVariable):
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=FieldType.STRING, description="用户选择的时间，输出格式: 2000-04-19 14:45:16")]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户选择的时间，输出格式: 2000-04-19 14:45:16")]
 
 
 class Int(CommonPlainVariable, SelfExplainVariable):
@@ -86,7 +87,7 @@ class Int(CommonPlainVariable, SelfExplainVariable):
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=FieldType.INT, description="用户输入的数值")]
+        return [FieldExplain(key="${KEY}", type=Type.INT, description="用户输入的数值")]
 
 
 class Password(LazyVariable, SelfExplainVariable):
@@ -100,7 +101,7 @@ class Password(LazyVariable, SelfExplainVariable):
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=FieldType.STRING, description="用户输入的密码加密后的值")]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户输入的密码加密后的值")]
 
     def get_value(self):
         return self.value
@@ -118,7 +119,7 @@ class Select(LazyVariable, SelfExplainVariable):
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=FieldType.STRING, description="选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串")]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串")]
 
     def get_value(self):
         # multiple select
@@ -149,11 +150,11 @@ class TextValueSelect(LazyVariable, SelfExplainVariable):
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
         return [
-            FieldExplain(key="${KEY}", type=FieldType.DICT, description="用户选择的选项的text与value以及未选中的text与value"),
-            FieldExplain(key='${KEY["value"]}', type=FieldType.STRING, description="用户选中选项的value，多个以,分隔"),
-            FieldExplain(key='${KEY["text"]}', type=FieldType.STRING, description="用户选中选项的text，多个以,分隔"),
-            FieldExplain(key='${KEY["value_not_selected"]}', type=FieldType.STRING, description="用户未选中选项的value，多个以,分隔"),
-            FieldExplain(key='${KEY["text_not_selected"]}', type=FieldType.STRING, description="用户未选中选项的text，多个以,分隔"),
+            FieldExplain(key="${KEY}", type=Type.DICT, description="用户选择的选项的text与value以及未选中的text与value"),
+            FieldExplain(key='${KEY["value"]}', type=Type.STRING, description="用户选中选项的value，多个以,分隔"),
+            FieldExplain(key='${KEY["text"]}', type=Type.STRING, description="用户选中选项的text，多个以,分隔"),
+            FieldExplain(key='${KEY["value_not_selected"]}', type=Type.STRING, description="用户未选中选项的value，多个以,分隔"),
+            FieldExplain(key='${KEY["text_not_selected"]}', type=Type.STRING, description="用户未选中选项的text，多个以,分隔"),
         ]
 
     def get_value(self):
@@ -188,7 +189,7 @@ class FormatSupportCurrentTime(LazyVariable, SelfExplainVariable):
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=FieldType.STRING, description="自定义格式的系统当前时间")]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="自定义格式的系统当前时间")]
 
     def get_value(self):
         time_format = self.value.get("time_format", "%Y-%m-%d %H:%M:%S").strip()
@@ -208,7 +209,7 @@ class CurrentTime(LazyVariable, SelfExplainVariable):
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=FieldType.STRING, description="自定义格式的系统当前时间")]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="自定义格式的系统当前时间")]
 
     def get_value(self):
         time_units = self.value.get("time_unit") or ["year", "month", "day", "hour", "minute", "second"]
@@ -254,7 +255,7 @@ class Date(CommonPlainVariable, SelfExplainVariable):
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=FieldType.STRING, description="用户选择的日期，格式为2000-04-19")]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户选择的日期，格式为2000-04-19")]
 
 
 class Time(LazyVariable, SelfExplainVariable):
@@ -268,7 +269,7 @@ class Time(LazyVariable, SelfExplainVariable):
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=FieldType.STRING, description="用户选择的日期，格式为14:45")]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户选择的日期，格式为14:45")]
 
     def get_value(self):
         """
@@ -287,7 +288,7 @@ class FormatSupportDateTime(LazyVariable, SelfExplainVariable):
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=FieldType.STRING, description="用户选择的自定义格式的日期时间")]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户选择的自定义格式的日期时间")]
 
     def get_value(self):
         time_format = self.value.get("datetime_format", "%Y-%m-%d %H:%M:%S").strip()
@@ -305,7 +306,7 @@ class StaffGroupSelector(LazyVariable, SelfExplainVariable):
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=FieldType.STRING, description="人员列表，以,分隔")]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="人员列表，以,分隔")]
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "biz_cc_id" not in self.pipeline_data:

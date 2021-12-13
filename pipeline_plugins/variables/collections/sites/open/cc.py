@@ -19,6 +19,7 @@ from django.conf import settings
 from django.contrib.admin.utils import flatten
 from django.utils.translation import ugettext_lazy as _
 
+from gcloud.constants import Type
 from gcloud.core.models import Project
 from gcloud.utils.cmdb import get_business_host
 from gcloud.utils.ip import get_ip_by_regex
@@ -29,7 +30,7 @@ from pipeline_plugins.base.utils.inject import supplier_account_for_project
 from pipeline_plugins.base.utils.adapter import cc_get_inner_ip_by_module_id
 from pipeline_plugins.components.utils import cc_get_ips_info_by_str
 from pipeline_plugins.components.utils.common import ip_re
-from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain, FieldType
+from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain
 
 logger = logging.getLogger("root")
 get_client_by_user = gcloud_settings.ESB_GET_CLIENT_BY_USER
@@ -112,7 +113,7 @@ class VarCmdbIpSelector(LazyVariable, SelfExplainVariable):
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=FieldType.STRING, description="选择的IP列表，以,分隔")]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="选择的IP列表，以,分隔")]
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
@@ -207,20 +208,16 @@ class VarCmdbSetAllocation(LazyVariable, SelfExplainVariable):
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
 
         fields = [
-            FieldExplain(key="${KEY}", type=FieldType.OBJECT, description="集群资源筛选结果对象"),
-            FieldExplain(key="${KEY.set_count}", type=FieldType.INT, description="新增集群数量"),
-            FieldExplain(key="${KEY._module}", type=FieldType.LIST, description="集群下的模块信息列表，元素类型为字典，键为模块名，值为模块下的主机列"),
+            FieldExplain(key="${KEY}", type=Type.OBJECT, description="集群资源筛选结果对象"),
+            FieldExplain(key="${KEY.set_count}", type=Type.INT, description="新增集群数量"),
+            FieldExplain(key="${KEY._module}", type=Type.LIST, description="集群下的模块信息列表，元素类型为字典，键为模块名，值为模块下的主机列"),
+            FieldExplain(key="${KEY.flat__ip_list}", type=Type.STRING, description="本次操作创建的所有集群下的主机（去重后），用 ',' 连接"),
             FieldExplain(
-                key="${KEY.flat__ip_list}", type=FieldType.STRING, description="本次操作创建的所有集群下的主机（去重后），用 ',' 连接"
-            ),
-            FieldExplain(
-                key="${KEY.flat__verbose_ip_list}",
-                type=FieldType.STRING,
-                description="返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接",
+                key="${KEY.flat__verbose_ip_list}", type=Type.STRING, description="返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接",
             ),
             FieldExplain(
                 key="${KEY.flat__verbose_ip_module_list}",
-                type=FieldType.STRING,
+                type=Type.STRING,
                 description="本次操作创建的所有模块名称，格式为set_name>module_name，用 ',' 连接",
             ),
         ]
@@ -243,14 +240,14 @@ class VarCmdbSetAllocation(LazyVariable, SelfExplainVariable):
             fields.append(
                 FieldExplain(
                     key="${KEY.%s}" % item["bk_property_id"],
-                    type=FieldType.LIST,
+                    type=Type.LIST,
                     description="集群属性(%s)列表" % item["bk_property_name"],
                 )
             )
             fields.append(
                 FieldExplain(
                     key="${KEY.flat__%s}" % item["bk_property_id"],
-                    type=FieldType.STRING,
+                    type=Type.STRING,
                     description="集群属性(%s)列表，以,分隔" % item["bk_property_name"],
                 )
             )
@@ -284,7 +281,7 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
         return [
-            FieldExplain(key="${KEY}", type=FieldType.DICT, description="主机属性查询结果"),
+            FieldExplain(key="${KEY}", type=Type.DICT, description="主机属性查询结果"),
         ]
 
     def get_value(self):
