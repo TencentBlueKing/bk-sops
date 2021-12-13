@@ -305,7 +305,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         # 获得参数中的标准插件code
         component_code = filters.get("component_code")
         version = filters.get("version")
-        is_remote = filters.get("is_remote")
+        is_remote = filters.get("is_remote", False)
         if component_code:
             instance_id_list = TaskflowExecutedNodeStatistics.objects.filter(
                 is_sub=False, component_code=component_code, version=version, is_remote=is_remote

@@ -262,6 +262,7 @@
                     source_tag: 'input.input',
                     source_type: 'custom',
                     validation: '^.+$',
+                    is_condition_hide: false,
                     pre_render_mako: false,
                     value: '',
                     version: 'legacy'
@@ -293,7 +294,7 @@
                 
                 indexChangedVar.forEach((item, index) => {
                     item.index = index + delta
-                    console.log(item.index)
+                    if (item.key in this.internalVariable) return
                     this.editVariable({ key: item.key, variable: tools.deepClone(item) })
                 })
             },

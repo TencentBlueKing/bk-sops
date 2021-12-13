@@ -147,15 +147,10 @@
                     </template>
                 </bk-input>
                 <!-- 子流程版本更新 -->
-                <i
-                    class="common-icon-clock-inversion update-tooltip"
-                    v-if="!inputLoading && subflowHasUpdate"
-                    v-bk-tooltips="{
-                        html: `<p>${ $t('版本更新') }</p><p>${ $t('子流程更新时，如果新旧版本存在相同表单，表单数据会默认取原表单数据') }</p>`,
-                        placements: ['bottom-end']
-                    }"
-                    @click="onUpdateSubflowVersion">
-                </i>
+                <p class="update-tooltip" v-if="!inputLoading && subflowHasUpdate">
+                    {{ $t('子流程有更新，更新时若存在相同表单数据则获取原表单的值。') }}
+                    <bk-button :text="true" title="primary" @click="onUpdateSubflowVersion">{{ $t('更新子流程') }}</bk-button>
+                </p>
             </bk-form-item>
             <bk-form-item :label="$t('节点名称')" :required="true" property="nodeName">
                 <bk-input v-model="formData.nodeName" @change="updateData"></bk-input>
@@ -591,11 +586,14 @@
             line-height: 1.2;
         }
         .update-tooltip {
-            position: absolute;
-            right: -28px;
-            top: 8px;
-            cursor: pointer;
-            color: #3a84ff;
+            position: relative;
+            top: 5px;
+            color: #979ba5;
+            font-size: 12px;
+            line-height: 12px;
+            .bk-button-text {
+                font-size: 12px;
+            }
         }
     }
     .bk-option-content {

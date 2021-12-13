@@ -303,7 +303,7 @@
                     })
                     this.$emit('updateTaskSchemeList', this.schemeList)
                     this.$emit('setDefaultScheme', defaultObj)
-                    this.$emit('setDefaultSelected', Boolean(this.defaultSchemeId))
+                    this.$emit('setDefaultSelected', false)
                 } catch (error) {
                     console.error(error)
                 }
@@ -481,8 +481,8 @@
                     })
                     return
                 }
-                const isschemaNameExist = this.schemaList.some(item => item.name === this.schemaName)
-                if (isschemaNameExist) {
+                const isSchemeNameExist = this.schemeList.some(item => item.name === this.schemeName)
+                if (isSchemeNameExist) {
                     this.$bkMessage({
                         message: i18n.t('方案名称已存在'),
                         theme: 'warning'

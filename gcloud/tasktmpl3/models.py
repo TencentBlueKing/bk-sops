@@ -102,7 +102,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         # 获取标准插件code
         component_code = filters.get("component_code")
         version = filters.get("version")
-        is_remote = filters.get("is_remote")
+        is_remote = filters.get("is_remote", False)
         # 获取到组件code对应的template_id_list
         if component_code:
             template_node_template_data = TemplateNodeStatistics.objects.filter(
