@@ -13,12 +13,13 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline_plugins.variables.base import FieldExplain, FieldType, SelfExplainVariable
+from gcloud.constants import Type
+from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
 
 
 class BaseTaseCase(TestCase):
     def test_field_explain_to_dict(self):
-        explain = FieldExplain(key="key", type=FieldType.STRING, description="desc")
+        explain = FieldExplain(key="key", type=Type.STRING, description="desc")
         self.assertEqual(explain.to_dict(), {"key": "key", "type": "string", "description": "desc"})
 
     def test_self_explain(self):
@@ -27,7 +28,7 @@ class BaseTaseCase(TestCase):
 
             @classmethod
             def _self_explain(cls, **kwargs):
-                return [FieldExplain(key=kwargs["key"], type=FieldType.STRING, description="desc")]
+                return [FieldExplain(key=kwargs["key"], type=Type.STRING, description="desc")]
 
         self.assertEqual(
             Var.self_explain(key="my_key"),

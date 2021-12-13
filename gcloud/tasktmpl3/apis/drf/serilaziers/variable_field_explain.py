@@ -24,16 +24,14 @@ class FiledSerializer(serializers.Serializer):
     description = serializers.CharField(help_text="字段描述")
 
 
-class VariableFieldExpainSerializer(serializers.Serializer):
-    tag = serializers.CharField(help_text="变量tag")
-    fields = serializers.ListField(child=FiledSerializer(help_text="变量字段"))
-
-
-class VariableFieldExpainDataSerializer(serializers.Serializer):
-    variable_field_explain = serializers.ListField(child=VariableFieldExpainSerializer(help_text="变量字段说明"))
-
-
 class VariableFieldExpainResponseSerializer(serializers.Serializer):
+    class VariableFieldExpainDataSerializer(serializers.Serializer):
+        class VariableFieldExpainSerializer(serializers.Serializer):
+            tag = serializers.CharField(help_text="变量tag")
+            fields = serializers.ListField(child=FiledSerializer(help_text="变量字段"))
+
+        variable_field_explain = serializers.ListField(child=VariableFieldExpainSerializer(help_text="变量字段说明"))
+
     result = serializers.BooleanField(help_text="请求是否成功")
     message = serializers.CharField(help_text="请求额外信息，result 为 false 时读取")
     data = VariableFieldExpainDataSerializer(help_text="响应数据")
