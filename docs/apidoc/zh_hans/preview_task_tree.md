@@ -21,13 +21,13 @@ POST
 
 #### 接口参数
 
-| 字段          |  类型       | 必选   |  描述             |
-|-----------------|-------------|---------|------------------|
-|   bk_biz_id       |   string     |   是   |  项目唯一 ID，项目 ID 或 CMDB 业务 ID |
-|   template_id       |   int     |   是   |  模板 ID |
-|   scope       |   string     |   否   |  唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务 ID，反之代表项目 ID，不传时默认为 cmdb_biz |
-|   version |   string     |   否   |  模板的版本，不填时默认为最新版本 |
-|    exclude_task_nodes_id     |   否   |  需要移除的可选节点 ID 列表，不填时默认为 [] |
+| 字段          | 类型     | 必选   |  描述             |
+|-----------------|--------|---------|------------------|
+|   bk_biz_id       | string |   是   |  项目唯一 ID，项目 ID 或 CMDB 业务 ID |
+|   template_id       | int    |   是   |  模板 ID |
+|   scope       | string |   否   |  唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务 ID，反之代表项目 ID，不传时默认为 cmdb_biz |
+|   version | string |   否   |  模板的版本，不填时默认为最新版本 |
+|    exclude_task_nodes_id  | list   |   否   |  需要移除的可选节点 ID 列表，不填时默认为 [] |
 
 ### 请求参数示例
 

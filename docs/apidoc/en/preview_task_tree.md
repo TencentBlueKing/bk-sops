@@ -21,13 +21,13 @@ Get task tree after node exclude
 
 #### Interface Parameters
 
-|   Field         |  Type       | Required |  Description     |
-|-----------------|-------------|---------|------------------|
-|   bk_biz_id   |   string   |   YES   |  the business ID             |
-|   scope       |   string     |   NO   | id scope, can be "cmdb_biz" or "project". if scope is "cmdb_biz" then bk_biz_id represent cmdb business ID, otherwise bk_biz_id represent proejct id. default is "cmdb_biz" |
-|   template_id       |   int     |   YES   |  template ID |
-|   version |   string     |   NO   |  template's version, default is latest version |
-|    exclude_task_nodes_id     |   NO   |  exclude node id list, default is [] |
+|   Field         | Type   | Required |  Description     |
+|-----------------|--------|---------|------------------|
+|   bk_biz_id   | string |   YES   |  the business ID             |
+|   scope       | string |   NO   | id scope, can be "cmdb_biz" or "project". if scope is "cmdb_biz" then bk_biz_id represent cmdb business ID, otherwise bk_biz_id represent proejct id. default is "cmdb_biz" |
+|   template_id       | int    |   YES   |  template ID |
+|   version | string |   NO   |  template's version, default is latest version |
+|    exclude_task_nodes_id   | list   |   NO   |  exclude node id list, default is [] |
 
 ### Request Parameters Example
 

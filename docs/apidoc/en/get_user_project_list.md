@@ -1,8 +1,8 @@
-### 请求地址
+### Request Address
 
 /v2/sops/get_user_project_list/
 
-### 请求方法
+### Request Method
 
 GET
 

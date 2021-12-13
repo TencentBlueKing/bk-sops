@@ -118,7 +118,7 @@ Get functionalization task list, support filtering with functionalization task s
 
 ##### data[item]
 
-| 名称          | 类型   | 说明                                                         |
+| Field          | Type   | Description                                                         |
 | ------------- | ------ | ------------------------------------------------------------ |
 | id            | int    | functionalization task ID                                    |
 | name          | string | functionalization task name                                  |
