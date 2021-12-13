@@ -24,6 +24,8 @@ from .exceptions import PluginServiceNotUse, PluginServiceException
 
 logger = logging.getLogger(PLUGIN_CLIENT_LOGGER)
 
+BKAPP_INVOKE_PAAS_RETRY_NUM = int(os.getenv("BKAPP_REQUEST_PAAS_RETRY_NUM", 3))
+
 
 class PluginServiceApiClient:
     def __init__(self, plugin_code, plugin_host=None):
@@ -41,7 +43,10 @@ class PluginServiceApiClient:
     @json_response_decoder
     def invoke(self, version, data):
         url, headers = self._prepare_apigw_api_request(path_params=["invoke", version])
-        return requests.post(url, data=json.dumps(data), headers=headers)
+
+        return PluginServiceApiClient._request_api_and_error_entry(
+            url, method="post", data=json.dumps(data), headers=headers
+        )
 
     @json_response_decoder
     def dispatch_plugin_api_request(self, request_params, inject_headers=None):
@@ -76,7 +81,8 @@ class PluginServiceApiClient:
     @json_response_decoder
     def get_schedule(self, trace_id):
         url = os.path.join(self.plugin_host, "schedule", trace_id)
-        return requests.get(url)
+
+        return PluginServiceApiClient._request_api_and_error_entry(url, method="get")
 
     @staticmethod
     @check_use_plugin_service
@@ -196,7 +202,8 @@ class PluginServiceApiClient:
         params.update({"trace_id": trace_id})
         if scroll_id:
             params.update({"scroll_id": scroll_id})
-        return requests.get(url, params=params)
+
+        return PluginServiceApiClient._request_api_and_error_entry(url, method="get", params=params)
 
     def _prepare_apigw_api_request(self, path_params: list):
         """插件服务APIGW接口请求信息准备"""
@@ -223,3 +230,19 @@ class PluginServiceApiClient:
         )
         params = {"private_token": env.PAASV3_APIGW_API_TOKEN}
         return url, params
+
+    @staticmethod
+    def _request_api_and_error_entry(url, method, **kwargs):
+        """请求API接口,失败进行重试"""
+        for invoke_num in (1, BKAPP_INVOKE_PAAS_RETRY_NUM + 1):
+            try:
+                result = getattr(requests, method)(url, **kwargs)
+                result.raise_for_status()
+                break
+            except requests.exceptions.RequestException as e:
+                logger.warning(
+                    "request api error,invoke_num:{},{} {},kwargs:{} ".format(invoke_num, method, url, kwargs)
+                )
+                logger.exception(e)
+
+        return result
