@@ -234,7 +234,7 @@ class PluginServiceApiClient:
     @staticmethod
     def _request_api_and_error_entry(url, method, **kwargs):
         """请求API接口,失败进行重试"""
-        for invoke_num in (1, BKAPP_INVOKE_PAAS_RETRY_NUM + 1):
+        for invoke_num in range(1, BKAPP_INVOKE_PAAS_RETRY_NUM + 1):
             try:
                 result = getattr(requests, method)(url, **kwargs)
                 result.raise_for_status()
