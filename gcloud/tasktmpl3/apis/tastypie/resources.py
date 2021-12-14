@@ -119,11 +119,11 @@ class TaskTemplateResource(GCloudModelResource):
         options = {} if not options else options.copy()
 
         order_by = options.get("order_by", "")
-        if order_by in {"edit_time", "create_time"}:
-            prefix = "pipeline_template__"
-            if order_by.startswith("-"):
-                prefix = "-" + prefix
-            order_by = "pipeline_template__" + order_by
+        prefix = "pipeline_template__"
+        if order_by.startswith("-"):
+            prefix = "-" + prefix
+        if order_by.lstrip("-") in {"edit_time", "create_time"}:
+            order_by = prefix + order_by.lstrip("-")
             options["order_by"] = order_by
         return super().apply_sorting(obj_list, options=options)
 
