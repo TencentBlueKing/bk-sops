@@ -115,6 +115,18 @@ class TaskTemplateResource(GCloudModelResource):
             ],
         )
 
+    def apply_sorting(self, obj_list, options=None):
+        options = {} if not options else options.copy()
+
+        order_by = options.get("order_by", "")
+        if order_by in {"edit_time", "create_time"}:
+            prefix = "pipeline_template__"
+            if order_by.startswith("-"):
+                prefix = "-" + prefix
+            order_by = "pipeline_template__" + order_by
+            options["order_by"] = order_by
+        return super().apply_sorting(obj_list, options=options)
+
     def dehydrate_pipeline_tree(self, bundle):
         return json.dumps(bundle.data["pipeline_tree"])
 
