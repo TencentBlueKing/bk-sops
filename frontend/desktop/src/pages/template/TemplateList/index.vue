@@ -91,12 +91,12 @@
                             v-for="item in setting.selectedFields"
                             :key="item.id"
                             :label="item.label"
-                            :prop="item.id"
+                            :prop="item.key || item.id"
                             :width="item.width"
                             :min-width="item.min_width"
                             :render-header="renderTableHeader"
                             :sort-orders="['descending', 'ascending', null]"
-                            :sortable="sortableCols.find(col => col.value === item.id) ? 'custom' : false">
+                            :sortable="sortableCols.find(col => col.value === (item.key || item.id)) ? 'custom' : false">
                             <template slot-scope="{ row }">
                                 <!--流程名称-->
                                 <div v-if="item.id === 'name'">
@@ -384,6 +384,7 @@
             width: 180
         },
         {
+            key: 'category',
             id: 'category_name',
             label: i18n.t('分类'),
             min_width: 180
@@ -1004,7 +1005,7 @@
                 }
             },
             renderTableHeader (h, { column, $index }) {
-                if (column.property !== 'category_name') {
+                if (column.property !== 'category') {
                     return column.label
                 }
 
