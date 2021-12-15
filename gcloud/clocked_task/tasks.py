@@ -79,9 +79,9 @@ def clocked_task_start(clocked_task_id, *args, **kwargs):
 
             # create timeout config
             TimeoutNodeConfig.objects.batch_create_node_timeout_config(
-                taskflow_id=task.id,
-                root_pipeline_id=task.pipeline_instance.instance_id,
-                pipeline_tree=task.pipeline_instance.execution_data,
+                taskflow_id=taskflow_instance.id,
+                root_pipeline_id=taskflow_instance.pipeline_instance.instance_id,
+                pipeline_tree=taskflow_instance.pipeline_instance.execution_data,
             )
 
         taskflow_instance.task_action("start", clocked_task.creator)
