@@ -24,8 +24,6 @@ from .exceptions import PluginServiceNotUse, PluginServiceException
 
 logger = logging.getLogger(PLUGIN_CLIENT_LOGGER)
 
-BKAPP_INVOKE_PAAS_RETRY_NUM = int(os.getenv("BKAPP_REQUEST_PAAS_RETRY_NUM", 3))
-
 
 class PluginServiceApiClient:
     def __init__(self, plugin_code, plugin_host=None):
@@ -44,7 +42,7 @@ class PluginServiceApiClient:
     def invoke(self, version, data):
         url, headers = self._prepare_apigw_api_request(path_params=["invoke", version])
 
-        return PluginServiceApiClient._request_api_and_error_entry(
+        return PluginServiceApiClient._request_api_and_error_retry(
             url, method="post", data=json.dumps(data), headers=headers
         )
 
@@ -64,25 +62,31 @@ class PluginServiceApiClient:
                 ]
             )
             request_params.pop("data")
-            return requests.post(url, data=request_params, headers=headers, files=files)
-        return requests.post(url, data=json.dumps(request_params), headers=headers)
+            return PluginServiceApiClient._request_api_and_error_retry(
+                url, method="post", data=request_params, headers=headers, files=files
+            )
+        return PluginServiceApiClient._request_api_and_error_retry(
+            url, method="post", data=json.dumps(request_params), headers=headers
+        )
 
     @json_response_decoder
     def get_meta(self):
         url = os.path.join(self.plugin_host, "meta")
-        return requests.get(url)
+
+        return PluginServiceApiClient._request_api_and_error_retry(url, method="get")
 
     @json_response_decoder
     def get_detail(self, version):
         url = os.path.join(self.plugin_host, "detail", version)
-        return requests.get(url)
+
+        return PluginServiceApiClient._request_api_and_error_retry(url, method="get")
 
     @data_parser
     @json_response_decoder
     def get_schedule(self, trace_id):
         url = os.path.join(self.plugin_host, "schedule", trace_id)
 
-        return PluginServiceApiClient._request_api_and_error_entry(url, method="get")
+        return PluginServiceApiClient._request_api_and_error_retry(url, method="get")
 
     @staticmethod
     @check_use_plugin_service
@@ -178,7 +182,7 @@ class PluginServiceApiClient:
             params.update({"limit": limit, "offset": offset, "has_deployed": True})
             if search_term:
                 params.update({"search_term": search_term})
-        return requests.get(url, params=params)
+        return PluginServiceApiClient._request_api_and_error_retry(url, method="get", params=params)
 
     @staticmethod
     @json_response_decoder
@@ -190,7 +194,7 @@ class PluginServiceApiClient:
         params.update({"limit": limit, "offset": offset, "has_deployed": True, **kwargs})
         if search_term:
             params.update({"search_term": search_term})
-        return requests.get(url, params=params)
+        return PluginServiceApiClient._request_api_and_error_retry(url, method="get", params=params)
 
     @staticmethod
     @json_response_decoder
@@ -203,7 +207,7 @@ class PluginServiceApiClient:
         if scroll_id:
             params.update({"scroll_id": scroll_id})
 
-        return PluginServiceApiClient._request_api_and_error_entry(url, method="get", params=params)
+        return PluginServiceApiClient._request_api_and_error_retry(url, method="get", params=params)
 
     def _prepare_apigw_api_request(self, path_params: list):
         """插件服务APIGW接口请求信息准备"""
@@ -232,9 +236,9 @@ class PluginServiceApiClient:
         return url, params
 
     @staticmethod
-    def _request_api_and_error_entry(url, method, **kwargs):
+    def _request_api_and_error_retry(url, method, **kwargs):
         """请求API接口,失败进行重试"""
-        for invoke_num in range(1, BKAPP_INVOKE_PAAS_RETRY_NUM + 1):
+        for invoke_num in range(1, env.BKAPP_INVOKE_PAAS_RETRY_NUM + 1):
             try:
                 result = getattr(requests, method)(url, **kwargs)
                 result.raise_for_status()
