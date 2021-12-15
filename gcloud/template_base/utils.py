@@ -64,3 +64,18 @@ def replace_template_id(template_model, pipeline_data, reverse=False):
             else:
                 template = template_model.objects.get(pipeline_template__template_id=act["template_id"])
                 act["template_id"] = str(template.pk)
+
+
+def replace_biz_id_value(pipeline_tree: dict, bk_biz_id: int):
+    service_acts = [act for act in pipeline_tree["activities"].values() if act["type"] == "ServiceActivity"]
+    for act in service_acts:
+        act_info = act["component"]["data"]
+        bk_biz_id_field = act_info.get("biz_cc_id") or act_info.get("bk_biz_id")
+        if bk_biz_id_field and (not bk_biz_id_field["hook"]):
+            bk_biz_id_field["value"] = bk_biz_id
+
+        for constant in pipeline_tree["constants"].values():
+            if (
+                constant["source_tag"].endswith(".biz_cc_id") or constant["source_tag"].endswith(".bk_biz_id")
+            ) and constant["value"]:
+                constant["value"] = bk_biz_id

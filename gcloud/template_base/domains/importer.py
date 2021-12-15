@@ -14,6 +14,7 @@ specific lan
 from django.db import transaction
 
 from .template_manager import TemplateManager
+from ..utils import replace_biz_id_value
 
 
 class TemplateImporter:
@@ -53,7 +54,7 @@ class TemplateImporter:
                 description = td["description"]
 
                 if bk_biz_id:
-                    self._replace_biz_id_value(pipeline_tree, bk_biz_id)
+                    replace_biz_id_value(pipeline_tree, bk_biz_id)
                 replace_result = self._replace_subprocess_template_id(pipeline_tree, pipeline_id_map)
                 if not replace_result["result"]:
                     import_result.append(replace_result)
@@ -122,18 +123,3 @@ class TemplateImporter:
             "message": "success",
             "verbose_message": "success",
         }
-
-    @staticmethod
-    def _replace_biz_id_value(pipeline_tree: dict, bk_biz_id: int):
-        service_acts = [act for act in pipeline_tree["activities"].values() if act["type"] == "ServiceActivity"]
-        for act in service_acts:
-            act_info = act["component"]["data"]
-            bk_biz_id_field = act_info.get("biz_cc_id") or act_info.get("bk_biz_id")
-            if bk_biz_id_field and (not bk_biz_id_field["hook"]):
-                bk_biz_id_field["value"] = bk_biz_id
-
-            for constant in pipeline_tree["constants"].values():
-                if (
-                    constant["source_tag"].endswith(".biz_cc_id") or constant["source_tag"].endswith(".bk_biz_id")
-                ) and constant["value"]:
-                    constant["value"] = bk_biz_id

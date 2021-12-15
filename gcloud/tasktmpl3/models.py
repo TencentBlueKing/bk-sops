@@ -29,6 +29,7 @@ from gcloud.constants import TASK_FLOW_TYPE, TASK_CATEGORY
 from gcloud.constants import TEMPLATE_EXPORTER_SOURCE_PROJECT, AE
 from gcloud.template_base.models import BaseTemplate, BaseTemplateManager
 from gcloud.core.models import Project
+from gcloud.template_base.utils import replace_biz_id_value
 from gcloud.utils.managermixins import ClassificationCountMixin
 from gcloud.utils.dates import format_datetime
 from gcloud.analysis_statistics.models import TemplateStatistics, TemplateNodeStatistics, TaskflowStatistics
@@ -427,17 +428,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
 
     def _reset_biz_selector_value(self, templates_data, bk_biz_id):
         for template in templates_data["pipeline_template_data"]["template"].values():
-            for act in [act for act in template["tree"]["activities"].values() if act["type"] == "ServiceActivity"]:
-                act_info = act["component"]["data"]
-                biz_cc_id_field = act_info.get("biz_cc_id") or act_info.get("bk_biz_id")
-                if biz_cc_id_field and (not biz_cc_id_field["hook"]):
-                    biz_cc_id_field["value"] = bk_biz_id
-
-            for constant in template["tree"]["constants"].values():
-                if (
-                    constant["source_tag"].endswith(".biz_cc_id") or constant["source_tag"].endswith(".bk_biz_id")
-                ) and constant["value"]:
-                    constant["value"] = bk_biz_id
+            replace_biz_id_value(template["tree"], bk_biz_id)
 
     def import_templates(self, template_data, override, project_id, operator=None):
         project = Project.objects.get(id=project_id)
