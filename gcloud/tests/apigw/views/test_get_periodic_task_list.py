@@ -18,7 +18,7 @@ import ujson as json
 from gcloud.utils.dates import format_datetime
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
-from gcloud.apigw.views.get_periodic_task_list import PERIODIC_TASK_ACTION
+from gcloud.apigw.views.get_periodic_task_list import PERIODIC_TASK_ACTIONS
 
 from .utils import APITest
 
@@ -87,7 +87,7 @@ class GetPeriodicTaskListAPITest(APITest):
                     HTTP_BK_APP_CODE=TEST_APP_CODE,
                     HTTP_BK_USERNAME=TEST_USERNAME,
                 )
-                mock_get_actions.assert_called_once_with("", PERIODIC_TASK_ACTION, TEST_ID_LIST)
+                mock_get_actions.assert_called_once_with("", PERIODIC_TASK_ACTIONS, TEST_ID_LIST)
                 data = json.loads(response.content)
 
                 self.assertTrue(data["result"], msg=data)

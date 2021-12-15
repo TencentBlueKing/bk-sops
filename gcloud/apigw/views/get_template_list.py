@@ -61,7 +61,7 @@ def get_template_list(request, project_id):
     else:
         templates = CommonTemplate.objects.select_related("pipeline_template").filter(**filter_kwargs)
 
-    template_list, template_id_list = format_template_list_data(templates, project, need_ids=True)
+    template_list, template_id_list = format_template_list_data(templates, project, return_id_list=True)
 
     # 注入用户有权限的actions
     flow_allowed_actions = get_flow_allowed_actions_for_user(request.user.username, FLOW_ACTIONS, template_id_list)

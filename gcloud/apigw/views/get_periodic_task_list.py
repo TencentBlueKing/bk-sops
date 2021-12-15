@@ -22,7 +22,7 @@ from gcloud.periodictask.models import PeriodicTask
 from gcloud.apigw.views.utils import info_data_from_period_task
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
-from gcloud.iam_auth.conf import PERIODIC_TASK_ACTION
+from gcloud.iam_auth.conf import PERIODIC_TASK_ACTIONS
 from gcloud.iam_auth.utils import get_periodic_task_allowed_actions_for_user
 from packages.bkoauth.decorators import apigw_required
 
@@ -44,7 +44,7 @@ def get_periodic_task_list(request, project_id):
         data.append(task_info)
     # 注入用户有权限的actions
     periodic_task_allowed_actions = get_periodic_task_allowed_actions_for_user(
-        request.user.username, PERIODIC_TASK_ACTION, task_id_list
+        request.user.username, PERIODIC_TASK_ACTIONS, task_id_list
     )
     for task_info in data:
         task_id = task_info["id"]

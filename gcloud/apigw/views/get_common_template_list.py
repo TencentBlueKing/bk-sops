@@ -30,7 +30,7 @@ from packages.bkoauth.decorators import apigw_required
 @mark_request_whether_is_trust
 def get_common_template_list(request):
     templates = CommonTemplate.objects.select_related("pipeline_template").filter(is_deleted=False)
-    templates_data, common_templates_id_list = format_template_list_data(templates, need_ids=True)
+    templates_data, common_templates_id_list = format_template_list_data(templates, return_id_list=True)
     # 注入用户有权限的actions
     common_templates_allowed_actions = get_common_flow_allowed_actions_for_user(
         request.user.username,
