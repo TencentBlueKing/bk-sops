@@ -15,9 +15,9 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from gcloud.core.apis.drf.viewsets import ApiMixin
-from gcloud.auto_test.apis.drf.serilaziers.common import IdsListSerializer
-from ..drf.permission import EnablePermission, TestTokenPermission
-from ..drf.authentication import CsrfExemptSessionAuthentication
+from gcloud.auto_test.apis.serilaziers.common import IdsListSerializer
+from .permission import EnablePermission, TestTokenPermission
+from .authentication import CsrfExemptSessionAuthentication
 
 logger = logging.getLogger("root")
 
@@ -37,9 +37,10 @@ class BatchDeleteMixin(AutoTestMixin):
         body_serializer.is_valid(raise_exception=True)
         ids_list = body_serializer.validated_data.get("ids_list")
 
-        logger.info(f"自动化测试({self.__doc__})批量删除了{ids_list}")
         try:
             self.queryset.filter(id__in=ids_list).update(is_deleted=True)
+            logger.info(f"自动化测试({self.__doc__})使用(update)批量删除了{ids_list}")
         except Exception:  # noqa
             self.queryset.filter(id__in=ids_list).delete()
+            logger.info(f"自动化测试({self.__doc__})使用(delete)批量删除了{ids_list}")
         return Response(status=204)

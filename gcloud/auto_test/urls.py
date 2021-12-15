@@ -13,8 +13,8 @@ specific language governing permissions and limitations under the License.
 from django.conf.urls import include, url
 from rest_framework.routers import DefaultRouter
 
-from gcloud.auto_test.apis.drf.viewsets.template import ProjectTemplateViewSet, CommonTemplateViewSet
-from gcloud.auto_test.apis.drf.viewsets.periodic_task import PeriodicTaskViewSet
+from gcloud.auto_test.apis.viewsets.template import ProjectTemplateViewSet, CommonTemplateViewSet
+from gcloud.auto_test.apis.viewsets.periodic_task import PeriodicTaskViewSet
 
 auto_test_router = DefaultRouter()
 auto_test_router.register(r"template", ProjectTemplateViewSet, basename="template")

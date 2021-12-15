@@ -22,7 +22,7 @@ class EnablePermission(BasePermission):
     """接口是否启用"""
 
     def has_permission(self, request, view):
-        if os.environ.get("AUTO_TEST_ENABLE", False):
+        if os.environ.get("BKAPP_AUTO_TEST_ENABLE", False):
             return True
         else:
             raise PermissionDenied("自动化测试辅助接口未启用")
