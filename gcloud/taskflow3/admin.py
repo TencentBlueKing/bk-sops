@@ -56,3 +56,8 @@ class AutoRetryNodeStrategyAdmin(admin.ModelAdmin):
 class TimeoutNodeConfigAdmin(admin.ModelAdmin):
     list_display = ["task_id", "root_pipeline_id", "node_id", "timeout"]
     search_fields = ["root_pipeline_id__exact", "node_id__exact"]
+
+
+@admin.register(models.TimeoutNodesRecord)
+class TimeoutNodeRecordAdmin(admin.ModelAdmin):
+    list_display = ["id", "timeout_nodes"]

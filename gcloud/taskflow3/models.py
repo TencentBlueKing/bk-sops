@@ -23,12 +23,13 @@ from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.constants import PE
-from pipeline.core import constants as pipeline_constants
 from pipeline.component_framework.constant import ConstantPool
 from pipeline.models import PipelineInstance
 from pipeline.engine import states
 from pipeline.validators.gateway import validate_gateways
 from pipeline.validators.utils import format_node_io_to_list
+
+from gcloud.taskflow3.utils import parse_node_timeout_configs
 from pipeline_web.core.abstract import NodeAttr
 from pipeline.component_framework.models import ComponentModel
 from pipeline_web.core.models import NodeInInstance
@@ -1466,41 +1467,25 @@ class TimeoutNodeConfigManager(models.Manager):
     def batch_create_node_timeout_config(self, taskflow_id: int, root_pipeline_id: str, pipeline_tree: dict):
         """批量创建节点超时配置"""
 
-        def _initiate_config(tree_data: dict) -> list:
-            configs = []
-            for act_id, act in tree_data[pipeline_constants.PE.activities].items():
-                if act["type"] == pipeline_constants.PE.SubProcess:
-                    result = _initiate_config(tree_data)
-                    if not result["result"]:
-                        return result
-                    configs.extend(result["data"])
-                elif act["type"] == pipeline_constants.PE.ServiceActivity:
-                    timeout_config = act.get("timeout_config", {})
-                    enable = timeout_config.get("enable")
-                    if not enable:
-                        continue
-                    timeout_seconds = timeout_config.get("seconds")
-                    action = timeout_config.get("action")
-                    if not timeout_seconds or not isinstance(timeout_seconds, int):
-                        message = (
-                            f"node {act_id} in taskflow {taskflow_id} has a illegal timemout seconds: {timeout_seconds}"
-                        )
-                        logger.error(message)
-                        # 对于不符合格式要求的情况，则不设置对应超时时间
-                        continue
-                    configs.append(
-                        TimeoutNodeConfig(
-                            task_id=taskflow_id,
-                            action=action,
-                            root_pipeline_id=root_pipeline_id,
-                            node_id=act_id,
-                            timeout=timeout_seconds,
-                        )
-                    )
-            return configs
-
-        timeout_configs = _initiate_config(pipeline_tree)
-        self.bulk_create(timeout_configs, batch_size=TASKFLOW_NODE_TIMEOUT_CONFIG_BATCH_CREAT_COUNT)
+        config_parse_result = parse_node_timeout_configs(pipeline_tree)
+        # 这里忽略解析失败的情况，保证即使解析失败也能正常创建任务
+        if not config_parse_result["result"]:
+            logger.error(
+                f'[batch_create_node_timeout_config] parse node timeout config failed: {config_parse_result["result"]}'
+            )
+            return
+        configs = config_parse_result["data"] or []
+        config_objs = [
+            TimeoutNodeConfig(
+                task_id=taskflow_id,
+                action=config["action"],
+                root_pipeline_id=root_pipeline_id,
+                node_id=config["node_id"],
+                timeout=config["timeout"],
+            )
+            for config in configs
+        ]
+        self.bulk_create(config_objs, batch_size=TASKFLOW_NODE_TIMEOUT_CONFIG_BATCH_CREAT_COUNT)
 
 
 class TimeoutNodeConfig(models.Model):
@@ -1517,3 +1502,12 @@ class TimeoutNodeConfig(models.Model):
         verbose_name = _("节点超时配置 TimeoutNodeConfig")
         verbose_name_plural = _("节点超时配置 TimeoutNodeConfig")
         index_together = [("root_pipeline_id", "node_id")]
+
+
+class TimeoutNodesRecord(models.Model):
+    id = models.BigAutoField(verbose_name="ID", primary_key=True)
+    timeout_nodes = models.TextField(verbose_name="超时节点信息")
+
+    class Meta:
+        verbose_name = _("超时节点数据记录 TimeoutNodesRecord")
+        verbose_name_plural = _("超时节点数据记录 TimeoutNodesRecord")

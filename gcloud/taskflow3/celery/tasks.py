@@ -9,20 +9,26 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+import json
 import time
 import logging
 
 from celery import task
 from django.conf import settings
 
-from pipeline.engine.models import PipelineProcess, Status
+from pipeline.engine.models import PipelineProcess
 from pipeline.eri.models import State, Process
 from pipeline.eri.runtime import BambooDjangoRuntime
 
 import metrics
 from gcloud.taskflow3.domains.node_timeout_strategy import node_timeout_handler
-from gcloud.taskflow3.models import TaskFlowInstance, AutoRetryNodeStrategy, EngineConfig, TimeoutNodeConfig
+from gcloud.taskflow3.models import (
+    TaskFlowInstance,
+    AutoRetryNodeStrategy,
+    EngineConfig,
+    TimeoutNodeConfig,
+    TimeoutNodesRecord,
+)
 from gcloud.taskflow3.domains.dispatchers.node import NodeCommandDispatcher
 from gcloud.shortcuts.message import send_task_flow_message
 
@@ -103,7 +109,19 @@ def auto_retry_node(taskflow_id, root_pipeline_id, node_id, retry_times, engine_
     settings.redis_inst.delete(lock_name)
 
 
-@task
+@task(acks_late=True)
+def dispatch_timeout_nodes(record_id: int):
+    record = TimeoutNodesRecord.objects.get(id=record_id)
+    nodes = json.loads(record.timeout_nodes)
+    for node in nodes:
+        node_id, version = node.split("_")
+        execute_node_timeout_strategy.apply_async(
+            kwargs={"node_id": node_id, "version": version}, queue="node_timeout", routing_key="node_timeout"
+        )
+
+
+@task(ignore_result=True)
+@metrics.setup_counter(metrics.TASKFLOW_TIMEOUT_NODES_NUMBER)
 @metrics.setup_histogram(metrics.TASKFLOW_TIMEOUT_NODES_PROCESSING_TIME)
 def execute_node_timeout_strategy(node_id, version):
     timeout_config = (
@@ -120,16 +138,19 @@ def execute_node_timeout_strategy(node_id, version):
     is_process_current_node = Process.objects.filter(
         root_pipeline_id=root_pipeline_id, current_node_id=node_id
     ).exists()
-    if task_inst.engine_ver == EngineConfig.ENGINE_VER_V1:
-        node_match = Status.objects.filter(id=node_id, version=version).exists()
-    else:
-        node_match = State.objects.filter(node_id=node_id, version=version).exists()
+    node_match = State.objects.filter(node_id=node_id, version=version).exists()
     if not (node_match and is_process_current_node):
         message = (
-            f"[execute_node_timeout_strategy]node {node_id} with version {version} in task {task_id} has been passed."
+            f"[execute_node_timeout_strategy] node {node_id} with version {version} in task {task_id} has been passed."
         )
         logger.error(message)
         return {"result": False, "message": message, "data": None}
 
     handler = node_timeout_handler[action]
-    return handler.deal_with_timeout_node(task_inst, node_id)
+    action_result = handler.deal_with_timeout_node(task_inst, node_id)
+    logger.info(
+        f"[execute_node_timeout_strategy] node {node_id} with version {version} in task {task_id} "
+        f"action result is: {action_result}."
+    )
+
+    return action_result
