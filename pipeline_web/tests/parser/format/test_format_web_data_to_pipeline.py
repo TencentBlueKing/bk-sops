@@ -1475,14 +1475,18 @@ pipeline_tree = json.loads(
                         "form_schema": {
                             "type": "ip_selector",
                             "attrs": {
-                                "name": "\u9009\u62e9\u670d\u52a1\u5668",
+                                "name": "选择服务器",
                                 "hookable": true,
                                 "isMultiple": false,
-                                "validation": [{
-                                    "type": "required"
-                                }],
+                                "validation": [
+                                    {
+                                        "type": "required"
+                                    }
+                                ],
                                 "default": {
-                                    "selectors": ["ip"],
+                                    "selectors": [
+                                        "ip"
+                                    ],
                                     "topo": [],
                                     "ip": [],
                                     "filters": [],
@@ -1509,13 +1513,15 @@ pipeline_tree = json.loads(
                 "can_retry": true,
                 "hooked_constants": [],
                 "id": "n635e9dbdd4731b7922d2285032e873f",
-                "incoming": ["l4cd41e1fb4e3c6bb76a9eaa927ec5bd"],
+                "incoming": [
+                    "l4cd41e1fb4e3c6bb76a9eaa927ec5bd"
+                ],
                 "isSkipped": true,
                 "loop": null,
-                "name": "\u7236\u6d41\u7a0b_clone",
+                "name": "父流程_clone",
                 "optional": false,
                 "outgoing": "lf8082727223366db7cce16284f86f31",
-                "stage_name": "\u6b65\u9aa41",
+                "stage_name": "步骤1",
                 "template_id": "n264da9b090d33fc8eda1b7ae6b0d029",
                 "type": "SubProcess",
                 "version": "d8d9229f5f11bf642845b5741007cce7",
@@ -1525,13 +1531,15 @@ pipeline_tree = json.loads(
                             "can_retry": true,
                             "hooked_constants": [],
                             "id": "nab4fa758628344f9d7c3435d62571f4",
-                            "incoming": ["l62677c18c0234a88bdbd8aa4287b47b"],
+                            "incoming": [
+                                "l62677c18c0234a88bdbd8aa4287b47b"
+                            ],
                             "isSkipped": true,
                             "loop": null,
-                            "name": "\u5b50\u6d41\u7a0b_clone",
+                            "name": "子流程_clone",
                             "optional": false,
                             "outgoing": "lb69586240d83096bfee3771617ea75c",
-                            "stage_name": "\u6b65\u9aa41",
+                            "stage_name": "步骤1",
                             "template_id": "nda2521e3f8c3ffe98b79917c23e5244",
                             "type": "SubProcess",
                             "version": "fe6048201cd56a2053ca2bbf6a3941a6",
@@ -1541,13 +1549,15 @@ pipeline_tree = json.loads(
                                         "can_retry": true,
                                         "hooked_constants": [],
                                         "id": "n4361d55c49f3b8fbdae08ac24031547",
-                                        "incoming": ["l9e50b3f95a938bc867641e20aeb06fe"],
+                                        "incoming": [
+                                            "l9e50b3f95a938bc867641e20aeb06fe"
+                                        ],
                                         "isSkipped": true,
                                         "loop": null,
-                                        "name": "\u5b59\u5b50\u6d41\u7a0b_clone",
+                                        "name": "孙子流程_clone",
                                         "optional": false,
                                         "outgoing": "lb6b6d7e77463d6cae1938c08a801153",
-                                        "stage_name": "\u6b65\u9aa41",
+                                        "stage_name": "步骤1",
                                         "template_id": "nc6adee9b98f317e982323d8115d903a",
                                         "type": "SubProcess",
                                         "version": "ef0fcea2fbe8b74d97c58fda28ebeaff",
@@ -1569,14 +1579,16 @@ pipeline_tree = json.loads(
                                                     },
                                                     "error_ignorable": false,
                                                     "id": "ne44c8349f1b3d48bc7c0f82d5ff40bd",
-                                                    "incoming": ["la86b08263d936f4a06020dff15b837d"],
+                                                    "incoming": [
+                                                        "la86b08263d936f4a06020dff15b837d"
+                                                    ],
                                                     "loop": null,
-                                                    "name": "\u5b9a\u65f6",
+                                                    "name": "定时",
                                                     "optional": false,
                                                     "outgoing": "l535bcd46a3c350c956ce4bf5dd9d2cd",
                                                     "retryable": true,
                                                     "skippable": true,
-                                                    "stage_name": "\u6b65\u9aa41",
+                                                    "stage_name": "步骤1",
                                                     "type": "ServiceActivity"
                                                 },
                                                 "nde9240e471c3c978e4147fce1d3e711": {
@@ -1595,20 +1607,24 @@ pipeline_tree = json.loads(
                                                     },
                                                     "error_ignorable": false,
                                                     "id": "nde9240e471c3c978e4147fce1d3e711",
-                                                    "incoming": ["l535bcd46a3c350c956ce4bf5dd9d2cd"],
+                                                    "incoming": [
+                                                        "l535bcd46a3c350c956ce4bf5dd9d2cd"
+                                                    ],
                                                     "loop": null,
-                                                    "name": "\u5b9a\u65f6",
+                                                    "name": "定时",
                                                     "optional": false,
                                                     "outgoing": "l5dd7f60092432818b940018c7e4e4fc",
                                                     "retryable": true,
                                                     "skippable": true,
-                                                    "stage_name": "\u6b65\u9aa41",
+                                                    "stage_name": "步骤1",
                                                     "type": "ServiceActivity"
                                                 }
                                             },
                                             "end_event": {
                                                 "id": "n5310fd055223ff99a1998df892edb54",
-                                                "incoming": ["l5dd7f60092432818b940018c7e4e4fc"],
+                                                "incoming": [
+                                                    "l5dd7f60092432818b940018c7e4e4fc"
+                                                ],
                                                 "name": "",
                                                 "outgoing": "",
                                                 "type": "EmptyEndEvent"
@@ -1634,66 +1650,75 @@ pipeline_tree = json.loads(
                                                 }
                                             },
                                             "gateways": {},
-                                            "line": [{
-                                                "id": "la86b08263d936f4a06020dff15b837d",
-                                                "source": {
-                                                    "arrow": "Right",
-                                                    "id": "n1596cabb3313ae697e90a01abf600d3"
+                                            "line": [
+                                                {
+                                                    "id": "la86b08263d936f4a06020dff15b837d",
+                                                    "source": {
+                                                        "arrow": "Right",
+                                                        "id": "n1596cabb3313ae697e90a01abf600d3"
+                                                    },
+                                                    "target": {
+                                                        "arrow": "Left",
+                                                        "id": "ne44c8349f1b3d48bc7c0f82d5ff40bd"
+                                                    }
                                                 },
-                                                "target": {
-                                                    "arrow": "Left",
-                                                    "id": "ne44c8349f1b3d48bc7c0f82d5ff40bd"
-                                                }
-                                            }, {
-                                                "id": "l535bcd46a3c350c956ce4bf5dd9d2cd",
-                                                "source": {
-                                                    "arrow": "Right",
-                                                    "id": "ne44c8349f1b3d48bc7c0f82d5ff40bd"
+                                                {
+                                                    "id": "l535bcd46a3c350c956ce4bf5dd9d2cd",
+                                                    "source": {
+                                                        "arrow": "Right",
+                                                        "id": "ne44c8349f1b3d48bc7c0f82d5ff40bd"
+                                                    },
+                                                    "target": {
+                                                        "arrow": "Left",
+                                                        "id": "nde9240e471c3c978e4147fce1d3e711"
+                                                    }
                                                 },
-                                                "target": {
-                                                    "arrow": "Left",
-                                                    "id": "nde9240e471c3c978e4147fce1d3e711"
+                                                {
+                                                    "id": "l5dd7f60092432818b940018c7e4e4fc",
+                                                    "source": {
+                                                        "arrow": "Right",
+                                                        "id": "nde9240e471c3c978e4147fce1d3e711"
+                                                    },
+                                                    "target": {
+                                                        "arrow": "Left",
+                                                        "id": "n5310fd055223ff99a1998df892edb54"
+                                                    }
                                                 }
-                                            }, {
-                                                "id": "l5dd7f60092432818b940018c7e4e4fc",
-                                                "source": {
-                                                    "arrow": "Right",
-                                                    "id": "nde9240e471c3c978e4147fce1d3e711"
+                                            ],
+                                            "location": [
+                                                {
+                                                    "id": "n1596cabb3313ae697e90a01abf600d3",
+                                                    "type": "startpoint",
+                                                    "x": 20,
+                                                    "y": 150
                                                 },
-                                                "target": {
-                                                    "arrow": "Left",
-                                                    "id": "n5310fd055223ff99a1998df892edb54"
+                                                {
+                                                    "group": "蓝鲸服务(BK)",
+                                                    "icon": "",
+                                                    "id": "ne44c8349f1b3d48bc7c0f82d5ff40bd",
+                                                    "name": "定时",
+                                                    "stage_name": "步骤1",
+                                                    "type": "tasknode",
+                                                    "x": 130,
+                                                    "y": 145
+                                                },
+                                                {
+                                                    "id": "n5310fd055223ff99a1998df892edb54",
+                                                    "type": "endpoint",
+                                                    "x": 540,
+                                                    "y": 150
+                                                },
+                                                {
+                                                    "group": "蓝鲸服务(BK)",
+                                                    "icon": "",
+                                                    "id": "nde9240e471c3c978e4147fce1d3e711",
+                                                    "name": "定时",
+                                                    "stage_name": "步骤1",
+                                                    "type": "tasknode",
+                                                    "x": 330,
+                                                    "y": 145
                                                 }
-                                            }],
-                                            "location": [{
-                                                "id": "n1596cabb3313ae697e90a01abf600d3",
-                                                "type": "startpoint",
-                                                "x": 20,
-                                                "y": 150
-                                            }, {
-                                                "group": "\u84dd\u9cb8\u670d\u52a1(BK)",
-                                                "icon": "",
-                                                "id": "ne44c8349f1b3d48bc7c0f82d5ff40bd",
-                                                "name": "\u5b9a\u65f6",
-                                                "stage_name": "\u6b65\u9aa41",
-                                                "type": "tasknode",
-                                                "x": 130,
-                                                "y": 145
-                                            }, {
-                                                "id": "n5310fd055223ff99a1998df892edb54",
-                                                "type": "endpoint",
-                                                "x": 540,
-                                                "y": 150
-                                            }, {
-                                                "group": "\u84dd\u9cb8\u670d\u52a1(BK)",
-                                                "icon": "",
-                                                "id": "nde9240e471c3c978e4147fce1d3e711",
-                                                "name": "\u5b9a\u65f6",
-                                                "stage_name": "\u6b65\u9aa41",
-                                                "type": "tasknode",
-                                                "x": 330,
-                                                "y": 145
-                                            }],
+                                            ],
                                             "start_event": {
                                                 "id": "n1596cabb3313ae697e90a01abf600d3",
                                                 "incoming": "",
@@ -1748,9 +1773,11 @@ pipeline_tree = json.loads(
                                         },
                                         "error_ignorable": false,
                                         "id": "n451f37c09063febbd395b08621dacb6",
-                                        "incoming": ["l501f6abcb753aed8d4f61e9aef2b084"],
+                                        "incoming": [
+                                            "l501f6abcb753aed8d4f61e9aef2b084"
+                                        ],
                                         "loop": null,
-                                        "name": "\u5b9a\u65f6",
+                                        "name": "定时",
                                         "optional": false,
                                         "outgoing": "l9e50b3f95a938bc867641e20aeb06fe",
                                         "stage_name": "",
@@ -1761,7 +1788,9 @@ pipeline_tree = json.loads(
                                 },
                                 "end_event": {
                                     "id": "n5814616524a3f9b97910acaf5ca3222",
-                                    "incoming": ["lb6b6d7e77463d6cae1938c08a801153"],
+                                    "incoming": [
+                                        "lb6b6d7e77463d6cae1938c08a801153"
+                                    ],
                                     "name": "",
                                     "outgoing": "",
                                     "type": "EmptyEndEvent"
@@ -1787,64 +1816,73 @@ pipeline_tree = json.loads(
                                     }
                                 },
                                 "gateways": {},
-                                "line": [{
-                                    "id": "lb6b6d7e77463d6cae1938c08a801153",
-                                    "source": {
-                                        "arrow": "Right",
-                                        "id": "n4361d55c49f3b8fbdae08ac24031547"
+                                "line": [
+                                    {
+                                        "id": "lb6b6d7e77463d6cae1938c08a801153",
+                                        "source": {
+                                            "arrow": "Right",
+                                            "id": "n4361d55c49f3b8fbdae08ac24031547"
+                                        },
+                                        "target": {
+                                            "arrow": "Left",
+                                            "id": "n5814616524a3f9b97910acaf5ca3222"
+                                        }
                                     },
-                                    "target": {
-                                        "arrow": "Left",
-                                        "id": "n5814616524a3f9b97910acaf5ca3222"
-                                    }
-                                }, {
-                                    "id": "l501f6abcb753aed8d4f61e9aef2b084",
-                                    "source": {
-                                        "arrow": "Right",
-                                        "id": "n1c17515f81c3eb896561678e17c7b9e"
+                                    {
+                                        "id": "l501f6abcb753aed8d4f61e9aef2b084",
+                                        "source": {
+                                            "arrow": "Right",
+                                            "id": "n1c17515f81c3eb896561678e17c7b9e"
+                                        },
+                                        "target": {
+                                            "arrow": "Left",
+                                            "id": "n451f37c09063febbd395b08621dacb6"
+                                        }
                                     },
-                                    "target": {
-                                        "arrow": "Left",
-                                        "id": "n451f37c09063febbd395b08621dacb6"
+                                    {
+                                        "id": "l9e50b3f95a938bc867641e20aeb06fe",
+                                        "source": {
+                                            "arrow": "Right",
+                                            "id": "n451f37c09063febbd395b08621dacb6"
+                                        },
+                                        "target": {
+                                            "arrow": "Left",
+                                            "id": "n4361d55c49f3b8fbdae08ac24031547"
+                                        }
                                     }
-                                }, {
-                                    "id": "l9e50b3f95a938bc867641e20aeb06fe",
-                                    "source": {
-                                        "arrow": "Right",
-                                        "id": "n451f37c09063febbd395b08621dacb6"
+                                ],
+                                "location": [
+                                    {
+                                        "id": "n1c17515f81c3eb896561678e17c7b9e",
+                                        "type": "startpoint",
+                                        "x": 20,
+                                        "y": 155
                                     },
-                                    "target": {
-                                        "arrow": "Left",
-                                        "id": "n4361d55c49f3b8fbdae08ac24031547"
+                                    {
+                                        "id": "n451f37c09063febbd395b08621dacb6",
+                                        "type": "tasknode",
+                                        "name": "定时",
+                                        "stage_name": "",
+                                        "x": 108,
+                                        "y": 150,
+                                        "group": "蓝鲸服务(BK)",
+                                        "icon": ""
+                                    },
+                                    {
+                                        "id": "n4361d55c49f3b8fbdae08ac24031547",
+                                        "type": "subflow",
+                                        "name": "孙子流程_clone",
+                                        "stage_name": "步骤1",
+                                        "x": 303,
+                                        "y": 150
+                                    },
+                                    {
+                                        "id": "n5814616524a3f9b97910acaf5ca3222",
+                                        "type": "endpoint",
+                                        "x": 498,
+                                        "y": 155
                                     }
-                                }],
-                                "location": [{
-                                    "id": "n1c17515f81c3eb896561678e17c7b9e",
-                                    "type": "startpoint",
-                                    "x": 20,
-                                    "y": 155
-                                }, {
-                                    "id": "n451f37c09063febbd395b08621dacb6",
-                                    "type": "tasknode",
-                                    "name": "\u5b9a\u65f6",
-                                    "stage_name": "",
-                                    "x": 108,
-                                    "y": 150,
-                                    "group": "\u84dd\u9cb8\u670d\u52a1(BK)",
-                                    "icon": ""
-                                }, {
-                                    "id": "n4361d55c49f3b8fbdae08ac24031547",
-                                    "type": "subflow",
-                                    "name": "\u5b59\u5b50\u6d41\u7a0b_clone",
-                                    "stage_name": "\u6b65\u9aa41",
-                                    "x": 303,
-                                    "y": 150
-                                }, {
-                                    "id": "n5814616524a3f9b97910acaf5ca3222",
-                                    "type": "endpoint",
-                                    "x": 498,
-                                    "y": 155
-                                }],
+                                ],
                                 "start_event": {
                                     "id": "n1c17515f81c3eb896561678e17c7b9e",
                                     "incoming": "",
@@ -1875,7 +1913,9 @@ pipeline_tree = json.loads(
                     },
                     "end_event": {
                         "id": "na2f2993757832c59fd6ce21b992db56",
-                        "incoming": ["lb69586240d83096bfee3771617ea75c"],
+                        "incoming": [
+                            "lb69586240d83096bfee3771617ea75c"
+                        ],
                         "name": "",
                         "outgoing": "",
                         "type": "EmptyEndEvent"
@@ -1895,45 +1935,52 @@ pipeline_tree = json.loads(
                         }
                     },
                     "gateways": {},
-                    "line": [{
-                        "id": "l62677c18c0234a88bdbd8aa4287b47b",
-                        "source": {
-                            "arrow": "Right",
-                            "id": "ndd32b3de7143cd2acd4b3e260882ab9"
+                    "line": [
+                        {
+                            "id": "l62677c18c0234a88bdbd8aa4287b47b",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "ndd32b3de7143cd2acd4b3e260882ab9"
+                            },
+                            "target": {
+                                "arrow": "Left",
+                                "id": "nab4fa758628344f9d7c3435d62571f4"
+                            }
                         },
-                        "target": {
-                            "arrow": "Left",
-                            "id": "nab4fa758628344f9d7c3435d62571f4"
+                        {
+                            "id": "lb69586240d83096bfee3771617ea75c",
+                            "source": {
+                                "arrow": "Right",
+                                "id": "nab4fa758628344f9d7c3435d62571f4"
+                            },
+                            "target": {
+                                "arrow": "Left",
+                                "id": "na2f2993757832c59fd6ce21b992db56"
+                            }
                         }
-                    }, {
-                        "id": "lb69586240d83096bfee3771617ea75c",
-                        "source": {
-                            "arrow": "Right",
-                            "id": "nab4fa758628344f9d7c3435d62571f4"
+                    ],
+                    "location": [
+                        {
+                            "id": "ndd32b3de7143cd2acd4b3e260882ab9",
+                            "type": "startpoint",
+                            "x": 20,
+                            "y": 150
                         },
-                        "target": {
-                            "arrow": "Left",
-                            "id": "na2f2993757832c59fd6ce21b992db56"
+                        {
+                            "id": "na2f2993757832c59fd6ce21b992db56",
+                            "type": "endpoint",
+                            "x": 540,
+                            "y": 150
+                        },
+                        {
+                            "id": "nab4fa758628344f9d7c3435d62571f4",
+                            "type": "subflow",
+                            "name": "子流程_clone",
+                            "stage_name": "步骤1",
+                            "x": 220,
+                            "y": 145
                         }
-                    }],
-                    "location": [{
-                        "id": "ndd32b3de7143cd2acd4b3e260882ab9",
-                        "type": "startpoint",
-                        "x": 20,
-                        "y": 150
-                    }, {
-                        "id": "na2f2993757832c59fd6ce21b992db56",
-                        "type": "endpoint",
-                        "x": 540,
-                        "y": 150
-                    }, {
-                        "id": "nab4fa758628344f9d7c3435d62571f4",
-                        "type": "subflow",
-                        "name": "\u5b50\u6d41\u7a0b_clone",
-                        "stage_name": "\u6b65\u9aa41",
-                        "x": 220,
-                        "y": 145
-                    }],
+                    ],
                     "start_event": {
                         "id": "ndd32b3de7143cd2acd4b3e260882ab9",
                         "incoming": "",
@@ -1944,27 +1991,20 @@ pipeline_tree = json.loads(
                     "id": "n635e9dbdd4731b7922d2285032e873f",
                     "data": {
                         "inputs": {
-                            "${ip}": {
-                                "type": "lazy",
-                                "source_tag": "var_cmdb_ip_selector.ip_selector",
-                                "custom_type": "ip_selector",
-                                "value": "${ip}",
-                                "is_param": true
-                            },
                             "${c}": {
                                 "type": "splice",
                                 "value": "${d}",
-                                "is_param": true
-                            },
-                            "${s1}": {
-                                "type": "plain",
-                                "value": "2",
                                 "is_param": true
                             },
                             "${h1}": {
                                 "type": "plain",
                                 "value": "12",
                                 "is_param": false
+                            },
+                            "${s1}": {
+                                "type": "plain",
+                                "value": "2",
+                                "is_param": true
                             },
                             "${v1}": {
                                 "type": "splice",
@@ -1987,9 +2027,9 @@ pipeline_tree = json.loads(
                                 "is_param": false
                             },
                             "${v5}": {
+                                "custom_type": "set_module_ip_selector",
                                 "type": "lazy",
                                 "source_tag": "set_module_ip_selector.ip_selector",
-                                "custom_type": "set_module_ip_selector",
                                 "value": "${int(v3) + 1}",
                                 "is_param": false
                             },
@@ -1997,6 +2037,13 @@ pipeline_tree = json.loads(
                                 "type": "splice",
                                 "value": "${v5}",
                                 "is_param": false
+                            },
+                            "${ip}": {
+                                "custom_type": "ip_selector",
+                                "is_param": true,
+                                "source_tag": "var_cmdb_ip_selector.ip_selector",
+                                "type": "lazy",
+                                "value": "${ip}"
                             }
                         },
                         "outputs": [],
@@ -2004,10 +2051,6 @@ pipeline_tree = json.loads(
                     }
                 },
                 "params": {
-                    "${ip}": {
-                        "type": "splice",
-                        "value": "${ip}"
-                    },
                     "${c}": {
                         "type": "splice",
                         "value": "${d}"
@@ -2015,6 +2058,10 @@ pipeline_tree = json.loads(
                     "${s1}": {
                         "type": "splice",
                         "value": "2"
+                    },
+                    "${ip}": {
+                        "type": "splice",
+                        "value": "${ip}"
                     }
                 }
             },
@@ -2042,9 +2089,11 @@ pipeline_tree = json.loads(
                 },
                 "error_ignorable": false,
                 "id": "nac621f53104387ebc893f3063d4656b",
-                "incoming": ["l9e5c0c3a3d73fad87ee077690f67546"],
+                "incoming": [
+                    "l9e5c0c3a3d73fad87ee077690f67546"
+                ],
                 "loop": null,
-                "name": "\u5b9a\u65f6",
+                "name": "定时",
                 "optional": false,
                 "outgoing": "l480639665a5360284dfeb8384f59d8c",
                 "stage_name": "",
@@ -2074,9 +2123,11 @@ pipeline_tree = json.loads(
                 },
                 "error_ignorable": false,
                 "id": "n465cfafc9723b14abfd93c20c15f101",
-                "incoming": ["l480639665a5360284dfeb8384f59d8c"],
+                "incoming": [
+                    "l480639665a5360284dfeb8384f59d8c"
+                ],
                 "loop": null,
-                "name": "\u5b9a\u65f6",
+                "name": "定时",
                 "optional": false,
                 "outgoing": "l8a74b20b9ee366f8a521ee765da9259",
                 "stage_name": "",
@@ -2106,9 +2157,11 @@ pipeline_tree = json.loads(
                 },
                 "error_ignorable": false,
                 "id": "n67f91916e3036e39693910f9aa7635b",
-                "incoming": ["l8a74b20b9ee366f8a521ee765da9259"],
+                "incoming": [
+                    "l8a74b20b9ee366f8a521ee765da9259"
+                ],
                 "loop": null,
-                "name": "\u5b9a\u65f6",
+                "name": "定时",
                 "optional": false,
                 "outgoing": "l231ee42e8a63b7886f95b2df53c2325",
                 "stage_name": "",
@@ -2138,9 +2191,11 @@ pipeline_tree = json.loads(
                 },
                 "error_ignorable": false,
                 "id": "nb0186bd7c163a3d8919220e7004b3b2",
-                "incoming": ["l231ee42e8a63b7886f95b2df53c2325"],
+                "incoming": [
+                    "l231ee42e8a63b7886f95b2df53c2325"
+                ],
                 "loop": null,
-                "name": "\u5b9a\u65f6",
+                "name": "定时",
                 "optional": false,
                 "outgoing": "l5ff97b7195f30f4ab21b48f53ec3ccd",
                 "stage_name": "",
@@ -2170,9 +2225,11 @@ pipeline_tree = json.loads(
                 },
                 "error_ignorable": false,
                 "id": "na0f5f9f502e3a6e98322f1a2979e6b1",
-                "incoming": ["l5ff97b7195f30f4ab21b48f53ec3ccd"],
+                "incoming": [
+                    "l5ff97b7195f30f4ab21b48f53ec3ccd"
+                ],
                 "loop": null,
-                "name": "\u5b9a\u65f6",
+                "name": "定时",
                 "optional": false,
                 "outgoing": "l4cd41e1fb4e3c6bb76a9eaa927ec5bd",
                 "stage_name": "",
@@ -2183,7 +2240,9 @@ pipeline_tree = json.loads(
         },
         "end_event": {
             "id": "nb503f6c50813da79441f16f40f2bf0d",
-            "incoming": ["lf8082727223366db7cce16284f86f31"],
+            "incoming": [
+                "lf8082727223366db7cce16284f86f31"
+            ],
             "name": "",
             "outgoing": "",
             "type": "EmptyEndEvent"
@@ -2233,140 +2292,157 @@ pipeline_tree = json.loads(
             }
         },
         "gateways": {},
-        "line": [{
-            "id": "lf8082727223366db7cce16284f86f31",
-            "source": {
-                "arrow": "Right",
-                "id": "n635e9dbdd4731b7922d2285032e873f"
+        "line": [
+            {
+                "id": "lf8082727223366db7cce16284f86f31",
+                "source": {
+                    "arrow": "Right",
+                    "id": "n635e9dbdd4731b7922d2285032e873f"
+                },
+                "target": {
+                    "arrow": "Left",
+                    "id": "nb503f6c50813da79441f16f40f2bf0d"
+                }
             },
-            "target": {
-                "arrow": "Left",
-                "id": "nb503f6c50813da79441f16f40f2bf0d"
+            {
+                "source": {
+                    "arrow": "Right",
+                    "id": "nbf3cb0f30583b8d9fee415099ad625f"
+                },
+                "target": {
+                    "id": "nac621f53104387ebc893f3063d4656b",
+                    "arrow": "Left"
+                },
+                "id": "l9e5c0c3a3d73fad87ee077690f67546"
+            },
+            {
+                "source": {
+                    "arrow": "Right",
+                    "id": "nac621f53104387ebc893f3063d4656b"
+                },
+                "target": {
+                    "id": "n465cfafc9723b14abfd93c20c15f101",
+                    "arrow": "Left"
+                },
+                "id": "l480639665a5360284dfeb8384f59d8c"
+            },
+            {
+                "source": {
+                    "arrow": "Right",
+                    "id": "n465cfafc9723b14abfd93c20c15f101"
+                },
+                "target": {
+                    "id": "n67f91916e3036e39693910f9aa7635b",
+                    "arrow": "Left"
+                },
+                "id": "l8a74b20b9ee366f8a521ee765da9259"
+            },
+            {
+                "source": {
+                    "arrow": "Right",
+                    "id": "n67f91916e3036e39693910f9aa7635b"
+                },
+                "target": {
+                    "id": "nb0186bd7c163a3d8919220e7004b3b2",
+                    "arrow": "Left"
+                },
+                "id": "l231ee42e8a63b7886f95b2df53c2325"
+            },
+            {
+                "source": {
+                    "arrow": "Right",
+                    "id": "nb0186bd7c163a3d8919220e7004b3b2"
+                },
+                "target": {
+                    "id": "na0f5f9f502e3a6e98322f1a2979e6b1",
+                    "arrow": "Left"
+                },
+                "id": "l5ff97b7195f30f4ab21b48f53ec3ccd"
+            },
+            {
+                "source": {
+                    "arrow": "Right",
+                    "id": "na0f5f9f502e3a6e98322f1a2979e6b1"
+                },
+                "target": {
+                    "id": "n635e9dbdd4731b7922d2285032e873f",
+                    "arrow": "Left"
+                },
+                "id": "l4cd41e1fb4e3c6bb76a9eaa927ec5bd"
             }
-        }, {
-            "source": {
-                "arrow": "Right",
-                "id": "nbf3cb0f30583b8d9fee415099ad625f"
+        ],
+        "location": [
+            {
+                "id": "nbf3cb0f30583b8d9fee415099ad625f",
+                "type": "startpoint",
+                "x": 20,
+                "y": 150
             },
-            "target": {
-                "id": "nac621f53104387ebc893f3063d4656b",
-                "arrow": "Left"
+            {
+                "id": "nb503f6c50813da79441f16f40f2bf0d",
+                "type": "endpoint",
+                "x": 540,
+                "y": 150
             },
-            "id": "l9e5c0c3a3d73fad87ee077690f67546"
-        }, {
-            "source": {
-                "arrow": "Right",
-                "id": "nac621f53104387ebc893f3063d4656b"
-            },
-            "target": {
-                "id": "n465cfafc9723b14abfd93c20c15f101",
-                "arrow": "Left"
-            },
-            "id": "l480639665a5360284dfeb8384f59d8c"
-        }, {
-            "source": {
-                "arrow": "Right",
-                "id": "n465cfafc9723b14abfd93c20c15f101"
-            },
-            "target": {
-                "id": "n67f91916e3036e39693910f9aa7635b",
-                "arrow": "Left"
-            },
-            "id": "l8a74b20b9ee366f8a521ee765da9259"
-        }, {
-            "source": {
-                "arrow": "Right",
-                "id": "n67f91916e3036e39693910f9aa7635b"
-            },
-            "target": {
-                "id": "nb0186bd7c163a3d8919220e7004b3b2",
-                "arrow": "Left"
-            },
-            "id": "l231ee42e8a63b7886f95b2df53c2325"
-        }, {
-            "source": {
-                "arrow": "Right",
-                "id": "nb0186bd7c163a3d8919220e7004b3b2"
-            },
-            "target": {
-                "id": "na0f5f9f502e3a6e98322f1a2979e6b1",
-                "arrow": "Left"
-            },
-            "id": "l5ff97b7195f30f4ab21b48f53ec3ccd"
-        }, {
-            "source": {
-                "arrow": "Right",
-                "id": "na0f5f9f502e3a6e98322f1a2979e6b1"
-            },
-            "target": {
+            {
                 "id": "n635e9dbdd4731b7922d2285032e873f",
-                "arrow": "Left"
+                "type": "subflow",
+                "name": "父流程_clone",
+                "stage_name": "步骤1",
+                "x": 220,
+                "y": 145
             },
-            "id": "l4cd41e1fb4e3c6bb76a9eaa927ec5bd"
-        }],
-        "location": [{
-            "id": "nbf3cb0f30583b8d9fee415099ad625f",
-            "type": "startpoint",
-            "x": 20,
-            "y": 150
-        }, {
-            "id": "nb503f6c50813da79441f16f40f2bf0d",
-            "type": "endpoint",
-            "x": 540,
-            "y": 150
-        }, {
-            "id": "n635e9dbdd4731b7922d2285032e873f",
-            "type": "subflow",
-            "name": "\u7236\u6d41\u7a0b_clone",
-            "stage_name": "\u6b65\u9aa41",
-            "x": 220,
-            "y": 145
-        }, {
-            "id": "nac621f53104387ebc893f3063d4656b",
-            "type": "tasknode",
-            "name": "\u5b9a\u65f6",
-            "stage_name": "",
-            "x": 110,
-            "y": 365,
-            "group": "\u84dd\u9cb8\u670d\u52a1(BK)",
-            "icon": ""
-        }, {
-            "id": "n465cfafc9723b14abfd93c20c15f101",
-            "type": "tasknode",
-            "name": "\u5b9a\u65f6",
-            "stage_name": "",
-            "x": 310,
-            "y": 365,
-            "group": "\u84dd\u9cb8\u670d\u52a1(BK)",
-            "icon": ""
-        }, {
-            "id": "n67f91916e3036e39693910f9aa7635b",
-            "type": "tasknode",
-            "name": "\u5b9a\u65f6",
-            "stage_name": "",
-            "x": 510,
-            "y": 365,
-            "group": "\u84dd\u9cb8\u670d\u52a1(BK)",
-            "icon": ""
-        }, {
-            "id": "nb0186bd7c163a3d8919220e7004b3b2",
-            "type": "tasknode",
-            "name": "\u5b9a\u65f6",
-            "stage_name": "",
-            "x": 710,
-            "y": 365,
-            "group": "\u84dd\u9cb8\u670d\u52a1(BK)",
-            "icon": ""
-        }, {
-            "id": "na0f5f9f502e3a6e98322f1a2979e6b1",
-            "type": "tasknode",
-            "name": "\u5b9a\u65f6",
-            "stage_name": "",
-            "x": 910,
-            "y": 365,
-            "group": "\u84dd\u9cb8\u670d\u52a1(BK)",
-            "icon": ""
-        }],
+            {
+                "id": "nac621f53104387ebc893f3063d4656b",
+                "type": "tasknode",
+                "name": "定时",
+                "stage_name": "",
+                "x": 110,
+                "y": 365,
+                "group": "蓝鲸服务(BK)",
+                "icon": ""
+            },
+            {
+                "id": "n465cfafc9723b14abfd93c20c15f101",
+                "type": "tasknode",
+                "name": "定时",
+                "stage_name": "",
+                "x": 310,
+                "y": 365,
+                "group": "蓝鲸服务(BK)",
+                "icon": ""
+            },
+            {
+                "id": "n67f91916e3036e39693910f9aa7635b",
+                "type": "tasknode",
+                "name": "定时",
+                "stage_name": "",
+                "x": 510,
+                "y": 365,
+                "group": "蓝鲸服务(BK)",
+                "icon": ""
+            },
+            {
+                "id": "nb0186bd7c163a3d8919220e7004b3b2",
+                "type": "tasknode",
+                "name": "定时",
+                "stage_name": "",
+                "x": 710,
+                "y": 365,
+                "group": "蓝鲸服务(BK)",
+                "icon": ""
+            },
+            {
+                "id": "na0f5f9f502e3a6e98322f1a2979e6b1",
+                "type": "tasknode",
+                "name": "定时",
+                "stage_name": "",
+                "x": 910,
+                "y": 365,
+                "group": "蓝鲸服务(BK)",
+                "icon": ""
+            }
+        ],
         "start_event": {
             "id": "nbf3cb0f30583b8d9fee415099ad625f",
             "incoming": "",
@@ -2377,21 +2453,6 @@ pipeline_tree = json.loads(
         "id": "n86d00b8416b3cfda9e5dcd7684bbc5a",
         "data": {
             "inputs": {
-                "${ip}": {
-                    "type": "lazy",
-                    "source_tag": "var_cmdb_ip_selector.ip_selector",
-                    "custom_type": "ip_selector",
-                    "value": {
-                        "selectors": ["ip"],
-                        "topo": [],
-                        "ip": [],
-                        "filters": [],
-                        "excludes": [],
-                        "with_cloud_id": false,
-                        "separator": ","
-                    },
-                    "is_param": true
-                },
                 "${d}": {
                     "type": "plain",
                     "value": "3",
@@ -2443,6 +2504,21 @@ pipeline_tree = json.loads(
                     "type": "splice",
                     "value": "${1 if _result else xxx}",
                     "is_param": false
+                },
+                "${ip}": {
+                    "custom_type": "ip_selector",
+                    "is_param": true,
+                    "source_tag": "var_cmdb_ip_selector.ip_selector",
+                    "type": "lazy",
+                    "value": {
+                        "excludes": [],
+                        "filters": [],
+                        "ip": [],
+                        "selectors": ["ip"],
+                        "separator": ",",
+                        "topo": [],
+                        "with_cloud_id": false
+                    }
                 }
             },
             "outputs": [],
