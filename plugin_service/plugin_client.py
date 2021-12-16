@@ -244,9 +244,7 @@ class PluginServiceApiClient:
                 result.raise_for_status()
                 break
             except requests.exceptions.RequestException as e:
-                logger.warning(
-                    "request api error,invoke_num:{},{} {},kwargs:{} ".format(invoke_num, method, url, kwargs)
-                )
+                logger.warning("request api error,invoke_num:{},{} {} ".format(invoke_num, method, url))
                 logger.exception(e)
 
         return result
