@@ -476,6 +476,7 @@
                         id: 'remote_plugin'
                     }
                     this.$emit('select', group, true)
+                    this.$emit('updatePluginList', undefined, 'search')
                 } catch (error) {
                     console.warn(error)
                 }
