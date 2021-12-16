@@ -353,7 +353,6 @@
              * 删除方案
              */
             async onDeleteScheme (scheme) {
-                console.log(scheme, '11111')
                 const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
                 const hasPermission = this.checkSchemeRelativePermission([tplAction])
 
