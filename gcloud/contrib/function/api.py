@@ -26,8 +26,7 @@ class FunctionTaskClaimantTransferView(APIView):
 
         # 获取请求参数并校验
         serializer = FunctionTaskClaimantTransferRequestSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response({"result": False, "message": serializer.errors})
+        serializer.is_valid(raise_exception=True)
 
         # 查询传进来的id职能化任务是否有效
         serializer_data = serializer.data
@@ -44,4 +43,4 @@ class FunctionTaskClaimantTransferView(APIView):
 
         # 修改并返回结果
         FunctionTask.objects.filter(id=serializer_data["id"]).update(claimant=serializer_data["claimant"])
-        return Response({"result": True, "data": []})
+        return Response({"result": True, "data": None})
