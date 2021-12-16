@@ -8,5 +8,5 @@ class FunctionTaskClaimantTransferRequestSerializer(serializers.Serializer):
 
 
 class FunctionTaskClaimantTransferResponse(serializers.Serializer):
-    result = serializers.CharField(read_only=True, help_text="请求结果")
+    result = serializers.BooleanField(read_only=True, help_text="请求结果")
     data = serializers.ListSerializer(child=serializers.DictField(), read_only=True, help_text="请求结果数据")
