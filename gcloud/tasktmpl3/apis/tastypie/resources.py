@@ -118,8 +118,9 @@ class TaskTemplateResource(GCloudModelResource):
         )
 
     def apply_sorting(self, obj_list, options=None):
-        options = {} if not options else options.copy()
-
+        if not options:
+            return super().apply_sorting(obj_list, options=options)
+        options = options.copy()
         order_by = options.get("order_by", "")
         prefix = "pipeline_template__"
         if order_by.startswith("-"):
