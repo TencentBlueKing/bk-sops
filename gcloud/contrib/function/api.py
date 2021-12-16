@@ -21,7 +21,7 @@ class FunctionTaskClaimantTransferView(APIView):
     def post(self, request):
         # 获取用户名鉴权是否拥有职能化权限
         username = request.user.username
-        if is_user_role(username, IAMMeta.FUNCTION_VIEW_ACTION):
+        if not is_user_role(username, IAMMeta.FUNCTION_VIEW_ACTION):
             return Response({"result": False, "message": "没有查看职能化任务权限"})
 
         # 获取请求参数并校验
