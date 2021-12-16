@@ -26,7 +26,7 @@ class ITSMViewRequestSerializer(serializers.Serializer):
 
 class ITSMViewResponse(serializers.Serializer):
     result = serializers.BooleanField(read_only=True, help_text="请求结果")
-    data = serializers.ListSerializer(child=serializers.DictField(), read_only=True, help_text="请求结果数据")
+    message = serializers.CharField(read_only=True, help_text="请求结果失败时返回信息")
 
 
 class ITSMNodeTransitionView(APIView):
@@ -41,8 +41,7 @@ class ITSMNodeTransitionView(APIView):
         # 获取请求中的参数并判断
         operator = request.user.username
         serializer = ITSMViewRequestSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response({"result": False, "message": serializer.errors})
+        serializer.is_valid(raise_exception=True)
 
         # 创建client并获取序列化器数据
         client = BKItsmClient(username=operator)
@@ -77,7 +76,7 @@ class ITSMNodeTransitionView(APIView):
             result = {"result": False, "message": message}
             return Response(result)
 
-        return Response({"result": True, "data": []})
+        return Response({"result": True, "data": None})
 
 
 itsm_urlpatterns = [
