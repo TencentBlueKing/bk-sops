@@ -72,6 +72,8 @@ class TaskTemplateResource(GCloudModelResource):
     has_subprocess = fields.BooleanField(attribute="has_subprocess", readonly=True)
     description = fields.CharField(attribute="pipeline_template__description", readonly=True, null=True)
 
+    extra_ordering = {"edit_time", "create_time"}
+
     class Meta(GCloudModelResource.CommonMeta):
         queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = "template"
@@ -122,7 +124,7 @@ class TaskTemplateResource(GCloudModelResource):
         prefix = "pipeline_template__"
         if order_by.startswith("-"):
             prefix = "-" + prefix
-        if order_by.lstrip("-") in {"edit_time", "create_time"}:
+        if order_by.lstrip("-") in self.__class__.extra_ordering:
             order_by = prefix + order_by.lstrip("-")
             options["order_by"] = order_by
         return super().apply_sorting(obj_list, options=options)
