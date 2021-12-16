@@ -25,10 +25,10 @@
                 :rules="rules">
                 <section class="form-section">
                     <h4>{{ $t('基础') }}</h4>
-                    <bk-form-item :property="'name'" :label="$t('流程名称')" :required="true">
+                    <bk-form-item :property="'name'" :label="$t('流程名称')" :required="true" data-test-id="tabTemplateConfig_form_name">
                         <bk-input ref="nameInput" v-model.trim="formData.name" :placeholder="$t('请输入流程模板名称')"></bk-input>
                     </bk-form-item>
-                    <bk-form-item v-if="!common" :label="$t('标签')">
+                    <bk-form-item v-if="!common" :label="$t('标签')" data-test-id="tabTemplateConfig_form_label">
                         <bk-select
                             v-model="formData.labels"
                             ext-popover-cls="label-select"
@@ -49,13 +49,13 @@
                                     <i class="bk-option-icon bk-icon icon-check-1"></i>
                                 </div>
                             </bk-option>
-                            <div slot="extension" @click="onEditLabel" class="label-select-extension">
+                            <div slot="extension" @click="onEditLabel" class="label-select-extension" data-test-id="tabTemplateConfig_form_editLabel">
                                 <i class="common-icon-edit"></i>
                                 <span>{{ $t('编辑标签') }}</span>
                             </div>
                         </bk-select>
                     </bk-form-item>
-                    <bk-form-item property="category" :label="$t('分类')">
+                    <bk-form-item property="category" :label="$t('分类')" data-test-id="tabTemplateConfig_form_category">
                         <bk-select
                             v-model="formData.category"
                             class="category-select"
@@ -65,6 +65,7 @@
                                 v-for="(item, index) in taskCategories"
                                 :key="index"
                                 :id="item.id"
+                                :data-test-id="`tabTemplateConfig_form_category${item.id}`"
                                 :name="item.name">
                             </bk-option>
                         </bk-select>
@@ -93,7 +94,7 @@
                 </section>
                 <section class="form-section">
                     <h4>{{ $t('其他') }}</h4>
-                    <bk-form-item v-if="!common" :label="$t('执行代理人')">
+                    <bk-form-item v-if="!common" :label="$t('执行代理人')" data-test-id="tabTemplateConfig_form_executorProxy">
                         <member-select
                             :multiple="false"
                             :value="formData.executorProxy"
@@ -107,10 +108,10 @@
                             {{ $t('模板级别的执行代理人会覆盖业务级别的执行代理人配置，') + $t('若模板配置了执行代理人，业务的执行代理人白名单不会生效。') }}
                         </div>
                     </bk-form-item>
-                    <bk-form-item property="notifyType" :label="$t('备注')">
+                    <bk-form-item property="notifyType" :label="$t('备注')" data-test-id="tabTemplateConfig_form_notifyType">
                         <bk-input type="textarea" v-model.trim="formData.description" :rows="5" :placeholder="$t('请输入流程模板备注信息')"></bk-input>
                     </bk-form-item>
-                    <bk-form-item property="defaultFlowType" :label="$t('任务类型偏好')">
+                    <bk-form-item property="defaultFlowType" :label="$t('任务类型偏好')" data-test-id="tabTemplateConfig_form_defaultFlowType">
                         <bk-select v-model="formData.defaultFlowType" :clearable="false">
                             <bk-option id="common" :name="$t('默认任务')"></bk-option>
                             <bk-option id="common_func" :name="$t('职能化任务')"></bk-option>
@@ -119,8 +120,8 @@
                 </section>
             </bk-form>
             <div class="btn-wrap">
-                <bk-button class="save-btn" theme="primary" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
-                <bk-button theme="default" @click="closeTab">{{ $t('取消') }}</bk-button>
+                <bk-button class="save-btn" theme="primary" data-test-id="tabTemplateConfig_form_saveBtn" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
+                <bk-button theme="default" data-test-id="tabTemplateConfig_form_cancelBtn" @click="closeTab">{{ $t('取消') }}</bk-button>
             </div>
             <bk-dialog
                 width="400"
@@ -129,12 +130,13 @@
                 :mask-close="false"
                 :show-footer="false"
                 :value="isSaveConfirmDialogShow"
+                data-test-id="tabTemplateConfig_dialog_confirmDialog"
                 @cancel="isSaveConfirmDialogShow = false">
                 <div class="template-config-dialog-content">
                     <div class="leave-tips">{{ $t('保存已修改的配置信息吗？') }}</div>
                     <div class="action-wrapper">
-                        <bk-button theme="primary" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
-                        <bk-button theme="default" @click="closeTab">{{ $t('不保存') }}</bk-button>
+                        <bk-button theme="primary" data-test-id="tabTemplateConfig_form_saveBtn" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
+                        <bk-button theme="default" data-test-id="tabTemplateConfig_form_cancelBtn" @click="closeTab">{{ $t('不保存') }}</bk-button>
                     </div>
                 </div>
             </bk-dialog>

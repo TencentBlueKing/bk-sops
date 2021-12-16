@@ -15,12 +15,13 @@
                             theme="primary"
                             size="normal"
                             style="min-width: 120px;"
+                            data-test-id="clockedList_form_createTask"
                             @click="onCreateClockedTask">
                             {{$t('新建')}}
                         </bk-button>
                     </template>
                 </advance-search-form>
-                <div class="clocked-table-content">
+                <div class="clocked-table-content" data-test-id="clockedList_table_taskList">
                     <bk-table
                         :data="clockedList"
                         :pagination="pagination"
@@ -97,6 +98,7 @@
                                         content: $t('已执行的计划任务无法编辑'),
                                         disabled: hasPermission(['clocked_task_edit'], props.row.auth_actions) ? !props.row.task_id : true
                                     }"
+                                    data-test-id="clockedList_table_editBtn"
                                     @click="onEditClockedTask(props.row, $event)">
                                     {{ $t('编辑') }}
                                 </a>
@@ -106,6 +108,7 @@
                                     :class="{
                                         'clocked-bk-disable': !hasPermission(['clocked_task_delete'], props.row.auth_actions)
                                     }"
+                                    data-test-id="clockedList_table_deleteBtn"
                                     @click="onDeleteClockedTask(props.row, $event)">
                                     {{ $t('删除') }}
                                 </a>
