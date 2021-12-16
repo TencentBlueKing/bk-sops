@@ -22,8 +22,12 @@ from .authentication import CsrfExemptSessionAuthentication
 logger = logging.getLogger("root")
 
 
-class AutoTestMixin(ApiMixin):
+class BaseAutoTestMixin(ApiMixin):
     authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [EnablePermission]
+
+
+class AutoTestMixin(BaseAutoTestMixin):
     permission_classes = [EnablePermission, TestTokenPermission]
 
 

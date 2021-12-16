@@ -55,6 +55,7 @@ class TestTokenPermission(BasePermission):
 
 def generate_token(key: str, expire=60) -> str:
     """
+    生成测试token
     :param key: 加密的key
     :param expire: 超时时间
     :return: str

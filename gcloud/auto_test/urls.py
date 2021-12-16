@@ -15,11 +15,13 @@ from rest_framework.routers import DefaultRouter
 
 from gcloud.auto_test.apis.viewsets.template import ProjectTemplateViewSet, CommonTemplateViewSet
 from gcloud.auto_test.apis.viewsets.periodic_task import PeriodicTaskViewSet
+from gcloud.auto_test.apis.viewsets.token import AutoTestTokenViewSet
 
 auto_test_router = DefaultRouter()
 auto_test_router.register(r"template", ProjectTemplateViewSet, basename="template")
 auto_test_router.register(r"common_template", CommonTemplateViewSet, basename="common_template")
 auto_test_router.register(r"periodic_task", PeriodicTaskViewSet, basename="periodic_task")
+auto_test_router.register(r"get_token", AutoTestTokenViewSet, basename="get_token")
 
 urlpatterns = [
     url(r"^", include(auto_test_router.urls)),

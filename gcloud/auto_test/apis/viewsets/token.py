@@ -11,19 +11,25 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from rest_framework import serializers
+from django.utils.decorators import method_decorator
+
+from rest_framework.response import Response
+from blueapps.account.decorators import login_exempt
+
+from ..mixin import BaseAutoTestMixin
+from ..serilaziers.common import AutoTestTokenSerialzer
+from ..permission import generate_token
 
 
-class IdsListSerializer(serializers.Serializer):
-    """用于一些批量操作参数序列化使用"""
+@method_decorator(login_exempt, name="dispatch")
+class AutoTestTokenViewSet(BaseAutoTestMixin):
+    """自动测试接口token"""
 
-    ids_list = serializers.ListField(help_text="ID列表", child=serializers.IntegerField())
+    serializer_class = AutoTestTokenSerialzer
 
-
-class BatchDeleteSerialzer(serializers.Serializer):
-    pass
-
-
-class AutoTestTokenSerialzer(serializers.Serializer):
-    key = serializers.CharField(help_text="加密的key")
-    expire = serializers.IntegerField(help_text="超时时间")
+    def create(self, request, *args, **kwargs):
+        """生成测试token"""
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        token = generate_token(**serializer.validated_data)
+        return Response(data=token)
