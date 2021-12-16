@@ -19,7 +19,7 @@
         :title="dialogTitle"
         :auto-close="false"
         :value="isEditDialogShow"
-        data-test-id="appmaker_from_appEditDialog"
+        data-test-id="appmaker_form_appEditDialog"
         @confirm="onConfirm"
         @cancel="onCancel">
         <div class="app-edit-content" v-bkloading="{ isLoading: templateLoading, opacity: 1, zIndex: 100 }">
@@ -185,11 +185,11 @@
                         'btn-permission-disable': !hasConfirmPerm
                     }"
                     v-cursor="{ active: appData.appTemplate && !hasConfirmPerm }"
-                    data-test-id="appmaker_from_confirmEditBtn"
+                    data-test-id="appmaker_form_confirmEditBtn"
                     @click="onConfirm">
                     {{$t('确认')}}
                 </bk-button>
-                <bk-button type="default" data-test-id="appmaker_from_cancelEditBtn" @click="onCancel">{{$t('取消')}}</bk-button>
+                <bk-button type="default" data-test-id="appmaker_form_cancelEditBtn" @click="onCancel">{{$t('取消')}}</bk-button>
             </div>
         </div>
     </bk-dialog>

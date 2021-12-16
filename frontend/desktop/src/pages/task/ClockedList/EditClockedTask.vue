@@ -1,5 +1,5 @@
 <template>
-    <div class="edit-clocked-task">
+    <div class="edit-clocked-task" data-test-id="clockedList_form_editTask">
         <bk-sideslider
             :width="800"
             ext-cls="edit-clocked-sideslider"
@@ -30,6 +30,7 @@
                                 :placeholder="`${$t('请选择启动时间')}`"
                                 :options="pickerOptions"
                                 :clearable="false"
+                                data-test-id="clockedList_form_startTime"
                                 :type="'datetime'">
                             </bk-date-picker>
                         </bk-form-item>
@@ -45,8 +46,20 @@
                     </TaskParamEdit>
                 </section>
                 <div class="btn-footer">
-                    <bk-button theme="primary" :loading="saveLoading" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
-                    <bk-button theme="default" :disabled="saveLoading" @click="onCloseConfig">{{ $t('取消') }}</bk-button>
+                    <bk-button
+                        theme="primary"
+                        :loading="saveLoading"
+                        data-test-id="clockedList_form_saveBtn"
+                        @click="onSaveConfig">
+                        {{ $t('保存') }}
+                    </bk-button>
+                    <bk-button
+                        theme="default"
+                        :disabled="saveLoading"
+                        data-test-id="clockedList_form_cancelBtn"
+                        @click="onCloseConfig">
+                        {{ $t('取消') }}
+                    </bk-button>
                 </div>
             </template>
         </bk-sideslider>
