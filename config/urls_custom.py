@@ -27,6 +27,7 @@ urlpatterns_custom = [
     url(r"^taskflow/", include("gcloud.taskflow3.urls")),
     url(r"^appmaker/", include("gcloud.contrib.appmaker.urls")),
     url(r"^develop/", include("gcloud.contrib.develop.urls")),
+    url(r"^function/", include("gcloud.contrib.function.urls")),
     url(r"^pipeline/", include("pipeline_plugins.base.urls")),
     url(r"^pipeline/", include("pipeline_plugins.components.urls")),
     url(r"^pipeline/", include("pipeline_plugins.variables.urls")),
