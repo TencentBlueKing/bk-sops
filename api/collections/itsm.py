@@ -17,6 +17,8 @@ import env
 from api.client import BKComponentClient
 
 ITSM_API_ENTRY = env.BK_ITSM_API_ENTRY or "{}/{}".format(settings.BK_PAAS_ESB_HOST, "api/c/compapi/v2/itsm")
+NEED_PROCESSORS_ACTION_TYPE = ["DISTRIBUTE", "DELIVER"]
+NEED_ACTION_MESSAGE_ACTION_TYPE = ["DELIVER", "TERMINATE"]
 
 
 def _get_itsm_api(api_name):
@@ -34,4 +36,28 @@ class BKItsmClient(BKComponentClient):
                 "fast_approval": fast_approval,
                 "meta": meta,
             },
+        )
+
+    def operate_node(self, sn, operator, state_id, action_type, fields=None, processors_type=None, processors=None,
+                     action_message=None):
+        data = {
+            "sn": sn,
+            "operator": operator,
+            "state_id": state_id,
+            "action_type": action_type,
+        }
+
+        if action_type == "TRANSITION":
+            data["fields"] = fields
+        elif action_type in NEED_PROCESSORS_ACTION_TYPE:
+            data["processors_type"] = processors_type
+            data["processors"] = processors
+
+        if action_type in NEED_ACTION_MESSAGE_ACTION_TYPE:
+            data["action_message"] = action_message
+
+        return self._request(
+            method="post",
+            url=_get_itsm_api("operate_node"),
+            data=data
         )
