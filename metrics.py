@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 import time
 from functools import wraps
 
-from prometheus_client import Gauge, Counter, Histogram
+from prometheus_client import Gauge, Histogram
 
 
 def setup_histogram(*histograms):
@@ -46,7 +46,7 @@ def setup_counter(*counters):
 
 
 # taskflow metrics
-TASKFLOW_TIMEOUT_NODES_NUMBER = Counter("taskflow_timeout_nodes_number", "amount of timeout nodes when running")
+TASKFLOW_TIMEOUT_NODES_NUMBER = Gauge("taskflow_timeout_nodes_number", "amount of timeout nodes")
 TASKFLOW_RUNNING_NODES_NUMBER = Gauge("taskflow_running_nodes_number", "amount of running nodes")
 TASKFLOW_TIMEOUT_NODES_SCANNING_TIME = Histogram("taskflow_timeout_nodes_scanning_time", "time to scan timeout nodes")
 TASKFLOW_TIMEOUT_NODES_PROCESSING_TIME = Histogram(

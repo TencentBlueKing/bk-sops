@@ -52,6 +52,15 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
                 act["skippable"] = act.get("isSkipped", True)
             if "retryable" not in act:
                 act["retryable"] = act.get("can_retry", True)
+
+            # 检查节点配置冲突
+            if act.get("timeout_config", {}).get("enable") and (
+                act["error_ignorable"] or act.get("auto_retry", {}).get("enable")
+            ):
+                raise exceptions.InvalidOperationException(
+                    "timeout_config can not be enabled with error_ignorable or auto_retry at the same time"
+                )
+
         elif act["type"] == "SubProcess":
             parent_params = {}
             for key, info in list(act["pipeline"]["constants"].items()):

@@ -37,13 +37,13 @@ class NodeTimeoutTaskTestCase(TestCase):
                 [
                     call(
                         kwargs={"node_id": "node1", "version": "version1"},
-                        queue="node_timeout",
-                        routing_key="node_timeout",
+                        queue="timeout_node_execute",
+                        routing_key="timeout_node_execute",
                     ),
                     call(
                         kwargs={"node_id": "node2", "version": "version2"},
-                        queue="node_timeout",
-                        routing_key="node_timeout",
+                        queue="timeout_node_execute",
+                        routing_key="timeout_node_execute",
                     ),
                 ]
             )

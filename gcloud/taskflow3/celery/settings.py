@@ -20,9 +20,9 @@ CELERY_QUEUES = [
         queue_arguments={"x-max-priority": 255},
     ),
     Queue(
-        "node_timeout",
+        "timeout_node_execute",
         Exchange("default", type="direct"),
-        routing_key="node_timeout",
+        routing_key="timeout_node_execute",
         queue_arguments={"x-max-priority": 255},
     ),
     Queue(

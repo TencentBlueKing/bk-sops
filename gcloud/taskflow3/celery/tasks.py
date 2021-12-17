@@ -113,15 +113,17 @@ def auto_retry_node(taskflow_id, root_pipeline_id, node_id, retry_times, engine_
 def dispatch_timeout_nodes(record_id: int):
     record = TimeoutNodesRecord.objects.get(id=record_id)
     nodes = json.loads(record.timeout_nodes)
+    metrics.TASKFLOW_TIMEOUT_NODES_NUMBER.set(len(nodes))
     for node in nodes:
         node_id, version = node.split("_")
         execute_node_timeout_strategy.apply_async(
-            kwargs={"node_id": node_id, "version": version}, queue="node_timeout", routing_key="node_timeout"
+            kwargs={"node_id": node_id, "version": version},
+            queue="timeout_node_execute",
+            routing_key="timeout_node_execute",
         )
 
 
 @task(ignore_result=True)
-@metrics.setup_counter(metrics.TASKFLOW_TIMEOUT_NODES_NUMBER)
 @metrics.setup_histogram(metrics.TASKFLOW_TIMEOUT_NODES_PROCESSING_TIME)
 def execute_node_timeout_strategy(node_id, version):
     timeout_config = (
