@@ -60,6 +60,7 @@
                     :canvas-data="canvasData"
                     :node-memu-open.sync="nodeMenuOpen"
                     :plugin-loading="pagination.isLoading"
+                    :node-variable-info="nodeVariableInfo"
                     @updatePluginList="getThirdPluginList"
                     @hook:mounted="canvasMounted"
                     @onConditionClick="onOpenConditionEdit"
@@ -70,6 +71,7 @@
                     @onFormatPosition="onFormatPosition"
                     @onReplaceLineAndLocation="onReplaceLineAndLocation"
                     @onShowNodeConfig="onShowNodeConfig"
+                    @onTogglePerspective="onTogglePerspective"
                     @getAtomList="getAtomList"
                     @updateCondition="setBranchCondition($event)">
                 </TemplateCanvas>
@@ -139,7 +141,7 @@
                 v-model="isBatchUpdateDialogShow"
                 :close-icon="false"
                 :fullscreen="true"
-                data-test-id="templateEdit_from_batchUpdateDialog"
+                data-test-id="templateEdit_form_batchUpdateDialog"
                 :show-footer="false">
                 <batch-update-dialog
                     v-if="isBatchUpdateDialogShow"
@@ -157,7 +159,7 @@
                 :header-position="'left'"
                 :title="$t('离开页面')"
                 :value="isLeaveDialogShow"
-                data-test-id="templateEdit_from_leaveDialog"
+                data-test-id="templateEdit_form_leaveDialog"
                 @confirm="onLeaveConfirm"
                 @cancel="onLeaveCancel">
                 <div class="leave-tips">{{ $t('系统不会保存您所做的更改，确认离开？') }}</div>
@@ -169,7 +171,7 @@
                 :mask-close="false"
                 :show-footer="false"
                 :value="multipleTabDialogShow"
-                data-test-id="templateEdit_from_commonDialog"
+                data-test-id="templateEdit_form_commonDialog"
                 @cancel="multipleTabDialogShow = false">
                 <div class="multiple-tab-dialog-content">
                     <h3>{{ $t('确定保存修改的内容？') }}</h3>
@@ -186,7 +188,7 @@
                 :mask-close="false"
                 :show-footer="false"
                 :value="isExectueSchemeDialog"
-                data-test-id="templateEdit_from_tempEditDialog"
+                data-test-id="templateEdit_form_tempEditDialog"
                 @cancel="isExectueSchemeDialog = false">
                 <div class="template-edit-dialog-content">
                     <div class="save-tpl-tips">{{ tplEditDialogTip }}</div>
@@ -203,7 +205,7 @@
                 :mask-close="false"
                 :show-footer="false"
                 :value="isShowDialog"
-                data-test-id="templateEdit_from_conditeEditDialog"
+                data-test-id="templateEdit_form_conditeEditDialog"
                 @cancel="isShowDialog = false">
                 <div class="condition-edit-confirm-dialog-content">
                     <div class="leave-tips">{{ $t('保存已修改的信息吗？') }}</div>
@@ -343,7 +345,9 @@
                 isPageOver: false,
                 isThrottled: false, // 滚动节流 是否进入cd
                 envVariableData: {},
-                validateConnectFailList: [] // 节点校验失败列表
+                validateConnectFailList: [], // 节点校验失败列表
+                isPerspective: false, // 流程是否透视
+                nodeVariableInfo: {} // 节点输入输出变量
             }
         },
         computed: {
@@ -355,6 +359,7 @@
                 'lines': state => state.template.line,
                 'constants': state => state.template.constants,
                 'gateways': state => state.template.gateways,
+                'internalVariable': state => state.template.internalVariable,
                 'category': state => state.template.category,
                 'subprocess_info': state => state.template.subprocess_info,
                 'username': state => state.username,
@@ -435,6 +440,12 @@
                 if (!val) {
                     this.atomTypeList.subflow.length = 0
                 }
+            },
+            constants (val) {
+                if (this.isPerspective) {
+                    // 获取节点与变量的依赖关系
+                    this.getNodeVariableCitedData()
+                }
             }
         },
         beforeRouteEnter (to, from, next) {
@@ -489,7 +500,8 @@
                 'saveTemplateData',
                 'loadCustomVarCollection',
                 'getLayoutedPipeline',
-                'loadInternalVariable'
+                'loadInternalVariable',
+                'getVariableCite'
             ]),
             ...mapActions('atomForm/', [
                 'loadSingleAtomList',
@@ -887,6 +899,46 @@
                 })
                 this.atomTypeList.tasknode = grouped
             },
+            // 获取节点与变量的依赖关系
+            async getNodeVariableCitedData () {
+                try {
+                    const constants = { ...this.internalVariable, ...this.constants }
+                    const data = {
+                        activities: this.activities,
+                        gateways: this.gateways,
+                        constants
+                    }
+                    const resp = await this.getVariableCite(data)
+                    if (!resp.result) return
+                    const variableCited = resp.data.defined
+                    const nodeCitedInfo = Object.keys(variableCited).reduce((acc, key) => {
+                        const values = variableCited[key]
+                        if (values.activities.length) {
+                            values.activities.forEach(nodeId => {
+                                const nodeInfo = constants[key]
+                                const type = nodeInfo.source_type !== 'component_outputs' ? 'input' : 'output'
+                                if (!(nodeId in acc)) {
+                                    acc[nodeId] = {
+                                        'input': [],
+                                        'output': []
+                                    }
+                                }
+                                acc[nodeId][type].push(key)
+                            })
+                        }
+                        return acc
+                    }, {})
+                    // 去重
+                    Object.keys(nodeCitedInfo).forEach(key => {
+                        const values = nodeCitedInfo[key]
+                        values.input = [...new Set(values.input)]
+                        values.output = [...new Set(values.output)]
+                    })
+                    this.nodeVariableInfo = nodeCitedInfo
+                } catch (e) {
+                    console.log(e)
+                }
+            },
             /**
             /**
              * 打开节点配置面板
@@ -1104,6 +1156,14 @@
                         this.thirdPartyList[id] = group
                     }
                     this.showConfigPanel(id)
+                }
+            },
+            // 流程透视
+            onTogglePerspective (val) {
+                this.isPerspective = val
+                if (val) {
+                    // 获取节点与变量的依赖关系
+                    this.getNodeVariableCitedData()
                 }
             },
             /**
@@ -1524,7 +1584,9 @@
                     const { next_offset, plugins, return_plugin_count } = resp.data
                     this.pagination.pageOver = limit !== return_plugin_count
                     this.pagination.offset = next_offset
-                    const pluginList = plugins.map(item => item.plugin)
+                    const pluginList = plugins.map(item => {
+                        return Object.assign({}, item.plugin, item.profile)
+                    })
                     if (isScrollLoad) {
                         this.atomTypeList.pluginList.push(...pluginList)
                     } else {

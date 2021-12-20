@@ -30,6 +30,7 @@ from pipeline.models import TemplateRelationship
 
 from gcloud import err_code
 from gcloud.conf import settings
+from gcloud.core.models import Project
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.base_template import YamlExportInterceptor, YamlImportInterceptor
 from gcloud.openapi.schema import AnnotationAutoSchema
@@ -287,8 +288,10 @@ def import_yaml_templates(request: Request):
     project_id = request.data.get("project_id")
     template_kwargs = request.data.get("template_kwargs") or {}
 
+    bk_biz_id = None
     if template_type == "project" and project_id:
         template_kwargs.update({"project_id": int(project_id)})
+        bk_biz_id = Project.objects.filter(id=project_id).only("bk_biz_id").first().bk_biz_id
 
     convertor_handler = YamlSchemaConverterHandler("v1")
     load_yaml_result = convertor_handler.load_yaml_docs(f)
@@ -322,7 +325,7 @@ def import_yaml_templates(request: Request):
 
     importer = TemplateImporter(TEMPLATE_TYPE_MODEL[template_type])
     try:
-        import_result = importer.import_template(request.user.username, import_data)
+        import_result = importer.import_template(request.user.username, import_data, bk_biz_id)
     except Exception as e:
         logger.exception("[import_yaml_templates] error: {}".format(e))
         return JsonResponse({"result": False, "data": None, "message": e})

@@ -49,7 +49,7 @@
                             placements: ['bottom']
                         }"
                         v-cursor="{ active: !hasPermission(['task_operate'], instanceActions) }"
-                        :data-test-id="`taskExcute_from_${operation.action}Btn`"
+                        :data-test-id="`taskExcute_form_${operation.action}Btn`"
                         @click="onOperationClick(operation.action)">
                     </bk-button>
                 </template>
@@ -90,7 +90,10 @@
                         <p class="operate-item" @click="onTaskParamsClick('operateFlow', $t('流水操作记录'))">
                             {{ $t('流水操作记录') }}
                         </p>
-                        <p class="operate-item" @click="onTaskParamsClick('globalVariable', $t('全局变量'))">
+                        <p
+                            v-if="['SUSPENDED', 'FAILED', 'RUNNING'].includes(state)"
+                            class="operate-item"
+                            @click="onTaskParamsClick('globalVariable', $t('全局变量'))">
                             {{ $t('全局变量') }}
                         </p>
                         <p class="operate-item" @click="onTaskParamsClick('templateData', $t('任务数据'))">
