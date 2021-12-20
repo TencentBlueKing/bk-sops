@@ -24,6 +24,58 @@
                     <span>
                         {{ variableData.key ? $t('编辑') : $t('新建') }}{{ $t('全局变量') }}
                     </span>
+                    <!-- 快捷操作按钮 -->
+                    <div class="quick-insert-btn" @click="handleQuickInsertPanel">
+                        {{ $t('模板生成器') }}
+                        <div
+                            class="quick-operate-panel"
+                            v-if="isQuickInsertPanelShow"
+                            v-bkloading="{ isLoading: isPanelLoading }"
+                            @click.stop>
+                            <div class="header-wrap">
+                                <span>{{ $t('选择操作') }}</span>
+                                <bk-select v-model="selectOperate" ext-popover-cls="operate-popover" @change="handleOperateChange">
+                                    <bk-option
+                                        v-for="(operate, index) in operationList"
+                                        :key="index"
+                                        :id="operate.name"
+                                        :name="operate.name">
+                                    </bk-option>
+                                </bk-select>
+                            </div>
+                            <div class="operate-wrap" @click="isShowErrorMsg = false">
+                                <div
+                                    class="template-item"
+                                    v-for="(template, index) in selectOperateInfo.template"
+                                    :key="index">
+                                    <span>{{ template }}</span>
+                                    <bk-select
+                                        v-if="index === 0"
+                                        v-model="selectVarField"
+                                        ext-popover-cls="variable-field-popover"
+                                        @change="handleVarFieldChange">
+                                        <bk-option
+                                            v-for="(field, fieldIndex) in varFiledList"
+                                            :key="fieldIndex"
+                                            :id="field.key"
+                                            :name="field.key + $t('（') + field.description + $t('）')">
+                                        </bk-option>
+                                    </bk-select>
+                                    <bk-input
+                                        v-else-if="index !== selectOperateInfo.template.length - 1"
+                                        :value="selectOperateInfo.params[index - 1].value"
+                                        @change="(val) => selectOperateInfo.params[index - 1].value = val">
+                                    </bk-input>
+                                </div>
+                            </div>
+                            <p v-if="isShowErrorMsg" class="error-msg">{{ $t('请填写完整参数') }}</p>
+                            <div class="btn-wrap">
+                                <bk-button class="mr5" theme="primary" @click="onGenerateMakoTemp">{{ $t('生成并复制代码') }}</bk-button>
+                                <bk-button @click="onResetMakoTemp">{{ $t('重置') }}</bk-button>
+                            </div>
+                            <div class="render-wrap">{{ makoTemplate }}</div>
+                        </div>
+                    </div>
                 </template>
                 <template v-else>
                     <span
@@ -292,6 +344,16 @@
                 outputs: [], // 输出参数
                 subflowForms: {}, // 子流程输入参数
                 isSelectorPanelShow: false, // 是否显示选择插件(子流程)面板
+                isQuickInsertPanelShow: false, // 是否显示快捷插入面板
+                isPanelLoading: false,
+                selectOperate: '',
+                operationList: [],
+                selectOperateInfo: {},
+                selectVarField: '',
+                globalVarFiled: [],
+                varFiledList: [],
+                isShowErrorMsg: false,
+                makoTemplate: '',
                 isVariablePanelShow: false, // 是否显示变量编辑面板
                 variableData: {}, // 当前编辑的变量
                 localConstants: {}, // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
@@ -361,6 +423,15 @@
                     }
                 },
                 immediate: true
+            },
+            isQuickInsertPanelShow (val) {
+                if (val) {
+                    window.addEventListener('mouseup', this.handleClickOutside)
+                } else {
+                    this.selectOperate = ''
+                    this.onResetMakoTemp()
+                    window.removeEventListener('mouseup', this.handleClickOutside)
+                }
             }
         },
         beforeDestroy () {
@@ -435,6 +506,10 @@
                 'loadPluginServiceMeta',
                 'loadPluginServiceDetail',
                 'loadPluginServiceAppDetail'
+            ]),
+            ...mapActions('template/', [
+                'getMakoOperations',
+                'getVariableFieldExplain'
             ]),
             ...mapMutations('template/', [
                 'setSubprocessUpdated',
@@ -1425,6 +1500,122 @@
             },
             onClosePanel (openVariablePanel) {
                 this.$emit('close', openVariablePanel)
+            },
+            // 初始化快捷操作面板
+            async handleQuickInsertPanel () {
+                try {
+                    this.isQuickInsertPanelShow = true
+                    this.isPanelLoading = true
+                    const [resp1, resp2] = await Promise.all([this.getMakoOperations(), this.getVariableFieldExplain()])
+                    // 处理操作
+                    const { operations } = resp1.data
+                    if (operations && operations.length) {
+                        this.operationList = operations
+                        if (!this.selectOperate) {
+                            this.selectOperate = operations[0].name
+                        }
+                    }
+                    // 处理变量
+                    const { variable_field_explain: varFiledExplain } = resp2.data
+                    if (varFiledExplain && varFiledExplain.length) {
+                        const list = varFiledExplain.reduce((acc, cur) => {
+                            const match = this.variableList.find(item => item.source_tag === cur.tag)
+                            if (match) {
+                                cur.fields.forEach(item => {
+                                    const varKey = match.key.replace(/^\$\{([^\}]*)\}$/, ($, $1) => $1)
+                                    item.key = item.key.replace('KEY', varKey)
+                                })
+                                acc.push(...cur.fields)
+                            }
+                            return acc
+                        }, []) || []
+                        this.globalVarFiled = list
+                    }
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.isPanelLoading = false
+                }
+            },
+            // 切换操作方式
+            handleOperateChange (val) {
+                this.selectVarField = ''
+                this.makoTemplate = ''
+                let info = this.operationList.find(item => item.name === this.selectOperate)
+                let operateVarList = []
+                if (info) {
+                    // 处理操作模板
+                    info = tools.deepClone(info)
+                    let tempStr = ''
+                    info.template.forEach((item, index) => {
+                        if (/\{[^\}]*\}$/.test(item) || index === info.template.length - 1) {
+                            tempStr += item
+                        } else {
+                            tempStr += item + i18n.t('，')
+                        }
+                    })
+                    info.params.forEach(item => {
+                        item.value = ''
+                    })
+                    info.template = tempStr.split(/\{[^\}]*\}/g)
+                    // 重置可操作的变量列表
+                    let typeList = new Set()
+                    info.operators.forEach(operator => {
+                        typeList.add(operator.type)
+                    })
+                    typeList = [...typeList]
+                    operateVarList = this.globalVarFiled.filter(item => typeList.includes(item.type))
+                }
+                this.selectOperateInfo = info || {}
+                this.varFiledList = operateVarList || []
+                this.onResetMakoTemp()
+            },
+            // 切换需要操作的变量
+            handleVarFieldChange () {
+                this.selectOperateInfo.params.forEach(item => {
+                    item.value = ''
+                })
+                this.makoTemplate = ''
+            },
+            // 生成mako模板
+            onGenerateMakoTemp () {
+                let { params, mako_template: makoTemplate } = this.selectOperateInfo
+                params = tools.deepClone(params)
+                const value = this.selectVarField.replace(/^\$\{([^\}]*)\}$/, ($, $1) => $1)
+                params.push({
+                    name: 'caller',
+                    value
+                })
+                const isValidateFail = params.some(item => !item.value)
+                if (isValidateFail) {
+                    this.isShowErrorMsg = true
+                    return
+                }
+                params.forEach(item => {
+                    makoTemplate = makoTemplate.replace(`{${item.name}}`, item.value)
+                })
+                this.makoTemplate = makoTemplate
+                this.onCopyKey(makoTemplate)
+            },
+            // 重置mako模板
+            onResetMakoTemp () {
+                this.selectVarField = ''
+                const { params } = this.selectOperateInfo
+                params && params.forEach(item => {
+                    item.value = ''
+                })
+                this.makoTemplate = ''
+            },
+            // 操作快捷框关闭判断
+            handleClickOutside (e) {
+                const panelDom = document.querySelector('.quick-operate-panel')
+                const operateDom = document.querySelector('.operate-popover')
+                const varFieldDom = document.querySelector('.variable-field-popover')
+                if ((!panelDom || !panelDom.contains(e.target))
+                    && (!operateDom || !operateDom.contains(e.target))
+                    && (!varFieldDom || !varFieldDom.contains(e.target))) {
+                    this.isQuickInsertPanelShow = false
+                }
             }
         }
     }
@@ -1444,6 +1635,18 @@
                 color: #3a84ff;
                 cursor: pointer;
             }
+        }
+        .quick-insert-btn {
+            position: absolute;
+            top: 18px;
+            right: 20px;
+            font-weight: normal;
+            line-height: 1;
+            font-size: 14px;
+            padding: 6px 13px;
+            background: #f0f1f5;
+            border-radius: 4px;
+            cursor: pointer;
         }
         .view-variable {
             position: absolute;
@@ -1504,6 +1707,77 @@
     .variable-edit-panel {
         height: calc(100vh - 60px);
         overflow: hidden;
+    }
+}
+.quick-operate-panel {
+    position: absolute !important;
+    top: 41px;
+    right: 0px;
+    width: 506px;
+    padding: 16px;
+    background: #fff;
+    z-index: 20;
+    border: 1px solid #eaedf2;
+    box-shadow: 0px 2px 6px 0px rgba(101,101,101,0.10);
+    cursor: default;
+    .tippy-tooltip {
+        padding: 16px;
+        color: #666666;
+        font-size: 14px;
+    }
+    .header-wrap {
+        display: flex;
+        align-items: center;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #dcdee5;
+        .bk-select {
+            flex: 1;
+            margin-left: 8px;
+        }
+    }
+    .operate-wrap {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        margin: 15px 0 25px;
+        .template-item {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            & > span {
+                flex-shrink: 0;
+            }
+            .bk-select {
+                flex: 1;
+                max-width: 455px;
+                margin-left: 5px;
+            }
+            .bk-form-control {
+                width: 100px;
+                margin: 0 5px;
+            }
+            &:first-child {
+                margin-top: 0;
+                width: 100%;
+            }
+        }
+    }
+    .error-msg {
+        margin-bottom: 8px;
+        font-size: 12px;
+        color: #ff5757;
+    }
+    .render-wrap {
+        width: 474px;
+        height: 192px;
+        padding: 9px 15px;
+        margin-top: 8px;
+        color: #979ba5;
+        background: #f0f1f5;
+        border-radius: 4px;
+        overflow-y: auto;
+        @include scrollbar;
     }
 }
 </style>
