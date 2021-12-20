@@ -174,7 +174,7 @@
         </div>
         <!-- 第三方插件 -->
         <div v-show="curPluginTab === 'third_praty_plugin'" v-bkloading="{ isLoading: pluginLoading }">
-            <ul class="third-praty-list" v-if="atomTypeList.pluginList.length">
+            <ul class="third-praty-list" v-show="atomTypeList.pluginList.length">
                 <li
                     :class="['plugin-item', { 'is-actived': plugin.code === basicInfo.plugin }]"
                     v-for="(plugin, index) in atomTypeList.pluginList"
@@ -192,7 +192,7 @@
                     </div>
                 </li>
             </ul>
-            <bk-exception v-else class="exception-part" type="search-empty" scene="part"> </bk-exception>
+            <bk-exception v-if="!atomTypeList.pluginList.length" class="exception-part" type="search-empty" scene="part"> </bk-exception>
         </div>
     </div>
 </template>
@@ -266,12 +266,6 @@
         created () {
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
-        mounted () {
-            this.scrollDom = document.querySelector('.third-praty-list')
-            if (this.scrollDom) {
-                this.scrollDom.addEventListener('scroll', this.handlePluginScroll)
-            }
-        },
         beforeDestroy () {
             if (this.scrollDom) {
                 this.scrollDom.removeEventListener('scroll', this.handlePluginScroll)
@@ -338,6 +332,14 @@
             },
             setSearchInputShow () {
                 const isThirdParty = this.curPluginTab === 'third_praty_plugin'
+                if (isThirdParty && !this.scrollDom) {
+                    this.$nextTick(() => {
+                        this.scrollDom = document.querySelector('.third-praty-list')
+                        if (this.scrollDom) {
+                            this.scrollDom.addEventListener('scroll', this.handlePluginScroll)
+                        }
+                    })
+                }
                 if (!isThirdParty && this.searchStr) {
                     this.searchStr = ''
                     this.$emit('updatePluginList', undefined, 'search')
@@ -481,6 +483,7 @@
                         id: 'remote_plugin'
                     }
                     this.$emit('select', group, true)
+                    this.$emit('updatePluginList', undefined, 'search')
                 } catch (error) {
                     console.warn(error)
                 }
