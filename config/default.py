@@ -649,3 +649,6 @@ BK_APP_OTEL_INSTRUMENT_DB_API = env.BK_APP_OTEL_INSTRUMENT_DB_API
 
 # 系统访问地址
 BK_SOPS_HOST = env.BK_SOPS_HOST
+
+# REDIS 过期时间节点池 KEY
+EXECUTING_NODE_POOL = "sops_executing_node_pool"
