@@ -107,6 +107,18 @@
                 @click="onToggleHotKeyInfo">
                 <i class="common-icon-hot-key"></i>
             </div>
+            <div
+                :class="['tool-icon', {
+                    'actived': isPerspective
+                }]"
+                v-bk-tooltips="{
+                    content: $t('透视'),
+                    delay: 300,
+                    placements: ['bottom']
+                }"
+                @click="onTogglePerspective">
+                <i class="common-icon-perspective"></i>
+            </div>
         </div>
     </transition>
 </template>
@@ -147,6 +159,10 @@
             isShowHotKey: {
                 type: Boolean,
                 default: false
+            },
+            isPerspective: {
+                type: Boolean,
+                default: false
             }
         },
         computed: {
@@ -178,6 +194,9 @@
             },
             onToggleHotKeyInfo () {
                 this.$emit('onToggleHotKeyInfo')
+            },
+            onTogglePerspective () {
+                this.$emit('onTogglePerspective')
             }
         }
     }

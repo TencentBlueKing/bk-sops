@@ -1250,7 +1250,8 @@ const en = {
     '删除连线': 'Delete Line',
     '自动重试': 'Auto Retry',
     '次': 'Times',
-    '子流程更新时，如果新旧版本存在相同表单，表单数据会默认取原表单数据': 'When the sub-process is updated, if the new and old versions have the same form, the form data will default to the original form data',
+    '子流程有更新，更新时若存在相同表单数据则获取原表单的值。': 'The sub-process has been updated. If the same form data exists during the update, the value of the original form will be obtained.',
+    '更新子流程': 'Update subprocess',
     '触发条件': 'Trigger condition',
     '符合条件时支持隐藏': 'Support hiding when eligible',
     '关系组内的数据不能为空': 'The data in the relationship group cannot be empty',
@@ -1260,6 +1261,7 @@ const en = {
     '自动隐藏': 'Auto hide',
     '自动隐藏在显示状态下触发，当触发条件都满足时，才会在编辑页面隐藏，但是不会对传参产生影响': 'Auto-hide is triggered in the display state. When the trigger conditions are met, it will be hidden on the editing page, but it will not affect the parameter transfer.',
     '启动失败': 'Failed to activate',
+    '节点ID': 'Node ID',
     '表格设置': 'Table Settings',
     '字段显示设置': 'Displaying Fields Setting',
     '（最多{max}项）': '（{max} fiels most）',
@@ -1274,7 +1276,10 @@ const en = {
     '模板生成器': 'Template generator',
     '选择操作': 'Choose Action',
     '请填写完整参数': 'Please fill in the complete parameters',
-    '生成并复制代码': 'Generate and copy the code'
+    '生成并复制代码': 'Generate and copy the code',
+    '点击可快速定位原节点': 'Click to quickly locate the original node',
+    '引用变量': 'Variable Reference',
+    '透视': 'Perspective'
 }
 
 export default en
