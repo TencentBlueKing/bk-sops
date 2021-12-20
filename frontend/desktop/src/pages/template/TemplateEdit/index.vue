@@ -127,6 +127,7 @@
                     :active-tab.sync="activeSettingTab"
                     :snapshoots="snapshoots"
                     :common="common"
+                    @viewClick="viewUpdatedNode"
                     @templateDataChanged="templateDataChanged"
                     @onCitedNodeClick="onCitedNodeClick"
                     @modifyTemplateData="modifyTemplateData"
@@ -1653,7 +1654,9 @@
                 }
                 id.forEach(item => {
                     const nodeDot = document.querySelector(`#${item} .updated-dot`)
-                    nodeDot.classList.add('show-animation')
+                    if (nodeDot) {
+                        nodeDot.classList.add('show-animation')
+                    }
                 })
             },
             // 关闭所有子流程更新的小红点动画效果
