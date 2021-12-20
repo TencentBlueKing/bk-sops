@@ -83,8 +83,6 @@
                     <div class="variable-header clearfix">
                         <span class="col-name t-head">{{ $t('名称') }}</span>
                         <span class="col-key t-head">KEY</span>
-                        <span class="col-attributes t-head">{{ $t('属性') }}</span>
-                        <span class="col-output t-head">{{ $t('输出') }}</span>
                         <span class="col-cited t-head">
                             {{ $t('引用') }}
                             <i
@@ -98,10 +96,35 @@
                                 }">
                             </i>
                         </span>
+                        <span class="col-type t-head">
+                            {{ $t('类型') }}
+                            <thead-popover
+                                :content-list="globalVarTypeList"
+                                type="type"
+                                @handleFilter="handleFilter">
+                            </thead-popover>
+                        </span>
+                        <span class="col-attributes t-head">
+                            {{ $t('属性') }}
+                            <thead-popover
+                                :content-list="varAttrList"
+                                type="attributes"
+                                @handleFilter="handleFilter">
+                            </thead-popover>
+                        </span>
+                        <span class="col-show t-head">
+                            {{ $t('显示') }}
+                            <thead-popover
+                                :content-list="varShowList"
+                                type="show"
+                                @handleFilter="handleFilter">
+                            </thead-popover>
+                        </span>
+                        <span class="col-output t-head">{{ $t('输出') }}</span>
                         <span class="col-operation t-head">{{ $t('操作') }}</span>
-                        <span class="col-delete t-head"></span>
+                        <span class="col-more t-head"></span>
                     </div>
-                    <div class="variable-list">
+                    <div class="variable-list" v-bkloading="{ isLoading: varListLoading, zIndex: 10 }">
                         <draggable
                             class="variable-drag"
                             handle=".col-item-drag"
@@ -114,6 +137,7 @@
                                 :variable-data="constant"
                                 :variable-cited="variableCited"
                                 :common="common"
+                                @viewClick="viewClick"
                                 @onEditVariable="onEditVariable"
                                 @onDeleteVariable="onDeleteVariable"
                                 @onCloneVariable="onCloneVariable"
@@ -137,27 +161,17 @@
                 @closeEditingPanel="closeEditingPanel"
                 @onSaveEditing="onSaveEditing">
             </variable-edit>
-            <bk-dialog
-                width="400"
-                ext-cls="common-dialog delete-variable-dialog"
-                :theme="'primary'"
-                :mask-close="false"
-                :header-position="'left'"
-                :title="$t('删除变量')"
-                :value="deleteConfirmDialogShow"
-                @confirm="onDeleteConfirm"
-                @cancel="onDeleteCancel">
-                <div>{{ $t('确认删除该变量？') }}</div>
-            </bk-dialog>
         </div>
     </bk-sideslider>
 </template>
 <script>
+    import i18n from '@/config/i18n/index.js'
     import draggable from 'vuedraggable'
     import { mapMutations, mapState, mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import VariableEdit from './VariableEdit.vue'
     import VariableItem from './VariableItem.vue'
+    import TheadPopover from './TheadPopover.vue'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
@@ -165,6 +179,7 @@
         components: {
             VariableEdit,
             VariableItem,
+            TheadPopover,
             draggable,
             NoData
         },
@@ -172,11 +187,49 @@
             common: [String, Number]
         },
         data () {
+            const varAttrList = [
+                {
+                    name: i18n.t('全选'),
+                    checked: false,
+                    type: 'all'
+                }, {
+                    name: i18n.t('输入'),
+                    checked: false,
+                    type: 'input'
+                }, {
+                    name: i18n.t('输出'),
+                    checked: false,
+                    type: 'output'
+                }
+            ]
+            const varShowList = [
+                {
+                    name: i18n.t('全选'),
+                    checked: false,
+                    type: 'all'
+                }, {
+                    name: i18n.t('显示'),
+                    checked: false,
+                    type: 'show'
+                }, {
+                    name: i18n.t('隐藏'),
+                    checked: false,
+                    type: 'hide'
+                }
+            ]
             return {
                 isHideSystemVar: false,
                 variableList: [], // 变量列表，包含系统内置变量和用户变量
+                cloneVariableList: [],
+                varListLoading: false,
+                varTypeList: [],
+                globalVarTypeList: [],
+                checkedTypeList: [],
+                varAttrList,
+                checkedAttrList: [],
+                varShowList,
+                checkedShowList: [],
                 variableData: null, // 编辑中的变量
-                deleteConfirmDialogShow: false,
                 deleteVarKey: '',
                 variableCited: {} // 全局变量被任务节点、网关节点以及其他全局变量引用情况
             }
@@ -205,7 +258,8 @@
         },
         methods: {
             ...mapActions('template', [
-                'getVariableCite'
+                'getVariableCite',
+                'loadCustomVarCollection'
             ]),
             ...mapMutations('template/', [
                 'editVariable',
@@ -227,18 +281,99 @@
                     console.log(e)
                 }
             },
-            setVariableList () {
-                const userVars = Object.keys(this.constants)
-                    .map(key => tools.deepClone(this.constants[key]))
-                    .sort((a, b) => a.index - b.index)
-                if (this.isHideSystemVar) {
-                    this.variableList = userVars
-                } else {
-                    const sysVars = Object.keys(this.internalVariable)
-                        .map(key => tools.deepClone(this.internalVariable[key]))
-                        .sort((a, b) => b.index - a.index)
-                    this.variableList = [...sysVars, ...userVars]
+            async setVariableList () {
+                try {
+                    this.varListLoading = true
+                    const userVars = Object.keys(this.constants)
+                        .map(key => tools.deepClone(this.constants[key]))
+                        .sort((a, b) => a.index - b.index)
+                    if (this.isHideSystemVar) {
+                        this.variableList = userVars
+                    } else {
+                        const sysVars = Object.keys(this.internalVariable)
+                            .map(key => tools.deepClone(this.internalVariable[key]))
+                            .sort((a, b) => b.index - a.index)
+                        this.variableList = [...sysVars, ...userVars]
+                    }
+                    // 获取变量类型
+                    await this.getVarTypeList()
+                    // 克隆变量列表来进行过滤
+                    this.cloneVariableList = tools.deepClone(this.variableList)
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.varListLoading = false
                 }
+            },
+            // 获取变量类型
+            async getVarTypeList () {
+                try {
+                    if (!this.varTypeList.length) {
+                        this.varTypeList = await this.loadCustomVarCollection()
+                    }
+                    const varTypeList = tools.deepClone(this.varTypeList)
+                    const listData = this.variableList.reduce((acc, cur) => {
+                        if (cur.key in this.internalVariable) {
+                            this.$set(cur, 'type', i18n.t('组件'))
+                        } else {
+                            const result = varTypeList.find(item => item.code === cur.custom_type && item.tag === cur.source_tag)
+                            if (result) {
+                                this.$set(cur, 'type', result.name)
+                                result.checked = false
+                                acc.push(result)
+                            }
+                        }
+                        return acc
+                    }, [])
+                    if (!this.isHideSystemVar) {
+                        listData.unshift({ checked: false, name: i18n.t('组件'), code: 'component' })
+                    }
+                    listData.unshift({ checked: false, name: i18n.t('全部'), code: 'all' })
+                    this.globalVarTypeList = listData
+                } catch (e) {
+                    console.log(e)
+                }
+            },
+            // 过滤变量列表
+            handleFilter (type, list) {
+                if (type === 'type') {
+                    this.checkedTypeList = list
+                } else if (type === 'attributes') {
+                    this.checkedAttrList = list
+                } else {
+                    this.checkedShowList = list
+                }
+                const checkObj = {
+                    'custom_type': this.checkedTypeList,
+                    'source_type': this.checkedAttrList,
+                    'show_type': this.checkedShowList
+                }
+                const filterList = this.cloneVariableList.filter(item => {
+                    let match = true
+                    for (const [key, values] of Object.entries(checkObj)) {
+                        if (values.length) {
+                            const hasAll = values.includes('all')
+                            if (hasAll) {
+                                match = true
+                            } else {
+                                let str = ''
+                                if (key === 'custom_type') {
+                                    const isComponent = item.key in this.internalVariable
+                                    str = isComponent ? 'component' : item[key]
+                                } else if (key === 'source_type') {
+                                    const isInput = item.source_type !== 'component_outputs'
+                                    str = isInput ? 'input' : 'output'
+                                } else {
+                                    str = item[key]
+                                }
+                                match = values.includes(str)
+                            }
+                        }
+                        if (!match) break
+                    }
+                    return match
+                })
+                this.variableList = filterList || []
             },
             // 点击面包屑返回变量列表
             onBackToList () {
@@ -298,6 +433,10 @@
                     this.editVariable({ key: item.key, variable: tools.deepClone(item) })
                 })
             },
+            viewClick (id) {
+                this.$emit('viewClick', id)
+                this.$emit('onCitedNodeClick', { group: 'activities', id })
+            },
             /**
              * 打开编辑变量面板
              * @param {String} key 变量key值
@@ -322,24 +461,14 @@
                 this.$emit('templateDataChanged')
             },
             /**
-             * 显示删除变量弹窗
+             * 删除变量
              */
             onDeleteVariable (key) {
                 this.deleteVarKey = key
-                this.deleteConfirmDialogShow = true
-            },
-            // 确认删除
-            onDeleteConfirm () {
-                this.deleteConfirmDialogShow = false
                 this.deleteVariable(this.deleteVarKey)
                 this.deleteVarKey = ''
                 this.$emit('templateDataChanged')
                 this.getVariableCitedData() // 删除变量后更新引用数据
-            },
-            // 取消删除
-            onDeleteCancel () {
-                this.deleteConfirmDialogShow = false
-                this.deleteVarKey = ''
             },
             onCloneVariable (data) {
                 const variableData = tools.deepClone(data)
@@ -442,13 +571,16 @@
         font-size: 12px;
         .col-name {
             margin-left: 50px;
-            width: 242px;
+            width: 170px;
         }
         .col-key {
-            width: 180px;
+            width: 150px;
+        }
+        .col-type {
+            width: 80px;
         }
         .col-attributes {
-            width: 64px;
+            width: 50px;
             .icon-wrap {
                 vertical-align: middle;
                 line-height: 1;
@@ -471,11 +603,25 @@
                 }
             }
         }
+        .col-show,
         .col-output {
-            width: 54px;
+            width: 50px;
         }
         .col-cited {
             width: 50px;
+            margin: 0 5px 0 -5px;
+        }
+        .col-operation,
+        .col-more {
+            width: 40px;
+        }
+        /deep/.icon-funnel {
+            font-size: 13px;
+            color: #c4c6cc;
+            cursor: pointer;
+            &.active {
+                color: #63656e;
+            }
         }
     }
     .variable-header {
@@ -516,8 +662,5 @@
             font-size: 12px;
         }
     }
-}
-/deep/ .delete-variable-dialog .bk-dialog-body {
-    padding: 20px;
 }
 </style>

@@ -18,6 +18,7 @@
         <TabGlobalVariables
             v-if="activeTab === 'globalVariableTab'"
             :common="common"
+            @viewClick="$emit('viewClick', $event)"
             @templateDataChanged="$emit('templateDataChanged')"
             @onCitedNodeClick="$emit('onCitedNodeClick', $event)"
             @closeTab="closeTab">

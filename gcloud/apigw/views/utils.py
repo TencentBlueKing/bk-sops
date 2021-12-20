@@ -69,8 +69,9 @@ def format_template_data(template, project=None):
     return data
 
 
-def format_template_list_data(templates, project=None):
+def format_template_list_data(templates, project=None, return_id_list=False):
     data = []
+    ids = []
     for tmpl in templates:
         item = {
             "id": tmpl.id,
@@ -92,9 +93,13 @@ def format_template_list_data(templates, project=None):
                 }
             )
 
-        data.append(item)
+        if return_id_list:
+            ids.append(item["id"])
 
-    return data
+        data.append(item)
+    if not return_id_list:
+        return data
+    return data, ids
 
 
 def format_task_info_data(task, project=None):
@@ -124,12 +129,17 @@ def format_task_info_data(task, project=None):
     return item
 
 
-def format_task_list_data(tasks, project=None):
+def format_task_list_data(tasks, project=None, return_id_list=False):
     data = []
+    ids = []
     for task in tasks:
         item = format_task_info_data(task, project)
         data.append(item)
-    return data
+        if return_id_list:
+            ids.append(item["id"])
+    if not return_id_list:
+        return data
+    return data, ids
 
 
 def format_function_task_list_data(function_tasks, project=None):

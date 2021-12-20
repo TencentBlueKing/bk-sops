@@ -147,7 +147,7 @@
                     </template>
                 </bk-input>
                 <!-- 子流程版本更新 -->
-                <p class="update-tooltip" v-if="!inputLoading && subflowHasUpdate">
+                <p class="update-tooltip" v-if="!inputLoading && subflowHasUpdate && !subflowUpdated">
                     {{ $t('子流程有更新，更新时若存在相同表单数据则获取原表单的值。') }}
                     <bk-button :text="true" title="primary" @click="onUpdateSubflowVersion">{{ $t('更新子流程') }}</bk-button>
                 </p>
@@ -198,7 +198,8 @@
             basicInfo: Object,
             versionList: Array,
             isSubflow: Boolean,
-            inputLoading: Boolean
+            inputLoading: Boolean,
+            subflowUpdated: Boolean
         },
         data () {
             return {

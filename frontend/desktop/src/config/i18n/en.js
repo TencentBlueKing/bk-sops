@@ -1272,7 +1272,14 @@ const en = {
     '默认排序表头设置': 'Default Order Setting',
     '（请在下面可排序字段中选择）': '( Please select )',
     '切换': 'Switch',
-    '注意：如果命中条件，变量会保留填参页面的输入值并隐藏。如果变量为表单必填参数且输入值为空，可能会导致任务执行失败': 'Note: If the condition is hit, the variable will retain the input value on the parameter page and hide it. If the variable is a required parameter of the form and the input value is empty, it may cause the task execution to fail'
+    '注意：如果命中条件，变量会保留填参页面的输入值并隐藏。如果变量为表单必填参数且输入值为空，可能会导致任务执行失败': 'Note: If the condition is hit, the variable will retain the input value on the parameter page and hide it. If the variable is a required parameter of the form and the input value is empty, it may cause the task execution to fail',
+    '模板生成器': 'Template generator',
+    '选择操作': 'Choose Action',
+    '请填写完整参数': 'Please fill in the complete parameters',
+    '生成并复制代码': 'Generate and copy the code',
+    '点击可快速定位原节点': 'Click to quickly locate the original node',
+    '引用变量': 'Variable Reference',
+    '透视': 'Perspective'
 }
 
 export default en
