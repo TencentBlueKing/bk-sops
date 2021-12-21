@@ -67,8 +67,9 @@ def get_template_list(request, project_id):
     flow_allowed_actions = get_flow_allowed_actions_for_user(request.user.username, FLOW_ACTIONS, template_id_list)
     for template_info in template_list:
         template_id = template_info["id"]
+        template_info.setdefault("auth_actions", [])
         for action, allowed in flow_allowed_actions.get(str(template_id), {}).items():
             if allowed:
-                template_info.setdefault("auth_actions", []).append(action)
+                template_info["auth_actions"].append(action)
 
     return {"result": True, "data": template_list, "code": err_code.SUCCESS.code}
