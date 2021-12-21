@@ -823,7 +823,7 @@
                 if (config.type === 'ServiceActivity') {
                     const {
                         component, name, stage_name, labels, error_ignorable, can_retry,
-                        retryable, isSkipped, skippable, optional, auto_retry
+                        retryable, isSkipped, skippable, optional, auto_retry, timeout_config
                     } = config
                     let basicInfoName = i18n.t('请选择插件')
                     let code = ''
@@ -871,7 +871,8 @@
                         skippable: isSkipped === undefined ? skippable : isSkipped,
                         retryable: can_retry === undefined ? retryable : can_retry,
                         selectable: optional,
-                        autoRetry: auto_retry || { enable: false, times: 1 }
+                        autoRetry: auto_retry || { enable: false, times: 1 },
+                        timeoutConfig: timeout_config || { enable: false, seconds: 0, action: 'forced_fail' }
                     }
                 } else {
                     const { template_id, name, stage_name, labels, optional, always_use_latest } = config
@@ -1300,7 +1301,7 @@
                         always_use_latest: alwaysUseLatest
                     })
                 } else {
-                    const { ignorable, nodeName, stageName, nodeLabel, plugin, retryable, skippable, selectable, version, autoRetry } = this.basicInfo
+                    const { ignorable, nodeName, stageName, nodeLabel, plugin, retryable, skippable, selectable, version, autoRetry, timeoutConfig } = this.basicInfo
                     const data = {} // 标准插件节点在 activity 的 component.data 值
                     Object.keys(this.inputsParamValue).forEach(key => {
                         const formVal = this.inputsParamValue[key]
@@ -1339,7 +1340,8 @@
                         labels: nodeLabel,
                         error_ignorable: ignorable,
                         optional: selectable,
-                        auto_retry: autoRetry
+                        auto_retry: autoRetry,
+                        timeout_config: timeoutConfig
                     })
                     delete config.can_retry
                     delete config.isSkipped
@@ -1460,8 +1462,8 @@
                         ['stageName', 'nodeName'].forEach(item => {
                             this.basicInfo[item] = this.basicInfo[item].trim()
                         })
-                        const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional, desc, nodeName, autoRetry } = this.basicInfo
-                        const nodeData = { status: '', skippable, retryable, optional, auto_retry: autoRetry }
+                        const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional, desc, nodeName, autoRetry, timeoutConfig } = this.basicInfo
+                        const nodeData = { status: '', skippable, retryable, optional, auto_retry: autoRetry, timeout_config: timeoutConfig }
                         if (!this.isSubflow) {
                             const phase = this.getAtomPhase()
                             nodeData.phase = phase
