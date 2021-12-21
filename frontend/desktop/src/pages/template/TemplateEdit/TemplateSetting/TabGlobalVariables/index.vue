@@ -299,6 +299,8 @@
                     await this.getVarTypeList()
                     // 克隆变量列表来进行过滤
                     this.cloneVariableList = tools.deepClone(this.variableList)
+                    // 过滤
+                    this.handleFilter()
                 } catch (error) {
                     console.warn(error)
                 } finally {
@@ -314,22 +316,27 @@
                     const varTypeList = tools.deepClone(this.varTypeList)
                     const listData = this.variableList.reduce((acc, cur) => {
                         if (cur.key in this.internalVariable) {
-                            this.$set(cur, 'type', i18n.t('组件'))
+                            const varInfo = this.internalVariable[cur.key]
+                            this.$set(cur, 'type', varInfo.source_type === 'system' ? i18n.t('系统变量') : i18n.t('业务变量'))
                         } else {
                             const result = varTypeList.find(item => item.code === cur.custom_type && item.tag === cur.source_tag)
                             if (result) {
                                 this.$set(cur, 'type', result.name)
-                                result.checked = false
+                                result.checked = this.checkedTypeList.includes(cur.custom_type)
                                 acc.push(result)
                             }
                         }
                         return acc
                     }, [])
                     if (!this.isHideSystemVar) {
-                        listData.unshift({ checked: false, name: i18n.t('组件'), code: 'component' })
+                        const internalVar = [
+                            { checked: this.checkedTypeList.includes('system'), name: i18n.t('系统变量'), code: 'system' },
+                            { checked: this.checkedTypeList.includes('project'), name: i18n.t('业务变量'), code: 'project' }
+                        ]
+                        listData.unshift(...internalVar)
                     }
-                    listData.unshift({ checked: false, name: i18n.t('全部'), code: 'all' })
-                    this.globalVarTypeList = listData
+                    listData.unshift({ checked: this.checkedTypeList.includes('all'), name: i18n.t('全部'), code: 'all' })
+                    this.globalVarTypeList = [...new Set(listData)]
                 } catch (e) {
                     console.log(e)
                 }
@@ -340,7 +347,7 @@
                     this.checkedTypeList = list
                 } else if (type === 'attributes') {
                     this.checkedAttrList = list
-                } else {
+                } else if (type === 'show') {
                     this.checkedShowList = list
                 }
                 const checkObj = {
@@ -359,7 +366,12 @@
                                 let str = ''
                                 if (key === 'custom_type') {
                                     const isComponent = item.key in this.internalVariable
-                                    str = isComponent ? 'component' : item[key]
+                                    if (isComponent) {
+                                        const varInfo = this.internalVariable[item.key]
+                                        str = varInfo.source_type === 'system' ? 'system' : 'project'
+                                    } else {
+                                        str = item[key]
+                                    }
                                 } else if (key === 'source_type') {
                                     const isInput = item.source_type !== 'component_outputs'
                                     str = isInput ? 'input' : 'output'

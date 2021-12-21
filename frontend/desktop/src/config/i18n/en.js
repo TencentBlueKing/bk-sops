@@ -1275,7 +1275,11 @@ const en = {
     '注意：如果命中条件，变量会保留填参页面的输入值并隐藏。如果变量为表单必填参数且输入值为空，可能会导致任务执行失败': 'Note: If the condition is hit, the variable will retain the input value on the parameter page and hide it. If the variable is a required parameter of the form and the input value is empty, it may cause the task execution to fail',
     '点击可快速定位原节点': 'Click to quickly locate the original node',
     '引用变量': 'Variable Reference',
-    '透视': 'Perspective'
+    '透视': 'Perspective',
+    '由': 'By',
+    '提供': 'supply',
+    '系统变量': 'SYS-VARS',
+    '业务变量': 'BUSINESS-VARS'
 }
 
 export default en
