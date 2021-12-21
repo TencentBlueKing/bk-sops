@@ -146,6 +146,7 @@
                                                 :is-subflow="isSubflow"
                                                 :input-loading="inputLoading"
                                                 :common="common"
+                                                :subflow-updated="subflowUpdated"
                                                 @openSelectorPanel="isSelectorPanelShow = true"
                                                 @versionChange="versionChange"
                                                 @viewSubflow="onViewSubflow"

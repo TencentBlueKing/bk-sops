@@ -21,7 +21,11 @@
             <img class="plugin-logo" :src="node.logo_url" alt="">
             <div>
                 <p class="plugin-title" v-bk-overflow-tips>{{ node.nodeName }}</p>
-                <p class="plugin-code">{{ node.name }}</p>
+                <p
+                    class="plugin-desc"
+                    v-bk-overflow-tips="{ placement: 'bottom-end', extCls: 'plugin-code-tips', width: 300 }">
+                    {{ node.desc || '--' }}
+                </p>
             </div>
         </div>
         <div v-else class="name-wrapper">{{node.name}}</div>
@@ -70,11 +74,23 @@
             white-space: nowrap;
             text-overflow: ellipsis;
         }
-        .plugin-code {
+        .plugin-desc {
             font-size: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
         }
         &:hover {
             background: hsl(218, 100%, 94%);
+        }
+    }
+</style>
+<style lang="scss">
+    .plugin-code-tips {
+        .tippy-arrow {
+            left: 270px !important;
         }
     }
 </style>

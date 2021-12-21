@@ -150,6 +150,7 @@
                                 <i class="bk-icon icon-minus-circle-shape" @click="deleteHideCondition(index)"></i>
                             </div>
                         </div>
+                        <p class="warning-msg">{{ $t('注意：如果命中条件，变量会保留填参页面的输入值并隐藏。如果变量为表单必填参数且输入值为空，可能会导致任务执行失败') }}</p>
                         <p class="common-error-tip error-msg" v-if="isShowErrorMsg">{{ errorMsgText }}</p>
                     </div>
                 </div>
@@ -247,6 +248,9 @@
         data () {
             const theEditingData = tools.deepClone(this.variableData)
             const { source_type, custom_type, hide_condition: hideCondition } = theEditingData
+            if (!('is_condition_hide' in theEditingData)) { // 添加自动隐藏默认值
+                theEditingData.is_condition_hide = false
+            }
             const isHookedVar = ['component_inputs', 'component_outputs'].includes(source_type)
             const currentValType = isHookedVar ? 'component' : custom_type
             const hideConditionList = hideCondition && hideCondition.length ? hideCondition : [{ constant_key: '', operator: '', value: '' }]
@@ -963,6 +967,11 @@
                 margin-top: 0;
             }
         }
+    }
+    .warning-msg {
+        font-size: 12px;
+        color: #ff9c01;
+        margin-top: 10px;
     }
     .error-msg {
         margin-top: 10px;
