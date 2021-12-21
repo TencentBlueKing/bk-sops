@@ -89,12 +89,13 @@
                     @onNodeMousedown="onNodeMousedown"
                     @onNodeCheckClick="onNodeCheckClick"
                     @onNodeRemove="onNodeRemove"
-                    @onRetryClick="onRetryClick"
-                    @onForceFail="onForceFail"
-                    @onSkipClick="onSkipClick"
-                    @onModifyTimeClick="onModifyTimeClick"
-                    @onGatewaySelectionClick="onGatewaySelectionClick"
-                    @onTaskNodeResumeClick="onTaskNodeResumeClick"
+                    @onRetryClick="$emit('onRetryClick', $event)"
+                    @onForceFail="$emit('onForceFail', $event)"
+                    @onSkipClick="$emit('onSkipClick', $event)"
+                    @onModifyTimeClick="$emit('onModifyTimeClick', $event)"
+                    @onGatewaySelectionClick="$emit('onGatewaySelectionClick', $event)"
+                    @onTaskNodeResumeClick="$emit('onTaskNodeResumeClick', $event)"
+                    @onApprovalClick="$emit('onApprovalClick', $event)"
                     @addNodesToDragSelection="addNodeToSelectedList"
                     @onSubflowPauseResumeClick="onSubflowPauseResumeClick"
                     @getAtomList="getAtomList">
@@ -1092,24 +1093,6 @@
                         theme: 'warning'
                     })
                 }
-            },
-            onRetryClick (id) {
-                this.$emit('onRetryClick', id)
-            },
-            onSkipClick (id) {
-                this.$emit('onSkipClick', id)
-            },
-            onForceFail (id) {
-                this.$emit('onForceFail', id)
-            },
-            onModifyTimeClick (id) {
-                this.$emit('onModifyTimeClick', id)
-            },
-            onGatewaySelectionClick (id) {
-                this.$emit('onGatewaySelectionClick', id)
-            },
-            onTaskNodeResumeClick (id) {
-                this.$emit('onTaskNodeResumeClick', id)
             },
             onSubflowPauseResumeClick (id, value) {
                 this.$emit('onSubflowPauseResumeClick', id, value)
