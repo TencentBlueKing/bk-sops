@@ -483,6 +483,10 @@ const task = {
         subflowNodeRetry ({ commit }, data) {
             const { project_id } = store.state.project
             return axios.post(`taskflow/api/nodes/action/retry_subprocess/${project_id}/`, data).then(response => response.data)
+        },
+        // itsm 节点审批
+        itsmTransition ({ commit }, params) {
+            return axios.post('pipeline/itsm/node_transition/', params).then(response => response.data)
         }
     }
 }
