@@ -33,9 +33,10 @@ class TestTaskflowinstancePostSaveStatistics(TestCase):
     @mock.patch(TASKINSTANCE_GET, MagicMock(return_value=taskflow))
     @mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=tasktmpl))
     @mock.patch(CALCULATE_ELAPSED_TIME, MagicMock(return_value=0))
-    @mock.patch(TASKFLOW_STATISTICS_UPDATE_OR_CREATE, MagicMock(return_value=MockQuerySet()))
+    @mock.patch(TASKFLOW_STATISTICS_CREATE, MagicMock(return_value=MockQuerySet()))
     def test_task_success_case(self):
         kwargs = {
+            "task_instance_id": TEST_TASK_INSTANCE_ID,
             "instance_id": pipeline.id,
             "project_id": taskflow.project.id,
             "category": tasktmpl.category,
@@ -51,7 +52,5 @@ class TestTaskflowinstancePostSaveStatistics(TestCase):
         result = taskflowinstance_post_save_statistics_task(TEST_TASK_INSTANCE_ID, False)
         TaskFlowInstance.objects.get.assert_called_once_with(id=taskflow.id)
         TaskTemplate.objects.get.assert_called_once_with(id=tasktmpl.id)
-        TaskflowStatistics.objects.update_or_create.assert_called_once_with(
-            task_instance_id=taskflow.id, defaults=kwargs
-        )
+        TaskflowStatistics.objects.create.assert_called_once_with(**kwargs)
         self.assertTrue(result)
