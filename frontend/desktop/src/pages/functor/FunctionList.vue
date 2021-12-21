@@ -132,6 +132,13 @@
                                         }">
                                         {{ $t('查看') }}
                                     </router-link>
+                                    <span
+                                        v-if="props.row.status === 'claimed'"
+                                        class="functor-operation-btn"
+                                        style="margin-left: 6px;"
+                                        @click="onTransferClick(props.row.id)">
+                                        {{ $t('转交') }}
+                                    </span>
                                 </template>
                             </template>
                         </bk-table-column>
@@ -230,6 +237,27 @@
                 <bk-button theme="default" data-test-id="function_form_cancelBtn" @click="onCancelNewTask">{{$t('取消')}}</bk-button>
             </div>
         </bk-dialog>
+        <bk-dialog
+            width="600"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :auto-close="false"
+            :header-position="'left'"
+            :title="$t('转交')"
+            :loading="transferPending"
+            :value="isShowTransferDialog"
+            @confirm="onTransferConfirm"
+            @cancel="onTransferCancel">
+            <bk-form ref="transferForm" style="padding: 30px 30px 30px 10px" :model="{ claimant }" :rules="transferRules">
+                <bk-form-item label="任务">
+                    <div>{{ getTransferTaskName() }}</div>
+                </bk-form-item>
+                <bk-form-item label="转交人" property="claimant">
+                    <member-select v-model="claimant" style="width: 100%;" :multiple="false"></member-select>
+                </bk-form-item>
+            </bk-form>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -238,6 +266,7 @@
     import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
+    import MemberSelect from '@/components/common/Individualization/MemberSelect.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
@@ -334,7 +363,8 @@
         components: {
             Skeleton,
             AdvanceSearchForm,
-            NoData
+            NoData,
+            MemberSelect
         },
         mixins: [permission, task],
         props: ['project_id', 'app_id'],
@@ -366,7 +396,11 @@
                 searchForm,
                 isSearchFormOpen,
                 isShowNewTaskDialog: false,
+                isShowTransferDialog: false,
                 functorBasicInfoLoading: true,
+                transferId: '',
+                claimant: [],
+                transferPending: false,
                 functorList: [],
                 executeStatus: [], // 任务执行状态
                 business: {
@@ -421,7 +455,14 @@
                 },
                 permissionLoading: false, // 查询公共流程在项目下的创建任务权限 loading
                 tplAction: [],
-                hasCreateTaskPerm: true
+                hasCreateTaskPerm: true,
+                transferRules: {
+                    claimant: [{
+                        required: true,
+                        message: i18n.t('必填项'),
+                        trigger: 'blur'
+                    }]
+                }
             }
         },
         computed: {
@@ -449,7 +490,8 @@
                 'queryUserPermission'
             ]),
             ...mapActions('functionTask/', [
-                'loadFunctionTaskList'
+                'loadFunctionTaskList',
+                'transferFunctionTask'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList'
@@ -844,6 +886,42 @@
                 clearTimeout(this.autoRedrawTimer)
                 this.autoRedrawTimer = null
                 this.isAutoRedraw = false
+            },
+            getTransferTaskName () {
+                const funcItem = this.functorList.find(item => item.id === this.transferId)
+                return funcItem ? funcItem.task.name : ''
+            },
+            onTransferClick (id) {
+                this.isShowTransferDialog = true
+                this.transferId = id
+            },
+            onTransferConfirm () {
+                if (this.transferPending) {
+                    return
+                }
+                this.$refs.transferForm.validate().then(async (result) => {
+                    try {
+                        this.transferPending = true
+                        const params = {
+                            claimant: this.claimant[0],
+                            id: this.transferId
+                        }
+                        await this.transferFunctionTask(params)
+                        this.isShowTransferDialog = false
+                        this.claimant = []
+                        this.transferId = ''
+                        this.loadFunctionTask()
+                    } catch (e) {
+                        console.error(e)
+                    } finally {
+                        this.transferPending = false
+                    }
+                })
+            },
+            onTransferCancel () {
+                this.isShowTransferDialog = false
+                this.claimant = []
+                this.transferId = ''
             }
         }
     }
@@ -874,6 +952,8 @@
     }
     .functor-operation-btn {
         color: #3a84ff;
+        font-size: 12px;
+        cursor: pointer;
     }
     .empty-data {
         padding: 120px 0;
