@@ -28,7 +28,7 @@ OPERATIONS = [
         operators=[MakoOperator(name="caller", type=Type.STRING)],
         params=[MakoParam(name="old", type=Type.STRING), MakoParam(name="new", type=Type.STRING)],
         template=["将 {caller}", "中的 {old} 字符串", "替换为 {new} 字符串"],
-        mako_template='${caller}.replace("{old}", "{new}")}',
+        mako_template='${{caller}.replace("{old}", "{new}")}',
     ),
     MakoTemplateOperation(
         name="将首字母变成大写",
