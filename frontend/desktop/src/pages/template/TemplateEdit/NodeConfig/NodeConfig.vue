@@ -1171,7 +1171,6 @@
             },
             // 是否渲染豁免切换
             onRenderConfigChange (data) {
-                console.log(data)
                 const [key, val] = data
                 this.inputsRenderConfig[key] = val
             },

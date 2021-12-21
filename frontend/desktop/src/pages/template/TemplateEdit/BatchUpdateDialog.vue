@@ -409,7 +409,6 @@
             },
             // 是否渲染豁免切换
             onRenderConfigChange (id, data) {
-                console.log(data)
                 const [key, val] = data
                 const subflow = this.subflowForms.find(item => item.id === id)
                 subflow.latestForm.inputsRenderConfig[key] = val
