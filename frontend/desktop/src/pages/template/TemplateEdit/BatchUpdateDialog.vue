@@ -40,6 +40,7 @@
                                     :version="subflow.currentForm.version"
                                     :subflow-forms="subflow.currentForm.form"
                                     :value="subflow.currentForm.inputsValue"
+                                    :render-config="subflow.currentForm.inputsRenderConfig"
                                     :constants="$store.state.template.constants">
                                 </input-params>
                                 <no-data v-else></no-data>
@@ -77,8 +78,10 @@
                                     :version="subflow.latestForm.version"
                                     :subflow-forms="subflow.latestForm.form"
                                     :value="subflow.latestForm.inputsValue"
+                                    :render-config="subflow.latestForm.inputsRenderConfig"
                                     :constants="localConstants"
                                     @hookChange="onHookChange"
+                                    @renderConfigChange="onRenderConfigChange(subflow.id, $event)"
                                     @update="updateInputsValue(subflow.id, $event)">
                                 </input-params>
                                 <no-data v-else></no-data>
@@ -301,12 +304,15 @@
                             formValue = oldVariable.value
                         }
                         this.subflowForms[index].latestForm.inputsValue[item.key] = tools.deepClone(formValue)
+                        this.$set(this.subflowForms[index].latestForm.inputsRenderConfig, item.key, true)
                     })
                     subflow.currentFormArr.forEach(item => {
                         const formKey = item.custom_type || item.source_tag.split('.')[0]
                         const formConfig = this.getSubflowInputFormItemConfig(item, variablesConfig[`${formKey}_${item.version}`])
                         this.subflowForms[index].currentForm.inputsConfig.push(formConfig)
                         this.subflowForms[index].currentForm.inputsValue[item.key] = tools.deepClone(constants[item.key].value)
+                        const renderVal = 'need_render' in constants[item.key] ? constants[item.key].need_render : true
+                        this.$set(this.subflowForms[index].currentForm.inputsRenderConfig, item.key, renderVal)
                     })
                 })
             },
@@ -369,6 +375,7 @@
                     outputs: outputParams,
                     inputsConfig: [],
                     inputsValue: {},
+                    inputsRenderConfig: {},
                     version
                 }
             },
@@ -399,6 +406,13 @@
                 this.subflowForms.forEach(item => {
                     item.checked = val
                 })
+            },
+            // 是否渲染豁免切换
+            onRenderConfigChange (id, data) {
+                console.log(data)
+                const [key, val] = data
+                const subflow = this.subflowForms.find(item => item.id === id)
+                subflow.latestForm.inputsRenderConfig[key] = val
             },
             // 输入、输出参数勾选状态变化
             onHookChange (type, data) {
@@ -583,6 +597,7 @@
                         Object.keys(activity.constants).forEach(key => {
                             const varItem = activity.constants[key]
                             varItem.value = item.latestForm.inputsValue[key]
+                            varItem.need_render = item.latestForm.inputsRenderConfig[key]
                         })
                         this.setActivities({ type: 'edit', location: activity })
                         this.setSubprocessUpdated({
@@ -672,7 +687,7 @@
         }
     }
     .subflow-form-wrap {
-        height: calc(100% - 110px);
+        height: calc(100% - 162px);
         overflow: auto;
     }
     .subflow-item {
