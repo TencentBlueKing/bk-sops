@@ -133,10 +133,11 @@
                                         {{ $t('查看') }}
                                     </router-link>
                                     <span
-                                        v-if="props.row.status === 'claimed'"
-                                        class="functor-operation-btn"
+                                        v-if="props.row.status === 'claimed' && props.row.claimant === username"
+                                        v-cursor="{ active: !hasPermission(['task_view'], props.row.auth_actions) }"
+                                        :class="['functor-operation-btn', { 'text-permission-disable': !hasPermission(['task_view'], props.row.auth_actions) }]"
                                         style="margin-left: 6px;"
-                                        @click="onTransferClick(props.row.id)">
+                                        @click="onTransferClick(props.row)">
                                         {{ $t('转交') }}
                                     </span>
                                 </template>
@@ -467,6 +468,7 @@
         },
         computed: {
             ...mapState({
+                'username': state => state.username,
                 'categorys': state => state.categorys,
                 'permissionMeta': state => state.permissionMeta
             }),
@@ -891,9 +893,23 @@
                 const funcItem = this.functorList.find(item => item.id === this.transferId)
                 return funcItem ? funcItem.task.name : ''
             },
-            onTransferClick (id) {
+            onTransferClick (data) {
+                if (!this.hasPermission(['task_view'], data.auth_actions)) {
+                    const permissionData = {
+                        task: [{
+                            id: data.task.id,
+                            name: data.task.name
+                        }],
+                        project: [{
+                            id: data.task.project.id,
+                            name: data.task.project.name
+                        }]
+                    }
+                    this.applyForPermission(['task_view'], data.auth_actions, permissionData)
+                    return
+                }
                 this.isShowTransferDialog = true
-                this.transferId = id
+                this.transferId = data.id
             },
             onTransferConfirm () {
                 if (this.transferPending) {

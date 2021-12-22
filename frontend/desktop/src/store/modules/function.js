@@ -21,7 +21,7 @@ const functionTask = {
             }).then(response => response.data)
         },
         transferFunctionTask ({ commit }, params) {
-            return axios.post('api/function_task_claimant_transfer/', params).then(response => response.data)
+            return axios.post('function/api/function_task_claimant_transfer/', params).then(response => response.data)
         }
     }
 }
