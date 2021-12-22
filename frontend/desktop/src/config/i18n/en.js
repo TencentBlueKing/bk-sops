@@ -1272,7 +1272,9 @@ const en = {
     '切换': 'Switch',
     '注意：如果命中条件，变量会保留填参页面的输入值并隐藏。如果变量为表单必填参数且输入值为空，可能会导致任务执行失败': 'Note: If the condition is hit, the variable will retain the input value on the parameter page and hide it. If the variable is a required parameter of the form and the input value is empty, it may cause the task execution to fail',
     '删除失败！': 'Failed to delete!',
-    '删除成功！': 'Successfully deleted!'
+    '删除成功！': 'Successfully deleted!',
+    '子流程有更新，更新时若存在相同表单数据则获取原表单的值。': 'The sub-process has been updated. If the same form data exists during the update, the value of the original form will be obtained.',
+    '更新子流程': 'Update subprocess'
 }
 
 export default en
