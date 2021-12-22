@@ -204,13 +204,14 @@
                 }
                 if (this.isSubflow) {
                     const constant = this.subflowForms[this.hookingVarForm]
-                    const { desc, custom_type, source_tag, validation, is_meta, meta, version } = constant
+                    const { desc, custom_type, source_tag, validation, is_meta, meta, version, plugin_code } = constant
                     Object.assign(config, {
                         desc,
                         custom_type,
                         source_tag,
                         validation,
-                        version
+                        version,
+                        plugin_code
                     })
                     if (is_meta) {
                         config.is_meta = true

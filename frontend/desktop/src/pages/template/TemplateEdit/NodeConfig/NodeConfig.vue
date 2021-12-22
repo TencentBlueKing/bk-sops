@@ -685,6 +685,7 @@
                     this.outputs = Object.keys(data.outputs).map(item => {
                         const output = data.outputs[item]
                         return {
+                            plugin_code: output.plugin_code,
                             name: output.name,
                             key: output.key,
                             version: output.hasOwnProperty('version') ? output.version : 'legacy'

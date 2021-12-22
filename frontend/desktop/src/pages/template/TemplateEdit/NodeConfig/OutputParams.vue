@@ -202,13 +202,14 @@
                     if (result) {
                         const { name, key } = this.formData
                         this.isShow = false
-                        const version = this.isSubflow ? this.list[this.selectIndex].version : this.version
+                        const selectInfo = this.list[this.selectIndex]
+                        const version = this.isSubflow ? selectInfo.version : this.version
                         let setKey = ''
                         if ((/^\$\{((?!\{).)*\}$/).test(key)) {
-                            this.list[this.selectIndex].key = key
+                            selectInfo.key = key
                             setKey = key
                         } else {
-                            this.list[this.selectIndex].key = `\$\{${key}\}`
+                            selectInfo.key = `\$\{${key}\}`
                             setKey = `\$\{${key}\}`
                         }
                         const config = {
@@ -218,7 +219,7 @@
                                 [this.nodeId]: [this.params[this.selectIndex].key]
                             },
                             version,
-                            plugin_code: this.thirdPartyCode || ''
+                            plugin_code: this.isSubflow ? selectInfo.plugin_code : (this.thirdPartyCode || '')
                         }
                         this.createVariable(config)
                     }
