@@ -15,11 +15,7 @@
                     v-for="(item, index) in contentList"
                     :key="index"
                     class="content-item">
-                    <bk-checkbox
-                        :value="item.checked"
-                        :disabled="item.code === 'all' ? false : isSelectedAll"
-                        @change="onCheckChange($event, item)">
-                    </bk-checkbox>
+                    <bk-checkbox :value="item.checked" @change="onCheckChange($event, item)"></bk-checkbox>
                     <span class="label-name" v-bk-overflow-tips>{{ item.name }}</span>
                 </li>
             </ul>
@@ -45,8 +41,7 @@
         },
         data () {
             return {
-                isShow: false,
-                isSelectedAll: false
+                isShow: false
             }
         },
         computed: {
@@ -62,13 +57,6 @@
                 this.isShow = false
             },
             onCheckChange (e, info) {
-                this.isSelectedAll = false
-                if (info.code === 'all' && e) {
-                    this.contentList.forEach(item => {
-                        item.checked = false
-                    })
-                    this.isSelectedAll = true
-                }
                 info.checked = e
             },
             handleConfirm () {
@@ -87,7 +75,6 @@
                 this.contentList.forEach(item => {
                     item.checked = false
                 })
-                this.isSelectedAll = false
                 this.$emit('handleFilter', this.type, [])
                 this.$refs['popover'].hideHandler()
             }

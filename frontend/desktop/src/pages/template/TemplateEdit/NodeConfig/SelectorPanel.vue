@@ -188,7 +188,7 @@
                             v-bk-overflow-tips="{ placement: 'bottom-end', extCls: 'plugin-desc-tips' }">
                             {{ plugin.introduction || '--' }}
                         </p>
-                        <p class="plugin-contact">{{ $t('由') + ' ' + plugin.contact + ' ' + $t('提供') }}</p>
+                        <p class="plugin-contact">{{ plugin.contact }}</p>
                     </div>
                 </li>
             </ul>
