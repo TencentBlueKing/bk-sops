@@ -1524,10 +1524,14 @@
                                     const listData = []
                                     cur.fields.forEach(field => {
                                         const varKey = item.key.replace(/^\$\{([^\}]*)\}$/, ($, $1) => $1)
+                                        let description = field.description
+                                        if (item.key in this.internalVariable && item.source_type !== 'system') {
+                                            description = item.desc
+                                        }
                                         listData.push({
                                             key: field.key.replace('KEY', varKey),
                                             type: field.type,
-                                            description: field.description
+                                            description
                                         })
                                     })
                                     acc.push(...listData)
