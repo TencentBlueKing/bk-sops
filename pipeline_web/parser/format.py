@@ -97,6 +97,8 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
                             }
                     else:
                         parent_params[key] = {"type": "splice", "value": info["value"]}
+                    # 注入处理need_render
+                    parent_params[key]["need_render"] = info.get("need_render", True)
             act["params"] = parent_params
             act["pipeline"] = format_web_data_to_pipeline(act["pipeline"], is_subprocess=True)
         else:
