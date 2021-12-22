@@ -191,30 +191,30 @@
                 {
                     name: i18n.t('全选'),
                     checked: false,
-                    type: 'all'
+                    code: 'all'
                 }, {
                     name: i18n.t('输入'),
                     checked: false,
-                    type: 'input'
+                    code: 'input'
                 }, {
                     name: i18n.t('输出'),
                     checked: false,
-                    type: 'output'
+                    code: 'output'
                 }
             ]
             const varShowList = [
                 {
                     name: i18n.t('全选'),
                     checked: false,
-                    type: 'all'
+                    code: 'all'
                 }, {
                     name: i18n.t('显示'),
                     checked: false,
-                    type: 'show'
+                    code: 'show'
                 }, {
                     name: i18n.t('隐藏'),
                     checked: false,
-                    type: 'hide'
+                    code: 'hide'
                 }
             ]
             return {
@@ -291,8 +291,11 @@
                         this.variableList = userVars
                     } else {
                         const sysVars = Object.keys(this.internalVariable)
-                            .map(key => tools.deepClone(this.internalVariable[key]))
-                            .sort((a, b) => b.index - a.index)
+                            .map(key => {
+                                const values = tools.deepClone(this.internalVariable[key])
+                                values.isSysVar = true
+                                return values
+                            }).sort((a, b) => b.index - a.index)
                         this.variableList = [...sysVars, ...userVars]
                     }
                     // 获取变量类型
@@ -314,6 +317,7 @@
                         this.varTypeList = await this.loadCustomVarCollection()
                     }
                     const varTypeList = tools.deepClone(this.varTypeList)
+                    let isHasComponent = false
                     const listData = this.variableList.reduce((acc, cur) => {
                         if (cur.key in this.internalVariable) {
                             const varInfo = this.internalVariable[cur.key]
@@ -324,10 +328,16 @@
                                 this.$set(cur, 'type', result.name)
                                 result.checked = this.checkedTypeList.includes(cur.custom_type)
                                 acc.push(result)
+                            } else {
+                                this.$set(cur, 'type', i18n.t('组件'))
+                                isHasComponent = true
                             }
                         }
                         return acc
                     }, [])
+                    if (isHasComponent) {
+                        listData.unshift({ checked: this.checkedTypeList.includes('component'), name: i18n.t('组件'), code: 'component' })
+                    }
                     if (!this.isHideSystemVar) {
                         const internalVar = [
                             { checked: this.checkedTypeList.includes('system'), name: i18n.t('系统变量'), code: 'system' },
@@ -370,7 +380,7 @@
                                         const varInfo = this.internalVariable[item.key]
                                         str = varInfo.source_type === 'system' ? 'system' : 'project'
                                     } else {
-                                        str = item[key]
+                                        str = item[key] || 'component'
                                     }
                                 } else if (key === 'source_type') {
                                     const isInput = item.source_type !== 'component_outputs'
