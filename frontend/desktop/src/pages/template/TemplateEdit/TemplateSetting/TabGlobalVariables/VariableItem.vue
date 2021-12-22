@@ -62,7 +62,7 @@
                     @click.stop="viewClick">
                 </i>
             </span>
-            <span class="col-item col-show">
+            <span class="col-item col-show" @click.stop>
                 <bk-switcher
                     size="small"
                     theme="primary"

@@ -1279,7 +1279,11 @@ const en = {
     '生成并复制代码': 'Generate and copy the code',
     '点击可快速定位原节点': 'Click to quickly locate the original node',
     '引用变量': 'Variable Reference',
-    '透视': 'Perspective'
+    '透视': 'Perspective',
+    '由': 'By',
+    '提供': 'supply',
+    '系统变量': 'SYS-VARS',
+    '业务变量': 'BUSINESS-VARS'
 }
 
 export default en
