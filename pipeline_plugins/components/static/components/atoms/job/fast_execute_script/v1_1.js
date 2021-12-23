@@ -218,28 +218,6 @@
             },
             events: [
                 {
-                    source: "biz_cc_id",
-                    type: "init",
-                    action: function () {
-                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
-                        if (cc_id !== '') {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + cc_id + '/?type=public';
-                            this.remoteMethod();
-                        }
-                    }
-                },
-                {
-                    source: "biz_cc_id",
-                    type: "change",
-                    action: function (value) {
-                        if (value === '') {
-                            return;
-                        }
-                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + value + '/?type=public';
-                        this.remoteMethod();
-                    }
-                },
-                {
                     source: "job_script_source",
                     type: "change",
                     action: function (value) {
@@ -296,31 +274,6 @@
                 ]
             },
             events: [
-                {
-                    source: "biz_cc_id",
-                    type: "init",
-                    action: function () {
-                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
-                        if (cc_id !== '') {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + cc_id + '/?type=general';
-                            this.remoteMethod();
-                        }
-                    }
-                },
-                {
-                    source: "biz_cc_id",
-                    type: "change",
-                    action: function (value) {
-                        if ($.context.canSelectBiz()) {
-                            this._set_value('');
-                        }
-                        if (value === '') {
-                            return;
-                        }
-                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + value + '/?type=general';
-                        this.remoteMethod();
-                    }
-                },
                 {
                     source: "job_script_source",
                     type: "change",
@@ -478,17 +431,6 @@
             },
             events: [
                 {
-                    source: "biz_cc_id",
-                    type: "init",
-                    action: function () {
-                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
-                        if (cc_id !== '') {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_instance_list/' + cc_id + '/1/3/';
-                            this.remoteMethod();
-                        }
-                    }
-                },
-                {
                     source: "button_refresh_2",
                     type: "click",
                     action: function (value) {
@@ -499,20 +441,6 @@
                         }
                     }
                 },
-                {
-                    source: "biz_cc_id",
-                    type: "change",
-                    action: function (value) {
-                        if ($.context.canSelectBiz()) {
-                            this._set_value('');
-                        }
-                        if (value === '') {
-                            return;
-                        }
-                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_instance_list/' + value + '/1/3/';
-                        this.remoteMethod();
-                    }
-                }
             ]
         },
         {
