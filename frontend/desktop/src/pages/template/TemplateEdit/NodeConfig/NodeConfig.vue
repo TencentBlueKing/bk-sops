@@ -169,10 +169,12 @@
                                                 :version="basicInfo.version"
                                                 :subflow-forms="subflowForms"
                                                 :value="inputsParamValue"
+                                                :render-config="inputsRenderConfig"
                                                 :is-subflow="isSubflow"
                                                 :constants="localConstants"
                                                 :third-party-code="isThirdParty ? basicInfo.plugin : ''"
                                                 @hookChange="onHookChange"
+                                                @renderConfigChange="onRenderConfigChange"
                                                 @update="updateInputsValue">
                                             </input-params>
                                             <no-data v-else></no-data>
@@ -288,6 +290,7 @@
                 versionList: [], // 标准插件版本
                 inputs: [], // 输入参数表单配置项
                 inputsParamValue: {}, // 输入参数值
+                inputsRenderConfig: {}, // 输入参数是否配置渲染豁免
                 outputs: [], // 输出参数
                 subflowForms: {}, // 子流程输入参数
                 isSelectorPanelShow: false, // 是否显示选择插件(子流程)面板
@@ -559,24 +562,30 @@
                 }
                 if (!this.isSubflow) {
                     const paramsVal = {}
+                    const renderConfig = {}
                     Object.keys(this.nodeConfig.component.data || {}).forEach(key => {
                         const val = tools.deepClone(this.nodeConfig.component.data[key].value)
                         paramsVal[key] = val
+                        renderConfig[key] = 'need_render' in this.nodeConfig.component.data[key] ? this.nodeConfig.component.data[key].need_render : true
                     })
                     this.inputsParamValue = paramsVal
+                    this.inputsRenderConfig = renderConfig
                     await this.getPluginDetail()
                 } else {
                     const { tpl, version } = this.basicInfo
                     const forms = {}
+                    const renderConfig = {}
                     Object.keys(this.nodeConfig.constants).forEach(key => {
                         const form = this.nodeConfig.constants[key]
                         if (form.show_type === 'show') {
                             forms[key] = form
+                            renderConfig[key] = 'need_render' in form ? form.need_render : true
                         }
                     })
                     await this.getSubflowDetail(tpl, version)
                     this.inputs = await this.getSubflowInputsConfig()
                     this.inputsParamValue = this.getSubflowInputsValue(forms)
+                    this.inputsRenderConfig = renderConfig
                 }
                 // 节点参数错误时，配置项加载完成后，执行校验逻辑，提示用户错误信息
                 const location = this.locations.find(item => item.id === this.nodeConfig.id)
@@ -955,12 +964,16 @@
                 this.updateBasicInfo(config)
                 this.inputsParamValue = {}
                 await this.getPluginDetail()
+                this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
+                    acc[crt.tag_code] = true
+                    return acc
+                }, {})
                 this.$refs.basicInfo && this.$refs.basicInfo.validate() // 清除节点保存报错时的错误信息
             },
             /**
              * 标准插件版本切换
              */
-            versionChange (val) {
+            async versionChange (val) {
                 // 获取不同版本的描述
                 let desc = this.basicInfo.desc
                 if (!this.isThirdParty) {
@@ -974,7 +987,11 @@
                 this.updateBasicInfo({ version: val, desc })
                 this.clearParamsSourceInfo()
                 this.inputsParamValue = {}
-                this.getPluginDetail()
+                await this.getPluginDetail()
+                this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
+                    acc[crt.tag_code] = true
+                    return acc
+                }, {})
             },
             /**
              * 子流程切换
@@ -997,6 +1014,13 @@
                 await this.getSubflowDetail(id, version)
                 this.inputs = await this.getSubflowInputsConfig()
                 this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms)
+                this.inputsRenderConfig = Object.keys(this.subflowForms).reduce((acc, crt) => {
+                    const formItem = this.subflowForms[crt]
+                    if (formItem.show_type === 'show') {
+                        acc[crt] = 'need_render' in formItem ? formItem.need_render : true
+                    }
+                    return acc
+                }, {})
                 this.setSubprocessUpdated({
                     expired: false,
                     subprocess_node_id: this.nodeConfig.id
@@ -1026,6 +1050,13 @@
                 this.subflowVersionUpdating = false
                 this.$nextTick(() => {
                     this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms, oldForms)
+                    this.inputsRenderConfig = Object.keys(this.subflowForms).reduce((acc, crt) => {
+                        const formItem = this.subflowForms[crt]
+                        if (formItem.show_type === 'show') {
+                            acc[crt] = 'need_render' in formItem ? formItem.need_render : true
+                        }
+                        return acc
+                    }, {})
                     this.subflowUpdated = true
                 })
             },
@@ -1138,6 +1169,11 @@
                 const { href } = this.$router.resolve(pathData)
                 window.open(href, '_blank')
             },
+            // 是否渲染豁免切换
+            onRenderConfigChange (data) {
+                const [key, val] = data
+                this.inputsRenderConfig[key] = val
+            },
             // 输入、输出参数勾选状态变化
             onHookChange (type, data) {
                 if (type === 'create') {
@@ -1210,6 +1246,7 @@
                         const constant = this.subflowForms[key]
                         if (constant.show_type === 'show') {
                             constant.value = tools.deepClone(this.inputsParamValue[key])
+                            constant.need_render = key in this.inputsRenderConfig ? this.inputsRenderConfig[key] : true
                         }
                         constants[key] = constant
                     })
@@ -1235,6 +1272,7 @@
                         }
                         data[key] = {
                             hook, // 页面实际未用到这个字段，作为一个标识位更新，确保数据正确
+                            need_render: key in this.inputsRenderConfig ? this.inputsRenderConfig[key] : true,
                             value: tools.deepClone(formVal)
                         }
                     })
