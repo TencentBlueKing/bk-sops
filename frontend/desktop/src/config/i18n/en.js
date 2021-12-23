@@ -1279,7 +1279,12 @@ const en = {
     '生成并复制代码': 'Generate and copy the code',
     '点击可快速定位原节点': 'Click to quickly locate the original node',
     '引用变量': 'Variable Reference',
-    '透视': 'Perspective'
+    '透视': 'Perspective',
+    '超时': 'Timeout',
+    '超时控制': 'Timeout Config',
+    '秒后': 'seconds later',
+    '则': '',
+    '强制失败后跳过': 'skip after the force fails'
 }
 
 export default en
