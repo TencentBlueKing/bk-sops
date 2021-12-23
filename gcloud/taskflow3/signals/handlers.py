@@ -12,7 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+import datetime
 
+from django.conf import settings
 from django.dispatch import receiver
 
 from bamboo_engine import states as bamboo_engine_states
@@ -23,7 +25,7 @@ from pipeline.signals import post_pipeline_finish, post_pipeline_revoke
 from pipeline.eri.signals import post_set_state
 from pipeline.engine.signals import pipeline_end, pipeline_revoke
 
-from gcloud.taskflow3.models import TaskFlowInstance, AutoRetryNodeStrategy, EngineConfig
+from gcloud.taskflow3.models import TaskFlowInstance, AutoRetryNodeStrategy, EngineConfig, TimeoutNodeConfig
 from gcloud.taskflow3.signals import taskflow_finished, taskflow_revoked
 from gcloud.taskflow3.celery.tasks import send_taskflow_message, auto_retry_node
 from gcloud.shortcuts.message import ATOM_FAILED, TASK_FINISHED
@@ -119,6 +121,19 @@ def pipeline_fail_handler(sender, pipeline_id, pipeline_activity_id, **kwargs):
     _send_node_fail_message(node_id=pipeline_activity_id, pipeline_id=pipeline_id)
 
 
+def _node_timeout_info_update(redis_inst, to_state, node_id, version):
+    key = f"{node_id}_{version}"
+    if to_state == bamboo_engine_states.RUNNING:
+        now = datetime.datetime.now()
+        timeout_qs = TimeoutNodeConfig.objects.filter(node_id=node_id).only("timeout")
+        if not timeout_qs:
+            return
+        timeout_time = (now + datetime.timedelta(seconds=timeout_qs[0].timeout)).timestamp()
+        redis_inst.zadd(settings.EXECUTING_NODE_POOL, mapping={key: timeout_time}, nx=True)
+    elif to_state in [bamboo_engine_states.FAILED, bamboo_engine_states.FINISHED, bamboo_engine_states.SUSPENDED]:
+        redis_inst.zrem(settings.EXECUTING_NODE_POOL, key)
+
+
 @receiver(post_set_state)
 def bamboo_engine_eri_post_set_state_handler(sender, node_id, to_state, version, root_id, parent_id, loop, **kwargs):
     if to_state == bamboo_engine_states.FAILED:
@@ -145,3 +160,8 @@ def bamboo_engine_eri_post_set_state_handler(sender, node_id, to_state, version,
             logger.exception("pipeline_end send error")
 
         _finish_taskflow_and_send_signal(root_id, taskflow_finished, True)
+
+    try:
+        _node_timeout_info_update(settings.redis_inst, to_state, node_id, version)
+    except Exception:
+        logger.exception("node_timeout_info_update error")

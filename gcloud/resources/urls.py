@@ -92,4 +92,5 @@ urlpatterns = [
     url(r"^api/", include(v3_api.urls)),
     url(r"^api/v3/", include(drf_router.urls)),
     url(r"^api/v4/", include(v4_drf_router.urls)),
+    url(r"^api/auto_test/", include("gcloud.auto_test.urls")),
 ]

@@ -15,10 +15,10 @@
             <i v-if="!isSystemVar && !isProjectVar && !showCitedList" class="col-item-drag bk-icon icon-sort"></i>
             <i v-if="isSystemVar" class="variable-icon common-icon-lock-disable"></i>
             <i v-if="isProjectVar" class="variable-icon common-icon-paper"></i>
-            <span :title="variableData.name" class="col-item col-name">
+            <span class="col-item col-name" v-bk-overflow-tips="{ distance: 0 }">
                 {{ variableData.name }}
             </span>
-            <span class="col-item col-key">
+            <span class="col-item col-key" v-bk-overflow-tips="{ distance: 0 }">
                 {{ variableData.key }}
                 <i
                     class="common-icon-double-paper-2 copy-icon"
@@ -30,45 +30,45 @@
                     @click.stop="onCopyKey(variableData.key)">
                 </i>
             </span>
+            <span
+                :class="['col-item col-cited', { 'active': showCitedList }]"
+                @click.stop="onViewCitedList">
+                {{ citedNum }}
+            </span>
+            <span
+                :class="['col-item col-type', { 'active': showPreviewValue }]"
+                v-bk-overflow-tips="{ distance: 0 }"
+                @click.stop="onPreviewValue">
+                {{ variableData.type || '--' }}
+            </span>
             <span class="col-item col-attributes">
-                <span class="icon-wrap">
-                    <i
-                        v-if="variableData.source_type !== 'component_outputs'"
-                        class="common-icon-show-left"
-                        v-bk-tooltips="{
-                            content: $t('输入'),
-                            placements: ['bottom'],
-                            boundary: 'window'
-                        }">
-                    </i>
-                    <i
-                        v-else
-                        class="common-icon-hide-right color-org"
-                        v-bk-tooltips="{
-                            content: $t('输出'),
-                            placements: ['bottom'],
-                            boundary: 'window'
-                        }">
-                    </i>
-                    <i
-                        v-if="variableData.show_type === 'show'"
-                        class="common-icon-eye-show"
-                        v-bk-tooltips="{
-                            content: $t('显示'),
-                            placements: ['bottom'],
-                            boundary: 'window'
-                        }">
-                    </i>
-                    <i
-                        v-else
-                        class="common-icon-eye-hide color-org"
-                        v-bk-tooltips="{
-                            content: $t('隐藏'),
-                            placements: ['bottom'],
-                            boundary: 'window'
-                        }">
-                    </i>
-                </span>
+                <i
+                    v-if="variableData.source_type !== 'component_outputs'"
+                    class="common-icon-show-left"
+                    v-bk-tooltips="{
+                        content: $t('输入'),
+                        placements: ['bottom'],
+                        boundary: 'window'
+                    }">
+                </i>
+                <i
+                    v-else
+                    class="common-icon-hide-right"
+                    v-bk-tooltips="{
+                        content: $t('输出') + $t('（') + $t('点击可快速定位原节点') + $t('）'),
+                        placements: ['bottom'],
+                        boundary: 'window'
+                    }"
+                    @click.stop="viewClick">
+                </i>
+            </span>
+            <span class="col-item col-show" @click.stop>
+                <bk-switcher
+                    size="small"
+                    theme="primary"
+                    :disabled="variableData.isSysVar"
+                    :value="variableData.show_type === 'show'">
+                </bk-switcher>
             </span>
             <span class="col-item col-output">
                 <div @click.stop>
@@ -80,17 +80,6 @@
                     </bk-switcher>
                 </div>
             </span>
-            <span
-                :class="[
-                    'col-item',
-                    'col-cited',
-                    {
-                        'disabled': citedNum === 0
-                    }
-                ]"
-                @click.stop="onViewCitedList">
-                {{ citedNum }}
-            </span>
             <span class="col-item col-operation">
                 <span
                     v-if="isSystemVar || isProjectVar"
@@ -98,19 +87,16 @@
                     @click.stop="onEditVariable(variableData.key, variableData.index)">
                     {{ $t('查看') }}
                 </span>
-                <template v-else>
-                    <span
-                        class="col-operation-item"
-                        @click.stop="onPreviewValue(variableData.key)">
-                        {{ $t('预览值') }}
-                    </span>
-                    <span
-                        class="col-operation-item"
-                        @click.stop="onCloneVariable()">
-                        {{ $t('克隆') }}
-                    </span>
-                    <i class="bk-icon icon-close delete-icon" @click.stop="onDeleteVariable(variableData.key)"></i>
-                </template>
+                <span v-else class="col-operation-item">{{ $t('编辑') }}</span>
+            </span>
+            <span class="col-item col-more">
+                <bk-popover placement="bottom" theme="light" :distance="0" :arrow="false" ext-cls="var-operate-popover">
+                    <i class="bk-icon icon-more"></i>
+                    <template slot="content">
+                        <p class="operate-item" @click.stop="onCloneVariable()">{{ $t('克隆') }}</p>
+                        <p class="operate-item" @click.stop="onDeleteVariable(variableData.key)">{{ $t('删除') }}</p>
+                    </template>
+                </bk-popover>
             </span>
         </div>
         <VariableCitedList
@@ -234,9 +220,14 @@
                 e.clipboardData.setData('text/html', this.copyText)
                 e.clipboardData.setData('text/plain', this.copyText)
                 this.$bkMessage({
-                    message: i18n.t('已复制'),
+                    message: 'key' + i18n.t('已复制'),
                     theme: 'success'
                 })
+            },
+            viewClick () {
+                const { source_info: sourceInfo } = this.variableData
+                const id = Object.keys(sourceInfo)[0]
+                this.$emit('viewClick', id)
             },
             // 查看引用节点信息
             onViewCitedList () {
@@ -252,6 +243,7 @@
             },
             // 查看变量预览值
             onPreviewValue () {
+                if (!this.variableData.type) return
                 this.showCitedList = false
                 if (this.showPreviewValue) {
                     this.showPreviewValue = false
@@ -268,7 +260,13 @@
                 }
             },
             onDeleteVariable (key) {
-                this.$emit('onDeleteVariable', key)
+                this.$bkInfo({
+                    title: i18n.t('确认删除该变量？'),
+                    confirmLoading: true,
+                    confirmFn: () => {
+                        this.$emit('onDeleteVariable', key)
+                    }
+                })
             },
             onEditVariable (key, index) {
                 this.$emit('onEditVariable', key, index)
@@ -279,6 +277,27 @@
         }
     }
 </script>
+<style lang="scss">
+    .var-operate-popover {
+        width: 92px;
+        height: 72px;
+        .tippy-tooltip {
+            padding: 4px 0;
+            border: 1px solid #dcdee5;
+        }
+        .operate-item {
+            line-height: 32px;
+            font-size: 12px;
+            padding-left: 12px;
+            color: #63656e;
+            cursor: pointer;
+            &:hover {
+                background: rgba(225,236,255,0.60);
+                color: #3a84ff;
+            }
+        }
+    }
+</style>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
@@ -309,15 +328,19 @@ $localBorderColor: #d8e2e7;
             .col-item-drag {
                 display: inline-block;
             }
+            .copy-icon {
+                display: inline-block;
+            }
         }
     }
     .col-name {
-        width: 242px;
+        width: 170px;
+        padding-right: 10px;
     }
     .col-key {
         position: relative;
         padding-right: 30px;
-        width: 180px;
+        width: 150px;
         .copy-icon {
             display: none;
             position: absolute;
@@ -326,48 +349,38 @@ $localBorderColor: #d8e2e7;
             font-size: 14px;
             color: #3a84ff;
         }
-        &:hover {
-            .copy-icon {
-                display: inline-block;
-            }
+    }
+    .col-type {
+        width: 80px;
+        overflow: hidden;
+        text-overflow:ellipsis;
+        white-space: nowrap;
+        &.active {
+            color: #3a84ff;
         }
     }
     .col-attributes {
-        width: 64px;
-        .icon-wrap {
-            vertical-align: middle;
-            line-height: 1;
-            display: inline-block;
-            .common-icon-show-left {
-                color: #219f42;
-                font-size: 14px;
-            }
-            .common-icon-hide-right {
-                font-size: 14px;
-            }
-            .common-icon-eye-show {
-                margin-left: 8px;
-                color: #219f42;
-                font-size: 12px;
-            }
-            .common-icon-eye-hide {
-                margin-left: 8px;
-                font-size: 15px;
-            }
-            .color-org{
-                color: #de9524;
-            }
+        width: 50px;
+        padding-left: 10px;
+        .common-icon-show-left {
+            color: #63656e;
+            font-size: 14px;
+        }
+        .common-icon-hide-right {
+            font-size: 14px;
+            color: #339dff;
         }
     }
+    .col-show,
     .col-output {
-        width: 54px;
+        width: 50px;
     }
     .col-cited {
         width: 50px;
-        color: #3a84ff;
+        color: #333333;
         cursor: pointer;
-        &.disabled {
-            color: #333333;
+        &.active {
+            color: #3a84ff;
         }
     }
 }
@@ -408,6 +421,7 @@ $localBorderColor: #d8e2e7;
     }
 }
 .col-operation {
+    width: 40px;
     display: flex;
     align-items: center;
     .col-operation-item {
@@ -425,6 +439,16 @@ $localBorderColor: #d8e2e7;
         &:hover {
             color: #3a84ff;
         }
+    }
+}
+.col-more {
+    width: 40px;
+    font-size: 18px;
+    line-height: 42px;
+    cursor: pointer;
+    color: #666;
+    &:hover {
+        color: #3a84ff;
     }
 }
 .variable-icon {

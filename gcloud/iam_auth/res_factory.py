@@ -133,6 +133,29 @@ def resources_for_task_obj(task_obj):
     ]
 
 
+def resources_list_for_tasks(task_id_list):
+    qs = TaskFlowInstance.objects.filter(id__in=task_id_list).values(
+        "id", "pipeline_instance__creator", "pipeline_instance__name", "project_id", "flow_type"
+    )
+
+    return [
+        [
+            Resource(
+                IAMMeta.SYSTEM_ID,
+                IAMMeta.TASK_RESOURCE,
+                str(task_info["id"]),
+                {
+                    "iam_resource_owner": task_info["pipeline_instance__creator"],
+                    "_bk_iam_path_": "/project,{}/".format(task_info["project_id"]),
+                    "name": task_info["pipeline_instance__name"],
+                    "type": task_info["flow_type"],
+                },
+            )
+        ]
+        for task_info in qs
+    ]
+
+
 # periodic_task
 
 
@@ -164,6 +187,26 @@ def resources_for_periodic_task_obj(task_obj):
                 "name": task_obj.name,
             },
         )
+    ]
+
+
+def resources_list_for_periodic_tasks(task_id_list):
+    qs = PeriodicTask.objects.filter(id__in=task_id_list).values("id", "task__creator", "task__name", "project_id")
+
+    return [
+        [
+            Resource(
+                IAMMeta.SYSTEM_ID,
+                IAMMeta.PERIODIC_TASK_RESOURCE,
+                str(task_info["id"]),
+                {
+                    "iam_resource_owner": task_info["task__creator"],
+                    "_bk_iam_path_": "/project,{}/".format(task_info["project_id"]),
+                    "name": task_info["task__name"],
+                },
+            )
+        ]
+        for task_info in qs
     ]
 
 

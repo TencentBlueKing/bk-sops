@@ -28,6 +28,8 @@ from pipeline.models import PipelineInstance
 from pipeline.engine import states
 from pipeline.validators.gateway import validate_gateways
 from pipeline.validators.utils import format_node_io_to_list
+
+from gcloud.taskflow3.utils import parse_node_timeout_configs
 from pipeline_web.core.abstract import NodeAttr
 from pipeline.component_framework.models import ComponentModel
 from pipeline_web.core.models import NodeInInstance
@@ -36,7 +38,7 @@ from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 from gcloud import err_code
 from gcloud.conf import settings
-from gcloud.constants import TASK_FLOW_TYPE, TASK_CATEGORY
+from gcloud.constants import TASK_FLOW_TYPE, TASK_CATEGORY, TASKFLOW_NODE_TIMEOUT_CONFIG_BATCH_CREAT_COUNT
 from gcloud.core.models import Project, EngineConfig, StaffGroupSet
 from gcloud.core.utils import convert_readable_username
 from gcloud.contrib.appmaker.models import AppMaker
@@ -1459,3 +1461,53 @@ class AutoRetryNodeStrategy(models.Model):
         verbose_name = _("节点自动重试策略 AutoRetryNodeStrategy")
         verbose_name_plural = _("节点自动重试策略 AutoRetryNodeStrategy")
         index_together = [("root_pipeline_id", "node_id")]
+
+
+class TimeoutNodeConfigManager(models.Manager):
+    def batch_create_node_timeout_config(self, taskflow_id: int, root_pipeline_id: str, pipeline_tree: dict):
+        """批量创建节点超时配置"""
+
+        config_parse_result = parse_node_timeout_configs(pipeline_tree)
+        # 这里忽略解析失败的情况，保证即使解析失败也能正常创建任务
+        if not config_parse_result["result"]:
+            logger.error(
+                f'[batch_create_node_timeout_config] parse node timeout config failed: {config_parse_result["result"]}'
+            )
+            return
+        configs = config_parse_result["data"] or []
+        config_objs = [
+            TimeoutNodeConfig(
+                task_id=taskflow_id,
+                action=config["action"],
+                root_pipeline_id=root_pipeline_id,
+                node_id=config["node_id"],
+                timeout=config["timeout"],
+            )
+            for config in configs
+        ]
+        self.bulk_create(config_objs, batch_size=TASKFLOW_NODE_TIMEOUT_CONFIG_BATCH_CREAT_COUNT)
+
+
+class TimeoutNodeConfig(models.Model):
+    ACTION_TYPE = (("forced_fail", _("强制失败")), ("forced_fail_and_skip", _("强制失败并跳过")))
+    task_id = models.BigIntegerField(verbose_name="taskflow id")
+    root_pipeline_id = models.CharField(verbose_name="root pipeline id", max_length=64)
+    action = models.CharField(verbose_name="action", choices=ACTION_TYPE, max_length=32)
+    node_id = models.CharField(verbose_name="task node id", max_length=64, primary_key=True)
+    timeout = models.IntegerField(verbose_name="node timeout time")
+
+    objects = TimeoutNodeConfigManager()
+
+    class Meta:
+        verbose_name = _("节点超时配置 TimeoutNodeConfig")
+        verbose_name_plural = _("节点超时配置 TimeoutNodeConfig")
+        index_together = [("root_pipeline_id", "node_id")]
+
+
+class TimeoutNodesRecord(models.Model):
+    id = models.BigAutoField(verbose_name="ID", primary_key=True)
+    timeout_nodes = models.TextField(verbose_name="超时节点信息")
+
+    class Meta:
+        verbose_name = _("超时节点数据记录 TimeoutNodesRecord")
+        verbose_name_plural = _("超时节点数据记录 TimeoutNodesRecord")

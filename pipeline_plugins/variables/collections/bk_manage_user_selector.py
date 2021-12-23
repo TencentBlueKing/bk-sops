@@ -12,22 +12,29 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+from typing import List
 
 from django.utils.translation import ugettext_lazy as _
-
 from pipeline.conf import settings
 from pipeline.core.data.var import LazyVariable
 
+from gcloud.constants import Type
+from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain
 
-logger = logging.getLogger('root')
+
+logger = logging.getLogger("root")
 
 
-class BkUserSelector(LazyVariable):
-    code = 'bk_user_selector'
+class BkUserSelector(LazyVariable, SelfExplainVariable):
+    code = "bk_user_selector"
     name = _("人员选择器")
-    type = 'general'
-    tag = 'bk_manage_user_selector.bk_user_selector'
-    form = '%svariables/bk_manage_user_selector.js' % settings.STATIC_URL
+    type = "general"
+    tag = "bk_manage_user_selector.bk_user_selector"
+    form = "%svariables/bk_manage_user_selector.js" % settings.STATIC_URL
 
     def get_value(self):
         return self.value
+
+    @classmethod
+    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="人员列表，以,分隔")]

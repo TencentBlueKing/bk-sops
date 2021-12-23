@@ -174,7 +174,7 @@
         </div>
         <!-- 第三方插件 -->
         <div v-show="curPluginTab === 'third_praty_plugin'" v-bkloading="{ isLoading: pluginLoading }">
-            <ul class="third-praty-list" v-if="atomTypeList.pluginList.length">
+            <ul class="third-praty-list" v-show="atomTypeList.pluginList.length">
                 <li
                     :class="['plugin-item', { 'is-actived': plugin.code === basicInfo.plugin }]"
                     v-for="(plugin, index) in atomTypeList.pluginList"
@@ -183,11 +183,16 @@
                     <img class="plugin-logo" :src="plugin.logo_url" alt="">
                     <div>
                         <p class="plugin-title">{{ plugin.name }}</p>
-                        <p class="plugin-code">{{ plugin.code }}</p>
+                        <p
+                            class="plugin-desc"
+                            v-bk-overflow-tips="{ placement: 'bottom-end', extCls: 'plugin-desc-tips' }">
+                            {{ plugin.introduction || '--' }}
+                        </p>
+                        <p class="plugin-contact">{{ $t('由') + ' ' + plugin.contact + ' ' + $t('提供') }}</p>
                     </div>
                 </li>
             </ul>
-            <bk-exception v-else class="exception-part" type="search-empty" scene="part"> </bk-exception>
+            <bk-exception v-if="!atomTypeList.pluginList.length" class="exception-part" type="search-empty" scene="part"> </bk-exception>
         </div>
     </div>
 </template>
@@ -261,12 +266,6 @@
         created () {
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
-        mounted () {
-            this.scrollDom = document.querySelector('.third-praty-list')
-            if (this.scrollDom) {
-                this.scrollDom.addEventListener('scroll', this.handlePluginScroll)
-            }
-        },
         beforeDestroy () {
             if (this.scrollDom) {
                 this.scrollDom.removeEventListener('scroll', this.handlePluginScroll)
@@ -333,6 +332,14 @@
             },
             setSearchInputShow () {
                 const isThirdParty = this.curPluginTab === 'third_praty_plugin'
+                if (isThirdParty && !this.scrollDom) {
+                    this.$nextTick(() => {
+                        this.scrollDom = document.querySelector('.third-praty-list')
+                        if (this.scrollDom) {
+                            this.scrollDom.addEventListener('scroll', this.handlePluginScroll)
+                        }
+                    })
+                }
                 if (!isThirdParty && this.searchStr) {
                     this.searchStr = ''
                     this.$emit('updatePluginList', undefined, 'search')
@@ -476,6 +483,7 @@
                         id: 'remote_plugin'
                     }
                     this.$emit('select', group, true)
+                    this.$emit('updatePluginList', undefined, 'search')
                 } catch (error) {
                     console.warn(error)
                 }
@@ -738,6 +746,7 @@
         cursor: pointer;
         padding: 0 59px 0 38px;
         color: #63656e;
+        font-size: 12px;
         .plugin-logo {
             width: 48px;
             height: 48px;
@@ -749,8 +758,15 @@
             font-weight: 700;
             margin-bottom: 4px;
         }
-        .plugin-code {
-            font-size: 12px;
+        .plugin-desc {
+            width: 645px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .plugin-contact {
+            color: #c4c6cc;
+            font-weight: 700;
         }
         &.is-actived, &:hover {
             background: hsl(218, 100%, 94%);
@@ -810,6 +826,11 @@
         }
         .bk-tab-section {
             display: none;
+        }
+    }
+    .plugin-desc-tips {
+        .tippy-arrow {
+            left: 370px !important;
         }
     }
 </style>

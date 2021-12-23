@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
+from mock import patch, MagicMock
 from django.test import TestCase
 
 from pipeline_plugins.variables.collections.sites.open.cc import VarCmdbSetAllocation
@@ -70,4 +70,84 @@ class VarCmdbSetAllocationTestCase(TestCase):
         self.assertEqual(set_detail_data.flat__verbose_ip_list, "1.1.1.1,2.2.2.2,1.2.3.4,2.3.4.5")
         self.assertEqual(
             set_detail_data.flat__verbose_ip_module_list, "test>module_a,test2>module_b,test2>module_c,test2>module_c"
+        )
+
+    def test_self_explain__search_object_attribute_success(self):
+        client = MagicMock()
+        client.cc.search_object_attribute = MagicMock(
+            return_value={
+                "result": True,
+                "message": "success",
+                "data": [
+                    {"editable": True, "bk_property_id": "set_name", "bk_property_name": "bk_name_name"},
+                    {"editable": False, "bk_property_id": "set_id", "bk_property_name": "set_id_name"},
+                    {"editable": True, "bk_property_id": "set_desc", "bk_property_name": "set_desc_name"},
+                ],
+            }
+        )
+
+        with patch(
+            "pipeline_plugins.variables.collections.sites.open.cc.get_client_by_user", MagicMock(return_value=client)
+        ):
+            explain = VarCmdbSetAllocation.self_explain(bk_biz_id=1)
+
+        client.cc.search_object_attribute.assert_called_once_with({"bk_obj_id": "set", "bk_biz_id": 1})
+        self.assertEqual(
+            explain,
+            {
+                "tag": "var_cmdb_resource_allocation.set_allocation",
+                "fields": [
+                    {"key": "${KEY}", "type": "object", "description": "集群资源筛选结果对象"},
+                    {"key": "${KEY.set_count}", "type": "int", "description": "新增集群数量"},
+                    {"key": "${KEY._module}", "type": "list", "description": "集群下的模块信息列表，元素类型为字典，键为模块名，值为模块下的主机列"},
+                    {"key": "${KEY.flat__ip_list}", "type": "string", "description": "本次操作创建的所有集群下的主机（去重后），用 ',' 连接"},
+                    {
+                        "key": "${KEY.flat__verbose_ip_list}",
+                        "type": "string",
+                        "description": "返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接",
+                    },
+                    {
+                        "key": "${KEY.flat__verbose_ip_module_list}",
+                        "type": "string",
+                        "description": "本次操作创建的所有模块名称，格式为set_name>module_name，用 ',' 连接",
+                    },
+                    {"key": "${KEY.set_name}", "type": "list", "description": "集群属性(bk_name_name)列表"},
+                    {"key": "${KEY.flat__set_name}", "type": "string", "description": "集群属性(bk_name_name)列表，以,分隔"},
+                    {"key": "${KEY.set_desc}", "type": "list", "description": "集群属性(set_desc_name)列表"},
+                    {"key": "${KEY.flat__set_desc}", "type": "string", "description": "集群属性(set_desc_name)列表，以,分隔"},
+                ],
+            },
+        )
+
+    def test_self_explain__search_object_attribute_fail(self):
+        client = MagicMock()
+        client.cc.search_object_attribute = MagicMock(return_value={"result": False, "message": "fail", "data": []})
+
+        with patch(
+            "pipeline_plugins.variables.collections.sites.open.cc.get_client_by_user", MagicMock(return_value=client)
+        ):
+            explain = VarCmdbSetAllocation.self_explain(bk_biz_id=1)
+
+        client.cc.search_object_attribute.assert_called_once_with({"bk_obj_id": "set", "bk_biz_id": 1})
+        self.assertEqual(
+            explain,
+            {
+                "tag": "var_cmdb_resource_allocation.set_allocation",
+                "fields": [
+                    {"key": "${KEY}", "type": "object", "description": "集群资源筛选结果对象"},
+                    {"key": "${KEY.set_count}", "type": "int", "description": "新增集群数量"},
+                    {"key": "${KEY._module}", "type": "list", "description": "集群下的模块信息列表，元素类型为字典，键为模块名，值为模块下的主机列"},
+                    {"key": "${KEY.flat__ip_list}", "type": "string", "description": "本次操作创建的所有集群下的主机（去重后），用 ',' 连接"},
+                    {
+                        "key": "${KEY.flat__verbose_ip_list}",
+                        "type": "string",
+                        "description": "返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接",
+                    },
+                    {
+                        "key": "${KEY.flat__verbose_ip_module_list}",
+                        "type": "string",
+                        "description": "本次操作创建的所有模块名称，格式为set_name>module_name，用 ',' 连接",
+                    },
+                ],
+            },
         )

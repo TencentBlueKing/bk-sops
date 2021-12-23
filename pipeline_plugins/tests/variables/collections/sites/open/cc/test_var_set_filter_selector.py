@@ -90,3 +90,59 @@ class VarSetFilterSelectorTestCase(TestCase):
             if getattr(first_inst, attr) != getattr(second_inst, attr):
                 msg = self._formatMessage("%s == %s" % (safe_repr(first_inst), safe_repr(second_inst)))
                 raise self.failureException(msg)
+
+    def test_self_explain__search_object_attribute_success(self):
+        client = MagicMock()
+        client.cc.search_object_attribute = MagicMock(
+            return_value={
+                "result": True,
+                "message": "success",
+                "data": [
+                    {"bk_property_id": "set_name", "bk_property_name": "bk_name_name"},
+                    {"bk_property_id": "set_id", "bk_property_name": "set_id_name"},
+                    {"bk_property_id": "set_desc", "bk_property_name": "set_desc_name"},
+                ],
+            }
+        )
+
+        with patch(
+            "pipeline_plugins.variables.collections.sites.open.cmdb.var_set_filter_selector.get_client_by_user",
+            MagicMock(return_value=client),
+        ):
+            explain = VarSetFilterSelector.self_explain(bk_biz_id=1)
+
+        client.cc.search_object_attribute.assert_called_once_with({"bk_obj_id": "set", "bk_biz_id": 1})
+        self.assertEqual(
+            explain,
+            {
+                "tag": "var_set_filter_selector.set_filter_selector",
+                "fields": [
+                    {"key": "${KEY}", "type": "object", "description": "选择的集群信息"},
+                    {"key": "${KEY.set_name}", "type": "list", "description": "集群属性(bk_name_name)列表"},
+                    {"key": "${KEY.flat__set_name}", "type": "string", "description": "集群属性(bk_name_name)列表，以,分隔"},
+                    {"key": "${KEY.set_id}", "type": "list", "description": "集群属性(set_id_name)列表"},
+                    {"key": "${KEY.flat__set_id}", "type": "string", "description": "集群属性(set_id_name)列表，以,分隔"},
+                    {"key": "${KEY.set_desc}", "type": "list", "description": "集群属性(set_desc_name)列表"},
+                    {"key": "${KEY.flat__set_desc}", "type": "string", "description": "集群属性(set_desc_name)列表，以,分隔"},
+                ],
+            },
+        )
+
+    def test_self_explain__search_object_attribute_fail(self):
+        client = MagicMock()
+        client.cc.search_object_attribute = MagicMock(return_value={"result": False, "message": "fail", "data": []})
+
+        with patch(
+            "pipeline_plugins.variables.collections.sites.open.cmdb.var_set_filter_selector.get_client_by_user",
+            MagicMock(return_value=client),
+        ):
+            explain = VarSetFilterSelector.self_explain(bk_biz_id=1)
+
+        client.cc.search_object_attribute.assert_called_once_with({"bk_obj_id": "set", "bk_biz_id": 1})
+        self.assertEqual(
+            explain,
+            {
+                "tag": "var_set_filter_selector.set_filter_selector",
+                "fields": [{"key": "${KEY}", "type": "object", "description": "选择的集群信息"}],
+            },
+        )

@@ -296,7 +296,8 @@
                 taskId: this.instance_id,
                 isNodeInfoPanelShow: false,
                 nodeInfoType: '',
-                state: '',
+                state: '', // 当前流程状态，画布切换时会更新
+                rootState: '', // 根流程状态
                 selectedNodeId: '',
                 selectedFlowPath: path, // 选择面包屑路径
                 cacheStatus: undefined, // 总任务缓存状态信息；只有总任务完成、撤销时才存在
@@ -480,7 +481,7 @@
                             project_id: this.project_id,
                             cancelToken: source.token
                         }
-                        if (this.selectedFlowPath.length > 1 && this.selectedFlowPath[1].type !== 'ServiceActivity') {
+                        if (!this.isTopTask) {
                             data.instance_id = this.instance_id
                             data.subprocess_id = this.taskId
                         }
@@ -491,7 +492,9 @@
                         this.state = instanceStatus.data.state
                         this.instanceStatus = instanceStatus.data
                         this.pollErrorTimes = 0
-
+                        if (this.isTopTask) {
+                            this.rootState = this.state
+                        }
                         if (
                             !this.cacheStatus
                             && ['FINISHED', 'REVOKED'].includes(this.state)
@@ -499,11 +502,12 @@
                         ) { // save cacheStatus
                             this.cacheStatus = instanceStatus.data
                         }
-                        if (this.state === 'RUNNING') {
+                        if (this.state === 'RUNNING' || (!this.isTopTask && this.state === 'FINISHED' && !['FINISHED', 'REVOKED', 'FAILED'].includes(this.rootState))) {
                             this.setTaskStatusTimer()
                         }
                         this.updateNodeInfo()
                     } else {
+                        // 查询流程状态接口返回失败后再请求一次
                         this.pollErrorTimes += 1
                         if (this.pollErrorTimes > 2) {
                             this.cancelTaskStatusTimer()

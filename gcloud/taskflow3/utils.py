@@ -15,6 +15,7 @@ import logging
 
 from pipeline.engine import states as pipeline_states
 from pipeline.engine.utils import calculate_elapsed_time
+from pipeline.core import constants as pipeline_constants
 from bamboo_engine import states as bamboo_engine_states
 
 from gcloud.utils.dates import format_datetime
@@ -85,3 +86,27 @@ def add_node_name_to_status_tree(pipeline_tree, status_tree_children):
         status["name"] = pipeline_tree.get("activities", {}).get(node_id, {}).get("name", "")
         children = status.get("children", {})
         add_node_name_to_status_tree(pipeline_tree["activities"].get(node_id, {}).get("pipeline", {}), children)
+
+
+def parse_node_timeout_configs(pipeline_tree: dict) -> list:
+    configs = []
+    for act_id, act in pipeline_tree[pipeline_constants.PE.activities].items():
+        if act["type"] == pipeline_constants.PE.SubProcess:
+            result = parse_node_timeout_configs(pipeline_tree)
+            if not result["result"]:
+                return result
+            configs.extend(result["data"])
+        elif act["type"] == pipeline_constants.PE.ServiceActivity:
+            timeout_config = act.get("timeout_config", {})
+            enable = timeout_config.get("enable")
+            if not enable:
+                continue
+            timeout_seconds = timeout_config.get("seconds")
+            action = timeout_config.get("action")
+            if not timeout_seconds or not isinstance(timeout_seconds, int):
+                message = f"node {act_id} has a illegal timemout seconds: {timeout_seconds}"
+                logger.error(message)
+                # 对于不符合格式要求的情况，则不设置对应超时时间
+                continue
+            configs.append({"action": action, "node_id": act_id, "timeout": timeout_seconds})
+    return {"result": True, "data": configs, "message": ""}
