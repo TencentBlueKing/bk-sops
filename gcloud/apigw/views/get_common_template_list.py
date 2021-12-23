@@ -19,6 +19,8 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.common_template.models import CommonTemplate
 from gcloud.apigw.views.utils import format_template_list_data
+from gcloud.iam_auth.conf import COMMON_FLOW_ACTIONS
+from gcloud.iam_auth.utils import get_common_flow_allowed_actions_for_user
 from packages.bkoauth.decorators import apigw_required
 
 
@@ -28,9 +30,20 @@ from packages.bkoauth.decorators import apigw_required
 @mark_request_whether_is_trust
 def get_common_template_list(request):
     templates = CommonTemplate.objects.select_related("pipeline_template").filter(is_deleted=False)
-
+    templates_data, common_templates_id_list = format_template_list_data(templates, return_id_list=True)
+    # 注入用户有权限的actions
+    common_templates_allowed_actions = get_common_flow_allowed_actions_for_user(
+        request.user.username,
+        COMMON_FLOW_ACTIONS,
+        common_templates_id_list,
+    )
+    for template in templates_data:
+        template_id = template["id"]
+        for action, allowed in common_templates_allowed_actions.get(str(template_id), {}).items():
+            if allowed:
+                template.setdefault("auth_actions", []).append(action)
     return {
         "result": True,
-        "data": format_template_list_data(templates),
+        "data": templates_data,
         "code": err_code.SUCCESS.code,
     }

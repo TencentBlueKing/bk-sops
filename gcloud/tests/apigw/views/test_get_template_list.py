@@ -18,11 +18,22 @@ from gcloud.utils.dates import format_datetime
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
-from .utils import APITest
+from .utils import APITest, TEST_USERNAME
+
+
+MOCK_GET_FLOW_ALLOWED_ACTIONS = "gcloud.apigw.views.get_template_list.get_flow_allowed_actions_for_user"
+
 
 TEST_PROJECT_ID = "123"
 TEST_PROJECT_NAME = "biz name"
 TEST_BIZ_CC_ID = "123"
+TEST_APP_CODE = "test_code"
+TEST_TASK_LIST = [{"id": "1"}, {"id": "2"}]
+TEST_TASK_ID_LIST = [1, 2]
+TEST_ALLOWED_ACTIONS = {
+    "1": {"TEST_ACTION": True},
+    "2": {"TEST_ACTION": True},
+}
 
 
 class GetTemplateListAPITest(APITest):
@@ -33,7 +44,10 @@ class GetTemplateListAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -47,51 +61,66 @@ class GetTemplateListAPITest(APITest):
         task_templates = [task_tmpl1, task_tmpl2]
 
         with patch(
-            TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(filter_result=task_templates)),
+            TASKTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(filter_result=task_templates)),
         ):
-            assert_data = [
-                {
-                    "id": tmpl.id,
-                    "name": tmpl.pipeline_template.name,
-                    "creator": tmpl.pipeline_template.creator,
-                    "create_time": format_datetime(tmpl.pipeline_template.create_time),
-                    "editor": tmpl.pipeline_template.editor,
-                    "edit_time": format_datetime(tmpl.pipeline_template.edit_time),
-                    "category": tmpl.category,
-                    "project_id": TEST_PROJECT_ID,
-                    "project_name": TEST_PROJECT_NAME,
-                    "bk_biz_id": TEST_PROJECT_ID,
-                    "bk_biz_name": TEST_PROJECT_NAME,
-                }
-                for tmpl in task_templates
-            ]
+            with patch(MOCK_GET_FLOW_ALLOWED_ACTIONS, MagicMock(return_value=TEST_ALLOWED_ACTIONS)):
+                assert_data = [
+                    {
+                        "id": tmpl.id,
+                        "name": tmpl.pipeline_template.name,
+                        "creator": tmpl.pipeline_template.creator,
+                        "create_time": format_datetime(tmpl.pipeline_template.create_time),
+                        "editor": tmpl.pipeline_template.editor,
+                        "edit_time": format_datetime(tmpl.pipeline_template.edit_time),
+                        "category": tmpl.category,
+                        "project_id": TEST_PROJECT_ID,
+                        "project_name": TEST_PROJECT_NAME,
+                        "bk_biz_id": TEST_PROJECT_ID,
+                        "bk_biz_name": TEST_PROJECT_NAME,
+                        "auth_actions": ["TEST_ACTION"],
+                    }
+                    for tmpl in task_templates
+                ]
 
-            response = self.client.get(path=self.url().format(project_id=TEST_PROJECT_ID))
+                response = self.client.get(
+                    path=self.url().format(project_id=TEST_PROJECT_ID),
+                    HTTP_BK_APP_CODE=TEST_APP_CODE,
+                    HTTP_BK_USERNAME=TEST_USERNAME,
+                )
 
-            self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.status_code, 200)
 
-            data = json.loads(response.content)
+                data = json.loads(response.content)
 
-            self.assertTrue(data["result"], msg=data)
-            self.assertEqual(data["data"], assert_data)
+                self.assertTrue(data["result"], msg=data)
+                self.assertEqual(data["data"], assert_data)
 
-        with patch(
-            TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(filter_result=[])),
-        ):
-            assert_data = []
+            with patch(
+                TASKTEMPLATE_SELECT_RELATE,
+                MagicMock(return_value=MockQuerySet(filter_result=[])),
+            ):
+                assert_data = []
 
-            response = self.client.get(path=self.url().format(project_id=TEST_PROJECT_ID))
+                response = self.client.get(
+                    path=self.url().format(project_id=TEST_PROJECT_ID),
+                    HTTP_BK_APP_CODE=TEST_APP_CODE,
+                    HTTP_BK_USERNAME=TEST_USERNAME,
+                )
 
-            data = json.loads(response.content)
+                data = json.loads(response.content)
 
-            self.assertTrue(data["result"], msg=data)
-            self.assertEqual(data["data"], assert_data)
+                self.assertTrue(data["result"], msg=data)
+                self.assertEqual(data["data"], assert_data)
 
     @patch(
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -105,7 +134,8 @@ class GetTemplateListAPITest(APITest):
         task_templates = [task_tmpl1, task_tmpl2]
 
         with patch(
-            COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(filter_result=task_templates)),
+            COMMONTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(filter_result=task_templates)),
         ):
             assert_data = [
                 {
@@ -125,7 +155,10 @@ class GetTemplateListAPITest(APITest):
             ]
 
             response = self.client.get(
-                path=self.url().format(project_id=TEST_PROJECT_ID), data={"template_source": "common"},
+                path=self.url().format(project_id=TEST_PROJECT_ID),
+                data={"template_source": "common"},
+                HTTP_BK_APP_CODE=TEST_APP_CODE,
+                HTTP_BK_USERNAME=TEST_USERNAME,
             )
 
             self.assertEqual(response.status_code, 200)
@@ -136,12 +169,16 @@ class GetTemplateListAPITest(APITest):
             self.assertEqual(data["data"], assert_data)
 
         with patch(
-            COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(filter_result=[])),
+            COMMONTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(filter_result=[])),
         ):
             assert_data = []
 
             response = self.client.get(
-                path=self.url().format(project_id=TEST_PROJECT_ID), data={"template_source": "common"},
+                path=self.url().format(project_id=TEST_PROJECT_ID),
+                data={"template_source": "common"},
+                HTTP_BK_APP_CODE=TEST_APP_CODE,
+                HTTP_BK_USERNAME=TEST_USERNAME,
             )
 
             data = json.loads(response.content)

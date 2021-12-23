@@ -248,6 +248,9 @@
         data () {
             const theEditingData = tools.deepClone(this.variableData)
             const { source_type, custom_type, hide_condition: hideCondition } = theEditingData
+            if (!('is_condition_hide' in theEditingData)) { // 添加自动隐藏默认值
+                theEditingData.is_condition_hide = false
+            }
             const isHookedVar = ['component_inputs', 'component_outputs'].includes(source_type)
             const currentValType = isHookedVar ? 'component' : custom_type
             const hideConditionList = hideCondition && hideCondition.length ? hideCondition : [{ constant_key: '', operator: '', value: '' }]
