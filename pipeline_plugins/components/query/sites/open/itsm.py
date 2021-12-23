@@ -41,6 +41,9 @@ class ITSMNodeTransitionView(APIView):
     @action(methods=["POST"], detail=False)
     def post(self, request):
         # 获取请求中的参数并判断
+        # 由于序列化器bool字段会默认给值,所以需要提前在序列化器校验之前校验is_passed
+        if not request.data.get("is_passed"):
+            return Response({"result": False, "message": "is_passed 该字段是必填项"})
         operator = request.user.username
         serializer = ITSMViewRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -54,40 +57,51 @@ class ITSMNodeTransitionView(APIView):
         # 获取当前任务id以及节点id查询目前的itsm单据sn
         task_flow_instance_query = TaskFlowInstance.objects.filter(pk=serializer_data["task_id"],
                                                                    project_id=serializer_data["project_id"])
-        if not task_flow_instance_query.count():
+        if not task_flow_instance_query.exists():
             return Response({"result": False, "message": "查询不到任务记录"})
 
+        # 获取节点详情
         node_detail = task_flow_instance_query.first().get_node_detail(serializer_data["node_id"], operator,
                                                                        project_id=serializer_data["project_id"])
-        if not node_detail:
-            return Response({"result": False, "message": "获取节点数据失败"})
+        if not node_detail["result"]:
+            message = node_detail["message"]
+            logger.error(message)
+            result = {"result": False, "message": message}
+            return Response(result)
 
+        # 获取节点输出
         node_outputs = node_detail["data"]["outputs"]
-
         if not node_outputs:
-            return Response({"result": False, "message": "获取该节点输出参数失败"})
+            return Response({"result": False, "message": "获取该节点输出参数为空"})
 
-        # 获取单号
+        # 从node_outputs中获取单号
         sn = ""
         for node_output in node_outputs:
             if node_output["key"] == "sn":
                 sn = node_output["value"]
                 break
         if not sn:
-            return Response({"result": False, "message": "获取该审批节点itsm单据失败"})
+            return Response({"result": False, "message": "该审批节点输出参数中没有itsm单据(sn)"})
 
         # 创建client
         client = BKItsmClient(username=operator)
+
+        # 获取单据信息查询节点id
         ticket_info_result = client.get_ticket_info(sn)
-
         if not ticket_info_result["result"]:
-            return Response({"result": False, "message": ticket_info_result["message"]})
+            message = handle_api_error("itsm", "get_ticket_info", request.data, ticket_info_result)
+            logger.error(message)
+            result = {"result": False, "message": message}
+            return Response(result)
 
+        # 获取当前单据的步骤
         ticket_info_data = ticket_info_result["data"]
         current_steps = ticket_info_data["current_steps"]
 
-        # 获取itsm节点id
+        # 获取itsm节点id部分
         state_id = ""
+        # 由于标准运维生成的审批流程是itsm特定的,所以当审批步骤的name为"内置审批节点"时
+        # 则可以认为该节点是审批节点
         for current_step in current_steps:
             if current_step["name"] == "内置审批节点":
                 state_id = current_step["state_id"]
@@ -106,6 +120,10 @@ class ITSMNodeTransitionView(APIView):
             elif ticket_field["name"] == "审批意见":
                 field = {"key": ticket_field["key"], "value": str(serializer_data["is_passed"]).lower()}
                 fields.append(field)
+            # 由于审批时,审批通过和审批拒绝时的"备注"字段是不同的,并且不可区分
+            # 所以不管是通过还是拒绝,都需要将两个备注字段赋值写入
+            # 并且审批是否通过的布尔值小写写入,所以一共需要写入三个字段
+            # 所以此处判断fields长度为3时即可以认为两个备注和一个审批意见都已写入,使用break结束循环
             if len(fields) == 3:
                 break
 
