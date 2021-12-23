@@ -21,18 +21,19 @@
                 :node="node"
                 :has-admin-perm="hasAdminPerm"
                 @onNodeCheckClick="onNodeCheckClick"
-                @onRetryClick="onRetryClick"
-                @onSkipClick="onSkipClick"
-                @onModifyTimeClick="onModifyTimeClick"
-                @onGatewaySelectionClick="onGatewaySelectionClick"
-                @onTaskNodeResumeClick="onTaskNodeResumeClick"
-                @onForceFail="onForceFail"
+                @onRetryClick="$emit('onRetryClick', $event)"
+                @onSkipClick="$emit('onSkipClick', $event)"
+                @onModifyTimeClick="$emit('onModifyTimeClick', $event)"
+                @onGatewaySelectionClick="$emit('onGatewaySelectionClick', $event)"
+                @onTaskNodeResumeClick="$emit('onTaskNodeResumeClick', $event)"
+                @onApprovalClick="$emit('onApprovalClick', $event)"
+                @onForceFail="$emit('onForceFail', $event)"
                 @onSubflowPauseResumeClick="onSubflowPauseResumeClick"
                 @onSubflowDetailClick="onSubflowDetailClick" />
             <i
                 v-if="editable"
                 class="common-icon-dark-circle-close close-icon"
-                @click.stop="onNodeRemove">
+                @click.stop="$emit('onNodeRemove', node)">
             </i>
         </div>
         <!-- 节点输入输出变量(node.name用来判断节点是否选择过插件) -->
@@ -151,27 +152,6 @@
             },
             onNodeCheckClick (id, val) {
                 this.$emit('onNodeCheckClick', id, val)
-            },
-            onNodeRemove () {
-                this.$emit('onNodeRemove', this.node)
-            },
-            onRetryClick (id) {
-                this.$emit('onRetryClick', id)
-            },
-            onForceFail (id) {
-                this.$emit('onForceFail', id)
-            },
-            onSkipClick (id) {
-                this.$emit('onSkipClick', id)
-            },
-            onModifyTimeClick (id) {
-                this.$emit('onModifyTimeClick', id)
-            },
-            onGatewaySelectionClick (id) {
-                this.$emit('onGatewaySelectionClick', id)
-            },
-            onTaskNodeResumeClick (id) {
-                this.$emit('onTaskNodeResumeClick', id)
             },
             onSubflowPauseResumeClick (id, value) {
                 this.$emit('onSubflowPauseResumeClick', id, value)

@@ -48,7 +48,8 @@ def get_periodic_task_list(request, project_id):
     )
     for task_info in data:
         task_id = task_info["id"]
+        task_info.setdefault("auth_actions", [])
         for action, allowed in periodic_task_allowed_actions.get(str(task_id), {}).items():
             if allowed:
-                task_info.setdefault("auth_actions", []).append(action)
+                task_info["auth_actions"].append(action)
     return {"result": True, "data": data, "code": err_code.SUCCESS.code}

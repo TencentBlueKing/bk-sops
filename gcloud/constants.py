@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from enum import Enum
 from django.utils.translation import ugettext_lazy as _
 
 PROJECT = "project"
@@ -188,3 +189,14 @@ AE = AnalysisElement()
 
 TASKFLOW_NODE_AUTO_RETRY_MAX_TIMES = 10
 TASKFLOW_NODE_AUTO_RETRY_BATCH_CREATE_COUNT = 5000
+
+TASKFLOW_NODE_TIMEOUT_CONFIG_BATCH_CREAT_COUNT = 5000
+
+class Type(Enum):
+    STRING = "string"
+    INT = "int"
+    FLOAT = "float"
+    BOOL = "bool"
+    LIST = "list"
+    DICT = "dict"
+    OBJECT = "object"

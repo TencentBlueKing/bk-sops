@@ -36,7 +36,7 @@ from gcloud.core.models import EngineConfig
 from gcloud.common_template.models import CommonTemplate
 from gcloud.commons.tastypie import GCloudModelResource
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.constants import PROJECT
 from gcloud.core.resources import ProjectResource
@@ -363,6 +363,13 @@ class TaskFlowInstanceResource(GCloudModelResource):
             taskflow_id=bundle.obj.id, root_pipeline_id=pipeline_instance.instance_id
         )
         arn_creator.batch_create_strategy(pipeline_instance.execution_data)
+
+        # create timeout config
+        TimeoutNodeConfig.objects.batch_create_node_timeout_config(
+            taskflow_id=bundle.obj.id,
+            root_pipeline_id=pipeline_instance.instance_id,
+            pipeline_tree=pipeline_instance.execution_data,
+        )
 
         return bundle
 
