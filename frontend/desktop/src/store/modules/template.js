@@ -937,6 +937,13 @@ const template = {
         getBatchForms ({ commit }, data) {
             const { projectId, tpls } = data
             return axios.post(`template/api/batch_form/${projectId}/`, { templates: tpls }).then(response => response.data)
+        },
+        // 获取所有mako模板操作
+        getMakoOperations ({ commit }) {
+            return axios.get('mako_operations/').then(response => response.data)
+        },
+        getVariableFieldExplain ({ commit }) {
+            return axios.get('template/api/variable_field_explain/').then(response => response.data)
         }
     },
     getters: {

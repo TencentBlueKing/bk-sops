@@ -47,6 +47,10 @@ class DataTable(LazyVariable):
     meta_tag = "datatable.datatable_meta"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("表格变量"))
+    desc = """
+    引用表格变量某一列某一行的属性，如 ${KEY.columnA[0]} -> "test1"
+    引用表格变量某一列的全部属性，多行用换行符 `\n` 分隔，如 ${KEY.flat__columnA} -> "test1\ntest2"
+    """
 
     def get_value(self):
         """

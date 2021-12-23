@@ -39,9 +39,10 @@ def get_common_template_list(request):
     )
     for template in templates_data:
         template_id = template["id"]
+        template.setdefault("auth_actions", [])
         for action, allowed in common_templates_allowed_actions.get(str(template_id), {}).items():
             if allowed:
-                template.setdefault("auth_actions", []).append(action)
+                template["auth_actions"].append(action)
     return {
         "result": True,
         "data": templates_data,

@@ -191,30 +191,30 @@
                 {
                     name: i18n.t('全选'),
                     checked: false,
-                    type: 'all'
+                    code: 'all'
                 }, {
                     name: i18n.t('输入'),
                     checked: false,
-                    type: 'input'
+                    code: 'input'
                 }, {
                     name: i18n.t('输出'),
                     checked: false,
-                    type: 'output'
+                    code: 'output'
                 }
             ]
             const varShowList = [
                 {
                     name: i18n.t('全选'),
                     checked: false,
-                    type: 'all'
+                    code: 'all'
                 }, {
                     name: i18n.t('显示'),
                     checked: false,
-                    type: 'show'
+                    code: 'show'
                 }, {
                     name: i18n.t('隐藏'),
                     checked: false,
-                    type: 'hide'
+                    code: 'hide'
                 }
             ]
             return {
@@ -291,14 +291,19 @@
                         this.variableList = userVars
                     } else {
                         const sysVars = Object.keys(this.internalVariable)
-                            .map(key => tools.deepClone(this.internalVariable[key]))
-                            .sort((a, b) => b.index - a.index)
+                            .map(key => {
+                                const values = tools.deepClone(this.internalVariable[key])
+                                values.isSysVar = true
+                                return values
+                            }).sort((a, b) => b.index - a.index)
                         this.variableList = [...sysVars, ...userVars]
                     }
                     // 获取变量类型
                     await this.getVarTypeList()
                     // 克隆变量列表来进行过滤
                     this.cloneVariableList = tools.deepClone(this.variableList)
+                    // 过滤
+                    this.handleFilter()
                 } catch (error) {
                     console.warn(error)
                 } finally {
@@ -312,24 +317,36 @@
                         this.varTypeList = await this.loadCustomVarCollection()
                     }
                     const varTypeList = tools.deepClone(this.varTypeList)
+                    let isHasComponent = false
                     const listData = this.variableList.reduce((acc, cur) => {
                         if (cur.key in this.internalVariable) {
-                            this.$set(cur, 'type', i18n.t('组件'))
+                            const varInfo = this.internalVariable[cur.key]
+                            this.$set(cur, 'type', varInfo.source_type === 'system' ? i18n.t('系统变量') : i18n.t('业务变量'))
                         } else {
                             const result = varTypeList.find(item => item.code === cur.custom_type && item.tag === cur.source_tag)
                             if (result) {
                                 this.$set(cur, 'type', result.name)
-                                result.checked = false
+                                result.checked = this.checkedTypeList.includes(cur.custom_type)
                                 acc.push(result)
+                            } else {
+                                this.$set(cur, 'type', i18n.t('组件'))
+                                isHasComponent = true
                             }
                         }
                         return acc
                     }, [])
-                    if (!this.isHideSystemVar) {
-                        listData.unshift({ checked: false, name: i18n.t('组件'), code: 'component' })
+                    if (isHasComponent) {
+                        listData.unshift({ checked: this.checkedTypeList.includes('component'), name: i18n.t('组件'), code: 'component' })
                     }
-                    listData.unshift({ checked: false, name: i18n.t('全部'), code: 'all' })
-                    this.globalVarTypeList = listData
+                    if (!this.isHideSystemVar) {
+                        const internalVar = [
+                            { checked: this.checkedTypeList.includes('system'), name: i18n.t('系统变量'), code: 'system' },
+                            { checked: this.checkedTypeList.includes('project'), name: i18n.t('业务变量'), code: 'project' }
+                        ]
+                        listData.unshift(...internalVar)
+                    }
+                    listData.unshift({ checked: this.checkedTypeList.includes('all'), name: i18n.t('全部'), code: 'all' })
+                    this.globalVarTypeList = [...new Set(listData)]
                 } catch (e) {
                     console.log(e)
                 }
@@ -340,7 +357,7 @@
                     this.checkedTypeList = list
                 } else if (type === 'attributes') {
                     this.checkedAttrList = list
-                } else {
+                } else if (type === 'show') {
                     this.checkedShowList = list
                 }
                 const checkObj = {
@@ -359,7 +376,12 @@
                                 let str = ''
                                 if (key === 'custom_type') {
                                     const isComponent = item.key in this.internalVariable
-                                    str = isComponent ? 'component' : item[key]
+                                    if (isComponent) {
+                                        const varInfo = this.internalVariable[item.key]
+                                        str = varInfo.source_type === 'system' ? 'system' : 'project'
+                                    } else {
+                                        str = item[key] || 'component'
+                                    }
                                 } else if (key === 'source_type') {
                                     const isInput = item.source_type !== 'component_outputs'
                                     str = isInput ? 'input' : 'output'
