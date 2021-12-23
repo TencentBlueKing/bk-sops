@@ -252,6 +252,13 @@
                     {{ $t('修改时间') }}
                 </bk-button>
                 <bk-button
+                    v-if="nodeDetailConfig.component_code === 'bk_approve'"
+                    theme="primary"
+                    data-test-id="taskExcute_form_approvalBtn"
+                    @click="$emit('onApprovalClick', nodeDetailConfig.node_id)">
+                    {{ $t('审批') }}
+                </bk-button>
+                <bk-button
                     v-if="location.type !== 'subflow'"
                     data-test-id="taskExcute_form_mandatoryFailBtn"
                     @click="mandatoryFailure">

@@ -38,6 +38,7 @@ class BKItsmClient(BKComponentClient):
             },
         )
 
+
     def get_ticket_info(self, sn):
         return self._request(
             method="post",
@@ -46,6 +47,8 @@ class BKItsmClient(BKComponentClient):
                 "sn": sn
             },
         )
+
+
 
     def operate_node(self, sn, operator, state_id, action_type, fields=None, processors_type=None, processors=None,
                      action_message=None):
