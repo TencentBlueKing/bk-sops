@@ -383,7 +383,7 @@ def export_yaml_templates(request: Request):
 
     yaml_data = convert_result["data"]
     file_data = yaml.dump_all(yaml_data, allow_unicode=True, sort_keys=False)
-    filename = "bk_sops_%s_%s.yaml" % (template_type, time_now_str())
+    filename = "bk_sops_%s_%s.yaml" % (project_id or template_type, time_now_str())
     response = HttpResponse()
     response["Content-Disposition"] = "attachment; filename=%s" % filename
     response["mimetype"] = "application/octet-stream"
