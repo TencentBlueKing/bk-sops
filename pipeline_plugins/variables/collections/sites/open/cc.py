@@ -13,22 +13,27 @@ specific language governing permissions and limitations under the License.
 
 import logging
 import re
+from typing import List
 
 from django.conf import settings
 from django.contrib.admin.utils import flatten
 from django.utils.translation import ugettext_lazy as _
 
+from gcloud.constants import Type
+from gcloud.core.models import Project
+from gcloud.utils.cmdb import get_business_host
+from gcloud.utils.ip import get_ip_by_regex
+from gcloud.conf import settings as gcloud_settings
 from pipeline.core.data.var import LazyVariable
 from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
 from pipeline_plugins.base.utils.inject import supplier_account_for_project
 from pipeline_plugins.base.utils.adapter import cc_get_inner_ip_by_module_id
 from pipeline_plugins.components.utils import cc_get_ips_info_by_str
 from pipeline_plugins.components.utils.common import ip_re
-from gcloud.core.models import Project
-from gcloud.utils.cmdb import get_business_host
-from gcloud.utils.ip import get_ip_by_regex
+from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain
 
 logger = logging.getLogger("root")
+get_client_by_user = gcloud_settings.ESB_GET_CLIENT_BY_USER
 
 
 class VarIpPickerVariable(LazyVariable):
@@ -90,7 +95,7 @@ class VarIpPickerVariable(LazyVariable):
         return data
 
 
-class VarCmdbIpSelector(LazyVariable):
+class VarCmdbIpSelector(LazyVariable, SelfExplainVariable):
     code = "ip_selector"
     name = _("IP选择器")
     type = "dynamic"
@@ -105,6 +110,10 @@ class VarCmdbIpSelector(LazyVariable):
     - 是，返回格式为{cloud_id}:{ip},{cloud_id}:{ip}
     - 否，返回格式为{ip},{ip}
     """
+
+    @classmethod
+    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="选择的IP列表，以,分隔")]
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
@@ -172,7 +181,7 @@ class SetDetailData(object):
         return self._pipeline_var_str_value
 
 
-class VarCmdbSetAllocation(LazyVariable):
+class VarCmdbSetAllocation(LazyVariable, SelfExplainVariable):
     code = "set_allocation"
     name = _("集群资源筛选")
     type = "general"
@@ -181,7 +190,7 @@ class VarCmdbSetAllocation(LazyVariable):
     desc = """
     此变量用于按照资源筛选方案配置的新集群信息（此变量不会在 CMDB 创建新集群）
     引用${KEY}，返回的是创建集群成功的信息Allocate {set_number} sets with names: {set_names}
-    引用${KEY._module}，返回的是集群下的模块信息，类型为字典，键为模块名，值为模块下的主机列
+    引用${KEY._module}，返回的是集群下的模块信息列表，元素类型为字典，键为模块名，值为模块下的主机列
     引用${KEY.{集群属性编码}}，返回的是本次操作创建的所有集群的指定属性值的列表
     如：
     获取集群的名称列表: ${KEY.bk_set_name}
@@ -195,6 +204,56 @@ class VarCmdbSetAllocation(LazyVariable):
     引用${KEY.flat__verbose_ip_module_list}，返回的是本次操作创建的所有模块名称，格式为set_name>module_name，用 ',' 连接
     """
 
+    @classmethod
+    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
+
+        fields = [
+            FieldExplain(key="${KEY}", type=Type.OBJECT, description="集群资源筛选结果对象"),
+            FieldExplain(key="${KEY.set_count}", type=Type.INT, description="新增集群数量"),
+            FieldExplain(key="${KEY._module}", type=Type.LIST, description="集群下的模块信息列表，元素类型为字典，键为模块名，值为模块下的主机列"),
+            FieldExplain(key="${KEY.flat__ip_list}", type=Type.STRING, description="本次操作创建的所有集群下的主机（去重后），用 ',' 连接"),
+            FieldExplain(
+                key="${KEY.flat__verbose_ip_list}", type=Type.STRING, description="返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接",
+            ),
+            FieldExplain(
+                key="${KEY.flat__verbose_ip_module_list}",
+                type=Type.STRING,
+                description="本次操作创建的所有模块名称，格式为set_name>module_name，用 ',' 连接",
+            ),
+        ]
+
+        client = get_client_by_user(settings.SYSTEM_USE_API_ACCOUNT)
+        params = {"bk_obj_id": "set"}
+        if "bk_biz_id" in kwargs:
+            params["bk_biz_id"] = kwargs["bk_biz_id"]
+        resp = client.cc.search_object_attribute(params)
+        resp_data = []
+
+        if not resp["result"]:
+            logger.error("[_self_explain] %s search_object_attribute err: %s" % (cls.tag, resp["message"]))
+        else:
+            resp_data = resp["data"]
+
+        for item in resp_data:
+            if not item["editable"]:
+                continue
+            fields.append(
+                FieldExplain(
+                    key="${KEY.%s}" % item["bk_property_id"],
+                    type=Type.LIST,
+                    description="集群属性(%s)列表" % item["bk_property_name"],
+                )
+            )
+            fields.append(
+                FieldExplain(
+                    key="${KEY.flat__%s}" % item["bk_property_id"],
+                    type=Type.STRING,
+                    description="集群属性(%s)列表，以,分隔" % item["bk_property_name"],
+                )
+            )
+
+        return fields
+
     def get_value(self):
         """
         @summary: 返回 SetDetailData 对象
@@ -207,7 +266,7 @@ class VarCmdbSetAllocation(LazyVariable):
         return SetDetailData(self.value["data"], separator)
 
 
-class VarCmdbAttributeQuery(LazyVariable):
+class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
     code = "attribute_query"
     name = _("主机属性查询器")
     type = "dynamic"
@@ -218,6 +277,12 @@ class VarCmdbAttributeQuery(LazyVariable):
     例如，通过 ${hosts["1.1.1.1"]["bk_host_id"]} 获取主机在 CMDB 中的唯一 ID
     更多可使用的主机属性请在 CMDB 主机模型页面查阅
     """
+
+    @classmethod
+    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
+        return [
+            FieldExplain(key="${KEY}", type=Type.DICT, description="主机属性查询结果"),
+        ]
 
     def get_value(self):
         """

@@ -67,9 +67,10 @@ def get_task_list(request, project_id):
     task_allowed_actions = get_task_allowed_actions_for_user(request.user.username, TASK_ACTIONS, task_id_list)
     for task_info in task_list:
         task_id = task_info["id"]
+        task_info.setdefault("auth_actions", [])
         for action, allowed in task_allowed_actions.get(str(task_id), {}).items():
             if allowed:
-                task_info.setdefault("auth_actions", []).append(action)
+                task_info["auth_actions"].append(action)
 
     response = {
         "result": True,

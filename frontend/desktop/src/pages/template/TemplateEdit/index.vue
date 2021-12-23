@@ -913,17 +913,27 @@
                     const variableCited = resp.data.defined
                     const nodeCitedInfo = Object.keys(variableCited).reduce((acc, key) => {
                         const values = variableCited[key]
-                        if (values.activities.length) {
-                            values.activities.forEach(nodeId => {
-                                const nodeInfo = constants[key]
-                                const type = nodeInfo.source_type !== 'component_outputs' ? 'input' : 'output'
+                        const nodeInfo = constants[key]
+                        if (nodeInfo.source_type === 'component_outputs') {
+                            const outputIds = Object.keys(nodeInfo.source_info) || []
+                            outputIds.forEach(nodeId => {
                                 if (!(nodeId in acc)) {
                                     acc[nodeId] = {
                                         'input': [],
                                         'output': []
                                     }
                                 }
-                                acc[nodeId][type].push(key)
+                                acc[nodeId]['output'].push(key)
+                            })
+                        } else {
+                            values.activities.forEach(nodeId => {
+                                if (!(nodeId in acc)) {
+                                    acc[nodeId] = {
+                                        'input': [],
+                                        'output': []
+                                    }
+                                }
+                                acc[nodeId]['input'].push(key)
                             })
                         }
                         return acc
