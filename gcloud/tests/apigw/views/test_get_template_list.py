@@ -150,6 +150,7 @@ class GetTemplateListAPITest(APITest):
                     "project_name": TEST_PROJECT_NAME,
                     "bk_biz_id": TEST_PROJECT_ID,
                     "bk_biz_name": TEST_PROJECT_NAME,
+                    "auth_actions": [],
                 }
                 for tmpl in task_templates
             ]
