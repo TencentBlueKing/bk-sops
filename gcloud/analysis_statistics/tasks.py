@@ -160,7 +160,6 @@ def taskflowinstance_post_save_statistics_task(task_instance_id, created):
         task_template = TaskTemplate.objects.get(id=taskflow_instance.template_id)
         # 统计流程标准插件个数，子流程个数，网关个数
         kwargs = {
-            "task_instance_id": taskflow_instance.id,
             "instance_id": pipeline_instance.id,
             "project_id": taskflow_instance.project.id,
             "category": task_template.category,
@@ -173,16 +172,17 @@ def taskflowinstance_post_save_statistics_task(task_instance_id, created):
             "elapsed_time": calculate_elapsed_time(pipeline_instance.start_time, pipeline_instance.finish_time),
             "create_method": taskflow_instance.create_method,
         }
+        kwargs["atom_total"], kwargs["subprocess_total"], kwargs["gateways_total"] = count_pipeline_tree_nodes(
+            pipeline_instance.execution_data
+        )
         if created:
-            kwargs["atom_total"], kwargs["subprocess_total"], kwargs["gateways_total"] = count_pipeline_tree_nodes(
-                pipeline_instance.execution_data
-            )
-
-        # 使用create代替update_or_create消除不必要的数据行加锁避免产生死锁
-        TaskflowStatistics.objects.create(**kwargs)
+            kwargs["task_instance_id"] = taskflow_instance.id
+            TaskflowStatistics.objects.create(**kwargs)
+        else:
+            TaskflowStatistics.objects.update(task_instance_id=taskflow_instance.id, defaults=kwargs)
         return True
     except Exception as e:
-        logger.error(
+        logger.exception(
             (
                 "task_flow_post_handler save TaskflowStatistics[instance_id={instance_id}] " "raise error: {error}"
             ).format(instance_id=task_instance_id, error=e)
