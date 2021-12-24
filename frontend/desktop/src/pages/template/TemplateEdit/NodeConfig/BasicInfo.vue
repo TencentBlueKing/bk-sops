@@ -93,12 +93,12 @@
                     </bk-checkbox>
                     <span v-if="formData.autoRetry.enable" class="auto-retry-times">
                         <bk-input
-                            :value="formData.autoRetry.times"
+                            v-model.number="formData.autoRetry.times"
                             type="number"
                             style="width: 60px; margin: 0 4px;"
                             :max="10"
                             :min="1"
-                            @change="onRetryTimeChange">
+                            @change="updateData">
                         </bk-input>
                         {{ $t('次') }}
                     </span>
@@ -117,6 +117,7 @@
                 <i v-bk-tooltips="errorHandleTipsConfig" ref="tooltipsHtml" class="bk-icon icon-question-circle form-item-tips"></i>
             </bk-form-item>
             <bk-form-item :label="$t('超时控制')">
+                <i v-bk-tooltips="{ placement: 'top', content: $t('该功能仅对V2引擎生效') }" class="bk-icon icon-question-circle form-item-tips"></i>
                 <div class="timeout-setting-wrap">
                     <bk-switcher
                         theme="primary"
@@ -129,10 +130,11 @@
                     <template v-if="formData.timeoutConfig.enable">
                         {{ $t('超时') }}
                         <bk-input
-                            v-model="formData.timeoutConfig.seconds"
+                            v-model.number="formData.timeoutConfig.seconds"
+                            :min="0"
+                            :max="maxNodeExecuteTimeout"
                             type="number"
                             style="width: 75px; margin: 0 4px;"
-                            :min="0"
                             @change="updateData">
                         </bk-input>
                         {{ $t('秒后') }}{{ $t('，') }}{{ $t('则') }}
@@ -238,6 +240,7 @@
                 subflowLoading: false,
                 version: this.basicInfo.version,
                 formData: tools.deepClone(this.basicInfo),
+                maxNodeExecuteTimeout: window.MAX_NODE_EXECUTE_TIMEOUT,
                 pluginRules: {
                     plugin: [
                         {
@@ -315,7 +318,7 @@
                     allowHtml: true,
                     width: 400,
                     content: '#html-error-ingored-tootip',
-                    placement: 'bottom-end'
+                    placement: 'top'
                 }
             }
         },
@@ -476,10 +479,6 @@
                         action: 'forced_fail'
                     }
                 }
-                this.updateData()
-            },
-            onRetryTimeChange (val) {
-                this.formData.autoRetry.times = Number(val)
                 this.updateData()
             },
             onTimeoutChange (val) {

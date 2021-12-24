@@ -1284,7 +1284,8 @@ const en = {
     '超时控制': 'Timeout Config',
     '秒后': 'seconds later',
     '则': '',
-    '强制失败后跳过': 'skip after the force fails'
+    '强制失败后跳过': 'skip after the force fails',
+    '该功能仅对V2引擎生效': 'This function takes effect only for the V2 engine'
 }
 
 export default en
