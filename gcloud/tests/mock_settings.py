@@ -151,6 +151,7 @@ TEMPLATE_STATISTICS_CREATE = "gcloud.analysis_statistics.models.TemplateStatisti
 
 TASKFLOW_STATISTICS_FILTER = "gcloud.analysis_statistics.models.TaskflowStatistics.objects.filter"
 TASKFLOW_STATISTICS_CREATE = "gcloud.analysis_statistics.models.TaskflowStatistics.objects.create"
+TASKFLOW_STATISTICS_UPDATE = "gcloud.analysis_statistics.models.TaskflowStatistics.objects.update"
 
 TEMPLATE_NODE_STATISTICS_FILTER = "gcloud.analysis_statistics.models.TemplateNodeStatistics.objects.filter"
 TEMPLATE_NODE_STATISTICS_CREATE = "gcloud.analysis_statistics.models.TemplateNodeStatistics.objects.create"
