@@ -28,7 +28,7 @@ TASK_RESULT = [
     (-1, '接口调用失败'),
 ]
 """
-
+import logging
 import traceback
 import re
 from functools import partial
@@ -49,6 +49,8 @@ from pipeline_plugins.components.utils.common import batch_execute_func
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
 # 9.状态异常; 10.步骤强制终止中; 11.步骤强制终止成功; 12.步骤强制终止失败
+
+logger = logging.getLogger("celery")
 
 JOB_SUCCESS = {3}
 JOB_VAR_TYPE_IP = 2
@@ -358,6 +360,8 @@ class JobScheduleService(JobService):
 
         batch_result_list = batch_execute_func(client.job.get_job_instance_log, params_list, interval_enabled=True)
 
+        self.logger.info("批量请求get_job_instance_log 结果为:{}".format(batch_result_list))
+
         # 重置查询 job_id
         data.outputs.job_id_of_batch_execute = []
 
@@ -387,7 +391,7 @@ class JobScheduleService(JobService):
                 data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
                     job_detail_url
                 )
-
+                self.logger.error("请求job_id({}),结果为:{}".format(job_id_str, result.get("message")))
         # 需要继续轮询的任务
         data.outputs.job_id_of_batch_execute = running_task_list
         # 结束调度
@@ -442,7 +446,9 @@ class Jobv3Service(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
+                        "jobv3.get_job_instance_global_var_value",
+                        get_var_kwargs,
+                        global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
