@@ -24,58 +24,6 @@
                     <span>
                         {{ variableData.key ? $t('编辑') : $t('新建') }}{{ $t('全局变量') }}
                     </span>
-                    <!-- 快捷操作按钮 -->
-                    <div class="quick-insert-btn" @click="handleQuickInsertPanel">
-                        {{ $t('模板生成器') }}
-                        <div
-                            class="quick-operate-panel"
-                            v-if="isQuickInsertPanelShow"
-                            v-bkloading="{ isLoading: isPanelLoading }"
-                            @click.stop>
-                            <div class="header-wrap">
-                                <span>{{ $t('选择操作') }}</span>
-                                <bk-select v-model="selectOperate" ext-popover-cls="operate-popover" @change="handleOperateChange">
-                                    <bk-option
-                                        v-for="(operate, index) in operationList"
-                                        :key="index"
-                                        :id="operate.name"
-                                        :name="operate.name">
-                                    </bk-option>
-                                </bk-select>
-                            </div>
-                            <div class="operate-wrap" @click="isShowErrorMsg = false">
-                                <div
-                                    class="template-item"
-                                    v-for="(template, index) in selectOperateInfo.template"
-                                    :key="index">
-                                    <span>{{ template }}</span>
-                                    <bk-select
-                                        v-if="index === 0"
-                                        v-model="selectVarField"
-                                        ext-popover-cls="variable-field-popover"
-                                        @change="handleVarFieldChange">
-                                        <bk-option
-                                            v-for="(field, fieldIndex) in varFiledList"
-                                            :key="fieldIndex"
-                                            :id="field.key"
-                                            :name="field.key + $t('（') + field.description + $t('）')">
-                                        </bk-option>
-                                    </bk-select>
-                                    <bk-input
-                                        v-else-if="index !== selectOperateInfo.template.length - 1"
-                                        :value="selectOperateInfo.params[index - 1].value"
-                                        @change="(val) => selectOperateInfo.params[index - 1].value = val">
-                                    </bk-input>
-                                </div>
-                            </div>
-                            <p v-if="isShowErrorMsg" class="error-msg">{{ $t('请填写完整参数') }}</p>
-                            <div class="btn-wrap">
-                                <bk-button class="mr5" theme="primary" @click="onGenerateMakoTemp">{{ $t('生成并复制代码') }}</bk-button>
-                                <bk-button @click="onResetMakoTemp">{{ $t('重置') }}</bk-button>
-                            </div>
-                            <div class="render-wrap">{{ makoTemplate }}</div>
-                        </div>
-                    </div>
                 </template>
                 <template v-else>
                     <span
@@ -149,6 +97,59 @@
                                 </bk-table>
                             </div>
                         </bk-popover>
+                    </div>
+                    <!-- 快捷操作按钮 -->
+                    <div class="quick-insert-btn" @click="handleQuickInsertPanel">
+                        {{ $t('模板生成器') }}
+                        <div
+                            class="quick-operate-panel"
+                            v-if="isQuickInsertPanelShow"
+                            v-bkloading="{ isLoading: isPanelLoading }"
+                            @click.stop>
+                            <div class="header-wrap">
+                                <span>{{ $t('选择操作') }}</span>
+                                <bk-select v-model="selectOperate" ext-popover-cls="operate-popover" @change="handleOperateChange">
+                                    <bk-option
+                                        v-for="(operate, index) in operationList"
+                                        :key="index"
+                                        :id="operate.name"
+                                        :name="operate.name">
+                                    </bk-option>
+                                </bk-select>
+                            </div>
+                            <div class="operate-wrap" @click="isShowErrorMsg = false">
+                                <div
+                                    class="template-item"
+                                    v-for="(template, index) in selectOperateInfo.template"
+                                    :key="index">
+                                    <template v-if="selectOperateInfo.operators[template]">
+                                        <bk-select
+                                            v-model="selectOperateInfo.operators[template].value"
+                                            ext-popover-cls="variable-field-popover"
+                                            @change="handleVarFieldChange">
+                                            <bk-option
+                                                v-for="(field, fieldIndex) in varFiledList"
+                                                :key="fieldIndex"
+                                                :id="field.key"
+                                                :name="field.key + $t('（') + field.description + $t('）')">
+                                            </bk-option>
+                                        </bk-select>
+                                    </template>
+                                    <template v-else-if="selectOperateInfo.params[template]">
+                                        <bk-input v-model="selectOperateInfo.params[template].value"></bk-input>
+                                    </template>
+                                    <template v-else>
+                                        <span>{{ template }}</span>
+                                    </template>
+                                </div>
+                            </div>
+                            <p v-if="isShowErrorMsg" class="error-msg">{{ $t('请填写完整参数') }}</p>
+                            <div class="btn-wrap">
+                                <bk-button class="mr5" theme="primary" @click="onGenerateMakoTemp">{{ $t('生成并复制代码') }}</bk-button>
+                                <bk-button @click="onResetMakoTemp">{{ $t('重置') }}</bk-button>
+                            </div>
+                            <div class="render-wrap">{{ makoTemplate }}</div>
+                        </div>
                     </div>
                 </template>
             </div>
@@ -349,7 +350,6 @@
                 selectOperate: '',
                 operationList: [],
                 selectOperateInfo: {},
-                selectVarField: '',
                 globalVarFiled: [],
                 varFiledList: [],
                 isShowErrorMsg: false,
@@ -1519,14 +1519,24 @@
                     const { variable_field_explain: varFiledExplain } = resp2.data
                     if (varFiledExplain && varFiledExplain.length) {
                         const list = varFiledExplain.reduce((acc, cur) => {
-                            const match = this.variableList.find(item => item.source_tag === cur.tag)
-                            if (match) {
-                                cur.fields.forEach(item => {
-                                    const varKey = match.key.replace(/^\$\{([^\}]*)\}$/, ($, $1) => $1)
-                                    item.key = item.key.replace('KEY', varKey)
-                                })
-                                acc.push(...cur.fields)
-                            }
+                            this.variableList.forEach(item => {
+                                if (item.source_tag === cur.tag) {
+                                    const listData = []
+                                    cur.fields.forEach(field => {
+                                        const varKey = item.key.replace(/^\$\{([^\}]*)\}$/, ($, $1) => $1)
+                                        let description = field.description
+                                        if (item.key in this.internalVariable && item.source_type !== 'system') {
+                                            description = item.desc
+                                        }
+                                        listData.push({
+                                            key: field.key.replace('KEY', varKey),
+                                            type: field.type,
+                                            description
+                                        })
+                                    })
+                                    acc.push(...listData)
+                                }
+                            })
                             return acc
                         }, []) || []
                         this.globalVarFiled = list
@@ -1539,7 +1549,6 @@
             },
             // 切换操作方式
             handleOperateChange (val) {
-                this.selectVarField = ''
                 this.makoTemplate = ''
                 let info = this.operationList.find(item => item.name === this.selectOperate)
                 let operateVarList = []
@@ -1554,13 +1563,25 @@
                             tempStr += item + i18n.t('，')
                         }
                     })
-                    info.params.forEach(item => {
-                        item.value = ''
-                    })
-                    info.template = tempStr.split(/\{[^\}]*\}/g)
+                    info.template = tempStr.split(/\{|\}/g)
+                    // 重新定义params和operators数据格式
+                    info.params = info.params.reduce((acc, cur) => {
+                        acc[cur.name] = {
+                            value: '',
+                            type: cur.type
+                        }
+                        return acc
+                    }, {})
+                    info.operators = info.operators.reduce((acc, cur) => {
+                        acc[cur.name] = {
+                            value: '',
+                            type: cur.type
+                        }
+                        return acc
+                    }, {})
                     // 重置可操作的变量列表
                     let typeList = new Set()
-                    info.operators.forEach(operator => {
+                    Object.values(info.operators).forEach(operator => {
                         typeList.add(operator.type)
                     })
                     typeList = [...typeList]
@@ -1572,26 +1593,35 @@
             },
             // 切换需要操作的变量
             handleVarFieldChange () {
-                this.selectOperateInfo.params.forEach(item => {
+                const { params } = this.selectOperateInfo
+                Object.values(params).forEach(item => {
                     item.value = ''
                 })
                 this.makoTemplate = ''
             },
             // 生成mako模板
             onGenerateMakoTemp () {
-                let { params, mako_template: makoTemplate } = this.selectOperateInfo
+                let { params, operators, mako_template: makoTemplate } = this.selectOperateInfo
                 params = tools.deepClone(params)
-                const value = this.selectVarField.replace(/^\$\{([^\}]*)\}$/, ($, $1) => $1)
-                params.push({
-                    name: 'caller',
-                    value
-                })
-                const isValidateFail = params.some(item => !item.value)
+                operators = tools.deepClone(operators)
+                let isValidateFail = false
+                const replaceObj = Object.assign({}, params, operators)
+                const replaceArr = Object.keys(replaceObj).reduce((acc, key) => {
+                    const values = replaceObj[key]
+                    acc.push({
+                        name: key,
+                        value: values.value.replace(/^\$\{([^\}]*)\}$/, ($, $1) => $1)
+                    })
+                    if (!values.value) {
+                        isValidateFail = true
+                    }
+                    return acc
+                }, [])
                 if (isValidateFail) {
                     this.isShowErrorMsg = true
                     return
                 }
-                params.forEach(item => {
+                replaceArr.forEach(item => {
                     makoTemplate = makoTemplate.replace(`{${item.name}}`, item.value)
                 })
                 this.makoTemplate = makoTemplate
@@ -1599,12 +1629,10 @@
             },
             // 重置mako模板
             onResetMakoTemp () {
-                this.selectVarField = ''
-                const { params } = this.selectOperateInfo
-                params && params.forEach(item => {
+                Object.values(this.selectOperateInfo.operators).forEach(item => {
                     item.value = ''
                 })
-                this.makoTemplate = ''
+                this.handleVarFieldChange()
             },
             // 操作快捷框关闭判断
             handleClickOutside (e) {
@@ -1638,10 +1666,10 @@
         }
         .quick-insert-btn {
             position: absolute;
-            top: 18px;
+            top: 14px;
             right: 20px;
             font-weight: normal;
-            line-height: 1;
+            line-height: 19px;
             font-size: 14px;
             padding: 6px 13px;
             background: #f0f1f5;
@@ -1650,11 +1678,14 @@
         }
         .view-variable {
             position: absolute;
-            top: 24px;
-            right: 30px;
-            font-size: 12px;
-            color: #3a84ff;
-            line-height: 1;
+            top: 20px;
+            right: 140px;
+            font-size: 14px;
+            line-height: 19px;
+            font-weight: normal;
+            &:hover {
+                color: #3a84ff;
+            }
         }
         .variable-back-icon {
             font-size: 32px;
@@ -1711,7 +1742,7 @@
 }
 .quick-operate-panel {
     position: absolute !important;
-    top: 41px;
+    top: 45px;
     right: 0px;
     width: 506px;
     padding: 16px;
@@ -1740,7 +1771,7 @@
         display: flex;
         align-items: center;
         flex-wrap: wrap;
-        margin: 15px 0 25px;
+        margin: 5px 0 25px;
         .template-item {
             display: flex;
             align-items: center;
@@ -1749,17 +1780,12 @@
                 flex-shrink: 0;
             }
             .bk-select {
-                flex: 1;
-                max-width: 455px;
-                margin-left: 5px;
+                width: 300px;
+                margin: 0 5px;
             }
             .bk-form-control {
                 width: 100px;
                 margin: 0 5px;
-            }
-            &:first-child {
-                margin-top: 0;
-                width: 100%;
             }
         }
     }
