@@ -135,8 +135,7 @@
                             :max="maxNodeExecuteTimeout"
                             type="number"
                             style="width: 75px; margin: 0 4px;"
-                            @
-                            ="updateData">
+                            @change="updateData">
                         </bk-input>
                         {{ $t('秒后') }}{{ $t('，') }}{{ $t('则') }}
                         <bk-select
