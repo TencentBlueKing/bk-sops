@@ -96,9 +96,9 @@
                     notifyType: [[]],
                     receiverGroup: []
                 },
-                notifyTypeLoading: true,
+                notifyTypeLoading: false,
                 allNotifyTypeList: [],
-                notifyGroupLoading: true,
+                notifyGroupLoading: false,
                 projectNotifyGroup: []
             }
         },

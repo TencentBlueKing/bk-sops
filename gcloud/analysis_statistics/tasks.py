@@ -172,15 +172,17 @@ def taskflowinstance_post_save_statistics_task(task_instance_id, created):
             "elapsed_time": calculate_elapsed_time(pipeline_instance.start_time, pipeline_instance.finish_time),
             "create_method": taskflow_instance.create_method,
         }
+        kwargs["atom_total"], kwargs["subprocess_total"], kwargs["gateways_total"] = count_pipeline_tree_nodes(
+            pipeline_instance.execution_data
+        )
         if created:
-            kwargs["atom_total"], kwargs["subprocess_total"], kwargs["gateways_total"] = count_pipeline_tree_nodes(
-                pipeline_instance.execution_data
-            )
-
-        TaskflowStatistics.objects.update_or_create(task_instance_id=taskflow_instance.id, defaults=kwargs)
+            kwargs["task_instance_id"] = taskflow_instance.id
+            TaskflowStatistics.objects.create(**kwargs)
+        else:
+            TaskflowStatistics.objects.update(task_instance_id=taskflow_instance.id, defaults=kwargs)
         return True
     except Exception as e:
-        logger.error(
+        logger.exception(
             (
                 "task_flow_post_handler save TaskflowStatistics[instance_id={instance_id}] " "raise error: {error}"
             ).format(instance_id=task_instance_id, error=e)

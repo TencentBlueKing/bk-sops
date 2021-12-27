@@ -12,22 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 
 
-TASKTMPL_ORDERBY_OPTIONS = [
-    {"name": "模板ID", "value": "id"},
-    {"name": "创建时间", "value": "create_time"},
-    {"name": "修改时间", "value": "edit_time"},
-    {"name": "模板类型", "value": "category"},
-]
-
-UserConfOption = {
-    "task_template_ordering": TASKTMPL_ORDERBY_OPTIONS,
-}
-
-
-def get_options_by_fileds(configs=None):
-    data = {}
-    if not configs:
-        return UserConfOption
-    for key in configs:
-        data[key] = UserConfOption[key]
-    return data
+def safe_for_json(data):
+    if data is None:
+        return True
+    elif isinstance(data, (str, bool, int, float)):
+        return True
+    elif isinstance(data, (tuple, list)):
+        return all(safe_for_json(x) for x in data)
+    elif isinstance(data, dict):
+        return all(isinstance(k, str) and safe_for_json(v) for k, v in data.items())
+    return False

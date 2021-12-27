@@ -705,7 +705,8 @@
                         this.logInfo = ''
                         return
                     }
-                    const { execution_info, outputs, inputs, log, history } = respData
+                    const { execution_info, outputs, log, history } = respData
+                    const inputs = respData.inputs || {}
                     const state = this.adminView ? execution_info.state : respData.state
                     this.isReadyStatus = ['RUNNING', 'SUSPENDED', 'FINISHED', 'FAILED'].indexOf(state) > -1
                     const version = this.nodeDetailConfig.version
