@@ -248,6 +248,9 @@
         data () {
             const theEditingData = tools.deepClone(this.variableData)
             const { source_type, custom_type, hide_condition: hideCondition } = theEditingData
+            if (!('is_condition_hide' in theEditingData)) { // 添加自动隐藏默认值
+                theEditingData.is_condition_hide = 'false'
+            }
             const isHookedVar = ['component_inputs', 'component_outputs'].includes(source_type)
             const currentValType = isHookedVar ? 'component' : custom_type
             const hideConditionList = hideCondition && hideCondition.length ? hideCondition : [{ constant_key: '', operator: '', value: '' }]
@@ -433,7 +436,7 @@
                 const variableList = Object.values(this.constants).filter(item => {
                     return this.variableData.key !== item.key
                         && item.source_type !== 'component_outputs'
-                        && includesType.includes(item.form_schema.type)
+                        && includesType.includes(item.form_schema && item.form_schema.type)
                 })
                 const variableKeys = variableList.map(item => item.key)
                 const list = []
