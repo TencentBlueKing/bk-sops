@@ -36,8 +36,11 @@ class TestTokenPermission(BasePermission):
         token = request.headers.get("Auto-Test-Token")
         if not (token and key):
             raise AuthenticationFailed("无效的token")
+        try:
+            token_str = base64.urlsafe_b64decode(token).decode("utf-8")
+        except Exception:  # noqa
+            raise AuthenticationFailed("无效的token")
 
-        token_str = base64.urlsafe_b64decode(token).decode("utf-8")
         token_list = token_str.split(":")
 
         if len(token_list) != 2:

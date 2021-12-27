@@ -98,13 +98,13 @@ OPERATIONS = [
         operators=[MakoOperator(name="path", type=Type.STRING)],
         params=[],
         template=["返回 {path} 的基本名称"],
-        mako_template="${os.path({path})}",
+        mako_template="${os.path.basename({path})}",
     ),
     MakoTemplateOperation(
         name="返回路径的目录名",
         operators=[MakoOperator(name="path", type=Type.STRING)],
         params=[],
         template=["返回 {path} 的目录名"],
-        mako_template="${os.dirname({path})}",
+        mako_template="${os.path.dirname({path})}",
     ),
 ]

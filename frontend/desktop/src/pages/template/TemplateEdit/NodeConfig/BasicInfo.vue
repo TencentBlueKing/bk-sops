@@ -65,7 +65,7 @@
                 <div class="error-handle">
                     <bk-checkbox
                         :value="formData.ignorable"
-                        :disabled="formData.autoRetry.enable"
+                        :disabled="formData.autoRetry.enable || formData.timeoutConfig.enable"
                         @change="onErrorHandlerChange($event, 'ignorable')">
                         <span class="error-handle-icon"><span class="text">AS</span></span>
                         {{ $t('自动跳过') }}
@@ -86,19 +86,19 @@
                     </bk-checkbox>
                     <bk-checkbox
                         :value="formData.autoRetry.enable"
-                        :disabled="formData.ignorable"
+                        :disabled="formData.ignorable || formData.timeoutConfig.enable"
                         @change="onErrorHandlerChange($event, 'autoRetry')">
                         <span class="error-handle-icon"><span class="text">AR</span></span>
                         {{ $t('自动重试') }}
                     </bk-checkbox>
                     <span v-if="formData.autoRetry.enable" class="auto-retry-times">
                         <bk-input
-                            :value="formData.autoRetry.times"
+                            v-model.number="formData.autoRetry.times"
                             type="number"
                             style="width: 60px; margin: 0 4px;"
                             :max="10"
                             :min="1"
-                            @change="onRetryTimeChange">
+                            @change="updateData">
                         </bk-input>
                         {{ $t('次') }}
                     </span>
@@ -115,6 +115,38 @@
                     <p>{{ $t('自动重试：标准插件节点如果执行失败，系统会自动以原参数进行重试。') }}</p>
                 </div>
                 <i v-bk-tooltips="errorHandleTipsConfig" ref="tooltipsHtml" class="bk-icon icon-question-circle form-item-tips"></i>
+            </bk-form-item>
+            <bk-form-item :label="$t('超时控制')">
+                <i v-bk-tooltips="{ placement: 'top', content: $t('该功能仅对V2引擎生效') }" class="bk-icon icon-question-circle form-item-tips"></i>
+                <div class="timeout-setting-wrap">
+                    <bk-switcher
+                        theme="primary"
+                        size="small"
+                        style="margin-right: 8px;"
+                        :value="formData.timeoutConfig.enable"
+                        :disabled="formData.ignorable || formData.autoRetry.enable"
+                        @change="onTimeoutChange">
+                    </bk-switcher>
+                    <template v-if="formData.timeoutConfig.enable">
+                        {{ $t('超时') }}
+                        <bk-input
+                            v-model.number="formData.timeoutConfig.seconds"
+                            :min="0"
+                            :max="maxNodeExecuteTimeout"
+                            type="number"
+                            style="width: 75px; margin: 0 4px;"
+                            @change="updateData">
+                        </bk-input>
+                        {{ $t('秒后') }}{{ $t('，') }}{{ $t('则') }}
+                        <bk-select
+                            style="width: 160px; margin-left: 4px;"
+                            v-model="formData.timeoutConfig.action"
+                            :clearable="false" @change="updateData">
+                            <bk-option id="forced_fail" :name="$t('强制失败')"></bk-option>
+                            <bk-option id="forced_fail_and_skip" :name="$t('强制失败后跳过')"></bk-option>
+                        </bk-select>
+                    </template>
+                </div>
             </bk-form-item>
             <bk-form-item :label="$t('是否可选')">
                 <bk-switcher
@@ -208,6 +240,7 @@
                 subflowLoading: false,
                 version: this.basicInfo.version,
                 formData: tools.deepClone(this.basicInfo),
+                maxNodeExecuteTimeout: window.MAX_NODE_EXECUTE_TIMEOUT,
                 pluginRules: {
                     plugin: [
                         {
@@ -285,7 +318,7 @@
                     allowHtml: true,
                     width: 400,
                     content: '#html-error-ingored-tootip',
-                    placement: 'bottom-end'
+                    placement: 'top'
                 }
             }
         },
@@ -439,10 +472,25 @@
                     }
                     this.formData[type] = val
                 }
+                if (val && ['autoRetry', 'ignorable'].includes(type)) {
+                    this.formData.timeoutConfig = {
+                        enable: false,
+                        seconds: 0,
+                        action: 'forced_fail'
+                    }
+                }
                 this.updateData()
             },
-            onRetryTimeChange (val) {
-                this.formData.autoRetry.times = Number(val)
+            onTimeoutChange (val) {
+                this.formData.timeoutConfig = {
+                    enable: val,
+                    seconds: 0,
+                    action: 'forced_fail'
+                }
+                if (val) {
+                    this.formData.ignorable = false
+                    this.formData.autoRetry.enable = false
+                }
                 this.updateData()
             },
             onSelectableChange (val) {
@@ -457,12 +505,15 @@
                 this.updateData()
             },
             updateData () {
-                const { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, alwaysUseLatest, autoRetry } = this.formData
+                const {
+                    version, nodeName, stageName, nodeLabel, ignorable, skippable,
+                    retryable, selectable, alwaysUseLatest, autoRetry, timeoutConfig
+                } = this.formData
                 let data
                 if (this.isSubflow) {
                     data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, latestVersion: this.version }
                 } else {
-                    data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, autoRetry }
+                    data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, autoRetry, timeoutConfig }
                 }
                 this.$emit('update', data)
             },
@@ -524,6 +575,13 @@
         font-size: 12px;
         line-height: 1;
         color: #ffb400;
+    }
+    .timeout-setting-wrap {
+        display: flex;
+        align-items: center;
+        height: 32px;
+        font-size: 12px;
+        color: #63656e;
     }
     /deep/ .bk-form {
         .bk-label {
