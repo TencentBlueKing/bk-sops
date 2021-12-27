@@ -493,18 +493,6 @@
                 }
                 this.updateData()
             },
-            onTimeoutChange (val) {
-                this.formData.timeoutConfig = {
-                    enable: val,
-                    seconds: 0,
-                    action: 'forced_fail'
-                }
-                if (val) {
-                    this.formData.ignorable = false
-                    this.formData.autoRetry.enable = false
-                }
-                this.updateData()
-            },
             onSelectableChange (val) {
                 this.formData.selectable = val
                 this.updateData()
