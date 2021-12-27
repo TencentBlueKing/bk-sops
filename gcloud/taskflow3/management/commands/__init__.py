@@ -10,17 +10,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-from pipeline_plugins.components.query.sites.open.cc import cc_urlpatterns
-from pipeline_plugins.components.query.sites.open.file_upload import file_upload_urlpatterns
-from pipeline_plugins.components.query.sites.open.itsm import itsm_urlpatterns
-from pipeline_plugins.components.query.sites.open.job import job_urlpatterns
-from pipeline_plugins.components.query.sites.open.nodeman import nodeman_urlpatterns
-from pipeline_plugins.components.query.sites.open.monitor import monitor_urlpatterns
-
-urlpatterns = cc_urlpatterns
-urlpatterns += file_upload_urlpatterns
-urlpatterns += job_urlpatterns
-urlpatterns += nodeman_urlpatterns
-urlpatterns += monitor_urlpatterns
-urlpatterns += itsm_urlpatterns

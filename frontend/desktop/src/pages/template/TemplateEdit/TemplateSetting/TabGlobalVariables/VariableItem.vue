@@ -66,6 +66,7 @@
                 <bk-switcher
                     size="small"
                     theme="primary"
+                    :disabled="variableData.isSysVar"
                     :value="variableData.show_type === 'show'">
                 </bk-switcher>
             </span>
