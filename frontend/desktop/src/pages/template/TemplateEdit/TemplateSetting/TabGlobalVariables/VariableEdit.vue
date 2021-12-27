@@ -248,6 +248,9 @@
         data () {
             const theEditingData = tools.deepClone(this.variableData)
             const { source_type, custom_type, hide_condition: hideCondition } = theEditingData
+            if (!('is_condition_hide' in theEditingData)) { // 添加自动隐藏默认值
+                theEditingData.is_condition_hide = 'false'
+            }
             const isHookedVar = ['component_inputs', 'component_outputs'].includes(source_type)
             const currentValType = isHookedVar ? 'component' : custom_type
             const hideConditionList = hideCondition && hideCondition.length ? hideCondition : [{ constant_key: '', operator: '', value: '' }]
@@ -410,7 +413,7 @@
                 }
                 this.getAtomConfig()
             }
-            this.getTriggerCondInfo()
+            this.setTriggerCondInfo()
         },
         methods: {
             ...mapActions('template/', [
@@ -427,19 +430,17 @@
                 'setOutputs'
             ]),
             // 获取触发条件数据
-            getTriggerCondInfo () {
+            setTriggerCondInfo () {
                 if (!this.theEditingData.is_condition_hide) return
-                const includesType = ['input', 'select', 'textarea']
                 const variableList = Object.values(this.constants).filter(item => {
-                    return this.variableData.key !== item.key
-                        && item.source_type !== 'component_outputs'
-                        && includesType.includes(item.form_schema.type)
+                    return this.variableData.key !== item.key && item.source_type !== 'component_outputs'
                 })
                 const variableKeys = variableList.map(item => item.key)
                 const list = []
-                this.hideConditionList.forEach(item => {
+                this.hideConditionList.forEach((item, index) => {
                     if (!variableKeys.includes(item.constant_key)) {
                         list.push(item.constant_key)
+                        this.hideConditionList.splice(index, 1)
                     }
                 })
                 let text = list.join(',')
@@ -713,7 +714,7 @@
              */
             onToggleHideCond (val) {
                 if (val === 'true' && !this.errorMsgText) {
-                    this.getTriggerCondInfo()
+                    this.setTriggerCondInfo()
                 }
                 this.theEditingData.is_condition_hide = val
                 this.isShowErrorMsg = false
