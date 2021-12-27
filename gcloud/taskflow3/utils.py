@@ -92,7 +92,7 @@ def parse_node_timeout_configs(pipeline_tree: dict) -> list:
     configs = []
     for act_id, act in pipeline_tree[pipeline_constants.PE.activities].items():
         if act["type"] == pipeline_constants.PE.SubProcess:
-            result = parse_node_timeout_configs(pipeline_tree)
+            result = parse_node_timeout_configs(act[pipeline_constants.PE.pipeline])
             if not result["result"]:
                 return result
             configs.extend(result["data"])
