@@ -1282,6 +1282,7 @@ const en = {
     '点击可快速定位原节点': 'Click to quickly locate the original node',
     '引用变量': 'Variable Reference',
     '透视': 'Perspective',
+    '审批': 'Transition',
     '超时': 'Timeout',
     '超时控制': 'Timeout Config',
     '秒后': 'seconds later',
