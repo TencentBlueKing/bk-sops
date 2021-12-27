@@ -1602,11 +1602,18 @@
             // 设置连线label可拖动
             setLabelDraggable (line, labelData) {
                 const self = this
+                let percent
+                const intialPos = { left: 0, top: 0 }
                 const instance = this.$refs.jsFlow.instance
                 const connection = this.$refs.jsFlow.instance.getConnections({ source: line.source.id, target: line.target.id })[0]
                 const label = connection.getOverlay(`condition${line.id}`)
                 const elLabel = label.getElement()
                 instance.draggable(elLabel, {
+                    start () {
+                        const rect = elLabel.getBoundingClientRect()
+                        intialPos.x = rect.x
+                        intialPos.y = rect.y
+                    },
                     drag () {
                         const pos = instance.getUIPosition(arguments, instance.getZoom())
                         const o1 = instance.getOffset(connection.endpoints[0].canvas)
@@ -1619,9 +1626,15 @@
                         }
                         const closest = self.getLabelPosition(connection, pos.left - o.left, pos.top - o.top)
                         label.loc = closest.totalPercent
+                        percent = closest.totalPercent
                         if (!instance.isSuspendDrawing()) {
                             label.component.repaint()
-                            const data = Object.assign({}, labelData, { loc: closest.totalPercent })
+                        }
+                    },
+                    stop () {
+                        const rect = elLabel.getBoundingClientRect()
+                        if (Math.abs(rect.x - intialPos.x) > 16 || Math.abs(rect.y - intialPos.y) > 16) {
+                            const data = Object.assign({}, labelData, { loc: percent })
                             self.$emit('updateCondition', data)
                             self.labelDrag = true
                         }

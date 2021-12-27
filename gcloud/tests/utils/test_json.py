@@ -11,23 +11,22 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.test import TestCase
 
-TASKTMPL_ORDERBY_OPTIONS = [
-    {"name": "模板ID", "value": "id"},
-    {"name": "创建时间", "value": "create_time"},
-    {"name": "修改时间", "value": "edit_time"},
-    {"name": "模板类型", "value": "category"},
-]
-
-UserConfOption = {
-    "task_template_ordering": TASKTMPL_ORDERBY_OPTIONS,
-}
+from gcloud.utils.json import safe_for_json
 
 
-def get_options_by_fileds(configs=None):
-    data = {}
-    if not configs:
-        return UserConfOption
-    for key in configs:
-        data[key] = UserConfOption[key]
-    return data
+class JsonTestCase(TestCase):
+    def test_safe_for_json(self):
+        class MyClass:
+            pass
+
+        self.assertTrue(safe_for_json(1))
+        self.assertTrue(safe_for_json(True))
+        self.assertTrue(safe_for_json(None))
+        self.assertTrue(safe_for_json("1"))
+        self.assertTrue(safe_for_json(1.1))
+        self.assertTrue(safe_for_json((1, 2)))
+        self.assertTrue(safe_for_json([1, 2]))
+        self.assertTrue(safe_for_json({"1": 2}))
+        self.assertFalse(safe_for_json(MyClass()))

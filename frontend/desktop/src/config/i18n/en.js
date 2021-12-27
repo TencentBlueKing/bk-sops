@@ -1292,6 +1292,8 @@ const en = {
     '转交': 'Transfer',
     '由': 'By',
     '提供': 'supply',
+    '删除失败！': 'Failed to delete!',
+    '删除成功！': 'Successfully deleted!',
     '系统变量': 'SYS-VARS',
     '业务变量': 'BUSINESS-VARS'
 }

@@ -98,10 +98,11 @@ const task = {
          * @param {String} payload 方案参数
          */
         getDefaultTaskScheme ({ commit }, payload) {
-            const { project_id, template_id } = payload
+            const { project_id, template_id, template_type } = payload
             const params = {
                 template_id,
-                project_id
+                project_id,
+                template_type
             }
             return axios.get('template/api/default_scheme/', { params }).then(response => response.data)
         },
@@ -110,10 +111,11 @@ const task = {
          * @param {String} payload 方案参数
          */
         saveDefaultScheme ({ commit }, payload) {
-            const { project_id, template_id, scheme_ids } = payload
+            const { project_id, template_id, scheme_ids, template_type } = payload
             const params = {
                 template_id,
                 project_id,
+                template_type,
                 scheme_ids
             }
             return axios.post('template/api/default_scheme/', params).then(response => response.data)
@@ -123,10 +125,11 @@ const task = {
          * @param {String} payload 方案参数
          */
         updateDefaultScheme ({ commit }, payload) {
-            const { project_id, template_id, scheme_ids, id } = payload
+            const { project_id, template_id, scheme_ids, id, template_type } = payload
             const params = {
                 template_id,
                 project_id,
+                template_type,
                 scheme_ids
             }
             return axios.put(`template/api/default_scheme/${id}/`, params).then(response => response.data)
