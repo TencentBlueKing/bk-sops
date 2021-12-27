@@ -138,16 +138,16 @@
                     }
                     changeVarInfo[item.key][key] = false
                     // 监听的变量和对应的隐藏变量
-                    const parmas = {
+                    const params = {
                         target_key: item.key,
                         operator,
                         value,
                         isOr: true // 与逻辑或或逻辑 默认或逻辑
                     }
                     if (key in watchVarInfo) {
-                        watchVarInfo[key].push(parmas)
+                        watchVarInfo[key].push(params)
                     } else {
-                        watchVarInfo[key] = [parmas]
+                        watchVarInfo[key] = [params]
                     }
                 })
             })
@@ -324,7 +324,7 @@
                 if (key in this.watchVarInfo) {
                     const values = this.watchVarInfo[key]
                     values.forEach(item => {
-                        let isEqual = val === item.value
+                        let isEqual = String(val) === String(item.value)
                         const index = this.scheme.findIndex(config => config.tag_code === item.target_key)
                         const targetTag = this.$children[index]
                         const relatedVarInfo = this.changeVarInfo[item.target_key]
