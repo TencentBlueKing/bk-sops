@@ -1,5 +1,9 @@
 # Release
 
+## 3.5.38
+- improvement
+  - 节点管理-创建任务插件支持多个IP
+
 ## 3.5.37
 
 - bugfix
