@@ -324,7 +324,7 @@
                 if (key in this.watchVarInfo) {
                     const values = this.watchVarInfo[key]
                     values.forEach(item => {
-                        let isEqual = String(val) === String(item.value)
+                        let isEqual = JSON.stringify(val) === JSON.stringify(item.value)
                         const index = this.scheme.findIndex(config => config.tag_code === item.target_key)
                         const targetTag = this.$children[index]
                         const relatedVarInfo = this.changeVarInfo[item.target_key]
