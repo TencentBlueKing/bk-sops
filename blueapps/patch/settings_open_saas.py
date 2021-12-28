@@ -41,9 +41,6 @@ INSTALLED_APPS = (
     INSTALLED_APPS[0 : INSTALLED_APPS.index("bkoauth")] + INSTALLED_APPS[INSTALLED_APPS.index("bkoauth") + 1 :]
 )
 
-# REMOTE_STATIC_URL
-REMOTE_STATIC_URL = "%sremote/" % STATIC_URL
-
 # 请求官方 API 默认版本号，可选值为："v2" 或 ""；其中，"v2"表示规范化API，
 # ""表示未规范化API.如果外面设置了该值则使用设置值,否则默认使用v2
 DEFAULT_BK_API_VER = locals().get("DEFAULT_BK_API_VER", "v2")
@@ -123,6 +120,9 @@ if is_open_saas_v2():  # V2
     BK_LOGIN_URL = BK_PAAS_HOST + "/login"
     BK_LOGIN_INNER_URL = BK_PAAS_INNER_HOST + "/login"
 
+    # V2环境 无该环境变量
+    BK_COMPONENT_API_URL = None
+
 else:  # V3
     # 蓝鲸PASS平台URL
     BK_PAAS_HOST = os.getenv("BK_PAAS2_URL", BK_URL).rstrip("/")
@@ -135,5 +135,12 @@ else:  # V3
     SECRET_KEY = APP_TOKEN = get_env_or_raise("BKPAAS_APP_SECRET")
 
     # 蓝鲸登陆页面
-    BK_LOGIN_URL = os.getenv("BK_LOGIN_URL", "%s/login" % BK_PAAS_HOST).rstrip("/")
+    BK_LOGIN_URL = os.getenv("BKPAAS_LOGIN_URL", "%s/login" % BK_PAAS_HOST).rstrip("/")
     BK_LOGIN_INNER_URL = os.getenv("BK_LOGIN_INNER_URL", "%s/login" % BK_PAAS_INNER_HOST).rstrip("/")
+
+    # 容器化V3 ESB地址
+    BK_COMPONENT_API_URL = os.getenv("BK_COMPONENT_API_URL")
+
+
+# REMOTE_STATIC_URL
+REMOTE_STATIC_URL = "%sremote/" % STATIC_URL
