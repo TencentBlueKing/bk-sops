@@ -438,7 +438,7 @@
                 const variableKeys = variableList.map(item => item.key)
                 const list = []
                 this.hideConditionList.forEach((item, index) => {
-                    if (!variableKeys.includes(item.constant_key)) {
+                    if (item.constant_key && !variableKeys.includes(item.constant_key)) {
                         list.push(item.constant_key)
                         this.hideConditionList.splice(index, 1)
                     }
