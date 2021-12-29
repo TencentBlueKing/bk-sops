@@ -57,7 +57,7 @@
                     placement: 'bottom',
                     zIndex: 3000
                 }"
-                @click="onHookForm">
+                @click="onHookForm(!hook)">
             </i>
             <i
                 :class="['common-icon-render-skip render-skip-icon', { actived: !render, disabled: !option.formEdit || hook }]"
@@ -200,11 +200,11 @@
                 fieldArr.unshift(this.scheme.tag_code)
                 this.$emit('change', fieldArr, val)
             },
-            onHookForm () {
+            onHookForm (val) {
                 if (!this.option.formEdit || !this.render) {
                     return
                 }
-                this.$emit('onHook', this.scheme.tag_code, !this.hook)
+                this.$emit('onHook', this.scheme.tag_code, val)
             },
             onRenderChange () {
                 if (!this.option.formEdit || this.hook) {
