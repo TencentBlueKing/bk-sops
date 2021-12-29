@@ -47,13 +47,20 @@ constant value, the type of value should be same with data from API[get_template
 ```
 {
     "app_code":"bk_sops",
+    "bk_app_secret":"xxx",
+    "bk_token":"xxx",
+    "bk_username":"xxx",
+    "template_id":"xxx",
+    "bk_biz_id":"xxx",
     "name": "tasktest",
     "flow_type": "common"
     "constants": {
         "${content}": "echo 1",
         "${params}": "",
         "${script_timeout}": 20
-    }
+    },
+    "exclude_task_nodes_id":[1, 2, 3],
+    "description":"description"
 }
 ```
 
@@ -105,7 +112,25 @@ constant value, the type of value should be same with data from API[get_template
                     "labels": []
                 }
             },
-            "constants": {},
+            "constants": {
+                "${bk_timing}": {
+                    "source_tag": "sleep_timer.bk_timing",
+                    "source_info": {
+                        "node76393dcfedcf73dbc726f1c4786d": [
+                            "bk_timing"
+                        ]
+                    },
+                    "name": "定时时间",
+                    "index": 0,
+                    "custom_type": "",
+                    "value": "100",
+                    "show_type": "show",
+                    "source_type": "component_inputs",
+                    "key": "${bk_timing}",
+                    "validation": "",
+                    "desc": ""
+                }
+            },
             "end_event": {
                 "id": "ncc1ac32fd1d338980c7831fd20bf908",
                 "incoming": [
@@ -193,6 +218,7 @@ constant value, the type of value should be same with data from API[get_template
         "task_id": 5,
         "task_url": "http://{PAAS_HOST}/taskflow/execute/3/?instance_id=5"
     },
+    "request_id": "xxx"
     "trace_id": "ebc2a953abbc4955a993f88242c7f808"
 }
 ```
@@ -201,11 +227,13 @@ constant value, the type of value should be same with data from API[get_template
 
 | Field      | Type      | Description      |
 |-----------|----------|-----------|
-|  result      |    bool    |   true/false, indicate success or failure     |
-|  data        |    dict  |   data returned when result is true, details are described below        |
+|  result      |    bool    |   true/false, indicate success or failure    |
+|  data        |    dict  |   data returned when result is true, details are described below       |
 |  message     |    string  |   error message returned when result is false |
+|  request_id     |    string  | esb request id |
+|  trace_id     |    string  | open telemetry trace_id|
 
-####  data
+#### data
 
 | Field      | Type      | Description      |
 |-----------|----------|-----------|
@@ -238,6 +266,6 @@ KEY, the format is like ${key}
 |  index      |    int    |       display order at the front end   |
 |  desc      |    string    |     description   |
 |  source_type  | string   |      source of variable, custom mean manual variable, component_inputs means variables comes from task node inputs parameters, component_outputs means variables comes from task node outputs parameters   |
-|  custom_type  | string   |      custom type, which is not empty when source_type is custom,  the value is input ,or textarea, or datetime, or int |
+|  custom_type  | string   |      custom type, which is not empty when source_type is custom, the value is input ,or textarea, or datetime, or int |
 |  source_tag   | string   |      source tag and plugin info, which is not empty when source_type is  component_inputs or component_outputs  |
 |  source_info | dict    |        source info about task node ID  |

@@ -25,7 +25,7 @@ POST
 
 | 字段          |  类型       | 必选   |  描述             |
 |---------------|------------|--------|------------------|
-|   project_id  |   int      |   是   |  项目ID           |
+|   bk_biz_id  |   int      |   是   |  项目ID           |
 |   name        |   string   |   是   |  任务名称         |
 |   pipeline_tree | dict     |   是   |  任务实例树，详细信息请见下面说明 |
 |   has_common_subprocess | bool | 否 |  所包含的子流程来源，true：来自公共流程模版，false：来自项目流程模版，默认值为false |
@@ -157,9 +157,13 @@ POST
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
     "name": "tasktest",
     "flow_type": "common",
+    "description":"...",
+    "has_common_subprocess":false
+    "category":"OpsTools"
     "pipeline_tree": {
         "start_event": {
             "incoming": "",
@@ -617,7 +621,9 @@ POST
             },
             "outputs": ["${bk_timing}"]
         }
-    }
+    },
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -628,8 +634,10 @@ POST
 |  result   |  bool    | true/false 操作是否成功     |
 |  data     |  dict    | result=true 时成功数据，详细信息请见下面说明      |
 |  message  |  string  | result=false 时错误信息     |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
-####  data
+#### data
 
 | 字段      | 类型      | 说明      |
 |-----------|----------|-----------|

@@ -34,7 +34,9 @@ Get all plugins info for a business
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
-    "bk_biz_id": "2"
+    "bk_username": "xxx",
+    "bk_biz_id": "2",
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -75,7 +77,9 @@ Get all plugins info for a business
             "version": "1.0.0",
             "form": "/static/components/atoms/job/job_push_local_files.js"
         }
-    ]
+    ],
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -86,6 +90,8 @@ Get all plugins info for a business
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    list    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |
 
 ##### data[item]
 

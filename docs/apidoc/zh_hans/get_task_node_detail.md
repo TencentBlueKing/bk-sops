@@ -36,6 +36,7 @@ GET
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
     "task_id": "10",
     "node_id": "node0df0431f8f553925af01a94854bd"
@@ -74,17 +75,20 @@ GET
             {
                 "value": 407584,
                 "name": "JOB任务ID",
-                "key": "job_inst_id"
+                "key": "job_inst_id",
+                "preset": true
             },
             {
                 "value": "",
                 "name": "JOB任务链接",
-                "key": "job_inst_url"
+                "key": "job_inst_url",
+                "preset": true
             },
             {
                 "value": true,
                 "name": "执行结果",
-                "key": "_result"
+                "key": "_result",
+                "preset": true
             }
         ],
         "state": "FINISHED",
@@ -93,7 +97,9 @@ GET
         "id": "node0df0431f8f553925af01a94854bd",
         "loop": 1
     },
-    "result": true
+    "result": true,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -104,6 +110,8 @@ GET
 |  result   |    bool    |      true/false 查询成功与否     |
 |  data     |    dict    |      result=true 时返回数据，详细信息见下面说明     |
 |  message  |    string  |      result=false 时错误信息     |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 #### data
 

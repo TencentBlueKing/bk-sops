@@ -36,8 +36,10 @@ Query a task execution details
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
-    "task_id": "10"
+    "task_id": "10",
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -46,6 +48,7 @@ Query a task execution details
 ```
 {
     "data": {
+        "name": "xxx",
         "creator": "admin",
         "outputs": [
             {
@@ -124,6 +127,7 @@ Query a task execution details
         "create_method": "app",
         "elapsed_time": 7,
         "ex_data": "",
+        "finish_time":"",
         "instance_name": "job_20190117121300",
         "end_time": "2019-01-17 04:13:15",
         "executor": "admin",
@@ -276,7 +280,9 @@ Query a task execution details
             ]
         }
     },
-    "result": true
+    "result": true,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -287,6 +293,8 @@ Query a task execution details
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    dict    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |
 
 
 #### data
