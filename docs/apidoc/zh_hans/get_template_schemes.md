@@ -34,7 +34,7 @@ GET
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
-    "bk_token": "bk_username",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
     "template_id": "12",
     "scope": "cmdb_biz"

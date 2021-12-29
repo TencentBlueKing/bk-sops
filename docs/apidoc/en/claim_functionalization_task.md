@@ -43,6 +43,7 @@ constant value
 {
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
+    "bk_token":"xxx",
     "bk_username":"xxx",
     "bk_biz_id": "2",
     "task_id": "8",
