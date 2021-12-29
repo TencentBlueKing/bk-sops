@@ -6,6 +6,7 @@
 
 GET
 
+
 ### Functional description
 
 Get functionalization task list, support filtering with functionalization task status, ID and original task ID.

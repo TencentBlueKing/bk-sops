@@ -431,8 +431,22 @@
                 .dark-circle {
                     float: left;
                     margin-right: 2px;
-                    font-size: 12px;
+                    font-size: 14px;
                     color: #979ba5;
+                }
+                .error-handle-icon {
+                    float: left;
+                    margin-right: 2px;
+                    padding: 0 3px;
+                    line-height: 12px;
+                    color: #ffffff;
+                    background: #979ba5;
+                    border-radius: 2px;
+                    .text {
+                        display: inline-block;
+                        font-size: 12px;
+                        transform: scale(0.8);
+                    }
                 }
             }
             .state-icon {
@@ -496,12 +510,25 @@
             }
             &.task-node-loop {
                 position: relative;
-                font-size: 16px;
-                > span {
+                height: 16px;
+                width: 16px;
+                color: #3a84ff;
+                background: #fff !important;
+                > i {
                     position: absolute;
-                    top: 1px;
-                    left: 5px;
-                    font-size: 12px;
+                    font-size: 14px;
+                }
+                > span {
+                    position: relative;
+                    top: -0.5px;
+                    font-weight: 700;
+                    font-size: 18px;
+                    transform: scale(.5);
+                }
+                &.loop-plural {
+                    width: 26px;
+                    height: 16px;
+                    border-radius: 8px;
                 }
             }
             @keyframes loading {

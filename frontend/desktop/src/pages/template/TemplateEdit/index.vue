@@ -60,7 +60,7 @@
                     :canvas-data="canvasData"
                     :node-memu-open.sync="nodeMenuOpen"
                     :plugin-loading="pagination.isLoading"
-                    @updatePluginList="updatePluginList"
+                    @updatePluginList="getThirdPluginList"
                     @hook:mounted="canvasMounted"
                     @onConditionClick="onOpenConditionEdit"
                     @templateDataChanged="templateDataChanged"
@@ -103,7 +103,7 @@
                     :back-to-variable-panel="backToVariablePanel"
                     :subflow-list-loading="subflowListLoading"
                     :plugin-loading="pagination.isLoading"
-                    @updatePluginList="updatePluginList"
+                    @updatePluginList="getThirdPluginList"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
@@ -138,7 +138,7 @@
                 v-model="isBatchUpdateDialogShow"
                 :close-icon="false"
                 :fullscreen="true"
-                data-test-id="templateEdit_from_batchUpdateDialog"
+                data-test-id="templateEdit_form_batchUpdateDialog"
                 :show-footer="false">
                 <batch-update-dialog
                     v-if="isBatchUpdateDialogShow"
@@ -156,7 +156,7 @@
                 :header-position="'left'"
                 :title="$t('离开页面')"
                 :value="isLeaveDialogShow"
-                data-test-id="templateEdit_from_leaveDialog"
+                data-test-id="templateEdit_form_leaveDialog"
                 @confirm="onLeaveConfirm"
                 @cancel="onLeaveCancel">
                 <div class="leave-tips">{{ $t('系统不会保存您所做的更改，确认离开？') }}</div>
@@ -168,7 +168,7 @@
                 :mask-close="false"
                 :show-footer="false"
                 :value="multipleTabDialogShow"
-                data-test-id="templateEdit_from_commonDialog"
+                data-test-id="templateEdit_form_commonDialog"
                 @cancel="multipleTabDialogShow = false">
                 <div class="multiple-tab-dialog-content">
                     <h3>{{ $t('确定保存修改的内容？') }}</h3>
@@ -185,7 +185,7 @@
                 :mask-close="false"
                 :show-footer="false"
                 :value="isExectueSchemeDialog"
-                data-test-id="templateEdit_from_tempEditDialog"
+                data-test-id="templateEdit_form_tempEditDialog"
                 @cancel="isExectueSchemeDialog = false">
                 <div class="template-edit-dialog-content">
                     <div class="save-tpl-tips">{{ tplEditDialogTip }}</div>
@@ -202,7 +202,7 @@
                 :mask-close="false"
                 :show-footer="false"
                 :value="isShowDialog"
-                data-test-id="templateEdit_from_conditeEditDialog"
+                data-test-id="templateEdit_form_conditeEditDialog"
                 @cancel="isShowDialog = false">
                 <div class="condition-edit-confirm-dialog-content">
                     <div class="leave-tips">{{ $t('保存已修改的信息吗？') }}</div>
@@ -331,6 +331,7 @@
                     limit: 15,
                     offset: 0,
                     count: 0,
+                    pageOver: false,
                     isLoading: false
                 },
                 totalPage: 0,
@@ -546,13 +547,8 @@
                     }
                     const data = await this.loadSingleAtomList(params)
 
-                    // 获取第三方插件列表每页多少条
-                    this.getPaginationLimit()
-                    const { limit, offset } = this.pagination
-                    const resp = await this.loadPluginServiceList({
-                        limit,
-                        offset
-                    })
+                    // 获取第三方插件列表
+                    this.getThirdPluginList()
                     // 内置插件
                     const atomList = []
                     data.forEach(item => {
@@ -576,10 +572,6 @@
                     this.atomList = this.handleAtomVersionOrder(atomList)
                     this.handleAtomGroup(atomList)
                     this.markNodesPhase()
-                    // 第三方插件
-                    this.pagination.count = resp.data.count
-                    this.pagination.offset = offset + limit
-                    this.atomTypeList.pluginList = resp.data.plugins
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -1512,28 +1504,32 @@
                     this.nodeGuide.instance.hide()
                 }
             },
-            async updatePluginList (val = undefined, type) {
+            // 获取第三方插件列表
+            async getThirdPluginList (val, type) {
                 try {
-                    if (type === 'scroll') {
-                        // 获取第三方插件列表每页多少条
-                        this.getPaginationLimit()
-                        const { limit, offset, count, isLoading } = this.pagination
-                        if (offset < count && !isLoading) {
-                            this.pagination.isLoading = true
-                            const params = { search_term: val, limit, offset }
-                            const resp = await this.loadPluginServiceList(params)
-                            const { count, plugins } = resp.data
-                            this.pagination.count = count
-                            this.pagination.offset = offset + limit
-                            this.atomTypeList.pluginList.push(...plugins)
-                            this.pagination.isLoading = false
-                        }
-                    } else {
-                        const { limit, offset } = this.pagination
-                        const params = { search_term: val, limit, offset }
-                        const resp = await this.loadPluginServiceList(params)
-                        this.atomTypeList.pluginList = resp.data.plugins
+                    this.getPaginationLimit() // 获取第三方插件列表每页多少条
+                    const { limit, offset, pageOver, isLoading } = this.pagination
+                    const isScrollLoad = type === 'scroll' // 是否为滚动加载
+                    // 加载时需要判断是否正在加载中,滚动加载需要额外判断是否加载完毕
+                    if (isLoading || (isScrollLoad && pageOver)) return
+                    this.pagination.isLoading = true
+                    const params = {
+                        search_term: val || undefined,
+                        limit,
+                        offset: isScrollLoad ? offset : 0,
+                        exclude_not_deployed: true
                     }
+                    const resp = await this.loadPluginServiceList(params)
+                    const { next_offset, plugins, return_plugin_count } = resp.data
+                    this.pagination.pageOver = limit !== return_plugin_count
+                    this.pagination.offset = next_offset
+                    const pluginList = plugins.map(item => item.plugin)
+                    if (isScrollLoad) {
+                        this.atomTypeList.pluginList.push(...pluginList)
+                    } else {
+                        this.atomTypeList.pluginList = pluginList
+                    }
+                    this.pagination.isLoading = false
                 } catch (error) {
                     this.pagination.isLoading = false
                     console.warn(error)

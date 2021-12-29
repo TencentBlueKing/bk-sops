@@ -15,6 +15,7 @@ import logging
 import os
 
 import requests
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from . import env
 from .conf import PLUGIN_CLIENT_LOGGER
@@ -40,28 +41,52 @@ class PluginServiceApiClient:
     @json_response_decoder
     def invoke(self, version, data):
         url, headers = self._prepare_apigw_api_request(path_params=["invoke", version])
-        return requests.post(url, data=json.dumps(data), headers=headers)
+
+        return PluginServiceApiClient._request_api_and_error_retry(
+            url, method="post", data=json.dumps(data), headers=headers
+        )
 
     @json_response_decoder
-    def dispatch_plugin_api_request(self, request_params):
+    def dispatch_plugin_api_request(self, request_params, inject_headers=None):
         url, headers = self._prepare_apigw_api_request(path_params=["plugin_api_dispatch"])
-        return requests.post(url, data=json.dumps(request_params), headers=headers)
+        if inject_headers:
+            headers.update(inject_headers)
+        # 上传文件的情况
+        if any([isinstance(data, InMemoryUploadedFile) for data in request_params["data"].values()]):
+            headers.pop("Content-Type")
+            files = dict(
+                [
+                    (key, (value.name, value.file.getvalue()))
+                    for key, value in request_params["data"].items()
+                    if isinstance(value, InMemoryUploadedFile)
+                ]
+            )
+            request_params.pop("data")
+            return PluginServiceApiClient._request_api_and_error_retry(
+                url, method="post", data=request_params, headers=headers, files=files
+            )
+        return PluginServiceApiClient._request_api_and_error_retry(
+            url, method="post", data=json.dumps(request_params), headers=headers
+        )
 
     @json_response_decoder
     def get_meta(self):
         url = os.path.join(self.plugin_host, "meta")
-        return requests.get(url)
+
+        return PluginServiceApiClient._request_api_and_error_retry(url, method="get")
 
     @json_response_decoder
     def get_detail(self, version):
         url = os.path.join(self.plugin_host, "detail", version)
-        return requests.get(url)
+
+        return PluginServiceApiClient._request_api_and_error_retry(url, method="get")
 
     @data_parser
     @json_response_decoder
     def get_schedule(self, trace_id):
         url = os.path.join(self.plugin_host, "schedule", trace_id)
-        return requests.get(url)
+
+        return PluginServiceApiClient._request_api_and_error_retry(url, method="get")
 
     @staticmethod
     @check_use_plugin_service
@@ -73,6 +98,7 @@ class PluginServiceApiClient:
 
     @staticmethod
     def get_plugin_list(search_term=None, limit=100, offset=0):
+        """获取插件服务列表"""
         # 如果不启动插件服务，直接返回空列表
         if not env.USE_PLUGIN_SERVICE == "1":
             return {"result": True, "message": "插件服务未启用，请联系管理员进行配置", "data": {"count": 0, "plugins": []}}
@@ -94,6 +120,19 @@ class PluginServiceApiClient:
         count = result["count"]
 
         return {"result": True, "message": None, "data": {"count": count, "plugins": plugins}}
+
+    @staticmethod
+    def get_plugin_detail_list(search_term=None, limit=100, offset=0, **kwargs):
+        """获取插件服务列表及详情信息"""
+        # 如果不启动插件服务，直接返回空列表
+        if not env.USE_PLUGIN_SERVICE == "1":
+            return {"result": True, "message": "插件服务未启用，请联系管理员进行配置", "data": {"count": 0, "plugins": []}}
+        result = PluginServiceApiClient.batch_get_paas_plugin_detailed_info(
+            search_term=search_term, environment="prod", limit=limit, offset=offset, **kwargs
+        )
+        if result.get("result") is False:
+            return result
+        return {"result": True, "message": None, "data": {"count": result["count"], "plugins": result["results"]}}
 
     @staticmethod
     @check_use_plugin_service
@@ -143,7 +182,19 @@ class PluginServiceApiClient:
             params.update({"limit": limit, "offset": offset, "has_deployed": True})
             if search_term:
                 params.update({"search_term": search_term})
-        return requests.get(url, params=params)
+        return PluginServiceApiClient._request_api_and_error_retry(url, method="get", params=params)
+
+    @staticmethod
+    @json_response_decoder
+    def batch_get_paas_plugin_detailed_info(environment=None, limit=100, offset=0, search_term=None, **kwargs):
+        """通过PaaS平台批量请求插件服务列表及对应详情"""
+        url, params = PluginServiceApiClient._prepare_paas_api_request(
+            path_params=["system/bk_plugins/batch/detailed"], environment=environment
+        )
+        params.update({"limit": limit, "offset": offset, "has_deployed": True, **kwargs})
+        if search_term:
+            params.update({"search_term": search_term})
+        return PluginServiceApiClient._request_api_and_error_retry(url, method="get", params=params)
 
     @staticmethod
     @json_response_decoder
@@ -155,7 +206,8 @@ class PluginServiceApiClient:
         params.update({"trace_id": trace_id})
         if scroll_id:
             params.update({"scroll_id": scroll_id})
-        return requests.get(url, params=params)
+
+        return PluginServiceApiClient._request_api_and_error_retry(url, method="get", params=params)
 
     def _prepare_apigw_api_request(self, path_params: list):
         """插件服务APIGW接口请求信息准备"""
@@ -182,3 +234,19 @@ class PluginServiceApiClient:
         )
         params = {"private_token": env.PAASV3_APIGW_API_TOKEN}
         return url, params
+
+    @staticmethod
+    def _request_api_and_error_retry(url, method, **kwargs):
+        """请求API接口,失败进行重试"""
+        for invoke_num in range(1, env.BKAPP_INVOKE_PAAS_RETRY_NUM + 1):
+            try:
+                result = getattr(requests, method)(url, **kwargs)
+                result.raise_for_status()
+                break
+            except requests.exceptions.RequestException as e:
+                message = "request api error,invoke_num:{},{} {},kwargs:{},error:{} ".format(
+                    invoke_num, method, url, kwargs, str(e)
+                )
+                logger.error(message.replace(env.PAASV3_APIGW_API_TOKEN, "******"))
+
+        return result

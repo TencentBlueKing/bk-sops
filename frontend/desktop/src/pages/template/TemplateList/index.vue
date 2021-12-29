@@ -52,16 +52,16 @@
                                 <i :class="['bk-icon icon-angle-down']"></i>
                             </div>
                             <ul class="batch-operation-list" slot="dropdown-content">
-                                <template v-for="operat in operatList">
+                                <template v-for="operate in operateList">
                                     <li
-                                        :key="operat.type"
+                                        :key="operate.type"
                                         v-bk-tooltips="{
-                                            content: operat.content,
-                                            disabled: !selectedTpls.length || (operat.isOther ? hasBatchEditAuth : hasBatchViewAuth) }"
-                                        :class="{ 'disabled': operat.isOther ? !hasBatchEditAuth : !hasBatchViewAuth }"
-                                        :data-test-id="`process_list_${operat.customAttr}`"
-                                        @click="onOperatClick(operat.type)">
-                                        {{ operat.value }}
+                                            content: operate.content,
+                                            disabled: !selectedTpls.length || (operate.isOther ? hasBatchEditAuth : hasBatchViewAuth) }"
+                                        :class="{ 'disabled': operate.isOther ? !hasBatchEditAuth : !hasBatchViewAuth }"
+                                        :data-test-id="`process_list_${operate.customAttr}`"
+                                        @click="onOperateClick(operate.type)">
+                                        {{ operate.value }}
                                     </li>
                                 </template>
                             </ul>
@@ -91,12 +91,12 @@
                             v-for="item in setting.selectedFields"
                             :key="item.id"
                             :label="item.label"
-                            :prop="item.id"
+                            :prop="item.key || item.id"
                             :width="item.width"
                             :min-width="item.min_width"
                             :render-header="renderTableHeader"
                             :sort-orders="['descending', 'ascending', null]"
-                            :sortable="item.sortable">
+                            :sortable="sortableCols.find(col => col.value === (item.key || item.id)) ? 'custom' : false">
                             <template slot-scope="{ row }">
                                 <!--流程名称-->
                                 <div v-if="item.id === 'name'">
@@ -149,12 +149,14 @@
                                             v-if="!hasPermission(['flow_create_task'], props.row.auth_actions)"
                                             v-cursor
                                             class="text-permission-disable"
+                                            data-test-id="process_table_newTaskBtn"
                                             @click="onTemplatePermissonCheck(['flow_create_task'], props.row)">
                                             {{$t('新建任务')}}
                                         </a>
                                         <router-link
                                             v-else
                                             class="template-operate-btn"
+                                            data-test-id="process_table_newTaskBtn"
                                             :to="getJumpUrl('newTask', props.row.id)">
                                             {{$t('新建任务')}}
                                         </router-link>
@@ -162,17 +164,20 @@
                                             v-if="!hasPermission(['flow_view'], props.row.auth_actions)"
                                             v-cursor
                                             class="text-permission-disable"
+                                            data-test-id="process_table_cloneBtn"
                                             @click="onTemplatePermissonCheck(['flow_view'], props.row)">
                                             {{$t('克隆')}}
                                         </a>
                                         <router-link
                                             v-else
                                             class="template-operate-btn"
+                                            data-test-id="process_table_cloneBtn"
                                             :to="getJumpUrl('clone', props.row.id)">
                                             {{$t('克隆')}}
                                         </router-link>
                                         <router-link
                                             class="template-operate-btn"
+                                            data-test-id="process_table_executeHistoryBtn"
                                             :to="getExecuteHistoryUrl(props.row.id)">
                                             {{ $t('执行历史')}}
                                         </router-link>
@@ -187,7 +192,7 @@
                                             :on-show="onShowMoreOperation">
                                             <i class="bk-icon icon-more drop-icon-ellipsis"></i>
                                             <ul slot="content">
-                                                <li class="opt-btn">
+                                                <li class="opt-btn" data-test-id="process_table_collectBtn">
                                                     <a
                                                         v-cursor="{ active: !hasPermission(['flow_view'], props.row.auth_actions) }"
                                                         href="javascript:void(0);"
@@ -199,7 +204,7 @@
                                                         {{ isCollected(props.row.id) ? $t('取消收藏') : $t('收藏') }}
                                                     </a>
                                                 </li>
-                                                <li class="opt-btn">
+                                                <li class="opt-btn" data-test-id="process_table_editBtn">
                                                     <a
                                                         v-if="!hasPermission(['flow_edit'], props.row.auth_actions)"
                                                         v-cursor
@@ -214,7 +219,7 @@
                                                         {{$t('编辑')}}
                                                     </router-link>
                                                 </li>
-                                                <li class="opt-btn">
+                                                <li class="opt-btn" data-test-id="process_table_deleteBtn">
                                                     <a
                                                         v-cursor="{ active: !hasPermission(['flow_delete'], props.row.auth_actions) }"
                                                         href="javascript:void(0);"
@@ -232,12 +237,14 @@
                             </template>
                         </bk-table-column>
                         <bk-table-column type="setting">
-                            <bk-table-setting-content
+                            <table-setting-content
                                 :fields="setting.fieldList"
                                 :selected="setting.selectedFields"
                                 :size="setting.size"
+                                :sortable-cols="sortableCols"
+                                :order="ordering"
                                 @setting-change="handleSettingChange">
-                            </bk-table-setting-content>
+                            </table-setting-content>
                         </bk-table-column>
                         <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
                     </bk-table>
@@ -290,6 +297,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
+    import TableSettingContent from '@/components/common/TableSettingContent.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
     import ListPageTipsTitle from '../ListPageTipsTitle.vue'
@@ -363,13 +371,11 @@
         {
             id: 'create_time',
             label: i18n.t('创建时间'),
-            sortable: 'custom',
             width: 200
         },
         {
             id: 'edit_time',
             label: i18n.t('更新时间'),
-            sortable: 'custom',
             width: 200
         },
         {
@@ -378,6 +384,7 @@
             width: 180
         },
         {
+            key: 'category',
             id: 'category_name',
             label: i18n.t('分类'),
             min_width: 180
@@ -403,6 +410,7 @@
             ExportTemplateDialog,
             ListPageTipsTitle,
             AdvanceSearchForm,
+            TableSettingContent,
             NoData
         },
         mixins: [permission],
@@ -437,7 +445,7 @@
             // 获取操作列表
             const noViewAuthTip = i18n.t('已选流程模板没有查看权限，请取消选择或申请权限')
             const noEditAuthTip = i18n.t('已选流程模板没有编辑权限，请取消选择或申请权限')
-            const operatList = [
+            const operateList = [
                 {
                     type: 'dat',
                     content: noViewAuthTip,
@@ -465,14 +473,16 @@
                 firstLoading: true,
                 listLoading: false,
                 projectInfoLoading: true, // 模板分类信息 loading
+                configLoading: true,
                 searchStr: '',
                 searchForm,
                 isSearchFormOpen, // 高级搜索表单默认展开
                 exportType: 'dat', // 模板导出类型
-                operatList,
+                operateList,
                 expiredSubflowTplList: [],
                 selectedTpls: [], // 选中的流程模板
                 templateList: [],
+                sortableCols: [],
                 isDeleteDialogShow: false,
                 isImportDialogShow: false,
                 isImportYamlDialogShow: false,
@@ -506,7 +516,7 @@
                 collectingId: '', // 正在被收藏/取消收藏的模板id
                 collectListLoading: false,
                 collectionList: [],
-                ordering: null, // 排序参数
+                ordering: this.$store.state.project.config.task_template_ordering, // 排序参数
                 darkColorList: DARK_COLOR_LIST,
                 tableFields: TABLE_FIELDS,
                 defaultSelected: ['id', 'name', 'label', 'edit_time', 'subprocess_has_update', 'creator_name'],
@@ -562,7 +572,7 @@
             this.getExpiredSubflowData()
             this.getCollectList()
             this.onSearchInput = tools.debounce(this.searchInputhandler, 500)
-            await this.getTemplateList()
+            await this.initData()
             this.firstLoading = false
         },
         beforeRouteLeave (to, from, next) {
@@ -589,11 +599,25 @@
                 'batchDeleteTpl'
             ]),
             ...mapActions('project/', [
-                'getProjectLabelsWithDefault'
+                'getProjectLabelsWithDefault',
+                'getUserProjectConfigOptions',
+                'setUserProjectConfig'
             ]),
             ...mapMutations('template/', [
                 'setProjectBaseInfo'
             ]),
+            async initData () {
+                try {
+                    this.configLoading = true
+                    const res = await this.getUserProjectConfigOptions({ id: this.project_id, params: { configs: 'task_template_ordering' } })
+                    this.sortableCols = res.data.task_template_ordering
+                    this.getTemplateList()
+                } catch (e) {
+                    console.error(e)
+                } finally {
+                    this.configLoading = false
+                }
+            },
             async getTemplateList () {
                 this.listLoading = true
                 try {
@@ -632,9 +656,9 @@
                     pipeline_template__creator__contains: creator || undefined,
                     category: category || undefined,
                     label_ids: label_ids && label_ids.length ? label_ids.join(',') : undefined,
+                    order_by: this.ordering,
                     subprocess_has_update,
-                    has_subprocess,
-                    order_by: this.ordering || undefined
+                    has_subprocess
                 }
 
                 if (queryTime[0] && queryTime[1]) {
@@ -891,8 +915,22 @@
                             const index = this.selectedTpls.findIndex(tpl => tpl.id === id)
                             this.selectedTpls.splice(index, 1)
                         })
+                        this.$bkMessage({
+                            message: i18n.t('流程') + i18n.t('删除成功！'),
+                            theme: 'success'
+                        })
                         this.pagination.current = 1
                         this.getTemplateList()
+                    } else if (Object.keys(res.data.references).length) {
+                        const deleteArr = []
+                        Object.values(res.data.references).forEach(item => {
+                            const value = item.template[0]
+                            deleteArr.push(`${value.name}(${value.id})`)
+                        })
+                        this.$bkMessage({
+                            message: i18n.t('流程') + deleteArr.join(i18n.t('，')) + i18n.t('删除失败！'),
+                            theme: 'error'
+                        })
                     }
                 }
                 return Promise.resolve()
@@ -908,7 +946,7 @@
                 this.isImportYamlDialogShow = false
                 this.getTemplateList()
             },
-            onOperatClick (type) {
+            onOperateClick (type) {
                 switch (type) {
                     case 'collect':
                         if (!this.hasBatchViewAuth) return
@@ -938,7 +976,7 @@
                 this.isDeleteDialogShow = true
             },
             // 表格功能选项
-            handleSettingChange ({ fields, size }) {
+            handleSettingChange ({ fields, size, order }) {
                 this.setting.size = size
                 this.setting.selectedFields = fields
                 const fieldIds = fields.map(m => m.id)
@@ -946,21 +984,28 @@
                     fieldList: fieldIds,
                     size
                 }))
+                if (order && order !== this.ordering) {
+                    this.ordering = order
+                    this.getTemplateList()
+                    this.setUserProjectConfig({ id: this.project_id, params: { task_template_ordering: order } })
+                }
             },
             handleSortChange ({ prop, order }) {
-                const params = 'pipeline_template__' + prop
                 if (order === 'ascending') {
-                    this.ordering = params
+                    this.ordering = prop
                 } else if (order === 'descending') {
-                    this.ordering = '-' + params
+                    this.ordering = '-' + prop
                 } else {
                     this.ordering = ''
                 }
                 this.pagination.current = 1
                 this.getTemplateList()
+                if (this.ordering) {
+                    this.setUserProjectConfig({ id: this.project_id, params: { task_template_ordering: this.ordering } })
+                }
             },
             renderTableHeader (h, { column, $index }) {
-                if (column.property !== 'category_name') {
+                if (column.property !== 'category') {
                     return column.label
                 }
 

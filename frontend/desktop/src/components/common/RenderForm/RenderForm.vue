@@ -99,7 +99,9 @@
         },
         data () {
             return {
-                value: tools.deepClone(this.formData)
+                value: tools.deepClone(this.formData),
+                watchVarInfo: {}, // 监听的变量
+                changeVarInfo: {} // 隐藏的变量
             }
         },
         computed: {
@@ -123,6 +125,40 @@
         },
         created () {
             this.checkValue(this.scheme, this.value)
+            // 设置变量自动隐藏对象
+            const watchVarInfo = {}
+            const changeVarInfo = {}
+            Object.values(this.constants).forEach(item => {
+                if (!item.hide_condition || !item.hide_condition.length) return
+                item.hide_condition.forEach(val => {
+                    const { constant_key: key, operator, value } = val
+                    // 隐藏的变量和对应的监听变量
+                    if (!(item.key in changeVarInfo)) {
+                        changeVarInfo[item.key] = {}
+                    }
+                    changeVarInfo[item.key][key] = false
+                    // 监听的变量和对应的隐藏变量
+                    const params = {
+                        target_key: item.key,
+                        operator,
+                        value,
+                        isOr: true // 与逻辑或或逻辑 默认或逻辑
+                    }
+                    if (key in watchVarInfo) {
+                        watchVarInfo[key].push(params)
+                    } else {
+                        watchVarInfo[key] = [params]
+                    }
+                })
+            })
+            this.watchVarInfo = watchVarInfo
+            this.changeVarInfo = changeVarInfo
+        },
+        mounted () {
+            if (!Object.keys(this.watchVarInfo).length) return
+            for (const [key, value] of Object.entries(this.formData)) {
+                this.setVariableHideLogic(key, value)
+            }
         },
         methods: {
             /**
@@ -275,9 +311,42 @@
                 }, fieldDataObj)
                 this.value = tools.deepClone(fieldDataObj) // 更新 value，通过下面触发 change 更新父组件 formData 后，watch 具有滞后性，导致 value 值不是最新的
                 this.$emit('change', fieldDataObj)
+                // 变量隐藏逻辑
+                if (!Object.keys(this.watchVarInfo).length) return
+                const key = fieldArr[0]
+                this.setVariableHideLogic(key, val)
             },
             updateHook (field, val) {
                 this.$emit('onHookChange', field, val)
+            },
+            // 设置变量隐藏逻辑
+            setVariableHideLogic (key, val) {
+                if (key in this.watchVarInfo) {
+                    const values = this.watchVarInfo[key]
+                    values.forEach(item => {
+                        let isEqual = JSON.stringify(val) === JSON.stringify(item.value)
+                        const index = this.scheme.findIndex(config => config.tag_code === item.target_key)
+                        const targetTag = this.$children[index]
+                        const relatedVarInfo = this.changeVarInfo[item.target_key]
+                        // 计算输入值是否匹配
+                        isEqual = (item.operator === '=' && isEqual) || (item.operator === '!=' && !isEqual)
+                        relatedVarInfo[item.key] = isEqual
+                        // 相关运算逻辑
+                        let isMatch = false
+                        const relatedVarValues = Object.values(relatedVarInfo)
+                        if (item.isOr) {
+                            isMatch = relatedVarValues.some(option => option)
+                        } else {
+                            isMatch = relatedVarValues.every(option => option)
+                        }
+                        // 显示隐藏
+                        if (isMatch) {
+                            targetTag.onHideForm()
+                        } else {
+                            targetTag.onShowForm()
+                        }
+                    })
+                }
             },
             /**
              * 获取 combine 类型组件的子组件实例

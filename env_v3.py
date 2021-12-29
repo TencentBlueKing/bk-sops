@@ -17,11 +17,9 @@ import json
 from blueapps.conf.default_settings import *  # noqa
 
 
-RUN_VER = os.getenv("RUN_VER", "open")
-
 OPEN_VER = os.getenv("OPEN_VER", "community")
 
-BK_PAAS_HOST = os.getenv("BK_PAAS_HOST", BK_URL)
+BK_PAAS_HOST = os.getenv("BK_PAAS2_URL", BK_URL)
 
 BK_PAAS_INNER_HOST = os.getenv("BK_PAAS_INNER_HOST", BK_PAAS_HOST)
 
@@ -91,7 +89,8 @@ BK_IAM_V3_APP_CODE = os.getenv("BK_IAM_V3_APP_CODE", "bk_iam")
 BK_IAM_SKIP = os.getenv("BK_IAM_SKIP") or os.getenv("BKAPP_IAM_SKIP")
 # 兼容 open_paas 版本低于 2.10.7，此时只能从环境变量 BK_IAM_HOST 中获取权限中心后台 host
 BK_IAM_INNER_HOST = os.getenv("BK_IAM_V3_INNER_HOST", os.getenv("BK_IAM_HOST", ""))
-BK_IAM_SAAS_HOST = os.getenv("BK_IAM_V3_SAAS_HOST", BK_SAAS_HOSTS[BK_IAM_V3_APP_CODE][BKSAAS_DEFAULT_MODULE_NAME])
+# 容器化环境无法直接获取权限中心SaaS，需要跳转至桌面由用户自行跳转至权限中心
+BK_IAM_SAAS_HOST = os.getenv("BK_IAM_V3_SAAS_HOST", os.getenv("BK_CONSOLE_URL", ""))
 # 线上环境IAM配置
 BK_IAM_RESOURCE_API_HOST = os.getenv("BKAPP_IAM_RESOURCE_API_HOST", BK_SOPS_HOST)
 # 权限中心 SDK 无权限时不返回 499 的请求路径前缀配置
@@ -115,7 +114,7 @@ MIGRATE_ALLOW = os.getenv("BKAPP_MIGRATE_ALLOW", False)
 BKAPP_LOG_SHIELDING_KEYWORDS = os.getenv("BKAPP_LOG_SHIELDING_KEYWORDS", "")
 
 # 人员选择数据来源
-BK_MEMBER_SELECTOR_DATA_HOST = os.getenv("BKAPP_MEMBER_SELECTOR_DATA_HOST", BK_PAAS_HOST)
+BK_MEMBER_SELECTOR_DATA_HOST = os.getenv("BKAPP_MEMBER_SELECTOR_DATA_HOST", BKAPP_SOPS_PAAS_ESB_HOST)
 
 # pipeline settings
 BKAPP_PIPELINE_RERUN_MAX_TIMES = os.getenv("BKAPP_PIPELINE_RERUN_MAX_TIMES", 50)

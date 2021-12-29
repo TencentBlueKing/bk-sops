@@ -20,6 +20,7 @@ from iam import Subject, Action
 from iam.shortcuts import allow_or_raise_auth_failed
 from drf_yasg.utils import swagger_auto_schema
 
+from gcloud.utils.json import safe_for_json
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.domains.dispatchers.task import TaskCommandDispatcher
@@ -69,5 +70,11 @@ class RenderCurrentConstantsView(APIView):
             pipeline_instance=task.pipeline_instance,
             project_id=task.project_id,
         ).render_current_constants()
+
+        if resp_data["result"]:
+            for var in resp_data["data"]:
+                if safe_for_json(var["value"]):
+                    continue
+                var["value"] = str(var["value"].__dict__) if hasattr(var["value"], "__dict__") else str(var["value"])
 
         return Response(resp_data)

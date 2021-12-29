@@ -6,7 +6,7 @@
             :model="formData"
             :label-width="labelWidth"
             :rules="rules">
-            <bk-form-item property="notifyType" :label="notifyTypeLabel">
+            <bk-form-item property="notifyType" :label="notifyTypeLabel" data-test-id="notifyTypeConfig_form_notifyType">
                 <bk-table
                     class="notify-type-table"
                     :style="{ width: tableWidth ? `${tableWidth}px` : '100%' }"
@@ -29,7 +29,7 @@
                     </bk-table-column>
                 </bk-table>
             </bk-form-item>
-            <bk-form-item property="notifyGroup" :label="notifyGroupLabel">
+            <bk-form-item property="notifyGroup" :label="notifyGroupLabel" data-test-id="notifyTypeConfig_form_notifyGroup">
                 <bk-checkbox-group
                     class="bk-checkbox-group"
                     :value="formData.receiverGroup"
@@ -96,9 +96,9 @@
                     notifyType: [[]],
                     receiverGroup: []
                 },
-                notifyTypeLoading: true,
+                notifyTypeLoading: false,
                 allNotifyTypeList: [],
-                notifyGroupLoading: true,
+                notifyGroupLoading: false,
                 projectNotifyGroup: []
             }
         },

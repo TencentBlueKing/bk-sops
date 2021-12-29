@@ -139,7 +139,7 @@
                                 </bk-collapse-item>
                             </bk-collapse>
                         </template>
-                        <div v-else class="node-item-wrap">
+                        <div v-else class="subflow-node-list">
                             <template v-for="(node, index) in listInPanel">
                                 <node-item
                                     v-if="node.hasPermission"
@@ -189,10 +189,8 @@
                 </template>
                 <no-data v-else></no-data>
             </div>
-            <div
-                v-show="curPluginTab === 'third_praty_plugin'"
-                class="third-praty-list">
-                <ul>
+            <div v-show="curPluginTab === 'third_praty_plugin'" v-bkloading="{ isLoading: pluginLoading }">
+                <ul class="third-praty-list" v-if="pluginList.length">
                     <li v-for="(item, index) in pluginList" :key="index">
                         <node-item
                             class="node-item"
@@ -210,6 +208,7 @@
                         </node-item>
                     </li>
                 </ul>
+                <bk-exception v-else class="exception-part" type="search-empty" scene="part"> </bk-exception>
             </div>
         </div>
     </transition>
@@ -395,7 +394,8 @@
                         listData = this.nodes.filter(group => group.group_name === this.selectedGroup)
                     }
                     if (this.searchStr !== '') {
-                        const reg = new RegExp(this.searchStr, 'i')
+                        const searchStr = this.escapeRegExp(this.searchStr)
+                        const reg = new RegExp(searchStr, 'i')
                         listData.forEach(group => {
                             if (group.list.length > 0) {
                                 group.list.forEach(node => {
@@ -413,7 +413,8 @@
                         })
                     }
                 } else {
-                    const reg = new RegExp(this.searchStr, 'i')
+                    const searchStr = this.escapeRegExp(this.searchStr)
+                    const reg = new RegExp(searchStr, 'i')
                     this.nodes.forEach(node => {
                         let matchLabel = true
                         let matchName = true
@@ -432,6 +433,12 @@
                 }
 
                 this.searchResult = result
+            },
+            escapeRegExp (str) {
+                if (typeof str !== 'string') {
+                    return ''
+                }
+                return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')
             },
             handleClickOutSide (e) {
                 if (!this.isFixedNodeMenu) {
@@ -551,14 +558,15 @@
         }
     }
     .node-list-wrap {
-        height: calc(100% - 107px);
-        overflow-y: auto;
-        @include scrollbar;
+        height: calc(100% - 100px);
     }
     .third-praty-list {
         height: 687px;
         overflow: auto;
         @include scrollbar;
+    }
+    .exception-part {
+        margin-top: 100px;
     }
     .node-item {
         background: #f0f1f5;
@@ -626,6 +634,11 @@
     }
     .node-item-wrap {
         overflow: hidden;
+    }
+    .subflow-node-list {
+        height: 100%;
+        overflow-y: auto;
+        @include scrollbar;
     }
     .node-empty {
         padding: 16px 0;

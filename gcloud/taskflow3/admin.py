@@ -44,3 +44,9 @@ class TaskFlowInstanceAdmin(admin.ModelAdmin):
 class TaskOperationTimesConfigAdmin(admin.ModelAdmin):
     list_display = ["project_id", "operation", "times", "time_unit"]
     list_filter = ["project_id", "operation", "times", "time_unit"]
+
+
+@admin.register(models.AutoRetryNodeStrategy)
+class AutoRetryNodeStrategyAdmin(admin.ModelAdmin):
+    list_display = ["taskflow_id", "root_pipeline_id", "node_id", "retry_times", "max_retry_times"]
+    search_fields = ["root_pipeline_id__exact", "node_id__exact"]

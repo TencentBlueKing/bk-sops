@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from copy import deepcopy
 from typing import Tuple
 
 
@@ -18,9 +17,7 @@ def inject_logging_trace_info(
     logging: dict, inject_formatters: Tuple[str], trace_format: str, format_keywords: Tuple[str] = ("format", "fmt")
 ):
     """往logging配置中动态注入trace信息，直接修改logging数据"""
-    formatters = dict(
-        [(name, formatter) for name, formatter in logging["formatters"].items() if name in inject_formatters]
-    )
+    formatters = {name: formatter for name, formatter in logging["formatters"].items() if name in inject_formatters}
     for name, formatter in formatters.items():
         matched_keywords = set(format_keywords).intersection(set(formatter.keys()))
         for keyword in matched_keywords:

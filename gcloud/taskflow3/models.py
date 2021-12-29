@@ -56,7 +56,7 @@ from gcloud.analysis_statistics.models import (
     TaskflowExecutedNodeStatistics,
     ProjectStatisticsDimension,
 )
-from gcloud.utils.components import format_component_name
+from gcloud.utils.components import format_component_name_with_remote, get_remote_plugin_name
 from gcloud.shortcuts.cmdb import get_business_attrinfo
 
 logger = logging.getLogger("root")
@@ -198,92 +198,105 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
 
     def group_by_atom_execute_times(self, taskflow, *args):
         # 查询各标准插件被执行次数
-        components = ComponentModel.objects.all().values("code", "version", "name")
-        total = components.count()
-        groups = []
+        total = ComponentModel.objects.count()
+        comp_name_dict = dict(ComponentModel.objects.values_list("code", "name"))
         taskflow_id_list = taskflow.values_list("id", flat=True)
         # 查询出符合条件的执行过的不同流程引用
-        template_node_template_data = (
+        components_data = list(
             TaskflowExecutedNodeStatistics.objects.filter(task_instance_id__in=taskflow_id_list)
-            .values("component_code", "version")
-            .annotate(value=Count("id"))
+            .values("component_code", "version", "is_remote")
+            .annotate(value=Count("task_instance_id"))
         )
-
-        groups = format_component_name(components, template_node_template_data)
+        groups = format_component_name_with_remote(components_data, comp_name_dict)
         return total, groups
 
     def group_by_atom_execute_fail_times(self, taskflow, *args):
         # 查询各标准插件失败次数
-        components = ComponentModel.objects.filter().values("code", "version", "name")
-        total = components.count()
-        groups = []
+        total = ComponentModel.objects.count()
+        comp_name_dict = dict(ComponentModel.objects.values_list("code", "name"))
         # 查询出符合条件的执行过的不同流程引用
-        template_node_template_data = TaskflowExecutedNodeStatistics.objects.values(
-            "component_code", "version"
-        ).annotate(value=Count("id", filter=Q(status=False)))
+        components_data = list(
+            TaskflowExecutedNodeStatistics.objects.values("component_code", "version", "is_remote").annotate(
+                value=Count("id", filter=Q(status=False))
+            )
+        )
 
-        groups = format_component_name(components, template_node_template_data)
+        groups = format_component_name_with_remote(components_data, comp_name_dict)
         return total, groups
 
     def group_by_atom_avg_execute_time(self, taskflow, *args):
         # 查询各插件平均执行耗时
-        components = ComponentModel.objects.values("code", "version", "name")
-        total = components.count()
-        groups = []
+        total = ComponentModel.objects.count()
+        comp_name_dict = dict(ComponentModel.objects.values_list("code", "name"))
         taskflow_id_list = taskflow.values_list("id", flat=True)
-        # 查询出符合条件的执行过的插件的平均执行耗时
-        template_node_template_inst = TaskflowExecutedNodeStatistics.objects.values(
-            "component_code", "version", "elapsed_time"
+        # 查询出符合条件的执行过的插件的执行耗时
+        components_data = TaskflowExecutedNodeStatistics.objects.values(
+            "component_code", "version", "elapsed_time", "is_remote"
         ).filter(task_instance_id__in=taskflow_id_list)
 
-        groups = []
-        for comp in components:
+        # 插件名国际化、计算平均耗时
+        remote_plugin_dict = get_remote_plugin_name()
+        elapsed_time_dict = {}
+        code_count_dict = {}
+        for comp in components_data:
             version = comp["version"]
             # 插件名国际化
-            name = comp["name"].split("-")
-            name = "{}-{}-{}".format(_(name[0]), _(name[1]), version)
-            code = "{}-{}".format(comp["code"], comp["version"])
-            value = 0
-            count = 0
+            if not comp["is_remote"]:
+                # 系统内置插件
+                name = comp_name_dict.get(comp["component_code"], comp["component_code"]).split("-")
+                name = "{}-{}-{}".format(_(name[0]), _(name[1]), version)
+            else:
+                # 第三方插件
+                name = remote_plugin_dict.get(comp["component_code"], comp["component_code"]).split("-")
+                name = "{}-{}-{}".format(_("第三方插件"), _(name[0]), version)
+            code = "{}-{}".format(comp["component_code"], comp["version"])
+            value = comp["elapsed_time"]
+
             # 计算平均耗时
-            for oth_com_tmp in template_node_template_inst:
-                if comp["code"] == oth_com_tmp["component_code"] and comp["version"] == oth_com_tmp["version"]:
-                    value += oth_com_tmp["elapsed_time"]
-                    count += 1
-            if count != 0:
-                value = round(value / count, 2)
-            groups.append({"code": code, "name": name, "value": value})
-        return total, groups
+            code_count_dict.setdefault(code, {"code": code, "sum_time": value, "count": 1})["sum_time"] += value
+            code_count_dict.setdefault(code, {"code": code, "sum_time": value, "count": 1})["count"] += 1
+            elapsed_time_dict.setdefault(code, {"code": code, "name": name, "value": value})["value"] = round(
+                code_count_dict[code]["sum_time"] / code_count_dict[code]["count"], 2
+            )
+        return total, list(elapsed_time_dict.values())
 
     def group_by_atom_fail_percent(self, taskflow, *args):
         # 查询各插件执行失败率
-        components = ComponentModel.objects.values("code", "version", "name")
-        total = components.count()
+        total = ComponentModel.objects.count()
+        comp_name_dict = dict(ComponentModel.objects.values_list("code", "name"))
         taskflow_id_list = taskflow.values_list("id", flat=True)
-        # 查询出符合条件的执行过的插件的执行失败率,计算结果保留两位小数
-        template_node_template_data = TaskflowExecutedNodeStatistics.objects.values(
-            "component_code", "version", "status"
-        ).filter(task_instance_id__in=taskflow_id_list)
-        groups = []
-        for comp in components:
+        # 查询出符合条件的执行过的插件数据
+        components_data = list(
+            TaskflowExecutedNodeStatistics.objects.values("component_code", "version", "status", "is_remote").filter(
+                task_instance_id__in=taskflow_id_list
+            )
+        )
+
+        # 插件名国际化、计算失败率
+        remote_plugin_dict = get_remote_plugin_name()
+        fail_suc_cou_dict = {}
+        result_dict = {}
+        for comp in components_data:
             version = comp["version"]
             # 插件名国际化
-            name = comp["name"].split("-")
-            name = "{}-{}-{}".format(_(name[0]), _(name[1]), version)
-            code = "{}-{}".format(comp["code"], comp["version"])
-            fail_count = 0
-            sum = 0
-            value = 0
-            # 计算失败率
-            for oth_com_tmp in template_node_template_data:
-                if comp["code"] == oth_com_tmp["component_code"] and comp["version"] == oth_com_tmp["version"]:
-                    sum += 1
-                    if not oth_com_tmp["status"]:
-                        fail_count += 1
-            if sum != 0:
-                value = round(fail_count * 100 / sum, 2)
-            groups.append({"code": code, "name": name, "value": value})
-        return total, groups
+            if not comp["is_remote"]:
+                # 系统内置插件
+                name = comp_name_dict.get(comp["component_code"], comp["component_code"]).split("-")
+                name = "{}-{}-{}".format(_(name[0]), _(name[1]), version)
+            else:
+                # 第三方插件
+                name = remote_plugin_dict.get(comp["component_code"], comp["component_code"]).split("-")
+                name = "{}-{}-{}".format(_("第三方插件"), _(name[0]), version)
+            code = "{}-{}".format(comp["component_code"], comp["version"])
+            success = 0 if not comp["status"] else 1
+            fail = 1 if not comp["status"] else 0
+            fail_suc_cou_dict.setdefault(code, {"success": 0, "fail": 0})
+            fail_suc_cou_dict[code]["success"] += success
+            fail_suc_cou_dict[code]["fail"] += fail
+            result_dict.setdefault(code, {"code": code, "name": name, "value": 0})["value"] = round(
+                fail_suc_cou_dict[code]["fail"] * 100 / (sum(fail_suc_cou_dict[code].values())), 2
+            )
+        return total, list(result_dict.values())
 
     def group_by_atom_instance(self, taskflow, filters, page, limit):
         # 被引用的任务实例列表
@@ -291,10 +304,10 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         # 获得参数中的标准插件code
         component_code = filters.get("component_code")
         version = filters.get("version")
-
+        is_remote = filters.get("is_remote", False)
         if component_code:
             instance_id_list = TaskflowExecutedNodeStatistics.objects.filter(
-                is_sub=False, component_code=component_code, version=version
+                is_sub=False, component_code=component_code, version=version, is_remote=is_remote
             ).values_list("instance_id", flat=True)
         else:
             instance_id_list = TaskflowExecutedNodeStatistics.objects.filter(is_sub=False).values_list(
@@ -1098,6 +1111,18 @@ class TaskFlowInstance(models.Model):
 
         return False
 
+    @property
+    def function_task_claimant(self):
+        """
+        获取当前任务实例的职能化认领单的认领人
+        """
+        # 如果任务流程类型不是职能化任务流程，直接返回
+        if self.flow_type != "common_func":
+            return None
+
+        # 如果是职能化任务流程，返回对应的职能化认领单实例
+        return self.function_task.filter(task=self).values_list("claimant", flat=True).first()
+
     @classmethod
     def task_url(cls, project_id, task_id):
         return "%staskflow/execute/%s/?instance_id=%s" % (settings.APP_HOST, project_id, task_id)
@@ -1237,7 +1262,7 @@ class TaskFlowInstance(models.Model):
             self.current_flow = "execute_task"
         self.is_deleted = False
         self.save()
-        return self.pk
+        return self
 
     def set_task_context(self, constants):
         dispatcher = TaskCommandDispatcher(
@@ -1316,7 +1341,11 @@ class TaskFlowInstance(models.Model):
             logger.error("dispatcher.get_outputs failed: {}".format(outputs_result["message"]))
         outputs = outputs_result["data"]
 
-        outputs_table = [{"key": key, "value": val} for key, val in list(outputs.get("outputs", {}).items())]
+        if self.engine_ver == EngineConfig.ENGINE_VER_V1:
+            outputs_table = [{"key": key, "value": val} for key, val in outputs.get("outputs", {}).items()]
+        else:
+            outputs_table = [{"key": key, "value": val} for key, val in outputs.items()]
+
         for out in outputs_table:
             out["name"] = constants[out["key"]]["name"]
         data.update({"outputs": outputs_table, "ex_data": outputs.get("ex_data", "")})
@@ -1354,6 +1383,12 @@ class TaskFlowInstance(models.Model):
             members = ",".join(members).split(",")
             receivers.extend(members)
 
+        # 如果职能化单认领人存在，则通知上加上认领人
+        if self.function_task_claimant:
+            receivers.append(self.function_task_claimant)
+
+        receiver_set = set(receivers)
+        receiver_set.discard(self.executor)
         # 这里保证执行人在列表第一位，且名单中通知人唯一，其他接收人不保证顺序
         return sorted(set(receivers), key=receivers.index)
 
@@ -1415,3 +1450,16 @@ class TaskOperationTimesConfig(models.Model):
         verbose_name = _("任务操作次数限制配置 TaskOperationTimesConfig")
         verbose_name_plural = _("任务操作次数限制配置 TaskOperationTimesConfig")
         unique_together = ("project_id", "operation")
+
+
+class AutoRetryNodeStrategy(models.Model):
+    taskflow_id = models.BigIntegerField(verbose_name="taskflow id")
+    root_pipeline_id = models.CharField(verbose_name="root pipeline id", max_length=64)
+    node_id = models.CharField(verbose_name="task node id", max_length=64, primary_key=True)
+    retry_times = models.IntegerField(verbose_name="retry times", default=0)
+    max_retry_times = models.IntegerField(verbose_name="retry times", default=5)
+
+    class Meta:
+        verbose_name = _("节点自动重试策略 AutoRetryNodeStrategy")
+        verbose_name_plural = _("节点自动重试策略 AutoRetryNodeStrategy")
+        index_together = [("root_pipeline_id", "node_id")]

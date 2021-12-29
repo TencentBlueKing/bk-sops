@@ -20,6 +20,7 @@ from django.dispatch import receiver
 from gcloud.core.models import EngineConfig
 from gcloud.constants import PROJECT
 from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.periodictask.models import PeriodicTaskHistory
 from gcloud.shortcuts.message import send_periodic_task_message
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory as PipelinePeriodicTaskHistory
@@ -31,7 +32,7 @@ logger = logging.getLogger("celery")
 
 @receiver(pre_periodic_task_start, sender=PipelinePeriodicTask)
 def pre_periodic_task_start_handler(sender, periodic_task, pipeline_instance, **kwargs):
-    TaskFlowInstance.objects.create(
+    task = TaskFlowInstance.objects.create(
         project_id=periodic_task.extra_info["project_id"],
         pipeline_instance=pipeline_instance,
         category=periodic_task.extra_info["category"],
@@ -43,6 +44,10 @@ def pre_periodic_task_start_handler(sender, periodic_task, pipeline_instance, **
         current_flow="execute_task",
         engine_ver=periodic_task.extra_info.get("engine_ver", EngineConfig.ENGINE_VER_V1),
     )
+
+    # crete auto retry strategy
+    arn_creator = AutoRetryNodeStrategyCreator(taskflow_id=task.id, root_pipeline_id=pipeline_instance.instance_id)
+    arn_creator.batch_create_strategy(pipeline_instance.execution_data)
 
 
 @receiver(post_save, sender=PipelinePeriodicTaskHistory)

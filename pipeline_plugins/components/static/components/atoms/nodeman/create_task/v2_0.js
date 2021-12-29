@@ -19,6 +19,21 @@
         }
     }
 
+    let NODEMAN_TJJ_IS_HIDDEN = true
+    $.ajax({
+        url: $.context.get('site_url') + 'pipeline/nodeman_is_support_tjj/',
+        type: 'GET',
+        dataType: 'json',
+        async: false,
+        success: function (resp) {
+            if (resp.data) {
+                NODEMAN_TJJ_IS_HIDDEN = false
+            }
+        },
+        error: function () {
+            show_msg('request nodeman is support tjj error', 'error');
+        }
+    })
     $.atoms.nodeman_create_task = [
         {
             tag_code: "bk_biz_id",
@@ -143,7 +158,7 @@
             attrs: {
                 name: "ticket信息",
                 hookable: true,
-                hidden: true,
+                hidden: NODEMAN_TJJ_IS_HIDDEN,
                 children: [{
                     tag_code: "nodeman_ticket_save",
                     type: "radio",
@@ -172,6 +187,7 @@
                 },
                     {
                         type: "text",
+                        tag_code: "nodeman_tjj_tip",
                         attrs: {
                             name: "说明",
                             hookable: true,
@@ -241,31 +257,6 @@
                         ],
                     }]
             },
-            events: [
-                {
-                    source: "bk_biz_id",
-                    type: "init",
-                    action: function (value) {
-                        const self = this
-                        $.ajax({
-                            url: $.context.get('site_url') + 'pipeline/nodeman_is_support_tjj/',
-                            type: 'GET',
-                            dataType: 'json',
-                            async: false,
-                            success: function (resp) {
-                                if (resp.data) {
-                                    self.show()
-                                }
-                            },
-                            error: function () {
-                                show_msg('request nodeman is support tjj error', 'error');
-                            }
-                        })
-                    }
-                },
-            ]
-
-
         },
         {
             tag_code: "nodeman_op_info",
@@ -475,17 +466,31 @@
                                 },
                                 {
                                     tag_code: "auth_key",
-                                    type: "password",
+                                    type: "input",
                                     attrs: {
                                         name: gettext("认证密钥"),
                                         width: "400px",
                                         editable: true,
                                         validation: [
                                             {
-                                                type: "required"
+                                                type: "custom",
+                                                args: function (value, parent_value) {
+                                                    let auth_type = parent_value.auth_type
+                                                    let result = {
+                                                        result: true,
+                                                        error_message: ""
+                                                    }
+                                                    if (auth_type !== "TJJ_PASSWORD" && !value.length) {
+                                                        result.result = false;
+                                                        result.error_message = gettext("请输入认证密钥");
+                                                    }
+                                                    return result
+                                                }
                                             }
-                                        ]
-                                    }
+                                        ],
+                                        showPassword: true
+                                    },
+                                    events: []
                                 }
                             ],
                             hookable: true,

@@ -15,13 +15,10 @@ from django.conf import settings
 import env
 from api.client import BKComponentClient
 
-NODEMAN_API_ENTRY = env.BK_NODEMAN_API_ENTRY or "{}/{}".format(
-    settings.BK_PAAS_ESB_HOST, "api/c/compapi/v2/nodeman"
-)
+NODEMAN_API_ENTRY = env.BK_NODEMAN_API_ENTRY or "{}/{}".format(settings.BK_PAAS_ESB_HOST, "api/c/compapi/v2/nodeman")
 
 NODEMAN_API_ENTRY_V2 = env.BK_NODEMAN_API_ENTRY or "{}/{}".format(
-    settings.BK_PAAS_ESB_HOST,
-    "api/c/compapi/{bk_api_ver}/nodeman/api".format(bk_api_ver=settings.DEFAULT_BK_API_VER),
+    settings.BK_PAAS_ESB_HOST, "api/c/compapi/{bk_api_ver}/nodeman/api".format(bk_api_ver=settings.DEFAULT_BK_API_VER),
 )
 
 
@@ -50,115 +47,72 @@ class BKNodeManClient(BKComponentClient):
 
     def get_task_info(self, bk_biz_id, job_id):
         return self._request(
-            method="get",
-            url=_get_nodeman_api("get_task_info"),
-            data={"bk_biz_id": bk_biz_id, "job_id": job_id},
+            method="get", url=_get_nodeman_api("get_task_info"), data={"bk_biz_id": bk_biz_id, "job_id": job_id},
         )
 
     def get_log(self, host_id, bk_biz_id):
         return self._request(
-            method="get",
-            url=_get_nodeman_api("get_log"),
-            data={"host_id": host_id, "bk_biz_id": bk_biz_id},
+            method="get", url=_get_nodeman_api("get_log"), data={"host_id": host_id, "bk_biz_id": bk_biz_id},
         )
 
     def search_host_plugin(self, bk_biz_id, pagesize, conditions):
         return self._request(
             method="post",
             url=_get_nodeman_api_v2("plugin/search"),
-            data={
-                "bk_biz_id": bk_biz_id,
-                "pagesize": pagesize,
-                "conditions": conditions,
-            },
+            data={"bk_biz_id": bk_biz_id, "pagesize": pagesize, "conditions": conditions},
         )
 
-    def job_install(self, job_type, hosts):
-        return self._request(
-            method="post",
-            url=_get_nodeman_api_v2("job/install"),
-            data={
-                "job_type": job_type,
-                "hosts": hosts,
-            },
-        )
+    def job_install(self, job_type, hosts, **kwargs):
+        data = {"job_type": job_type, "hosts": hosts}
+        data.update(kwargs)
+        return self._request(method="post", url=_get_nodeman_api_v2("job/install"), data=data)
 
     def remove_host(self, bk_biz_id, bk_host_id, is_proxy):
         return self._request(
             method="post",
             url=_get_nodeman_api_v2("remove_host"),
-            data={
-                "bk_biz_id": bk_biz_id,
-                "bk_host_id": bk_host_id,
-                "is_proxy": is_proxy,  # 是否移除PROXY
-            },
+            data={"bk_biz_id": bk_biz_id, "bk_host_id": bk_host_id, "is_proxy": is_proxy},  # 是否移除PROXY
         )
 
     def job_operate(self, job_type, bk_biz_id, bk_host_id):
         return self._request(
             method="post",
             url=_get_nodeman_api_v2("job/operate"),
-            data={
-                "job_type": job_type,
-                "bk_biz_id": bk_biz_id,
-                "bk_host_id": bk_host_id,
-            },
+            data={"job_type": job_type, "bk_biz_id": bk_biz_id, "bk_host_id": bk_host_id},
         )
 
     def job_details(self, job_id):
-        return self._request(
-            method="post",
-            url=_get_nodeman_api_v2("job/details"),
-            data={"job_id": job_id},
-        )
+        return self._request(method="post", url=_get_nodeman_api_v2("job/details"), data={"job_id": job_id})
 
     def get_job_log(self, job_id, instance_id):
         return self._request(
-            method="post",
-            url=_get_nodeman_api_v2("job/log"),
-            data={
-                "job_id": job_id,
-                "instance_id": instance_id,
-            },
+            method="post", url=_get_nodeman_api_v2("job/log"), data={"job_id": job_id, "instance_id": instance_id},
         )
 
     def cloud_list(self):
         print(_get_nodeman_api_v2("cloud"))
-        return self._request(
-            method="get",
-            url=_get_nodeman_api_v2("cloud"),
-            data={},
-        )
+        return self._request(method="get", url=_get_nodeman_api_v2("cloud"), data={})
 
     def ap_list(self):
-        return self._request(
-            method="get",
-            url=_get_nodeman_api_v2("ap"),
-            data={},
-        )
+        return self._request(method="get", url=_get_nodeman_api_v2("ap"), data={})
 
     def plugin_operate(self, params: dict):
-        return self._request(
-            method="post",
-            url=_get_nodeman_api_v2("plugin/operate"),
-            data=params,
-        )
+        return self._request(method="post", url=_get_nodeman_api_v2("plugin/operate"), data=params)
 
     def plugin_process(self, category):
-        return self._request(
-            method="post",
-            url=_get_nodeman_api_v2("plugin/process"),
-            data={
-                "category": category,
-            },
-        )
+        return self._request(method="post", url=_get_nodeman_api_v2("plugin/process"), data={"category": category})
 
     def plugin_package(self, name, os):
+        return self._request(method="post", url=_get_nodeman_api_v2("plugin/package"), data={"name": name, "os": os})
+
+    def get_rsa_public_key(self, executor):
         return self._request(
             method="post",
-            url=_get_nodeman_api_v2("plugin/package"),
+            url=_get_nodeman_api("core/api/encrypt_rsa/fetch_public_keys"),
             data={
-                "name": name,
-                "os": os,
+                "bk_app_code": settings.APP_CODE,
+                "bk_app_secret": settings.SECRET_KEY,
+                "bk_username": executor,
+                "names": ["DEFAULT"],
             },
         )

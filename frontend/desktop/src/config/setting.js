@@ -96,16 +96,21 @@ export const setConfigContext = (site_url, project) => {
  */
 // 在这里对ajax请求做一些统一公用处理
 export function setJqueryAjaxConfig () {
-    $.ajaxSetup({
-        beforeSend (xhr) {
-            xhr.setRequestHeader('traceparent', generateTraceId())
+    $(document).ajaxSend(function (event, xhr) {
+        xhr.setRequestHeader('traceparent', generateTraceId())
+    })
+
+    $(document).ajaxSuccess(function (event, xhr) {
+        if (xhr.responseJSON && xhr.responseJSON.result === false) {
+            bus.$emit('showErrMessage', { traceId: xhr.getResponseHeader('sops-trace-id'), message: xhr.responseJSON.message })
         }
     })
+
     $(document).ajaxError(function (event, xhr, setting) {
         const code = xhr.status
         switch (code) {
             case 400:
-                bus.$emit('showErrMessage', xhr.responseText)
+                bus.$emit('showErrMessage', { traceId: xhr.getResponseHeader('sops-trace-id'), message: xhr.responseJSON.message })
                 break
             case 401:
                 const { has_plain, login_url, width, height } = xhr.responseJSON

@@ -22,7 +22,11 @@
             @clear="onClearSearch">
         </bk-input>
         <!-- 内置插件/第三方插件tab -->
-        <bk-tab v-if="!isSubflow" :active.sync="curPluginTab" type="unborder-card">
+        <bk-tab
+            v-if="!isSubflow"
+            :active.sync="curPluginTab"
+            type="unborder-card"
+            @tab-change="setSearchInputShow">
             <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('内置插件') }"></bk-tab-panel>
             <bk-tab-panel v-bind="{ name: 'third_praty_plugin', label: $t('第三方插件') }"></bk-tab-panel>
         </bk-tab>
@@ -169,8 +173,8 @@
             </div>
         </div>
         <!-- 第三方插件 -->
-        <div v-show="curPluginTab === 'third_praty_plugin'" class="third-praty-list">
-            <ul>
+        <div v-show="curPluginTab === 'third_praty_plugin'" v-bkloading="{ isLoading: pluginLoading }">
+            <ul class="third-praty-list" v-if="atomTypeList.pluginList.length">
                 <li
                     :class="['plugin-item', { 'is-actived': plugin.code === basicInfo.plugin }]"
                     v-for="(plugin, index) in atomTypeList.pluginList"
@@ -183,6 +187,7 @@
                     </div>
                 </li>
             </ul>
+            <bk-exception v-else class="exception-part" type="search-empty" scene="part"> </bk-exception>
         </div>
     </div>
 </template>
@@ -209,7 +214,8 @@
             isSubflow: Boolean,
             basicInfo: Object,
             isThirdParty: Boolean,
-            common: [String, Number]
+            common: [String, Number],
+            pluginLoading: Boolean
         },
         data () {
             const listData = this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
@@ -256,10 +262,12 @@
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         mounted () {
-            this.scrollDom = document.querySelector('.third-praty-list')
-            if (this.scrollDom) {
-                this.scrollDom.addEventListener('scroll', this.handlePluginScroll)
-            }
+            this.$nextTick(() => {
+                this.scrollDom = document.querySelector('.third-praty-list')
+                if (this.scrollDom) {
+                    this.scrollDom.addEventListener('scroll', this.handlePluginScroll)
+                }
+            })
         },
         beforeDestroy () {
             if (this.scrollDom) {
@@ -268,8 +276,7 @@
         },
         methods: {
             ...mapActions('atomForm/', [
-                'loadPluginServiceMeta',
-                'loadPluginServiceAppDetail'
+                'loadPluginServiceMeta'
             ]),
             ...mapActions('templateList', [
                 'loadTemplateList'
@@ -326,17 +333,29 @@
                     this.$refs.selectorArea.scrollTop = 0
                 }
             },
+            setSearchInputShow () {
+                const isThirdParty = this.curPluginTab === 'third_praty_plugin'
+                if (!isThirdParty && this.searchStr) {
+                    this.searchStr = ''
+                    this.$emit('updatePluginList', undefined, 'search')
+                }
+            },
             onClearSearch () {
                 this.searchInputhandler()
             },
             async searchInputhandler () {
                 let result = []
+                if (this.curPluginTab === 'third_praty_plugin') {
+                    this.$emit('updatePluginList', this.searchStr, 'search')
+                    return
+                }
                 if (!this.isSubflow) {
                     if (this.searchStr === '') {
                         result = this.listData.slice(0)
                         this.activeGroup = this.getDefaultActiveGroup()
                     } else {
-                        const reg = new RegExp(this.searchStr, 'i')
+                        const searchStr = this.escapeRegExp(this.searchStr)
+                        const reg = new RegExp(searchStr, 'i')
                         this.listData.forEach(group => {
                             const { group_icon, group_name, type } = group
                             const list = []
@@ -372,7 +391,8 @@
                 } else if (this.searchStr !== '') {
                     this.searchLoading = true
                     try {
-                        const reg = new RegExp(this.searchStr, 'i')
+                        const searchStr = this.escapeRegExp(this.searchStr)
+                        const reg = new RegExp(searchStr, 'i')
                         const data = {
                             pipeline_template__name__icontains: this.searchStr || undefined
                         }
@@ -411,6 +431,12 @@
 
                 this.listInPanel = result
             },
+            escapeRegExp (str) {
+                if (typeof str !== 'string') {
+                    return ''
+                }
+                return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')
+            },
             handleSubflowList (data) {
                 const list = []
                 const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
@@ -440,14 +466,13 @@
             async onThirdPratyClick (plugin) {
                 try {
                     const resp = await this.loadPluginServiceMeta({ plugin_code: plugin.code })
-                    const appDetail = await this.loadPluginServiceAppDetail({ plugin_code: plugin.code })
                     const { code, versions, description } = resp.data
                     const versionList = versions.map(version => {
                         return { version }
                     })
                     const group = {
                         code,
-                        name: appDetail.data.name,
+                        name: plugin.name,
                         list: versionList,
                         desc: description,
                         id: 'remote_plugin'
@@ -637,13 +662,16 @@
         max-height: calc(100vh - 204px);
         overflow: auto;
         @include scrollbar;
+        .no-data-wrapper {
+            margin: 100px 0;
+        }
     }
     .tpl-item {
         display: flex;
         min-height: 40px;
         align-items: center;
         color: #63656e;
-        border-bottom: 1px solid #dcdee5;
+        border-top: 1px solid #dcdee5;
         cursor: pointer;
         &:hover:not(.text-permission-disable), &.active:not(.text-permission-disable) {
             background: #e1ecff;
@@ -651,7 +679,7 @@
                 color: #3a84ff;
             }
         }
-        &:last-child {
+        &:first-of-type {
             border: none;
         }
         .name-content {
@@ -702,7 +730,7 @@
     }
 }
 .third-praty-list {
-    height: calc(100vh - 102px);
+    height: calc(100vh - 110px);
     overflow: auto;
     @include scrollbar;
     .plugin-item {
@@ -739,14 +767,19 @@
         margin-top: 10px;
     }
 }
+.exception-part {
+    margin-top: 100px;
+}
 </style>
 <style lang="scss">
+@import '@/scss/mixins/scrollbar.scss';
     .tpl-label-popover {
         background: #ffffff;
         .tippy-tooltip {
             padding: 7px 0;
             max-height: 180px;
             overflow: auto;
+            @include scrollbar;
         }
         .tpl-label-item {
             padding: 4px 13px;

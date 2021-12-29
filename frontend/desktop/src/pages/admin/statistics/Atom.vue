@@ -33,9 +33,9 @@
                             @change="tableFilterChange">
                             <bk-option
                                 v-for="option in atomListData"
-                                :key="option.id"
+                                :key="option.id + '&' + option.version"
                                 :name="option.name"
-                                :id="option.id + '&' + option.version">
+                                :id="option.id + '&' + option.version + '&' + option.remote">
                             </bk-option>
                         </bk-select>
                     </bk-form-item>
@@ -311,7 +311,7 @@
         },
         methods: {
             ...mapActions('atomForm', [
-                'loadSingleAtomList'
+                'loadAnalysisComponentList'
             ]),
             ...mapActions('admin', [
                 'queryAtomData'
@@ -336,12 +336,13 @@
             async getAtomList () {
                 try {
                     this.atomListLoading = true
-                    const res = await this.loadSingleAtomList()
-                    this.atomListData = res.map(item => {
+                    const res = await this.loadAnalysisComponentList()
+                    this.atomListData = res.data.map(item => {
                         return {
                             id: item.code,
                             name: `${item.group_name}-${item.name}-${item.version}`,
-                            version: item.version
+                            version: item.version,
+                            remote: item.is_remote || false
                         }
                     })
                 } catch (e) {
@@ -373,6 +374,8 @@
                     this.tableDataLoading = true
                     const componentCode = this.tableAtom.split('&')
                     const selectedAtom = this.atomListData.find(item => item.id === componentCode[0] && item.version === componentCode[1])
+                    let isRemote = componentCode[2]
+                    isRemote = isRemote === 'true' ? true : undefined
                     const query = {
                         group_by: this.activeTab,
                         conditions: {
@@ -382,7 +385,8 @@
                             version: selectedAtom ? selectedAtom.version : undefined,
                             project_id: this.tableProject,
                             category: this.tableCategory,
-                            order_by: this.tableSort
+                            order_by: this.tableSort,
+                            is_remote: isRemote
                         },
                         pageIndex: this.pagination.current,
                         limit: this.pagination.limit

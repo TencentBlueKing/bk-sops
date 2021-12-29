@@ -24,7 +24,7 @@
                         <bk-button
                             theme="primary"
                             style="min-width: 120px;"
-                            data-test-id="function_form_creatTaskBtn"
+                            data-test-id="function_form_createTaskBtn"
                             @click="onCreateTask">
                             {{$t('新建')}}
                         </bk-button>
@@ -156,7 +156,7 @@
             :header-position="'left'"
             :title="$t('新建')"
             :value="isShowNewTaskDialog"
-            data-test-id="function_form_creatTaskDialog"
+            data-test-id="function_form_createTaskDialog"
             @confirm="onConfirmlNewTask"
             @cancel="onCancelNewTask">
             <div class="create-task-content">

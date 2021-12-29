@@ -42,6 +42,7 @@ from gcloud.iam_auth.resource_helpers import FlowResourceHelper
 from gcloud.iam_auth.authorization_helpers import FlowIAMAuthorizationHelper
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
+from gcloud.user_custom_config.constants import TASKTMPL_ORDERBY_OPTIONS
 
 logger = logging.getLogger("root")
 iam = get_iam_client()
@@ -71,6 +72,8 @@ class TaskTemplateResource(GCloudModelResource):
     has_subprocess = fields.BooleanField(attribute="has_subprocess", readonly=True)
     description = fields.CharField(attribute="pipeline_template__description", readonly=True, null=True)
 
+    extra_ordering = {"edit_time", "create_time"}
+
     class Meta(GCloudModelResource.CommonMeta):
         queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = "template"
@@ -84,7 +87,9 @@ class TaskTemplateResource(GCloudModelResource):
             "subprocess_has_update": ALL,
             "has_subprocess": ALL,
         }
-        ordering = ["pipeline_template"]
+        ordering = [
+            "pipeline_template",
+        ] + [order["value"] for order in TASKTMPL_ORDERBY_OPTIONS]
         q_fields = ["id", "pipeline_template__name"]
         paginator_class = TemplateFilterPaginator
         # iam config
@@ -111,6 +116,19 @@ class TaskTemplateResource(GCloudModelResource):
                 IAMMeta.FLOW_CREATE_CLOCKED_TASK_ACTION,
             ],
         )
+
+    def apply_sorting(self, obj_list, options=None):
+        if not options:
+            return super().apply_sorting(obj_list, options=options)
+        options = options.copy()
+        order_by = options.get("order_by", "")
+        prefix = "pipeline_template__"
+        if order_by.startswith("-"):
+            prefix = "-" + prefix
+        if order_by.lstrip("-") in self.__class__.extra_ordering:
+            order_by = prefix + order_by.lstrip("-")
+            options["order_by"] = order_by
+        return super().apply_sorting(obj_list, options=options)
 
     def dehydrate_pipeline_tree(self, bundle):
         return json.dumps(bundle.data["pipeline_tree"])

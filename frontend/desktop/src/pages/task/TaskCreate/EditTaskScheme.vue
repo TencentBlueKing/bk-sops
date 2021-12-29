@@ -112,13 +112,17 @@
             </section>
             <section class="scheme-footer">
                 <bk-button
+                    data-test-id="templateEdit_form_saveScheme"
                     theme="primary"
                     :loading="executeSchemeSaving || isSaveDefaultLoading"
-                    data-test-id="templateEdit_form_saveScheme"
                     @click="onSaveExecuteSchemeClick">
                     {{ $t('保存') }}
                 </bk-button>
-                <bk-button data-test-id="templateEdit_form_returnBtn" @click="toggleSchemePanel">{{ $t('返回') }}</bk-button>
+                <bk-button
+                    data-test-id="templateEdit_form_returnBtn"
+                    @click="toggleSchemePanel">
+                    {{ $t('返回') }}
+                </bk-button>
             </section>
         </div>
     </div>
@@ -128,7 +132,6 @@
     import { uuid } from '@/utils/uuid.js'
     import tools from '@/utils/tools.js'
     import { mapState, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
     import bus from '@/utils/bus.js'
@@ -300,16 +303,17 @@
                     })
                     this.$emit('updateTaskSchemeList', this.schemeList)
                     this.$emit('setDefaultScheme', defaultObj)
-                    this.$emit('setDefaultSelected', Boolean(this.defaultSchemeId))
+                    this.$emit('setDefaultSelected', false)
                 } catch (error) {
-                    errorHandler(error, this)
+                    console.error(error)
                 }
             },
             // 获取默认方案列表
             async loadDefaultSchemeList () {
                 try {
                     const resp = await this.getDefaultTaskScheme({
-                        project_id: this.project_id,
+                        project_id: this.isCommonProcess ? undefined : this.project_id,
+                        template_type: this.isCommonProcess ? 'common' : undefined,
                         template_id: Number(this.template_id)
                     })
                     if (resp.data.length) {
@@ -321,7 +325,9 @@
                         this.isUpdate = false
                     }
                 } catch (error) {
-                    errorHandler(error, this)
+                    console.error(error)
+                } finally {
+                    this.isSchemeLoading = false
                 }
             },
             /**
@@ -403,8 +409,9 @@
                 try {
                     const ids = Object.keys(this.defaultPlanDataObj).map(item => Number(item))
                     const params = {
-                        project_id: this.project_id,
+                        project_id: this.isCommonProcess ? undefined : this.project_id,
                         template_id: Number(this.template_id),
+                        template_type: this.isCommonProcess ? 'common' : undefined,
                         scheme_ids: ids,
                         id: this.defaultSchemeId
                     }
@@ -476,9 +483,12 @@
                     })
                     return
                 }
-                const isschemeNameExist = this.schemeList.some(item => item.name === this.schemeName)
-                if (isschemeNameExist) {
-                    errorHandler({ message: i18n.t('方案名称已存在') }, this)
+                const isSchemeNameExist = this.schemeList.some(item => item.name === this.schemeName)
+                if (isSchemeNameExist) {
+                    this.$bkMessage({
+                        message: i18n.t('方案名称已存在'),
+                        theme: 'warning'
+                    })
                     return
                 }
                 this.$validator.validateAll().then(async (result) => {

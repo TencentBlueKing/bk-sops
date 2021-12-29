@@ -36,9 +36,7 @@ class AccessorSignal(Signal):
         Signal.__init__(self, providing_args)
 
     def connect(self, receiver, sender=None, weak=True, dispatch_uid=None):
-        receiver_name = ".".join(
-            [receiver.__class__.__module__, receiver.__class__.__name__]
-        )
+        receiver_name = ".".join([receiver.__class__.__module__, receiver.__class__.__name__])
         if receiver_name != self.allowed_receiver:
             raise AccessForbidden(u"%s is not allowed to connect" % receiver_name)
         Signal.connect(self, receiver, sender, weak, dispatch_uid)
@@ -65,14 +63,12 @@ class RequestProvider(MiddlewareMixin):
         request_accessor.connect(self)
 
     def process_request(self, request):
-        request.is_mobile = lambda: bool(
-            settings.RE_MOBILE.search(request.META.get("HTTP_USER_AGENT", ""))
-        )
+        request.is_mobile = lambda: bool(settings.RE_MOBILE.search(request.META.get("HTTP_USER_AGENT", "")))
 
         # 是否为合法的RIO请求
         request.is_rio = lambda: bool(
             request.META.get("HTTP_STAFFNAME", "")
-            and settings.RIO_TOKEN
+            and getattr(settings, "RIO_TOKEN", None)
             and settings.RE_WECHAT.search(request.META.get("HTTP_USER_AGENT", ""))
         )
 
@@ -123,7 +119,5 @@ def get_x_request_id():
     http_request = get_request()
     if hasattr(http_request, "META"):
         meta = http_request.META
-        x_request_id = (
-            meta.get("HTTP_X_REQUEST_ID", "") if isinstance(meta, dict) else ""
-        )
+        x_request_id = meta.get("HTTP_X_REQUEST_ID", "") if isinstance(meta, dict) else ""
     return x_request_id

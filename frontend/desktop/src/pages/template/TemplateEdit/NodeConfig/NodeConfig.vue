@@ -112,6 +112,7 @@
                     :common="common"
                     :is-third-party="isThirdParty"
                     :sublist-loading="subAtomListLoading"
+                    :plugin-loading="pluginLoading"
                     @updatePluginList="updatePluginList"
                     @back="isSelectorPanelShow = false"
                     @viewSubflow="onViewSubflow"
@@ -145,6 +146,7 @@
                                                 :is-subflow="isSubflow"
                                                 :input-loading="inputLoading"
                                                 :common="common"
+                                                :subflow-updated="subflowUpdated"
                                                 @openSelectorPanel="isSelectorPanelShow = true"
                                                 @versionChange="versionChange"
                                                 @viewSubflow="onViewSubflow"
@@ -270,12 +272,13 @@
             templateLabels: Array,
             common: [String, Number],
             subflowListLoading: Boolean,
-            backToVariablePanel: Boolean
+            backToVariablePanel: Boolean,
+            pluginLoading: Boolean
         },
         data () {
             return {
                 subflowUpdated: false, // 子流程是否更新
-                pluginLoading: false, // 普通任务节点数据加载
+                taskNodeLoading: false, // 普通任务节点数据加载
                 subflowLoading: false, // 子流程任务节点数据加载
                 constantsLoading: false, // 子流程输入参数配置项加载
                 subflowVersionUpdating: false, // 子流程更新
@@ -326,10 +329,10 @@
                 return this.atomList.find(item => item.code === this.basicInfo.plugin)
             },
             inputLoading () { // 以下任一方法处于 pending 状态，输入参数展示 loading 效果
-                return this.isBaseInfoLoading || this.pluginLoading || this.subflowLoading || this.constantsLoading || this.subflowVersionUpdating
+                return this.isBaseInfoLoading || this.taskNodeLoading || this.subflowLoading || this.constantsLoading || this.subflowVersionUpdating
             },
             outputLoading () {
-                return this.isBaseInfoLoading || this.pluginLoading || this.subflowLoading
+                return this.isBaseInfoLoading || this.taskNodeLoading || this.subflowLoading
             },
             selectorTitle () {
                 return this.isSubflow ? i18n.t('选择子流程') : i18n.t('选择标准插件')
@@ -587,7 +590,7 @@
              */
             async getPluginDetail () {
                 const { plugin, version } = this.basicInfo
-                this.pluginLoading = true
+                this.taskNodeLoading = true
                 try {
                     // 获取输入输出参数
                     this.inputs = await this.getAtomConfig({ plugin, version, isThird: this.isThirdParty })
@@ -597,7 +600,7 @@
                 } catch (e) {
                     console.log(e)
                 } finally {
-                    this.pluginLoading = false
+                    this.taskNodeLoading = false
                 }
             },
             /**
@@ -682,6 +685,7 @@
                     this.outputs = Object.keys(data.outputs).map(item => {
                         const output = data.outputs[item]
                         return {
+                            plugin_code: output.plugin_code,
                             name: output.name,
                             key: output.key,
                             version: output.hasOwnProperty('version') ? output.version : 'legacy'
@@ -745,7 +749,7 @@
                 if (config.type === 'ServiceActivity') {
                     const {
                         component, name, stage_name, labels, error_ignorable, can_retry,
-                        retryable, isSkipped, skippable, optional
+                        retryable, isSkipped, skippable, optional, auto_retry
                     } = config
                     let basicInfoName = i18n.t('请选择插件')
                     let code = ''
@@ -792,7 +796,8 @@
                         // 这里取值做兼容处理，新旧数据不可能同时存在，优先取旧数据字段
                         skippable: isSkipped === undefined ? skippable : isSkipped,
                         retryable: can_retry === undefined ? retryable : can_retry,
-                        selectable: optional
+                        selectable: optional,
+                        autoRetry: auto_retry || { enable: false, times: 1 }
                     }
                 } else {
                     const { template_id, name, stage_name, labels, optional, always_use_latest } = config
@@ -1221,7 +1226,7 @@
                         always_use_latest: alwaysUseLatest
                     })
                 } else {
-                    const { ignorable, nodeName, stageName, nodeLabel, plugin, retryable, skippable, selectable, version } = this.basicInfo
+                    const { ignorable, nodeName, stageName, nodeLabel, plugin, retryable, skippable, selectable, version, autoRetry } = this.basicInfo
                     const data = {} // 标准插件节点在 activity 的 component.data 值
                     Object.keys(this.inputsParamValue).forEach(key => {
                         const formVal = this.inputsParamValue[key]
@@ -1259,7 +1264,8 @@
                         stage_name: stageName,
                         labels: nodeLabel,
                         error_ignorable: ignorable,
-                        optional: selectable
+                        optional: selectable,
+                        auto_retry: autoRetry
                     })
                     delete config.can_retry
                     delete config.isSkipped
@@ -1380,8 +1386,8 @@
                         ['stageName', 'nodeName'].forEach(item => {
                             this.basicInfo[item] = this.basicInfo[item].trim()
                         })
-                        const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional, desc, nodeName } = this.basicInfo
-                        const nodeData = { status: '', skippable, retryable, optional }
+                        const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional, desc, nodeName, autoRetry } = this.basicInfo
+                        const nodeData = { status: '', skippable, retryable, optional, auto_retry: autoRetry }
                         if (!this.isSubflow) {
                             const phase = this.getAtomPhase()
                             nodeData.phase = phase

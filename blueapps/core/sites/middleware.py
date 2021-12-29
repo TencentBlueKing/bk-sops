@@ -19,19 +19,16 @@ from blueapps.conf import settings
 
 class UserAgentMiddleware(object):
     def process_request(self, request):
-        request.is_mobile = lambda: bool(
-            settings.RE_MOBILE.search(request.META.get("HTTP_USER_AGENT", ""))
-        )
+        request.is_mobile = lambda: bool(settings.RE_MOBILE.search(request.META.get("HTTP_USER_AGENT", "")))
 
         request.is_rio = lambda: bool(
             request.META.get("HTTP_STAFFNAME", "")
-            and settings.RIO_TOKEN
+            and getattr(settings, "RIO_TOKEN", None)
             and settings.RE_WECHAT.search(request.META.get("HTTP_USER_AGENT", ""))
         )
 
         request.is_wechat = lambda: bool(
-            settings.RE_WECHAT.search(request.META.get("HTTP_USER_AGENT", ""))
-            and not request.is_rio()
+            settings.RE_WECHAT.search(request.META.get("HTTP_USER_AGENT", "")) and not request.is_rio()
         )
 
         request.is_bk_jwt = lambda: bool(request.META.get("HTTP_X_BKAPI_JWT", ""))
@@ -89,9 +86,7 @@ class SiteSettingsMiddleware(object):
             site = site.copy()
             try:
                 if validate_host(domain, site["HOSTS"]):
-                    site_settings = ".".join(
-                        [self.top_module, site["NAME"], "settings"]
-                    )
+                    site_settings = ".".join([self.top_module, site["NAME"], "settings"])
                     self._enter(import_module(site_settings))
                     break
             except ImportError:

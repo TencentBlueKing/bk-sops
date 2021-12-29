@@ -101,15 +101,14 @@
             type: "input",
             attrs: {
                 name: gettext("目标账户"),
-                hookable: true
+                hookable: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
             },
-            validation: [
-                {
-                    type: "required"
-                }
-            ]
         },
-
         {
             tag_code: "job_target_ip_table",
             type: "datatable",
@@ -145,6 +144,11 @@
                         type: "input",
                         attrs: {
                             name: gettext("云区域ID(默认为0)"),
+                            validation: [
+                                {
+                                    type: "required"
+                                }
+                            ]
                         }
                     },
                     {

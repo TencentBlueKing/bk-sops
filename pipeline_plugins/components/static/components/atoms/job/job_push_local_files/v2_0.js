@@ -139,15 +139,19 @@
                                     }
 
                                     let show_name = "";
+                                    let show_md5 = "";
                                     $.each(local_files, function (i, v) {
                                         show_name += v.name + "\n"
+                                        show_md5 += v.response.md5 + "\n"
                                     })
                                     show_name = show_name.slice(0, show_name.length - 1)
+                                    show_md5 = show_md5.slice(0, show_md5.length - 1)
 
                                     table_obj._get_value().push({
                                         "show_file": show_name,
                                         "file_info": local_files,
-                                        "target_path": job_target_path
+                                        "target_path": job_target_path,
+                                        "md5": show_md5
                                     })
                                     table_obj._set_value(table_obj._get_value())
 
@@ -192,6 +196,13 @@
                                     type: "text",
                                     attrs: {
                                         name: gettext("目标路径"),
+                                    }
+                                },
+                                {
+                                    tag_code: "md5",
+                                    type: "text",
+                                    attrs: {
+                                        name: gettext("文件MD5"),
                                     }
                                 }
                             ],

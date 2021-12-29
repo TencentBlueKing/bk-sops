@@ -161,7 +161,7 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
 
 
 class AllBizJobExecuteJobPlanComponent(Component):
-    name = _("全业务_执行作业")
+    name = _("全业务执行作业")
     code = "all_biz_execute_job_plan"
     bound_service = AllBizJobExecuteJobPlanService
     form = "%scomponents/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan.js" % settings.STATIC_URL

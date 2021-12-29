@@ -13,10 +13,9 @@ specific language governing permissions and limitations under the License.
 
 import os
 
-RUN_VER = os.getenv("RUN_VER", "open")
 IS_OPEN_V3 = os.getenv("BKPAAS_MAJOR_VERSION", False)
 
-if RUN_VER == "open" and not IS_OPEN_V3:
+if not IS_OPEN_V3:
     # paas v2
     from .v2 import create_maker_app, edit_maker_app, del_maker_app, modify_app_logo, get_app_logo_url  # noqa
 else:

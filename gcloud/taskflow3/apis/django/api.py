@@ -11,10 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
+import time
 import traceback
 
 import ujson as json
 from cryptography.fernet import Fernet
+from django.db import transaction
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
@@ -56,6 +58,7 @@ from gcloud.taskflow3.apis.django.validators import (
     GetNodeLogValidator,
 )
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher, TaskCommandDispatcher
+from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.taskflow import (
     DataViewInterceptor,
@@ -312,9 +315,15 @@ def task_clone(request, project_id):
         kwargs["create_method"] = data.get("create_method")
         kwargs["create_info"] = data.get("create_info", "")
 
-    new_task_id = task.clone(username, **kwargs)
+    with transaction.atomic():
+        new_task = task.clone(username, **kwargs)
 
-    ctx = {"result": True, "data": {"new_instance_id": new_task_id}, "message": "", "code": err_code.SUCCESS.code}
+        arn_creator = AutoRetryNodeStrategyCreator(
+            taskflow_id=new_task.id, root_pipeline_id=new_task.pipeline_instance.instance_id
+        )
+        arn_creator.batch_create_strategy(pipeline_tree=task.pipeline_instance.execution_data)
+
+    ctx = {"result": True, "data": {"new_instance_id": new_task.id}, "message": "", "code": err_code.SUCCESS.code}
 
     return JsonResponse(ctx)
 
@@ -477,5 +486,7 @@ def node_callback(request, token):
         logger.info("result of callback call({}): {}".format(token, callback_result))
         if callback_result["result"]:
             break
+        # 考虑callback时Process状态还没及时修改为sleep的情况
+        time.sleep(0.5)
 
     return JsonResponse(callback_result)
