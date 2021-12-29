@@ -39,10 +39,12 @@ POST
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
     "task_id": "12",
     "node_id": "node_id",
-    "action": "skip"
+    "action": "skip",
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -52,7 +54,9 @@ POST
 {
     "result": true,
     "data": "success",
-    "code": 0
+    "code": 0,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -63,3 +67,5 @@ POST
 |  result       | bool       | true/false 成功与否            |
 |  data         | string     | result=true 时返回的信息 |
 |  message      | string     | result=false 时错误信息        |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |

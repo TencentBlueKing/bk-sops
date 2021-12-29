@@ -46,9 +46,13 @@ Task actions such as start, pause, resume, revoke, etc.
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "action": "start",
     "bk_biz_id": "2",
-    "task_id": "10"
+    "task_id": "10",
+    "scope": "cmdb_biz",
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -57,7 +61,9 @@ Task actions such as start, pause, resume, revoke, etc.
 ```
 {
     "result": true,
-    "data": {}
+    "data": {},
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -68,3 +74,5 @@ Task actions such as start, pause, resume, revoke, etc.
 |  result   |    bool    |      true or false, indicate success or failure   |
 |  data     |    dict    |      data returned when result is true            |
 |  message  |    string  |      error message returned when result is false  |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |

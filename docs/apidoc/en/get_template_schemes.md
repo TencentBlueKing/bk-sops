@@ -34,8 +34,10 @@ Get template execution scheme list
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
-    "template_id": "12"
+    "template_id": "12",
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -61,7 +63,9 @@ Get template execution scheme list
             "data": "[\"node88d9050f288765b94a15cbe023ab\"]"
         }
     ],
-    "code": 0
+    "code": 0,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -72,6 +76,8 @@ Get template execution scheme list
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    list    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |
 
 #### data
 | Field      | Type      | Description      |

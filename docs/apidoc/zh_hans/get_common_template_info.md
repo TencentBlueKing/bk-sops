@@ -34,6 +34,7 @@ GET
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "template_id": "30",
 }
 ```
@@ -185,6 +186,8 @@ GET
         "id": 30,
         "editor": "admin"
     },
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -195,6 +198,8 @@ GET
 | result    | bool     | true/false 查询成功与否 |
 | data      | dict     | result=true 时模板详情，详细信息见下面说明 |
 | message   | string   | result=false 时错误信息 |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 #### data
 

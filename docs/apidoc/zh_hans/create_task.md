@@ -51,6 +51,7 @@ POST
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "name": "tasktest",
     "flow_type": "common",
     "constants": {
@@ -58,7 +59,10 @@ POST
         "${params}": "",
         "${script_timeout}": 20
     },
-    "simplify_vars": ["${k1}", "${k2}", "${ip}", "${force_check}"]
+    "simplify_vars": ["${k1}", "${k2}", "${ip}", "${force_check}"],
+    "execute_task_nodes_id": [1, 2, 3],
+    "exclude_task_nodes_id": [4, 5, 6]
+    "scope": "cmdb_biz",
 }
 ```
 
@@ -184,7 +188,25 @@ POST
                 "name": ""
             },
             "id": "node7ef6970d06ad3bc092594cb5ec5f",
-            "constants": {},
+            "constants": {
+                "${bk_timing}": {
+                    "source_tag": "sleep_timer.bk_timing",
+                    "source_info": {
+                        "node76393dcfedcf73dbc726f1c4786d": [
+                            "bk_timing"
+                        ]
+                    },
+                    "name": "定时时间",
+                    "index": 0,
+                    "custom_type": "",
+                    "value": "100",
+                    "show_type": "show",
+                    "source_type": "component_inputs",
+                    "key": "${bk_timing}",
+                    "validation": "",
+                    "desc": ""
+                }
+            },
             "location": [
                 {
                     "stage_name": "步骤1",
@@ -216,7 +238,9 @@ POST
                 }
             ]
         }
-    }
+    },
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -227,8 +251,10 @@ POST
 |  result      |    bool    |      true/false 操作是否成功     |
 |  data        |    dict  |      result=true 时成功数据，详细信息请见下面说明      |
 |  message     |    string  |      result=false 时错误信息     |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
-####  data
+#### data
 
 | 字段      | 类型      | 描述      |
 |-----------|----------|-----------|

@@ -38,8 +38,12 @@ Query a task or task node execution status
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
-    "task_id": "10"
+    "task_id": "10",
+    "subprocess_id": "xxx",
+    "with_ex_data": true,
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -97,7 +101,9 @@ Query a task or task node execution status
             "nb346e202d17387082189f95dd3f80ca": "Timing time needs to be later than current time"
         }
     },
-    "code": 0
+    "code": 0,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -108,6 +114,8 @@ Query a task or task node execution status
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    dict    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |
 
 #### data
 

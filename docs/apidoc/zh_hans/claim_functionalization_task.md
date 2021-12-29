@@ -44,11 +44,14 @@ POST
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username":"xxx",
     "bk_biz_id": "2",
     "task_id": "8",
     "constants": {
         "${bk_timing}": "100"
-    }
+    },
+    "name": "xxx",
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -58,14 +61,19 @@ POST
 {
     "data": "success",
     "result": true, 
-    "code": 0
+    "code": 0,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
 ### 返回结果说明
+
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |
 |  result      |    bool    |      true/false 操作是否成功     |
 |  data        |    string  |      result=true 时成功数据, "success" |
 |  code        |    int     |      结果状态码                  |
 |  message     |    string  |      result=false 时错误信息     |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |

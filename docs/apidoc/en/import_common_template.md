@@ -35,6 +35,7 @@ import common flow template
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "template_data": "xxx",
     "override": true
 }
@@ -46,9 +47,16 @@ import common flow template
 {
     "message": "Successfully imported 2 common flows",
     "data": {
-        "count": 2
+        "count": 2,
+        "flows": {
+              11: "flowA",
+              12: "flowB",
+              ...
+        },
     },
-    "result": true
+    "result": true,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -59,9 +67,12 @@ import common flow template
 |  result   |    bool    |      true or false, indicate success or failure   |
 |  message  |    string  |      error message returned when result is false  |
 |  data         | dict        |    return data                |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |
 
 #### data
 
 | Field      | Type      | Description      |
 | ------------ | ---------- | ------------------------------ |
 |  count      |    int    |       the number of flows had been imported    |
+|  flows      |    dict |      mapping of import flow ID and name |
