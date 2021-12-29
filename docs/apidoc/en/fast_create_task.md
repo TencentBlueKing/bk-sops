@@ -25,7 +25,7 @@ Create onetime task quickly
 
 | Field         |  Type      | Required |  Description     |
 |---------------|------------|----------|------------------|
-|   project_id  |   int      |  YES     |  the project ID  |
+|   bk_biz_id  |   int      |  YES     |  the project ID  |
 |   name        |   string   |  YES     |  task name       |
 |   pipeline_tree | dict     |  NO      |  task pipeline tree, details are described below |
 |   has_common_subprocess | bool | NO |  the template type of the subprocess in the task，true：common template，false：project based task template. Default is false. |
@@ -160,8 +160,13 @@ KEY of global variables, the format is "${key}"
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
+    "bk_biz_id": "2",
     "name": "tasktest",
     "flow_type": "common",
+    "description":"...",
+    "has_common_subprocess":false
+    "category":"OpsTools"
     "pipeline_tree": {
         "start_event": {
             "incoming": "",
@@ -619,7 +624,9 @@ KEY of global variables, the format is "${key}"
             },
             "outputs": ["${bk_timing}"]
         }
-    }
+    },
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -630,6 +637,8 @@ KEY of global variables, the format is "${key}"
 |  result    | bool      | true or false, indicate success or failure |
 |  data      | dict      | data returned when result is true, details are described below |
 |  message   | string    | error message returned when result is false |
+|  request_id     |    string  | esb request id             |
+|  trace_id     |    string  | open telemetry trace_id        |
 
 ####  data
 

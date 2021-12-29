@@ -37,10 +37,13 @@ GET
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
     "task_id": 11,
     "node_id": "ndfbcbdc77e9350ba18222dc4a0a435f",
-    "component_code": "sleep_timer"
+    "component_code": "sleep_timer",
+    "scope": "cmdb_biz"
+    "subprocess_stack":"[1, 2]"
 }
 ```
 
@@ -70,18 +73,24 @@ GET
         "ex_data": ""
     },
     "message": "",
-    "code": 0
+    "code": 0,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
 ### 返回结果说明
+
 |      名称     |     类型   |               说明             |
 | ------------  | ---------- | ------------------------------ |
 |  result       | bool       | true/false 成功与否            |
 |  data         | object     | result=true 时返回数据，详情见下面说明 |
 |  message      | string     | result=false 时错误信息        |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 #### data
+
 |      名称     |     类型   |               说明             |
 | ------------  | ---------- | ------------------------------ |
 |  inputs       | object     | 输入参数，key：value格式       |
@@ -89,6 +98,7 @@ GET
 |  ex_data      | string     | 节点执行失败详情，json字符串或者HTML字符串、普通字符串 |
 
 ##### outputs[]
+
 |      名称     |     类型   |               说明             |
 | ------------  | ---------- | ------------------------------ |
 |  name         | string     | 输出参数名称                   |

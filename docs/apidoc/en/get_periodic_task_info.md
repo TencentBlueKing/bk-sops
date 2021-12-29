@@ -36,8 +36,10 @@ Query periodic task detail
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
-    "task": "8"
+    "task_id": "8",
+    "scope":"cmdb_biz"
 }
 ```
 
@@ -234,7 +236,9 @@ Query periodic task detail
         "id": 5,
         "template_id": "2"
     },
-    "result": true
+    "result": true,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -245,6 +249,8 @@ Query periodic task detail
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    dict    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |
 
 #### data
 

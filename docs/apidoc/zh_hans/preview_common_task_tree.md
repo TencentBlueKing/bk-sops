@@ -21,13 +21,13 @@ POST
 
 #### 接口参数
 
-| 字段          |  类型       | 必选   |  描述             |
-|-----------------|-------------|---------|------------------|
-|   bk_biz_id       |   string     |   是   |  项目唯一 ID，项目 ID 或 CMDB 业务 ID |
-|   template_id       |   int     |   是   |  模板 ID |
-|   scope       |   string     |   否   |  唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务 ID，反之代表项目 ID，不传时默认为 cmdb_biz |
-|   version |   string     |   否   |  模板的版本，不填时默认为最新版本 |
-|   exclude_task_nodes_id     |   否   |  需要移除的可选节点 ID 列表，不填时默认为 [] |
+| 字段          | 类型     | 必选   |  描述             |
+|-----------------|--------|---------|------------------|
+|   bk_biz_id       | string |   是   |  项目唯一 ID，项目 ID 或 CMDB 业务 ID |
+|   template_id       | int    |   是   |  模板 ID |
+|   scope       | string |   否   |  唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务 ID，反之代表项目 ID，不传时默认为 cmdb_biz |
+|   version | string |   否   |  模板的版本，不填时默认为最新版本 |
+|   exclude_task_nodes_id   | list   |   否   |  需要移除的可选节点 ID 列表，不填时默认为 [] |
 
 ### 请求参数示例
 
@@ -36,8 +36,12 @@ POST
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_token": "bk_username",
     "bk_biz_id": "2",
-    "template_id": "10001"
+    "template_id": "10001",
+    "scope": "cmdb_biz",
+    "version": "xxx",
+    "exclude_task_nodes_id": [1, 2, 3]
 }
 ```
 
@@ -201,7 +205,9 @@ POST
         },
         "constants_not_referred": {}
     },
-    "code": 0
+    "code": 0,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -211,6 +217,8 @@ POST
 |  result       | bool       | true/false 成功与否            |
 |  data         | dict       | result=true 时返回数据，详情见下面说明 |
 |  message      | string     | result=false 时错误信息        |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 #### data
 |   名称   |  类型  |           说明             |

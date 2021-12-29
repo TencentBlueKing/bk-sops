@@ -28,16 +28,18 @@ GET
 |   code            |   string     |   是   |  插件编码code |
 |   version         |   string     |   否   |  插件版本，默认为 legacy | 
 
-
 ### 请求参数示例
 
 ```
 {
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
+    "bk_username": "xxx",
     "bk_token": "xxx",
     "bk_biz_id": "2",
-    "code": "sleep_timer"
+    "code": "sleep_timer",
+    "version": "legacy",
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -100,18 +102,24 @@ GET
         "version": "legacy",
         "form": "/static/components/atoms/bk/timer.js"
     },
-    "code": 0
+    "code": 0,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
 ### 返回结果说明
+
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |
 |  result      |    bool    |      true/false 操作是否成功     |
 |  data        |    dict      |      result=true 时成功数据，详细信息请见下面说明     |
 |  message        |    string      |      result=false 时错误信息     |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 ##### data
+
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |
 |  inputs      |    array    |      插件输入参数列表    |

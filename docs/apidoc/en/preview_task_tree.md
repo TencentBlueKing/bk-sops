@@ -37,7 +37,10 @@ Get task tree after node exclude
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
     "bk_biz_id": "2",
-    "template_id": "12"
+    "template_id": "12",
+    "version":"1.0.0",
+    "scope":cmdb_biz, 
+    "exclude_task_nodes_id": [1, 2, 3]
 }
 ```
 
@@ -195,7 +198,9 @@ Get task tree after node exclude
         },
         "constants_not_referred": {}
     },
-    "code": 0
+    "code": 0,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -206,6 +211,8 @@ Get task tree after node exclude
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    list    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |
 
 #### data
 

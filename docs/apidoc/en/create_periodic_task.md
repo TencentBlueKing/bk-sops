@@ -43,8 +43,8 @@ constant KEY, the format is like ${key}
 constant value
 
 #### cron
- 
- | Field          |  Type       | Required   |  Description             |
+
+| Field          |  Type       | Required   |  Description             |
 | ------------ | ------------ | ------ | ---------------- |
 |   minute    |   string     |   NO   |  minute, default value is * |
 |   hour    |   string     |   NO   |  hour, default value is * |
@@ -59,8 +59,10 @@ constant value
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "template_id": "1",
     "bk_biz_id": "2",
+    "template_source": "business",
 	"name": "from api 3",
 	"cron" : {
 	    "minute": "*/1", 
@@ -72,7 +74,8 @@ constant value
 	"constants": {
 	    "${bk_timing}": "100"
     },
-	"exclude_task_nodes_id": ["nodea5c396a3ef0f9f3cd7d4d7695f78"]
+	"exclude_task_nodes_id": ["nodea5c396a3ef0f9f3cd7d4d7695f78"],
+	"scope":"cmdb_biz"
 }
 ```
 
@@ -267,9 +270,12 @@ constant value
         "last_run_at": "",
         "enabled": true,
         "id": 5,
-        "template_id": "2"
+        "template_id": 2,
+        "template_source": "business"
     },
-    "result": true
+    "result": true,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -280,6 +286,8 @@ constant value
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    dict    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
+|  request_id     |    string  | esb request id             |
+|  trace_id     |    string  | open telemetry trace_id        |
 
 #### data
 
@@ -296,7 +304,6 @@ constant value
 | template_source | string  | source of flow，default value is business. business: from business, common: from common flow |
 |  form      |    dict    |    form dict for the task   |
 |  pipeline_tree      |    dict    |    flow tree for the task   |
-
 
 #### data.pipeline_tree
 
@@ -323,6 +330,6 @@ KEY, the format is like ${key}
 |  index      |    int    |       display order at the front end   |
 |  desc      |    string    |     description   |
 |  source_type  | string   |      source of variable, custom mean manual variable, component_inputs means variables comes from task node inputs parameters, component_outputs means variables comes from task node outputs parameters   |
-|  custom_type  | string   |      custom type, which is not empty when source_type is custom,  the value is input ,or textarea, or datetime, or int |
+|  custom_type  | string   |      custom type, which is not empty when source_type is custom, the value is input ,or textarea, or datetime, or int |
 |  source_tag   | string   |      source tag and standard plugin info, which is not empty when source_type is  component_inputs or component_outputs  |
 |  source_info | dict    |        source info about task node ID  |
