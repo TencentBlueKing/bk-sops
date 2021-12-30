@@ -38,6 +38,7 @@ POST
     "template_data": "xxx",
     "project_id": "3",
     "bk_username": "cmdb_biz",
+    "scope":"cmdb_biz"
 }
 ```
 

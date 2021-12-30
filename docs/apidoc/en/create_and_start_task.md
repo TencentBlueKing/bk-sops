@@ -51,6 +51,7 @@ constant value, the type of value should be same with data from API[get_template
     "bk_token":"xxx",
     "bk_username":"xxx",
     "template_id":"xxx",
+    "template_source": "business",
     "bk_biz_id":"xxx",
     "name": "tasktest",
     "flow_type": "common"

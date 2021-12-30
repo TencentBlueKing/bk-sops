@@ -51,6 +51,7 @@ POST
     "bk_token":"xxx",
     "bk_username":"xxx",
     "template_id":"xxx",
+    "template_source": "business",
     "bk_biz_id":"xxx",
     "name": "tasktest",
     "flow_type": "common"

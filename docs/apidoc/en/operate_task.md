@@ -50,9 +50,7 @@ Task actions such as start, pause, resume, revoke, etc.
     "action": "start",
     "bk_biz_id": "2",
     "task_id": "10",
-    "scope": "cmdb_biz",
-    "request_id": "xxx",
-    "trace_id": "xxx"
+    "scope": "cmdb_biz"
 }
 ```
 

@@ -53,6 +53,9 @@ constant value, the type of value should be same with data from API[get_template
     "bk_token": "xxx",
     "bk_username": "xxx",
     "name": "tasktest",
+    "bk_biz_id":"1",
+    "template_id":"1",
+    "template_source":"business",
     "flow_type": "common",
     "constants": {
         "${content}": "echo 1",
@@ -61,7 +64,7 @@ constant value, the type of value should be same with data from API[get_template
     },
     "simplify_vars": ["${k1}", "${k2}", "${ip}", "${force_check}"],
     "execute_task_nodes_id": [1, 2, 3],
-    "exclude_task_nodes_id": [4, 5, 6]
+    "exclude_task_nodes_id": [4, 5, 6],
     "scope": "cmdb_biz",
 }
 ```
