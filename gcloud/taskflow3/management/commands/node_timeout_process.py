@@ -55,7 +55,10 @@ class Command(BaseCommand):
             for node in redis_inst.zrangebyscore(nodes_pool, "-inf", now)
         ]
         if timeout_nodes:
-            self.record_timeout_nodes(timeout_nodes)
+            node_num = len(timeout_nodes)
+            logger.info(f"[node_timeout_process] {node_num} nodes timeout")
+            record_id = self.record_timeout_nodes(timeout_nodes)
+            logger.info(f"[node_timeout_process] {node_num} has been recorded with id: {record_id}")
             redis_inst.zrem(nodes_pool, *timeout_nodes)
         metrics.TASKFLOW_RUNNING_NODES_NUMBER.set(redis_inst.zcard(nodes_pool))
         return timeout_nodes
@@ -66,3 +69,4 @@ class Command(BaseCommand):
         dispatch_timeout_nodes.apply_async(
             kwargs={"record_id": record.id}, queue="timeout_nodes_record", routing_key="timeout_nodes_record"
         )
+        return record.id
