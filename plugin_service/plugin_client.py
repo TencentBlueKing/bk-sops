@@ -243,7 +243,7 @@ class PluginServiceApiClient:
                 result = getattr(requests, method)(url, **kwargs)
                 result.raise_for_status()
                 break
-            except requests.exceptions.RequestException as e:
+            except Exception as e:
                 message = "request api error,invoke_num:{},{} {},kwargs:{},error:{} ".format(
                     invoke_num, method, url, kwargs, str(e)
                 )
