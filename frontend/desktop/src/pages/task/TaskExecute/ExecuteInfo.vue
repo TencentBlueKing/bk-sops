@@ -208,27 +208,31 @@
                                 <div class="common-form-item executeLog">
                                     <label>{{ $t('日志') }}</label>
                                     <!-- 内置插件/第三方插件tab -->
-                                    <bk-tab v-if="isThirdPartyNode" :active.sync="props.row.historyLogTab" type="unborder-card">
+                                    <bk-tab
+                                        v-if="isThirdPartyNode"
+                                        :active.sync="props.row.historyLogTab"
+                                        type="unborder-card">
                                         <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('节点日志') }"></bk-tab-panel>
                                         <bk-tab-panel
                                             v-bind="{ name: 'third_party_plugin', label: $t('第三方节点日志') }">
                                         </bk-tab-panel>
                                     </bk-tab>
                                     <div class="perform-log" v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1, zIndex: 100 }">
-                                        <template v-if="getHistoryLogData(props.row)">
+                                        <div v-show="getHistoryLogData(props.row)">
                                             <VueJsonPretty
-                                                v-if="adminView"
-                                                :key="props.row.historyLogTab"
+                                                v-show="adminView"
                                                 :data="getHistoryLogData(props.row)">
                                             </VueJsonPretty>
                                             <full-code-editor
-                                                v-else
-                                                :key="props.row.historyLogTab"
-                                                :class="{ 'third-party-editor': curPluginTab === 'third_party_plugin' }"
+                                                v-show="!adminView"
+                                                :class="[
+                                                    `history-editor-${props.row.history_id}`,
+                                                    { 'third-party-editor': curPluginTab === 'third_party_plugin' }
+                                                ]"
                                                 :value="getHistoryLogData(props.row)">
                                             </full-code-editor>
-                                        </template>
-                                        <NoData v-else></NoData>
+                                        </div>
+                                        <NoData v-show="!getHistoryLogData(props.row)"></NoData>
                                     </div>
                                 
                                 </div>
@@ -511,7 +515,6 @@
         data () {
             return {
                 curPluginTab: 'build_in_plugin',
-                historyLogTab: 'build_in_plugin',
                 isLogLoading: false,
                 isShowInputOrigin: false,
                 isShowOutputOrigin: false,
@@ -689,6 +692,15 @@
                 this.observer.takeRecords()
                 this.observer = null
             }
+            if (this.historyInfo.length) {
+                this.historyInfo.forEach(item => {
+                    if (item.observe) {
+                        item.observer.disconnect()
+                        item.observer.takeRecords()
+                        item.observer = null
+                    }
+                })
+            }
         },
         methods: {
             ...mapActions('task/', [
@@ -713,7 +725,6 @@
                     this.isShowInputOrigin = false
                     this.isShowOutputOrigin = false
                     this.curPluginTab = 'build_in_plugin'
-                    this.historyLogTab = 'build_in_plugin'
                     this.scrollId = ''
                     this.historyScrollId = ''
                     const respData = await this.getTaskNodeDetail()
@@ -748,6 +759,7 @@
                         history.forEach(item => {
                             this.$set(item, 'historyLogTab', 'build_in_plugin')
                             this.$set(item, 'scrollId', '')
+                            this.$set(item, 'observer', null)
                         })
                         this.historyInfo = history.sort((a, b) => {
                             if (a.loop === b.loop) {
@@ -762,6 +774,7 @@
                         this.historyInfo = respData.histories.map(item => {
                             this.$set(item, 'historyLogTab', 'build_in_plugin')
                             this.$set(item, 'scrollId', '')
+                            this.$set(item, 'observer', null)
                             item.scrollId = ''
                             return item
                         })
@@ -1018,6 +1031,53 @@
                     this.historyLogLoading[id] = false
                 }
             },
+            getThirdHistoryLog (row) {
+                try {
+                    // 滚动dom
+                    const editorDom = document.querySelector(`.history-editor-${row.history_id}`)
+                    const scrollDom = editorDom && editorDom.querySelector('.code-editor .vertical .slider')
+                    if (!scrollDom) return
+                    // 编辑器dom
+                    const editDom = editorDom && editorDom.querySelector('.monaco-editor')
+                    const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
+                    const id = Number(row.history_id)
+                    const traceId = row.outputs.trace_id
+                    // 监听滚动dom
+                    row.observer = new MutationObserver(async mutation => {
+                        const { height } = scrollDom.getBoundingClientRect()
+                        const { height: editHeight } = editDom && editDom.getBoundingClientRect()
+                        const top = scrollDom.offsetTop
+                        const offsetBottom = editHeight > 300 ? 180 : 100
+                        if (editHeight - height - top < offsetBottom && this.historyLogLoading && row.scrollId) {
+                            this.historyLogLoading[row.history_id] = true
+                            const thirdLogsResp = await this.loadPluginServiceLog({
+                                plugin_code: this.thirdPartyNodeCode,
+                                trace_id: traceId,
+                                scroll_id: row.scrollId || undefined
+                            })
+                            if (thirdLogsResp.result) {
+                                const { logs, scroll_id } = thirdLogsResp.data
+                                const thirdPartyLogs = this.thirdHistoryLog[id] || ''
+                                this.$set(this.thirdHistoryLog, id, thirdPartyLogs + logs)
+                                row.scrollId = logs && scroll_id ? scroll_id : ''
+                            } else {
+                                row.scrollId = ''
+                            }
+                            this.historyLogLoading[row.history_id] = false
+                        }
+                    })
+                    row.observer.observe(scrollDom, {
+                        childList: true,
+                        attributes: true,
+                        characterData: true,
+                        subtree: true
+                    })
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.historyLogLoading[row.history_id] = false
+                }
+            },
             getHistoryLogData (row) {
                 return row.historyLogTab === 'build_in_plugin' ? this.historyLog[row.history_id] : this.thirdHistoryLog[row.history_id]
             },
@@ -1060,10 +1120,15 @@
                 this.theExecuteTime = val
                 this.loadNodeInfo()
             },
-            onHistoyExpand (row, expended) {
+            async onHistoyExpand (row, expended) {
                 const id = Number(row.history_id)
                 if (expended && !this.historyLog.hasOwnProperty(id)) {
-                    this.getHistoryLog(id, row)
+                    await this.getHistoryLog(id, row)
+                }
+                if (row && !row.observer) {
+                    this.$nextTick(() => {
+                        this.getThirdHistoryLog(row)
+                    })
                 }
             },
             onSelectNode (nodeHeirarchy, selectNodeId, nodeType) {
