@@ -47,6 +47,9 @@ Start a task
 {
     "result": true,
     "task_url": "http://paas_url/taskflow/execute/xxx/?instance_id=xxx",
+    "data": {
+        "task_url": "http://paas_url/taskflow/execute/xxx/?instance_id=xxx",
+    },
     "message": "success",
     "code": 3545100
 }
