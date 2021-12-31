@@ -117,7 +117,6 @@
                 <i v-bk-tooltips="errorHandleTipsConfig" ref="tooltipsHtml" class="bk-icon icon-question-circle form-item-tips"></i>
             </bk-form-item>
             <bk-form-item :label="$t('超时控制')">
-                <!-- <i v-bk-tooltips="{ placement: 'top', content: $t('该功能仅对V2引擎生效') }" class="bk-icon icon-question-circle form-item-tips"></i> -->
                 <div class="timeout-setting-wrap">
                     <bk-switcher
                         theme="primary"
