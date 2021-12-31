@@ -83,20 +83,13 @@
                 return paths.some(path => this.$route.path.startsWith(path))
             }
         },
-        watch: {
-            projectList: {
-                handler (val) {
-                    if (val.length && !this.project_id) {
-                        const projectId = val[0].id
-                        this.setProjectId(projectId)
-                    }
-                },
-                immediate: true
-            }
-        },
-        created () {
+        async created () {
             if (this.view_mode !== 'appmaker') {
-                this.loadUserProjectList({ limit: 0, is_disable: false })
+                await this.loadUserProjectList({ limit: 0, is_disable: false })
+                if (this.projectList.length && !this.project_id) {
+                    const projectId = this.projectList[0].id
+                    this.setProjectId(projectId)
+                }
             }
         },
         methods: {
