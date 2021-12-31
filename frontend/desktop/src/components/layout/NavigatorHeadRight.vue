@@ -35,7 +35,7 @@
     </div>
 </template>
 <script>
-    import { mapActions, mapState } from 'vuex'
+    import { mapActions, mapMutations, mapState } from 'vuex'
     import ProjectSelector from './ProjectSelector.vue'
     import VersionLog from './VersionLog.vue'
 
@@ -63,6 +63,7 @@
                 username: state => state.username
             }),
             ...mapState('project', {
+                project_id: state => state.project_id,
                 projectList: state => state.userProjectList
             }),
             // 隐藏右侧项目信息
@@ -82,6 +83,17 @@
                 return paths.some(path => this.$route.path.startsWith(path))
             }
         },
+        watch: {
+            projectList: {
+                handler (val) {
+                    if (val.length && !this.project_id) {
+                        const projectId = val[0].id
+                        this.setProjectId(projectId)
+                    }
+                },
+                immediate: true
+            }
+        },
         created () {
             if (this.view_mode !== 'appmaker') {
                 this.loadUserProjectList({ limit: 0, is_disable: false })
@@ -94,6 +106,9 @@
             ]),
             ...mapActions('project', [
                 'loadUserProjectList'
+            ]),
+            ...mapMutations('project', [
+                'setProjectId'
             ]),
             goToHelpDoc () {
                 window.open(this.bkDocUrl, '_blank')
