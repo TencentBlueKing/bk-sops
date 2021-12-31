@@ -33,7 +33,9 @@ Get project detail
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
-    "bk_biz_id": "2"
+    "bk_username": "xxx",
+    "bk_biz_id": "2",
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -53,7 +55,9 @@ Get project detail
         "bk_biz_tester": "",
         "bk_biz_productor": ""
     },
-    "code": 0
+    "code": 0,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -64,6 +68,8 @@ Get project detail
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    dict    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |
 
 #### data
 | Field      | Type      | Description      |

@@ -33,8 +33,11 @@ Import project templates
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "template_data": "xxx",
-    "project_id": "3,
+    "project_id": "3",
+    "bk_username": "cmdb_biz",
+    "scope":"cmdb_biz"
 }
 ```
 
@@ -52,7 +55,9 @@ Import project templates
         },
         "count": 2
     },
-    "result": true
+    "result": true,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -63,6 +68,8 @@ Import project templates
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    dict    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |
 
 #### data
 

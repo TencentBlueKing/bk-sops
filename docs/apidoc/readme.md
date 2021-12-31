@@ -15,7 +15,7 @@
 - [通过流程模板新建任务](zh_hans/create_task.md)
 [(Create a task with a flow template)](en/create_task.md)
 - [开始执行任务](zh_hans/start_task.md)
-[(Create and start task)](en/start_task.md)
+[(Start a task)](en/start_task.md)
 - [操作任务](zh_hans/operate_task.md)
 [(Operate task)](en/operate_task.md)
 - [回调任务节点](zh_hans/node_callback.md)

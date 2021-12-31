@@ -47,13 +47,21 @@ POST
 ```
 {
     "app_code":"bk_sops",
+    "bk_app_secret":"xxx",
+    "bk_token":"xxx",
+    "bk_username":"xxx",
+    "template_id":"xxx",
+    "template_source": "business",
+    "bk_biz_id":"xxx",
     "name": "tasktest",
     "flow_type": "common"
     "constants": {
         "${content}": "echo 1",
         "${params}": "",
         "${script_timeout}": 20
-    }
+    },
+    "exclude_task_nodes_id":[1, 2, 3],
+    "description":"description"
 }
 ```
 
@@ -105,7 +113,25 @@ POST
                     "labels": []
                 }
             },
-            "constants": {},
+            "constants": {
+                "${bk_timing}": {
+                    "source_tag": "sleep_timer.bk_timing",
+                    "source_info": {
+                        "node76393dcfedcf73dbc726f1c4786d": [
+                            "bk_timing"
+                        ]
+                    },
+                    "name": "定时时间",
+                    "index": 0,
+                    "custom_type": "",
+                    "value": "100",
+                    "show_type": "show",
+                    "source_type": "component_inputs",
+                    "key": "${bk_timing}",
+                    "validation": "",
+                    "desc": ""
+                }
+            },
             "end_event": {
                 "id": "ncc1ac32fd1d338980c7831fd20bf908",
                 "incoming": [
@@ -193,6 +219,7 @@ POST
         "task_id": 5,
         "task_url": "http://{PAAS_HOST}/taskflow/execute/3/?instance_id=5"
     },
+    "request_id": "xxx"
     "trace_id": "ebc2a953abbc4955a993f88242c7f808"
 }
 ```
@@ -204,6 +231,8 @@ POST
 |  result      |    bool    |      true/false 操作是否成功     |
 |  data        |    dict  |      result=true 时成功数据，详细信息请见下面说明      |
 |  message     |    string  |      result=false 时错误信息     |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 ####  data
 

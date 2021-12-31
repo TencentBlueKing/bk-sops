@@ -36,8 +36,10 @@ GET
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
-    "task_id": "10"
+    "task_id": "10",
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -46,6 +48,7 @@ GET
 ```
 {
     "data": {
+        "name": "xxx",
         "creator": "admin",
         "outputs": [
             {
@@ -124,6 +127,7 @@ GET
         "create_method": "app",
         "elapsed_time": 7,
         "ex_data": "",
+        "finish_time":"",
         "instance_name": "job输出变量测试_20190117121300",
         "end_time": "2019-01-17 04:13:15",
         "executor": "admin",
@@ -276,7 +280,9 @@ GET
             ]
         }
     },
-    "result": true
+    "result": true,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -287,6 +293,8 @@ GET
 |  result   |    bool    |      true/false 查询成功与否     |
 |  data     |    dict    |      result=true 时返回数据，详细信息见下面说明     |
 |  message  |    string  |      result=false 时错误信息     |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 #### data
 
@@ -313,8 +321,8 @@ GET
 
 全局变量 KEY，${key} 格式
 
-
 #### data.constants VALUE
+
 |   字段   |  类型  |           描述             |
 | ------------ | ---------- | ------------------------------ |
 |  key      |    string    |      同 KEY     |
@@ -326,8 +334,8 @@ GET
 |  source_tag      |    string    |      source_type=component_inputs/component_outputs 时有效，变量的来源标准插件   |
 |  source_info   |   dict  |  source_type=component_inputs/component_outputs 时有效，变量的来源节点信息 |
 
+#### data.outputs[]
 
-#### data.outputs[] 
 |      字段     |     类型   |               描述             |
 | ------------  | ---------- | ------------------------------ |
 |  name         | string     | 输出参数名称                   |

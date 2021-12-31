@@ -41,8 +41,10 @@ POST
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
-    "task_id_list": [30000105, 30000101, 30000100]
+    "task_id_list": [30000105, 30000101, 30000100],
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -73,7 +75,9 @@ POST
             "manual_intervention_required": false
         }
     ],
-    "code": 0
+    "code": 0,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -84,6 +88,8 @@ POST
 | result  | bool   | true/false 查询成功与否                    |
 | data    | dict   | result=true 时返回数据，详细信息见下面说明 |
 | message | string | result=false 时错误信息                    |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 #### data 说明
 | 名称                         | 类型 | 说明             |

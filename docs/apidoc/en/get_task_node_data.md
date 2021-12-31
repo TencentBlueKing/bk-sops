@@ -36,10 +36,13 @@ Get task node data
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
     "task_id": 11,
     "node_id": "ndfbcbdc77e9350ba18222dc4a0a435f",
-    "component_code": "sleep_timer"
+    "component_code": "sleep_timer",
+    "scope": "cmdb_biz"
+    "subprocess_stack":"[1, 2]"
 }
 ```
 
@@ -69,7 +72,9 @@ Get task node data
         "ex_data": ""
     },
     "message": "",
-    "code": 0
+    "code": 0,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -80,15 +85,19 @@ Get task node data
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    dict    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |
 
 #### data
+
 | Field      | Type      | Description      |
 | ------------  | ---------- | ------------------------------ |
 |  inputs       | dict       | inputs parameters, format is key：value      |
 |  outputs      | list       | outputs info of this node，details are described below    |
 |  ex_data      | string     | failure detail of this node，format is json or HTML、string |
 
-#### data.outputs[] 
+#### data.outputs[]
+
 | Field      | Type      | Description      |
 | ------------  | ---------- | ------------------------------ |
 |  name         | string     | name of output variable                   |

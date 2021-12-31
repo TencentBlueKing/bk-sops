@@ -36,8 +36,10 @@ POST
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
-    "task_id": "10"
+    "task_id": "10",
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -47,8 +49,9 @@ POST
 {
     "result": true,
     "task_url": "http://paas_url/taskflow/execute/xxx/?instance_id=xxx",
-    "message": "success",
-    "code": 3545100
+    "code": 3545100,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -60,3 +63,5 @@ POST
 |  data        |    dict  |      result=true 时返回数据      |
 |  message     |    string  |      result=false 时错误信息     |
 |  task_url    |    string  |      任务对应的url  |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |

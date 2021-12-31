@@ -35,6 +35,7 @@ POST
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "template_data": "xxx",
     "override": true
 }
@@ -46,9 +47,16 @@ POST
 {
     "message": "Successfully imported 2 common flows",
     "data": {
-        "count": 2
+        "count": 2,
+        "flows": {
+              11: "flowA",
+              12: "flowB",
+              ...
+        },
     },
-    "result": true
+    "result": true,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -59,9 +67,12 @@ POST
 |  result       | bool       | true/false 成功与否            |
 |  message      | string     | result=false 时错误信息        |
 |  data         | dict        | 返回数据                    |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 #### data
 
-|   名称   |  类型  |           说明             |
-| ------------ | ---------- | ------------------------------ |
-|  count      |    int    |      导入的流程数    |
+| 名称    | 类型   | 说明         |
+|-------|------|------------|
+| count | int  | 导入的流程数     |
+| flows  | dict | 导入的流程ID与名字的映射 |

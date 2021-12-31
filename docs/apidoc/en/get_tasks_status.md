@@ -35,8 +35,11 @@ Batch query task status
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
-    "task_id_list": [30000105, 30000101, 30000100]
+    "task_id_list": [30000105, 30000101, 30000100],
+    "scope": "cmdb_biz",
+    "include_children_status": false
 }
 ```
 
@@ -119,7 +122,9 @@ Batch query task status
             "url": "url"
         }
     ],
-    "code": 0
+    "code": 0,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -130,6 +135,8 @@ Batch query task status
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    list    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |
 
 
 #### data

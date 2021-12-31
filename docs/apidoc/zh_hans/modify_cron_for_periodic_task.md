@@ -47,6 +47,7 @@ POST
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
     "task_id": "8",
     "cron" : {
@@ -55,7 +56,8 @@ POST
 	    "day_of_week":"*", 
 	    "day_of_month":"*", 
 	    "month_of_year":"*"
-    }
+    },
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -66,7 +68,9 @@ POST
     "data": {
         "cron": "*/1 15 * * * (m/h/d/dM/MY)"
     },
-    "result": true
+    "result": true,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -77,6 +81,8 @@ POST
 |  result      |    bool    |      true/false 操作是否成功     |
 |  data        |    dict      |      result=true 时成功数据，详细信息请见下面说明     |
 |  message        |    string      |      result=false 时错误信息     |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 #### data
 

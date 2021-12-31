@@ -38,8 +38,12 @@ GET
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
-    "template_source": "business"
+    "id_in": "1, 2, 3"
+    "template_source": "business",
+    "scope": "cmdb_biz",
+    "name_keyword": "xxx"
 }
 ```
 
@@ -58,7 +62,8 @@ GET
             "creator": "admin",
             "bk_biz_name": "蓝鲸",
             "id": 32,
-            "editor": "admin"
+            "editor": "admin",
+            "creator":"admin"
         },
         {
             "category": "Other",
@@ -69,7 +74,8 @@ GET
             "creator": "admin",
             "bk_biz_name": "蓝鲸",
             "id": 31,
-            "editor": null
+            "editor": null,
+            "creator": "admin",
         },
         {
             "category": "Other",
@@ -80,9 +86,12 @@ GET
             "creator": "admin",
             "bk_biz_name": "蓝鲸",
             "id": 30,
-            "editor": "admin"
+            "editor": "admin",
+            "creator": "admin"
         },
-    ]
+    ],
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -93,6 +102,8 @@ GET
 | result    | bool     | true/false 查询成功与否 |
 | data      | list     | result=true时模板列表，item 信息见下面说明 |
 | message   | string   | result=false时错误信息 |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 #### data
 

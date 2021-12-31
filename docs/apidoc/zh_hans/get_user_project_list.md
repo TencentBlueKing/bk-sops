@@ -26,7 +26,8 @@ GET
 {
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
-    "bk_token": "xxx"
+    "bk_token": "xxx",
+    "bk_username": "xxx"
 }
 ```
 
@@ -47,7 +48,9 @@ GET
             "name": "la"
         }
     ],
-    "code": 0
+    "code": 0,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -57,6 +60,8 @@ GET
 |  result       | bool       | true/false 成功与否            |
 |  data         | dict       | result=true 时返回数据，详情见下面说明 |
 |  message      | string     | result=false 时错误信息        |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 #### data
 |      名称     |     类型   |               说明             |

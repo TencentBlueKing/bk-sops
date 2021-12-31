@@ -29,8 +29,6 @@ GET
 |   limit       |   int        |   否   | 分页，返回任务列表任务数，默认为100 |
 |   offset      |   int        |   否   |  分页，返回任务列表起始任务下标，默认为0 |
 
-
-
 ### 请求参数示例
 
 ```
@@ -38,9 +36,12 @@ GET
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
+    "id_in": "412,411"
     "task_id_in": "414,413",
     "status": "submitted",
     "limit": 50,
+    "offset": 0
 }
 ```
 
@@ -106,19 +107,25 @@ GET
         }
     ],
     "code": 0,
-    "count": 2
+    "count": 2,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
 ### 返回结果说明
+
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |
 |  result      |    bool    |      true/false 操作是否成功     |
 |  data        |    list    |      result=true 时成功数据，详细信息请见下面说明     |
 |  message     |    string  |      result=false 时错误信息     |
 | count | int | data列表数量 |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 ##### data[item]
+
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |
 |  id          |    int     | 职能化任务ID |
