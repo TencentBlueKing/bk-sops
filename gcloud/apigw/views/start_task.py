@@ -61,8 +61,13 @@ def start_task(request, task_id, project_id):
         kwargs=dict(task_id=task_id, project_id=project.id, username=username), queue=queue, routing_key=routing_key
     )
 
+    task_url = TaskFlowInstance.task_url(project_id=project.id, task_id=task_id)
+
     return {
-        "task_url": TaskFlowInstance.task_url(project_id=project.id, task_id=task_id),
+        "task_url": task_url,
+        "data": {
+            "task_url": task_url,
+        },
         "result": True,
         "code": err_code.SUCCESS.code,
     }
