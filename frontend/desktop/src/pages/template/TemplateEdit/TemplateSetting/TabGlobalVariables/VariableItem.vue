@@ -82,14 +82,14 @@
             </span>
             <span class="col-item col-operation">
                 <span
-                    v-if="isSystemVar || isProjectVar"
+                    v-if="isInternalVal"
                     class="col-operation-item"
                     @click.stop="onEditVariable(variableData.key, variableData.index)">
                     {{ $t('查看') }}
                 </span>
                 <span v-else class="col-operation-item">{{ $t('编辑') }}</span>
             </span>
-            <span class="col-item col-more">
+            <span class="col-item col-more" v-if="!isInternalVal">
                 <bk-popover placement="bottom" theme="light" :distance="0" :arrow="false" ext-cls="var-operate-popover">
                     <i class="bk-icon icon-more"></i>
                     <template slot="content">
@@ -142,9 +142,15 @@
                 'username': state => state.username,
                 'activities': state => state.template.activities,
                 'constants': state => state.template.constants,
+                'internalVariable': state => state.template.internalVariable,
                 'project_id': state => state.project.project_id,
                 'bizId': state => state.project.bizId
             }),
+            // 是否为内置变量
+            isInternalVal () {
+                const keys = Object.keys(this.internalVariable)
+                return keys.some(key => key === this.variableData.key)
+            },
             isSystemVar () {
                 return this.variableData.source_type === 'system'
             },
