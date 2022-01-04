@@ -2149,7 +2149,7 @@ msgstr "Select set please"
 #: staticfiles/components/atoms/cc/empty_set_hosts/v1_0.js:164
 #: staticfiles/components/atoms/cc/update_set/v1_0.js:164
 #: staticfiles/components/atoms/cc/update_set_service_status/v1_0.js:164
-msgid "请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C`，多个目标集群用换行分隔"
+msgid "请输入完整路径，从业务拓扑开始，如`业务A>集群B`，多个目标集群用换行分隔"
 msgstr "Input complete path begin with business, mutiple set split by line breaker. e.g. business_a > network_b > set_c"
 
 #: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:178
@@ -2685,7 +2685,7 @@ msgstr "Select module please"
 #: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:164
 #: staticfiles/components/atoms/cc/transfer_host_module/v1_0.js:165
 #: staticfiles/components/atoms/cc/update_module/v1_0.js:164
-msgid "请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C>模块D`，多个目标模块用换行分隔"
+msgid "请输入完整路径，从业务拓扑开始，如`业务A>集群B>模块C`，多个目标模块用换行分隔"
 msgstr "Input complete text path begin with business, multiple parent instance split by line breaker. e.g. business_a > network_b > set_c > module_d"
 
 #: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:180

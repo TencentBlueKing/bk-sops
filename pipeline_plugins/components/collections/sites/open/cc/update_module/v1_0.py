@@ -69,7 +69,7 @@ class CCUpdateModuleService(Service):
                 name=_("文本路径-模块"),
                 key="cc_module_select_text",
                 type="string",
-                schema=StringItemSchema(description=_("模块文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C>模块D`，多个目标模块用换行分隔")),
+                schema=StringItemSchema(description=_("模块文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B>模块C`，多个目标模块用换行分隔")),
             ),
             self.InputItem(
                 name=_("模块属性"),
