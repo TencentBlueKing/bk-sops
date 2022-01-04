@@ -39,5 +39,8 @@ urlpatterns = [
     url(r"^api/nodes/callback/(?P<token>.+)/$", api.node_callback),
     url(r"^api/v4/", include(v4_urlpatterns)),
     path(r"api/render_current_constants/<int:task_id>/", RenderCurrentConstantsView.as_view()),
-    path(r"api/node_log/<int:project_id>/<int:task_id>/<str:node_id>/<str:version>/", EngineV2NodeLogView.as_view()),
+    path(
+        r"api/engine_v2/node_log/<int:project_id>/<int:task_id>/<str:node_id>/<str:version>/",
+        EngineV2NodeLogView.as_view(),
+    ),
 ]
