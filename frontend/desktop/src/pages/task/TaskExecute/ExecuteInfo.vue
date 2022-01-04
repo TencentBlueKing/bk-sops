@@ -1002,21 +1002,10 @@
                     // 获取第三方插件的执行历史日志
                     const traceId = row.outputs.trace_id
                     if (traceId) {
-                        const thirdLogsResp = await this.loadPluginServiceLog({
-                            plugin_code: this.thirdPartyNodeCode,
-                            trace_id: traceId,
-                            scroll_id: row.scrollId || undefined
-                        })
-                        if (thirdLogsResp.result) {
-                            const { logs, scroll_id } = thirdLogsResp.data
-                            const thirdPartyLogs = this.thirdHistoryLog[id] || ''
-                            this.$set(this.thirdHistoryLog, id, thirdPartyLogs + logs)
-                            row.scrollId = logs && scroll_id ? scroll_id : ''
-                        } else {
-                            row.scrollId = ''
-                        }
+                        // 设置第三方节点历史日志
+                        await this.setThirdHistoryLog(row)
                     } else {
-                        this.$set(this.thirdHistoryLog, id, '输出参数中不包含trace_id，无法查看第三方节点日志')
+                        this.$set(this.thirdHistoryLog, id, i18n.t('输出参数中不包含trace_id，无法查看第三方节点日志'))
                     }
                     if (resp.result) {
                         if (this.adminView) {
@@ -1031,7 +1020,7 @@
                     this.historyLogLoading[id] = false
                 }
             },
-            getThirdHistoryLog (row) {
+            setHistoryLogWatch (row) {
                 try {
                     // 滚动dom
                     const editorDom = document.querySelector(`.history-editor-${row.history_id}`)
@@ -1040,8 +1029,6 @@
                     // 编辑器dom
                     const editDom = editorDom && editorDom.querySelector('.monaco-editor')
                     const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
-                    const id = Number(row.history_id)
-                    const traceId = row.outputs.trace_id
                     // 监听滚动dom
                     row.observer = new MutationObserver(async mutation => {
                         const { height } = scrollDom.getBoundingClientRect()
@@ -1050,19 +1037,8 @@
                         const offsetBottom = editHeight > 300 ? 180 : 100
                         if (editHeight - height - top < offsetBottom && this.historyLogLoading && row.scrollId) {
                             this.historyLogLoading[row.history_id] = true
-                            const thirdLogsResp = await this.loadPluginServiceLog({
-                                plugin_code: this.thirdPartyNodeCode,
-                                trace_id: traceId,
-                                scroll_id: row.scrollId || undefined
-                            })
-                            if (thirdLogsResp.result) {
-                                const { logs, scroll_id } = thirdLogsResp.data
-                                const thirdPartyLogs = this.thirdHistoryLog[id] || ''
-                                this.$set(this.thirdHistoryLog, id, thirdPartyLogs + logs)
-                                row.scrollId = logs && scroll_id ? scroll_id : ''
-                            } else {
-                                row.scrollId = ''
-                            }
+                            // 设置第三方节点历史日志
+                            await this.setThirdHistoryLog(row)
                             this.historyLogLoading[row.history_id] = false
                         }
                     })
@@ -1072,6 +1048,30 @@
                         characterData: true,
                         subtree: true
                     })
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.historyLogLoading[row.history_id] = false
+                }
+            },
+            // 设置第三方节点历史日志
+            async setThirdHistoryLog (row) {
+                try {
+                    const id = Number(row.history_id)
+                    const traceId = row.outputs.trace_id
+                    const thirdLogsResp = await this.loadPluginServiceLog({
+                        plugin_code: this.thirdPartyNodeCode,
+                        trace_id: traceId,
+                        scroll_id: row.scrollId || undefined
+                    })
+                    if (thirdLogsResp.result) {
+                        const { logs, scroll_id } = thirdLogsResp.data
+                        const thirdPartyLogs = this.thirdHistoryLog[id] || ''
+                        this.$set(this.thirdHistoryLog, id, thirdPartyLogs + logs)
+                        row.scrollId = logs && scroll_id ? scroll_id : ''
+                    } else {
+                        row.scrollId = ''
+                    }
                 } catch (error) {
                     console.warn(error)
                 } finally {
@@ -1125,9 +1125,10 @@
                 if (expended && !this.historyLog.hasOwnProperty(id)) {
                     await this.getHistoryLog(id, row)
                 }
-                if (row && !row.observer) {
+                if (this.isThirdPartyNode && row && !row.observer) {
                     this.$nextTick(() => {
-                        this.getThirdHistoryLog(row)
+                        // 给历史日志设置监听事件
+                        this.setHistoryLogWatch(row)
                     })
                 }
             },
