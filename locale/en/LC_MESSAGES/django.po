@@ -2754,7 +2754,7 @@ msgstr "Text path-Set"
 #: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/v1_0.py:70
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/v1_0.py:72
 #: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/v1_0.py:71
-msgid "集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C`，多个目标集群用换行分隔"
+msgid "集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B`，多个目标集群用换行分隔"
 msgstr "Set's text path, please input complete path begin with business, mutiple topo split by line breaker. e.g. business_a>network_b>set_c"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:100
@@ -3292,7 +3292,7 @@ msgid "文本路径-模块"
 msgstr "Text - Module"
 
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/v1_0.py:78
-msgid "请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C>模块D`，多个目标模块用换行分隔"
+msgid "请输入完整路径，从业务拓扑开始，如`业务A>集群B>模块C`，多个目标模块用换行分隔"
 msgstr "Please input complete path begin with business, multiple module are split by line breaker. e.g. business_a > network_b > set_c > module_d"
 
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_resource/legacy.py:51
@@ -3375,7 +3375,7 @@ msgid "更新模块属性"
 msgstr "Update Module Attribute"
 
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/v1_0.py:72
-msgid "模块文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C>模块D`，多个目标模块用换行分隔"
+msgid "模块文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B>模块C`，多个目标模块用换行分隔"
 msgstr "Please input complete path begin with business, multiple module are split by line breaker. e.g. business_a > network_b > set_c > module_d"
 
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/v1_0.py:122
