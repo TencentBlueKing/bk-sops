@@ -17,6 +17,7 @@ from django.conf.urls import url, include
 from gcloud.taskflow3.apis.django import api
 from gcloud.taskflow3.apis.django.v4.urls import v4_urlpatterns
 from gcloud.taskflow3.apis.drf.viewsets.render_current_constants import RenderCurrentConstantsView
+from gcloud.taskflow3.apis.drf.viewsets.engine_v2_node_log import EngineV2NodeLogView
 
 
 urlpatterns = [
@@ -38,4 +39,5 @@ urlpatterns = [
     url(r"^api/nodes/callback/(?P<token>.+)/$", api.node_callback),
     url(r"^api/v4/", include(v4_urlpatterns)),
     path(r"api/render_current_constants/<int:task_id>/", RenderCurrentConstantsView.as_view()),
+    path(r"api/node_log/<int:project_id>/<int:task_id>/<str:node_id>/<str:version>/", EngineV2NodeLogView.as_view()),
 ]
