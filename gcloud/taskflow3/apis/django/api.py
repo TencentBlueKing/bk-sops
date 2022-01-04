@@ -159,6 +159,7 @@ def detail(request, project_id):
             "elapsed_time": "执行耗时(int)",
             "start_time": "开始时间(string)",
             "finish_time": "结束时间(string)",
+            "history_id": "历史 ID，仅 V1 引擎任务节点会返回该字段(int)",
             "histories": [
                 {
                     "loop": "重入次数(int)",
