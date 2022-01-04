@@ -555,7 +555,6 @@
                 isShowSkipBtn: false,
                 isShowRetryBtn: false,
                 scrollId: '',
-                historyScrollId: '',
                 observer: null,
                 editScrollDom: null
             }
@@ -726,7 +725,6 @@
                     this.isShowOutputOrigin = false
                     this.curPluginTab = 'build_in_plugin'
                     this.scrollId = ''
-                    this.historyScrollId = ''
                     const respData = await this.getTaskNodeDetail()
                     if (!respData) {
                         this.isReadyStatus = false
@@ -775,7 +773,6 @@
                             this.$set(item, 'historyLogTab', 'build_in_plugin')
                             this.$set(item, 'scrollId', '')
                             this.$set(item, 'observer', null)
-                            item.scrollId = ''
                             return item
                         })
                         for (const key in this.inputsInfo) {
@@ -1020,6 +1017,7 @@
                     this.historyLogLoading[id] = false
                 }
             },
+            // 设置第三方节点历史日志
             setHistoryLogWatch (row) {
                 try {
                     // 滚动dom
@@ -1035,11 +1033,10 @@
                         const { height: editHeight } = editDom && editDom.getBoundingClientRect()
                         const top = scrollDom.offsetTop
                         const offsetBottom = editHeight > 300 ? 180 : 100
-                        if (editHeight - height - top < offsetBottom && this.historyLogLoading && row.scrollId) {
+                        if (editHeight - height - top < offsetBottom && !this.historyLogLoading[row.history_id] && row.scrollId) {
                             this.historyLogLoading[row.history_id] = true
                             // 设置第三方节点历史日志
                             await this.setThirdHistoryLog(row)
-                            this.historyLogLoading[row.history_id] = false
                         }
                     })
                     row.observer.observe(scrollDom, {
