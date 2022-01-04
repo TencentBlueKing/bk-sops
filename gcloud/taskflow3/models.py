@@ -1456,6 +1456,7 @@ class AutoRetryNodeStrategy(models.Model):
     node_id = models.CharField(verbose_name="task node id", max_length=64, primary_key=True)
     retry_times = models.IntegerField(verbose_name="retry times", default=0)
     max_retry_times = models.IntegerField(verbose_name="retry times", default=5)
+    interval = models.IntegerField(verbose_name="retry interval", default=0)
 
     class Meta:
         verbose_name = _("节点自动重试策略 AutoRetryNodeStrategy")
