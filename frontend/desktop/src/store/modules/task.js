@@ -329,19 +329,6 @@ const task = {
             }).then(response => response.data)
         },
         /**
-         * 获取节点执行日志
-         * @param {Object} data 节点配置数据
-         */
-        getNodePerformLog ({ commit }, data) {
-            const { project_id } = store.state.project
-            const { instance_id, node_id } = data
-            return axios.get(`taskflow/api/nodes/log/${project_id}/${node_id}/`, {
-                params: {
-                    instance_id
-                }
-            }).then(response => response.data)
-        },
-        /**
          * 获取任务所有全局变量当前渲染后的值
          * @param {Object} data 节点配置数据
          */
@@ -389,6 +376,12 @@ const task = {
                     instance_id
                 }
             }).then(response => response.data)
+        },
+        // 获取v2引擎的节点日志
+        getEngineVerNodeLog ({ commit }, data) {
+            const { project_id } = store.state.project
+            const { node_id, version, instance_id: task_id } = data
+            return axios.get(`taskflow/api/engine_v2/node_log/${project_id}/${task_id}/${node_id}/${version}/`).then(response => response.data)
         },
         /**
          * 获取节点执行信息

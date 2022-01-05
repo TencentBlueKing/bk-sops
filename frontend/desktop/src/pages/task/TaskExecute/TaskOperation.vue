@@ -68,6 +68,7 @@
                     v-if="nodeInfoType === 'executeInfo' || nodeInfoType === 'viewNodeDetails'"
                     :state="state"
                     :node-data="nodeData"
+                    :engine-ver="engineVer"
                     :selected-flow-path="selectedFlowPath"
                     :admin-view="adminView"
                     :pipeline-data="pipelineData"
@@ -269,6 +270,7 @@
         props: {
             project_id: [Number, String],
             instance_id: [Number, String],
+            engineVer: Number,
             instanceFlow: String,
             instanceName: String,
             template_id: [Number, String],
