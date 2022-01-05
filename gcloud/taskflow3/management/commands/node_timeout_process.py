@@ -19,6 +19,7 @@ import logging
 
 from django.conf import settings
 from django.core.management import BaseCommand
+from django.db import connections
 
 import metrics
 from gcloud.taskflow3.celery.tasks import dispatch_timeout_nodes
@@ -68,6 +69,10 @@ class Command(BaseCommand):
 
     @staticmethod
     def record_timeout_nodes(timeout_nodes: list):
+        # 处理因为过长时间没有访问导致的链接失效问题
+        for conn in connections.all():
+            conn.close_if_unusable_or_obsolete()
+
         record = TimeoutNodesRecord.objects.create(timeout_nodes=json.dumps(timeout_nodes))
         dispatch_timeout_nodes.apply_async(
             kwargs={"record_id": record.id}, queue="timeout_nodes_record", routing_key="timeout_nodes_record"
