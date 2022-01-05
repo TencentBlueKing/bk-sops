@@ -11,6 +11,7 @@ specific language governing permissions and limitations under the License.
 """
 import json
 import time
+import socket
 import logging
 
 from celery import task
@@ -33,6 +34,8 @@ from gcloud.taskflow3.domains.dispatchers.node import NodeCommandDispatcher
 from gcloud.shortcuts.message import send_task_flow_message
 
 logger = logging.getLogger("celery")
+
+HOST_NAME = socket.gethostname()
 
 
 @task
@@ -113,7 +116,7 @@ def auto_retry_node(taskflow_id, root_pipeline_id, node_id, retry_times, engine_
 def dispatch_timeout_nodes(record_id: int):
     record = TimeoutNodesRecord.objects.get(id=record_id)
     nodes = json.loads(record.timeout_nodes)
-    metrics.TASKFLOW_TIMEOUT_NODES_NUMBER.set(len(nodes))
+    metrics.TASKFLOW_TIMEOUT_NODES_NUMBER.labels(hostname=HOST_NAME).set(len(nodes))
     for node in nodes:
         node_id, version = node.split("_")
         execute_node_timeout_strategy.apply_async(
@@ -124,7 +127,7 @@ def dispatch_timeout_nodes(record_id: int):
 
 
 @task(ignore_result=True)
-@metrics.setup_histogram(metrics.TASKFLOW_TIMEOUT_NODES_PROCESSING_TIME)
+@metrics.setup_histogram(metrics.TASKFLOW_TIMEOUT_NODES_PROCESSING_TIME.labels(hostname=HOST_NAME))
 def execute_node_timeout_strategy(node_id, version):
     timeout_config = (
         TimeoutNodeConfig.objects.filter(node_id=node_id).only("task_id", "root_pipeline_id", "action").first()
