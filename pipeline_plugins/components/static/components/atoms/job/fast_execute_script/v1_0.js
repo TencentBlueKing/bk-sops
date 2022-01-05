@@ -472,6 +472,22 @@
                     }
                 ]
             }
-        }
+        },{
+            tag_code: "is_tagged_ip",
+            type: "radio",
+            attrs: {
+                name: gettext("IP Tag 分组"),
+                items: [
+                    {value: true, name: gettext("是")},
+                    {value: false, name: gettext("否")},
+                ],
+                default: false,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        },
     ]
 })();

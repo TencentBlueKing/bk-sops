@@ -9,7 +9,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
- (function () {
+(function () {
     $.atoms.job_fast_execute_script = [
         {
             tag_code: "biz_cc_id",
@@ -439,6 +439,23 @@
                     {value: false, name: gettext("否")},
                 ],
                 default: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        },
+        {
+            tag_code: "is_tagged_ip",
+            type: "radio",
+            attrs: {
+                name: gettext("IP Tag 分组"),
+                items: [
+                    {value: true, name: gettext("是")},
+                    {value: false, name: gettext("否")},
+                ],
+                default: false,
                 validation: [
                     {
                         type: "required"

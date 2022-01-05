@@ -234,7 +234,13 @@ BASE_INPUTS = {
 # manual inputs
 MANUAL_INPUTS = BASE_INPUTS
 MANUAL_INPUTS.update(
-    {"job_script_source": "manual", "job_script_type": "1", "job_content": "echo", "ip_is_exist": False}
+    {
+        "job_script_source": "manual",
+        "job_script_type": "1",
+        "is_tagged_ip": True,
+        "job_content": "echo",
+        "ip_is_exist": False,
+    }
 )
 
 # ip is exist inputs
@@ -283,6 +289,7 @@ MANUAL_SUCCESS_OUTPUTS2 = {
     "job_inst_name": "API Quick execution script1521100521303",
     "job_inst_url": "instance_url_token",
     "client": FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT,
+    "job_tagged_ip_dict": {"其他": "1.1.1.1,1.1.1.2"},
     "name": "value",
     "log_outputs": {},
 }

@@ -272,8 +272,8 @@
             attrs: {
                 name: gettext("IP 存在性校验"),
                 items: [
-                    { value: true, name: gettext("是") },
-                    { value: false, name: gettext("否") },
+                    {value: true, name: gettext("是")},
+                    {value: false, name: gettext("否")},
                 ],
                 default: true,
                 validation: [
@@ -289,8 +289,24 @@
             attrs: {
                 name: gettext("IP 允许跨业务"),
                 items: [
-                    { value: true, name: gettext("是") },
-                    { value: false, name: gettext("否") },
+                    {value: true, name: gettext("是")},
+                    {value: false, name: gettext("否")},
+                ],
+                default: false,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        }, {
+            tag_code: "is_tagged_ip",
+            type: "radio",
+            attrs: {
+                name: gettext("IP Tag 分组"),
+                items: [
+                    {value: true, name: gettext("是")},
+                    {value: false, name: gettext("否")},
                 ],
                 default: false,
                 validation: [

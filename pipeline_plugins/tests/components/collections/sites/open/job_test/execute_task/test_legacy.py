@@ -80,7 +80,6 @@ GET_JOB_INSTANCE_URL = (
     "pipeline_plugins.components.collections.sites.open.job.execute_task.execute_task_base.get_job_instance_url"
 )
 
-
 GET_VAR_ERROR_SUCCESS_GET_LOG_RETURN = {"code": 0, "result": False, "message": "success", "data": []}
 
 EXECUTE_SUCCESS_GET_STATUS_RETURN = {
@@ -126,7 +125,7 @@ EXECUTE_SUCCESS_GET_STATUS_RETURN = {
                         "ip": "1.1.1.2",
                         "bk_cloud_id": 0,
                         "status": 9,
-                        "tag": "",
+                        "tag": "tag1",
                         "exit_code": 0,
                         "error_code": 0,
                         "start_time": 1605064271000,
@@ -190,7 +189,6 @@ EXECUTE_SUCCESS_CLIENT = MockClient(
     get_job_instance_ip_log_return=EXECUTE_SUCCESS_GET_IP_LOG_RETURN,
     get_job_instance_status=EXECUTE_SUCCESS_GET_STATUS_RETURN,
 )
-
 
 GET_VAR_ERROR_SUCCESS_CLIENT = MockClient(
     execute_job_return={"result": True, "data": {"job_instance_id": 56789, "job_instance_name": "job_name_token"}},
@@ -454,6 +452,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
             "client": GET_GLOBAL_VAR_CALL_FAIL_CLIENT,
+            "job_tagged_ip_dict": {},
             "ex_data": (
                 "调用作业平台(JOB)接口job.get_job_instance_global_var_value"
                 "返回失败, params={params}, error=global var message token"
@@ -515,6 +514,7 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
         ],
         "job_task_id": 12345,
         "biz_cc_id": 1,
+        "is_tagged_ip": True,
         "biz_across": True,
     },
     parent_data={"executor": "executor_token", "biz_cc_id": 1},
@@ -534,6 +534,7 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
             "client": EXECUTE_SUCCESS_CLIENT,
+            "job_tagged_ip_dict": {"其他": "1.1.1.1", "tag1": "1.1.1.2"},
             "key_1": "new_value_1",
             "key_2": "new_value_2",
             "log_outputs": {
@@ -630,6 +631,7 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
             "client": GET_VAR_ERROR_SUCCESS_CLIENT,
+            "job_tagged_ip_dict": {},
             "key_1": "new_value_1",
             "key_2": "new_value_2",
             "log_outputs": {

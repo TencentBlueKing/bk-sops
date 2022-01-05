@@ -119,7 +119,10 @@ class JobFastExecuteScriptService(JobService):
                 schema=StringItemSchema(description=_("执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
+                name=_("目标账户"),
+                key="job_account",
+                type="string",
+                schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
             ),
             self.InputItem(
                 name=_("IP 存在性校验"),
@@ -150,6 +153,12 @@ class JobFastExecuteScriptService(JobService):
                         "value": StringItemSchema(description=_("全局变量值")),
                     },
                 ),
+            ),
+            self.OutputItem(
+                name=_("JOB执行IP分组"),
+                key="job_tagged_ip_dict",
+                type="string",
+                schema=StringItemSchema(description=_("根据JOB步骤执行标签获取的IP分组")),
             ),
         ]
 

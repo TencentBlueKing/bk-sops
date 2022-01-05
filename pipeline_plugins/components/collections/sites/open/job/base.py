@@ -202,6 +202,40 @@ def get_job_instance_log(client, service_logger, job_instance_id, bk_biz_id, tar
     return {"result": True, "data": log_text}
 
 
+def get_job_tagged_ip_dict(client, service_logger, job_instance_id, bk_biz_id):
+    """根据job步骤执行标签获取 IP 分组"""
+    kwargs = {
+        "job_instance_id": job_instance_id,
+        "bk_biz_id": bk_biz_id,
+        "return_ip_result": True,
+    }
+    result = client.jobv3.get_job_instance_status(kwargs)
+
+    if not result["result"]:
+        message = handle_api_error(
+            __group_name__,
+            "jobv3.get_job_instance_status",
+            kwargs,
+            result,
+        )
+        service_logger.warning(message)
+        return False, message
+
+    step_instance = result["data"]["step_instance_list"][-1]
+
+    step_ip_result_list = step_instance["step_ip_result_list"]
+    tagged_ip_dict = {}
+
+    for step_ip_result in step_ip_result_list:
+        tag_key = f"{step_ip_result['tag']}" if step_ip_result["tag"] else "其他"
+        if tag_key in tagged_ip_dict:
+            tagged_ip_dict[tag_key] += f",{step_ip_result['ip']}"
+        else:
+            tagged_ip_dict[tag_key] = step_ip_result["ip"]
+
+    return True, tagged_ip_dict
+
+
 def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
     """
     解析作业日志：默认取每个步骤/节点的第一个ip_logs
@@ -251,6 +285,25 @@ class JobService(Service):
             if self.reload_outputs:
 
                 client = data.outputs.client
+
+                # 判断是否对IP进行Tag分组
+                is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", False)
+                tagged_ip_dict = {}
+                if is_tagged_ip:
+                    result, tagged_ip_dict = get_job_tagged_ip_dict(
+                        data.outputs.client,
+                        self.logger,
+                        job_instance_id,
+                        data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+                    )
+
+                    if not result:
+                        self.logger.error(tagged_ip_dict)
+                        data.outputs.ex_data = tagged_ip_dict
+                        self.finish_schedule()
+                        return False
+
+                data.set_outputs("job_tagged_ip_dict", tagged_ip_dict)
 
                 # 全局变量重载
                 get_var_kwargs = {
@@ -433,6 +486,25 @@ class Jobv3Service(Service):
             if self.reload_outputs:
 
                 client = data.outputs.client
+
+                # 判断是否对IP进行Tag分组
+                is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", False)
+                tagged_ip_dict = {}
+                if is_tagged_ip:
+                    result, tagged_ip_dict = get_job_tagged_ip_dict(
+                        data.outputs.client,
+                        self.logger,
+                        job_instance_id,
+                        data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+                    )
+
+                    if not result:
+                        self.logger.error(tagged_ip_dict)
+                        data.outputs.ex_data = tagged_ip_dict
+                        self.finish_schedule()
+                        return False
+
+                data.set_outputs("job_tagged_ip_dict", tagged_ip_dict)
 
                 # 全局变量重载
                 get_var_kwargs = {

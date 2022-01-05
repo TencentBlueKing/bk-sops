@@ -215,6 +215,7 @@ EXECUTE_JOB_PLAN_SUCCESS_CASE = ComponentTestCase(
         "all_biz_job_config": {
             "all_biz_cc_id": 2,
             "job_plan_id": 1000010,
+            "is_tagged_ip": True,
             "job_global_var": [
                 {"id": 1000030, "type": 1, "name": "name", "value": "test", "description": ""},
                 {"id": 1000031, "type": 3, "name": "ip", "value": "0:192.168.20.218", "description": ""},
@@ -240,6 +241,7 @@ EXECUTE_JOB_PLAN_SUCCESS_CASE = ComponentTestCase(
             "job_inst_name": "API execute_job_plan test",
             "client": EXECUTE_JOB_PLAN_SUCCESS_CASE_CLIENT,
             "biz_cc_id": 2,
+            "job_tagged_ip_dict": {"其他": "192.168.20.218"},
             "name": "test",
             "log_outputs": {},
         },
@@ -490,6 +492,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
         "all_biz_job_config": {
             "all_biz_cc_id": 2,
             "job_plan_id": 1000010,
+            "is_tagged_ip": False,
             "job_global_var": [
                 {"id": 1000030, "type": 1, "name": "name", "value": "test", "description": ""},
                 {"id": 1000031, "type": 3, "name": "ip", "value": "0:192.168.20.218", "description": ""},
@@ -515,6 +518,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             "job_inst_name": "API execute_job_plan test",
             "client": GET_GLOBAL_VAR_CALL_FAIL_CLIENT,
             "biz_cc_id": 2,
+            "job_tagged_ip_dict": {},
             "ex_data": (
                 "调用作业平台(JOB)接口jobv3.get_job_instance_global_var_value"
                 "返回失败, params={params}, error=global var message token"

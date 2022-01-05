@@ -103,6 +103,12 @@ class JobExecuteTaskServiceBase(JobService):
                     },
                 ),
             ),
+            self.OutputItem(
+                name=_("JOB执行IP分组"),
+                key="job_tagged_ip_dict",
+                type="string",
+                schema=StringItemSchema(description=_("根据JOB步骤执行标签获取的IP分组")),
+            ),
         ]
 
     def execute(self, data, parent_data):

@@ -94,10 +94,16 @@ class AllBizJobFastExecuteScriptService(JobService):
                 schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
             ),
             self.InputItem(
-                name=_("脚本超时时间"), key="job_target_account", type="int", schema=IntItemSchema(description=_("脚本超时时间")),
+                name=_("脚本超时时间"),
+                key="job_target_account",
+                type="int",
+                schema=IntItemSchema(description=_("脚本超时时间")),
             ),
             self.InputItem(
-                name=_("脚本超时时间"), key="job_target_account", type="int", schema=IntItemSchema(description=_("脚本超时时间")),
+                name=_("脚本超时时间"),
+                key="job_target_account",
+                type="int",
+                schema=IntItemSchema(description=_("脚本超时时间")),
             ),
             self.InputItem(
                 name=_("执行目标信息"),
@@ -131,6 +137,12 @@ class AllBizJobFastExecuteScriptService(JobService):
                         "value": StringItemSchema(description=_("全局变量值")),
                     },
                 ),
+            ),
+            self.OutputItem(
+                name=_("JOB执行IP分组"),
+                key="job_tagged_ip_dict",
+                type="string",
+                schema=StringItemSchema(description=_("根据JOB步骤执行标签获取的IP分组")),
             ),
         ]
 
