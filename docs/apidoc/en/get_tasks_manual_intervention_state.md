@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/get_tasks_manual_intervention_state/
+
+### Request Method
+
+POST
+
 ### Functional description
 
 Get tasks manual intervention state
@@ -33,8 +41,10 @@ Manual intervention is needed when any of these condition is meet:
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
-    "task_id_list": [30000105, 30000101, 30000100]
+    "task_id_list": [30000105, 30000101, 30000100],
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -65,7 +75,9 @@ Manual intervention is needed when any of these condition is meet:
             "manual_intervention_required": false
         }
     ],
-    "code": 0
+    "code": 0,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -76,6 +88,8 @@ Manual intervention is needed when any of these condition is meet:
 | result  | bool   | true or false, indicate success or failure                     |
 | data    | list   | data returned when result is true, details are described below |
 | message | string | error message returned when result is false                    |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |
 
 
 #### data

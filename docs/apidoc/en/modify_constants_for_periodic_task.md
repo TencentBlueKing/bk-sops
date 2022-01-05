@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/modify_constants_for_periodic_task/
+
+### Request Method
+
+POST
+
 ### Functional description
 
 modify global parameters for periodic task
@@ -37,11 +45,13 @@ constant value
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
     "task_id": "8",
     "constants": {
         "${bk_timing}": "100"
-    }
+    },
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -68,7 +78,9 @@ constant value
             "desc": ""
         }
     },
-    "result": true
+    "result": true,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -79,6 +91,8 @@ constant value
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    dict    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |
 
 #### data KEY
 

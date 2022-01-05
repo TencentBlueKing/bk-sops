@@ -1,3 +1,11 @@
+### 请求地址
+
+/v2/sops/import_project_template/
+
+### 请求方法
+
+POST
+
 ### 功能描述
 
 导入项目流程
@@ -26,8 +34,11 @@
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "template_data": "xxx",
-    "project_id": "3,
+    "project_id": "3",
+    "bk_username": "cmdb_biz",
+    "scope":"cmdb_biz"
 }
 ```
 
@@ -44,7 +55,9 @@
         },
         "count": 2
     },
-    "result": true
+    "result": true,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -55,6 +68,8 @@
 |  result       | bool       | true/false 成功与否            |
 |  message      | string     | result=false 时错误信息        |
 |  data         | dict        | 返回数据                    |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 #### data
 

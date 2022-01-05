@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/get_task_list/
+
+### Request Method
+
+GET
+
 ### Functional description
 
 Get tasks list for a business, support task name keyword searching
@@ -30,10 +38,14 @@ Get tasks list for a business, support task name keyword searching
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
     "keyword": "定时",
     "is_started": true,
     "limit": 5,
+    "offset":0,
+    "is_finished": "false",
+    "scope":"cmdb_biz"
 }
 ```
 
@@ -133,7 +145,9 @@ Get tasks list for a business, support task name keyword searching
             "bk_biz_id": 2,
             "bk_biz_name": "蓝鲸"
         }
-    ]
+    ],
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -145,6 +159,8 @@ Get tasks list for a business, support task name keyword searching
 |  data     |    list    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
 | count | int | amount of data list |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |
 
 ##### data[item]
 
