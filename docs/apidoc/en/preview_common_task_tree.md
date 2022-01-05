@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/preview_common_task_tree/
+
+### Request Method
+
+POST
+
 ### Functional description
 
 Get task tree after node exclude (used for common template)
@@ -19,7 +27,7 @@ Get task tree after node exclude (used for common template)
 |   scope       |   string     |   NO   | id scope, can be "cmdb_biz" or "project". if scope is "cmdb_biz" then bk_biz_id represent cmdb business ID, otherwise bk_biz_id represent proejct id. default is "cmdb_biz" |
 |   template_id       |   int     |   YES   |  template ID |
 |   version |   string     |   NO   |  template's version, default is latest version |
-|   exclude_task_nodes_id     |   NO   |  exclude node id list, default is [] |
+|   exclude_task_nodes_id     |  list   |  NO   |  exclude node id list, default is [] |
 
 ### Request Parameters Example
 
@@ -28,8 +36,12 @@ Get task tree after node exclude (used for common template)
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_token": "bk_username",
     "bk_biz_id": "2",
-    "template_id": "10001"
+    "template_id": "10001",
+    "scope": "cmdb_biz",
+    "version": "xxx",
+    "exclude_task_nodes_id": [1, 2, 3]
 }
 ```
 
@@ -187,7 +199,9 @@ Get task tree after node exclude (used for common template)
         },
         "constants_not_referred": {}
     },
-    "code": 0
+    "code": 0,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -198,6 +212,8 @@ Get task tree after node exclude (used for common template)
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    list    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |
 
 #### data
 
@@ -207,6 +223,7 @@ Get task tree after node exclude (used for common template)
 | constants_not_referred | dict | not referred constants in template, same as pepeline[constants] |
 
 ##### data.pipeline_tree
+
 | Field      | Type      | Description      |
 |-----------|----------|-----------|
 |  start_event      |    dict    |      start node     |
@@ -216,7 +233,6 @@ Get task tree after node exclude (used for common template)
 |  flows      |    dict    |      sequenceFlow（the line between nodes）info    |
 |  constants      |    dict    |  global variables, details are described below    |
 |  outputs      |    list    |    outputs info, indicate outputs field of global  |
-
 
 ###### data.pipeline_tree.constants.KEY
 
@@ -231,6 +247,6 @@ the format is like ${key}
 |  index      |    int    |       display order at the front end   |
 |  desc      |    string    |     description   |
 |  source_type  | string   |      source of variable, custom mean manual variable, component_inputs means variables comes from task node inputs parameters, component_outputs means variables comes from task node outputs parameters   |
-|  custom_type  | string   |      custom type, which is not empty when source_type is custom,  the value is input ,or textarea, or datetime, or int |
+|  custom_type  | string   |      custom type, which is not empty when source_type is custom, the value is input ,or textarea, or datetime, or int |
 |  source_tag   | string   |      source tag and atom info, which is not empty when source_type is  component_inputs or component_outputs  |
 |  source_info | dict    |        source info about task node ID  |

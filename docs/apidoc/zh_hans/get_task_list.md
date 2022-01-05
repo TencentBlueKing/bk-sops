@@ -1,3 +1,11 @@
+### 请求地址
+
+/v2/sops/get_task_list/
+
+### 请求方法
+
+GET
+
 ### 功能描述
 
 获取某个业务下的任务列表，支持任务名关键词搜索
@@ -23,8 +31,6 @@
 |   limit       |   int        |   否   |  分页，返回任务列表任务数，默认为100 |
 |   offset      |   int        |   否   |  分页，返回任务列表起始任务下标，默认为0 |
 
-
-
 ### 请求参数示例
 
 ```
@@ -32,10 +38,14 @@
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
     "keyword": "定时",
     "is_started": true,
     "limit": 5,
+    "offset":0,
+    "is_finished": "false",
+    "scope":"cmdb_biz"
 }
 ```
 
@@ -136,19 +146,25 @@
             "bk_biz_name": "蓝鲸"
         }
     ],
-    "count": 5
+    "count": 5,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
 ### 返回结果说明
+
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |
 |  result      |    bool    |      true/false 操作是否成功     |
 |  data        |    list    |      result=true 时成功数据，详细信息请见下面说明     |
 |  message     |    string  |      result=false 时错误信息     |
 |  count       |    int     |      data列表数量                |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 ##### data[item]
+
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |
 |  id          |    int     | 任务ID |

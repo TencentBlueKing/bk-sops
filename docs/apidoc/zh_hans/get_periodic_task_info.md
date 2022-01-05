@@ -1,3 +1,11 @@
+### 请求地址
+
+/v2/sops/get_periodic_task_info/
+
+### 请求方法
+
+GET
+
 ### 功能描述
 
 查询某个周期任务的详情
@@ -28,8 +36,10 @@
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
-    "task_id": "8"
+    "task_id": "8",
+    "scope":"cmdb_biz"
 }
 ```
 
@@ -226,7 +236,9 @@
         "id": 5,
         "template_id": "2"
     },
-    "result": true
+    "result": true,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -237,6 +249,8 @@
 |  result      |    bool    |      true/false 操作是否成功     |
 |  data        |    dict      |      result=true 时成功数据，详细信息请见下面说明     |
 |  message        |    string      |      result=false 时错误信息     |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 #### data
 
@@ -254,6 +268,7 @@
 |  pipeline_tree      |    dict    |    该周期任务的实例树   |
 
 #### data.pipeline_tree
+
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |
 |  start_event      |    dict    |      开始节点信息     |

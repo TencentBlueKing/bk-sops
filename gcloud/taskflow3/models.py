@@ -1343,7 +1343,11 @@ class TaskFlowInstance(models.Model):
             logger.error("dispatcher.get_outputs failed: {}".format(outputs_result["message"]))
         outputs = outputs_result["data"]
 
-        outputs_table = [{"key": key, "value": val} for key, val in list(outputs.get("outputs", {}).items())]
+        if self.engine_ver == EngineConfig.ENGINE_VER_V1:
+            outputs_table = [{"key": key, "value": val} for key, val in outputs.get("outputs", {}).items()]
+        else:
+            outputs_table = [{"key": key, "value": val} for key, val in outputs.items()]
+
         for out in outputs_table:
             out["name"] = constants[out["key"]]["name"]
         data.update({"outputs": outputs_table, "ex_data": outputs.get("ex_data", "")})

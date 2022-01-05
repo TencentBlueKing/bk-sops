@@ -117,6 +117,7 @@
             },
             show (data) {
                 this.isModalShow = true
+                this.hasClicked = false
                 this.permissionData = data
             },
             getResource (resources) {
