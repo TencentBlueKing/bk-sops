@@ -964,19 +964,22 @@
                     this.isLogLoading = false
                 }
             },
-            async getHistoryLog (id) {
+            async getHistoryLog (id, version) {
                 try {
                     this.$set(this.historyLogLoading, id, true)
                     const data = {
                         node_id: this.nodeDetailConfig.node_id,
                         history_id: id,
-                        instance_id: this.nodeDetailConfig.instance_id
+                        instance_id: this.nodeDetailConfig.instance_id,
+                        version
                     }
                     let resp = null
                     if (this.adminView) {
                         resp = await this.taskflowHistroyLog(data)
-                    } else {
+                    } else if (this.engineVer === 1) {
                         resp = await this.getNodeExecutionRecordLog(data)
+                    } else if (this.engineVer === 2) {
+                        resp = await this.getEngineVerNodeLog(data)
                     }
                     if (resp.result) {
                         const respData = this.adminView ? resp.data.log : resp.data
@@ -1030,7 +1033,7 @@
             onHistoyExpand (row, expended) {
                 const id = Number(row.history_id)
                 if (expended && !this.historyLog.hasOwnProperty(id)) {
-                    this.getHistoryLog(id)
+                    this.getHistoryLog(id, row.version)
                 }
             },
             onSelectNode (nodeHeirarchy, selectNodeId, nodeType) {
