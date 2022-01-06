@@ -74,6 +74,7 @@ const generateInitActivities = (location, line) => {
             skippable: true,
             auto_retry: {
                 enable: false,
+                interval: 0,
                 times: 1
             },
             timeout_config: {
@@ -281,7 +282,7 @@ const template = {
                                     error_ignorable: node.error_ignorable,
                                     retryable: node.can_retry || node.retryable,
                                     skippable: node.isSkipped || node.skippable,
-                                    auto_retry: node.auto_retry || { enable: false, times: 1 },
+                                    auto_retry: node.auto_retry || { enable: false, interval: 0, times: 1 },
                                     timeout_config: node.timeout_config || {
                                         enable: false,
                                         seconds: 0,
@@ -378,7 +379,7 @@ const template = {
             state.executor_proxy = ''
             state.template_labels = []
             state.default_flow_type = 'common'
-            state.auto_retry = { enable: false, times: 1 }
+            state.auto_retry = { enable: false, interval: 0, times: 1 }
             state.timeout_config = {
                 enable: false,
                 seconds: 0,
@@ -664,7 +665,7 @@ const template = {
                             type: 'ServiceActivity',
                             retryable: true,
                             skippable: true,
-                            auto_retry: { enable: false, times: 1 },
+                            auto_retry: { enable: false, interval: 0, times: 1 },
                             timeout_config: {
                                 enable: false,
                                 seconds: 0,

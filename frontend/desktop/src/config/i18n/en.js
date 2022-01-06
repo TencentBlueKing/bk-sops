@@ -1285,7 +1285,7 @@ const en = {
     '审批': 'Transition',
     '超时': 'Timeout',
     '超时控制': 'Timeout Config',
-    '秒后': 'seconds later',
+    '秒后': 'Secs.',
     '则': '',
     '强制失败后跳过': 'skip after the force fails',
     '该功能仅对V2引擎生效': 'This function takes effect only for the V2 engine',
@@ -1295,7 +1295,8 @@ const en = {
     '删除失败！': 'Failed to delete!',
     '删除成功！': 'Successfully deleted!',
     '系统变量': 'SYS-VARS',
-    '业务变量': 'BUSINESS-VARS'
+    '业务变量': 'BUSINESS-VARS',
+    '等待': 'wait'
 }
 
 export default en

@@ -881,7 +881,7 @@
                         skippable: isSkipped === undefined ? skippable : isSkipped,
                         retryable: can_retry === undefined ? retryable : can_retry,
                         selectable: optional,
-                        autoRetry: auto_retry || { enable: false, times: 1 },
+                        autoRetry: Object.assign({}, { enable: false, interval: 0, times: 1 }, auto_retry),
                         timeoutConfig: timeout_config || { enable: false, seconds: 0, action: 'forced_fail' }
                     }
                 } else {
