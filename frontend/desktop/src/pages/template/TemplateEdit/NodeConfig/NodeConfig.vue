@@ -811,6 +811,10 @@
                             variable.value = formItemConfig.attrs.value
                         }
                     }
+                    // 特殊处理逻辑，针对子流程节点，如果为自定义类型的下拉框变量，默认开始支持用户创建不存在的选项配置项
+                    if (variable.custom_type === 'select') {
+                        formItemConfig.attrs.allowCreate = true
+                    }
                     formItemConfig.tag_code = key
                     formItemConfig.attrs.name = variable.name
                     // 自定义输入框变量正则校验添加到插件配置项
