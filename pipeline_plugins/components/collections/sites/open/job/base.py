@@ -375,7 +375,7 @@ class JobScheduleService(JobService):
                 # 失败状态
                 elif job_status > 3:
                     # 出于性能考虑，不拉取对应主机IP的日志，引导用户跳转JOB平台查看
-                    data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>" "前往作业平台(JOB)查看详情</a>\n".format(
+                    data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
                         job_detail_url
                     )
                 else:
