@@ -22,6 +22,7 @@ from drf_yasg.utils import swagger_auto_schema
 from pipeline.eri.runtime import BambooDjangoRuntime
 
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.utils.handlers import handle_plain_log
 
 iam = get_iam_client()
 
@@ -59,6 +60,6 @@ class EngineV2NodeLogView(APIView):
     @action(methods=["GET"], detail=True)
     def get(self, request, project_id, task_id, node_id, version):
         runtime = BambooDjangoRuntime()
-        logs = runtime.get_plain_log_for_node(node_id=node_id, version=version)
+        logs = handle_plain_log(runtime.get_plain_log_for_node(node_id=node_id, version=version))
 
         return Response({"result": True, "message": "success", "data": logs})
