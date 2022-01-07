@@ -193,13 +193,13 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
 def SCHEDULE_FAILURE_CASE():
     SCHEDULE_FAILURE_RESULT = {"result": True, "data": {"job_id": 12345}}
     SCHEDULE_FAILURE_QUERY_RESULT = {
-        "data": [{"status": 4, "step_results": [{"ip_logs": [{"log_content": "log_content_failed"}]}]}],
+        "data": {"finished": True, "job_instance": {"status": 4}},
         "result": False,
     }
     SCHEDULE_FAILURE_ESB_CLIENT = MagicMock()
     SCHEDULE_FAILURE_MANAGER = MagicMock()
     SCHEDULE_FAILURE_MANAGER.push_files_to_ips = MagicMock(return_value=SCHEDULE_FAILURE_RESULT)
-    SCHEDULE_FAILURE_ESB_CLIENT.job.get_job_instance_log = MagicMock(return_value=SCHEDULE_FAILURE_QUERY_RESULT)
+    SCHEDULE_FAILURE_ESB_CLIENT.jobv3.get_job_instance_status = MagicMock(return_value=SCHEDULE_FAILURE_QUERY_RESULT)
     return ComponentTestCase(
         name="push_local_files v2 schedule failure case",
         inputs={
@@ -288,14 +288,14 @@ def SUCCESS_MULTI_CASE():
         {"result": True, "data": {"job_id": 789}},
     ]
     SUCCESS_QUERY_RETURN = {
-        "data": [{"status": 3, "step_results": [{"ip_logs": [{"log_content": "log_content_success"}]}]}],
+        "data": {"finished": True, "job_instance": {"status": 3}},
         "result": True,
     }
 
     SUCCESS_ESB_CLIENT = MagicMock()
     SUCCESS_MANAGER = MagicMock()
     SUCCESS_MANAGER.push_files_to_ips = MagicMock(side_effect=SUCCESS_RESULT)
-    SUCCESS_ESB_CLIENT.job.get_job_instance_log = MagicMock(side_effect=[SUCCESS_QUERY_RETURN for i in range(3)])
+    SUCCESS_ESB_CLIENT.jobv3.get_job_instance_status = MagicMock(side_effect=[SUCCESS_QUERY_RETURN for i in range(3)])
     return ComponentTestCase(
         name="push_local_files multi v2 success case",
         inputs={
@@ -422,14 +422,14 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
         {"result": True, "data": {"job_id": 789}},
     ]
     SUCCESS_QUERY_RETURN = {
-        "data": [{"status": 3, "step_results": [{"ip_logs": [{"log_content": "log_content_success"}]}]}],
+        "data": {"finished": True, "job_instance": {"status": 3}},
         "result": True,
     }
 
     SUCCESS_ESB_CLIENT = MagicMock()
     SUCCESS_MANAGER = MagicMock()
     SUCCESS_MANAGER.push_files_to_ips = MagicMock(side_effect=SUCCESS_RESULT)
-    SUCCESS_ESB_CLIENT.job.get_job_instance_log = MagicMock(side_effect=[SUCCESS_QUERY_RETURN for i in range(3)])
+    SUCCESS_ESB_CLIENT.jobv3.get_job_instance_status = MagicMock(side_effect=[SUCCESS_QUERY_RETURN for i in range(3)])
     return ComponentTestCase(
         name="push_local_files multi v2 with timeout parameter success case",
         inputs={
