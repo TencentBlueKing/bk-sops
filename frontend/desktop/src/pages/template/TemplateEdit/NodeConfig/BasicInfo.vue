@@ -130,7 +130,7 @@
                         {{ $t('超时') }}
                         <bk-input
                             v-model.number="formData.timeoutConfig.seconds"
-                            :min="0"
+                            :min="10"
                             :max="maxNodeExecuteTimeout"
                             type="number"
                             style="width: 75px; margin: 0 4px;"
@@ -477,7 +477,7 @@
                 if (val && ['autoRetry', 'ignorable'].includes(type)) {
                     this.formData.timeoutConfig = {
                         enable: false,
-                        seconds: 0,
+                        seconds: 10,
                         action: 'forced_fail'
                     }
                 }
@@ -486,7 +486,7 @@
             onTimeoutChange (val) {
                 this.formData.timeoutConfig = {
                     enable: val,
-                    seconds: 0,
+                    seconds: 10,
                     action: 'forced_fail'
                 }
                 if (val) {
