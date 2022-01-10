@@ -656,3 +656,6 @@ EXECUTING_NODE_POOL = "sops_executing_node_pool"
 
 # 节点超时最长配置时间
 MAX_NODE_EXECUTE_TIMEOUT = 60 * 60 * 24
+
+# 蓝鲸插件开发地址
+BK_PLUGIN_DEVELOP_URL = env.BK_PLUGIN_DEVELOP_URL
