@@ -39,10 +39,11 @@ class AllBizJobFastPushFilesComponentTest(TestCase, ComponentTestMixin):
 
 
 class MockClient(object):
-    def __init__(self, fast_push_file_return=None, get_job_instance_log_return=None):
+    def __init__(self, fast_push_file_return=None, get_job_instance_status_return=None):
         self.job = MagicMock()
         self.job.fast_push_file = MagicMock(side_effect=fast_push_file_return)
-        self.job.get_job_instance_log = MagicMock(side_effect=get_job_instance_log_return)
+        self.jobv3 = MagicMock()
+        self.jobv3.get_job_instance_status = MagicMock(side_effect=get_job_instance_status_return)
 
 
 # mock path
@@ -110,24 +111,13 @@ FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT = MockClient(
             "result": False,
             "code": 1,
             "message": "failed",
-            "data": {
-                "job_instance_name": "API Quick Distribution File1521101427176",
-            },
+            "data": {"job_instance_name": "API Quick Distribution File1521101427176"},
         },
     ],
-    get_job_instance_log_return=[
-        {
-            "data": [{"status": 3, "step_results": [{"ip_logs": [{"log_content": "log_content_success"}]}]}],
-            "result": True,
-        },
-        {
-            "data": [{"status": 3, "step_results": [{"ip_logs": [{"log_content": "log_content_success"}]}]}],
-            "result": True,
-        },
-        {
-            "data": [{"status": 3, "step_results": [{"ip_logs": [{"log_content": "log_content_success"}]}]}],
-            "result": True,
-        },
+    get_job_instance_status_return=[
+        {"data": {"finished": True, "job_instance": {"status": 3}}, "result": True},
+        {"data": {"finished": True, "job_instance": {"status": 3}}, "result": True},
+        {"data": {"finished": True, "job_instance": {"status": 3}}, "result": True},
     ],
 )
 
