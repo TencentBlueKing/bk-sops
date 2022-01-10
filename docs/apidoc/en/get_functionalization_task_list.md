@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/get_functionalization_task_list/
+
+### Request Method
+
+GET
+
 ### Functional description
 
 Get functionalization task list, support filtering with functionalization task status, ID and original task ID.
@@ -28,9 +36,12 @@ Get functionalization task list, support filtering with functionalization task s
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
+    "id_in": "412,411"
     "task_id_in": "414,413",
     "status": "submitted",
     "limit": 50,
+    "offset": 0
 }
 ```
 
@@ -96,7 +107,9 @@ Get functionalization task list, support filtering with functionalization task s
         }
     ],
     "code": 0,
-    "count": 2
+    "count": 2,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -108,10 +121,12 @@ Get functionalization task list, support filtering with functionalization task s
 | data    | list   | data returned when result is true, details are described below |
 | message | string | error message returned when result is false                  |
 | count   | int    | amount of data list                                          |
+|  request_id     |    string  | esb request id             |
+|  trace_id     |    string  | open telemetry trace_id        |
 
 ##### data[item]
 
-| 名称          | 类型   | 说明                                                         |
+| Field          | Type   | Description                                                         |
 | ------------- | ------ | ------------------------------------------------------------ |
 | id            | int    | functionalization task ID                                    |
 | name          | string | functionalization task name                                  |

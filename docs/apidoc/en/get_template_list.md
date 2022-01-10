@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/get_template_list/
+
+### Request Method
+
+GET
+
 ### Functional description
 
 Query flow templates list of the business
@@ -30,8 +38,12 @@ Query flow templates list of the business
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
-    "template_source": "business"
+    "id_in": "1, 2, 3"
+    "template_source": "business",
+    "scope": "cmdb_biz",
+    "name_keyword": "xxx"
 }
 ```
 
@@ -50,7 +62,8 @@ Query flow templates list of the business
             "creator": "admin",
             "bk_biz_name": "blueking",
             "id": 32,
-            "editor": "admin"
+            "editor": "admin",
+            "creator":"admin"
         },
         {
             "category": "Other",
@@ -61,7 +74,8 @@ Query flow templates list of the business
             "creator": "admin",
             "bk_biz_name": "blueking",
             "id": 31,
-            "editor": null
+            "editor": null,
+            "creator":"admin"
         },
         {
             "category": "Other",
@@ -72,9 +86,12 @@ Query flow templates list of the business
             "creator": "admin",
             "bk_biz_name": "blueking",
             "id": 30,
-            "editor": "admin"
+            "editor": "admin",
+            "creator":"admin"
         },
-    ]
+    ],
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -85,6 +102,8 @@ Query flow templates list of the business
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    dict    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |
 
 #### data
 

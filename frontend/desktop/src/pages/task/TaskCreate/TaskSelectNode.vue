@@ -264,7 +264,7 @@
                             this.isAppmakerHasScheme = false
                             await this.getPreviewNodeData(this.template_id, this.version)
                         } else {
-                            this.selectScheme({ id: schemeId })
+                            this.selectScheme({ uuid: schemeId })
                         }
                     }
                     this.setTemplateData(templateData)

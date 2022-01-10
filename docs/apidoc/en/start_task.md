@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/start_task/
+
+### Request Method
+
+POST
+
 ### Functional description
 
 Start a task
@@ -28,8 +36,10 @@ Start a task
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
-    "task_id": "10"
+    "task_id": "10",
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -40,7 +50,9 @@ Start a task
     "result": true,
     "task_url": "http://paas_url/taskflow/execute/xxx/?instance_id=xxx",
     "message": "success",
-    "code": 3545100
+    "code": 3545100,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -52,3 +64,5 @@ Start a task
 |  data     |    dict    |      data returned when result is true            |
 |  message  |    string  |      error message returned when result is false  |
 |  task_url |    string  |      url of the task  |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |

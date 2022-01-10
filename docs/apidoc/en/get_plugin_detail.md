@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/get_plugin_detail/
+
+### Request Method
+
+GET
+
 ### Functional description
 
 Get plugin info based on plugin code for a business
@@ -27,9 +35,12 @@ Get plugin info based on plugin code for a business
 {
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
+    "bk_username": "xxx",
     "bk_token": "xxx",
     "bk_biz_id": "2",
-    "code": "sleep_timer"
+    "code": "sleep_timer",
+    "version": "legacy",
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -92,7 +103,9 @@ Get plugin info based on plugin code for a business
         "version": "legacy",
         "form": "/static/components/atoms/bk/timer.js"
     },
-    "code": 0
+    "code": 0,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -103,6 +116,8 @@ Get plugin info based on plugin code for a business
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    list    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |
 
 ##### data
 
