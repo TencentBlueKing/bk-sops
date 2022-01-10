@@ -14,13 +14,14 @@ specific lan
 from django.db import transaction
 
 from .template_manager import TemplateManager
+from ..utils import replace_biz_id_value
 
 
 class TemplateImporter:
     def __init__(self, template_model_cls):
         self.template_model_cls = template_model_cls
 
-    def import_template(self, operator: str, template_data: list) -> dict:
+    def import_template(self, operator: str, template_data: list, bk_biz_id: int = None) -> dict:
         """
         以 operator 的身份来导入若干个模板
 
@@ -37,6 +38,8 @@ class TemplateImporter:
             }
         ]
         :type template_data: list
+        :param bk_biz_id: 导入业务ID，公共流程为None
+        :type bk_biz_id: int
         :return: [description]
         :rtype: dict
         """
@@ -50,6 +53,8 @@ class TemplateImporter:
                 pipeline_tree = td["pipeline_tree"]
                 description = td["description"]
 
+                if bk_biz_id:
+                    replace_biz_id_value(pipeline_tree, bk_biz_id)
                 replace_result = self._replace_subprocess_template_id(pipeline_tree, pipeline_id_map)
                 if not replace_result["result"]:
                     import_result.append(replace_result)
@@ -81,7 +86,8 @@ class TemplateImporter:
 
         return {"result": True, "data": import_result, "message": "success", "verbose_message": "success"}
 
-    def _replace_subprocess_template_id(self, pipeline_tree: dict, pipeline_id_map: dict) -> dict:
+    @staticmethod
+    def _replace_subprocess_template_id(pipeline_tree: dict, pipeline_id_map: dict) -> dict:
         """
         将模板数据中临时的模板 ID 替换成数据库中模型的主键 ID
 

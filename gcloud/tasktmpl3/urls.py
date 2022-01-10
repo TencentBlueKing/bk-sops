@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.conf.urls import url
 
 from gcloud.tasktmpl3.apis.django import api
+from gcloud.tasktmpl3.apis.drf.viewsets.variable_field_explain import VariableFieldExplainView
 
 urlpatterns = [
     url(r"^api/form/(?P<project_id>\d+)/$", api.form),
@@ -28,4 +29,5 @@ urlpatterns = [
     url(r"^api/get_constant_preview_result/$", api.get_constant_preview_result),
     url(r"^api/analysis_constants_ref/$", api.analysis_constants_ref),
     url(r"^api/parents/(?P<project_id>\d+)/$", api.parents),
+    url(r"^api/variable_field_explain/$", VariableFieldExplainView.as_view()),
 ]

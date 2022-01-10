@@ -174,7 +174,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.13.10"
+STATIC_VERSION = "3.14.2"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -499,6 +499,7 @@ AUTO_UPDATE_COMPONENT_MODELS = os.getenv("BKAPP_AUTO_UPDATE_COMPONENT_MODELS", "
 
 CELERY_SEND_EVENTS = True
 PAGE_NOT_FOUND_URL_KEY = "page_not_found"
+BLUEAPPS_SPECIFIC_REDIRECT_KEY = "page_not_found"
 
 # 自定义插件和变量Exception类型
 PLUGIN_SPECIFIC_EXCEPTIONS = (ApiRequestError,)
@@ -649,3 +650,9 @@ BK_APP_OTEL_INSTRUMENT_DB_API = env.BK_APP_OTEL_INSTRUMENT_DB_API
 
 # 系统访问地址
 BK_SOPS_HOST = env.BK_SOPS_HOST
+
+# REDIS 过期时间节点池 KEY
+EXECUTING_NODE_POOL = "sops_executing_node_pool"
+
+# 节点超时最长配置时间
+MAX_NODE_EXECUTE_TIMEOUT = 60 * 60 * 24

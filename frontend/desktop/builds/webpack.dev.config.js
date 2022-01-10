@@ -37,7 +37,8 @@ const proxyPath = [
     'develop/api/*',
     'version_log/*',
     'iam/*',
-    'plugin_service/*'
+    'plugin_service/*',
+    'mako_operations/*'
 ]
 const proxyRule = {}
 proxyPath.forEach((item) => {

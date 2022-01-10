@@ -82,13 +82,13 @@
             <el-tooltip v-if="isShowRetryBtn" placement="bottom" :content="$t('重试')">
                 <span
                     class="common-icon-retry"
-                    @click.stop="onRetryClick">
+                    @click.stop="$emit('onRetryClick', node.id)">
                 </span>
             </el-tooltip>
             <el-tooltip v-if="isShowSkipBtn" placement="bottom" :content="$t('跳过')">
                 <span
                     class="common-icon-skip"
-                    @click.stop="onSkipClick">
+                    @click.stop="$emit('onSkipClick', node.id)">
                 </span>
             </el-tooltip>
             <el-tooltip
@@ -103,19 +103,25 @@
                 <el-tooltip v-if="node.code === 'sleep_timer'" placement="bottom" :content="$t('修改时间')">
                     <span
                         class="common-icon-clock"
-                        @click.stop="onModifyTimeClick">
+                        @click.stop="$emit('onModifyTimeClick', node.id)">
                     </span>
                 </el-tooltip>
                 <el-tooltip v-if="node.code === 'pause_node'" placement="bottom" :content="$t('继续执行')">
                     <span
                         class="common-icon-play"
-                        @click.stop="onResumeClick">
+                        @click.stop="$emit('onTaskNodeResumeClick', node.id)">
+                    </span>
+                </el-tooltip>
+                <el-tooltip v-if="node.code === 'bk_approve'" placement="bottom" :content="$t('审批')">
+                    <span
+                        class="common-icon-circulation"
+                        @click.stop="$emit('onApprovalClick', node.id)">
                     </span>
                 </el-tooltip>
                 <el-tooltip placement="bottom" :content="$t('强制失败')">
                     <span
                         class="common-icon-mandatory-failure"
-                        @click.stop="mandatoryFailure">
+                        @click.stop="$emit('onForceFail', node.id)">
                     </span>
                 </el-tooltip>
             </template>
@@ -187,26 +193,11 @@
                 }
                 return 'common-icon-sys-default'
             },
-            onRetryClick () {
-                this.$emit('onRetryClick', this.node.id)
-            },
-            onSkipClick () {
-                this.$emit('onSkipClick', this.node.id)
-            },
-            onResumeClick () {
-                this.$emit('onTaskNodeResumeClick', this.node.id)
-            },
-            onModifyTimeClick () {
-                this.$emit('onModifyTimeClick', this.node.id)
-            },
             onNodeCheckClick () {
                 if (this.node.checkDisable) {
                     return
                 }
                 this.$emit('onNodeCheckClick', this.node.id, !this.node.checked)
-            },
-            mandatoryFailure () {
-                this.$emit('onForceFail', this.node.id)
             }
         }
     }

@@ -19,7 +19,7 @@ from django.dispatch import receiver
 
 from gcloud.core.models import EngineConfig
 from gcloud.constants import PROJECT
-from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.periodictask.models import PeriodicTaskHistory
 from gcloud.shortcuts.message import send_periodic_task_message
@@ -48,6 +48,13 @@ def pre_periodic_task_start_handler(sender, periodic_task, pipeline_instance, **
     # crete auto retry strategy
     arn_creator = AutoRetryNodeStrategyCreator(taskflow_id=task.id, root_pipeline_id=pipeline_instance.instance_id)
     arn_creator.batch_create_strategy(pipeline_instance.execution_data)
+
+    # create timeout config
+    TimeoutNodeConfig.objects.batch_create_node_timeout_config(
+        taskflow_id=task.id,
+        root_pipeline_id=task.pipeline_instance.instance_id,
+        pipeline_tree=task.pipeline_instance.execution_data,
+    )
 
 
 @receiver(post_save, sender=PipelinePeriodicTaskHistory)

@@ -52,6 +52,15 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
                 act["skippable"] = act.get("isSkipped", True)
             if "retryable" not in act:
                 act["retryable"] = act.get("can_retry", True)
+
+            # 检查节点配置冲突
+            if act.get("timeout_config", {}).get("enable") and (
+                act["error_ignorable"] or act.get("auto_retry", {}).get("enable")
+            ):
+                raise exceptions.InvalidOperationException(
+                    "timeout_config can not be enabled with error_ignorable or auto_retry at the same time"
+                )
+
         elif act["type"] == "SubProcess":
             parent_params = {}
             for key, info in list(act["pipeline"]["constants"].items()):
@@ -88,6 +97,8 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
                             }
                     else:
                         parent_params[key] = {"type": "splice", "value": info["value"]}
+                    # 注入处理need_render
+                    parent_params[key]["need_render"] = info.get("need_render", True)
             act["params"] = parent_params
             act["pipeline"] = format_web_data_to_pipeline(act["pipeline"], is_subprocess=True)
         else:
@@ -186,7 +197,18 @@ def calculate_constants_type(to_calculate, calculated, change_calculated=False):
     for key, info in list(to_calculate.items()):
         ref = ConstantTemplate(info["value"]).get_reference()
         constant_type = "splice" if ref else "plain"
-        data.setdefault(key, {"type": constant_type, "value": info["value"], "is_param": info.get("is_param", False)})
+        # is_param和need_render禁止同时为True
+        if info.get("is_param") and info.get("need_render"):
+            raise exceptions.DataException("is_param and need_render cannot be selected at the same time")
+        data.setdefault(
+            key,
+            {
+                "type": constant_type,
+                "value": info["value"],
+                "is_param": info.get("is_param", False),
+                "need_render": info.get("need_render", True),
+            },
+        )
 
     return data
 

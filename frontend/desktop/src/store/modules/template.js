@@ -75,6 +75,11 @@ const generateInitActivities = (location, line) => {
             auto_retry: {
                 enable: false,
                 times: 1
+            },
+            timeout_config: {
+                enable: false,
+                seconds: 10,
+                action: 'forced_fail'
             }
         }
     }
@@ -276,7 +281,12 @@ const template = {
                                     error_ignorable: node.error_ignorable,
                                     retryable: node.can_retry || node.retryable,
                                     skippable: node.isSkipped || node.skippable,
-                                    auto_retry: node.auto_retry || { enable: false, times: 1 }
+                                    auto_retry: node.auto_retry || { enable: false, times: 1 },
+                                    timeout_config: node.timeout_config || {
+                                        enable: false,
+                                        seconds: 10,
+                                        action: 'forced_fail'
+                                    }
                                 })
                                 return loc
                             }
@@ -291,8 +301,8 @@ const template = {
         // 更新模板各相关字段数据
         setTemplateData (state, data) {
             const {
-                name, template_id, pipeline_tree, notify_receivers, template_labels, notify_type,
-                description, executor_proxy, time_out, category, subprocess_info, default_flow_type, auto_retry
+                name, template_id, pipeline_tree, notify_receivers, template_labels, notify_type, description,
+                executor_proxy, time_out, category, subprocess_info, default_flow_type, auto_retry, timeout_config
             } = data
 
             const pipelineData = JSON.parse(pipeline_tree)
@@ -309,6 +319,7 @@ const template = {
             state.subprocess_info = subprocess_info
             state.default_flow_type = default_flow_type
             state.auto_retry = auto_retry
+            state.timeout_config = timeout_config
             this.commit('template/setPipelineTree', pipelineData)
         },
         setProjectBaseInfo (state, data) {
@@ -368,6 +379,11 @@ const template = {
             state.template_labels = []
             state.default_flow_type = 'common'
             state.auto_retry = { enable: false, times: 1 }
+            state.timeout_config = {
+                enable: false,
+                seconds: 10,
+                action: 'forced_fail'
+            }
         },
         // 增加全局变量
         addVariable (state, variable) {
@@ -648,7 +664,12 @@ const template = {
                             type: 'ServiceActivity',
                             retryable: true,
                             skippable: true,
-                            auto_retry: { enable: false, times: 1 }
+                            auto_retry: { enable: false, times: 1 },
+                            timeout_config: {
+                                enable: false,
+                                seconds: 10,
+                                action: 'forced_fail'
+                            }
                         }
                     } else if (location.type === 'subflow') {
                         activity = {
@@ -937,6 +958,13 @@ const template = {
         getBatchForms ({ commit }, data) {
             const { projectId, tpls } = data
             return axios.post(`template/api/batch_form/${projectId}/`, { templates: tpls }).then(response => response.data)
+        },
+        // 获取所有mako模板操作
+        getMakoOperations ({ commit }) {
+            return axios.get('mako_operations/').then(response => response.data)
+        },
+        getVariableFieldExplain ({ commit }) {
+            return axios.get('template/api/variable_field_explain/').then(response => response.data)
         }
     },
     getters: {
