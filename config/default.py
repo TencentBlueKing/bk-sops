@@ -656,3 +656,8 @@ EXECUTING_NODE_POOL = "sops_executing_node_pool"
 
 # 节点超时最长配置时间
 MAX_NODE_EXECUTE_TIMEOUT = 60 * 60 * 24
+
+BK_IAM_SKIP = False
+
+# 蓝鲸API网关
+BK_APIGW_HOST = env.BK_APIGW_HOST
