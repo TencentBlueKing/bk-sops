@@ -21,6 +21,11 @@
             @input="onSearchInput"
             @clear="onClearSearch">
         </bk-input>
+        <p
+            class="jump-link"
+            @click="jumpToPluginDevelop">
+            {{ $t('找不到想要的插件？可以尝试自己动手开发！') }}
+        </p>
         <!-- 内置插件/第三方插件tab -->
         <bk-tab
             v-if="!isSubflow"
@@ -345,6 +350,9 @@
                     this.$emit('updatePluginList', undefined, 'search')
                 }
             },
+            jumpToPluginDevelop () {
+                window.open(window.BK_PLUGIN_DEVELOP_URL, '_blank')
+            },
             onClearSearch () {
                 this.searchInputhandler()
             },
@@ -543,6 +551,15 @@
     top: -45px;
     right: 20px;
     width: 300px;
+}
+.jump-link {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    z-index: 2;
+    font-size: 12px;
+    color: #3a84ff;
+    cursor: pointer;
 }
 .list-wrapper {
     height: calc(100vh - 102px);

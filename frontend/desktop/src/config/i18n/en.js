@@ -1279,7 +1279,8 @@ const en = {
     '由': 'By',
     '提供': 'supply',
     '系统变量': 'SYS-VARS',
-    '业务变量': 'BUSINESS-VARS'
+    '业务变量': 'BUSINESS-VARS',
+    '找不到想要的插件？可以尝试自己动手开发！': "Can't find the plug-in you want? You can try to develop it yourself!"
 }
 
 export default en
