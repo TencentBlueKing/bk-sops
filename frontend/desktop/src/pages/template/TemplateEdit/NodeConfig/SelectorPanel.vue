@@ -22,6 +22,7 @@
             @clear="onClearSearch">
         </bk-input>
         <p
+            v-if="bkPluginDevelopUrl"
             class="jump-link"
             @click="jumpToPluginDevelop">
             {{ $t('找不到想要的插件？可以尝试自己动手开发！') }}
@@ -266,6 +267,9 @@
                     return this.templateLabels.find(item => item.id === this.activeGroup).name
                 }
                 return ''
+            },
+            bkPluginDevelopUrl () {
+                return window.BK_PLUGIN_DEVELOP_URL
             }
         },
         created () {
@@ -351,7 +355,7 @@
                 }
             },
             jumpToPluginDevelop () {
-                window.open(window.BK_PLUGIN_DEVELOP_URL, '_blank')
+                window.open(this.bkPluginDevelopUrl, '_blank')
             },
             onClearSearch () {
                 this.searchInputhandler()
