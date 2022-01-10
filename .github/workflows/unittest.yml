@@ -31,13 +31,14 @@ jobs:
         source scripts/develop/sites/community/env.sh
         export APP_ID="bk_sops"
         export APP_TOKEN="{APP_TOKEN}"
-        export BK_PAAS_HOST=""
+        export BK_PAAS_HOST="BK_PAAS_HOST"
         export BK_CC_HOST=""
         export BK_JOB_HOST=""
         export RUN_VER="open"
         export OPEN_VER="community"
         export BKAPP_AUTO_UPDATE_VARIABLE_MODELS="0"
         export BKAPP_AUTO_UPDATE_COMPONENT_MODELS="0"
+        export BK_IAM_HOST="BK_IAM_HOST"
         # add local_settings.py
         echo '# -*- coding: utf-8 -*-
         DATABASES = {
