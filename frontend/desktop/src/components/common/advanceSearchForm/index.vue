@@ -346,8 +346,10 @@
                 this.selectedRecord = null
                 Object.keys(this.formData).forEach(key => {
                     const form = this.searchForm.find(item => item.key === key)
-                    const val = form.type === 'dateRange' || form.multiple ? [] : ''
-                    this.$set(this.formData, key, val)
+                    if (form) {
+                        const val = form.type === 'dateRange' || form.multiple ? [] : ''
+                        this.$set(this.formData, key, val)
+                    }
                 })
                 this.$emit('submit', this.formData)
             }
