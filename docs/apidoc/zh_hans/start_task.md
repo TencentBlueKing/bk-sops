@@ -49,6 +49,9 @@ POST
 {
     "result": true,
     "task_url": "http://paas_url/taskflow/execute/xxx/?instance_id=xxx",
+    "data": {
+            "task_url": task_url
+    },
     "code": 3545100,
     "request_id": "xxx",
     "trace_id": "xxx"
