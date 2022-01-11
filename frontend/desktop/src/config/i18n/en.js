@@ -1297,7 +1297,8 @@ const en = {
     '删除成功！': 'Successfully deleted!',
     '系统变量': 'SYS-VARS',
     '业务变量': 'BUSINESS-VARS',
-    '等待': 'wait'
+    '等待': 'wait',
+    '全部流程': 'All processes'
 }
 
 export default en
