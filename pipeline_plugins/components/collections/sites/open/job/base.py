@@ -507,7 +507,8 @@ class Jobv3Service(Service):
                         self.finish_schedule()
                         return False
 
-                data.set_outputs("job_tagged_ip_dict", tagged_ip_dict)
+                if "is_tagged_ip" in data.get_inputs():
+                    data.set_outputs("job_tagged_ip_dict", tagged_ip_dict)
 
                 # 全局变量重载
                 get_var_kwargs = {
