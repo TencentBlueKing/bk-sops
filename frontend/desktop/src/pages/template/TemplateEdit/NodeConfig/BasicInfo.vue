@@ -89,30 +89,31 @@
                         :disabled="formData.ignorable || formData.timeoutConfig.enable"
                         @change="onErrorHandlerChange($event, 'autoRetry')">
                         <span class="error-handle-icon"><span class="text">AR</span></span>
-                        {{ $t('自动重试') }}
                     </bk-checkbox>
-                    <span v-if="formData.autoRetry.enable" class="auto-retry-times">
-                        {{ $t('等待') }}
-                        <div class="number-input">
+                    <span class="auto-retry-times">
+                        {{ $t('在') }}
+                        <div class="number-input" style="margin: 0 4px;">
                             <bk-input
                                 v-model.number="formData.autoRetry.interval"
                                 type="number"
-                                style="width: 60px; margin: 0 4px;"
+                                style="width: 68px;"
                                 :placeholder="' '"
+                                :disabled="!formData.autoRetry.enable"
                                 :max="10"
                                 :min="0"
                                 :precision="0"
                                 @change="updateData">
                             </bk-input>
-                            <span class="unit">{{ $t('秒后') }}</span>
+                            <span class="unit">{{ $tc('秒', 0) }}</span>
                         </div>
-                        {{ $t('重试') }}
-                        <div class="number-input">
+                        {{ $t('后') }}{{ $t('，') }}{{ $t('自动重试') }}
+                        <div class="number-input" style=" margin-left: 4px;">
                             <bk-input
                                 v-model.number="formData.autoRetry.times"
                                 type="number"
-                                style="width: 60px; margin-left: 4px;"
+                                style="width: 68px;"
                                 :placeholder="' '"
+                                :disabled="!formData.autoRetry.enable"
                                 :max="10"
                                 :min="1"
                                 :precision="0"
@@ -148,20 +149,20 @@
                     </bk-switcher>
                     <template v-if="formData.timeoutConfig.enable">
                         {{ $t('超时') }}
-                        <div class="number-input">
+                        <div class="number-input" style="margin: 0 4px;">
                             <bk-input
                                 v-model.number="formData.timeoutConfig.seconds"
                                 type="number"
-                                style="width: 75px; margin: 0 4px;"
+                                style="width: 75px;"
                                 :placeholder="' '"
                                 :min="0"
                                 :max="maxNodeExecuteTimeout"
                                 :precision="0"
                                 @change="updateData">
                             </bk-input>
-                            <span class="unit">{{ $t('秒后') }}</span>
+                            <span class="unit">{{ $tc('秒', 0) }}</span>
                         </div>
-                        {{ $t('，') }}{{ $t('则') }}
+                        {{ $t('后') }}{{ $t('，') }}{{ $t('则') }}
                         <bk-select
                             style="width: 160px; margin-left: 4px;"
                             v-model="formData.timeoutConfig.action"
@@ -620,7 +621,13 @@
             height: 30px;
             line-height: 30px;
             color: #999999;
-            background: #ffffff;
+            background: transparent;
+        }
+    }
+    .auto-retry-times,
+    .timeout-setting-wrap {
+        /deep/ .bk-input-number .input-number-option {
+            display: none;
         }
     }
     /deep/ .bk-form {
