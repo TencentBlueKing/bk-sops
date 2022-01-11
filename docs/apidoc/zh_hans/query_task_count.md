@@ -1,3 +1,11 @@
+### 请求地址
+
+/v2/sops/query_task_count/
+
+### 请求方法
+
+POST
+
 ### 功能描述
 
 查询任务实例分类统计总数
@@ -44,12 +52,23 @@
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
     "conditions": {
-        "create_time__lte": "2018-07-12 10:00:00",
-        "is_started": true
+        "template_id": "1",
+        "name": "template"
+        "create_time__gte": "2018-07-12 10:00:00",
+        "create_time__lte": "2018-07-13 15:00:00",
+        "start_time__gte": "2018-07-13 11:00:00",
+        "start_time__lte": "2018-07-13 12:00:00",
+        "is_started": true,
+        "creator": admin,
+        "executor": admin,
+        "is_started": true,
+        "is_finished": true,
     },
-    "group_by": "flow_type"
+    "group_by": "flow_type",
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -72,7 +91,9 @@
             }
         ]
     },
-    "result": true
+    "result": true,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -83,6 +104,8 @@
 |  result      | bool    |      true/false 操作是否成功     |
 |  data        | dict  |      result=true 时返回分类统计信息，详细信息见下面说明    |
 |  message     | string  |      result=false 时错误信息     |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 #### data
 

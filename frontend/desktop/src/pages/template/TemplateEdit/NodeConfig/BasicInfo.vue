@@ -137,7 +137,6 @@
                 <i v-bk-tooltips="errorHandleTipsConfig" ref="tooltipsHtml" class="bk-icon icon-question-circle form-item-tips"></i>
             </bk-form-item>
             <bk-form-item :label="$t('超时控制')">
-                <i v-bk-tooltips="{ placement: 'top', content: $t('该功能仅对V2引擎生效') }" class="bk-icon icon-question-circle form-item-tips"></i>
                 <div class="timeout-setting-wrap">
                     <bk-switcher
                         theme="primary"
@@ -155,7 +154,7 @@
                                 type="number"
                                 style="width: 75px;"
                                 :placeholder="' '"
-                                :min="0"
+                                :min="10"
                                 :max="maxNodeExecuteTimeout"
                                 :precision="0"
                                 @change="updateData">
@@ -172,6 +171,9 @@
                         </bk-select>
                     </template>
                 </div>
+                <p v-if="formData.timeoutConfig.enable" class="error-handle-tips" style="margin-top: 6px;">
+                    {{ $t('该功能仅对V2引擎生效') }}
+                </p>
             </bk-form-item>
             <bk-form-item :label="$t('是否可选')">
                 <bk-switcher
@@ -502,7 +504,7 @@
                 if (val && ['autoRetry', 'ignorable'].includes(type)) {
                     this.formData.timeoutConfig = {
                         enable: false,
-                        seconds: 0,
+                        seconds: 10,
                         action: 'forced_fail'
                     }
                 }
@@ -511,7 +513,7 @@
             onTimeoutChange (val) {
                 this.formData.timeoutConfig = {
                     enable: val,
-                    seconds: 0,
+                    seconds: 10,
                     action: 'forced_fail'
                 }
                 if (val) {

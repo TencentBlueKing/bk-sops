@@ -78,6 +78,12 @@
                     return {}
                 }
             },
+            line: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            },
             editable: {
                 type: Boolean,
                 default: true
@@ -150,13 +156,7 @@
                     }
                 }
                 // 后面是否已存在节点
-                let endNodeId = ''
-                const isHaveNodeBehind = this.canvasData.lines.some(line => {
-                    if (line.source.id === id) {
-                        endNodeId = line.target.id
-                        return true
-                    }
-                })
+                const isHaveNodeBehind = this.canvasData.lines.some(line => line.source.id === id)
                 const isGatewayCurrNode = this.isGatewayNode(currType)
                 const isGatewayAppendNode = this.isGatewayNode(type)
                 if (currType === 'startpoint') {
@@ -175,7 +175,14 @@
                  * 当前节点类型为并行/分支网管：都是 onAppendNode
                  * 其他节点类型：后面有节点为插入，没有为追加
                  */
-                if (isHaveNodeBehind && ['tasknode', 'subflow', 'convergegateway', 'startpoint'].indexOf(currType) > -1) {
+                if ((isHaveNodeBehind && ['tasknode', 'subflow', 'convergegateway', 'startpoint'].indexOf(currType) > -1) || this.line) {
+                    let endNodeId = ''
+                    if (this.line) {
+                        endNodeId = this.line.targetId
+                    } else {
+                        const fstNodeLine = this.canvasData.lines.find(line => line.source.id === id)
+                        endNodeId = fstNodeLine.target.id
+                    }
                     this.$emit('onInsertNode', {
                         startNodeId: id,
                         endNodeId,

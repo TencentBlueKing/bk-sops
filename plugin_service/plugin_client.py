@@ -42,9 +42,7 @@ class PluginServiceApiClient:
     def invoke(self, version, data):
         url, headers = self._prepare_apigw_api_request(path_params=["invoke", version])
 
-        return PluginServiceApiClient._request_api_and_error_retry(
-            url, method="post", data=json.dumps(data), headers=headers
-        )
+        return requests.post(url, data=json.dumps(data), headers=headers)
 
     @json_response_decoder
     def dispatch_plugin_api_request(self, request_params, inject_headers=None):
@@ -243,7 +241,7 @@ class PluginServiceApiClient:
                 result = getattr(requests, method)(url, **kwargs)
                 result.raise_for_status()
                 break
-            except requests.exceptions.RequestException as e:
+            except Exception as e:
                 message = "request api error,invoke_num:{},{} {},kwargs:{},error:{} ".format(
                     invoke_num, method, url, kwargs, str(e)
                 )

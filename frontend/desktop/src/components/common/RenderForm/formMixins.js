@@ -278,6 +278,7 @@ export const getFormMixins = (attrs = {}) => {
                 this.$emit('onShow')
             },
             hide () {
+                // 隐藏变量需要取消勾选
                 this.changeHook(false)
                 this.$emit('onHide')
             },

@@ -79,7 +79,7 @@ const generateInitActivities = (location, line) => {
             },
             timeout_config: {
                 enable: false,
-                seconds: 0,
+                seconds: 10,
                 action: 'forced_fail'
             }
         }
@@ -285,7 +285,7 @@ const template = {
                                     auto_retry: node.auto_retry || { enable: false, interval: 0, times: 1 },
                                     timeout_config: node.timeout_config || {
                                         enable: false,
-                                        seconds: 0,
+                                        seconds: 10,
                                         action: 'forced_fail'
                                     }
                                 })
@@ -382,7 +382,7 @@ const template = {
             state.auto_retry = { enable: false, interval: 0, times: 1 }
             state.timeout_config = {
                 enable: false,
-                seconds: 0,
+                seconds: 10,
                 action: 'forced_fail'
             }
         },
@@ -668,7 +668,7 @@ const template = {
                             auto_retry: { enable: false, interval: 0, times: 1 },
                             timeout_config: {
                                 enable: false,
-                                seconds: 0,
+                                seconds: 10,
                                 action: 'forced_fail'
                             }
                         }

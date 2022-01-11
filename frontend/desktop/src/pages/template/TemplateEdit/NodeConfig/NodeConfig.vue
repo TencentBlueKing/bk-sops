@@ -882,7 +882,7 @@
                         retryable: can_retry === undefined ? retryable : can_retry,
                         selectable: optional,
                         autoRetry: Object.assign({}, { enable: false, interval: 0, times: 1 }, auto_retry),
-                        timeoutConfig: timeout_config || { enable: false, seconds: 0, action: 'forced_fail' }
+                        timeoutConfig: timeout_config || { enable: false, seconds: 10, action: 'forced_fail' }
                     }
                 } else {
                     const { template_id, name, stage_name, labels, optional, always_use_latest } = config
