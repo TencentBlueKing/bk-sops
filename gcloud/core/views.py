@@ -14,16 +14,13 @@ specific language governing permissions and limitations under the License.
 import datetime
 import logging
 
-from django.contrib import auth
 from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.utils.translation import check_for_language
 from django.shortcuts import render
 from django_prometheus.exports import ExportToDjangoView
 
-from blueapps.account.components.bk_token.forms import AuthenticationForm
 from blueapps.account.decorators import login_exempt
 from blueapps.account.middlewares import LoginRequiredMiddleware
-from config import RUN_VER
 from gcloud.core.signals import user_enter
 from gcloud.conf import settings
 
@@ -34,7 +31,7 @@ def page_not_found(request, exception):
     if request.path.startswith(settings.STATIC_URL):
         return HttpResponseNotFound()
 
-    user = _user_authenticate(request) if RUN_VER == "open" else LoginRequiredMiddleware.authenticate(request)
+    user = LoginRequiredMiddleware().authenticate(request)
 
     # 未登录重定向到首页，跳到登录页面
     if not user:
@@ -45,27 +42,6 @@ def page_not_found(request, exception):
     # not home url enter
     user_enter.send(username=user.username, sender=user.username)
     return render(request, "core/base_vue.html", {})
-
-
-def _user_authenticate(request):
-    # 先做数据清洗再执行逻辑
-    form = AuthenticationForm(request.COOKIES)
-    if not form.is_valid():
-        return None
-
-    bk_token = form.cleaned_data["bk_token"]
-    # 确认 cookie 中的 bk_token 和 session 中的是否一致
-    # 如果登出删除 cookie 后 session 存在 is_match 为False
-    is_match = bk_token == request.session.get("bk_token")
-    if is_match and request.user.is_authenticated:
-        return request.user
-
-    user = auth.authenticate(request=request, bk_token=bk_token)
-    if user:
-        # 登录成功，记录 user 信息
-        auth.login(request, user)
-        request.session["bk_token"] = bk_token
-    return user
 
 
 def home(request):
