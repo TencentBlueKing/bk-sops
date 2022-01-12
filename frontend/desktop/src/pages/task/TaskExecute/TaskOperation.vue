@@ -501,6 +501,7 @@
                         }
                         if (this.state === 'RUNNING') {
                             this.setTaskStatusTimer()
+                            this.getRunningNode(instanceStatus.data.children)
                         }
                         this.updateNodeInfo()
                     } else {
@@ -1295,9 +1296,11 @@
                         break
                     case 'RUNNING':
                     case 'READY':
+                        nameSuffix = 'running'
+                        break
                     case 'SUSPENDED':
                     case 'NODE_SUSPENDED':
-                        nameSuffix = 'running'
+                        nameSuffix = 'suspended'
                 }
                 const picName = nameSuffix ? `bk_sops_${nameSuffix}` : 'bk_sops'
                 const path = `${window.SITE_URL}static/core/images/${picName}.png`
@@ -1411,6 +1414,17 @@
             onHiddenSideslider () {
                 this.nodeInfoType = ''
                 this.updateNodeActived(this.nodeDetailConfig.node_id, false)
+            },
+            // 判断RUNNING的节点是否有暂停节点，若有，则将当前任务状态标记为暂停状态
+            getRunningNode (node = {}) {
+                Object.keys(node).forEach(key => {
+                    if (node[key].state === 'RUNNING') {
+                        const { activities } = this.pipelineData
+                        if (activities[key].component.code === 'pause_node') {
+                            this.state = 'SUSPENDED'
+                        }
+                    }
+                })
             }
         }
     }
