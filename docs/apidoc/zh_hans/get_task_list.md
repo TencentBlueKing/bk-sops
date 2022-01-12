@@ -71,7 +71,15 @@ GET
             "project_id": 1,
             "project_name": "蓝鲸",
             "bk_biz_id": 2,
-            "bk_biz_name": "蓝鲸"
+            "bk_biz_name": "蓝鲸",
+            "auth_actions": [
+                "task_view",
+                "task_edit",
+                "task_operate",
+                "task_claim",
+                "task_delete",
+                "task_clone"
+            ]
         },
         {
             "id": 166,
@@ -89,7 +97,15 @@ GET
             "project_id": 1,
             "project_name": "蓝鲸",
             "bk_biz_id": 2,
-            "bk_biz_name": "蓝鲸"
+            "bk_biz_name": "蓝鲸",
+            "auth_actions": [
+                "task_view",
+                "task_edit",
+                "task_operate",
+                "task_claim",
+                "task_delete",
+                "task_clone"
+            ]
         },
         {
             "id": 159,
@@ -107,7 +123,15 @@ GET
             "project_id": 1,
             "project_name": "蓝鲸",
             "bk_biz_id": 2,
-            "bk_biz_name": "蓝鲸"
+            "bk_biz_name": "蓝鲸",
+            "auth_actions": [
+                "task_view",
+                "task_edit",
+                "task_operate",
+                "task_claim",
+                "task_delete",
+                "task_clone"
+            ]
         },
         {
             "id": 158,
@@ -125,7 +149,15 @@ GET
             "project_id": 1,
             "project_name": "蓝鲸",
             "bk_biz_id": 2,
-            "bk_biz_name": "蓝鲸"
+            "bk_biz_name": "蓝鲸",
+            "auth_actions": [
+                "task_view",
+                "task_edit",
+                "task_operate",
+                "task_claim",
+                "task_delete",
+                "task_clone"
+            ]
         },
         {
             "id": 157,
@@ -143,7 +175,15 @@ GET
             "project_id": 1,
             "project_name": "蓝鲸",
             "bk_biz_id": 2,
-            "bk_biz_name": "蓝鲸"
+            "bk_biz_name": "蓝鲸",
+            "auth_actions": [
+                "task_view",
+                "task_edit",
+                "task_operate",
+                "task_claim",
+                "task_delete",
+                "task_clone"
+            ]
         }
     ],
     "count": 5,
@@ -183,3 +223,4 @@ GET
 |  project_name    |  string      | 项目名称   |
 |  bk_biz_id       |  int         | 业务ID    |
 |  bk_biz_name     |  string      | 业务名称   |
+|  auth_actions      |    array   |      用户对该资源有权限的操作   |
