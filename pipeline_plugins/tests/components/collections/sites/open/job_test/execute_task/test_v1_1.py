@@ -434,6 +434,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
         ],
         "job_task_id": 12345,
         "biz_cc_id": 1,
+        "is_tagged_ip": False,
     },
     parent_data={"executor": "executor_token", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(
@@ -613,6 +614,7 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
         ],
         "job_task_id": 12345,
         "biz_cc_id": 1,
+        "is_tagged_ip": True,
     },
     parent_data={"executor": "executor_token", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(
@@ -631,7 +633,7 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
             "client": GET_VAR_ERROR_SUCCESS_CLIENT,
-            "job_tagged_ip_dict": {},
+            "job_tagged_ip_dict": {"tag": "1.1.1.1,1.1.1.2"},
             "key_1": "new_value_1",
             "key_2": "new_value_2",
             "log_outputs": {
