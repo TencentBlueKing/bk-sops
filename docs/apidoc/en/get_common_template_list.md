@@ -48,7 +48,15 @@ None
             "edit_time": "2019-07-15 15:13:22 +0800",
             "create_time": "2019-07-15 15:13:22 +0800",
             "editor": "admin",
-            "id": 10014
+            "id": 10014,
+            "auth_actions": [
+                "common_flow_create_task",
+                "common_flow_edit",
+                "common_flow_delete",
+                "common_flow_view",
+                "common_flow_create",
+                "common_flow_create_periodic_task"
+            ]
         },
         {
             "category": "Other",
@@ -57,7 +65,15 @@ None
             "edit_time": "2019-07-15 15:13:22 +0800",
             "create_time": "2019-07-15 15:13:22 +0800",
             "editor": "admin",
-            "id": 10013
+            "id": 10013,
+            "auth_actions": [
+                "common_flow_create_task",
+                "common_flow_edit",
+                "common_flow_delete",
+                "common_flow_view",
+                "common_flow_create",
+                "common_flow_create_periodic_task"
+            ]
         },
     ],
     "result": true,
@@ -75,6 +91,7 @@ None
 |  message  |    string  |      error message returned when result is false                     |
 |  request_id     |    string  | esb request id             |
 |  trace_id     |    string  | open telemetry trace_id        |
+|  auth_actions      |    array   |      actions with permissions for the current user   |
 
 #### data
 

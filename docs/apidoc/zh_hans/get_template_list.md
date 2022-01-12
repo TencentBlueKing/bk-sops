@@ -63,7 +63,17 @@ GET
             "bk_biz_name": "蓝鲸",
             "id": 32,
             "editor": "admin",
-            "creator":"admin"
+            "creator":"admin",
+            "auth_actions": [
+                "flow_create",
+                "flow_view",
+                "flow_edit",
+                "flow_delete",
+                "flow_create_task",
+                "flow_create_mini_app",
+                "flow_create_periodic_task",
+                "flow_create_clocked_task"
+            ]
         },
         {
             "category": "Other",
@@ -76,6 +86,16 @@ GET
             "id": 31,
             "editor": null,
             "creator": "admin",
+            "auth_actions": [
+                "flow_create",
+                "flow_view",
+                "flow_edit",
+                "flow_delete",
+                "flow_create_task",
+                "flow_create_mini_app",
+                "flow_create_periodic_task",
+                "flow_create_clocked_task"
+            ]
         },
         {
             "category": "Other",
@@ -87,7 +107,17 @@ GET
             "bk_biz_name": "蓝鲸",
             "id": 30,
             "editor": "admin",
-            "creator": "admin"
+            "creator": "admin",
+            "auth_actions": [
+                "flow_create",
+                "flow_view",
+                "flow_edit",
+                "flow_delete",
+                "flow_create_task",
+                "flow_create_mini_app",
+                "flow_create_periodic_task",
+                "flow_create_clocked_task"
+            ]
         },
     ],
     "request_id": "xxx",
@@ -118,6 +148,7 @@ GET
 |  create_time      |    string    |      模板创建时间   |
 |  editor      |    string 或者 null    |      模板编辑人   |
 |  edit_time      |    string   |      模板最新编辑时间   |
+|  auth_actions      |    array   |      用户对该资源有权限的操作   |
 
 #### data.category
 

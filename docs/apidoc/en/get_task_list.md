@@ -71,7 +71,15 @@ Get tasks list for a business, support task name keyword searching
             "project_id": 1,
             "project_name": "蓝鲸",
             "bk_biz_id": 2,
-            "bk_biz_name": "蓝鲸"
+            "bk_biz_name": "蓝鲸",
+            "auth_actions": [
+                "task_view",
+                "task_edit",
+                "task_operate",
+                "task_claim",
+                "task_delete",
+                "task_clone"
+            ]
         },
         {
             "id": 166,
@@ -89,7 +97,15 @@ Get tasks list for a business, support task name keyword searching
             "project_id": 1,
             "project_name": "蓝鲸",
             "bk_biz_id": 2,
-            "bk_biz_name": "蓝鲸"
+            "bk_biz_name": "蓝鲸",
+            "auth_actions": [
+                "task_view",
+                "task_edit",
+                "task_operate",
+                "task_claim",
+                "task_delete",
+                "task_clone"
+            ]
         },
         {
             "id": 159,
@@ -107,7 +123,15 @@ Get tasks list for a business, support task name keyword searching
             "project_id": 1,
             "project_name": "蓝鲸",
             "bk_biz_id": 2,
-            "bk_biz_name": "蓝鲸"
+            "bk_biz_name": "蓝鲸",
+            "auth_actions": [
+                "task_view",
+                "task_edit",
+                "task_operate",
+                "task_claim",
+                "task_delete",
+                "task_clone"
+            ]
         },
         {
             "id": 158,
@@ -125,7 +149,15 @@ Get tasks list for a business, support task name keyword searching
             "project_id": 1,
             "project_name": "蓝鲸",
             "bk_biz_id": 2,
-            "bk_biz_name": "蓝鲸"
+            "bk_biz_name": "蓝鲸",
+            "auth_actions": [
+                "task_view",
+                "task_edit",
+                "task_operate",
+                "task_claim",
+                "task_delete",
+                "task_clone"
+            ]
         },
         {
             "id": 157,
@@ -143,7 +175,15 @@ Get tasks list for a business, support task name keyword searching
             "project_id": 1,
             "project_name": "蓝鲸",
             "bk_biz_id": 2,
-            "bk_biz_name": "蓝鲸"
+            "bk_biz_name": "蓝鲸",
+            "auth_actions": [
+                "task_view",
+                "task_edit",
+                "task_operate",
+                "task_claim",
+                "task_delete",
+                "task_clone"
+            ]
         }
     ],
     "request_id": "xxx",
@@ -182,3 +222,4 @@ Get tasks list for a business, support task name keyword searching
 |  project_name    |  string      | project name |
 |  bk_biz_id       |  int         | business ID  |
 |  bk_biz_name     |  string      | business name |
+|  auth_actions      |    array   |      actions with permissions for the current user   |
