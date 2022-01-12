@@ -40,7 +40,7 @@ class BKItsmClient(BKComponentClient):
 
     def get_ticket_info(self, sn):
         return self._request(
-            method="post",
+            method="get",
             url=_get_itsm_api("get_ticket_info"),
             data={
                 "sn": sn
