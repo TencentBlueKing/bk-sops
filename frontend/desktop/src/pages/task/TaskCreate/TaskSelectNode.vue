@@ -74,7 +74,7 @@
                 @click="onGotoParamFill">
                 {{ $t('下一步') }}
             </bk-button>
-            <bk-button v-if="isSchemeShow" data-test-id="createTask_form_exportScheme" @click="onExportScheme">{{ $t('导出当前方案') }}</bk-button>
+            <bk-button v-if="isSchemeShow && !isPreviewMode" data-test-id="createTask_form_exportScheme" @click="onExportScheme">{{ $t('导出当前方案') }}</bk-button>
         </div>
         <bk-sideslider
             :is-show="isEditSchemeShow"
@@ -251,6 +251,14 @@
                     this.version = templateData.version
                     this.templateName = templateData.name
                     this.orderedNodeData = this.getOrderedNodeData(templateData)
+                    this.setTemplateData(templateData)
+                    this.allSelectableNodes = this.location.filter(item => item.optional)
+                    this.allSelectableNodes.forEach(item => {
+                        if (this.excludeNode.indexOf(item.id) === -1) {
+                            selectedNodes.push(item.id)
+                        }
+                    })
+                    this.selectedNodes = selectedNodes
 
                     if (this.viewMode === 'appmaker') {
                         const appmakerData = await this.loadAppmakerDetail(this.app_id)
@@ -262,19 +270,12 @@
                         }]
                         if (schemeId === '') {
                             this.isAppmakerHasScheme = false
-                            await this.getPreviewNodeData(this.template_id, this.version)
+                            this.updateDataAndCanvas()
                         } else {
                             this.selectScheme({ uuid: schemeId })
                         }
+                        return
                     }
-                    this.setTemplateData(templateData)
-                    this.allSelectableNodes = this.location.filter(item => item.optional)
-                    this.allSelectableNodes.forEach(item => {
-                        if (this.excludeNode.indexOf(item.id) === -1) {
-                            selectedNodes.push(item.id)
-                        }
-                    })
-                    this.selectedNodes = selectedNodes
                     this.canvasData.locations.forEach(item => {
                         if (this.selectedNodes.indexOf(item.id) > -1) {
                             this.$set(item, 'checked', true)
@@ -515,6 +516,7 @@
             },
             // 设置默认执行方案
             setDefaultScheme (defaultObj = {}) {
+                if (this.isPreviewMode) return
                 this.defaultPlanDataObj = defaultObj
                 Object.assign(this.planDataObj, this.defaultPlanDataObj)
             },
@@ -522,6 +524,7 @@
              * 设置默认勾选值
              */
             setDefaultSelected (val) {
+                if (this.isPreviewMode) return
                 this.isDefaultSchemeIng = val
                 const dataObj = val ? this.defaultPlanDataObj : Object.assign(this.planDataObj, this.defaultPlanDataObj)
                 const selectNodeAll = Object.values(dataObj).reduce((acc, cur) => {
