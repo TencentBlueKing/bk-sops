@@ -610,7 +610,9 @@ def monitor_report_config():
             )
             return
 
-        if not ("er_execute" in queues or "er_schedule" in queues):
+        # 只对存在以下队列的情况进行上报
+        monitor_queues = ["er_execute", "er_schedule", "timeout_node"]
+        if not any([monitor_queue in queues for monitor_queue in monitor_queues]):
             sys.stdout.write("[!]can't found er queue in command: %s, skip celery monitor report config\n" % boot_cmd)
             return
 
