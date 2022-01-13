@@ -19,9 +19,11 @@
             :option="option"
             :value="getFormValue(atom)"
             :hook="hooked[atom.tag_code]"
+            :render="renderConfig[atom.tag_code]"
             :constants="constants"
             @change="updateForm"
-            @onHook="updateHook">
+            @onHook="updateHook"
+            @onRenderChange="updateRender">
         </component>
     </div>
 </template>
@@ -89,6 +91,10 @@
                 default () {
                     return {}
                 }
+            },
+            renderConfig: { // 输入参数是否配置渲染豁免
+                type: Object,
+                default: () => ({})
             },
             constants: {
                 type: Object,
@@ -318,6 +324,9 @@
             },
             updateHook (field, val) {
                 this.$emit('onHookChange', field, val)
+            },
+            updateRender (field, val) {
+                this.$emit('onRenderChange', field, val)
             },
             // 设置变量隐藏逻辑
             setVariableHideLogic (key, val) {

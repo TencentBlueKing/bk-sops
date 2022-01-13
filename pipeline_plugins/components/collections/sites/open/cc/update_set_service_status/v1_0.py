@@ -25,7 +25,7 @@ from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     SelectMethod,
     cc_format_tree_mode_id,
-    cc_list_select_node_inst_id
+    cc_list_select_node_inst_id,
 )
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
@@ -68,7 +68,7 @@ class CCUpdateSetServiceStatusService(Service):
                 name=_("文本路径-集群"),
                 key="cc_set_select_text",
                 type="string",
-                schema=StringItemSchema(description=_("集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C`，多个目标集群用换行分隔")),
+                schema=StringItemSchema(description=_("集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B`，多个目标集群用换行分隔")),
             ),
             self.InputItem(
                 name=_("服务状态"),
@@ -131,6 +131,7 @@ class CCUpdateSetServiceStatusComponent(Component):
     name = _("修改集群服务状态")
     code = "cc_update_set_service_status"
     bound_service = CCUpdateSetServiceStatusService
-    form = '{static_url}components/atoms/cc/update_set_service_status/{ver}.js'.format(static_url=settings.STATIC_URL,
-                                                                                       ver=VERSION.replace('.', '_'))
+    form = "{static_url}components/atoms/cc/update_set_service_status/{ver}.js".format(
+        static_url=settings.STATIC_URL, ver=VERSION.replace(".", "_")
+    )
     version = VERSION

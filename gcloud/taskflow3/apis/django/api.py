@@ -36,7 +36,7 @@ from gcloud.core.models import EngineConfig
 from gcloud.utils.decorators import request_validate
 from gcloud.conf import settings
 from gcloud.constants import TASK_CREATE_METHOD, PROJECT
-from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
 from gcloud.taskflow3.domains.context import TaskContext
 from gcloud.contrib.analysis.analyse_items import task_flow_instance
 from gcloud.taskflow3.models import preview_template_tree
@@ -159,6 +159,7 @@ def detail(request, project_id):
             "elapsed_time": "执行耗时(int)",
             "start_time": "开始时间(string)",
             "finish_time": "结束时间(string)",
+            "history_id": "历史 ID，仅 V1 引擎任务节点会返回该字段(int)",
             "histories": [
                 {
                     "loop": "重入次数(int)",
@@ -322,6 +323,13 @@ def task_clone(request, project_id):
             taskflow_id=new_task.id, root_pipeline_id=new_task.pipeline_instance.instance_id
         )
         arn_creator.batch_create_strategy(pipeline_tree=task.pipeline_instance.execution_data)
+
+        # create timeout config
+        TimeoutNodeConfig.objects.batch_create_node_timeout_config(
+            taskflow_id=task.id,
+            root_pipeline_id=task.pipeline_instance.instance_id,
+            pipeline_tree=task.pipeline_instance.execution_data,
+        )
 
     ctx = {"result": True, "data": {"new_instance_id": new_task.id}, "message": "", "code": err_code.SUCCESS.code}
 

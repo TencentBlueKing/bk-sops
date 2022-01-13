@@ -17,7 +17,9 @@
             :constants="isSubflow ? subflowForms : constants"
             :form-option="option"
             :form-data="formData"
+            :render-config="renderConfig"
             @change="onInputsValChange"
+            @onRenderChange="$emit('renderConfigChange', arguments)"
             @onHookChange="onInputHookChange">
         </render-form>
         <reuse-var-dialog
@@ -54,6 +56,10 @@
                 default: true
             },
             value: Object,
+            renderConfig: { // 输入参数是否配置渲染豁免
+                type: Object,
+                default: () => ({})
+            },
             plugin: String, // 标准插件
             version: String, // 标准插件版本或子流程版本
             isSubflow: Boolean,

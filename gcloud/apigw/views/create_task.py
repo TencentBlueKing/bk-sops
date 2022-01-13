@@ -32,7 +32,7 @@ from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
 from gcloud.constants import PROJECT
 from gcloud.utils.strings import standardize_pipeline_node_name
-from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.apigw.views.utils import logger
@@ -188,6 +188,13 @@ def create_task(request, template_id, project_id):
     # crete auto retry strategy
     arn_creator = AutoRetryNodeStrategyCreator(taskflow_id=task.id, root_pipeline_id=task.pipeline_instance.instance_id)
     arn_creator.batch_create_strategy(task.pipeline_instance.execution_data)
+
+    # create timeout config
+    TimeoutNodeConfig.objects.batch_create_node_timeout_config(
+        taskflow_id=task.id,
+        root_pipeline_id=task.pipeline_instance.instance_id,
+        pipeline_tree=task.pipeline_instance.execution_data,
+    )
 
     return {
         "result": True,

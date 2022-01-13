@@ -161,7 +161,7 @@
             attrs: {
                 name: gettext("模块"),
                 hookable: true,
-                placeholder: gettext("请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C>模块D`，多个目标模块用换行分隔"),
+                placeholder: gettext("请输入完整路径，从业务拓扑开始，如`业务A>集群B>模块C`，多个目标模块用换行分隔"),
                 validation: [
                     {
                         type: "custom",

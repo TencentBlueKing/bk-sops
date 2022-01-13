@@ -14,25 +14,30 @@ specific language governing permissions and limitations under the License.
 import datetime
 import logging
 import json
+from typing import List
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 
+from gcloud.constants import Type
 from gcloud.core.models import StaffGroupSet
-from gcloud.utils.cmdb import get_notify_receivers, get_client_by_user
+from gcloud.utils.cmdb import get_notify_receivers
+from gcloud.conf import settings as gcloud_settings
 from pipeline.core.data.var import SpliceVariable, LazyVariable, RegisterVariableMeta
 from pipeline.core.flow.io import StringItemSchema, IntItemSchema
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline_plugins.variables.base import SelfExplainVariable, FieldExplain
 
 logger = logging.getLogger("root")
+get_client_by_user = gcloud_settings.ESB_GET_CLIENT_BY_USER
 
 
 class CommonPlainVariable(SpliceVariable, metaclass=RegisterVariableMeta):
     pass
 
 
-class Input(CommonPlainVariable):
+class Input(CommonPlainVariable, SelfExplainVariable):
     code = "input"
     name = _("输入框")
     type = "general"
@@ -40,8 +45,12 @@ class Input(CommonPlainVariable):
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("输入框变量"))
 
+    @classmethod
+    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户输入的值")]
 
-class Textarea(CommonPlainVariable):
+
+class Textarea(CommonPlainVariable, SelfExplainVariable):
     code = "textarea"
     name = _("文本框")
     type = "general"
@@ -49,8 +58,12 @@ class Textarea(CommonPlainVariable):
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("文本框变量"))
 
+    @classmethod
+    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户输入的值")]
 
-class Datetime(CommonPlainVariable):
+
+class Datetime(CommonPlainVariable, SelfExplainVariable):
     code = "datetime"
     name = _("日期时间")
     type = "general"
@@ -59,8 +72,12 @@ class Datetime(CommonPlainVariable):
     schema = StringItemSchema(description=_("日期时间变量"))
     desc = "输出格式: 2000-04-19 14:45:16"
 
+    @classmethod
+    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户选择的时间，输出格式: 2000-04-19 14:45:16")]
 
-class Int(CommonPlainVariable):
+
+class Int(CommonPlainVariable, SelfExplainVariable):
     code = "int"
     name = _("整数")
     type = "general"
@@ -68,8 +85,12 @@ class Int(CommonPlainVariable):
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = IntItemSchema(description=_("整数变量"))
 
+    @classmethod
+    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
+        return [FieldExplain(key="${KEY}", type=Type.INT, description="用户输入的数值")]
 
-class Password(LazyVariable):
+
+class Password(LazyVariable, SelfExplainVariable):
     code = "password"
     name = _("密码")
     type = "general"
@@ -78,11 +99,15 @@ class Password(LazyVariable):
     schema = StringItemSchema(description=_("密码变量"))
     desc = "请注意，并非所有插件字段都支持密码变量的使用，请结合具体插件进行使用"
 
+    @classmethod
+    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户输入的密码加密后的值")]
+
     def get_value(self):
         return self.value
 
 
-class Select(LazyVariable):
+class Select(LazyVariable, SelfExplainVariable):
     code = "select"
     name = _("下拉框")
     type = "meta"
@@ -90,7 +115,11 @@ class Select(LazyVariable):
     meta_tag = "select.select_meta"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("下拉框变量"))
-    desc = "单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串"
+    desc = "单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串\n该变量默认不支持输入任意值，仅在子流程节点配置填参时支持输入任意值"
+
+    @classmethod
+    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串")]
 
     def get_value(self):
         # multiple select
@@ -101,7 +130,7 @@ class Select(LazyVariable):
             return self.value
 
 
-class TextValueSelect(LazyVariable):
+class TextValueSelect(LazyVariable, SelfExplainVariable):
     code = "text_value_select"
     name = _("文本值下拉框")
     type = "meta"
@@ -117,6 +146,16 @@ class TextValueSelect(LazyVariable):
         对于未选择的 text 和 value，通过 ${KEY["text_not_selected"]} 和 ${KEY["value_not_selected"]} 输出对应拼接字符串。
         注意：请确保不同选项的value值不相同。
         """
+
+    @classmethod
+    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
+        return [
+            FieldExplain(key="${KEY}", type=Type.DICT, description="用户选择的选项的text与value以及未选中的text与value"),
+            FieldExplain(key='${KEY["value"]}', type=Type.STRING, description="用户选中选项的value，多个以,分隔"),
+            FieldExplain(key='${KEY["text"]}', type=Type.STRING, description="用户选中选项的text，多个以,分隔"),
+            FieldExplain(key='${KEY["value_not_selected"]}', type=Type.STRING, description="用户未选中选项的value，多个以,分隔"),
+            FieldExplain(key='${KEY["text_not_selected"]}', type=Type.STRING, description="用户未选中选项的text，多个以,分隔"),
+        ]
 
     def get_value(self):
         meta_values = json.loads(self.value["meta_data"])
@@ -140,13 +179,17 @@ class TextValueSelect(LazyVariable):
         return {"meta_data": meta_value, "info_value": info_value}
 
 
-class FormatSupportCurrentTime(LazyVariable):
+class FormatSupportCurrentTime(LazyVariable, SelfExplainVariable):
     code = "format_support_current_time"
     name = _("系统当前时间(支持格式自定义)")
     type = "dynamic"
     tag = "format_support_current_time.format_support_current_time"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("系统当前时间变量(支持格式自定义)"))
+
+    @classmethod
+    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="自定义格式的系统当前时间")]
 
     def get_value(self):
         time_format = self.value.get("time_format", "%Y-%m-%d %H:%M:%S").strip()
@@ -156,13 +199,17 @@ class FormatSupportCurrentTime(LazyVariable):
         return current_time
 
 
-class CurrentTime(LazyVariable):
+class CurrentTime(LazyVariable, SelfExplainVariable):
     code = "current_time"
     name = _("系统当前时间")
     type = "dynamic"
     tag = "current_time.current_time"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("系统当前时间变量"))
+
+    @classmethod
+    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="自定义格式的系统当前时间")]
 
     def get_value(self):
         time_units = self.value.get("time_unit") or ["year", "month", "day", "hour", "minute", "second"]
@@ -197,7 +244,7 @@ class CurrentTime(LazyVariable):
         return final_format.strip()
 
 
-class Date(CommonPlainVariable):
+class Date(CommonPlainVariable, SelfExplainVariable):
     code = "date"
     name = _("日期")
     type = "general"
@@ -206,8 +253,12 @@ class Date(CommonPlainVariable):
     schema = StringItemSchema(description=_("日期变量"))
     desc = "输出格式: 2000-04-19"
 
+    @classmethod
+    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户选择的日期，格式为2000-04-19")]
 
-class Time(LazyVariable):
+
+class Time(LazyVariable, SelfExplainVariable):
     code = "time"
     name = _("时间")
     type = "general"
@@ -216,6 +267,10 @@ class Time(LazyVariable):
     schema = StringItemSchema(description=_("时间变量"))
     desc = "输出格式: 14:45"
 
+    @classmethod
+    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户选择的日期，格式为14:45")]
+
     def get_value(self):
         """
         由于用户需要，这里的时间格式由“小时:分钟:秒”处理成“小时:分钟”
@@ -223,7 +278,7 @@ class Time(LazyVariable):
         return self.value[:-3]
 
 
-class FormatSupportDateTime(LazyVariable):
+class FormatSupportDateTime(LazyVariable, SelfExplainVariable):
     code = "format_support_datetime"
     name = _("日期时间（支持格式自定义）")
     type = "general"
@@ -231,19 +286,27 @@ class FormatSupportDateTime(LazyVariable):
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     desc = "默认输出格式: 2020-10-10 14:45:00, 可自行配置显示格式"
 
+    @classmethod
+    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户选择的自定义格式的日期时间")]
+
     def get_value(self):
         time_format = self.value.get("datetime_format", "%Y-%m-%d %H:%M:%S").strip()
         time = datetime.datetime.strptime(self.value.get("datetime"), "%Y-%m-%d %H:%M:%S")
         return time.strftime(time_format)
 
 
-class StaffGroupSelector(LazyVariable):
+class StaffGroupSelector(LazyVariable, SelfExplainVariable):
     code = "staff_group_selector"
     name = _("人员分组选择器")
     type = "dynamic"
     tag = "staff_group_multi_selector.staff_group_selector"
     form = "%svariables/staff_group_multi_selector.js" % settings.STATIC_URL
     desc = "输出格式为选中人员用户名以 ',' 拼接的字符串"
+
+    @classmethod
+    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="人员列表，以,分隔")]
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "biz_cc_id" not in self.pipeline_data:

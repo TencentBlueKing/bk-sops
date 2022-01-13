@@ -28,7 +28,7 @@ pyinstrument==3.1.3
 djangorestframework==3.11.2
 django-filter==2.4.0
 prometheus-client==0.9.0
-bamboo-pipeline==3.10.0
+bamboo-pipeline==3.12.0
 drf-yasg==1.20.0
 typing-extensions==3.7.4.3
 six==1.15.0
@@ -58,6 +58,7 @@ django-timezone-field==4.0
 importlib-metadata==3.7.3
 
 # blueapps
+blueapps==3.6.1rc0
 whitenoise==3.3.0
 raven==6.1.0
 ddtrace==0.15.0

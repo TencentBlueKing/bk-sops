@@ -11,8 +11,8 @@
 <template>
     <div class="output-params">
         <bk-table :data="list" :col-border="false" :row-class-name="getRowClassName">
-            <bk-table-column :label="$t('名称')" :width="180" align="center" prop="name"></bk-table-column>
-            <bk-table-column :label="$t('说明')" align="center" show-overflow-tooltip>
+            <bk-table-column :label="$t('名称')" :width="180" prop="name"></bk-table-column>
+            <bk-table-column :label="$t('说明')" show-overflow-tooltip>
                 <template slot-scope="props">
                     <span
                         v-if="props.row.description"
@@ -22,15 +22,18 @@
                     <span v-else>--</span>
                 </template>
             </bk-table-column>
-            <bk-table-column label="type" :width="90" align="center" prop="type"></bk-table-column>
-            <bk-table-column label="KEY" :width="180" align="center" prop="key" show-overflow-tooltip></bk-table-column>
-            <bk-table-column :label="$t('引用')" :width="100" align="center">
+            <bk-table-column label="KEY" class-name="param-key" :width="260" show-overflow-tooltip>
                 <template slot-scope="props">
-                    <bk-checkbox
-                        v-model="props.row.hooked"
-                        :disabled="!hook"
-                        @change="onHookChange(props, $event)">
-                    </bk-checkbox>
+                    <span :style="{ color: props.row.hooked ? '#3a84ff' : '#63656e' }">{{ props.row.key }}</span>
+                    <span class="hook-icon-wrap">
+                        <i
+                            :class="['common-icon-variable-cite hook-icon', {
+                                actived: props.row.hooked,
+                                disabled: !hook
+                            }]"
+                            @click="onHookChange(props)">
+                        </i>
+                    </span>
                 </template>
             </bk-table-column>
         </bk-table>
@@ -164,7 +167,6 @@
                     list.push({
                         key,
                         name: param.name,
-                        type: param.type || '--',
                         description: param.schema ? param.schema.description : '--',
                         version: param.version,
                         status: param.status,
@@ -179,9 +181,10 @@
             /**
              * 输出参数勾选切换
              */
-            onHookChange (props, val) {
+            onHookChange (props) {
                 const index = props.$index
-                if (val) {
+                props.row.hooked = !props.row.hooked
+                if (props.row.hooked) {
                     this.isShow = true
                     this.formData = tools.deepClone(props.row)
                     this.selectIndex = index
@@ -273,6 +276,33 @@
             }
             &.added {
                 background: rgba(220,255,226,0.30);
+            }
+            .param-key .cell {
+                padding-right: 50px;
+            }
+        }
+    }
+    .hook-icon-wrap {
+        position: absolute;
+        right: 22px;
+        top: 9px;
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        line-height: 24px;
+        background: #f0f1f5;
+        text-align: center;
+        border-radius: 2px;
+        .hook-icon {
+            font-size: 14px;
+            color: #979ba5;
+            cursor: pointer;
+            &.disabled {
+                color: #c4c6cc;
+                cursor: not-allowed;
+            }
+            &.actived {
+                color: #1768ef;
             }
         }
     }

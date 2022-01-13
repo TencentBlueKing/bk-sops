@@ -121,6 +121,7 @@ class GetNodeDetailV2TestCase(TestCase):
                             "state": bamboo_engine_states.FAILED,
                         }
                     ],
+                    "history_id": -1,
                 },
                 "message": "",
                 "code": err_code.SUCCESS.code,
@@ -182,6 +183,7 @@ class GetNodeDetailV2TestCase(TestCase):
                             "state": bamboo_engine_states.FAILED,
                         }
                     ],
+                    "history_id": -1,
                 },
                 "message": "",
                 "code": err_code.SUCCESS.code,
@@ -207,7 +209,7 @@ class GetNodeDetailV2TestCase(TestCase):
         bamboo_api.get_children_states = MagicMock(return_value=get_children_states_return)
         get_node_histories_return = MagicMock()
         get_node_histories_return.result = True
-        get_node_histories_return.data = [{"outputs": {}, "id": "hid"}]
+        get_node_histories_return.data = [{"outputs": {}, "id": "hid", "version": "hist_version"}]
         bamboo_api.get_node_histories = MagicMock(return_value=get_node_histories_return)
 
         dispatcher = NodeCommandDispatcher(engine_ver=2, node_id="node_id")
@@ -239,8 +241,10 @@ class GetNodeDetailV2TestCase(TestCase):
                     "name": "node_name",
                     "loop": 2,
                     "histories": [
-                        {"id": "hid", "history_id": "hid", "state": bamboo_engine_states.FAILED, "ex_data": ""}
+                        {"id": "hid", "history_id": "hid", "state": bamboo_engine_states.FAILED, "ex_data": ""},
                     ],
+                    "version": "hist_version",
+                    "history_id": "hid",
                 },
                 "message": "",
                 "code": err_code.SUCCESS.code,

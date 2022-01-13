@@ -336,6 +336,7 @@
                     }
                     try {
                         const resp = await this.createTaskScheme(scheme)
+                        resp.data.uuid = resp.data.id
                         this.schemeList.push(resp.data)
                         this.$bkMessage({
                             message: i18n.t('新增方案成功'),

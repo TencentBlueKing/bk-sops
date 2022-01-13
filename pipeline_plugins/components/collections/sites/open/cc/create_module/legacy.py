@@ -28,7 +28,7 @@ from pipeline_plugins.components.collections.sites.open.cc.base import (
     cc_format_tree_mode_id,
     cc_list_select_node_inst_id,
     cc_format_prop_data,
-    cc_get_name_id_from_combine_value
+    cc_get_name_id_from_combine_value,
 )
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
@@ -68,14 +68,15 @@ class CCCreateModuleService(Service):
                 name=_("文本路径-集群"),
                 key="cc_set_select_text",
                 type="string",
-                schema=StringItemSchema(description=_("集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C`，多个目标集群用换行分隔")),
+                schema=StringItemSchema(description=_("集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B`，多个目标集群用换行分隔")),
             ),
             self.InputItem(
                 name=_("创建方式"),
                 key="cc_create_method",
                 type="string",
-                schema=StringItemSchema(description=_("按模板创建(template)，直接创建-按服务分类创建(category)"),
-                                        enum=["template", "category"]),
+                schema=StringItemSchema(
+                    description=_("按模板创建(template)，直接创建-按服务分类创建(category)"), enum=["template", "category"]
+                ),
             ),
             self.InputItem(
                 name=_("模块信息列表-直接创建（通过服务分类创建）"),

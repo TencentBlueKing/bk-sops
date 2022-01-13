@@ -103,6 +103,7 @@ def mysetting(request):
         "BK_DOC_URL": settings.BK_DOC_URL,
         "FEEDBACK_URL": settings.FEEDBACK_URL,
         "FILE_MANAGER_TYPE": EnvironmentVariables.objects.get_var(file_manager_type, env.BKAPP_FILE_MANAGER_TYPE),
+        "MAX_NODE_EXECUTE_TIMEOUT": settings.MAX_NODE_EXECUTE_TIMEOUT,
     }
 
     # custom context config

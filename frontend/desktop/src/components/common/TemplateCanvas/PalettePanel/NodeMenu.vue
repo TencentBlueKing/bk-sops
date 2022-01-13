@@ -190,7 +190,7 @@
                 <no-data v-else></no-data>
             </div>
             <div v-show="curPluginTab === 'third_praty_plugin'" v-bkloading="{ isLoading: pluginLoading }">
-                <ul class="third-praty-list" v-if="pluginList.length">
+                <ul class="third-praty-list" v-show="pluginList.length">
                     <li v-for="(item, index) in pluginList" :key="index">
                         <node-item
                             class="node-item"
@@ -200,6 +200,7 @@
                                 code: 'remote_plugin',
                                 template_id: templateId,
                                 name: item.code,
+                                desc: item.introduction,
                                 group_icon: '',
                                 group_name: '',
                                 nodeName: item.name,
@@ -208,7 +209,7 @@
                         </node-item>
                     </li>
                 </ul>
-                <bk-exception v-else class="exception-part" type="search-empty" scene="part"> </bk-exception>
+                <bk-exception v-if="!pluginList.length" class="exception-part" type="search-empty" scene="part"> </bk-exception>
             </div>
         </div>
     </transition>

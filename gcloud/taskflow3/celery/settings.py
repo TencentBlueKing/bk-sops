@@ -18,5 +18,17 @@ CELERY_QUEUES = [
         Exchange("default", type="direct"),
         routing_key="node_auto_retry",
         queue_arguments={"x-max-priority": 255},
-    )
+    ),
+    Queue(
+        "timeout_node_execute",
+        Exchange("default", type="direct"),
+        routing_key="timeout_node_execute",
+        queue_arguments={"x-max-priority": 255},
+    ),
+    Queue(
+        "timeout_nodes_record",
+        Exchange("default", type="direct"),
+        routing_key="timeout_nodes_record",
+        queue_arguments={"x-max-priority": 255},
+    ),
 ]
