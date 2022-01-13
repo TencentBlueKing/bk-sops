@@ -127,7 +127,7 @@ def dispatch_timeout_nodes(record_id: int):
 
 
 @task(ignore_result=True)
-@metrics.setup_histogram(metrics.TASKFLOW_TIMEOUT_NODES_PROCESSING_TIME.labels(hostname=HOST_NAME))
+@metrics.setup_histogram(metrics.TASKFLOW_TIMEOUT_NODES_PROCESSING_TIME)
 def execute_node_timeout_strategy(node_id, version):
     timeout_config = (
         TimeoutNodeConfig.objects.filter(node_id=node_id).only("task_id", "root_pipeline_id", "action").first()
