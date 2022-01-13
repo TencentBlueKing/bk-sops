@@ -39,7 +39,7 @@ from gcloud.constants import TASK_CREATE_METHOD, PROJECT
 from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
 from gcloud.taskflow3.domains.context import TaskContext
 from gcloud.contrib.analysis.analyse_items import task_flow_instance
-from gcloud.taskflow3.models import preview_template_tree
+from gcloud.taskflow3.models import preview_template_tree, preview_template_tree_with_schemes
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.contrib.operate_record.constants import RecordType, OperateType
 from gcloud.taskflow3.apis.django.validators import (
@@ -385,6 +385,32 @@ def preview_task_tree(request, project_id):
 
     try:
         data = preview_template_tree(project_id, template_source, template_id, version, exclude_task_nodes_id)
+    except Exception as e:
+        err_msg = "preview_template_tree fail: {}".format(e)
+        logger.exception(err_msg)
+        return JsonResponse({"result": False, "message": err_msg})
+
+    return JsonResponse({"result": True, "data": data})
+
+
+@require_POST
+@request_validate(PreviewTaskTreeValidator)
+def preview_task_tree_with_schemes(request):
+    """
+    @summary: 选择执行方案后预览任务流程，这里不创建任何实例，只返回调整后的pipeline_tree
+    @param request:
+    @return:
+    """
+    params = json.loads(request.body)
+
+    project_id = params["project_id"]
+    template_source = params.get("template_source", PROJECT)
+    template_id = params["template_id"]
+    version = params.get("version")
+    scheme_id_list = params.get("scheme_id_list", [])
+
+    try:
+        data = preview_template_tree_with_schemes(project_id, template_source, template_id, version, scheme_id_list)
     except Exception as e:
         err_msg = "preview_template_tree fail: {}".format(e)
         logger.exception(err_msg)

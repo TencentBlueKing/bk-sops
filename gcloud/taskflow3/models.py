@@ -24,7 +24,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.constants import PE
 from pipeline.component_framework.constant import ConstantPool
-from pipeline.models import PipelineInstance
+from pipeline.models import PipelineInstance, TemplateScheme
 from pipeline.engine import states
 from pipeline.validators.gateway import validate_gateways
 from pipeline.validators.utils import format_node_io_to_list
@@ -71,7 +71,6 @@ MANUAL_INTERVENTION_COMP_CODES = frozenset(["pause_node"])
 
 
 class TaskFlowStatisticsMixin(ClassificationCountMixin):
-
     TASK_CATEGORY_DICT = dict(TASK_CATEGORY)
 
     def _assemble_where_statement(self, filters):
@@ -563,6 +562,33 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
 
 class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
     @staticmethod
+    def sub_process_scheme_pipeline_tree(pipeline_tree):
+        """
+        递归根据执行方案创建子流程的任务实例
+        @return:
+        """
+
+        def _sub_process_scheme_pipeline_tree(pipeline_tree):
+            activities = pipeline_tree[PE.activities]
+
+            for node_id, node in list(activities.items()):
+                if node[PE.type] == PE.SubProcess:
+                    sub_pipeline = node[PE.pipeline]
+                    template_nodes_set = set(sub_pipeline[PE.activities].keys())
+
+                    scheme_id_list = node.get("scheme_id_list", [])
+                    exclude_task_nodes_id = get_template_exclude_task_nodes_with_schemes(
+                        template_nodes_set, scheme_id_list
+                    )
+                    TaskFlowInstanceManager.preview_pipeline_tree_exclude_task_nodes(
+                        sub_pipeline, exclude_task_nodes_id
+                    )
+
+                    _sub_process_scheme_pipeline_tree(sub_pipeline)
+
+        return _sub_process_scheme_pipeline_tree(pipeline_tree)
+
+    @staticmethod
     def create_pipeline_instance(template, **kwargs):
         pipeline_tree = kwargs["pipeline_tree"]
         replace_template_id(template.__class__, pipeline_tree)
@@ -572,6 +598,8 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
             "description": kwargs.get("description", ""),
         }
         PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree, template.__class__)
+
+        TaskFlowInstanceManager.sub_process_scheme_pipeline_tree(pipeline_tree)
 
         pipeline_web_cleaner = PipelineWebTreeCleaner(pipeline_tree)
         nodes_attr = pipeline_web_cleaner.clean(with_subprocess=True)
@@ -722,9 +750,16 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
             else:
                 node_data = {
                     ("%s_%s" % (act_id, key)): value
-                    for key, value in list(act["constants"].items())
+                    for key, value in list(act.get("constants", {}).items())
                     if value["show_type"] == "show"
                 }
+
+                sub_pipeline_node_data = {
+                    ("%s_%s" % (act_id, key)): {"hook": True, "value": key}
+                    for key, value in list(pipeline_tree["constants"].items())
+                    if act_id in value["source_info"].keys()
+                }
+                data.update(sub_pipeline_node_data)
             data.update(node_data)
 
         for gw_id, gw in list(pipeline_tree[PE.gateways].items()):
@@ -1422,13 +1457,52 @@ def get_instance_context(pipeline_instance, data_type, username=""):
 
 
 def preview_template_tree(project_id, template_source, template_id, version, exclude_task_nodes_id):
-
     if template_source == PROJECT:
         template = TaskTemplate.objects.get(pk=template_id, is_deleted=False, project_id=project_id)
     else:
         template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
     pipeline_tree = template.get_pipeline_tree_by_version(version)
     template_constants = deepcopy(pipeline_tree["constants"])
+    TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
+
+    constants_not_referred = {
+        key: value for key, value in list(template_constants.items()) if key not in pipeline_tree["constants"]
+    }
+
+    return {"pipeline_tree": pipeline_tree, "constants_not_referred": constants_not_referred}
+
+
+def get_template_exclude_task_nodes_with_schemes(template_nodes_set, scheme_id_list):
+    """
+    根据执行方案获取要剔除的模版节点
+    @param template_nodes_set:
+    @param scheme_id_list:
+    @return:
+    """
+    exclude_task_nodes_id = []
+    if scheme_id_list:
+        scheme_dict = TemplateScheme.objects.in_bulk(scheme_id_list)
+        scheme_data_set = set()
+        for scheme in scheme_dict.values():
+            scheme_data = json.loads(scheme.data)
+            scheme_data_set.update(scheme_data)
+        exclude_task_nodes_id = list(template_nodes_set - scheme_data_set)
+
+    return exclude_task_nodes_id
+
+
+def preview_template_tree_with_schemes(project_id, template_source, template_id, version, scheme_id_list):
+    if template_source == PROJECT:
+        template = TaskTemplate.objects.get(pk=template_id, is_deleted=False, project_id=project_id)
+    else:
+        template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
+
+    pipeline_tree = template.get_pipeline_tree_by_version(version)
+    template_constants = deepcopy(pipeline_tree["constants"])
+    template_nodes_set = set(pipeline_tree["activities"].keys())
+
+    exclude_task_nodes_id = get_template_exclude_task_nodes_with_schemes(template_nodes_set, scheme_id_list)
+
     TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
 
     constants_not_referred = {

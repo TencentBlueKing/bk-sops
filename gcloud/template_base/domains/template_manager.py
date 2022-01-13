@@ -19,7 +19,7 @@ from gcloud.constants import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.template_base.utils import replace_template_id
 from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
 
-from pipeline.models import PipelineTemplate
+from pipeline.models import PipelineTemplate, TemplateRelationship
 from pipeline_web.core.models import NodeInTemplate
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 from pipeline_web.parser.clean import PipelineWebTreeCleaner
@@ -29,7 +29,13 @@ class TemplateManager:
     def __init__(self, template_model_cls):
         self.template_model_cls = template_model_cls
 
-    def create_pipeline(self, name: str, creator: str, pipeline_tree: dict, description: str = "",) -> dict:
+    def create_pipeline(
+        self,
+        name: str,
+        creator: str,
+        pipeline_tree: dict,
+        description: str = "",
+    ) -> dict:
         """
         创建 pipeline 层模板
 
@@ -82,7 +88,12 @@ class TemplateManager:
         return {"result": True, "data": pipeline_template, "message": "success", "verbose_message": "success"}
 
     def create(
-        self, name: str, creator: str, pipeline_tree: dict, template_kwargs: dict, description: str = "",
+        self,
+        name: str,
+        creator: str,
+        pipeline_tree: dict,
+        template_kwargs: dict,
+        description: str = "",
     ) -> dict:
         """
         创建 template 层模板
@@ -198,7 +209,12 @@ class TemplateManager:
         return {"result": True, "data": pipeline_template, "message": "success", "verbose_message": "success"}
 
     def update(
-        self, template: object, editor: str, name: str = "", pipeline_tree: str = None, description: str = "",
+        self,
+        template: object,
+        editor: str,
+        name: str = "",
+        pipeline_tree: str = None,
+        description: str = "",
     ) -> dict:
         """
         更新 template 层模板
@@ -285,9 +301,10 @@ class TemplateManager:
         :return: [description]
         :rtype: dict
         """
-        templates = self.template_model_cls.objects.filter(id__in=template_ids)
+        templates = self.template_model_cls.objects.select_related("pipeline_template").filter(id__in=template_ids)
         delete_list = []
         not_delete_list = []
+        pipeline_template_id_list = []
         references = {}
         for template in templates:
             referencer = template.referencer()
@@ -297,8 +314,17 @@ class TemplateManager:
             appmaker_referencer = template.referencer_appmaker()
             if appmaker_referencer:
                 references.setdefault(template.id, {}).setdefault("appmaker", []).extend(appmaker_referencer)
-            append_list = not_delete_list if referencer or appmaker_referencer else delete_list
-            append_list.append(template.id)
+            if referencer or appmaker_referencer:
+                not_delete_list.append(template.id)
+            else:
+                pipeline_template_id_list.append(template.pipeline_template.template_id)
+                delete_list.append(template.id)
+
+        # 删除该流程引用的子流程节点的执行方案
+        relation_queryset = TemplateRelationship.objects.filter(ancestor_template_id__in=pipeline_template_id_list)
+        for relation in relation_queryset:
+            relation.templatescheme_set.clear()
+
         self.template_model_cls.objects.filter(id__in=delete_list).update(is_deleted=True)
         return {
             "result": True,
