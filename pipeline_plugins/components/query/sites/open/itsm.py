@@ -42,7 +42,7 @@ class ITSMNodeTransitionView(APIView):
     def post(self, request):
         # 获取请求中的参数并判断
         # 由于序列化器bool字段会默认给值,所以需要提前在序列化器校验之前校验is_passed
-        if not request.data.get("is_passed"):
+        if "is_passed" not in request.data:
             return Response({"result": False, "message": "is_passed 该字段是必填项"})
         operator = request.user.username
         serializer = ITSMViewRequestSerializer(data=request.data)
