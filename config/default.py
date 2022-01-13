@@ -627,7 +627,9 @@ def monitor_report_config():
         MonitorReportStep.setup_reporter(reporter)
         celery_app.steps["worker"].add(MonitorReportStep)
 
-    elif "gunicorn wsgi" in boot_cmd:
+    elif "gunicorn wsgi" or "node_timeout_process" in boot_cmd:
+        from bk_monitor_report import MonitorReporter  # noqa
+
         reporter = MonitorReporter(
             data_id=env.BK_MONITOR_REPORT_DATA_ID,  # 监控 Data ID
             access_token=env.BK_MONITOR_REPORT_ACCESS_TOKEN,  # 自定义上报 Token
