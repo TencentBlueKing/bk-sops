@@ -51,7 +51,7 @@ class Command(BaseCommand):
     def _graceful_exit(self, *args):
         self.has_killed = True
 
-    @metrics.setup_histogram(metrics.TASKFLOW_TIMEOUT_NODES_SCANNING_TIME.labels(hostname=HOST_NAME))
+    @metrics.setup_histogram(metrics.TASKFLOW_TIMEOUT_NODES_SCANNING_TIME)
     def _pop_timeout_nodes(self, redis_inst, nodes_pool) -> list:
         now = datetime.datetime.now().timestamp()
         timeout_nodes = [
