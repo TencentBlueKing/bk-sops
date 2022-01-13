@@ -748,7 +748,7 @@
             async getNodeBasic (config) {
                 if (config.type === 'ServiceActivity') {
                     const {
-                        component, name, stage_name, labels, error_ignorable, can_retry,
+                        component, name, stage_name = '', labels, error_ignorable, can_retry,
                         retryable, isSkipped, skippable, optional, auto_retry
                     } = config
                     let basicInfoName = i18n.t('请选择插件')
@@ -800,7 +800,7 @@
                         autoRetry: auto_retry || { enable: false, times: 1 }
                     }
                 } else {
-                    const { template_id, name, stage_name, labels, optional, always_use_latest } = config
+                    const { template_id, name, stage_name = '', labels, optional, always_use_latest } = config
                     let templateName = i18n.t('请选择子流程')
 
                     if (template_id) {
