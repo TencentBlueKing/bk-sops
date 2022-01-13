@@ -334,7 +334,8 @@
                 isShowConditionEdit: false, // 条件分支侧栏
                 conditionData: {},
                 isShowDialog: false,
-                isSaveLoading: false
+                isSaveLoading: false,
+                tabIconState: ''
             }
         },
         computed: {
@@ -1297,6 +1298,9 @@
                     case 'RUNNING':
                     case 'READY':
                         nameSuffix = 'running'
+                        if (this.tabIconState === 'SUSPENDED') {
+                            nameSuffix = 'suspended'
+                        }
                         break
                     case 'SUSPENDED':
                     case 'NODE_SUSPENDED':
@@ -1417,11 +1421,12 @@
             },
             // 判断RUNNING的节点是否有暂停节点，若有，则将当前任务状态标记为暂停状态
             getRunningNode (node = {}) {
+                this.tabIconState = ''
                 Object.keys(node).forEach(key => {
                     if (node[key].state === 'RUNNING') {
                         const { activities } = this.pipelineData
                         if (activities[key].component.code === 'pause_node') {
-                            this.state = 'SUSPENDED'
+                            this.tabIconState = 'SUSPENDED'
                         }
                     }
                 })
