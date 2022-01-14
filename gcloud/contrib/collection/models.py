@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import json
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -19,6 +20,14 @@ class CollectionManager(models.Manager):
     def cascade_delete(self, category, instance_id):
         self.filter(category=category, instance_id=instance_id).delete()
 
+    def get_user_project_collection_template_ids(self, username, project_id):
+        user_collections = self.filter(category="flow", username=username).values()
+        collection_template_ids = []
+        for user_collection in user_collections:
+            extra_info = json.loads(user_collection["extra_info"])
+            if int(extra_info["project_id"]) == project_id:
+                collection_template_ids.append(user_collection["id"])
+        return collection_template_ids
 
 class Collection(models.Model):
     COLLECTION_TYPE = (
