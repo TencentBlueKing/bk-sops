@@ -51,12 +51,7 @@ class CollectionTemplateViewSet(ApiMixin, IAMMixin, GenericViewSet, generics.Lis
         user_collections = Collection.objects.filter(category="flow", username=request.user.username).values()
         project_id = int(request.query_params["project_id"])
 
-        """
-        collection_template_ids 筛选出用户在该项目收藏项目流程id列表
-        collection_id_template_id_map 筛选出用户在该项目收藏项目流程id列表
-        在一次循环中循环同时构建出收藏项目流程id列表和收藏id和模板id的映射
-        构建出收藏id和模板id的映射是为了放进序列化器context中用于collection_id构建
-        """
+        # 取出用户在当前项目的收藏id, 以及收藏id和模板id的映射,用于搜索和上下文注入
         collection_template_ids = []
         collection_id_template_id_map = {}
         for user_collection in user_collections:
