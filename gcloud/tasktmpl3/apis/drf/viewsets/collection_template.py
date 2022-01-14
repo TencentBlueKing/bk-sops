@@ -18,7 +18,7 @@ from gcloud.label.models import TemplateLabelRelation
 from gcloud.tasktmpl3.apis.drf.filters import TaskTemplateFilter
 from gcloud.tasktmpl3.apis.drf.permissions import CollectionTaskPermissions
 
-from gcloud.tasktmpl3.apis.drf.serilaziers.collection_template import CollectionTemplateSerializer, ProjectSerializer
+from gcloud.tasktmpl3.apis.drf.serilaziers.collection_template import CollectionTemplateSerializer
 from gcloud.tasktmpl3.models import TaskTemplate
 
 logger = logging.getLogger("root")
