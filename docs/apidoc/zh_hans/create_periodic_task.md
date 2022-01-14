@@ -1,3 +1,11 @@
+### 请求地址
+
+/v2/sops/create_periodic_task/
+
+### 请求方法
+
+POST
+
 ### 功能描述
 
 创建周期任务
@@ -35,8 +43,8 @@
 变量值
 
 #### cron
- 
- |   参数名称   |    参数类型  |  必须  |     参数说明     |
+
+|   参数名称   |    参数类型  |  必须  |     参数说明     |
 | ------------ | ------------ | ------ | ---------------- |
 |   minute    |   string     |   否   |  分，默认为 * |
 |   hour    |   string     |   否   |  时，默认为 * |
@@ -51,8 +59,10 @@
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "template_id": "1",
     "bk_biz_id": "2",
+    "template_source": "business",
 	"name": "from api 3",
 	"cron" : {
 	    "minute": "*/1", 
@@ -64,7 +74,8 @@
 	"constants": {
 	    "${bk_timing}": "100"
     },
-	"exclude_task_nodes_id": ["nodea5c396a3ef0f9f3cd7d4d7695f78"]
+	"exclude_task_nodes_id": ["nodea5c396a3ef0f9f3cd7d4d7695f78"],
+	"scope":"cmdb_biz"
 }
 ```
 
@@ -219,9 +230,12 @@
         "last_run_at": "",
         "enabled": false,
         "id": 11,
-        "template_id": 2
+        "template_id": 2,
+        "template_source": "business"
     },
-    "result": true
+    "result": true,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -232,6 +246,8 @@
 |  result      |    bool    |      true/false 操作是否成功     |
 |  data        |    dict      |      result=true 时成功数据，详细信息请见下面说明     |
 |  message        |    string      |      result=false 时错误信息     |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 #### data
 

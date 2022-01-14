@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/node_callback/
+
+### Request Method
+
+POST
+
 ### Functional description
 
 callback specific node
@@ -30,12 +38,14 @@ callback specific node
     "bk_app_code": "app_code",
     "bk_app_secret": "app_secret",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
     "task_id": "10",
     "node_id": "node0df0431f8f553925af01a94854bd",
     "callback_data": {
         "data": {}
-    }
+    },
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -44,7 +54,9 @@ callback specific node
 ```
 {
     "result": true,
-    "message": "success"
+    "message": "success",
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -54,3 +66,5 @@ callback specific node
 | ------------  | ---------- | ------------------------------ |
 |  result   |    bool    |      true or false, indicate success or failure   |
 |  message  |    string  |      error message returned when result is false  |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |

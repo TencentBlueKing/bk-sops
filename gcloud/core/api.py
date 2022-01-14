@@ -132,7 +132,10 @@ def get_footer(request):
         {
             "result": True,
             "data": Template(FOOTER(language) if callable(FOOTER) else FOOTER).render(
-                year=datetime.now().year, desktop_link=settings.BK_PAAS_HOST
+                year=datetime.now().year,
+                desktop_link=settings.BK_PAAS_HOST,
+                sops_version=settings.STATIC_VERSION,
+                static_url=settings.STATIC_URL,
             ),
         }
     )

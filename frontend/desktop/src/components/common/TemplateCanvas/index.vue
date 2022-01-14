@@ -105,6 +105,7 @@
         <ShortcutPanel
             v-if="showShortcutPanel"
             :node="activeNode"
+            :line="activeCon"
             :position="shortcutPanelPosition"
             :node-operate="shortcutPanelNodeOperate"
             :delete-line="shortcutPanelDeleteLine"

@@ -11,7 +11,7 @@
                             name="variableName"
                             v-model="theEditingData.name"
                             v-validate="variableNameRule"
-                            :readonly="isSystemVar || isProjectVar">
+                            :readonly="isInternalVal">
                         </bk-input>
                         <span v-show="veeErrors.has('variableName')" class="common-error-tip error-msg">{{ veeErrors.first('variableName') }}</span>
                     </div>
@@ -24,14 +24,14 @@
                             name="variableKey"
                             v-model="theEditingData.key"
                             v-validate="variableKeyRule"
-                            :readonly="isSystemVar || isProjectVar"
+                            :readonly="isInternalVal"
                             :disabled="isHookedVar && variableData.key !== ''">
                         </bk-input>
                         <span v-show="veeErrors.has('variableKey')" class="common-error-tip error-msg">{{ veeErrors.first('variableKey') }}</span>
                     </div>
                 </div>
                 <!-- 类型 -->
-                <div class="form-item variable-type clearfix" v-if="!isSystemVar || !isProjectVar">
+                <div class="form-item variable-type clearfix" v-if="!isInternalVal">
                     <label>{{ $t('类型') }}</label>
                     <div class="form-content">
                         <bk-select
@@ -66,7 +66,7 @@
                     <pre class="variable-type-desc" v-if="variableDesc">{{ variableDesc }}</pre>
                 </div>
                 <!-- 验证规则 -->
-                <div v-show="['input', 'textarea'].includes(theEditingData.custom_type)" class="form-item clearfix">
+                <div v-show="['input', 'textarea'].includes(theEditingData.custom_type) && !isInternalVal" class="form-item clearfix">
                     <label class="form-label">{{ $t('正则校验') }}</label>
                     <div class="form-content">
                         <bk-input
@@ -79,7 +79,7 @@
                     </div>
                 </div>
                 <!-- 显示/隐藏 -->
-                <div class="form-item clearfix" v-if="!isSystemVar || !isProjectVar">
+                <div class="form-item clearfix" v-if="!isInternalVal">
                     <label>{{ $t('显示')}}</label>
                     <div class="form-content">
                         <bk-select
@@ -97,7 +97,7 @@
                     </div>
                 </div>
                 <!-- 自动隐藏 -->
-                <div class="form-item clearfix" v-if="theEditingData.show_type === 'show'">
+                <div class="form-item clearfix" v-if="theEditingData.show_type === 'show' && !isInternalVal">
                     <label
                         class="form-label condition-tip"
                         v-bk-tooltips.top="$t('自动隐藏在显示状态下触发，当触发条件都满足时，才会在编辑页面隐藏，但是不会对传参产生影响')">
@@ -155,7 +155,7 @@
                     </div>
                 </div>
                 <!-- 模板预渲染 -->
-                <div class="form-item clearfix" v-if="!isSystemVar || !isProjectVar">
+                <div class="form-item clearfix" v-if="!isInternalVal">
                     <label class="form-label">{{ $t('模板预渲染')}}</label>
                     <div class="form-content">
                         <bk-select
@@ -178,13 +178,13 @@
                         <bk-input
                             type="textarea"
                             v-model="theEditingData.desc"
-                            :placeholder="isSystemVar ? ' ' : $t('请输入')"
-                            :readonly="isSystemVar || isProjectVar">
+                            :placeholder="isInternalVal ? ' ' : $t('请输入')"
+                            :readonly="isInternalVal">
                         </bk-input>
                     </div>
                 </div>
             </section>
-            <section v-if="theEditingData.source_type !== 'component_outputs' && !isSystemVar && !isProjectVar" class="form-section">
+            <section v-if="theEditingData.source_type !== 'component_outputs' && !isInternalVal" class="form-section">
                 <h3>{{ theEditingData.is_meta ? $t('配置') : $t('默认值') }}</h3>
                 <!-- 默认值 -->
                 <div class="form-item value-form clearfix">
@@ -202,7 +202,7 @@
             </section>
         </div>
         <div class="btn-wrap">
-            <template v-if="!isSystemVar && !isProjectVar">
+            <template v-if="!isInternalVal">
                 <bk-button theme="primary" :disabled="atomConfigLoading || varTypeListLoading" @click="onSaveVariable">{{ $t('保存') }}</bk-button>
                 <bk-button @click="$emit('closeEditingPanel')">{{ $t('取消') }}</bk-button>
             </template>
@@ -249,7 +249,7 @@
             const theEditingData = tools.deepClone(this.variableData)
             const { source_type, custom_type, hide_condition: hideCondition } = theEditingData
             if (!('is_condition_hide' in theEditingData)) { // 添加自动隐藏默认值
-                theEditingData.is_condition_hide = false
+                theEditingData.is_condition_hide = 'false'
             }
             const isHookedVar = ['component_inputs', 'component_outputs'].includes(source_type)
             const currentValType = isHookedVar ? 'component' : custom_type
@@ -308,13 +308,10 @@
             ...mapState('project', {
                 'project_id': state => state.project_id
             }),
-            // 是否为系统内置变量
-            isSystemVar () {
-                return this.variableData.source_type === 'system'
-            },
-            // 是否为项目变量
-            isProjectVar () {
-                return this.variableData.source_type === 'project'
+            // 是否为内置变量
+            isInternalVal () {
+                const keys = Object.keys(this.internalVariable)
+                return keys.some(key => key === this.variableData.key)
             },
             /**
              * 变量配置项code
@@ -413,7 +410,7 @@
                 }
                 this.getAtomConfig()
             }
-            this.getTriggerCondInfo()
+            this.setTriggerCondInfo()
         },
         methods: {
             ...mapActions('template/', [
@@ -430,19 +427,17 @@
                 'setOutputs'
             ]),
             // 获取触发条件数据
-            getTriggerCondInfo () {
+            setTriggerCondInfo () {
                 if (!this.theEditingData.is_condition_hide) return
-                const includesType = ['input', 'select', 'textarea']
                 const variableList = Object.values(this.constants).filter(item => {
-                    return this.variableData.key !== item.key
-                        && item.source_type !== 'component_outputs'
-                        && includesType.includes(item.form_schema.type)
+                    return this.variableData.key !== item.key && item.source_type !== 'component_outputs'
                 })
                 const variableKeys = variableList.map(item => item.key)
                 const list = []
-                this.hideConditionList.forEach(item => {
-                    if (!variableKeys.includes(item.constant_key)) {
+                this.hideConditionList.forEach((item, index) => {
+                    if (item.constant_key && !variableKeys.includes(item.constant_key)) {
                         list.push(item.constant_key)
+                        this.hideConditionList.splice(index, 1)
                     }
                 })
                 let text = list.join(',')
@@ -716,7 +711,7 @@
              */
             onToggleHideCond (val) {
                 if (val === 'true' && !this.errorMsgText) {
-                    this.getTriggerCondInfo()
+                    this.setTriggerCondInfo()
                 }
                 this.theEditingData.is_condition_hide = val
                 this.isShowErrorMsg = false

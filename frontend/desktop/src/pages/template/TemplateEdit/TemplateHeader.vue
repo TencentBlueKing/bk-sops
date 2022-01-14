@@ -234,21 +234,13 @@
                         // 普通任务直接走模板校验、保存逻辑，公共流程先走模板校验、保存逻辑，然后显示项目选择弹窗
                         this.saveTemplate(saveAndCreate)
                     } else {
-                        if (this.common) {
-                            this.applyCreateCommonTplPerm()
-                        } else {
-                            this.applyTplPerm(this.saveAndCreateRequiredPerm)
-                        }
+                        this.applyTplPerm(this.saveAndCreateRequiredPerm)
                     }
                 } else {
                     if (this.saveBtnActive) {
                         this.saveTemplate(saveAndCreate)
                     } else {
-                        if (this.common) {
-                            this.applyCreateCommonTplPerm()
-                        } else {
-                            this.applyTplPerm(this.saveRequiredPerm)
-                        }
+                        this.applyTplPerm(this.saveRequiredPerm)
                     }
                 }
                 this.$emit('onOpenExecuteScheme', false)
@@ -427,9 +419,6 @@
             setProjectSelectDialogShow () {
                 this.isSelectProjectShow = true
             },
-            applyCreateCommonTplPerm () {
-                this.applyForPermission(['common_flow_create'])
-            },
             applyCommonTplCreateTaskPerm () {
                 const curPermission = [...this.tplActions, ...this.selectedProject.auth_actions]
                 const resourceData = {
@@ -444,20 +433,30 @@
                 }
                 this.applyForPermission(['common_flow_create_task'], curPermission, resourceData)
             },
+            // 申请流程模板创建或编辑权限
             applyTplPerm (requiredPerm) {
                 let curPermission = [...this.authActions]
-                const resourceData = {
-                    project: [{
+                const resourceData = {}
+                if (this.common) {
+                    if (this.type === 'edit') { // 公共流程编辑权限
+                        curPermission = [...this.tplActions]
+                        resourceData.common_flow = [{
+                            id: this.template_id,
+                            name: this.name
+                        }]
+                    }
+                } else {
+                    resourceData.project = [{
                         id: this.project_id,
                         name: this.projectName
                     }]
-                }
-                if (this.type === 'edit') {
-                    curPermission = [...this.tplActions]
-                    resourceData.flow = [{
-                        id: this.template_id,
-                        name: this.name
-                    }]
+                    if (this.type === 'edit') { // 普通流程编辑权限
+                        curPermission = [...this.tplActions]
+                        resourceData.flow = [{
+                            id: this.template_id,
+                            name: this.name
+                        }]
+                    }
                 }
                 this.applyForPermission(requiredPerm, curPermission, resourceData)
             },

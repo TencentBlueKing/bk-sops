@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/operate_node/
+
+### Request Method
+
+POST
+
 ### Functional description
 
 Operate node
@@ -31,10 +39,12 @@ Operate node
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
     "task_id": "12",
     "node_id": "node_id",
-    "action": "skip"
+    "action": "skip",
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -44,7 +54,9 @@ Operate node
 {
     "result": true,
     "data": "success",
-    "code": 0
+    "code": 0,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -55,3 +67,5 @@ Operate node
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    string    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |
