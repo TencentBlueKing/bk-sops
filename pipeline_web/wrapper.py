@@ -30,6 +30,7 @@ from pipeline_web.core.abstract import NodeAttr
 from pipeline_web.core.models import NodeInTemplate
 from pipeline_web.parser.clean import PipelineWebTreeCleaner
 from pipeline_web.drawing_new.drawing import draw_pipeline
+from pipeline_web.preview_base import PipelineTemplateWebPreview
 
 from gcloud.template_base.utils import replace_template_id
 
@@ -121,7 +122,18 @@ class PipelineTemplateWebWrapper(object):
                         subproc_data["constants"].update(subproc_constants)
 
                     replace_template_id(template_model, subproc_data)
+
                     # 需要将父流程中修改的 constants 传到子流程的 act constants 中
+                    # 根据执行方案创建子流程实例
+                    template_nodes_set = set(subproc_data[PWE.activities].keys())
+                    scheme_id_list = act.get("scheme_id_list", [])
+                    exclude_task_nodes_id = PipelineTemplateWebPreview.get_template_exclude_task_nodes_with_schemes(
+                        template_nodes_set, scheme_id_list
+                    )
+                    PipelineTemplateWebPreview.preview_pipeline_tree_exclude_task_nodes(
+                        subproc_data, exclude_task_nodes_id
+                    )
+
                     _unfold_subprocess(subproc_data, template_model)
 
                     subproc_data["id"] = act_id
