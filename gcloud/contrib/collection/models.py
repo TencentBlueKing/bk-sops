@@ -29,6 +29,7 @@ class CollectionManager(models.Manager):
                 collection_template_ids.append(user_collection["id"])
         return collection_template_ids
 
+
 class Collection(models.Model):
     COLLECTION_TYPE = (
         ("flow", _(u"项目流程")),
