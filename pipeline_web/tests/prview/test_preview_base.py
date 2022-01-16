@@ -26,7 +26,8 @@ class PipelineTemplateWebPreviewTestCase(TestCase):
             template_nodes_set, scheme_id_list
         )
         MockTemplateScheme.objects.in_bulk.assert_called_once_with([1, 2, 3])
-        self.assertEqual(exclude_task_nodes, ["node2", "node4"])
+
+        self.assertEqual(set(exclude_task_nodes), {"node2", "node4"})
 
     def test_preview_pipeline_tree_exclude_task_nodes(self):
         exclude_task_nodes_id = ["node9ab869668031c89ee03bd3b4ce66"]
