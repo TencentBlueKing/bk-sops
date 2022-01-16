@@ -32,6 +32,7 @@ from pipeline.component_framework.models import ComponentModel
 from pipeline_web.core.models import NodeInInstance
 from pipeline_web.parser.clean import PipelineWebTreeCleaner
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
+from pipeline_web.preview_base import PipelineTemplateWebPreview
 
 from gcloud import err_code
 from gcloud.conf import settings
@@ -614,7 +615,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
 
         pipeline_tree = template.pipeline_tree
 
-        TaskFlowInstanceManager.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
+        PipelineTemplateWebPreview.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
 
         # change constants
         for key, constant in pipeline_tree[PE.constants].items():

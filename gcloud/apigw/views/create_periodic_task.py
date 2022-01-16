@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
 import jsonschema
 import ujson as json
 from django.views.decorators.csrf import csrf_exempt
@@ -28,7 +27,6 @@ from gcloud.template_base.utils import replace_template_id
 from gcloud.constants import PROJECT
 from gcloud.core.models import ProjectConfig
 from gcloud.periodictask.models import PeriodicTask
-from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.apigw.views.utils import logger, info_data_from_period_task
@@ -37,6 +35,8 @@ from gcloud.utils.decorators import request_validate
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CreatePeriodicTaskInterceptor
 from packages.bkoauth.decorators import apigw_required
+
+from pipeline_web.preview_base import PipelineTemplateWebPreview
 
 
 @login_exempt
@@ -76,7 +76,11 @@ def create_periodic_task(request, template_id, project_id):
             result = {
                 "result": False,
                 "message": "template[id={template_id}] of project[project_id={project_id} , biz_id{biz_id}] "
-                "does not exist".format(template_id=template_id, project_id=project.id, biz_id=project.bk_biz_id,),
+                "does not exist".format(
+                    template_id=template_id,
+                    project_id=project.id,
+                    biz_id=project.bk_biz_id,
+                ),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return result
@@ -104,7 +108,7 @@ def create_periodic_task(request, template_id, project_id):
     exclude_task_nodes_id = params["exclude_task_nodes_id"]
     pipeline_tree = template.pipeline_tree
     try:
-        TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
+        PipelineTemplateWebPreview.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
     except Exception as e:
         logger.exception("[API] create_periodic_task preview tree error: {}".format(e))
         return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
