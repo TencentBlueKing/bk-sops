@@ -187,7 +187,7 @@ class TemplateManager:
 
             try:
                 pipeline_template.update_template(**update_kwargs)
-            except PipelineException as e:
+            except Exception as e:
                 return {
                     "result": False,
                     "data": None,
