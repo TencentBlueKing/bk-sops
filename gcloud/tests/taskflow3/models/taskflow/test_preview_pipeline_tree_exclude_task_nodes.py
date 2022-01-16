@@ -15,9 +15,10 @@ import copy
 
 from django.test import TestCase
 
-from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
+
+from pipeline_web.preview_base import PipelineTemplateWebPreview
 
 
 class PreviewPipelineTreeExcludeTaskNodesTestCase(TestCase):
@@ -244,4 +245,4 @@ class PreviewPipelineTreeExcludeTaskNodesTestCase(TestCase):
         }
 
         # preview success
-        TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes(copy.deepcopy(tree), [])
+        PipelineTemplateWebPreview.preview_pipeline_tree_exclude_task_nodes(copy.deepcopy(tree), [])
