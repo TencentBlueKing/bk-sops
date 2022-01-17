@@ -10,11 +10,10 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from rest_framework.authentication import SessionAuthentication
 
-from .project_config import *  # noqa
-from .resource_config import *  # noqa
-from .business import *  # noqa
-from .project import *  # noqa
-from .component_model import *  # noqa
-from .common_use_project import *  # noqa
-from .label import *  # noqa
+
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+    def enforce_csrf(self, request):
+        """csrf豁免"""
+        pass

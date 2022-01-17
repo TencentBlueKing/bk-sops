@@ -10,11 +10,22 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from rest_framework import serializers
 
-from .project_config import *  # noqa
-from .resource_config import *  # noqa
-from .business import *  # noqa
-from .project import *  # noqa
-from .component_model import *  # noqa
-from .common_use_project import *  # noqa
-from .label import *  # noqa
+from gcloud.core.models import Project
+
+
+class ProjectSerializer(serializers.ModelSerializer):
+    create_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S %z", read_only=True)
+
+    class Meta:
+        model = Project
+        exclude = ["relate_business"]
+        read_only_fields = [
+            "name",
+            "time_zone",
+            "creator",
+            "from_cmdb",
+            "bk_biz_id",
+            "relate_business",
+        ]

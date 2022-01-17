@@ -14,3 +14,9 @@ specific language governing permissions and limitations under the License.
 from .project_config import *  # noqa
 from .resource_config import *  # noqa
 from .staff_group import *  # noqa
+from .business import *  # noqa
+from .project import *  # noqa
+from .component_model import *  # noqa
+from .user_project import *  # noqa
+from .common_use_project import *  # noqa
+from .label import *  # noqa

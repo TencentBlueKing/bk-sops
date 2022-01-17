@@ -11,10 +11,22 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .project_config import *  # noqa
-from .resource_config import *  # noqa
-from .business import *  # noqa
-from .project import *  # noqa
-from .component_model import *  # noqa
-from .common_use_project import *  # noqa
-from .label import *  # noqa
+from gcloud.iam_auth import res_factory, get_iam_client, IAMMeta
+from gcloud.iam_auth.resource_helpers.base import SimpleSubjectEnvHelperMixin
+
+from iam.contrib.tastypie.resource import IAMResourceHelper
+
+iam_client = get_iam_client()
+
+
+class ResourceHelper(SimpleSubjectEnvHelperMixin, IAMResourceHelper):
+    def __init__(self, res_type, iam=iam_client, system=IAMMeta.SYSTEM_ID, id_field="id", *args, **kwargs):
+        self.type = res_type
+        self.id_field = id_field
+        super().__init__(iam, system, *args, **kwargs)
+
+    def get_resources(self, obj):
+        return getattr(res_factory, self.type)(obj)
+
+    def get_resources_id(self, obj):
+        return getattr(obj, self.id_field)
