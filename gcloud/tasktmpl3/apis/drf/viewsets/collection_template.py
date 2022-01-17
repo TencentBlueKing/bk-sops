@@ -31,7 +31,7 @@ class CollectionTemplateViewSet(ApiMixin, IAMMixin, GenericViewSet, generics.Lis
     permission_classes = [permissions.IsAuthenticated, CollectionTaskPermissions]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = TaskTemplateFilter
-    ordering_fields = ('id', 'edit_time')
+    ordering_fields = ("id", "category", "pipeline_template__edit_time", "pipeline_template__create_time")
     pagination_class = LimitOffsetPagination
     iam_resource_helper = CollectionTemplateResourceHelper(
         iam=iam,

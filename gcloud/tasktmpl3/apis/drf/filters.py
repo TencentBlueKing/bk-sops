@@ -30,4 +30,5 @@ class TaskTemplateFilter(FilterSet):
             "pipeline_template__edit_time": ["gte", "lte"],
             "pipeline_template__creator": ["contains"],
             "project_id": ["exact"],
+            "category": ["exact"]
         }
