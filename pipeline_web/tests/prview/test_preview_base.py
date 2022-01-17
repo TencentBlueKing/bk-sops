@@ -1,9 +1,22 @@
+# -*- coding: utf-8 -*-
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://opensource.org/licenses/MIT
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+
 import json
 
 from mock import patch, MagicMock
 from django.test import TestCase
 
-from pipeline_web.preview_base import PipelineTemplateWebPreview
+from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 
 
 class MockTemplateScheme(object):
@@ -17,12 +30,12 @@ class MockTemplateScheme(object):
     )
 
 
-class PipelineTemplateWebPreviewTestCase(TestCase):
+class PipelineTemplateWebPreviewerTestCase(TestCase):
     @patch("pipeline_web.preview_base.TemplateScheme", MockTemplateScheme)
     def test_get_template_exclude_task_nodes_with_schemes(self):
         template_nodes_set = {"node1", "node2", "node3", "node4", "node5"}
         scheme_id_list = [1, 2, 3]
-        exclude_task_nodes = PipelineTemplateWebPreview.get_template_exclude_task_nodes_with_schemes(
+        exclude_task_nodes = PipelineTemplateWebPreviewer.get_template_exclude_task_nodes_with_schemes(
             template_nodes_set, scheme_id_list
         )
         MockTemplateScheme.objects.in_bulk.assert_called_once_with([1, 2, 3])
@@ -203,7 +216,7 @@ class PipelineTemplateWebPreviewTestCase(TestCase):
             },
         }
 
-        PipelineTemplateWebPreview.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
+        PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
 
         self.assertEqual(
             pipeline_tree,

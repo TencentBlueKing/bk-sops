@@ -36,7 +36,7 @@ from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CreatePeriodicTaskInterceptor
 from packages.bkoauth.decorators import apigw_required
 
-from pipeline_web.preview_base import PipelineTemplateWebPreview
+from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 
 
 @login_exempt
@@ -108,7 +108,7 @@ def create_periodic_task(request, template_id, project_id):
     exclude_task_nodes_id = params["exclude_task_nodes_id"]
     pipeline_tree = template.pipeline_tree
     try:
-        PipelineTemplateWebPreview.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
+        PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
     except Exception as e:
         logger.exception("[API] create_periodic_task preview tree error: {}".format(e))
         return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}

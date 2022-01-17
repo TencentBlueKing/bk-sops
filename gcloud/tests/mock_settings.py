@@ -37,7 +37,7 @@ TASKINSTANCE_GET = "gcloud.taskflow3.models.TaskFlowInstance.objects.get"
 TASKINSTANCE_FORMAT_STATUS = "gcloud.taskflow3.models.TaskFlowInstance.format_pipeline_status"
 TASKINSTANCE_EXTEN_CLASSIFIED_COUNT = "gcloud.contrib.analysis.analyse_items.task_flow_instance.dispatch"
 TASKINSTANCE_PREVIEW_TREE = (
-    "pipeline_web.preview_base.PipelineTemplateWebPreview.preview_pipeline_tree_exclude_task_nodes"
+    "pipeline_web.preview_base.PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes"
 )
 TASKINSTANCE_OBJECTS_CALLBACK = "gcloud.taskflow3.models.TaskFlowInstance.objects.callback"
 TASKINSTANCE_CALLBACK = "gcloud.taskflow3.models.TaskFlowInstance.callback"

@@ -19,7 +19,7 @@ from gcloud.periodictask.models import PeriodicTask
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
-from pipeline_web.preview_base import PipelineTemplateWebPreview
+from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 
 from .utils import APITest
 
@@ -79,7 +79,7 @@ class CreatePeriodicTaskAPITest(APITest):
                             content_type="application/json",
                         )
 
-                        PipelineTemplateWebPreview.preview_pipeline_tree_exclude_task_nodes.assert_called_with(
+                        PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes.assert_called_with(
                             template.pipeline_tree, "exclude_task_nodes_id"
                         )
 
@@ -146,7 +146,7 @@ class CreatePeriodicTaskAPITest(APITest):
                             content_type="application/json",
                         )
 
-                        PipelineTemplateWebPreview.preview_pipeline_tree_exclude_task_nodes.assert_called_with(
+                        PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes.assert_called_with(
                             template.pipeline_tree, "exclude_task_nodes_id"
                         )
 

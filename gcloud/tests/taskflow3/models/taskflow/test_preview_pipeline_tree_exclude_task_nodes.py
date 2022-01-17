@@ -18,7 +18,7 @@ from django.test import TestCase
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
-from pipeline_web.preview_base import PipelineTemplateWebPreview
+from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 
 
 class PreviewPipelineTreeExcludeTaskNodesTestCase(TestCase):
@@ -245,4 +245,4 @@ class PreviewPipelineTreeExcludeTaskNodesTestCase(TestCase):
         }
 
         # preview success
-        PipelineTemplateWebPreview.preview_pipeline_tree_exclude_task_nodes(copy.deepcopy(tree), [])
+        PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes(copy.deepcopy(tree), [])

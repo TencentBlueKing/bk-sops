@@ -1,3 +1,16 @@
+# -*- coding: utf-8 -*-
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://opensource.org/licenses/MIT
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+
 import copy
 
 from mock import patch, MagicMock
@@ -45,7 +58,7 @@ def mock_get_template_exclude_task_nodes_with_schemes(template_nodes_set, scheme
     return ["node2", "node3"]
 
 
-class MockPipelineTemplateWebPreview(object):
+class MockPipelineTemplateWebPreviewer(object):
     def __init__(self):
         self.get_template_exclude_task_nodes_with_schemes = MagicMock(
             side_effect=mock_get_template_exclude_task_nodes_with_schemes
@@ -58,19 +71,19 @@ class MockPipelineTemplateWebPreview(object):
 MockTaskTemplate1 = MockTaskTemplate()
 MockTaskTemplate2 = MockTaskTemplate()
 
-MockPipelineTemplateWebPreview1 = MockPipelineTemplateWebPreview()
-MockPipelineTemplateWebPreview2 = MockPipelineTemplateWebPreview()
+MockPipelineTemplateWebPreviewer1 = MockPipelineTemplateWebPreviewer()
+MockPipelineTemplateWebPreviewer2 = MockPipelineTemplateWebPreviewer()
 
 
-class PipelineTemplateWebPreviewTestCase(TestCase):
+class PipelineTemplateWebPreviewerTestCase(TestCase):
     @patch("pipeline_web.preview.TaskTemplate", MockTaskTemplate1)
-    @patch("pipeline_web.preview.PipelineTemplateWebPreview", MockPipelineTemplateWebPreview1)
+    @patch("pipeline_web.preview.PipelineTemplateWebPreviewer", MockPipelineTemplateWebPreviewer1)
     def test_preview_template_tree(self):
         data = preview_template_tree(1, "project", 2, "v1", ["node1", "node4"])
 
         MockTaskTemplate1.objects.get.assert_called_once_with(pk=2, is_deleted=False, project_id=1)
 
-        MockPipelineTemplateWebPreview1.preview_pipeline_tree_exclude_task_nodes.assert_called()
+        MockPipelineTemplateWebPreviewer1.preview_pipeline_tree_exclude_task_nodes.assert_called()
 
         self.assertEqual(
             data,
@@ -87,14 +100,14 @@ class PipelineTemplateWebPreviewTestCase(TestCase):
         )
 
     @patch("pipeline_web.preview.TaskTemplate", MockTaskTemplate2)
-    @patch("pipeline_web.preview.PipelineTemplateWebPreview", MockPipelineTemplateWebPreview2)
+    @patch("pipeline_web.preview.PipelineTemplateWebPreviewer", MockPipelineTemplateWebPreviewer2)
     def test_preview_template_tree_with_schemes(self):
         data = preview_template_tree_with_schemes(1, "project", 2, "v1", [1, 2, 3])
 
-        MockPipelineTemplateWebPreview2.get_template_exclude_task_nodes_with_schemes.assert_called_once_with(
+        MockPipelineTemplateWebPreviewer2.get_template_exclude_task_nodes_with_schemes.assert_called_once_with(
             {"node2", "node1", "node3", "node4"}, [1, 2, 3]
         )
-        MockPipelineTemplateWebPreview1.preview_pipeline_tree_exclude_task_nodes.assert_called()
+        MockPipelineTemplateWebPreviewer1.preview_pipeline_tree_exclude_task_nodes.assert_called()
         MockTaskTemplate2.objects.get.assert_called_once_with(pk=2, is_deleted=False, project_id=1)
         self.assertEqual(
             data,

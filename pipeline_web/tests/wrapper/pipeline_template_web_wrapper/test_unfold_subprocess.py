@@ -29,7 +29,7 @@ def mock_preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_no
     }
 
 
-class MockPipelineTemplateWebPreview(object):
+class MockPipelineTemplateWebPreviewer(object):
     get_template_exclude_task_nodes_with_schemes = MagicMock(
         side_effect=mock_get_template_exclude_task_nodes_with_schemes
     )
@@ -41,7 +41,7 @@ class UnfoldSubprocessTestCase(TestCase):
         self.maxDiff = None
 
     @patch("pipeline_web.wrapper.replace_template_id", MagicMock())
-    @patch("pipeline_web.wrapper.PipelineTemplateWebPreview", MagicMock())
+    @patch("pipeline_web.wrapper.PipelineTemplateWebPreviewer", MagicMock())
     def test_unfold_1_layer_subprocess(self):
         layer_1_t1_tree = {
             "activities": {},
@@ -95,7 +95,7 @@ class UnfoldSubprocessTestCase(TestCase):
         )
 
     @patch("pipeline_web.wrapper.replace_template_id", MagicMock())
-    @patch("pipeline_web.wrapper.PipelineTemplateWebPreview", MagicMock())
+    @patch("pipeline_web.wrapper.PipelineTemplateWebPreviewer", MagicMock())
     def test_unfold_2_layer_subprocess(self):
         layer_2_t1_tree = {
             "activities": {
@@ -180,7 +180,7 @@ class UnfoldSubprocessTestCase(TestCase):
         )
 
     @patch("pipeline_web.wrapper.replace_template_id", MagicMock())
-    @patch("pipeline_web.wrapper.PipelineTemplateWebPreview", MagicMock())
+    @patch("pipeline_web.wrapper.PipelineTemplateWebPreviewer", MagicMock())
     def test_unfold_3_layer_subprocess(self):
         layer_3_t1_tree = {
             "activities": {
@@ -295,7 +295,7 @@ class UnfoldSubprocessTestCase(TestCase):
         )
 
     @patch("pipeline_web.wrapper.replace_template_id", MagicMock())
-    @patch("pipeline_web.wrapper.PipelineTemplateWebPreview", MagicMock())
+    @patch("pipeline_web.wrapper.PipelineTemplateWebPreviewer", MagicMock())
     def test_always_use_latest(self):
         layer_1_t1_tree = {
             "activities": {},
@@ -328,7 +328,7 @@ class UnfoldSubprocessTestCase(TestCase):
         get_return.get_pipeline_tree_by_version.assert_called_once_with(None)
 
     @patch("pipeline_web.wrapper.replace_template_id", MagicMock())
-    @patch("pipeline_web.wrapper.PipelineTemplateWebPreview", MockPipelineTemplateWebPreview)
+    @patch("pipeline_web.wrapper.PipelineTemplateWebPreviewer", MockPipelineTemplateWebPreviewer)
     def test_unfold_subprocess_with_schemes(self):
         layer_1_t1_tree = {
             "activities": {
@@ -375,10 +375,10 @@ class UnfoldSubprocessTestCase(TestCase):
 
         template_model.objects.get.assert_called_once_with(pipeline_template__template_id="layer_1_t1")
         get_return.get_pipeline_tree_by_version.assert_called_once_with("v1")
-        MockPipelineTemplateWebPreview.get_template_exclude_task_nodes_with_schemes.assert_called_once_with(
+        MockPipelineTemplateWebPreviewer.get_template_exclude_task_nodes_with_schemes.assert_called_once_with(
             {"t1_tree_node_3", "t1_tree_node_2", "t1_tree_node_1", "t1_tree_node_4"}, [1, 2, 3]
         )
-        MockPipelineTemplateWebPreview.preview_pipeline_tree_exclude_task_nodes.assert_called_once_with(
+        MockPipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes.assert_called_once_with(
             {
                 "activities": {
                     "t1_tree_node_2": {"type": "ServiceActivity"},

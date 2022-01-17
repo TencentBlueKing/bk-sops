@@ -1,3 +1,16 @@
+# -*- coding: utf-8 -*-
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://opensource.org/licenses/MIT
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+
 import logging
 import traceback
 from copy import deepcopy
@@ -12,7 +25,7 @@ from pipeline.validators.utils import format_node_io_to_list
 logger = logging.getLogger("root")
 
 
-class PipelineTemplateWebPreview(object):
+class PipelineTemplateWebPreviewer(object):
     @staticmethod
     def get_template_exclude_task_nodes_with_schemes(template_nodes_set, scheme_id_list):
         """
@@ -51,16 +64,16 @@ class PipelineTemplateWebPreview(object):
                 error = "task node[id=%s] is not optional" % act_id
                 raise Exception(error)
 
-            PipelineTemplateWebPreview._ignore_act(
+            PipelineTemplateWebPreviewer._ignore_act(
                 act=act, locations=locations, lines=lines, pipeline_tree=pipeline_tree
             )
 
-        PipelineTemplateWebPreview._remove_useless_parallel(pipeline_tree, lines, locations)
+        PipelineTemplateWebPreviewer._remove_useless_parallel(pipeline_tree, lines, locations)
 
         pipeline_tree["line"] = list(lines.values())
         pipeline_tree["location"] = list(locations.values())
 
-        PipelineTemplateWebPreview._remove_useless_constants(
+        PipelineTemplateWebPreviewer._remove_useless_constants(
             exclude_task_nodes_id=exclude_task_nodes_id, pipeline_tree=pipeline_tree
         )
 
@@ -116,7 +129,7 @@ class PipelineTemplateWebPreview(object):
             new_incoming_list.append(incoming)
 
         # process next node's incoming
-        PipelineTemplateWebPreview._replace_node_incoming(
+        PipelineTemplateWebPreviewer._replace_node_incoming(
             next_node=next_node_of_converge, replaced_incoming=converge[PE.outgoing], new_incoming=new_incoming_list
         )
 
@@ -153,7 +166,7 @@ class PipelineTemplateWebPreview(object):
             or pipeline_tree[PE.end_event]
         )
 
-        PipelineTemplateWebPreview._replace_node_incoming(
+        PipelineTemplateWebPreviewer._replace_node_incoming(
             next_node=next_node, replaced_incoming=outgoing_id, new_incoming=incoming_id_list
         )
 
@@ -268,7 +281,7 @@ class PipelineTemplateWebPreview(object):
                     if not is_parallel:
                         continue
 
-                    PipelineTemplateWebPreview._try_to_ignore_parallel(
+                    PipelineTemplateWebPreviewer._try_to_ignore_parallel(
                         parallel=gateway,
                         converge_id=converge_id,
                         lines=lines,

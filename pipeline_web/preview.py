@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 import logging
 from copy import deepcopy
 
-from pipeline_web.preview_base import PipelineTemplateWebPreview
+from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 
 from gcloud.common_template.models import CommonTemplate
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -29,7 +29,7 @@ def preview_template_tree(project_id, template_source, template_id, version, exc
         template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
     pipeline_tree = template.get_pipeline_tree_by_version(version)
     template_constants = deepcopy(pipeline_tree["constants"])
-    PipelineTemplateWebPreview.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
+    PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
 
     constants_not_referred = {
         key: value for key, value in list(template_constants.items()) if key not in pipeline_tree["constants"]
@@ -48,11 +48,11 @@ def preview_template_tree_with_schemes(project_id, template_source, template_id,
     template_constants = deepcopy(pipeline_tree["constants"])
     template_nodes_set = set(pipeline_tree["activities"].keys())
 
-    exclude_task_nodes_id = PipelineTemplateWebPreview.get_template_exclude_task_nodes_with_schemes(
+    exclude_task_nodes_id = PipelineTemplateWebPreviewer.get_template_exclude_task_nodes_with_schemes(
         template_nodes_set, scheme_id_list
     )
 
-    PipelineTemplateWebPreview.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
+    PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
 
     constants_not_referred = {
         key: value for key, value in list(template_constants.items()) if key not in pipeline_tree["constants"]

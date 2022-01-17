@@ -304,7 +304,7 @@ class TemplateManager:
         templates = self.template_model_cls.objects.select_related("pipeline_template").filter(id__in=template_ids)
         delete_list = []
         not_delete_list = []
-        pipeline_template_id_list = []
+        delete_pipeline_template_id_list = []
         references = {}
         for template in templates:
             referencer = template.referencer()
@@ -317,11 +317,13 @@ class TemplateManager:
             if referencer or appmaker_referencer:
                 not_delete_list.append(template.id)
             else:
-                pipeline_template_id_list.append(template.pipeline_template.template_id)
+                delete_pipeline_template_id_list.append(template.pipeline_template.template_id)
                 delete_list.append(template.id)
 
         # 删除该流程引用的子流程节点的执行方案
-        relation_queryset = TemplateRelationship.objects.filter(ancestor_template_id__in=pipeline_template_id_list)
+        relation_queryset = TemplateRelationship.objects.filter(
+            ancestor_template_id__in=delete_pipeline_template_id_list
+        )
         for relation in relation_queryset:
             relation.templatescheme_set.clear()
 

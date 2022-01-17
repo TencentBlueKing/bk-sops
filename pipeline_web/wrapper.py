@@ -30,7 +30,7 @@ from pipeline_web.core.abstract import NodeAttr
 from pipeline_web.core.models import NodeInTemplate
 from pipeline_web.parser.clean import PipelineWebTreeCleaner
 from pipeline_web.drawing_new.drawing import draw_pipeline
-from pipeline_web.preview_base import PipelineTemplateWebPreview
+from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 
 from gcloud.template_base.utils import replace_template_id
 
@@ -127,10 +127,10 @@ class PipelineTemplateWebWrapper(object):
                     # 根据执行方案创建子流程实例
                     template_nodes_set = set(subproc_data[PWE.activities].keys())
                     scheme_id_list = act.get("scheme_id_list", [])
-                    exclude_task_nodes_id = PipelineTemplateWebPreview.get_template_exclude_task_nodes_with_schemes(
+                    exclude_task_nodes_id = PipelineTemplateWebPreviewer.get_template_exclude_task_nodes_with_schemes(
                         template_nodes_set, scheme_id_list
                     )
-                    PipelineTemplateWebPreview.preview_pipeline_tree_exclude_task_nodes(
+                    PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes(
                         subproc_data, exclude_task_nodes_id
                     )
 
