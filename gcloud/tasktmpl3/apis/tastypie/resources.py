@@ -23,7 +23,7 @@ from tastypie.exceptions import BadRequest, InvalidFilterError
 
 from gcloud.iam_auth.utils import check_project_or_admin_view_action_for_user
 from gcloud.label.models import TemplateLabelRelation, Label
-from pipeline.models import TemplateScheme
+from pipeline.models import TemplateScheme, TemplateRelationship
 
 from iam import Subject, Action
 from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
@@ -241,6 +241,12 @@ class TaskTemplateResource(GCloudModelResource):
         can_delete, message = manager.can_delete(template)
         if not can_delete:
             raise BadRequest(message)
+
+        # 删除该流程引用的子流程节点的执行方案
+        pipeline_template_id = template.pipeline_template.template_id
+        relation_queryset = TemplateRelationship.objects.filter(ancestor_template_id=pipeline_template_id)
+        for relation in relation_queryset:
+            relation.templatescheme_set.clear()
 
         return super(TaskTemplateResource, self).obj_delete(bundle, **kwargs)
 
