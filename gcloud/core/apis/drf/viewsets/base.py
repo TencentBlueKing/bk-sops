@@ -91,7 +91,7 @@ class GcloudRetrieveViewSet(GcloudCommonMixin):
         return Response(data)
 
 
-class GcloudUpdateViewSetViewSet(mixins.UpdateModelMixin, GcloudRetrieveViewSet):
+class GcloudUpdateViewSet(mixins.UpdateModelMixin, GcloudRetrieveViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()

@@ -21,7 +21,7 @@ from ..serilaziers import ProjectSerializer
 from ..resource_helpers import ResourceHelper
 from ..permission import IamResourcesInfo, IamPermissions
 
-from .base import GcloudListViewSet, GcloudUpdateViewSetViewSet
+from .base import GcloudListViewSet, GcloudUpdateViewSet
 
 
 class ProjectPermissions(IamPermissions):
@@ -53,7 +53,7 @@ class ProjectFilter(QFilterSet):
         }
 
 
-class ProjectSetViewSet(GcloudUpdateViewSetViewSet, GcloudListViewSet):
+class ProjectSetViewSet(GcloudUpdateViewSet, GcloudListViewSet):
     queryset = Project.objects.all().order_by("-id")
 
     serializer_class = ProjectSerializer
