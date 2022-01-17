@@ -89,18 +89,38 @@
                         :disabled="formData.ignorable || formData.timeoutConfig.enable"
                         @change="onErrorHandlerChange($event, 'autoRetry')">
                         <span class="error-handle-icon"><span class="text">AR</span></span>
-                        {{ $t('自动重试') }}
                     </bk-checkbox>
-                    <span v-if="formData.autoRetry.enable" class="auto-retry-times">
-                        <bk-input
-                            v-model.number="formData.autoRetry.times"
-                            type="number"
-                            style="width: 60px; margin: 0 4px;"
-                            :max="10"
-                            :min="1"
-                            @change="updateData">
-                        </bk-input>
-                        {{ $t('次') }}
+                    <span class="auto-retry-times">
+                        {{ $t('在') }}
+                        <div class="number-input" style="margin: 0 4px;">
+                            <bk-input
+                                v-model.number="formData.autoRetry.interval"
+                                type="number"
+                                style="width: 68px;"
+                                :placeholder="' '"
+                                :disabled="!formData.autoRetry.enable"
+                                :max="10"
+                                :min="0"
+                                :precision="0"
+                                @change="updateData">
+                            </bk-input>
+                            <span class="unit">{{ $tc('秒', 0) }}</span>
+                        </div>
+                        {{ $t('后') }}{{ $t('，') }}{{ $t('自动重试') }}
+                        <div class="number-input" style=" margin-left: 4px;">
+                            <bk-input
+                                v-model.number="formData.autoRetry.times"
+                                type="number"
+                                style="width: 68px;"
+                                :placeholder="' '"
+                                :disabled="!formData.autoRetry.enable"
+                                :max="10"
+                                :min="1"
+                                :precision="0"
+                                @change="updateData">
+                            </bk-input>
+                            <span class="unit">{{ $t('次') }}</span>
+                        </div>
                     </span>
                 </div>
                 <p
@@ -128,15 +148,20 @@
                     </bk-switcher>
                     <template v-if="formData.timeoutConfig.enable">
                         {{ $t('超时') }}
-                        <bk-input
-                            v-model.number="formData.timeoutConfig.seconds"
-                            :min="10"
-                            :max="maxNodeExecuteTimeout"
-                            type="number"
-                            style="width: 75px; margin: 0 4px;"
-                            @change="updateData">
-                        </bk-input>
-                        {{ $t('秒后') }}{{ $t('，') }}{{ $t('则') }}
+                        <div class="number-input" style="margin: 0 4px;">
+                            <bk-input
+                                v-model.number="formData.timeoutConfig.seconds"
+                                type="number"
+                                style="width: 75px;"
+                                :placeholder="' '"
+                                :min="10"
+                                :max="maxNodeExecuteTimeout"
+                                :precision="0"
+                                @change="updateData">
+                            </bk-input>
+                            <span class="unit">{{ $tc('秒', 0) }}</span>
+                        </div>
+                        {{ $t('后') }}{{ $t('，') }}{{ $t('则') }}
                         <bk-select
                             style="width: 160px; margin-left: 4px;"
                             v-model="formData.timeoutConfig.action"
@@ -458,6 +483,7 @@
                 this.updateData()
             },
             onErrorHandlerChange (val, type) {
+                this.formData.autoRetry.interval = 0
                 this.formData.autoRetry.times = 1
                 if (type === 'autoRetry') {
                     this.formData.autoRetry.enable = val
@@ -465,6 +491,7 @@
                 } else {
                     if (type === 'retryable') {
                         this.formData.autoRetry.enable = false
+                        this.formData.autoRetry.interval = 0
                         this.formData.autoRetry.times = 1
                     }
                     if (type === 'ignorable' && val) {
@@ -548,7 +575,7 @@
         height: 32px;
         /deep/ .bk-form-checkbox {
             &:not(:last-of-type) {
-                margin-right: 20px;
+                margin-right: 8px;
             }
             &.is-disabled .bk-checkbox-text {
                 color: #c4c6cc;
@@ -556,7 +583,6 @@
         }
         .error-handle-icon {
             display: inline-block;
-            padding: 0 3px;
             line-height: 12px;
             color: #ffffff;
             background: #979ba5;
@@ -569,6 +595,9 @@
         }
         .auto-retry-times {
             display: inline-flex;
+            align-items: center;
+            margin-left: 4px;
+            height: 32px;
             font-size: 12px;
             color: #999999;
         }
@@ -584,6 +613,24 @@
         height: 32px;
         font-size: 12px;
         color: #63656e;
+    }
+    .number-input {
+        position: relative;
+        .unit {
+            position: absolute;
+            right: 8px;
+            top: 1px;
+            height: 30px;
+            line-height: 30px;
+            color: #999999;
+            background: transparent;
+        }
+    }
+    .auto-retry-times,
+    .timeout-setting-wrap {
+        /deep/ .bk-input-number .input-number-option {
+            display: none;
+        }
     }
     /deep/ .bk-form {
         .bk-label {

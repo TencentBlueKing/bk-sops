@@ -1248,7 +1248,7 @@ const en = {
     '需要前往配置平台新建业务': 'Need to go to the bk-cmdb creat new business',
     '创建新业务': 'Create new business',
     '删除连线': 'Delete Line',
-    '自动重试': 'Auto Retry',
+    '自动重试': 'auto retry',
     '次': 'Times',
     '子流程有更新，更新时若存在相同表单数据则获取原表单的值。': 'The sub-process has been updated. If the same form data exists during the update, the value of the original form will be obtained.',
     '更新子流程': 'Update subprocess',
@@ -1285,7 +1285,8 @@ const en = {
     '审批': 'Transition',
     '超时': 'Timeout',
     '超时控制': 'Timeout Config',
-    '秒后': 'seconds later',
+    '在': '',
+    '后': '',
     '则': '',
     '强制失败后跳过': 'skip after the force fails',
     '该功能仅对V2引擎生效': 'This function takes effect only for the V2 engine',
@@ -1295,7 +1296,8 @@ const en = {
     '删除失败！': 'Failed to delete!',
     '删除成功！': 'Successfully deleted!',
     '系统变量': 'SYS-VARS',
-    '业务变量': 'BUSINESS-VARS'
+    '业务变量': 'BUSINESS-VARS',
+    '等待': 'wait'
 }
 
 export default en
