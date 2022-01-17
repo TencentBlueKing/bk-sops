@@ -15,7 +15,6 @@ import json
 import logging
 
 from django.http import JsonResponse
-from django.http.request import HttpRequest
 
 from gcloud.common_template.models import CommonTemplate
 from gcloud.taskflow3.models import TaskFlowInstance, TaskTemplate
@@ -87,7 +86,7 @@ class Record(object):
 
     @property
     def operator(self):
-        if isinstance(self.args[0], HttpRequest):
+        if hasattr(self.args[0], "user"):
             return self.args[0].user.username
         if hasattr(self.operate_result, "request"):
             return getattr(self.operate_result, "request").user.username
