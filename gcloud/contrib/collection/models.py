@@ -20,8 +20,8 @@ class CollectionManager(models.Manager):
     def cascade_delete(self, category, instance_id):
         self.filter(category=category, instance_id=instance_id).delete()
 
-    def get_user_project_collection_template_ids(self, username, project_id):
-        user_collections = self.filter(category="flow", username=username).values()
+    def get_user_project_collection_category_ids(self, username, project_id, category):
+        user_collections = self.filter(category=category, username=username).values()
         collection_template_ids = []
         for user_collection in user_collections:
             extra_info = json.loads(user_collection["extra_info"])

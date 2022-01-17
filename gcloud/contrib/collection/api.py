@@ -31,21 +31,23 @@ class BatchCancelCollectionApiView(APIView):
             return Response({"result": False, "message": "No permission in the current project"})
 
         # 用户在该项目下的收藏id列表
-        collection_ids = Collection.objects.get_user_project_collection_template_ids(username,
-                                                                                     project_id)
+        collection_ids = Collection.objects.get_user_project_collection_category_ids(username, project_id, "flow")
 
         # 计算传来的收藏id与用户在该项目收藏id的差集
         batch_cancel_collection_ids = serializer_data["batch_cancel_collection_ids"]
-        difference_ids = list(set(batch_cancel_collection_ids).difference(set(collection_ids)))
+        difference_ids = list(set(batch_cancel_collection_ids) - set(collection_ids))
 
         if difference_ids:
             return Response({
                 "result": False,
+                "data": None,
                 "message": "Does not exist collection id: {}".format(difference_ids)
             })
 
         with transaction.atomic():
             Collection.objects.filter(id__in=batch_cancel_collection_ids).delete()
             return Response({
-                "result": True
+                "result": True,
+                "data": None,
+                "message": None
             })
