@@ -626,8 +626,16 @@ def monitor_report_config():
             target=env.BK_MONITOR_REPORT_TARGET,  # 上报唯一标志符
             url=env.BK_MONITOR_REPORT_URL,  # 上报地址
         )
-        MonitorReportStep.setup_reporter(reporter)
-        celery_app.steps["worker"].add(MonitorReportStep)
+
+        # 针对多进程worker需要做特殊梳理，在worker进程中进行reporter start
+        prefork_config_check = [("-P", "-P prefork"), ("--pool", "--pool=prefork")]
+        if any([config[0] in boot_cmd and config[1] not in boot_cmd for config in prefork_config_check]):
+            MonitorReportStep.setup_reporter(reporter)
+            celery_app.steps["worker"].add(MonitorReportStep)
+        else:
+            from celery.signals import worker_process_init  # noqa
+
+            worker_process_init.connect(reporter.start, weak=False)
 
     elif "gunicorn wsgi" or "node_timeout_process" in boot_cmd:
         from bk_monitor_report import MonitorReporter  # noqa
