@@ -10,15 +10,26 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from rest_framework import permissions
+from pipeline_web.label.models import Label
 
-from .project_config import *  # noqa
-from .resource_config import *  # noqa
-from .staff_group import *  # noqa
-from .business import *  # noqa
-from .project import *  # noqa
-from .component_model import *  # noqa
-from .user_project import *  # noqa
-from .common_use_project import *  # noqa
-from .label import *  # noqa
-from .package_source import *  # noqa
-from .sync_task import *  # noqa
+from .base import GcloudReadOnlyViewSet
+from ..filter import VarietyFilterSet, ALL
+from ..serilaziers import BusinessSerializer
+
+
+class LabelFilter(VarietyFilterSet):
+    class Meta:
+        model = Label
+        fields = {
+            "code": ALL,
+            "group__code": ALL,
+        }
+
+
+class LabelViewSet(GcloudReadOnlyViewSet):
+    queryset = Label.objects.all()
+
+    serializer_class = BusinessSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filterset_class = LabelFilter
