@@ -67,7 +67,7 @@
                 </template>
                 <no-data v-else></no-data>
             </template>
-            <div v-else class="subflow-list">
+            <div v-else class="subflow-list" v-bkloading="{ isLoading: sublistLoading || searchLoading, zIndex: 10 }">
                 <div class="list-table">
                     <div class="table-head">
                         <div class="th-item tpl-name">{{ $t('流程名称') }}</div>
@@ -137,7 +137,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="tpl-list" v-bkloading="{ isLoading: sublistLoading || searchLoading, zIndex: 10 }">
+                    <div class="tpl-list">
                         <template v-if="listInPanel.length > 0">
                             <div
                                 v-for="item in listInPanel"
