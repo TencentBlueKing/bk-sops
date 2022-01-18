@@ -270,6 +270,13 @@
                     {{ $t('修改时间') }}
                 </bk-button>
                 <bk-button
+                    v-if="nodeDetailConfig.component_code === 'bk_approve'"
+                    theme="primary"
+                    data-test-id="taskExcute_form_approvalBtn"
+                    @click="$emit('onApprovalClick', nodeDetailConfig.node_id)">
+                    {{ $t('审批') }}
+                </bk-button>
+                <bk-button
                     v-if="location.type !== 'subflow'"
                     data-test-id="taskExcute_form_mandatoryFailBtn"
                     @click="mandatoryFailure">
@@ -510,6 +517,10 @@
             state: { // 总任务状态
                 type: String,
                 default: ''
+            },
+            engineVer: {
+                type: Number,
+                required: true
             }
         },
         data () {
@@ -705,7 +716,7 @@
             ...mapActions('task/', [
                 'getNodeActInfo',
                 'getNodeActDetail',
-                'getNodePerformLog',
+                'getEngineVerNodeLog',
                 'getNodeExecutionRecordLog'
             ]),
             ...mapActions('atomForm/', [
@@ -734,7 +745,8 @@
                         this.logInfo = ''
                         return
                     }
-                    const { execution_info, outputs, inputs, log, history } = respData
+                    const { execution_info, outputs, log, history } = respData
+                    const inputs = respData.inputs || {}
                     const state = this.adminView ? execution_info.state : respData.state
                     this.isReadyStatus = ['RUNNING', 'SUSPENDED', 'FINISHED', 'FAILED'].indexOf(state) > -1
                     const version = this.nodeDetailConfig.version
@@ -779,7 +791,10 @@
                             this.$set(this.renderData, key, this.inputsInfo[key])
                         }
                         if (this.executeInfo.state && !['READY', 'CREATED'].includes(this.executeInfo.state)) {
-                            const query = Object.assign({}, this.nodeDetailConfig, { loop: this.theExecuteTime })
+                            const query = Object.assign({}, this.nodeDetailConfig, {
+                                history_id: respData.history_id,
+                                version: respData.version
+                            })
                             this.getPerformLog(query)
                         }
                         
@@ -894,7 +909,13 @@
             async getPerformLog (query) {
                 try {
                     this.isLogLoading = true
-                    const performLog = await this.getNodePerformLog(query)
+                    let performLog = {}
+                    // 不同引擎版本的任务调用不同的接口
+                    if (this.engineVer === 1) {
+                        performLog = await this.getNodeExecutionRecordLog(query)
+                    } else if (this.engineVer === 2) {
+                        performLog = await this.getEngineVerNodeLog(query)
+                    }
                     this.logInfo = performLog.data
                 } catch (e) {
                     console.log(e)
@@ -988,13 +1009,16 @@
                     const data = {
                         node_id: this.nodeDetailConfig.node_id,
                         history_id: id,
-                        instance_id: this.nodeDetailConfig.instance_id
+                        instance_id: this.nodeDetailConfig.instance_id,
+                        version: row.version
                     }
                     let resp = null
                     if (this.adminView) {
                         resp = await this.taskflowHistroyLog(data)
-                    } else {
+                    } else if (this.engineVer === 1) {
                         resp = await this.getNodeExecutionRecordLog(data)
+                    } else if (this.engineVer === 2) {
+                        resp = await this.getEngineVerNodeLog(data)
                     }
                     // 获取第三方插件的执行历史日志
                     const traceId = row.outputs.trace_id
@@ -1005,11 +1029,8 @@
                         this.$set(this.thirdHistoryLog, id, i18n.t('输出参数中不包含trace_id，无法查看第三方节点日志'))
                     }
                     if (resp.result) {
-                        if (this.adminView) {
-                            this.$set(this.historyLog, id, resp.data.log)
-                        } else {
-                            this.$set(this.historyLog, id, resp.data)
-                        }
+                        const respData = this.adminView ? resp.data.log : resp.data
+                        this.$set(this.historyLog, id, respData)
                     }
                 } catch (e) {
                     console.log(e)

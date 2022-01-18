@@ -92,6 +92,9 @@ class AppMakerResource(GCloudModelResource):
         data = super(AppMakerResource, self).alter_list_data_to_serialize(request, data)
         for bundle in data["objects"]:
             bundle.data["desktop_url"] = "{}?app={}".format(env.BK_PAAS_DESKTOP_HOST, bundle.data["code"])
+            # link字段的域名需要根据当前环境的域名进行调整
+            link_path = bundle.data["link"][bundle.data["link"].rfind("appmaker") :]
+            bundle.data["link"] = f'{settings.APP_HOST.strip("/")}/{link_path}'
 
         return data
 

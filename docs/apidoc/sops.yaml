@@ -367,5 +367,5 @@
   method: POST
   api_type: operate
   comp_codename: generic.v2.sops.sops_component
-  dest_path: /o/bk_sops/apigw/create_and_start_task/
+  dest_path: /o/bk_sops/apigw/create_and_start_task/{template_id}/{bk_biz_id}/
   dest_http_method: POST

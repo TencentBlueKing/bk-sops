@@ -31,7 +31,7 @@
                 {{scheme.attrs.name}}
             </label>
             <div class="rf-tag-form rf-has-hook">
-                <el-input :disabled="true" :value="String(value)"></el-input>
+                <bk-input :disabled="true" :value="String(value)"></bk-input>
             </div>
         </div>
         <!-- 分组表单元素 -->
@@ -50,16 +50,24 @@
         </component>
         <!-- 变量勾选checkbox -->
         <div class="rf-tag-hook" v-if="showHook">
-            <bk-checkbox
+            <i
+                :class="['common-icon-variable-cite hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
                 v-bk-tooltips="{
                     content: hook ? i18n.hooked : i18n.cancelHook,
-                    placements: ['left'],
-                    customClass: 'offset-left-tooltip'
+                    placement: 'bottom',
+                    zIndex: 3000
                 }"
-                :value="hook"
-                :disabled="!option.formEdit"
-                @change="onHookForm">
-            </bk-checkbox>
+                @click="onHookForm(!hook)">
+            </i>
+            <i
+                :class="['common-icon-render-skip render-skip-icon', { actived: !render, disabled: !option.formEdit || hook }]"
+                v-bk-tooltips="{
+                    content: !render ? $t('取消渲染豁免') : $t('渲染豁免'),
+                    placement: 'bottom',
+                    zIndex: 3000
+                }"
+                @click="onRenderChange">
+            </i>
         </div>
     </div>
 </template>
@@ -90,9 +98,15 @@
                     return {}
                 }
             },
+            // 表单是否勾选为全局变量
             hook: {
                 type: Boolean,
                 default: false
+            },
+            // 表单是否配置渲染豁免
+            render: {
+                type: Boolean,
+                default: true
             },
             constants: {
                 type: Object,
@@ -187,7 +201,16 @@
                 this.$emit('change', fieldArr, val)
             },
             onHookForm (val) {
+                if (!this.option.formEdit || !this.render) {
+                    return
+                }
                 this.$emit('onHook', this.scheme.tag_code, val)
+            },
+            onRenderChange () {
+                if (!this.option.formEdit || this.hook) {
+                    return
+                }
+                this.$emit('onRenderChange', this.scheme.tag_code, !this.render)
             },
             get_parent () {
                 return this.$parent
@@ -261,16 +284,37 @@
         background: #ffeeec;
     }
     &.rf-has-hook .rf-tag-form {
-        margin-right: 30px;
+        margin-right: 64px;
     }
     .rf-group-name {
         display: block
     }
     .rf-tag-hook {
         position: absolute;
-        top: 6px;
+        top: 0;
         right: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 8px;
+        width: 56px;
+        height: 32px;
+        background: #f0f1f5;
+        border-radius: 2px;
         z-index: 1;
+        .hook-icon,
+        .render-skip-icon {
+            font-size: 14px;
+            color: #979ba5;
+            cursor: pointer;
+            &.disabled {
+                color: #c4c6cc;
+                cursor: not-allowed;
+            }
+            &.actived {
+                color: #1768ef;
+            }
+        }
     }
 }
 </style>

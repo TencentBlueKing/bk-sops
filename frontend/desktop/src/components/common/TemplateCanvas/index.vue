@@ -89,12 +89,13 @@
                     @onNodeMousedown="onNodeMousedown"
                     @onNodeCheckClick="onNodeCheckClick"
                     @onNodeRemove="onNodeRemove"
-                    @onRetryClick="onRetryClick"
-                    @onForceFail="onForceFail"
-                    @onSkipClick="onSkipClick"
-                    @onModifyTimeClick="onModifyTimeClick"
-                    @onGatewaySelectionClick="onGatewaySelectionClick"
-                    @onTaskNodeResumeClick="onTaskNodeResumeClick"
+                    @onRetryClick="$emit('onRetryClick', $event)"
+                    @onForceFail="$emit('onForceFail', $event)"
+                    @onSkipClick="$emit('onSkipClick', $event)"
+                    @onModifyTimeClick="$emit('onModifyTimeClick', $event)"
+                    @onGatewaySelectionClick="$emit('onGatewaySelectionClick', $event)"
+                    @onTaskNodeResumeClick="$emit('onTaskNodeResumeClick', $event)"
+                    @onApprovalClick="$emit('onApprovalClick', $event)"
                     @addNodesToDragSelection="addNodeToSelectedList"
                     @onSubflowPauseResumeClick="onSubflowPauseResumeClick"
                     @getAtomList="getAtomList">
@@ -104,6 +105,7 @@
         <ShortcutPanel
             v-if="showShortcutPanel"
             :node="activeNode"
+            :line="activeCon"
             :position="shortcutPanelPosition"
             :node-operate="shortcutPanelNodeOperate"
             :delete-line="shortcutPanelDeleteLine"
@@ -1093,24 +1095,6 @@
                     })
                 }
             },
-            onRetryClick (id) {
-                this.$emit('onRetryClick', id)
-            },
-            onSkipClick (id) {
-                this.$emit('onSkipClick', id)
-            },
-            onForceFail (id) {
-                this.$emit('onForceFail', id)
-            },
-            onModifyTimeClick (id) {
-                this.$emit('onModifyTimeClick', id)
-            },
-            onGatewaySelectionClick (id) {
-                this.$emit('onGatewaySelectionClick', id)
-            },
-            onTaskNodeResumeClick (id) {
-                this.$emit('onTaskNodeResumeClick', id)
-            },
             onSubflowPauseResumeClick (id, value) {
                 this.$emit('onSubflowPauseResumeClick', id, value)
             },
@@ -1619,11 +1603,18 @@
             // 设置连线label可拖动
             setLabelDraggable (line, labelData) {
                 const self = this
+                let percent
+                const intialPos = { left: 0, top: 0 }
                 const instance = this.$refs.jsFlow.instance
                 const connection = this.$refs.jsFlow.instance.getConnections({ source: line.source.id, target: line.target.id })[0]
                 const label = connection.getOverlay(`condition${line.id}`)
                 const elLabel = label.getElement()
                 instance.draggable(elLabel, {
+                    start () {
+                        const rect = elLabel.getBoundingClientRect()
+                        intialPos.x = rect.x
+                        intialPos.y = rect.y
+                    },
                     drag () {
                         const pos = instance.getUIPosition(arguments, instance.getZoom())
                         const o1 = instance.getOffset(connection.endpoints[0].canvas)
@@ -1636,9 +1627,15 @@
                         }
                         const closest = self.getLabelPosition(connection, pos.left - o.left, pos.top - o.top)
                         label.loc = closest.totalPercent
+                        percent = closest.totalPercent
                         if (!instance.isSuspendDrawing()) {
                             label.component.repaint()
-                            const data = Object.assign({}, labelData, { loc: closest.totalPercent })
+                        }
+                    },
+                    stop () {
+                        const rect = elLabel.getBoundingClientRect()
+                        if (Math.abs(rect.x - intialPos.x) > 16 || Math.abs(rect.y - intialPos.y) > 16) {
+                            const data = Object.assign({}, labelData, { loc: percent })
                             self.$emit('updateCondition', data)
                             self.labelDrag = true
                         }

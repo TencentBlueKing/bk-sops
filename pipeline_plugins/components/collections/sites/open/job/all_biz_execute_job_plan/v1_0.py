@@ -63,7 +63,10 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
                 schema=StringItemSchema(description=_("作业模板 ID")),
             ),
             self.InputItem(
-                name=_("执行方案 ID"), key="job_plan_id", type="string", schema=StringItemSchema(description=_("执行方案 ID")),
+                name=_("执行方案 ID"),
+                key="job_plan_id",
+                type="string",
+                schema=StringItemSchema(description=_("执行方案 ID")),
             ),
             self.InputItem(
                 name=_("全局变量"),
@@ -87,6 +90,12 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
                 type="boolean",
                 schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
             ),
+            self.InputItem(
+                name=_("IP Tag 分组"),
+                key="is_tagged_ip",
+                type="boolean",
+                schema=BooleanItemSchema(description=_("是否对 IP 进行 Tag 分组")),
+            ),
         ]
 
     def outputs_format(self):
@@ -103,6 +112,12 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
                     },
                 ),
             ),
+            self.OutputItem(
+                name=_("JOB执行IP分组"),
+                key="job_tagged_ip_dict",
+                type="string",
+                schema=StringItemSchema(description=_("根据JOB步骤执行标签获取的IP分组")),
+            ),
         ]
 
     def execute(self, data, parent_data):
@@ -114,7 +129,9 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
 
         config_data = data.get_one_of_inputs("all_biz_job_config")
         biz_cc_id = config_data.get("all_biz_cc_id")
+        is_tagged_ip = config_data.get("is_tagged_ip", False)
         data.inputs.biz_cc_id = biz_cc_id
+        data.inputs.is_tagged_ip = is_tagged_ip
         original_global_var = deepcopy(config_data.get("job_global_var")) or []
         global_var_list = []
 

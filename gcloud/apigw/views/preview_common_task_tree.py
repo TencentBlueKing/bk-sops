@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
 import ujson as json
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
@@ -21,11 +20,12 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.constants import COMMON
-from gcloud.taskflow3.models import preview_template_tree
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CommonFlowViewInterceptor
 from packages.bkoauth.decorators import apigw_required
+
+from pipeline_web.preview import preview_template_tree
 
 
 @login_exempt

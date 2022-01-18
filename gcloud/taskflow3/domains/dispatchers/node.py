@@ -589,7 +589,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
             }
         )
         # index 非 -1 表示当前 loop 的重试记录
-        detail["histories"] = histories[1:]
+        detail["histories"] = histories[:-1]
 
     def get_node_detail_v1(
         self,
@@ -624,12 +624,13 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
             # 默认只请求最后一次循环结果
             if loop is None or int(loop) >= detail["loop"]:
                 loop = detail["loop"]
+                detail["history_id"] = -1
                 detail["histories"] = pipeline_api.get_activity_histories(node_id=self.node_id, loop=loop)
             # 如果用户传了 loop 参数，并且 loop 小于当前节点已循环次数 detail['loop']，则从历史数据获取结果
             else:
-                self._assemble_histroy_detail(
-                    detail=detail, histories=pipeline_api.get_activity_histories(node_id=self.node_id, loop=loop)
-                )
+                histories = pipeline_api.get_activity_histories(node_id=self.node_id, loop=loop)
+                self._assemble_histroy_detail(detail=detail, histories=histories)
+                detail["history_id"] = histories[-1]["history_id"]
 
             for hist in detail["histories"]:
                 # 重试记录必然是因为失败才重试
@@ -679,6 +680,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                 for hist in hist_result.data:
                     hist["ex_data"] = hist.get("outputs", {}).get("ex_data", "")
                 detail["histories"] = hist_result.data
+                detail["history_id"] = -1
             # 如果用户传了 loop 参数，并且 loop 小于当前节点已循环次数，则从历史数据获取结果
             else:
                 hist_result = bamboo_engine_api.get_node_histories(runtime=runtime, node_id=self.node_id, loop=loop)
@@ -691,6 +693,8 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                         "code": err_code.UNKNOWN_ERROR.code,
                     }
                 self._assemble_histroy_detail(detail=detail, histories=hist_result.data)
+                detail["history_id"] = hist_result.data[-1]["id"]
+                detail["version"] = hist_result.data[-1]["version"]
 
             for hist in detail["histories"]:
                 # 重试记录必然是因为失败才重试

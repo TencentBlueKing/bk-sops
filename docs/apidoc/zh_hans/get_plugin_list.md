@@ -1,3 +1,11 @@
+### 请求地址
+
+/v2/sops/get_plugin_list/
+
+### 请求方法
+
+GET
+
 ### 功能描述
 
 获取某个业务下所有的可用插件
@@ -26,7 +34,9 @@
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
-    "bk_biz_id": "2"
+    "bk_username": "xxx",
+    "bk_biz_id": "2",
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -67,7 +77,9 @@
             "version": "1.0.0",
             "form": "/static/components/atoms/job/job_push_local_files.js"
         }
-    ]
+    ],
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -77,6 +89,8 @@
 |  result      |    bool    |      true/false 操作是否成功     |
 |  data        |    dict      |      result=true 时成功数据，详细信息请见下面说明     |
 |  message        |    string      |      result=false 时错误信息     |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 ##### data[item]
 |   名称   |  类型  |           说明             |

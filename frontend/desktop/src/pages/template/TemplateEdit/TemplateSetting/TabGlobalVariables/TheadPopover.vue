@@ -72,10 +72,9 @@
                 info.checked = e
             },
             handleConfirm () {
-                const key = this.type === 'type' ? 'code' : 'type'
                 let checkedList = this.contentList.reduce((acc, cur) => {
                     if (cur.checked) {
-                        acc.push(cur[`${key}`])
+                        acc.push(cur.code)
                     }
                     return acc
                 }, [])

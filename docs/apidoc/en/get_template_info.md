@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/get_template_info/
+
+### Request Method
+
+GET
+
 ### Functional description
 
 Query individual flow template details of the business
@@ -29,9 +37,11 @@ Query individual flow template details of the business
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "1",
     "template_id": "30",
-    "template_source": "business"
+    "template_source": "business",
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -184,6 +194,8 @@ Query individual flow template details of the business
         "id": 30,
         "editor": "admin"
     },
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -194,6 +206,8 @@ Query individual flow template details of the business
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    dict    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |
 
 #### data
 
