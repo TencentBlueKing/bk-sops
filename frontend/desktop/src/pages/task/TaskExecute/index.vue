@@ -28,6 +28,7 @@
                 :instance_id="instance_id"
                 :router-type="routerType"
                 :instance-name="instanceName"
+                :engine-ver="engineVer"
                 :instance-flow="instanceFlow"
                 :template_id="templateId"
                 :template-source="templateSource"
@@ -61,6 +62,7 @@
                 showParamsFill: false, // 显示参数填写页面
                 primaryTitle: '', // 浏览器tab页初始title
                 instanceName: '',
+                engineVer: null,
                 instanceFlow: '',
                 templateSource: '',
                 instanceActions: [],
@@ -78,13 +80,14 @@
                 try {
                     this.taskDataLoading = true
                     const instanceData = await this.getTaskInstanceData(this.instance_id)
-                    const { flow_type, current_flow, pipeline_tree, name, template_id, template_source, auth_actions } = instanceData
+                    const { flow_type, current_flow, pipeline_tree, name, template_id, template_source, auth_actions, engine_ver } = instanceData
                     if (this.isFunctional && current_flow === 'func_claim') {
                         this.showParamsFill = true
                     } else {
                         this.primaryTitle = document.title
                         document.title = name
                     }
+                    this.engineVer = engine_ver
                     this.instanceFlow = pipeline_tree
                     this.instanceName = name
                     this.templateId = template_id

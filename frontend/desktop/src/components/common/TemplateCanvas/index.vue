@@ -62,6 +62,7 @@
                     :editable="editable"
                     :zoom-ratio="zoomRatio"
                     :is-show-hot-key="isShowHotKey"
+                    :is-perspective="isPerspective"
                     @onShowMap="onToggleMapShow"
                     @onZoomIn="onZoomIn"
                     @onZoomOut="onZoomOut"
@@ -70,6 +71,7 @@
                     @onFormatPosition="onFormatPosition"
                     @onToggleAllNode="onToggleAllNode"
                     @onToggleHotKeyInfo="onToggleHotKeyInfo"
+                    @onTogglePerspective="onTogglePerspective"
                     @onDownloadCanvas="onDownloadCanvas">
                 </tool-panel>
             </template>
@@ -79,17 +81,21 @@
                     :is-node-check-open="isNodeCheckOpen"
                     :editable="editable"
                     :has-admin-perm="hasAdminPerm"
+                    :node-variable-info="nodeVariableInfo"
+                    :activities="canvasData.activities"
+                    :is-perspective="isPerspective"
                     @onNodeDblclick="onNodeDblclick"
                     @onNodeClick="onNodeClick"
                     @onNodeMousedown="onNodeMousedown"
                     @onNodeCheckClick="onNodeCheckClick"
                     @onNodeRemove="onNodeRemove"
-                    @onRetryClick="onRetryClick"
-                    @onForceFail="onForceFail"
-                    @onSkipClick="onSkipClick"
-                    @onModifyTimeClick="onModifyTimeClick"
-                    @onGatewaySelectionClick="onGatewaySelectionClick"
-                    @onTaskNodeResumeClick="onTaskNodeResumeClick"
+                    @onRetryClick="$emit('onRetryClick', $event)"
+                    @onForceFail="$emit('onForceFail', $event)"
+                    @onSkipClick="$emit('onSkipClick', $event)"
+                    @onModifyTimeClick="$emit('onModifyTimeClick', $event)"
+                    @onGatewaySelectionClick="$emit('onGatewaySelectionClick', $event)"
+                    @onTaskNodeResumeClick="$emit('onTaskNodeResumeClick', $event)"
+                    @onApprovalClick="$emit('onApprovalClick', $event)"
                     @addNodesToDragSelection="addNodeToSelectedList"
                     @onSubflowPauseResumeClick="onSubflowPauseResumeClick"
                     @getAtomList="getAtomList">
@@ -99,6 +105,7 @@
         <ShortcutPanel
             v-if="showShortcutPanel"
             :node="activeNode"
+            :line="activeCon"
             :position="shortcutPanelPosition"
             :node-operate="shortcutPanelNodeOperate"
             :delete-line="shortcutPanelDeleteLine"
@@ -118,11 +125,14 @@
             @onCloseHotkeyInfo="onCloseHotkeyInfo">
         </help-info>
         <div class="small-map" ref="smallMap" v-if="showSmallMap">
-            <img :src="smallMapImg" alt="">
-            <div
-                ref="selectBox"
-                class="select-box"
-                @mousedown.prevent="onMouseDownSelect">
+            <div class="small-map-body" v-bkloading="{ isLoading: smallMapLoading }">
+                <img :src="smallMapImg" alt="">
+                <div
+                    ref="selectBox"
+                    class="select-box"
+                    v-show="!smallMapLoading"
+                    @mousedown.prevent="onMouseDownSelect">
+                </div>
             </div>
         </div>
     </div>
@@ -219,6 +229,10 @@
             pluginLoading: {
                 type: Boolean,
                 default: false
+            },
+            nodeVariableInfo: {
+                type: Object,
+                default: () => ({})
             }
         },
         data () {
@@ -241,6 +255,7 @@
                 smallMapHeight: 216, // 216 小地图高度
                 smallMapImg: '',
                 showSmallMap: false,
+                smallMapLoading: true, // 小地图loading
                 isMouseEnterX: '', // 鼠标在选择框中按下的offsetX值
                 isMouseEnterY: '', // 鼠标在选择框中按下的offsetY值
                 windowWidth: document.documentElement.offsetWidth - 60, // 60 header的宽度
@@ -253,6 +268,7 @@
                 isDisableEndPoint: false,
                 isSelectionOpen: false,
                 isShowHotKey: false,
+                isPerspective: false,
                 isCanCreateline: false,
                 selectedNodes: [],
                 copyNodes: [],
@@ -342,14 +358,19 @@
             },
             onToggleMapShow () {
                 this.showSmallMap = !this.showSmallMap
-                if (this.showSmallMap) {
-                    this.onGenerateCanvas().then(res => {
-                        this.smallMapImg = res
-                    })
-                    this.$nextTick(() => {
-                        this.getInitialValue()
-                    })
-                }
+                this.smallMapLoading = true
+                this.smallMapImg = ''
+                setTimeout(() => {
+                    if (this.showSmallMap) {
+                        this.onGenerateCanvas().then(res => {
+                            this.smallMapImg = res
+                            this.smallMapLoading = false
+                        })
+                        this.$nextTick(() => {
+                            this.getInitialValue()
+                        })
+                    }
+                }, 0)
             },
             onZoomIn (pos) {
                 if (pos) {
@@ -1074,30 +1095,18 @@
                     })
                 }
             },
-            onRetryClick (id) {
-                this.$emit('onRetryClick', id)
-            },
-            onSkipClick (id) {
-                this.$emit('onSkipClick', id)
-            },
-            onForceFail (id) {
-                this.$emit('onForceFail', id)
-            },
-            onModifyTimeClick (id) {
-                this.$emit('onModifyTimeClick', id)
-            },
-            onGatewaySelectionClick (id) {
-                this.$emit('onGatewaySelectionClick', id)
-            },
-            onTaskNodeResumeClick (id) {
-                this.$emit('onTaskNodeResumeClick', id)
-            },
             onSubflowPauseResumeClick (id, value) {
                 this.$emit('onSubflowPauseResumeClick', id, value)
             },
             onToggleHotKeyInfo (val) {
                 this.showSmallMap = false
                 this.isShowHotKey = !this.isShowHotKey
+            },
+            onTogglePerspective () {
+                this.showSmallMap = false
+                this.isShowHotKey = false
+                this.isPerspective = !this.isPerspective
+                this.$emit('onTogglePerspective', this.isPerspective)
             },
             onCloseHotkeyInfo () {
                 this.isShowHotKey = false
@@ -1594,11 +1603,18 @@
             // 设置连线label可拖动
             setLabelDraggable (line, labelData) {
                 const self = this
+                let percent
+                const intialPos = { left: 0, top: 0 }
                 const instance = this.$refs.jsFlow.instance
                 const connection = this.$refs.jsFlow.instance.getConnections({ source: line.source.id, target: line.target.id })[0]
                 const label = connection.getOverlay(`condition${line.id}`)
                 const elLabel = label.getElement()
                 instance.draggable(elLabel, {
+                    start () {
+                        const rect = elLabel.getBoundingClientRect()
+                        intialPos.x = rect.x
+                        intialPos.y = rect.y
+                    },
                     drag () {
                         const pos = instance.getUIPosition(arguments, instance.getZoom())
                         const o1 = instance.getOffset(connection.endpoints[0].canvas)
@@ -1611,9 +1627,15 @@
                         }
                         const closest = self.getLabelPosition(connection, pos.left - o.left, pos.top - o.top)
                         label.loc = closest.totalPercent
+                        percent = closest.totalPercent
                         if (!instance.isSuspendDrawing()) {
                             label.component.repaint()
-                            const data = Object.assign({}, labelData, { loc: closest.totalPercent })
+                        }
+                    },
+                    stop () {
+                        const rect = elLabel.getBoundingClientRect()
+                        if (Math.abs(rect.x - intialPos.x) > 16 || Math.abs(rect.y - intialPos.y) > 16) {
+                            const data = Object.assign({}, labelData, { loc: percent })
                             self.$emit('updateCondition', data)
                             self.labelDrag = true
                         }
@@ -1799,6 +1821,9 @@
         background-color: #fafbfd;
         transition: all 0.5s ease;
         box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
+        .small-map-body {
+            height: 100%;
+        }
         img {
             height: 100%;
             width: 100%;

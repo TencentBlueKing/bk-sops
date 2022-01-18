@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/create_task/
+
+### Request Method
+
+POST
+
 ### Functional description
 
 Create a task with a flow template
@@ -43,14 +51,21 @@ constant value, the type of value should be same with data from API[get_template
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "name": "tasktest",
+    "bk_biz_id":"1",
+    "template_id":"1",
+    "template_source":"business",
     "flow_type": "common",
     "constants": {
         "${content}": "echo 1",
         "${params}": "",
         "${script_timeout}": 20
     },
-    "simplify_vars": ["${k1}", "${k2}", "${ip}", "${force_check}"]
+    "simplify_vars": ["${k1}", "${k2}", "${ip}", "${force_check}"],
+    "execute_task_nodes_id": [1, 2, 3],
+    "exclude_task_nodes_id": [4, 5, 6],
+    "scope": "cmdb_biz",
 }
 ```
 
@@ -176,7 +191,25 @@ constant value, the type of value should be same with data from API[get_template
                 "name": ""
             },
             "id": "node7ef6970d06ad3bc092594cb5ec5f",
-            "constants": {},
+            "constants": {
+                "${bk_timing}": {
+                    "source_tag": "sleep_timer.bk_timing",
+                    "source_info": {
+                        "node76393dcfedcf73dbc726f1c4786d": [
+                            "bk_timing"
+                        ]
+                    },
+                    "name": "定时时间",
+                    "index": 0,
+                    "custom_type": "",
+                    "value": "100",
+                    "show_type": "show",
+                    "source_type": "component_inputs",
+                    "key": "${bk_timing}",
+                    "validation": "",
+                    "desc": ""
+                }
+            },
             "location": [
                 {
                     "stage_name": "stage1",
@@ -208,7 +241,9 @@ constant value, the type of value should be same with data from API[get_template
                 }
             ]
         }
-    }
+    },
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -219,6 +254,8 @@ constant value, the type of value should be same with data from API[get_template
 |  result      |    bool    |   true/false, indicate success or failure     |
 |  data        |    dict  |   data returned when result is true, details are described below        |
 |  message     |    string  |   error message returned when result is false |
+|  request_id     |    string  | esb request id             |
+|  trace_id     |    string  | open telemetry trace_id        |
 
 ####  data
 

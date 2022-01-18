@@ -424,7 +424,9 @@
                         wb.SheetNames.forEach((sheetName) => {
                             result.push({
                                 sheetName: sheetName,
-                                sheet: XLSX.utils.sheet_to_json(wb.Sheets[sheetName])
+                                sheet: XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {
+                                    defval: ''
+                                })
                             })
                         })
                         resolve(result)

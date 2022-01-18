@@ -48,6 +48,7 @@
                     @onModifyTimeClick="onModifyTimeClick"
                     @onGatewaySelectionClick="onGatewaySelectionClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
+                    @onApprovalClick="onApprovalClick"
                     @onSubflowPauseResumeClick="onSubflowPauseResumeClick">
                 </TemplateCanvas>
             </div>
@@ -68,6 +69,7 @@
                     v-if="nodeInfoType === 'executeInfo' || nodeInfoType === 'viewNodeDetails'"
                     :state="state"
                     :node-data="nodeData"
+                    :engine-ver="engineVer"
                     :selected-flow-path="selectedFlowPath"
                     :admin-view="adminView"
                     :pipeline-data="pipelineData"
@@ -78,6 +80,7 @@
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
                     @onModifyTimeClick="onModifyTimeClick"
                     @onForceFail="onForceFailClick"
+                    @onApprovalClick="onApprovalClick"
                     @onClickTreeNode="onClickTreeNode">
                 </ExecuteInfo>
                 <RetryNode
@@ -176,6 +179,34 @@
             @close="onCloseConfigPanel">
         </condition-edit>
         <bk-dialog
+            width="600"
+            :theme="'primary'"
+            :mask-close="false"
+            :auto-close="false"
+            header-position="left"
+            :title="$t('审批')"
+            :loading="approval.pending"
+            :value="approval.dialogShow"
+            @confirm="onApprovalConfirm"
+            @cancel="onApprovalCancel">
+            <bk-form
+                ref="approvalForm"
+                class="approval-dialog-content"
+                form-type="vertical"
+                :model="approval"
+                :rules="approval.rules">
+                <bk-form-item label="审批意见" :required="true">
+                    <bk-radio-group v-model="approval.is_passed" @change="$refs.approvalForm.clearError()">
+                        <bk-radio :value="true">通过</bk-radio>
+                        <bk-radio :value="false">拒绝</bk-radio>
+                    </bk-radio-group>
+                </bk-form-item>
+                <bk-form-item label="备注" property="message" :required="!approval.is_passed">
+                    <bk-input v-model="approval.message" type="textarea" :row="4"></bk-input>
+                </bk-form-item>
+            </bk-form>
+        </bk-dialog>
+        <bk-dialog
             width="400"
             ext-cls="task-operation-dialog"
             :theme="'primary'"
@@ -269,6 +300,7 @@
         props: {
             project_id: [Number, String],
             instance_id: [Number, String],
+            engineVer: Number,
             instanceFlow: String,
             instanceName: String,
             template_id: [Number, String],
@@ -277,6 +309,7 @@
             routerType: String
         },
         data () {
+            const $this = this
             const pipelineData = JSON.parse(this.instanceFlow)
             const path = []
             path.push({
@@ -296,7 +329,8 @@
                 taskId: this.instance_id,
                 isNodeInfoPanelShow: false,
                 nodeInfoType: '',
-                state: '',
+                state: '', // 当前流程状态，画布切换时会更新
+                rootState: '', // 根流程状态
                 selectedNodeId: '',
                 selectedFlowPath: path, // 选择面包屑路径
                 cacheStatus: undefined, // 总任务缓存状态信息；只有总任务完成、撤销时才存在
@@ -335,7 +369,24 @@
                 conditionData: {},
                 isShowDialog: false,
                 isSaveLoading: false,
-                tabIconState: ''
+                tabIconState: '',
+                approval: { // 节点审批
+                    id: '',
+                    dialogShow: false,
+                    pending: false,
+                    is_passed: true, // 是否通过
+                    message: '', // 备注信息
+                    rules: {
+                        message: [{
+                            validator (val) {
+                                console.log($this.approval.is_passed, val)
+                                return $this.approval.is_passed || val !== ''
+                            },
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        }]
+                    }
+                }
             }
         },
         computed: {
@@ -451,7 +502,8 @@
                 'skipCondParallelGateWay',
                 'pauseNodeResume',
                 'getNodeActInfo',
-                'forceFail'
+                'forceFail',
+                'itsmTransition'
             ]),
             ...mapActions('atomForm/', [
                 'loadSingleAtomList'
@@ -481,7 +533,7 @@
                             project_id: this.project_id,
                             cancelToken: source.token
                         }
-                        if (this.selectedFlowPath.length > 1 && this.selectedFlowPath[1].type !== 'ServiceActivity') {
+                        if (!this.isTopTask) {
                             data.instance_id = this.instance_id
                             data.subprocess_id = this.taskId
                         }
@@ -492,7 +544,9 @@
                         this.state = instanceStatus.data.state
                         this.instanceStatus = instanceStatus.data
                         this.pollErrorTimes = 0
-
+                        if (this.isTopTask) {
+                            this.rootState = this.state
+                        }
                         if (
                             !this.cacheStatus
                             && ['FINISHED', 'REVOKED'].includes(this.state)
@@ -500,12 +554,13 @@
                         ) { // save cacheStatus
                             this.cacheStatus = instanceStatus.data
                         }
-                        if (this.state === 'RUNNING') {
+                        if (this.state === 'RUNNING' || (!this.isTopTask && this.state === 'FINISHED' && !['FINISHED', 'REVOKED', 'FAILED'].includes(this.rootState))) {
                             this.setTaskStatusTimer()
                             this.getRunningNode(instanceStatus.data.children)
                         }
                         this.updateNodeInfo()
                     } else {
+                        // 查询流程状态接口返回失败后再请求一次
                         this.pollErrorTimes += 1
                         if (this.pollErrorTimes > 2) {
                             this.cancelTaskStatusTimer()
@@ -938,6 +993,44 @@
             onTaskNodeResumeCancel () {
                 this.isNodeResumeDialogShow = false
                 this.nodeResumeId = undefined
+            },
+            onApprovalClick (id) {
+                this.approval.id = id
+                this.approval.dialogShow = true
+            },
+            onApprovalConfirm () {
+                if (this.approval.pending) {
+                    return
+                }
+
+                this.$refs.approvalForm.validate().then(async () => {
+                    try {
+                        this.approval.pending = true
+                        const { id, is_passed, message } = this.approval
+                        const params = {
+                            is_passed,
+                            message,
+                            project_id: this.project_id,
+                            task_id: this.instance_id,
+                            node_id: id
+                        }
+                        await this.itsmTransition(params)
+                        this.approval.id = ''
+                        this.approval.is_passed = true
+                        this.approval.message = ''
+                        this.approval.dialogShow = false
+                    } catch (e) {
+                        console.error(e)
+                    } finally {
+                        this.approval.pending = false
+                    }
+                })
+            },
+            onApprovalCancel () {
+                this.approval.id = ''
+                this.approval.is_passed = true
+                this.approval.message = ''
+                this.approval.dialogShow = false
             },
             onCloseConfigPanel () {
                 this.isShowConditionEdit = false
@@ -1498,7 +1591,11 @@
         margin-right: 6px;
     }
 }
-
+.approval-dialog-content {
+    /deep/ .bk-form-radio {
+        margin-right: 10px;
+    }
+}
 </style>
 <style lang="scss">
 @import '@/scss/config.scss';

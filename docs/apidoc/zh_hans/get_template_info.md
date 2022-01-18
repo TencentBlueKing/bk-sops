@@ -1,3 +1,11 @@
+### 请求地址
+
+/v2/sops/get_template_info/
+
+### 请求方法
+
+GET
+
 ### 功能描述
 
 查询业务下的单个模板详情
@@ -29,9 +37,11 @@
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "1",
     "template_id": "30",
-    "template_source": "business"
+    "template_source": "business",
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -184,6 +194,8 @@
         "id": 30,
         "editor": "admin"
     },
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -194,6 +206,10 @@
 | result    | bool     | true/false 查询成功与否 |
 | data      | dict     | result=true 时模板详情，详细信息见下面说明 |
 | message   | string   | result=false 时错误信息 |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
+
+
 
 #### data
 

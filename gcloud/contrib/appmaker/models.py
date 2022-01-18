@@ -145,7 +145,13 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
 
             app_code = app_maker_obj.code
             creator = app_maker_obj.creator
-            link = app_maker_obj.link
+            # app_params["link_prefix"]: current_host.com/appmaker, link_prefix: current_host.com/
+            link_prefix = app_params["link_prefix"][: app_params["link_prefix"].rfind("appmaker")]
+            # app_maker_obj.link: old_host.com/appmaker/xxx, link_suffix: appmaker/xxx
+            link_suffix = app_maker_obj.link[app_maker_obj.link.rfind("appmaker") :]
+            # 只保留app_maker_obj.link的后缀，使用环境当前域名作为前缀
+            app_link = f"{link_prefix}{link_suffix}"
+            app_maker_obj.link = app_link
 
             if not fake:
                 # edit app on blueking
@@ -153,7 +159,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                     creator,
                     app_code,
                     app_params["name"],
-                    link,
+                    app_link,
                     creator,
                     app_params.get("category") or task_template.category,
                     app_params["desc"],

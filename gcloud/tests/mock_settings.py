@@ -36,7 +36,9 @@ TASKINSTANCE_CREATE = "gcloud.taskflow3.models.TaskFlowInstance.objects.create"
 TASKINSTANCE_GET = "gcloud.taskflow3.models.TaskFlowInstance.objects.get"
 TASKINSTANCE_FORMAT_STATUS = "gcloud.taskflow3.models.TaskFlowInstance.format_pipeline_status"
 TASKINSTANCE_EXTEN_CLASSIFIED_COUNT = "gcloud.contrib.analysis.analyse_items.task_flow_instance.dispatch"
-TASKINSTANCE_PREVIEW_TREE = "gcloud.taskflow3.models.TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes"
+TASKINSTANCE_PREVIEW_TREE = (
+    "pipeline_web.preview_base.PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes"
+)
 TASKINSTANCE_OBJECTS_CALLBACK = "gcloud.taskflow3.models.TaskFlowInstance.objects.callback"
 TASKINSTANCE_CALLBACK = "gcloud.taskflow3.models.TaskFlowInstance.callback"
 TASKINSTANCE_HAS_NODE = "gcloud.taskflow3.models.TaskFlowInstance.has_node"
@@ -151,6 +153,7 @@ TEMPLATE_STATISTICS_CREATE = "gcloud.analysis_statistics.models.TemplateStatisti
 
 TASKFLOW_STATISTICS_FILTER = "gcloud.analysis_statistics.models.TaskflowStatistics.objects.filter"
 TASKFLOW_STATISTICS_CREATE = "gcloud.analysis_statistics.models.TaskflowStatistics.objects.create"
+TASKFLOW_STATISTICS_UPDATE = "gcloud.analysis_statistics.models.TaskflowStatistics.objects.update"
 
 TEMPLATE_NODE_STATISTICS_FILTER = "gcloud.analysis_statistics.models.TemplateNodeStatistics.objects.filter"
 TEMPLATE_NODE_STATISTICS_CREATE = "gcloud.analysis_statistics.models.TemplateNodeStatistics.objects.create"

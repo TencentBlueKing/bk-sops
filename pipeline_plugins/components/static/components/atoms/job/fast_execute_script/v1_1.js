@@ -9,7 +9,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
- (function () {
+(function () {
     $.atoms.job_fast_execute_script = [
         {
             tag_code: "biz_cc_id",
@@ -222,7 +222,7 @@
                     type: "init",
                     action: function () {
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
-                        if (cc_id !== '') {
+                        if (cc_id !== '' && $.context.canSelectBiz()) {
                             this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + cc_id + '/?type=public';
                             this.remoteMethod();
                         }
@@ -232,7 +232,7 @@
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
-                        if (value === '') {
+                        if (value === '' || !$.context.canSelectBiz()) {
                             return;
                         }
                         this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + value + '/?type=public';
@@ -301,7 +301,7 @@
                     type: "init",
                     action: function () {
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
-                        if (cc_id !== '') {
+                        if (cc_id !== '' && $.context.canSelectBiz()) {
                             this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + cc_id + '/?type=general';
                             this.remoteMethod();
                         }
@@ -311,9 +311,10 @@
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
-                        if ($.context.canSelectBiz()) {
-                            this._set_value('');
+                        if (!$.context.canSelectBiz()) {
+                            return;
                         }
+                        this._set_value('');
                         if (value === '') {
                             return;
                         }
@@ -446,6 +447,23 @@
             }
         },
         {
+            tag_code: "is_tagged_ip",
+            type: "radio",
+            attrs: {
+                name: gettext("IP Tag 分组"),
+                items: [
+                    {value: true, name: gettext("是")},
+                    {value: false, name: gettext("否")},
+                ],
+                default: false,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        },
+        {
             tag_code: "job_success_id",
             type: "select",
             attrs: {
@@ -482,7 +500,7 @@
                     type: "init",
                     action: function () {
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
-                        if (cc_id !== '') {
+                        if (cc_id !== '' && $.context.canSelectBiz()) {
                             this.remote_url = $.context.get('site_url') + 'pipeline/job_get_instance_list/' + cc_id + '/1/3/';
                             this.remoteMethod();
                         }
@@ -503,9 +521,10 @@
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
-                        if ($.context.canSelectBiz()) {
-                            this._set_value('');
+                        if (!$.context.canSelectBiz()) {
+                            return;
                         }
+                        this._set_value('');
                         if (value === '') {
                             return;
                         }

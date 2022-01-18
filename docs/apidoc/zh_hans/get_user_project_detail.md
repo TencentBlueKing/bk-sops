@@ -1,3 +1,11 @@
+### 请求地址
+
+/v2/sops/get_user_project_detail/
+
+### 请求方法
+
+GET
+
 ### 功能描述
 
 获取项目的详情
@@ -25,7 +33,9 @@
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
-    "bk_biz_id": "2"
+    "bk_username": "xxx",
+    "bk_biz_id": "2",
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -45,7 +55,9 @@
         "bk_biz_tester": "",
         "bk_biz_productor": ""
     },
-    "code": 0
+    "code": 0,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -55,6 +67,8 @@
 |  result       | bool       | true/false 成功与否            |
 |  data         | dict       | result=true 时返回数据，详情见下面说明 |
 |  message      | string     | result=false 时错误信息        |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 #### data
 |      名称     |     类型   |               说明             |

@@ -9,22 +9,33 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+import json
 import time
+import socket
 import logging
 
 from celery import task
 from django.conf import settings
 
 from pipeline.engine.models import PipelineProcess
+from pipeline.eri.models import State, Process
 from pipeline.eri.runtime import BambooDjangoRuntime
 
-from gcloud.taskflow3.models import TaskFlowInstance, AutoRetryNodeStrategy, EngineConfig
+import metrics
+from gcloud.taskflow3.domains.node_timeout_strategy import node_timeout_handler
+from gcloud.taskflow3.models import (
+    TaskFlowInstance,
+    AutoRetryNodeStrategy,
+    EngineConfig,
+    TimeoutNodeConfig,
+    TimeoutNodesRecord,
+)
 from gcloud.taskflow3.domains.dispatchers.node import NodeCommandDispatcher
 from gcloud.shortcuts.message import send_task_flow_message
 
-
 logger = logging.getLogger("celery")
+
+HOST_NAME = socket.gethostname()
 
 
 @task
@@ -75,9 +86,11 @@ def _ensure_node_can_retry(node_id, engine_ver):
 
 
 @task
+@metrics.setup_histogram(metrics.TASKFLOW_NODE_AUTO_RETRY_TASK_DURATION.labels(hostname=HOST_NAME))
 def auto_retry_node(taskflow_id, root_pipeline_id, node_id, retry_times, engine_ver):
     lock_name = "%s-%s-%s" % (root_pipeline_id, node_id, retry_times)
     if not settings.redis_inst.set(name=lock_name, value=1, nx=True, ex=5):
+        metrics.TASKFLOW_NODE_AUTO_RETRY_LOCK_ACCUIRE_FAIL.labels(hostname=HOST_NAME).inc(1)
         logger.warning("[auto_retry_node] lock %s accuire failed, operation give up" % lock_name)
         return
 
@@ -99,3 +112,52 @@ def auto_retry_node(taskflow_id, root_pipeline_id, node_id, retry_times, engine_
         retry_times=retry_times + 1
     )
     settings.redis_inst.delete(lock_name)
+
+
+@task(acks_late=True)
+def dispatch_timeout_nodes(record_id: int):
+    record = TimeoutNodesRecord.objects.get(id=record_id)
+    nodes = json.loads(record.timeout_nodes)
+    metrics.TASKFLOW_TIMEOUT_NODES_NUMBER.labels(hostname=HOST_NAME).set(len(nodes))
+    for node in nodes:
+        node_id, version = node.split("_")
+        execute_node_timeout_strategy.apply_async(
+            kwargs={"node_id": node_id, "version": version},
+            queue="timeout_node_execute",
+            routing_key="timeout_node_execute",
+        )
+
+
+@task(ignore_result=True)
+@metrics.setup_histogram(metrics.TASKFLOW_TIMEOUT_NODES_PROCESSING_TIME.labels(hostname=HOST_NAME))
+def execute_node_timeout_strategy(node_id, version):
+    timeout_config = (
+        TimeoutNodeConfig.objects.filter(node_id=node_id).only("task_id", "root_pipeline_id", "action").first()
+    )
+    task_id, action, root_pipeline_id = (
+        timeout_config.task_id,
+        timeout_config.action,
+        timeout_config.root_pipeline_id,
+    )
+    task_inst = TaskFlowInstance.objects.get(pk=task_id)
+
+    # 判断当前节点是否符合策略执行要求
+    is_process_current_node = Process.objects.filter(
+        root_pipeline_id=root_pipeline_id, current_node_id=node_id
+    ).exists()
+    node_match = State.objects.filter(node_id=node_id, version=version).exists()
+    if not (node_match and is_process_current_node):
+        message = (
+            f"[execute_node_timeout_strategy] node {node_id} with version {version} in task {task_id} has been passed."
+        )
+        logger.error(message)
+        return {"result": False, "message": message, "data": None}
+
+    handler = node_timeout_handler[action]
+    action_result = handler.deal_with_timeout_node(task_inst, node_id)
+    logger.info(
+        f"[execute_node_timeout_strategy] node {node_id} with version {version} in task {task_id} "
+        f"action result is: {action_result}."
+    )
+
+    return action_result

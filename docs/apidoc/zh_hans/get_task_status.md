@@ -1,3 +1,11 @@
+### 请求地址
+
+/v2/sops/get_task_status/
+
+### 请求方法
+
+GET
+
 ### 功能描述
 
 查询任务或任务节点执行状态
@@ -30,8 +38,12 @@
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
-    "task_id": "10"
+    "task_id": "10",
+    "subprocess_id": "xxx",
+    "with_ex_data": true,
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -89,7 +101,9 @@
             "nb346e202d17387082189f95dd3f80ca": "定时时间需晚于当前时间"
         }
     },
-    "code": 0
+    "code": 0,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -100,6 +114,8 @@
 |  result   |    bool    |      true/false 查询成功与否     |
 |  data     |    dict    |      result=true 时返回数据，详细信息见下面说明     |
 |  message  |    string  |      result=false 时错误信息     |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 #### data
 
@@ -127,7 +143,9 @@
 | FINISHED  | 已完成   |  
 
 #### data.children KEY
+
 任务节点执行态ID
 
 #### data.children VALUE
+
 同 data 格式

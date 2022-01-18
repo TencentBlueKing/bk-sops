@@ -99,7 +99,7 @@ class GetNodeDetailV1TestCase(TestCase):
             node_detail,
             {
                 "result": True,
-                "data": {"loop": 1, "histories": [{"state": pipeline_states.FAILED}]},
+                "data": {"loop": 1, "history_id": -1, "histories": [{"state": pipeline_states.FAILED}]},
                 "message": "",
                 "code": err_code.SUCCESS.code,
             },
@@ -139,7 +139,7 @@ class GetNodeDetailV1TestCase(TestCase):
             node_detail,
             {
                 "result": True,
-                "data": {"loop": 1, "histories": [{"state": pipeline_states.FAILED}]},
+                "data": {"loop": 1, "history_id": -1, "histories": [{"state": pipeline_states.FAILED}]},
                 "message": "",
                 "code": err_code.SUCCESS.code,
             },
@@ -156,7 +156,7 @@ class GetNodeDetailV1TestCase(TestCase):
         pipeline_api = MagicMock()
         detail = {"loop": 2, "histories": [{}]}
         pipeline_api.get_status_tree = MagicMock(return_value=detail)
-        histories = [{}]
+        histories = [{"history_id": 3}]
         pipeline_api.get_activity_histories = MagicMock(return_value=histories)
         dispatcher = NodeCommandDispatcher(engine_ver=1, node_id="node_id")
         dispatcher._get_node_info = MagicMock()
@@ -181,7 +181,7 @@ class GetNodeDetailV1TestCase(TestCase):
             node_detail,
             {
                 "result": True,
-                "data": {"loop": 2, "histories": [{"state": pipeline_states.FAILED}]},
+                "data": {"loop": 2, "history_id": 3, "histories": [{"state": pipeline_states.FAILED}]},
                 "message": "",
                 "code": err_code.SUCCESS.code,
             },

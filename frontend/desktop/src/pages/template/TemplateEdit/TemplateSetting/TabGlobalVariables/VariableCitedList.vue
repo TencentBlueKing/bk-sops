@@ -24,6 +24,7 @@
                         @click.stop="onCitedNodeClick(group.key, item.id)">
                         {{ item.name }}
                     </span>
+                    <i class="common-icon-box-top-right-corner"></i>
                 </div>
             </div>
         </template>
@@ -106,7 +107,7 @@
         content: '';
         position: absolute;
         top: -5px;
-        right: 100px;
+        right: 322px;
         width: 8px;
         height: 8px;
         background: #f0f1f5;
@@ -118,21 +119,24 @@
     }
 }
 .group-title {
+    width: 100%;
     margin: 16px 0 4px;
 }
 .variable-cited-list {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
     .variable-cited-item {
         position: relative;
         padding: 0 18px;
         height: 24px;
-        line-height: 24px;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
+        width: 50%;
+        display: flex;
+        align-items: center;
         &::before {
             content: '';
             position: absolute;
-            top: 9px;
+            top: 10px;
             left: 0;
             width: 6px;
             height: 6px;
@@ -141,7 +145,18 @@
         }
         .cited-name {
             cursor: pointer;
-            &:hover {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        i {
+            color: #737987;
+            padding: 2px 0 0 5px;
+            cursor: pointer;
+        }
+        &:hover {
+            color: #3a84ff;
+            i {
                 color: #3a84ff;
             }
         }
