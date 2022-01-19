@@ -29,6 +29,8 @@ from gcloud.core.apis.drf.viewsets import (
     CollectionViewSet,
 )
 
+from gcloud.core.apis.drf.viewsets import ProjectConfigViewSet, ResourceConfigViewSet, StaffGroupSetViewSet
+from gcloud.tasktmpl3.apis.drf.viewsets.collection_template import CollectionTemplateViewSet
 from gcloud.template_base.apis.drf.viewsets import TemplateSchemeViewSet
 from gcloud.contrib.operate_record.apis.drf.viewsets import TaskOperateRecordSetViewSet, TemplateOperateRecordSetViewSet
 from gcloud.core.resources import (
@@ -97,6 +99,7 @@ drf_router.register(r"user_project", UserProjectSetViewSet)
 drf_router.register(r"common_use_project", CommonProjectViewSet)
 drf_router.register(r"label", LabelViewSet)
 drf_router.register(r"collection", CollectionViewSet)
+drf_router.register(r"collection_template", CollectionTemplateViewSet)
 
 v4_drf_router = DefaultRouter()
 v4_drf_router.register(r"project_template/(?P<project_id>\d+)", ProjectTemplateViewSet, basename="project_template")
