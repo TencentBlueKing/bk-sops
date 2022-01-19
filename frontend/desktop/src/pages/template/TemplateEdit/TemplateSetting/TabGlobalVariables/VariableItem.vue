@@ -67,7 +67,8 @@
                     size="small"
                     theme="primary"
                     :disabled="variableData.isSysVar"
-                    :value="variableData.show_type === 'show'">
+                    :value="variableData.show_type === 'show'"
+                    @change="onChangeVariableShow(variableData.key, $event)">
                 </bk-switcher>
             </span>
             <span class="col-item col-output">
@@ -243,6 +244,9 @@
                 } else {
                     this.showCitedList = false
                 }
+            },
+            onChangeVariableShow (key, checked) {
+                this.$emit('onChangeVariableShow', { key, checked })
             },
             onChangeVariableOutput (key, checked) {
                 this.$emit('onChangeVariableOutput', { key, checked })

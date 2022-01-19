@@ -141,6 +141,7 @@
                                 @onEditVariable="onEditVariable"
                                 @onDeleteVariable="onDeleteVariable"
                                 @onCloneVariable="onCloneVariable"
+                                @onChangeVariableShow="onChangeVariableShow"
                                 @onChangeVariableOutput="onChangeVariableOutput"
                                 @onCitedNodeClick="onCitedNodeClick">
                             </variable-item>
@@ -472,6 +473,16 @@
                     this.onEditVariable(id)
                 } else {
                     this.$emit('onCitedNodeClick', data)
+                }
+            },
+            /**
+             * 变量显示勾选
+             */
+            onChangeVariableShow ({ key, checked }) {
+                const variableData = tools.deepClone(this.constants[key] || this.internalVariable[key])
+                if (variableData) {
+                    variableData.show_type = checked ? 'show' : 'hide'
+                    this.editVariable({ key, variable: variableData })
                 }
             },
             /**
