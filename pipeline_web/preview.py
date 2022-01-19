@@ -58,7 +58,7 @@ def preview_template_tree_with_schemes(project_id, template_source, template_id,
         key: value for key, value in list(template_constants.items()) if key not in pipeline_tree["constants"]
     }
 
-    # 添加outputs返回，添加标识符判断输出变量是否在为选中执行方案中节点勾选的变量
+    # 添加outputs返回
     template_outputs = template.get_outputs(version)
     outputs = {
         key: value
