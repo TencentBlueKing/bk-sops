@@ -11,7 +11,7 @@
         :auto-close="false"
         :on-close="onCancel"
         @value-change="toggleShow">
-        <div class="task-container">
+        <div class="task-container" v-bkloading="{ isLoading: taskListPending, opacity: 0.3, zIndex: 100 }">
             <div class="task-wrapper">
                 <div class="filtrate-wrapper">
                     <div class="task-search">
@@ -86,7 +86,7 @@
                         </bk-input>
                     </div>
                 </div>
-                <div class="task-list" v-bkloading="{ isLoading: taskListPending, opacity: 1, zIndex: 100 }">
+                <div class="task-list">
                     <ul v-if="!isNoData" class="grouped-list">
                         <template v-if="selectedTplType === 'publicProcess'">
                             <template v-for="item in templateList">
@@ -142,7 +142,7 @@
                             </li>
                         </template>
                     </ul>
-                    <NoData v-else class="empty-task">{{$t('搜索结果为空')}}</NoData>
+                    <NoData v-else-if="!taskListPending" class="empty-task">{{$t('搜索结果为空')}}</NoData>
                 </div>
             </div>
             <div class="task-footer" v-if="selectError">
@@ -192,9 +192,8 @@
                 taskListPending: true,
                 searchMode: false,
                 selectError: false,
-                commonTplList: [],
-                businessTplList: [],
                 templateList: [],
+                publicList: [],
                 templateType: [
                     {
                         id: 'businessProcess',
@@ -209,15 +208,15 @@
                 selectedTplCategory: 'all',
                 selectedTplLabel: [],
                 searchWord: '',
-                nowTypeList: [],
                 templateLabels: [],
                 templateLabelLoading: false,
                 permissionLoading: false,
                 hasCommonTplCreateTaskPerm: true, // 有公共流程创建任务/周期任务权限
-                tplOperations: [],
-                tplResource: {},
-                commonTplOperations: [],
-                commonTplResource: {}
+                totalPage: 0,
+                currentPage: 0,
+                pollingTimer: null,
+                isThrottled: false, // 滚动节流 是否进入cd
+                templateListDom: null
             }
         },
         computed: {
@@ -255,6 +254,9 @@
         created () {
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
+        beforeDestroy () {
+            this.templateListDom && this.templateListDom.removeEventListener('scroll', this.handleTableScroll)
+        },
         methods: {
             ...mapActions([
                 'queryUserPermission'
@@ -265,32 +267,46 @@
             ...mapActions('project/', [
                 'getProjectLabelsWithDefault'
             ]),
-            async getBusinessData () {
+            
+            async getListData () {
                 this.taskListPending = true
                 try {
-                    const respData = await this.loadTemplateList({ project__id: this.project_id })
-                    const businessList = respData.objects
-                    this.tplOperations = respData.meta.auth_operations
-                    this.tplResource = respData.meta.auth_resource
-                    this.businessTplList = businessList
-                    this.templateList = businessList
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.taskListPending = false
-                }
-            },
-            async getcommonData () {
-                this.taskListPending = true
-                const data = {
-                    common: 1
-                }
-                try {
-                    const respData = await this.loadTemplateList(data)
-                    const commonList = respData.objects
-                    this.commonTplOperations = respData.meta.auth_operations
-                    this.commonTplResource = respData.meta.auth_resource
-                    this.commonTplList = this.getGroupedList(commonList)
+                    const {
+                        selectedTplType,
+                        project_id,
+                        currentPage,
+                        selectedTplLabel,
+                        searchWord,
+                        selectedTplCategory
+                    } = this
+                    const limit = 15
+                    let params = {
+                        limit,
+                        offset: currentPage * limit
+                    }
+                    if (searchWord) {
+                        params = { ...params, pipeline_template__name__icontains: searchWord }
+                    }
+                    if (selectedTplType === 'businessProcess') {
+                        params = { ...params, project__id: project_id, order_by: '-id' }
+                        if (selectedTplType) {
+                            params = { ...params, label_ids: selectedTplLabel.join(',') }
+                        }
+                    } else {
+                        params = { ...params, common: 1 }
+                        if (selectedTplCategory !== 'all') {
+                            params = { ...params, category: selectedTplCategory }
+                        }
+                    }
+                    const respData = await this.loadTemplateList(params)
+                    const list = respData.objects
+                    this.totalPage = Math.floor(respData.meta.total_count / limit)
+                    if (selectedTplType === 'businessProcess') {
+                        this.templateList = this.templateList.concat(list)
+                    } else {
+                        this.publicList = this.publicList.concat(list)
+                        this.templateList = this.getGroupedList(this.publicList)
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -340,8 +356,14 @@
             async toggleShow (val) {
                 if (val) {
                     this.getTemplateLabelList()
-                    await this.getBusinessData()
-                    this.onFiltrationTemplate()
+                    await this.getListData()
+                    if (!this.templateListDom) {
+                        this.$nextTick(() => {
+                            const templateListDom = document.querySelector('.task-list')
+                            templateListDom && templateListDom.addEventListener('scroll', this.handleTableScroll)
+                            this.templateListDom = templateListDom
+                        })
+                    }
                 }
             },
             onCreateTask () {
@@ -450,57 +472,50 @@
                 this.applyForPermission(reqPermission, curPermission, resourceData)
             },
             searchInputhandler () {
-                let result = []
-                const reg = new RegExp(this.searchWord, 'i')
-                const list = toolsUtils.deepClone(this.nowTypeList)
-                if (this.selectedTplType === 'publicProcess') {
-                    result = list.filter(group => {
-                        group.children = group.children.filter(template => reg.test(template.name))
-                        return group.children.length
-                    })
-                } else {
-                    result = list.filter(tpl => reg.test(tpl.name))
-                }
-                this.templateList = result
+                this.clearSearch()
+                this.getListData()
             },
             async onChooseTplType (value) {
                 this.selectedTplType = value
-                this.selectedTpl = {}
-                this.templateList = []
                 this.searchWord = ''
+                this.clearSearch()
                 if (value === 'businessProcess') {
                     this.selectedTplLabel = []
-                    await this.getBusinessData()
                 } else {
                     this.selectedTplCategory = 'all'
-                    await this.getcommonData()
                 }
-                this.onFiltrationTemplate()
+                await this.getListData()
             },
             onLabelChange () {
-                this.onFiltrationTemplate()
+                this.clearSearch()
+                this.getListData()
             },
             onChooseTplCategory (value) {
                 this.selectedTplCategory = value
-                this.selectedTpl = {}
-                this.onFiltrationTemplate()
+                this.clearSearch()
+                this.getListData()
             },
-            onFiltrationTemplate () {
-                const list = this.selectedTplType === 'businessProcess' ? this.businessTplList : this.commonTplList
-                let filteredList = toolsUtils.deepClone(list)
-                if (this.selectedTplType === 'businessProcess') {
-                    filteredList = filteredList.filter(tpl => {
-                        return this.selectedTplLabel.every(item => tpl.template_labels.find(label => label.label_id === Number(item)))
-                    })
-                } else {
-                    if (this.selectedTplCategory !== 'all') {
-                        filteredList = filteredList.filter(item => item.id === this.selectedTplCategory)
-                    }
-                }
-                this.templateList = filteredList
-                this.nowTypeList = filteredList
-                if (this.searchWord !== '') {
-                    this.searchInputhandler()
+            clearSearch () {
+                this.currentPage = 0
+                this.templateList = []
+                this.publicList = []
+                this.selectedTpl = {}
+            },
+            /**
+             * 滚动加载
+             */
+            handleTableScroll () {
+                if (this.currentPage < this.totalPage && !this.isThrottled) {
+                    this.isThrottled = true
+                    this.pollingTimer = setTimeout(() => {
+                        this.isThrottled = false
+                        const el = this.templateListDom
+                        if (el.scrollHeight - el.offsetHeight - el.scrollTop < 10) {
+                            this.currentPage += 1
+                            clearTimeout(this.pollingTimer)
+                            this.getListData()
+                        }
+                    }, 500)
                 }
             }
         }
