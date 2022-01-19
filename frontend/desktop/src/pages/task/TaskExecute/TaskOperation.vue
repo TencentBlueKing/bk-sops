@@ -556,7 +556,7 @@
                         }
                         if (this.state === 'RUNNING' || (!this.isTopTask && this.state === 'FINISHED' && !['FINISHED', 'REVOKED', 'FAILED'].includes(this.rootState))) {
                             this.setTaskStatusTimer()
-                            this.getRunningNode(instanceStatus.data.children)
+                            this.setRunningNode(instanceStatus.data.children)
                         }
                         this.updateNodeInfo()
                     } else {
@@ -1513,16 +1513,12 @@
                 this.updateNodeActived(this.nodeDetailConfig.node_id, false)
             },
             // 判断RUNNING的节点是否有暂停节点，若有，则将当前任务状态标记为暂停状态
-            getRunningNode (node = {}) {
-                this.tabIconState = ''
-                Object.keys(node).forEach(key => {
-                    if (node[key].state === 'RUNNING') {
-                        const { activities } = this.pipelineData
-                        if (activities[key].component.code === 'pause_node') {
-                            this.tabIconState = 'SUSPENDED'
-                        }
-                    }
-                })
+            setRunningNode (node = {}) {
+                this.tabIconState
+                    = Object.keys(node).some(key => (node[key].state === 'RUNNING'
+                        && this.pipelineData.activities[key].component.code === 'pause_node'))
+                        ? 'SUSPENDED'
+                        : ''
             }
         }
     }
