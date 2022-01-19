@@ -162,13 +162,13 @@
                     <bk-tab v-if="isThirdPartyNode" :active.sync="curPluginTab" type="unborder-card">
                         <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('节点日志') }"></bk-tab-panel>
                         <bk-tab-panel
-                            v-bind="{ name: 'third_praty_plugin', label: $t('第三方节点日志') }">
+                            v-bind="{ name: 'third_party_plugin', label: $t('第三方节点日志') }">
                         </bk-tab-panel>
                     </bk-tab>
                     <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
                         <full-code-editor
                             v-if="curPluginTab === 'build_in_plugin' ? logInfo : executeInfo.thirdPartyNodeLog"
-                            :class="{ 'third-praty-editor': curPluginTab === 'third_praty_plugin' }"
+                            :class="{ 'third-party-editor': curPluginTab === 'third_party_plugin' }"
                             :key="curPluginTab"
                             :value="curPluginTab === 'build_in_plugin' ? logInfo : executeInfo.thirdPartyNodeLog">
                         </full-code-editor>
@@ -205,16 +205,34 @@
                                         <div v-html="props.row.ex_data"></div>
                                     </div>
                                 </div>
-                                <div class="common-form-item">
+                                <div class="common-form-item executeLog">
                                     <label>{{ $t('日志') }}</label>
-                                    <div v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1, zIndex: 100 }">
-                                        <div class="common-form-content" v-if="historyLog[props.row.history_id]">
-                                            <div class="code-block-wrap" v-if="adminView">
-                                                <VueJsonPretty :data="historyLog[props.row.history_id]"></VueJsonPretty>
-                                            </div>
-                                            <full-code-editor v-else :value="historyLog[props.row.history_id]"></full-code-editor>
+                                    <!-- 内置插件/第三方插件tab -->
+                                    <bk-tab
+                                        v-if="isThirdPartyNode"
+                                        :active.sync="props.row.historyLogTab"
+                                        type="unborder-card">
+                                        <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('节点日志') }"></bk-tab-panel>
+                                        <bk-tab-panel
+                                            v-bind="{ name: 'third_party_plugin', label: $t('第三方节点日志') }">
+                                        </bk-tab-panel>
+                                    </bk-tab>
+                                    <div class="perform-log" v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1, zIndex: 100 }">
+                                        <div v-show="getHistoryLogData(props.row)">
+                                            <VueJsonPretty
+                                                v-show="adminView"
+                                                :data="getHistoryLogData(props.row)">
+                                            </VueJsonPretty>
+                                            <full-code-editor
+                                                v-show="!adminView"
+                                                :class="[
+                                                    `history-editor-${props.row.history_id}`,
+                                                    { 'third-party-editor': curPluginTab === 'third_party_plugin' }
+                                                ]"
+                                                :value="getHistoryLogData(props.row)">
+                                            </full-code-editor>
                                         </div>
-                                        <NoData v-else></NoData>
+                                        <NoData v-show="!getHistoryLogData(props.row)"></NoData>
                                     </div>
                                 
                                 </div>
@@ -521,6 +539,7 @@
                 logInfo: '',
                 historyInfo: [],
                 historyLog: {},
+                thirdHistoryLog: {},
                 historyLogLoading: {},
                 failInfo: '',
                 renderOption: {
@@ -633,20 +652,21 @@
                     this.logInfo = ''
                     this.historyInfo = []
                     this.historyLog = {}
+                    this.thirdHistoryLog = {}
                     this.historyLogLoading = {}
                     this.failInfo = ''
                     this.loadNodeInfo()
                 }
             },
             curPluginTab (val) {
-                if (val === 'third_praty_plugin' && !this.editScrollDom) {
+                if (val === 'third_party_plugin' && !this.editScrollDom) {
                     // 第三方日志滚动加载
                     this.$nextTick(() => {
                         // 滚动dom
-                        const editScrollDom = document.querySelector('.third-praty-editor .code-editor .vertical .slider')
+                        const editScrollDom = document.querySelector('.third-party-editor .code-editor .vertical .slider')
                         if (!editScrollDom) return
                         // 编辑器dom
-                        const editDom = document.querySelector('.third-praty-editor .monaco-editor')
+                        const editDom = document.querySelector('.third-party-editor .monaco-editor')
                         const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
                         const { outputs } = this.executeInfo
                         const traceId = outputs.length && outputs[0].value
@@ -681,6 +701,15 @@
                 this.observer.disconnect()
                 this.observer.takeRecords()
                 this.observer = null
+            }
+            if (this.historyInfo.length) {
+                this.historyInfo.forEach(item => {
+                    if (item.observe) {
+                        item.observer.disconnect()
+                        item.observer.takeRecords()
+                        item.observer = null
+                    }
+                })
             }
         },
         methods: {
@@ -737,6 +766,11 @@
                         this.outputsInfo = outputs
                         this.inputsInfo = inputs
                         this.logInfo = log
+                        history.forEach(item => {
+                            this.$set(item, 'historyLogTab', 'build_in_plugin')
+                            this.$set(item, 'scrollId', '')
+                            this.$set(item, 'observer', null)
+                        })
                         this.historyInfo = history.sort((a, b) => {
                             if (a.loop === b.loop) {
                                 return b.history_id - a.history_id
@@ -747,7 +781,12 @@
                     } else {
                         this.executeInfo = respData
                         this.inputsInfo = inputs
-                        this.historyInfo = respData.histories
+                        this.historyInfo = respData.histories.map(item => {
+                            this.$set(item, 'historyLogTab', 'build_in_plugin')
+                            this.$set(item, 'scrollId', '')
+                            this.$set(item, 'observer', null)
+                            return item
+                        })
                         for (const key in this.inputsInfo) {
                             this.$set(this.renderData, key, this.inputsInfo[key])
                         }
@@ -964,14 +1003,14 @@
                     this.isLogLoading = false
                 }
             },
-            async getHistoryLog (id, version) {
+            async getHistoryLog (id, row) {
                 try {
                     this.$set(this.historyLogLoading, id, true)
                     const data = {
                         node_id: this.nodeDetailConfig.node_id,
                         history_id: id,
                         instance_id: this.nodeDetailConfig.instance_id,
-                        version
+                        version: row.version
                     }
                     let resp = null
                     if (this.adminView) {
@@ -980,6 +1019,14 @@
                         resp = await this.getNodeExecutionRecordLog(data)
                     } else if (this.engineVer === 2) {
                         resp = await this.getEngineVerNodeLog(data)
+                    }
+                    // 获取第三方插件的执行历史日志
+                    const traceId = row.outputs.trace_id
+                    if (traceId) {
+                        // 设置第三方节点历史日志
+                        await this.setThirdHistoryLog(row)
+                    } else {
+                        this.$set(this.thirdHistoryLog, id, i18n.t('输出参数中不包含trace_id，无法查看第三方节点日志'))
                     }
                     if (resp.result) {
                         const respData = this.adminView ? resp.data.log : resp.data
@@ -990,6 +1037,67 @@
                 } finally {
                     this.historyLogLoading[id] = false
                 }
+            },
+            // 设置第三方节点历史日志
+            setHistoryLogWatch (row) {
+                try {
+                    // 滚动dom
+                    const editorDom = document.querySelector(`.history-editor-${row.history_id}`)
+                    const scrollDom = editorDom && editorDom.querySelector('.code-editor .vertical .slider')
+                    if (!scrollDom) return
+                    // 编辑器dom
+                    const editDom = editorDom && editorDom.querySelector('.monaco-editor')
+                    const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
+                    // 监听滚动dom
+                    row.observer = new MutationObserver(async mutation => {
+                        const { height } = scrollDom.getBoundingClientRect()
+                        const { height: editHeight } = editDom && editDom.getBoundingClientRect()
+                        const top = scrollDom.offsetTop
+                        const offsetBottom = editHeight > 300 ? 180 : 100
+                        if (editHeight - height - top < offsetBottom && !this.historyLogLoading[row.history_id] && row.scrollId) {
+                            this.historyLogLoading[row.history_id] = true
+                            // 设置第三方节点历史日志
+                            await this.setThirdHistoryLog(row)
+                        }
+                    })
+                    row.observer.observe(scrollDom, {
+                        childList: true,
+                        attributes: true,
+                        characterData: true,
+                        subtree: true
+                    })
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.historyLogLoading[row.history_id] = false
+                }
+            },
+            // 设置第三方节点历史日志
+            async setThirdHistoryLog (row) {
+                try {
+                    const id = Number(row.history_id)
+                    const traceId = row.outputs.trace_id
+                    const thirdLogsResp = await this.loadPluginServiceLog({
+                        plugin_code: this.thirdPartyNodeCode,
+                        trace_id: traceId,
+                        scroll_id: row.scrollId || undefined
+                    })
+                    if (thirdLogsResp.result) {
+                        const { logs, scroll_id } = thirdLogsResp.data
+                        const thirdPartyLogs = this.thirdHistoryLog[id] || ''
+                        this.$set(this.thirdHistoryLog, id, thirdPartyLogs + logs)
+                        row.scrollId = logs && scroll_id ? scroll_id : ''
+                    } else {
+                        row.scrollId = ''
+                    }
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.historyLogLoading[row.history_id] = false
+                }
+            },
+            getHistoryLogData (row) {
+                return row.historyLogTab === 'build_in_plugin' ? this.historyLog[row.history_id] : this.thirdHistoryLog[row.history_id]
             },
             isUrl (val) {
                 return typeof val === 'string' && URL_REG.test(val)
@@ -1030,10 +1138,16 @@
                 this.theExecuteTime = val
                 this.loadNodeInfo()
             },
-            onHistoyExpand (row, expended) {
+            async onHistoyExpand (row, expended) {
                 const id = Number(row.history_id)
                 if (expended && !this.historyLog.hasOwnProperty(id)) {
-                    this.getHistoryLog(id, row.version)
+                    await this.getHistoryLog(id, row)
+                }
+                if (this.isThirdPartyNode && row && !row.observer) {
+                    this.$nextTick(() => {
+                        // 给历史日志设置监听事件
+                        this.setHistoryLogWatch(row)
+                    })
                 }
             },
             onSelectNode (nodeHeirarchy, selectNodeId, nodeType) {
@@ -1230,6 +1344,22 @@
             .commont-form-content {
                 margin-left: 100px;
                 font-size: 12px;
+            }
+        }
+        .executeLog {
+            /deep/.bk-tab {
+                position: relative;
+                top: -16px;
+                margin-left: 120px;
+                .bk-tab-section {
+                    padding: 0;
+                }
+            }
+            .perform-log {
+                margin-left: 120px;
+                .no-data-wrapper {
+                    margin: 20px 0;
+                }
             }
         }
     }

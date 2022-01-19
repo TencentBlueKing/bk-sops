@@ -1298,6 +1298,7 @@ const en = {
     '系统变量': 'SYS-VARS',
     '业务变量': 'BUSINESS-VARS',
     '找不到想要的插件？可以尝试自己动手开发！': "Can't find the plug-in you want? You can try to develop it yourself!",
+    '输出参数中不包含trace_id，无法查看第三方节点日志': 'The trace_id is not included in the output parameters, and the third-party node logs cannot be viewed',
     '等待': 'wait',
     '全部流程': 'All processes'
 }
