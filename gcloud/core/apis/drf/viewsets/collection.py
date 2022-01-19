@@ -11,13 +11,22 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .project_config import *  # noqa
-from .resource_config import *  # noqa
-from .staff_group import *  # noqa
-from .business import *  # noqa
-from .project import *  # noqa
-from .component_model import *  # noqa
-from .user_project import *  # noqa
-from .common_use_project import *  # noqa
-from .label import *  # noqa
-from .collection import *  # noqa
+from rest_framework import permissions, mixins, viewsets
+
+from gcloud.contrib.collection.models import Collection
+from gcloud.core.apis.drf.serilaziers.collection import CollectionSerializer
+from gcloud.core.apis.drf.viewsets.utils import ApiMixin
+
+
+class CollectionViewSet(
+    ApiMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    queryset = Collection.objects.all()
+    serializer_class = CollectionSerializer
+    permission_classes = [permissions.IsAuthenticated]
