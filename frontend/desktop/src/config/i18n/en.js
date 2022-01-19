@@ -1297,6 +1297,7 @@ const en = {
     '删除成功！': 'Successfully deleted!',
     '系统变量': 'SYS-VARS',
     '业务变量': 'BUSINESS-VARS',
+    '输出参数中不包含trace_id，无法查看第三方节点日志': 'The trace_id is not included in the output parameters, and the third-party node logs cannot be viewed',
     '等待': 'wait',
     '全部流程': 'All processes'
 }
