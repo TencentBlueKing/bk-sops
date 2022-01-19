@@ -88,8 +88,8 @@ class YamlTemplateImportValidator(RequestValidator):
 class YamlTemplateExportValidator(RequestValidator):
     def validate(self, request, *args, **kwargs):
         data = request.data
-        if not data.get("template_id_list") or not isinstance(data["template_id_list"], list):
-            return False, "template_id_list can not be empty and must be a list"
+        if not (data.get("is_full") or (data.get("template_id_list") and isinstance(data["template_id_list"], list))):
+            return False, "is_full and template_id_list can not be empty at the same time"
         if not data.get("template_type"):
             return False, "template_type can not be empty"
         if data["template_type"] == "project" and not data.get("project_id"):

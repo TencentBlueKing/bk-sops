@@ -361,13 +361,22 @@ def export_yaml_templates(request: Request):
     {
         "template_id_list(required)": "导出的流程id列表(list)",
         "template_type(required)": "流程类型: project/common",
-        "project_id": "当流程类型为project时必填"
+        "project_id": "当流程类型为project时必填",
+        "is_full(required)": "是否导出全部模板，该参数优先级大于 template_id_list(bool)"
     }
     """
     template_ids = request.data["template_id_list"]
     template_type = request.data["template_type"]
     project_id = request.data["project_id"] if template_type == "project" else None
     export_args = [project_id] if project_id else []
+    is_full = request.data["is_full"]
+    if is_full:
+        template_filters = {"is_deleted": False}
+        if project_id:
+            template_filters["project_id"] = project_id
+        template_ids = list(
+            TEMPLATE_TYPE_MODEL[template_type].objects.filter(**template_filters).values_list("id", flat=True)
+        )
 
     converter_handler = YamlSchemaConverterHandler("v1")
     try:
