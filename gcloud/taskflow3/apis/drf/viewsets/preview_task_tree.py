@@ -27,7 +27,7 @@ logger = logging.getLogger("root")
 
 
 class PreviewTaskTreeWithSchemesSerializer(serializers.Serializer):
-    project_id = serializers.IntegerField(help_text="项目ID")
+    project_id = serializers.IntegerField(help_text="项目ID", default=-1)
     template_id = serializers.CharField(help_text="流程模版ID")
     version = serializers.CharField(help_text="流程模版版本")
     template_source = serializers.CharField(help_text="流程模版类型", default=PROJECT)
