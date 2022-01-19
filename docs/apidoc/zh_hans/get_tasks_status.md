@@ -1,3 +1,11 @@
+### 请求地址
+
+/v2/sops/get_tasks_status/
+
+### 请求方法
+
+POST
+
 ### 功能描述
 
 批量查询任务执行状态
@@ -27,8 +35,11 @@
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
-    "task_id_list": [30000105, 30000101, 30000100]
+    "task_id_list": [30000105, 30000101, 30000100],
+    "scope": "cmdb_biz",
+    "include_children_status": false
 }
 ```
 
@@ -111,7 +122,9 @@
             "url": "url"
         }
     ],
-    "code": 0
+    "code": 0,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -122,8 +135,11 @@
 |  result      |    bool    |      true/false 查询成功与否     |
 |  data        |    dict      |      result=true 时返回数据，详细信息见下面说明     |
 |  message        |    string      |      result=false 时错误信息     |
+|  request_id     |    string  |      esb 请求 id     |
+|  trace_id     |    string  |      open telemetry trace_id     |
 
 #### data 说明
+
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |
 |  id      |    string    |      任务 ID    |
@@ -136,7 +152,6 @@
 | current_flow | string | 任务当前流程，详细信息见下面说明 |
 | is_deleted | bool | 任务当前是否删除 |
 |  children      |    dict   |      任务节点执行详情，详细信息见下面说明   |
-
 
 #### data.status 说明
 
@@ -155,9 +170,11 @@
 |  finish_time      |    string    |      节点完成时间    |
 
 #### data.children KEY
+
 任务节点 执行态ID
 
 #### data.children VALUE
+
 同 status 格式
 
 #### data.current_flow（flow_type为common）

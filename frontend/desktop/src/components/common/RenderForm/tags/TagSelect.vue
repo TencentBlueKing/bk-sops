@@ -13,8 +13,10 @@
     <div class="tag-select">
         <div v-if="formMode">
             <el-select
+                ref="selectComp"
                 v-model="seletedValue"
                 v-loading="loading"
+                v-markTag="{ multiple, hasGroup, seletedValue, options: items }"
                 filterable
                 :clearable="clearable"
                 popper-class="tag-component-popper"
@@ -167,6 +169,52 @@
     }
     export default {
         name: 'TagSelect',
+        directives: {
+            // 对于多选输入框，用户输入的选项做一个标记
+            markTag: {
+                componentUpdated (el, binding, vnode) {
+                    const { hasGroup, multiple, options, seletedValue } = binding.value
+                    if (multiple) {
+                        const vm = vnode.context
+                        const indexs = []
+                        seletedValue.forEach((val, index) => {
+                            let valInOptions = false
+                            if (hasGroup) {
+                                valInOptions = options.some(group => {
+                                    return group.options.some(item => {
+                                        if (item.value === val) {
+                                            return true
+                                        }
+                                    })
+                                })
+                            } else {
+                                valInOptions = options.some(item => {
+                                    if (item.value === val) {
+                                        return true
+                                    }
+                                })
+                            }
+                            if (!valInOptions) {
+                                indexs.push(index)
+                            }
+                        })
+                        // 需要在输入框子流程dom更新之后才能操作
+                        vm.$nextTick(() => {
+                            setTimeout(() => {
+                                const $tagEls = el.querySelectorAll('.el-select__tags .el-tag')
+                                $tagEls.forEach((tagEl, i) => {
+                                    if (indexs.includes(i)) {
+                                        tagEl.classList.add('individual')
+                                    } else {
+                                        tagEl.classList.remove('individual')
+                                    }
+                                })
+                            }, 0)
+                        })
+                    }
+                }
+            }
+        },
         mixins: [getFormMixins(attrs)],
         data () {
             return {
@@ -292,6 +340,9 @@
         }
         /deep/.el-tag.el-tag--info.el-tag--small.el-tag--light { // 解决已选多选项选项过长不换行问题
             height: auto;
+            &.individual {
+                background: rgba(254, 156, 0, 0.1);
+            }
             .el-select__tags-text {
                 white-space: normal;
                 word-break: break-all;

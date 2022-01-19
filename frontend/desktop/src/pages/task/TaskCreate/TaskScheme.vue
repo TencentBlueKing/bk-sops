@@ -9,7 +9,7 @@
                 <span>{{$t('执行方案')}}</span>
                 <i @click="toggleSchemePanel" class="bk-icon icon-close-line"></i>
             </div>
-            <div class="scheme-active-wrapper">
+            <div class="scheme-active-wrapper" v-if="!isPreviewMode">
                 <div>
                     <bk-button data-test-id="createTask_form_createScheme" :disabled="isCommonProcess" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
                     <bk-button data-test-id="createTask_form_importTemporaryPlan" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
@@ -222,7 +222,8 @@
             async loadDefaultSchemeList () {
                 try {
                     const resp = await this.getDefaultTaskScheme({
-                        project_id: this.project_id,
+                        project_id: this.isCommonProcess ? undefined : this.project_id,
+                        template_type: this.isCommonProcess ? 'common' : undefined,
                         template_id: Number(this.template_id)
                     })
                     if (resp.data.length) {
@@ -246,7 +247,8 @@
                         return acc
                     }, [])
                     const params = {
-                        project_id: this.project_id,
+                        project_id: this.isCommonProcess ? undefined : this.project_id,
+                        template_type: this.isCommonProcess ? 'common' : undefined,
                         template_id: Number(this.template_id),
                         scheme_ids: ids,
                         id: this.defaultSchemeId
@@ -447,7 +449,6 @@
             justify-content: space-between;
             font-size: 16px;
             color: #313238;
-            border-bottom: 1px solid #dcdee5;
             .icon-close-line {
                 color: #63656e;
                 font-size: 14px;
@@ -463,7 +464,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin: 16px 0px 15px;
+            padding: 16px 0px 15px;
+            border-top: 1px solid #dcdee5;
             /deep/.bk-button {
                 width: auto;
                 margin-left: 10px;

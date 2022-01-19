@@ -1571,7 +1571,8 @@ pipeline_tree = json.loads(
                                                             "bk_timing": {
                                                                 "type": "splice",
                                                                 "value": "${bk_timing}",
-                                                                "is_param": false
+                                                                "is_param": false,
+                                                                "need_render": true
                                                             }
                                                         },
                                                         "global_outputs": {}
@@ -1598,7 +1599,8 @@ pipeline_tree = json.loads(
                                                             "bk_timing": {
                                                                 "type": "splice",
                                                                 "value": "${b}",
-                                                                "is_param": false
+                                                                "is_param": false,
+                                                                "need_render": true
                                                             }
                                                         },
                                                         "global_outputs": {}
@@ -1745,7 +1747,8 @@ pipeline_tree = json.loads(
                                         "params": {
                                             "${bk_timing}": {
                                                 "type": "splice",
-                                                "value": "${b}"
+                                                "value": "${b}",
+                                                "need_render": true
                                             }
                                         }
                                     },
@@ -1757,12 +1760,14 @@ pipeline_tree = json.loads(
                                                 "bk_timing": {
                                                     "type": "splice",
                                                     "value": "${ip}",
-                                                    "is_param": false
+                                                    "is_param": false,
+                                                    "need_render": true
                                                 },
                                                 "force_check": {
                                                     "type": "plain",
                                                     "value": true,
-                                                    "is_param": false
+                                                    "is_param": false,
+                                                    "need_render": true
                                                 }
                                             },
                                             "global_outputs": {}
@@ -1902,7 +1907,8 @@ pipeline_tree = json.loads(
                             "params": {
                                 "${b}": {
                                     "type": "splice",
-                                    "value": "${c}"
+                                    "value": "${c}",
+                                    "need_render": true
                                 }
                             }
                         }
@@ -2049,15 +2055,18 @@ pipeline_tree = json.loads(
                 "params": {
                     "${c}": {
                         "type": "splice",
-                        "value": "${d}"
+                        "value": "${d}",
+                        "need_render": true
                     },
                     "${s1}": {
                         "type": "splice",
-                        "value": "2"
+                        "value": "2",
+                        "need_render": true
                     },
                     "${ip}": {
                         "type": "splice",
-                        "value": "${ip}"
+                        "value": "${ip}",
+                        "need_render": true
                     }
                 }
             },
@@ -2069,12 +2078,14 @@ pipeline_tree = json.loads(
                         "bk_timing": {
                             "type": "splice",
                             "value": "${time}",
-                            "is_param": false
+                            "is_param": false,
+                            "need_render": true
                         },
                         "force_check": {
                             "type": "plain",
                             "value": true,
-                            "is_param": false
+                            "is_param": false,
+                            "need_render": true
                         }
                     },
                     "global_outputs": {
@@ -2103,12 +2114,14 @@ pipeline_tree = json.loads(
                         "bk_timing": {
                             "type": "splice",
                             "value": "${1 if _result else 2}",
-                            "is_param": false
+                            "is_param": false,
+                            "need_render": true
                         },
                         "force_check": {
                             "type": "plain",
                             "value": true,
-                            "is_param": false
+                            "is_param": false,
+                            "need_render": true
                         }
                     },
                     "global_outputs": {}
@@ -2135,12 +2148,14 @@ pipeline_tree = json.loads(
                         "bk_timing": {
                             "type": "splice",
                             "value": "${exp}",
-                            "is_param": false
+                            "is_param": false,
+                            "need_render": true
                         },
                         "force_check": {
                             "type": "plain",
                             "value": true,
-                            "is_param": false
+                            "is_param": false,
+                            "need_render": true
                         }
                     },
                     "global_outputs": {}
@@ -2167,12 +2182,14 @@ pipeline_tree = json.loads(
                         "bk_timing": {
                             "type": "splice",
                             "value": "${exp1}",
-                            "is_param": false
+                            "is_param": false,
+                            "need_render": true
                         },
                         "force_check": {
                             "type": "plain",
                             "value": true,
-                            "is_param": false
+                            "is_param": false,
+                            "need_render": true
                         }
                     },
                     "global_outputs": {}
@@ -2199,12 +2216,14 @@ pipeline_tree = json.loads(
                         "bk_timing": {
                             "type": "splice",
                             "value": "${output_exp}",
-                            "is_param": false
+                            "is_param": false,
+                            "need_render": true
                         },
                         "force_check": {
                             "type": "plain",
                             "value": true,
-                            "is_param": false
+                            "is_param": false,
+                            "need_render": true
                         }
                     },
                     "global_outputs": {}

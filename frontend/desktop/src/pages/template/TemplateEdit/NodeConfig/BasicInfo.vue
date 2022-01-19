@@ -65,7 +65,7 @@
                 <div class="error-handle">
                     <bk-checkbox
                         :value="formData.ignorable"
-                        :disabled="formData.autoRetry.enable"
+                        :disabled="formData.autoRetry.enable || formData.timeoutConfig.enable"
                         @change="onErrorHandlerChange($event, 'ignorable')">
                         <span class="error-handle-icon"><span class="text">AS</span></span>
                         {{ $t('自动跳过') }}
@@ -86,21 +86,41 @@
                     </bk-checkbox>
                     <bk-checkbox
                         :value="formData.autoRetry.enable"
-                        :disabled="formData.ignorable"
+                        :disabled="formData.ignorable || formData.timeoutConfig.enable"
                         @change="onErrorHandlerChange($event, 'autoRetry')">
                         <span class="error-handle-icon"><span class="text">AR</span></span>
-                        {{ $t('自动重试') }}
                     </bk-checkbox>
-                    <span v-if="formData.autoRetry.enable" class="auto-retry-times">
-                        <bk-input
-                            :value="formData.autoRetry.times"
-                            type="number"
-                            style="width: 60px; margin: 0 4px;"
-                            :max="10"
-                            :min="1"
-                            @change="onRetryTimeChange">
-                        </bk-input>
-                        {{ $t('次') }}
+                    <span class="auto-retry-times">
+                        {{ $t('在') }}
+                        <div class="number-input" style="margin: 0 4px;">
+                            <bk-input
+                                v-model.number="formData.autoRetry.interval"
+                                type="number"
+                                style="width: 68px;"
+                                :placeholder="' '"
+                                :disabled="!formData.autoRetry.enable"
+                                :max="10"
+                                :min="0"
+                                :precision="0"
+                                @change="updateData">
+                            </bk-input>
+                            <span class="unit">{{ $tc('秒', 0) }}</span>
+                        </div>
+                        {{ $t('后') }}{{ $t('，') }}{{ $t('自动重试') }}
+                        <div class="number-input" style=" margin-left: 4px;">
+                            <bk-input
+                                v-model.number="formData.autoRetry.times"
+                                type="number"
+                                style="width: 68px;"
+                                :placeholder="' '"
+                                :disabled="!formData.autoRetry.enable"
+                                :max="10"
+                                :min="1"
+                                :precision="0"
+                                @change="updateData">
+                            </bk-input>
+                            <span class="unit">{{ $t('次') }}</span>
+                        </div>
                     </span>
                 </div>
                 <p
@@ -115,6 +135,45 @@
                     <p>{{ $t('自动重试：标准插件节点如果执行失败，系统会自动以原参数进行重试。') }}</p>
                 </div>
                 <i v-bk-tooltips="errorHandleTipsConfig" ref="tooltipsHtml" class="bk-icon icon-question-circle form-item-tips"></i>
+            </bk-form-item>
+            <bk-form-item :label="$t('超时控制')">
+                <div class="timeout-setting-wrap">
+                    <bk-switcher
+                        theme="primary"
+                        size="small"
+                        style="margin-right: 8px;"
+                        :value="formData.timeoutConfig.enable"
+                        :disabled="formData.ignorable || formData.autoRetry.enable"
+                        @change="onTimeoutChange">
+                    </bk-switcher>
+                    <template v-if="formData.timeoutConfig.enable">
+                        {{ $t('超时') }}
+                        <div class="number-input" style="margin: 0 4px;">
+                            <bk-input
+                                v-model.number="formData.timeoutConfig.seconds"
+                                type="number"
+                                style="width: 75px;"
+                                :placeholder="' '"
+                                :min="10"
+                                :max="maxNodeExecuteTimeout"
+                                :precision="0"
+                                @change="updateData">
+                            </bk-input>
+                            <span class="unit">{{ $tc('秒', 0) }}</span>
+                        </div>
+                        {{ $t('后') }}{{ $t('，') }}{{ $t('则') }}
+                        <bk-select
+                            style="width: 160px; margin-left: 4px;"
+                            v-model="formData.timeoutConfig.action"
+                            :clearable="false" @change="updateData">
+                            <bk-option id="forced_fail" :name="$t('强制失败')"></bk-option>
+                            <bk-option id="forced_fail_and_skip" :name="$t('强制失败后跳过')"></bk-option>
+                        </bk-select>
+                    </template>
+                </div>
+                <p v-if="formData.timeoutConfig.enable" class="error-handle-tips" style="margin-top: 6px;">
+                    {{ $t('该功能仅对V2引擎生效') }}
+                </p>
             </bk-form-item>
             <bk-form-item :label="$t('是否可选')">
                 <bk-switcher
@@ -208,6 +267,7 @@
                 subflowLoading: false,
                 version: this.basicInfo.version,
                 formData: tools.deepClone(this.basicInfo),
+                maxNodeExecuteTimeout: window.MAX_NODE_EXECUTE_TIMEOUT,
                 pluginRules: {
                     plugin: [
                         {
@@ -285,7 +345,7 @@
                     allowHtml: true,
                     width: 400,
                     content: '#html-error-ingored-tootip',
-                    placement: 'bottom-end'
+                    placement: 'top'
                 }
             }
         },
@@ -423,6 +483,7 @@
                 this.updateData()
             },
             onErrorHandlerChange (val, type) {
+                this.formData.autoRetry.interval = 0
                 this.formData.autoRetry.times = 1
                 if (type === 'autoRetry') {
                     this.formData.autoRetry.enable = val
@@ -430,6 +491,7 @@
                 } else {
                     if (type === 'retryable') {
                         this.formData.autoRetry.enable = false
+                        this.formData.autoRetry.interval = 0
                         this.formData.autoRetry.times = 1
                     }
                     if (type === 'ignorable' && val) {
@@ -439,10 +501,25 @@
                     }
                     this.formData[type] = val
                 }
+                if (val && ['autoRetry', 'ignorable'].includes(type)) {
+                    this.formData.timeoutConfig = {
+                        enable: false,
+                        seconds: 10,
+                        action: 'forced_fail'
+                    }
+                }
                 this.updateData()
             },
-            onRetryTimeChange (val) {
-                this.formData.autoRetry.times = Number(val)
+            onTimeoutChange (val) {
+                this.formData.timeoutConfig = {
+                    enable: val,
+                    seconds: 10,
+                    action: 'forced_fail'
+                }
+                if (val) {
+                    this.formData.ignorable = false
+                    this.formData.autoRetry.enable = false
+                }
                 this.updateData()
             },
             onSelectableChange (val) {
@@ -457,12 +534,15 @@
                 this.updateData()
             },
             updateData () {
-                const { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, alwaysUseLatest, autoRetry } = this.formData
+                const {
+                    version, nodeName, stageName, nodeLabel, ignorable, skippable,
+                    retryable, selectable, alwaysUseLatest, autoRetry, timeoutConfig
+                } = this.formData
                 let data
                 if (this.isSubflow) {
                     data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, latestVersion: this.version }
                 } else {
-                    data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, autoRetry }
+                    data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, autoRetry, timeoutConfig }
                 }
                 this.$emit('update', data)
             },
@@ -495,7 +575,7 @@
         height: 32px;
         /deep/ .bk-form-checkbox {
             &:not(:last-of-type) {
-                margin-right: 20px;
+                margin-right: 8px;
             }
             &.is-disabled .bk-checkbox-text {
                 color: #c4c6cc;
@@ -503,7 +583,6 @@
         }
         .error-handle-icon {
             display: inline-block;
-            padding: 0 3px;
             line-height: 12px;
             color: #ffffff;
             background: #979ba5;
@@ -516,6 +595,9 @@
         }
         .auto-retry-times {
             display: inline-flex;
+            align-items: center;
+            margin-left: 4px;
+            height: 32px;
             font-size: 12px;
             color: #999999;
         }
@@ -524,6 +606,31 @@
         font-size: 12px;
         line-height: 1;
         color: #ffb400;
+    }
+    .timeout-setting-wrap {
+        display: flex;
+        align-items: center;
+        height: 32px;
+        font-size: 12px;
+        color: #63656e;
+    }
+    .number-input {
+        position: relative;
+        .unit {
+            position: absolute;
+            right: 8px;
+            top: 1px;
+            height: 30px;
+            line-height: 30px;
+            color: #999999;
+            background: transparent;
+        }
+    }
+    .auto-retry-times,
+    .timeout-setting-wrap {
+        /deep/ .bk-input-number .input-number-option {
+            display: none;
+        }
     }
     /deep/ .bk-form {
         .bk-label {

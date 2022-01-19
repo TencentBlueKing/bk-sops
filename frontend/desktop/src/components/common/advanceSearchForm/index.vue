@@ -441,6 +441,12 @@
             .bk-label {
                 min-width: 160px !important;
             }
+            .bk-select .bk-select-tag-container {
+                padding-top: 0;
+                .bk-select-overflow-tag {
+                    display: inline-flex;
+                }
+            }
         }
         /deep/ .bk-select.is-focus {
             background: #ffffff;

@@ -19,9 +19,11 @@
             :option="option"
             :value="getFormValue(atom)"
             :hook="hooked[atom.tag_code]"
+            :render="renderConfig[atom.tag_code]"
             :constants="constants"
             @change="updateForm"
-            @onHook="updateHook">
+            @onHook="updateHook"
+            @onRenderChange="updateRender">
         </component>
     </div>
 </template>
@@ -90,6 +92,10 @@
                     return {}
                 }
             },
+            renderConfig: { // 输入参数是否配置渲染豁免
+                type: Object,
+                default: () => ({})
+            },
             constants: {
                 type: Object,
                 default () {
@@ -138,16 +144,16 @@
                     }
                     changeVarInfo[item.key][key] = false
                     // 监听的变量和对应的隐藏变量
-                    const parmas = {
+                    const params = {
                         target_key: item.key,
                         operator,
                         value,
                         isOr: true // 与逻辑或或逻辑 默认或逻辑
                     }
                     if (key in watchVarInfo) {
-                        watchVarInfo[key].push(parmas)
+                        watchVarInfo[key].push(params)
                     } else {
-                        watchVarInfo[key] = [parmas]
+                        watchVarInfo[key] = [params]
                     }
                 })
             })
@@ -319,12 +325,15 @@
             updateHook (field, val) {
                 this.$emit('onHookChange', field, val)
             },
+            updateRender (field, val) {
+                this.$emit('onRenderChange', field, val)
+            },
             // 设置变量隐藏逻辑
             setVariableHideLogic (key, val) {
                 if (key in this.watchVarInfo) {
                     const values = this.watchVarInfo[key]
                     values.forEach(item => {
-                        let isEqual = val === item.value
+                        let isEqual = JSON.stringify(val) === JSON.stringify(item.value)
                         const index = this.scheme.findIndex(config => config.tag_code === item.target_key)
                         const targetTag = this.$children[index]
                         const relatedVarInfo = this.changeVarInfo[item.target_key]

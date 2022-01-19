@@ -1,3 +1,11 @@
+### Request Address
+
+/v2/sops/set_periodic_task_enabled/
+
+### Request Method
+
+POST
+
 ### Functional description
 
 modify task activation status
@@ -29,9 +37,11 @@ modify task activation status
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
+    "bk_username": "xxx",
     "bk_biz_id": "2",
     "task_id": "8",
-    "enabled": false
+    "enabled": false,
+    "scope": "cmdb_biz"
 }
 ```
 
@@ -42,7 +52,9 @@ modify task activation status
     "data": {
         "enabled": false
     },
-    "result": true
+    "result": true,
+    "request_id": "xxx",
+    "trace_id": "xxx"
 }
 ```
 
@@ -53,6 +65,8 @@ modify task activation status
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    dict    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
+|  request_id     |    string  | esb request id         |
+|  trace_id     |    string  | open telemetry trace_id       |
 
 #### data
 

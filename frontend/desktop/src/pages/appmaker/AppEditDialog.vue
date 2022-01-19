@@ -91,6 +91,8 @@
                             :key="index"
                             :id="option.id"
                             :name="option.name">
+                            <span>{{ option.name }}</span>
+                            <span v-if="option.isDefault" class="default-label">{{$t('默认')}}</span>
                         </bk-option>
                     </bk-select>
                     <i
@@ -317,7 +319,8 @@
                 'loadTemplateList'
             ]),
             ...mapActions('task/', [
-                'loadTaskScheme'
+                'loadTaskScheme',
+                'getDefaultTaskScheme'
             ]),
             useDefaultLogo () {
                 this.isLogoLoadingError = true
@@ -336,14 +339,35 @@
             async getTemplateScheme () {
                 this.schemeLoading = true
                 try {
+                    const defaultScheme = await this.loadDefaultSchemeList()
                     const data = {
                         project_id: this.project_id,
                         template_id: this.appData.appTemplate
                     }
-                    this.schemeList = await this.loadTaskScheme(data)
+                    const resp = await this.loadTaskScheme(data)
+                    this.schemeList = resp.map(item => {
+                        item.isDefault = defaultScheme.includes(item.id)
+                        return item
+                    })
                     this.schemeLoading = false
                 } catch (e) {
                     console.log(e)
+                }
+            },
+            // 获取默认方案列表
+            async loadDefaultSchemeList () {
+                try {
+                    const resp = await this.getDefaultTaskScheme({
+                        project_id: this.project_id,
+                        template_id: this.appData.appTemplate
+                    })
+                    if (resp.data.length) {
+                        const { scheme_ids: schemeIds } = resp.data[0]
+                        return schemeIds
+                    }
+                    return []
+                } catch (error) {
+                    console.error(error)
                 }
             },
             onSelectTemplate (id) {
@@ -667,6 +691,16 @@
     #app-logo {
         visibility: hidden;
     }
+}
+.default-label {
+    height: 22px;
+    line-height: 22px;
+    font-size: 12px;
+    padding: 0 10px;
+    border-radius: 2px;
+    margin-left: 10px;
+    color: #14a568;
+    background: #e4faf0;
 }
 .dialog-footer {
     .bk-button {

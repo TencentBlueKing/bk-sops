@@ -98,10 +98,11 @@ const task = {
          * @param {String} payload 方案参数
          */
         getDefaultTaskScheme ({ commit }, payload) {
-            const { project_id, template_id } = payload
+            const { project_id, template_id, template_type } = payload
             const params = {
                 template_id,
-                project_id
+                project_id,
+                template_type
             }
             return axios.get('template/api/default_scheme/', { params }).then(response => response.data)
         },
@@ -110,10 +111,11 @@ const task = {
          * @param {String} payload 方案参数
          */
         saveDefaultScheme ({ commit }, payload) {
-            const { project_id, template_id, scheme_ids } = payload
+            const { project_id, template_id, scheme_ids, template_type } = payload
             const params = {
                 template_id,
                 project_id,
+                template_type,
                 scheme_ids
             }
             return axios.post('template/api/default_scheme/', params).then(response => response.data)
@@ -123,10 +125,11 @@ const task = {
          * @param {String} payload 方案参数
          */
         updateDefaultScheme ({ commit }, payload) {
-            const { project_id, template_id, scheme_ids, id } = payload
+            const { project_id, template_id, scheme_ids, id, template_type } = payload
             const params = {
                 template_id,
                 project_id,
+                template_type,
                 scheme_ids
             }
             return axios.put(`template/api/default_scheme/${id}/`, params).then(response => response.data)
@@ -329,19 +332,6 @@ const task = {
             }).then(response => response.data)
         },
         /**
-         * 获取节点执行日志
-         * @param {Object} data 节点配置数据
-         */
-        getNodePerformLog ({ commit }, data) {
-            const { project_id } = store.state.project
-            const { instance_id, node_id } = data
-            return axios.get(`taskflow/api/nodes/log/${project_id}/${node_id}/`, {
-                params: {
-                    instance_id
-                }
-            }).then(response => response.data)
-        },
-        /**
          * 获取任务所有全局变量当前渲染后的值
          * @param {Object} data 节点配置数据
          */
@@ -389,6 +379,12 @@ const task = {
                     instance_id
                 }
             }).then(response => response.data)
+        },
+        // 获取v2引擎的节点日志
+        getEngineVerNodeLog ({ commit }, data) {
+            const { project_id } = store.state.project
+            const { node_id, version, instance_id: task_id } = data
+            return axios.get(`taskflow/api/engine_v2/node_log/${project_id}/${task_id}/${node_id}/${version}/`).then(response => response.data)
         },
         /**
          * 获取节点执行信息
@@ -483,6 +479,10 @@ const task = {
         subflowNodeRetry ({ commit }, data) {
             const { project_id } = store.state.project
             return axios.post(`taskflow/api/nodes/action/retry_subprocess/${project_id}/`, data).then(response => response.data)
+        },
+        // itsm 节点审批
+        itsmTransition ({ commit }, params) {
+            return axios.post('pipeline/itsm/node_transition/', params).then(response => response.data)
         }
     }
 }

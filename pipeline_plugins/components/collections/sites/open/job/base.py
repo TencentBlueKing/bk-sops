@@ -202,6 +202,42 @@ def get_job_instance_log(client, service_logger, job_instance_id, bk_biz_id, tar
     return {"result": True, "data": log_text}
 
 
+def get_job_tagged_ip_dict(client, service_logger, job_instance_id, bk_biz_id):
+    """根据job步骤执行标签获取 IP 分组"""
+    kwargs = {
+        "job_instance_id": job_instance_id,
+        "bk_biz_id": bk_biz_id,
+        "return_ip_result": True,
+    }
+    result = client.jobv3.get_job_instance_status(kwargs)
+
+    if not result["result"]:
+        message = handle_api_error(
+            __group_name__,
+            "jobv3.get_job_instance_status",
+            kwargs,
+            result,
+        )
+        service_logger.warning(message)
+        return False, message
+
+    step_instance = result["data"]["step_instance_list"][-1]
+
+    step_ip_result_list = step_instance["step_ip_result_list"]
+    tagged_ip_dict = {}
+
+    for step_ip_result in step_ip_result_list:
+        tag_key = step_ip_result["tag"]
+        if not tag_key:
+            continue
+        if tag_key in tagged_ip_dict:
+            tagged_ip_dict[tag_key] += f",{step_ip_result['ip']}"
+        else:
+            tagged_ip_dict[tag_key] = step_ip_result["ip"]
+
+    return True, tagged_ip_dict
+
+
 def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
     """
     解析作业日志：默认取每个步骤/节点的第一个ip_logs
@@ -252,6 +288,26 @@ class JobService(Service):
 
                 client = data.outputs.client
 
+                # 判断是否对IP进行Tag分组
+                is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", False)
+                tagged_ip_dict = {}
+                if is_tagged_ip:
+                    result, tagged_ip_dict = get_job_tagged_ip_dict(
+                        data.outputs.client,
+                        self.logger,
+                        job_instance_id,
+                        data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+                    )
+
+                    if not result:
+                        self.logger.error(tagged_ip_dict)
+                        data.outputs.ex_data = tagged_ip_dict
+                        self.finish_schedule()
+                        return False
+
+                if "is_tagged_ip" in data.get_inputs():
+                    data.set_outputs("job_tagged_ip_dict", tagged_ip_dict)
+
                 # 全局变量重载
                 get_var_kwargs = {
                     "bk_biz_id": data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
@@ -262,9 +318,7 @@ class JobService(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "job.get_job_instance_global_var_value",
-                        get_var_kwargs,
-                        global_var_result,
+                        "job.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
@@ -356,7 +410,9 @@ class JobScheduleService(JobService):
         ]
         client = get_client_by_user(parent_data.inputs.executor)
 
-        batch_result_list = batch_execute_func(client.job.get_job_instance_log, params_list, interval_enabled=True)
+        batch_result_list = batch_execute_func(client.jobv3.get_job_instance_status, params_list, interval_enabled=True)
+
+        self.logger.info("批量请求get_job_instance_log 结果为:{}".format(batch_result_list))
 
         # 重置查询 job_id
         data.outputs.job_id_of_batch_execute = []
@@ -370,16 +426,15 @@ class JobScheduleService(JobService):
             job_urls = [url for url in data.outputs.job_inst_url if str(job_id_str) in url]
             job_detail_url = job_urls[0] if job_urls else ""
             if result["result"]:
-                log_content = "{}\n".format(result["data"][0]["step_results"][0]["ip_logs"][0]["log_content"])
-                job_status = result["data"][0]["status"]
+                job_status = result["data"]["job_instance"]["status"]
                 # 成功状态
                 if job_status == 3:
                     data.outputs.success_count += 1
                 # 失败状态
                 elif job_status > 3:
-                    data.outputs.ex_data += (
-                        "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>"
-                        "\n错误信息:{}\n".format(job_detail_url, log_content)
+                    # 出于性能考虑，不拉取对应主机IP的日志，引导用户跳转JOB平台查看
+                    data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
+                        job_detail_url
                     )
                 else:
                     running_task_list.append(job_id_str)
@@ -387,7 +442,7 @@ class JobScheduleService(JobService):
                 data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
                     job_detail_url
                 )
-
+                self.logger.error("请求job_id({}),结果为:{}".format(job_id_str, result.get("message")))
         # 需要继续轮询的任务
         data.outputs.job_id_of_batch_execute = running_task_list
         # 结束调度
@@ -432,6 +487,26 @@ class Jobv3Service(Service):
 
                 client = data.outputs.client
 
+                # 判断是否对IP进行Tag分组
+                is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", False)
+                tagged_ip_dict = {}
+                if is_tagged_ip:
+                    result, tagged_ip_dict = get_job_tagged_ip_dict(
+                        data.outputs.client,
+                        self.logger,
+                        job_instance_id,
+                        data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+                    )
+
+                    if not result:
+                        self.logger.error(tagged_ip_dict)
+                        data.outputs.ex_data = tagged_ip_dict
+                        self.finish_schedule()
+                        return False
+
+                if "is_tagged_ip" in data.get_inputs():
+                    data.set_outputs("job_tagged_ip_dict", tagged_ip_dict)
+
                 # 全局变量重载
                 get_var_kwargs = {
                     "bk_biz_id": data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
@@ -442,7 +517,9 @@ class Jobv3Service(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
+                        "jobv3.get_job_instance_global_var_value",
+                        get_var_kwargs,
+                        global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
@@ -587,12 +664,7 @@ class GetJobHistoryResultMixin(object):
         job_result = client.jobv3.get_job_instance_status(job_kwargs)
 
         if not job_result["result"]:
-            message = handle_api_error(
-                __group_name__,
-                "jobv3.get_job_instance_status",
-                job_kwargs,
-                job_result,
-            )
+            message = handle_api_error(__group_name__, "jobv3.get_job_instance_status", job_kwargs, job_result,)
             self.logger.error(message)
             data.outputs.ex_data = message
             self.logger.info(data.outputs)
@@ -612,10 +684,7 @@ class GetJobHistoryResultMixin(object):
             return True
 
         get_job_sops_var_dict_return = get_job_sops_var_dict(
-            client,
-            self.logger,
-            job_success_id,
-            data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+            client, self.logger, job_success_id, data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
         )
         if not get_job_sops_var_dict_return["result"]:
             self.logger.error(

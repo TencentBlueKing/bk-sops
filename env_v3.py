@@ -19,7 +19,7 @@ from blueapps.conf.default_settings import *  # noqa
 
 OPEN_VER = os.getenv("OPEN_VER", "community")
 
-BK_PAAS_HOST = os.getenv("BK_PAAS_HOST", BK_URL)
+BK_PAAS_HOST = os.getenv("BK_PAAS2_URL", BK_URL)
 
 BK_PAAS_INNER_HOST = os.getenv("BK_PAAS_INNER_HOST", BK_PAAS_HOST)
 
