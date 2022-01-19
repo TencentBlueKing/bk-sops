@@ -151,7 +151,7 @@ class PipelineTemplateWebPreviewerTestCase(TestCase):
     @patch("pipeline_web.preview.TaskTemplate", MockTaskTemplate2)
     @patch("pipeline_web.preview.PipelineTemplateWebPreviewer", MockPipelineTemplateWebPreviewer2)
     def test_preview_template_tree_with_schemes(self):
-        data = preview_template_tree_with_schemes(1, "project", 2, "v1", [1, 2, 3])
+        data = preview_template_tree_with_schemes("project", 2, "v1", [1, 2, 3], 1)
 
         MockPipelineTemplateWebPreviewer2.get_template_exclude_task_nodes_with_schemes.assert_called_once_with(
             {"node2", "node1", "node3", "node4"}, [1, 2, 3]
@@ -186,5 +186,6 @@ class PipelineTemplateWebPreviewerTestCase(TestCase):
                         "plugin_code": "",
                     }
                 },
+                "version": "v1",
             },
         )
