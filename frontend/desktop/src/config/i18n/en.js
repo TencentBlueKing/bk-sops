@@ -1297,7 +1297,10 @@ const en = {
     '删除成功！': 'Successfully deleted!',
     '系统变量': 'SYS-VARS',
     '业务变量': 'BUSINESS-VARS',
-    '等待': 'wait'
+    '等待': 'wait',
+    '被个子流程引用': 'quoted by one subprocess | quoted by one Subpro. | quoted by {n} Subpro.',
+    '每次创建任务会使用该执行方案的最新版本且不会提示该节点需要更新': 'Each creation task uses the latest version of the execution scheme and does not prompt the node to update',
+    '如果引用执行方案更新，需要填写新的变量值，请重新打开对应的子流程节点进行填写，或者在子流程节点表单填写时填写非必填项的变量值': 'If you need to fill in the new variable value by referring to the execution plan update, please reopen the corresponding subprocess node to fill in the variable value, or fill in the variable value of the non-mandatory item when filling in the subprocess node form'
 }
 
 export default en
