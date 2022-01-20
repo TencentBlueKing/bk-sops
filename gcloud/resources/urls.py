@@ -16,7 +16,12 @@ from tastypie.api import Api
 from rest_framework.routers import DefaultRouter
 
 from gcloud.clocked_task.viewset import ClockedTaskViewSet
-from gcloud.core.apis.drf.viewsets import ProjectConfigViewSet, ResourceConfigViewSet, StaffGroupSetViewSet
+from gcloud.core.apis.drf.viewsets import (
+    ProjectConfigViewSet,
+    ResourceConfigViewSet,
+    StaffGroupSetViewSet,
+    CollectionViewSet,
+)
 from gcloud.tasktmpl3.apis.drf.viewsets.collection_template import CollectionTemplateViewSet
 from gcloud.template_base.apis.drf.viewsets import TemplateSchemeViewSet
 from gcloud.contrib.operate_record.apis.drf.viewsets import TaskOperateRecordSetViewSet, TemplateOperateRecordSetViewSet
@@ -79,6 +84,7 @@ drf_router.register(r"new_label", LabelViewSet)
 drf_router.register(r"scheme", TemplateSchemeViewSet)
 drf_router.register(r"project_constants", ProjectConstantsViewSet)
 drf_router.register(r"collection_template", CollectionTemplateViewSet)
+drf_router.register(r"collection", CollectionViewSet)
 
 v4_drf_router = DefaultRouter()
 v4_drf_router.register(r"project_template/(?P<project_id>\d+)", ProjectTemplateViewSet, basename="project_template")
