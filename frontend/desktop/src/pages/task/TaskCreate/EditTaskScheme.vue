@@ -24,9 +24,9 @@
             </p>
             <div class="scheme-active-wrapper" v-else>
                 <div>
-                    <bk-button data-test-id="templateEdit_form_addScheme" :disabled="isCommonProcess" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
-                    <bk-button data-test-id="templateEdit_form_importTemporaryPlan" :disabled="isCommonProcess" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
-                    <bk-button data-test-id="templateEdit_form_setDeafultScheme" :disabled="isCommonProcess" @click="onSetDefaultPlan">{{ $t('设置默认方案') }}</bk-button>
+                    <bk-button data-test-id="templateEdit_form_addScheme" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
+                    <bk-button data-test-id="templateEdit_form_importTemporaryPlan" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
+                    <bk-button data-test-id="templateEdit_form_setDeafultScheme" @click="onSetDefaultPlan">{{ $t('设置默认方案') }}</bk-button>
                 </div>
                 <bk-button
                     data-test-id="templateEdit_form_previewNode"
@@ -36,7 +36,7 @@
             </div>
             <section
                 data-test-id="templateEdit_form_schemeList"
-                :class="['scheme-wrapper', { 'is-diasbled': isCommonProcess, 'is-default-scheme': isDefaultSchemeIng }]"
+                :class="['scheme-wrapper', { 'is-default-scheme': isDefaultSchemeIng }]"
                 v-bkloading="{ isLoading: isSchemeLoading }">
                 <p :class="['scheme-title', { 'data-empty': !schemeList.length && !nameEditing }]">
                     <bk-checkbox
@@ -303,7 +303,7 @@
                     })
                     this.$emit('updateTaskSchemeList', this.schemeList)
                     this.$emit('setDefaultScheme', defaultObj)
-                    this.$emit('setDefaultSelected', false)
+                    this.$emit('setDefaultSelected', this.isDefaultSchemeIng)
                 } catch (error) {
                     console.error(error)
                 }

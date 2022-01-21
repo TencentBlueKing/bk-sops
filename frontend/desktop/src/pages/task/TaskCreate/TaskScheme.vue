@@ -11,7 +11,7 @@
             </div>
             <div class="scheme-active-wrapper">
                 <div>
-                    <bk-button data-test-id="createTask_form_createScheme" :disabled="isCommonProcess" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
+                    <bk-button data-test-id="createTask_form_createScheme" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
                     <bk-button data-test-id="createTask_form_importTemporaryPlan" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
                 </div>
                 <bk-button data-test-id="createTask_form_togglePreview" @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
