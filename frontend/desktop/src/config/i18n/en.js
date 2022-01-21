@@ -1297,10 +1297,13 @@ const en = {
     '删除成功！': 'Successfully deleted!',
     '系统变量': 'SYS-VARS',
     '业务变量': 'BUSINESS-VARS',
-    '等待': 'wait',
     '被个子流程引用': 'quoted by one subprocess | quoted by one Subpro. | quoted by {n} Subpro.',
     '每次创建任务会使用该执行方案的最新版本且不会提示该节点需要更新': 'Each creation task uses the latest version of the execution scheme and does not prompt the node to update',
-    '如果引用执行方案更新，需要填写新的变量值，请重新打开对应的子流程节点进行填写，或者在子流程节点表单填写时填写非必填项的变量值': 'If you need to fill in the new variable value by referring to the execution plan update, please reopen the corresponding subprocess node to fill in the variable value, or fill in the variable value of the non-mandatory item when filling in the subprocess node form'
+    '如果引用执行方案更新，需要填写新的变量值，请重新打开对应的子流程节点进行填写，或者在子流程节点表单填写时填写非必填项的变量值': 'If you need to fill in the new variable value by referring to the execution plan update, please reopen the corresponding subprocess node to fill in the variable value, or fill in the variable value of the non-mandatory item when filling in the subprocess node form',
+    '找不到想要的插件？可以尝试自己动手开发！': "Can't find the plug-in you want? You can try to develop it yourself!",
+    '输出参数中不包含trace_id，无法查看第三方节点日志': 'The trace_id is not included in the output parameters, and the third-party node logs cannot be viewed',
+    '等待': 'wait',
+    '全部流程': 'All processes'
 }
 
 export default en

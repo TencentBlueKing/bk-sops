@@ -38,7 +38,8 @@ const proxyPath = [
     'version_log/*',
     'iam/*',
     'plugin_service/*',
-    'mako_operations/*'
+    'mako_operations/*',
+    'collection/*'
 ]
 const proxyRule = {}
 proxyPath.forEach((item) => {

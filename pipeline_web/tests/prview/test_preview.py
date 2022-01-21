@@ -39,6 +39,55 @@ class MockTemplate(object):
     def get_pipeline_tree_by_version(self, version):
         return self.pipeline_tree
 
+    def get_outputs(self, version):
+        return {
+            "${_loop}": {
+                "name": "循环次数",
+                "key": "${_loop}",
+                "desc": "",
+                "custom_type": "",
+                "source_info": {"node2": ["_loop"]},
+                "source_tag": "",
+                "value": "",
+                "show_type": "hide",
+                "source_type": "component_outputs",
+                "validation": "",
+                "index": 1,
+                "version": "legacy",
+                "plugin_code": "",
+            },
+            "${_result}": {
+                "name": "执行结果",
+                "key": "${_result}",
+                "desc": "",
+                "custom_type": "",
+                "source_info": {"node3": ["_result"]},
+                "source_tag": "",
+                "value": "",
+                "show_type": "hide",
+                "source_type": "component_outputs",
+                "validation": "",
+                "index": 2,
+                "version": "legacy",
+                "plugin_code": "",
+            },
+            "${_loop1}": {
+                "name": "循环次数",
+                "key": "${_loop1}",
+                "desc": "",
+                "custom_type": "",
+                "source_info": {"node4": ["${_loop}"]},
+                "source_tag": "",
+                "value": "",
+                "show_type": "hide",
+                "source_type": "component_outputs",
+                "validation": "",
+                "index": 3,
+                "version": "f7b1ef05ac43e5934cd59ce8bacfab96",
+                "plugin_code": "",
+            },
+        }
+
 
 class MockTaskTemplate(object):
     def __init__(self):
@@ -102,7 +151,7 @@ class PipelineTemplateWebPreviewerTestCase(TestCase):
     @patch("pipeline_web.preview.TaskTemplate", MockTaskTemplate2)
     @patch("pipeline_web.preview.PipelineTemplateWebPreviewer", MockPipelineTemplateWebPreviewer2)
     def test_preview_template_tree_with_schemes(self):
-        data = preview_template_tree_with_schemes(1, "project", 2, "v1", [1, 2, 3])
+        data = preview_template_tree_with_schemes("project", 2, "v1", [1, 2, 3], 1)
 
         MockPipelineTemplateWebPreviewer2.get_template_exclude_task_nodes_with_schemes.assert_called_once_with(
             {"node2", "node1", "node3", "node4"}, [1, 2, 3]
@@ -120,5 +169,23 @@ class PipelineTemplateWebPreviewerTestCase(TestCase):
                     "constants": {"${param1}": {"value": "${parent_param2}"}},
                 },
                 "constants_not_referred": {"${param2}": {"value": "constant_value_2"}},
+                "outputs": {
+                    "${_loop1}": {
+                        "name": "循环次数",
+                        "key": "${_loop1}",
+                        "desc": "",
+                        "custom_type": "",
+                        "source_info": {"node4": ["${_loop}"]},
+                        "source_tag": "",
+                        "value": "",
+                        "show_type": "hide",
+                        "source_type": "component_outputs",
+                        "validation": "",
+                        "index": 3,
+                        "version": "f7b1ef05ac43e5934cd59ce8bacfab96",
+                        "plugin_code": "",
+                    }
+                },
+                "version": "v1",
             },
         )

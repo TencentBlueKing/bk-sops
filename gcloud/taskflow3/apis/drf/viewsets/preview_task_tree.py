@@ -27,11 +27,17 @@ logger = logging.getLogger("root")
 
 
 class PreviewTaskTreeWithSchemesSerializer(serializers.Serializer):
-    project_id = serializers.IntegerField(help_text="项目ID")
+    project_id = serializers.IntegerField(help_text="项目ID", required=False)
     template_id = serializers.CharField(help_text="流程模版ID")
-    version = serializers.CharField(help_text="流程模版版本")
+    version = serializers.CharField(help_text="流程模版版本", allow_blank=True)
     template_source = serializers.CharField(help_text="流程模版类型", default=PROJECT)
     scheme_id_list = serializers.ListField(help_text="执行方案ID列表")
+
+    def validate_template_source(self, template_source):
+        if template_source == PROJECT and "project_id" not in self.initial_data:
+            raise serializers.ValidationError("预览项目流程模版必须传入项目ID")
+
+        return template_source
 
 
 class PreviewTaskTreeResponseSerializer(serializers.Serializer):
