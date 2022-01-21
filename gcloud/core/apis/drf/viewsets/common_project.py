@@ -15,31 +15,30 @@ from rest_framework import permissions
 from gcloud.core.models import ProjectCounter
 from gcloud.iam_auth.utils import get_user_projects
 
-from ..filter import ALL, QFilterSet
+from ..filter import ALL_LOOKUP, AllLookupSupportFilterSet
 from ..serilaziers import CommonProjectSerializer
 from .base import GcloudReadOnlyViewSet
 
 
-class CommonProjectFilter(QFilterSet):
+class CommonProjectFilter(AllLookupSupportFilterSet):
     class Meta:
         model = ProjectCounter
-        q_fields = ["id", "username", "count"]
         fields = {
             "id": ["exact"],
-            "username": ALL,
-            "count": ALL,
+            "username": ALL_LOOKUP,
+            "count": ALL_LOOKUP,
         }
 
 
 class CommonProjectViewSet(GcloudReadOnlyViewSet):
     queryset = ProjectCounter.objects.all().order_by("-count")
-
+    search_fields = ["id", "username", "count", "project__name"]
     serializer_class = CommonProjectSerializer
     permission_classes = [permissions.IsAuthenticated]
     filterset_class = CommonProjectFilter
 
     @staticmethod
-    def get_default_projects(empty_query, username):
+    def get_default_projects(username):
         """初始化并返回用户有权限的项目"""
 
         projects = get_user_projects(username)
@@ -60,5 +59,5 @@ class CommonProjectViewSet(GcloudReadOnlyViewSet):
 
         # 第一次访问或无被授权的项目
         if not self.queryset.exists():
-            self.queryset = self.get_default_projects(self.queryset, request.user.username)
+            self.queryset = self.get_default_projects(request.user.username)
         return super(CommonProjectViewSet, self).list(request, *args, **kwargs)

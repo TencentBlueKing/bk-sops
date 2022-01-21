@@ -37,9 +37,9 @@ logger = logging.getLogger("root")
 
 class PackageSourcePermission(IamPermission):
     actions = {
-        "list": IamPermissionInfo(IAMMeta.ADMIN_VIEW_ACTION, res=[], has_object_permission=False),
-        "partial_update": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, obj_res=[], has_permission=False),
-        "create": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, res=[], has_object_permission=False),
+        "list": IamPermissionInfo(IAMMeta.ADMIN_VIEW_ACTION, to_permission="resource"),
+        "partial_update": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, to_permission="resource"),
+        "create": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, to_permission="object"),
         "destroy": IamPermissionInfo(pass_all=True),
     }
 
@@ -59,25 +59,16 @@ class PackageSourceViewSet(GcloudCommonMixin, UpdateAPIView, ListCreateAPIView, 
     serializer_class = PackageSourceSerializer
     permission_classes = [permissions.IsAuthenticated, PackageSourcePermission]
 
-    def apply_filters(self, applicable_filters):
-        return list(chain(*[source.objects.filter(**applicable_filters) for source in get_all_source_objects()]))
+    def list(self, request, *args, **kwargs):
 
-    def build_filters(
-        self,
-        request=None,
-    ):
         filters = dict(request.query_params)
         if "types" in filters:
             filters["types"] = json.loads(filters["types"])
         elif "type" in filters:
             filters["types"] = [filters.pop("type")]
-        return filters
-
-    def list(self, request, *args, **kwargs):
-        filters = self.build_filters(request)
 
         if filters:
-            queryset = self.apply_filters(filters)
+            queryset = list(chain(*[source.objects.filter(**filters) for source in get_all_source_objects()]))
         else:
             queryset = get_all_source_objects()
         page = self.paginate_queryset(queryset)

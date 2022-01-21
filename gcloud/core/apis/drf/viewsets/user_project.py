@@ -12,46 +12,45 @@ specific language governing permissions and limitations under the License.
 """
 from rest_framework import permissions
 
-from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth import IAMMeta, res_factory
 from gcloud.iam_auth.utils import get_user_projects
 
 from gcloud.core.models import Project
-from ..filter import ALL, QFilterSet
+from ..filter import ALL_LOOKUP, AllLookupSupportFilterSet
 from ..serilaziers import ProjectSerializer
-from ..resource_helpers import ResourceHelper
+from ..resource_helpers import ViewSetResourceHelper
 from ..permission import IamPermissionInfo, IamPermission
 
 from .base import GcloudListViewSet
 
 
 class UserProjectPermission(IamPermission):
-    res_func_str = "resources_for_project_obj"
+    resource_func = res_factory.resources_for_project_obj
     actions = {
         "list": IamPermissionInfo(pass_all=True),
-        "update": IamPermissionInfo(IAMMeta.PROJECT_EDIT_ACTION, obj_res=res_func_str, has_permission=False),
-        "partial_update": IamPermissionInfo(IAMMeta.PROJECT_EDIT_ACTION, obj_res=res_func_str, has_permission=False),
-        "retrieve": IamPermissionInfo(IAMMeta.PROJECT_VIEW_ACTION, obj_res=res_func_str, has_permission=False),
+        "update": IamPermissionInfo(IAMMeta.PROJECT_EDIT_ACTION, resource_func, to_permission="object"),
+        "partial_update": IamPermissionInfo(IAMMeta.PROJECT_EDIT_ACTION, resource_func, to_permission="object"),
+        "retrieve": IamPermissionInfo(IAMMeta.PROJECT_VIEW_ACTION, resource_func, to_permission="object"),
     }
 
 
-class UserProjectFilter(QFilterSet):
+class UserProjectFilter(AllLookupSupportFilterSet):
     class Meta:
         model = Project
-        q_fields = ["id", "name", "desc", "creator"]
         fields = {
-            "is_disable": ALL,
+            "is_disable": ALL_LOOKUP,
         }
 
 
 class UserProjectSetViewSet(GcloudListViewSet):
     queryset = Project.objects.all().order_by("-id")
-
     serializer_class = ProjectSerializer
     permission_classes = [permissions.IsAuthenticated, UserProjectPermission]
     filterset_class = UserProjectFilter
+    search_fields = ["id", "name", "desc", "creator"]
 
-    iam_resource_helper = ResourceHelper(
-        res_type="resources_for_project_obj",
+    iam_resource_helper = ViewSetResourceHelper(
+        resource_func=res_factory.resources_for_project_obj,
         actions=[
             IAMMeta.PROJECT_VIEW_ACTION,
             IAMMeta.PROJECT_EDIT_ACTION,

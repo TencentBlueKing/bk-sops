@@ -16,18 +16,18 @@ from django.utils.translation import ugettext_lazy as _
 from gcloud.core.models import Business
 
 from .base import GcloudReadOnlyViewSet
-from ..filter import VarietyFilterSet, ALL
+from ..filter import AllLookupSupportFilterSet, ALL_LOOKUP
 from ..serilaziers import BusinessSerializer
 
 
-class BusinessFilter(VarietyFilterSet):
+class BusinessFilter(AllLookupSupportFilterSet):
     class Meta:
         model = Business
         fields = {
-            "cc_id": ALL,
-            "cc_name": ALL,
-            "cc_owner": ALL,
-            "cc_company": ALL,
+            "cc_id": ALL_LOOKUP,
+            "cc_name": ALL_LOOKUP,
+            "cc_owner": ALL_LOOKUP,
+            "cc_company": ALL_LOOKUP,
         }
 
 

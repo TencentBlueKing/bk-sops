@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -14,22 +14,21 @@ from rest_framework import permissions
 from pipeline_web.label.models import Label
 
 from .base import GcloudReadOnlyViewSet
-from ..filter import VarietyFilterSet, ALL
+from ..filter import ALL_LOOKUP, AllLookupSupportFilterSet
 from ..serilaziers import BusinessSerializer
 
 
-class LabelFilter(VarietyFilterSet):
+class LabelFilter(AllLookupSupportFilterSet):
     class Meta:
         model = Label
         fields = {
-            "code": ALL,
-            "group__code": ALL,
+            "code": ALL_LOOKUP,
+            "group__code": ["icontains", "iexact"],
         }
 
 
 class LabelViewSet(GcloudReadOnlyViewSet):
     queryset = Label.objects.all()
-
     serializer_class = BusinessSerializer
     permission_classes = [permissions.IsAuthenticated]
     filterset_class = LabelFilter

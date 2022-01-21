@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud.iam_auth import res_factory, get_iam_client, IAMMeta
+from gcloud.iam_auth import get_iam_client, IAMMeta
 from gcloud.iam_auth.resource_helpers.base import SimpleSubjectEnvHelperMixin
 
 from iam.contrib.tastypie.resource import IAMResourceHelper
@@ -19,14 +19,14 @@ from iam.contrib.tastypie.resource import IAMResourceHelper
 iam_client = get_iam_client()
 
 
-class ResourceHelper(SimpleSubjectEnvHelperMixin, IAMResourceHelper):
-    def __init__(self, res_type, iam=iam_client, system=IAMMeta.SYSTEM_ID, id_field="id", *args, **kwargs):
-        self.type = res_type
+class ViewSetResourceHelper(SimpleSubjectEnvHelperMixin, IAMResourceHelper):
+    def __init__(self, resource_func, iam=iam_client, system=IAMMeta.SYSTEM_ID, id_field="id", *args, **kwargs):
+        self.resource_func = resource_func
         self.id_field = id_field
         super().__init__(iam, system, *args, **kwargs)
 
     def get_resources(self, obj):
-        return getattr(res_factory, self.type)(obj)
+        return self.resource_func(obj)
 
     def get_resources_id(self, obj):
         return getattr(obj, self.id_field)

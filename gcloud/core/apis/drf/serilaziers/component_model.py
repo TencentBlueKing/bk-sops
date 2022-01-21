@@ -90,10 +90,10 @@ class ComponentModelSerializer(serializers.ModelSerializer):
         return super(ComponentModelSerializer, self).to_representation(instance)
 
 
-class ListSerializer(ComponentModelSerializer):
+class ComponentModelListSerializer(ComponentModelSerializer):
     base = None
 
 
-class DetailSerializer(ComponentModelSerializer):
+class ComponentModelDetailSerializer(ComponentModelSerializer):
     phase = None
     sort_key_group_en = None

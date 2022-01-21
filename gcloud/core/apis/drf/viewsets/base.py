@@ -13,17 +13,14 @@ specific language governing permissions and limitations under the License.
 import logging
 from collections import Iterable
 
-from django.conf import settings
 from rest_framework import generics
-
 from rest_framework.response import Response
+from rest_framework.filters import SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
 
 from django_filters.rest_framework import DjangoFilterBackend
-
 from gcloud.iam_auth import get_iam_client
 from gcloud.core.apis.drf.viewsets import IAMMixin, ApiMixin
-from gcloud.core.apis.drf.authentication import CsrfExemptSessionAuthentication
 
 iam = get_iam_client()
 iam_logger = logging.getLogger("iam")
@@ -35,27 +32,16 @@ class GcloudLimitOffsetPagination(LimitOffsetPagination):
 
 class GcloudCommonMixin(IAMMixin, ApiMixin):
     pagination_class = GcloudLimitOffsetPagination
-    filter_backends = (DjangoFilterBackend,)
-    # 开发环境csrf豁免
-    if settings.RUN_MODE == "DEVELOP":
-        authentication_classes = [CsrfExemptSessionAuthentication]
+    filter_backends = (DjangoFilterBackend, SearchFilter)
 
     def get_queryset(self):
-        self.queryset = {
-            "list": self.queryset,
-            "retrieve": getattr(self, "detail_queryset", self.queryset),
-        }.get(self.action, self.queryset)
-
+        """支持不同acton调用不同的queryset"""
+        self.queryset = getattr(self, f"{self.action}_queryset", self.queryset)
         return super(GcloudCommonMixin, self).get_queryset()
 
     def get_serializer_class(self):
-        self.serializer_class = {
-            "list": self.serializer_class,
-            "retrieve": getattr(self, "detail_serializer_class", self.serializer_class),
-            "update": getattr(self, "update_serializer_class", self.serializer_class),
-            "crate": getattr(self, "create_serializer_class", self.serializer_class),
-        }.get(self.action, self.serializer_class)
-
+        """支持不同acton调用不同的serializer_class"""
+        self.serializer_class = getattr(self, f"{self.action}_serializer_class", self.serializer_class)
         return super(GcloudCommonMixin, self).get_serializer_class()
 
     def injection_auth_actions(self, request, serializer_data, queryset_data):
@@ -108,18 +94,16 @@ class GcloudUpdateViewSet(generics.UpdateAPIView, GcloudRetrieveViewSet):
 
 
 class GcloudReadOnlyViewSet(GcloudListViewSet, GcloudRetrieveViewSet):
-    """只读"""
-
     pass
 
 
 class GcloudReadOnlyUpdateViewSet(GcloudUpdateViewSet, GcloudReadOnlyViewSet):
-    """只读更新"""
-
     pass
 
 
 class GcloudModelViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, generics.DestroyAPIView, GcloudUpdateViewSet):
-    """all"""
+    """
+    crate 和 destroy 方法使用原生实现。如有需要，可自行重写方法
+    """
 
     pass

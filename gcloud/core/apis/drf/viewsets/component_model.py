@@ -12,17 +12,16 @@ specific language governing permissions and limitations under the License.
 """
 from django.db.models import Q
 from rest_framework import permissions
-from django_filters import CharFilter
+from django_filters import CharFilter, FilterSet
 
 from pipeline.component_framework.models import ComponentModel
 from gcloud.core.models import ProjectBasedComponent
 
 from .base import GcloudReadOnlyViewSet
-from ..filter import VarietyFilterSet
-from ..serilaziers.component_model import ListSerializer, DetailSerializer
+from ..serilaziers.component_model import ComponentModelListSerializer, ComponentModelDetailSerializer
 
 
-class ComponentModelFilter(VarietyFilterSet):
+class ComponentModelFilter(FilterSet):
     project_id = CharFilter(method="filter_by_project_id")
 
     def filter_by_project_id(self, queryset, name, value):
@@ -41,12 +40,9 @@ class ComponentModelFilter(VarietyFilterSet):
 
 class ComponentModelSetViewSet(GcloudReadOnlyViewSet):
     queryset = ComponentModel.objects.filter(status=True).exclude(code="remote_plugin").order_by("name")
-    detail_queryset = ComponentModel.objects.filter(status=True).order_by("name")
-
-    serializer_class = ListSerializer
-    detail_serializer_class = DetailSerializer
-
+    retrieve_queryset = ComponentModel.objects.filter(status=True).order_by("name")
+    serializer_class = ComponentModelListSerializer
+    detail_serializer_class = ComponentModelDetailSerializer
     permission_classes = [permissions.IsAuthenticated]
-
     filterset_class = ComponentModelFilter
     lookup_field = "code"

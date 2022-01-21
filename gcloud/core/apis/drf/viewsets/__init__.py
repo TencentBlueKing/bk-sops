@@ -18,7 +18,7 @@ from .business import *  # noqa
 from .project import *  # noqa
 from .component_model import *  # noqa
 from .user_project import *  # noqa
-from .common_use_project import *  # noqa
+from .common_project import *  # noqa
 from .label import *  # noqa
 from .package_source import *  # noqa
 from .sync_task import *  # noqa

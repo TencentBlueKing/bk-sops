@@ -17,7 +17,7 @@ from gcloud.iam_auth import IAMMeta
 from gcloud.external_plugins.models import CachePackageSource, SyncTask, RUNNING
 
 from .base import GcloudModelViewSet
-from ..filter import VarietyFilterSet, ALL
+from ..filter import ALL_LOOKUP, AllLookupSupportFilterSet
 from ..serilaziers import SyncTaskSerializer
 from ..permission import IamPermissionInfo, IamPermission
 from ..viewsets.package_source import get_all_source_objects
@@ -25,34 +25,33 @@ from ..viewsets.package_source import get_all_source_objects
 
 class SyncTaskPermission(IamPermission):
     actions = {
-        "list": IamPermissionInfo(IAMMeta.ADMIN_VIEW_ACTION, res=[], has_object_permission=False),
-        "retrieve": IamPermissionInfo(IAMMeta.ADMIN_VIEW_ACTION, res=[], has_permission=False),
-        "partial_update": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, obj_res=[], has_permission=False),
-        "update": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, obj_res=[], has_permission=False),
-        "create": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, res=[], has_object_permission=False),
+        "list": IamPermissionInfo(IAMMeta.ADMIN_VIEW_ACTION, to_permission="resource"),
+        "retrieve": IamPermissionInfo(IAMMeta.ADMIN_VIEW_ACTION, to_permission="object"),
+        "partial_update": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, to_permission="object"),
+        "update": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, to_permission="object"),
+        "create": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, to_permission="resource"),
         "destroy": IamPermissionInfo(pass_all=True),
     }
 
 
-class SyncTaskFilter(VarietyFilterSet):
+class SyncTaskFilter(AllLookupSupportFilterSet):
     class Meta:
         model = SyncTask
-        q_fields = ["id", "pipeline_template__name"]
         fields = {
             "id": ["exact"],
-            "creator": ALL,
+            "creator": ALL_LOOKUP,
             "create_method": ["exact"],
             "start_time": ["range", "in", "exact"],
             "finish_time": ["range", "in", "exact"],
-            "status": ALL,
+            "status": ALL_LOOKUP,
         }
 
 
 class SyncTaskViewSet(GcloudModelViewSet):
     queryset = SyncTask.objects.all()
-
     serializer_class = SyncTaskSerializer
     permission_classes = [permissions.IsAuthenticated, SyncTaskPermission]
+    search_fields = ["id", "pipeline_template__name"]
     filterset_class = SyncTaskFilter
 
     def create(self, request, *args, **kwargs):

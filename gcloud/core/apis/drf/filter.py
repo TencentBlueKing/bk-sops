@@ -10,72 +10,62 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from collections import OrderedDict
 
-from django.db.models import Q
-from haystack.query import SearchQuerySet
-from django_filters.constants import ALL_FIELDS
-from django_filters.utils import get_all_model_fields
-from django_filters import CharFilter
 from django_filters.conf import settings
 from django_filters.filterset import FilterSet
 
-ALL = "__all__"
+
+ALL_LOOKUP = "__all__"
+LOOKUP_SEP = "__"
 
 
-class VarietyFilterSet(FilterSet):
+class AllLookupSupportFilterSet(FilterSet):
+    @classmethod
+    def get_field_lookup(cls, field, source_lookup):
+        """
+        :param field: 需要被查询lookup的model字段
+        :param source_lookup: field原始lookup查询条件
+        """
+        # 外键透传, 为ALL_LOOKUP时返回 exact
+        if LOOKUP_SEP in field:
+            return [settings.DEFAULT_LOOKUP_EXPR] if source_lookup == ALL_LOOKUP else source_lookup
+
+        field = cls._meta.model._meta.get_field(field)
+        return field.get_lookups().keys()
+
     @classmethod
     def get_fields(cls):
-        model = cls._meta.model
-        fields = cls._meta.fields
-        exclude = cls._meta.exclude
+        """
+        支持filterset meta中配置flookups, 当fields为list或tuple时，使fields中字段支持lookups中声明的lookup。
+        如 ：lookups = ["in", "contains"]
+        如 ：lookups = "__all__"
 
-        assert not (fields is None and exclude is None), (
-            "Setting 'Meta.model' without either 'Meta.fields' or 'Meta.exclude' "
-            "has been deprecated since 0.15.0 and is now disallowed. Add an explicit "
-            "'Meta.fields' or 'Meta.exclude' to the %s class." % cls.__name__
-        )
+        支持filterset meta fields属性指定的filter字段支持orm中所有查询语法。声明外键为all时暂只支持exact查询
+        如： fields = {"id":“ __all__","name": “__all__"}
+        如： fields = {"id":“ __all__","name": ["in", "contains"], "info__num": ["in", "range"]}
+        如： fields = ["id", "name", "info__num"]
+        """
+        exclude = cls._meta.exclude or []
+        source_fields = super(AllLookupSupportFilterSet, cls).get_fields()
 
-        if exclude is not None and fields is None:
-            fields = ALL_FIELDS
-
-        if fields == ALL_FIELDS:
-            fields = get_all_model_fields(model)
-
-        exclude = exclude or []
-        if not isinstance(fields, dict):
-            fields = [(f, [settings.DEFAULT_LOOKUP_EXPR]) for f in fields if f not in exclude]
+        if isinstance(cls._meta.fields, dict):
+            for field, lookups in source_fields.items():
+                if field in exclude:
+                    continue
+                elif lookups == ALL_LOOKUP:
+                    source_fields[field] = cls.get_field_lookup(field, source_fields[field])
         else:
-            # 支持 __all__
-            fields = cls.support_lookup_when_all(model, fields, exclude)
-        return OrderedDict(fields)
+            lookups = getattr(cls._meta, "lookups")
+            if not lookups:
+                return source_fields
 
-    @staticmethod
-    def support_lookup_when_all(model, fields, exclude):
-        """获取model指定field的lookup"""
-        if fields is None:
-            return None
-        find_fields = []
-        for field in model._meta.fields:
-            if field.name in fields and field.name not in exclude:
-                lookups = fields[field.name]
-                if lookups == ALL:
-                    find_fields.append((field.name, field.get_lookups().keys()))
-        return find_fields
+            for field in cls._meta.fields:
+                if field in exclude:
+                    continue
 
-
-class QFilterSet(VarietyFilterSet):
-    q = CharFilter(method="filter_by_q")
-
-    def filter_by_q(self, queryset, name, value):
-        if getattr(self.Meta, "q_fields", []):
-            queries = [Q(**{"%s__contains" % field: value}) for field in self.Meta.q_fields]
-            query = queries.pop()
-            for item in queries:
-                query |= item
-            return queryset.filter(query)
-
-        else:
-            sqs = SearchQuerySet().models(self._meta.object_class).auto_query(value).query_facet(self.Meta.q_fields)
-            # 创建自定义定过滤条件
-            return queryset.filter(pk__in=[i.pk for i in sqs])
+                field_lookup = cls.get_field_lookup(field, source_fields[field])
+                if lookups == ALL_LOOKUP:
+                    source_fields[field] = field_lookup
+                else:
+                    source_fields[field] = list(set(lookups) & set(field_lookup))
+        return source_fields
