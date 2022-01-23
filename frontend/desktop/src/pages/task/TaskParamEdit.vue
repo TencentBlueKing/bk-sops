@@ -253,14 +253,14 @@
                             }
                             let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                             currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
-                            variable.value = currentFormConfig.attrs.value
                             if (!('meta' in variable)) { // 元变量不存在meta字段
                                 variable.meta = tools.deepClone(variable)
                             }
+                            variable.value = currentFormConfig.attrs.value
                         }
                     } else {
                         variable.value = this.renderData[key]
-                        if (!('meta' in variable)) { // 元变量不存在meta字段
+                        if (variable.is_meta && !('meta' in variable)) { // 元变量不存在meta字段
                             variable.meta = this.metaConfig[key]
                         }
                     }
