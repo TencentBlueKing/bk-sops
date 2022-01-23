@@ -277,7 +277,8 @@
             versionList: Array,
             isSubflow: Boolean,
             inputLoading: Boolean,
-            subflowUpdated: Boolean
+            subflowUpdated: Boolean,
+            common: [String, Number]
         },
         data () {
             return {
@@ -459,7 +460,8 @@
                 try {
                     const data = {
                         project_id: this.projectId,
-                        template_id: this.basicInfo.tpl
+                        template_id: this.basicInfo.tpl,
+                        isCommon: this.common
                     }
                     this.schemeList = await this.loadTaskScheme(data)
                     this.schemeListLoading = false
