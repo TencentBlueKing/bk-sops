@@ -88,6 +88,7 @@
                         </bk-checkbox>
                         <span class="scheme-name" :title="item.name">{{item.name}}</span>
                         <span v-if="item.isDefault" class="default-label">{{$t('默认')}}</span>
+                        <span v-if="item.quote_count > 0" class="quoted-count">{{ $tc('被个子流程引用', item.quote_count, { n: item.quote_count }) }}</span>
                         <p class="icon-btn-wrapper" v-if="!isDefaultSchemeIng">
                             <i
                                 v-bk-tooltips="{ content: $t('编辑'), boundary: 'window' }"
@@ -96,7 +97,7 @@
                             </i>
                             <i
                                 v-bk-tooltips="{ content: $t('删除'), boundary: 'window' }"
-                                class="bk-icon icon-delete"
+                                :class="['bk-icon icon-delete', { disabled: item.quote_count > 0 }]"
                                 @click="onDeleteScheme(item)">
                             </i>
                         </p>
@@ -137,7 +138,7 @@
     import bus from '@/utils/bus.js'
 
     export default {
-        name: 'EditeTaskScheme',
+        name: 'EditTaskScheme',
         mixins: [permission],
         props: {
             template_id: {
@@ -532,7 +533,7 @@
              */
             async onDeleteScheme (scheme) {
                 // 提示用户先保存创建方案再进行其他操作
-                if (this.setRemindUserMsg()) return
+                if (this.setRemindUserMsg() || scheme.quote_count > 0) return
                 const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
                 const hasPermission = this.checkSchemeRelativePermission([tplAction])
 
@@ -734,7 +735,7 @@
                 border-bottom: 1px solid #ebebeb;
             }
             .scheme-name {
-                max-width: 400px;
+                max-width: 310px;
                 margin-left: 10px;
                 overflow: hidden;
                 white-space: nowrap;
@@ -751,6 +752,10 @@
                 color: #14a568;
                 background: #e4faf0;
             }
+            .quoted-count {
+                margin-left: 7px;
+                color: #979ba5;
+            }
             .icon-btn-wrapper {
                 position: absolute;
                 top: 15px;
@@ -765,8 +770,12 @@
                     color: #979ba5;
                     margin-left: 12px;
                     font-weight: 500;
-                    &:hover {
+                    &:not(.disabled):hover {
                         color: #3a84ff !important;
+                    }
+                    &.disabled {
+                        color: #c4c6cc;
+                        cursor: not-allowed;
                     }
                 }
             }
