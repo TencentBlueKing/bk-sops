@@ -28,7 +28,6 @@ class BusinessFilter(AllLookupSupportFilterSet):
             "cc_name",
             "cc_owner",
             "cc_company",
-            "groups__permissions__content_type__app_label",
         ]
 
         lookups = ALL_LOOKUP

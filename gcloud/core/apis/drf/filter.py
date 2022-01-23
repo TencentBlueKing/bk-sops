@@ -24,10 +24,14 @@ class AllLookupSupportFilterSetOptions(FilterSetOptions):
 
 
 class AllLookupSupportFilterSetMetaclass(type):
+    """
+    FILTER_SET_OPTIONS_CLS 需要重新定义
+    """
+
     def __new__(cls, name, bases, attrs):
         attrs["declared_filters"] = cls.get_declared_filters(bases, attrs)
         new_class = super().__new__(cls, name, bases, attrs)
-        new_class._meta = AllLookupSupportFilterSetOptions(getattr(new_class, "Meta", None))
+        new_class._meta = new_class.FILTER_SET_OPTIONS_CLS(getattr(new_class, "Meta", None))
         new_class.base_filters = new_class.get_filters()
         assert not hasattr(new_class, "filter_for_reverse_field"), (
             "`%(cls)s.filter_for_reverse_field` has been removed. "
@@ -41,7 +45,9 @@ class AllLookupSupportFilterSetMetaclass(type):
         return FilterSetMetaclass.get_declared_filters(bases, attrs)
 
 
-class AllLookupSupportBaseFilterSet(BaseFilterSet):
+class AllLookupSupportFilterSet(BaseFilterSet, metaclass=AllLookupSupportFilterSetMetaclass):
+    FILTER_SET_OPTIONS_CLS = AllLookupSupportFilterSetOptions
+
     @classmethod
     def set_field_lookup(cls, field, lookups, fields_lookups):
         """
@@ -92,7 +98,7 @@ class AllLookupSupportBaseFilterSet(BaseFilterSet):
         lookups = cls._meta.lookups
         fields = cls._meta.fields
 
-        fields_lookups = super(AllLookupSupportBaseFilterSet, cls).get_fields()
+        fields_lookups = super(AllLookupSupportFilterSet, cls).get_fields()
 
         if isinstance(fields, dict):
             for field, lookups in fields_lookups.items():
@@ -101,12 +107,8 @@ class AllLookupSupportBaseFilterSet(BaseFilterSet):
         else:
             if not lookups:
                 return fields_lookups
-
+            fields = fields_lookups.keys() if fields == ALL_LOOKUP else fields
             for field in fields:
                 if field not in exclude:
                     cls.set_field_lookup(field, lookups, fields_lookups)
         return fields_lookups
-
-
-class AllLookupSupportFilterSet(AllLookupSupportBaseFilterSet, metaclass=AllLookupSupportFilterSetMetaclass):
-    pass
