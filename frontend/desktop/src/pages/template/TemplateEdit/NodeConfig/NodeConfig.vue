@@ -764,14 +764,16 @@
             /**
              * 加载子流程任务节点输入、输出、版本配置项
              */
-            async getSubflowDetail (tpl, version) {
+            async getSubflowDetail (tpl, version = '') {
                 this.subflowLoading = true
                 try {
                     const params = {
-                        project_id: this.project_id,
                         template_id: tpl,
                         scheme_id_list: this.basicInfo.schemeIdList,
                         version
+                    }
+                    if (!this.common) {
+                        params.project_id = this.project_id
                     }
                     const resp = await this.loadSubflowConfig(params)
                     this.subflowForms = resp.data.pipeline_tree.constants
