@@ -29,7 +29,7 @@ from gcloud.external_plugins.models import source_cls_factory, CachePackageSourc
 from gcloud.external_plugins.schemas import ADD_SOURCE_SCHEMA, UPDATE_SOURCE_SCHEMA
 
 from .base import GcloudCommonMixin
-from ..permission import IamPermissionInfo, IamPermission
+from ..permission import IamPermissionInfo, IamPermission, HAS_OBJECT_PERMISSION
 from ..serilaziers import PackageSourceSerializer
 
 logger = logging.getLogger("root")
@@ -37,9 +37,9 @@ logger = logging.getLogger("root")
 
 class PackageSourcePermission(IamPermission):
     actions = {
-        "list": IamPermissionInfo(IAMMeta.ADMIN_VIEW_ACTION, to_permission="resource"),
-        "partial_update": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, to_permission="resource"),
-        "create": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, to_permission="object"),
+        "list": IamPermissionInfo(IAMMeta.ADMIN_VIEW_ACTION),
+        "partial_update": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION),
+        "create": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, check_hook=HAS_OBJECT_PERMISSION),
         "destroy": IamPermissionInfo(pass_all=True),
     }
 

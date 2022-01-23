@@ -15,32 +15,37 @@ from rest_framework.exceptions import PermissionDenied
 
 from gcloud.core.apis.drf.viewsets import IAMMixin
 
+HAS_PERMISSION = "has_permission"
+HAS_OBJECT_PERMISSION = "has_object_permission"
+
 
 class IamPermissionInfo:
     def __init__(
         self,
         iam_action=None,
         resource_func=None,
+        check_hook=HAS_PERMISSION,
         id_field="id",
         pass_all=False,
-        to_permission="resource",
     ):
         """
         :param iam_action: 权限类型
         :param resource_func: has_permission中需要校验的资源，需要在res_factory模块中定义函数,默认为[]
         :param id_field: 资源指定字段，会从request中获取，然后被 res　调用， 从request中获取失败时，抛出 PermissionDenied 异常
         :param pass_all: 行为不做校验，直接通过，优先级最高
-        :param to_permission: object 或者 resource , 为resource时执行has_permission, object时执行has_object_permission
+        :param check_hook: has_permission 或者 has_object_permission
         """
         self.iam_action = iam_action
         self.pass_all = pass_all
-        self.to_permission = to_permission
+        if check_hook in [HAS_PERMISSION, HAS_OBJECT_PERMISSION]:
+            self.check_hook = check_hook
+        else:
+            raise ValueError("参数 check_hook 需为 has_permission, has_object_permission之一")
         self.resource_func = resource_func if resource_func else []
         self.id_field = id_field
 
 
 class IamPermission(IAMMixin, permissions.BasePermission):
-
     actions = {}
 
     def get_id_field(self, request, id_field):
@@ -49,7 +54,7 @@ class IamPermission(IAMMixin, permissions.BasePermission):
             raise PermissionDenied
         return id_field
 
-    def check_permission(self, request, view, resource_param=None, permission_from=None):
+    def check_permission(self, request, view, resource_param=None, check_hook=None):
 
         # 未出现在actions中的行为不被允许
         if view.action not in self.actions:
@@ -61,19 +66,20 @@ class IamPermission(IAMMixin, permissions.BasePermission):
         if permission_info.pass_all:
             return True
 
-        # 匹配权限校验
-        if permission_info.to_permission == permission_from:
-            if permission_from == "resource":
-                resource_param = self.get_id_field(request, permission_info.id_field)
+        # 不匹配权限不做校验
+        if permission_info.check_hook != check_hook:
+            return True
+        # 获取权限参数
+        if check_hook == HAS_PERMISSION:
+            resource_param = self.get_id_field(request, permission_info.id_field)
 
-            resources = []
-            if permission_info.resource_func:
-                resources = permission_info.resource_func(resource_param)
-            self.iam_auth_check(request, action=permission_info.iam_action, resources=resources)
-        return True
+        resources = []
+        if permission_info.resource_func:
+            resources = permission_info.resource_func(resource_param)
+        self.iam_auth_check(request, action=permission_info.iam_action, resources=resources)
 
     def has_permission(self, request, view):
-        return self.check_permission(request, view, permission_from="resource")
+        return self.check_permission(request, view, check_hook=HAS_PERMISSION)
 
     def has_object_permission(self, request, view, obj):
-        return self.check_permission(request, view, obj, "object")
+        return self.check_permission(request, view, obj, HAS_OBJECT_PERMISSION)

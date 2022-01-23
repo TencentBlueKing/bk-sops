@@ -23,12 +23,15 @@ from ..serilaziers import BusinessSerializer
 class BusinessFilter(AllLookupSupportFilterSet):
     class Meta:
         model = Business
-        fields = {
-            "cc_id": ALL_LOOKUP,
-            "cc_name": ALL_LOOKUP,
-            "cc_owner": ALL_LOOKUP,
-            "cc_company": ALL_LOOKUP,
-        }
+        fields = [
+            "cc_id",
+            "cc_name",
+            "cc_owner",
+            "cc_company",
+            "groups__permissions__content_type__app_label",
+        ]
+
+        lookups = ALL_LOOKUP
 
 
 class BusinessSetViewSet(GcloudReadOnlyViewSet):

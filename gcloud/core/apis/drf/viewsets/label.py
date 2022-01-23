@@ -15,7 +15,7 @@ from pipeline_web.label.models import Label
 
 from .base import GcloudReadOnlyViewSet
 from ..filter import ALL_LOOKUP, AllLookupSupportFilterSet
-from ..serilaziers import BusinessSerializer
+from ..serilaziers import LabelSerializer
 
 
 class LabelFilter(AllLookupSupportFilterSet):
@@ -29,6 +29,6 @@ class LabelFilter(AllLookupSupportFilterSet):
 
 class LabelViewSet(GcloudReadOnlyViewSet):
     queryset = Label.objects.all()
-    serializer_class = BusinessSerializer
+    serializer_class = LabelSerializer
     permission_classes = [permissions.IsAuthenticated]
     filterset_class = LabelFilter

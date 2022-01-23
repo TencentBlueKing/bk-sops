@@ -19,7 +19,7 @@ from gcloud.core.models import Project
 from ..filter import ALL_LOOKUP, AllLookupSupportFilterSet
 from ..serilaziers import ProjectSerializer
 from ..resource_helpers import ViewSetResourceHelper
-from ..permission import IamPermissionInfo, IamPermission
+from ..permission import IamPermissionInfo, IamPermission, HAS_OBJECT_PERMISSION
 
 from .base import GcloudListViewSet
 
@@ -28,9 +28,11 @@ class UserProjectPermission(IamPermission):
     resource_func = res_factory.resources_for_project_obj
     actions = {
         "list": IamPermissionInfo(pass_all=True),
-        "update": IamPermissionInfo(IAMMeta.PROJECT_EDIT_ACTION, resource_func, to_permission="object"),
-        "partial_update": IamPermissionInfo(IAMMeta.PROJECT_EDIT_ACTION, resource_func, to_permission="object"),
-        "retrieve": IamPermissionInfo(IAMMeta.PROJECT_VIEW_ACTION, resource_func, to_permission="object"),
+        "update": IamPermissionInfo(IAMMeta.PROJECT_EDIT_ACTION, resource_func, check_hook=HAS_OBJECT_PERMISSION),
+        "retrieve": IamPermissionInfo(IAMMeta.PROJECT_VIEW_ACTION, resource_func, HAS_OBJECT_PERMISSION),
+        "partial_update": IamPermissionInfo(
+            IAMMeta.PROJECT_EDIT_ACTION, resource_func, check_hook=HAS_OBJECT_PERMISSION
+        ),
     }
 
 

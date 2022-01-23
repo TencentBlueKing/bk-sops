@@ -19,17 +19,17 @@ from gcloud.external_plugins.models import CachePackageSource, SyncTask, RUNNING
 from .base import GcloudModelViewSet
 from ..filter import ALL_LOOKUP, AllLookupSupportFilterSet
 from ..serilaziers import SyncTaskSerializer
-from ..permission import IamPermissionInfo, IamPermission
+from ..permission import IamPermissionInfo, IamPermission, HAS_OBJECT_PERMISSION
 from ..viewsets.package_source import get_all_source_objects
 
 
 class SyncTaskPermission(IamPermission):
     actions = {
-        "list": IamPermissionInfo(IAMMeta.ADMIN_VIEW_ACTION, to_permission="resource"),
-        "retrieve": IamPermissionInfo(IAMMeta.ADMIN_VIEW_ACTION, to_permission="object"),
-        "partial_update": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, to_permission="object"),
-        "update": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, to_permission="object"),
-        "create": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, to_permission="resource"),
+        "list": IamPermissionInfo(IAMMeta.ADMIN_VIEW_ACTION),
+        "retrieve": IamPermissionInfo(IAMMeta.ADMIN_VIEW_ACTION, check_hook=HAS_OBJECT_PERMISSION),
+        "partial_update": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, check_hook=HAS_OBJECT_PERMISSION),
+        "update": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, check_hook=HAS_OBJECT_PERMISSION),
+        "create": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION),
         "destroy": IamPermissionInfo(pass_all=True),
     }
 
