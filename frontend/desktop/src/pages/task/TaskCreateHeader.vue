@@ -94,7 +94,7 @@
                     'commonTplEdit': {
                         name: 'commonTemplatePanel',
                         params: { type: 'edit' },
-                        query: { template_id: this.template_id }
+                        query: { template_id: this.template_id, common: '1' }
                     },
                     'function': { name: 'functionHome' },
                     'audit': { name: 'auditHome' },
