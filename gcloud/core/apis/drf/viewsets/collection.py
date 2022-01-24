@@ -18,25 +18,15 @@ from rest_framework.exceptions import ErrorDetail
 from gcloud.contrib.collection.models import Collection
 from gcloud.core.apis.drf.serilaziers.collection import CollectionSerializer
 from gcloud.core.apis.drf.viewsets import GcloudReadOnlyViewSet
-from gcloud.core.apis.drf.filter import ALL_LOOKUP, AllLookupSupportFilterSet
 from gcloud import err_code
 from gcloud.iam_auth import IAMMeta, utils as iam_auth_utils
-
-
-class CollectionFilter(AllLookupSupportFilterSet):
-    class Meta:
-        model = Collection
-        fields = {
-            "id": ALL_LOOKUP,
-            "category": ALL_LOOKUP,
-        }
 
 
 class CollectionViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin):
     queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
     permission_classes = [permissions.IsAuthenticated]
-    filterset_class = CollectionFilter
+    filter_fields = ["id", "category"]
     append_resource_actions = {
         IAMMeta.FLOW_RESOURCE: [
             IAMMeta.FLOW_VIEW_ACTION,
