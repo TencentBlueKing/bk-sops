@@ -69,12 +69,12 @@ class IamPermission(IAMMixin, permissions.BasePermission):
         # 不匹配权限不做校验
         if permission_info.check_hook != check_hook:
             return True
-        # 获取权限参数
-        if check_hook == HAS_PERMISSION:
-            resource_param = self.get_id_field(request, permission_info.id_field)
 
         resources = []
         if permission_info.resource_func:
+            # 获取权限参数
+            if check_hook == HAS_PERMISSION:
+                resource_param = self.get_id_field(request, permission_info.id_field)
             resources = permission_info.resource_func(resource_param)
         self.iam_auth_check(request, action=permission_info.iam_action, resources=resources)
 
