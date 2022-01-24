@@ -11,22 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from rest_framework import permissions, mixins, viewsets
+from rest_framework import permissions, viewsets
 
 from gcloud.contrib.collection.models import Collection
 from gcloud.core.apis.drf.serilaziers.collection import CollectionSerializer
 from gcloud.core.apis.drf.viewsets.utils import ApiMixin
 
 
-class CollectionViewSet(
-    ApiMixin,
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.CreateModelMixin,
-    mixins.UpdateModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet,
-):
+class CollectionViewSet(ApiMixin, viewsets.ModelViewSet):
     queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
     permission_classes = [permissions.IsAuthenticated]
