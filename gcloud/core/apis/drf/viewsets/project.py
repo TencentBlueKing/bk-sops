@@ -27,6 +27,7 @@ class ProjectPermission(IamPermission):
     resource_func = res_factory.resources_for_project_obj
     actions = {
         "list": IamPermissionInfo(pass_all=True),
+        "detail": IamPermissionInfo(IAMMeta.PROJECT_VIEW_ACTION, resource_func, check_hook=HAS_OBJECT_PERMISSION),
         "update": IamPermissionInfo(IAMMeta.PROJECT_EDIT_ACTION, resource_func, check_hook=HAS_OBJECT_PERMISSION),
         "retrieve": IamPermissionInfo(IAMMeta.PROJECT_VIEW_ACTION, resource_func, check_hook=HAS_OBJECT_PERMISSION),
         "partial_update": IamPermissionInfo(
