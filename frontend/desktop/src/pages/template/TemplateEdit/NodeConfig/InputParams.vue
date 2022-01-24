@@ -12,7 +12,7 @@
     <div class="input-params">
         <render-form
             ref="renderForm"
-            :scheme="scheme"
+            :scheme="formsScheme"
             :hooked="hooked"
             :constants="isSubflow ? subflowForms : constants"
             :form-option="option"
@@ -22,6 +22,18 @@
             @onRenderChange="$emit('renderConfigChange', arguments)"
             @onHookChange="onInputHookChange">
         </render-form>
+        <bk-collapse v-if="formsNotReferredScheme.length > 0" :class="['not-referred-forms', { expand: notReferredExpand }]">
+            <bk-collapse-item>
+                {{ $t('查看未引用变量') }}
+                <div slot="content" class="forms-wrapper" style="padding: 10px 64px 10px 0;">
+                    <render-form
+                        :scheme="formsNotReferredScheme"
+                        :form-option="{ showLabel: true, showHook: false, formEdit: false }"
+                        :form-data="formData">
+                    </render-form>
+                </div>
+            </bk-collapse-item>
+        </bk-collapse>
         <reuse-var-dialog
             :is-show="isReuseDialogShow"
             :variables="reuseableVarList"
@@ -64,6 +76,10 @@
             version: String, // 标准插件版本或子流程版本
             isSubflow: Boolean,
             subflowForms: Object, // 子流程模板输入参数变量配置
+            formsNotReferred: {
+                type: Object,
+                default: () => ({})
+            },
             nodeId: String,
             constants: Object,
             thirdPartyCode: String
@@ -76,6 +92,7 @@
                 isKeyExist: false, // 勾选的表单生成的 key 是否在全局变量列表中存在
                 isReuseDialogShow: false,
                 reuseableVarList: [],
+                notReferredExpand: false, // 未引用变量是否展开
                 option: {
                     showGroup: false,
                     showHook: this.showHook,
@@ -83,6 +100,21 @@
                     showVarList: true,
                     formEdit: this.editable
                 }
+            }
+        },
+        computed: {
+            formsScheme () {
+                if (this.isSubflow && Object.keys(this.formsNotReferred).length > 0) {
+                    // 过滤掉子流程未被引用的变量
+                    return this.scheme.filter(item => !this.formsNotReferred.hasOwnProperty(item.tag_code))
+                }
+                return this.scheme
+            },
+            formsNotReferredScheme () {
+                if (this.isSubflow && Object.keys(this.formsNotReferred).length > 0) {
+                    return this.scheme.filter(item => this.formsNotReferred.hasOwnProperty(item.tag_code))
+                }
+                return []
             }
         },
         watch: {
@@ -299,3 +331,17 @@
         }
     }
 </script>
+<style lang="scss" scoped>
+.not-referred-forms {
+    margin-top: 20px;
+    background: #f0f1f5;
+    & >>> .bk-collapse-item {
+        .bk-collapse-item-header {
+            color: #333333;
+            &:hover {
+                background: #e4e6ed;
+            }
+        }
+    }
+}
+</style>

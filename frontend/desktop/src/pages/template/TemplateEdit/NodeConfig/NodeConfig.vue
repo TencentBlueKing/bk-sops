@@ -235,6 +235,7 @@
                                                 :plugin="basicInfo.plugin"
                                                 :version="basicInfo.version"
                                                 :subflow-forms="subflowForms"
+                                                :forms-not-referred="formsNotReferred"
                                                 :value="inputsParamValue"
                                                 :render-config="inputsRenderConfig"
                                                 :is-subflow="isSubflow"
@@ -360,6 +361,7 @@
                 inputsRenderConfig: {}, // 输入参数是否配置渲染豁免
                 outputs: [], // 输出参数
                 subflowForms: {}, // 子流程输入参数
+                formsNotReferred: {}, // 未被子流程引用的全局变量
                 isSelectorPanelShow: false, // 是否显示选择插件(子流程)面板
                 isQuickInsertPanelShow: false, // 是否显示快捷插入面板
                 isPanelLoading: false,
@@ -772,11 +774,14 @@
                         scheme_id_list: this.basicInfo.schemeIdList,
                         version
                     }
-                    if (!this.common) {
+                    if (this.common) {
+                        params.template_source = 'common'
+                    } else {
                         params.project_id = this.project_id
                     }
                     const resp = await this.loadSubflowConfig(params)
-                    this.subflowForms = resp.data.pipeline_tree.constants
+                    this.subflowForms = { ...resp.data.pipeline_tree.constants, ...resp.data.constants_not_referred }
+                    this.formsNotReferred = resp.data.constants_not_referred
                     // 子流程模板版本更新时，未带版本信息，需要请求接口后获取最新版本
                     this.updateBasicInfo({ version: resp.data.version })
 
