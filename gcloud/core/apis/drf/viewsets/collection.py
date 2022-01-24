@@ -11,17 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from rest_framework import permissions, status
+from rest_framework import permissions, status, mixins
 from rest_framework.response import Response
 from rest_framework.exceptions import ErrorDetail
 
 from gcloud.contrib.collection.models import Collection
 from gcloud.core.apis.drf.serilaziers.collection import CollectionSerializer
-from gcloud.core.apis.drf.viewsets import GcloudModelViewSet
+from gcloud.core.apis.drf.viewsets import GcloudReadOnlyViewSet
 from gcloud import err_code
 
 
-class CollectionViewSet(GcloudModelViewSet):
+class CollectionViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin):
     queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -31,16 +31,17 @@ class CollectionViewSet(GcloudModelViewSet):
         return query_set.filter(username=self.request.user.username)
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=request.data, many=True)
         serializer.is_valid(raise_exception=True)
-        username = serializer.validated_data["username"]
-        category = serializer.validated_data["category"]
-        instance_id = serializer.validated_data["instance_id"]
-        if Collection.objects.filter(username=username, category=category, instance_id=instance_id).exists():
-            message = "The collection of user {} with category:{} and instance_id:{} already exists".format(
-                username, category, instance_id
-            )
-            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+        for item in serializer.validated_data:
+            username = item["username"]
+            category = item["category"]
+            instance_id = item["instance_id"]
+            if Collection.objects.filter(username=username, category=category, instance_id=instance_id).exists():
+                message = "The collection of user {} with category:{} and instance_id:{} already exists".format(
+                    username, category, instance_id
+                )
+                return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
