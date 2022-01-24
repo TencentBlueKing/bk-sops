@@ -29,6 +29,7 @@ from gcloud.core.apis.drf.viewsets import (
     LabelViewSet,
     PackageSourceViewSet,
     SyncTaskViewSet,
+    CollectionViewSet,
 )
 
 from gcloud.template_base.apis.drf.viewsets import TemplateSchemeViewSet
@@ -42,7 +43,6 @@ from gcloud.tasktmpl3.apis.tastypie.resources import TaskTemplateResource
 from gcloud.taskflow3.apis.tastypie.resources import TaskFlowInstanceResource
 from gcloud.contrib.appmaker.resources import AppMakerResource
 from gcloud.contrib.function.resources import FunctionTaskResource
-from gcloud.contrib.collection.resources import CollectionResources
 from gcloud.periodictask.resources import PeriodicTaskResource
 
 from gcloud.template_base.apis.drf.viewsets.template import ProjectTemplateViewSet, CommonTemplateViewSet
@@ -55,7 +55,6 @@ v3_api.register(VariableModelResource())
 v3_api.register(TaskFlowInstanceResource())
 v3_api.register(AppMakerResource())
 v3_api.register(FunctionTaskResource())
-v3_api.register(CollectionResources())
 v3_api.register(PeriodicTaskResource())
 v3_api.register(CommonTemplateResource())
 v3_api.register(CommonTemplateSchemeResource())
@@ -78,6 +77,7 @@ drf_router.register(r"common_project", CommonProjectViewSet)
 drf_router.register(r"label", LabelViewSet)
 drf_router.register(r"package_source", PackageSourceViewSet, basename="package_source")
 drf_router.register(r"sync_task", SyncTaskViewSet)
+drf_router.register(r"collection", CollectionViewSet)
 
 
 v4_drf_router = DefaultRouter()
