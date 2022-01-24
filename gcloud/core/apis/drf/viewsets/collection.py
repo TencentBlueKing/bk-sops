@@ -27,8 +27,8 @@ class CollectionViewSet(GcloudModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        querySet = super().get_queryset()
-        return querySet.filter(username=self.request.user.username)
+        query_set = super().get_queryset()
+        return query_set.filter(username=self.request.user.username)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
