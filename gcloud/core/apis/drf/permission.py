@@ -78,6 +78,8 @@ class IamPermission(IAMMixin, permissions.BasePermission):
             resources = permission_info.resource_func(resource_param)
         self.iam_auth_check(request, action=permission_info.iam_action, resources=resources)
 
+        return True
+
     def has_permission(self, request, view):
         return self.check_permission(request, view, check_hook=HAS_PERMISSION)
 
