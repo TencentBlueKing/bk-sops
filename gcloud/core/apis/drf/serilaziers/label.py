@@ -22,7 +22,7 @@ class LabelGroupSerializer(serializers.ModelSerializer):
 
 
 class LabelSerializer(serializers.ModelSerializer):
-    group = LabelGroupSerializer(many=True, read_only=True)
+    group = LabelGroupSerializer(read_only=True)
 
     class Meta:
         model = Label
