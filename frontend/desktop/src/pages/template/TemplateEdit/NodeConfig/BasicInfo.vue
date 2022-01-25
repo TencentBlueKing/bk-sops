@@ -230,7 +230,7 @@
                     v-bk-tooltips="{
                         width: 300,
                         placement: 'bottom-end',
-                        content: $t('每次创建任务会使用该执行方案的最新版本且不会提示该节点需要更新')
+                        content: $t('每次创建任务会使用选中执行方案的最新版本且不会提示该节点需要更新')
                     }"
                     class="bk-icon icon-question-circle form-item-tips">
                 </i>

@@ -220,7 +220,7 @@
                                             v-bk-tooltips="{
                                                 width: 500,
                                                 placement: 'bottom-end',
-                                                content: $t('如果引用执行方案更新，需要填写新的变量值，请重新打开对应的子流程节点进行填写，或者在子流程节点表单填写时填写非必填项的变量值')
+                                                content: $t('如果选中执行方案更新增加了新的变量，请打开对应的子流程节点进行填写；在不打开子流程节点进行填写的情况下，会使用变量默认值')
                                             }"
                                             class="bk-icon icon-question-circle section-tips">
                                         </i>
