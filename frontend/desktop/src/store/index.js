@@ -103,17 +103,11 @@ const store = new Vuex.Store({
         },
         // 获取收藏列表
         loadCollectList ({ commit }, data) {
-            return axios.get('api/v3/collection/', {
-                params: {
-                    limit: 0
-                }
-            }).then(response => response.data)
+            return axios.get('api/v3/collection/').then(response => response.data)
         },
         // 收藏模板，批量操作
         addToCollectList ({ commit }, list) {
-            return axios.put('api/v3/collection/', {
-                objects: list
-            }).then(response => response.data)
+            return axios.post('api/v3/collection/', list).then(response => response.data)
         },
         // 删除收藏模板，单个删除
         deleteCollect ({ commit }, id) {
