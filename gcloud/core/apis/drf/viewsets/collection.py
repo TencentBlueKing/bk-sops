@@ -22,7 +22,7 @@ from gcloud import err_code
 from gcloud.iam_auth import IAMMeta, utils as iam_auth_utils
 
 
-class CollectionViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin):
+class CollectionViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins.DestroyModelMixin):
     queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
     pagination_class = None
@@ -62,7 +62,8 @@ class CollectionViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin):
         resource_id_list_map = {r_type: [] for r_type in self.append_resource_actions}
 
         resource_allowed_actions_map = {}
-
+        if not isinstance(serializer_data, list):
+            serializer_data = [serializer_data]
         for item in serializer_data:
             if item["category"] in resource_id_list_map:
                 resource_id_list_map[item["category"]].append(item["extra_info"]["id"])
