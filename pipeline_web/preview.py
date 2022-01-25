@@ -64,8 +64,8 @@ def preview_template_tree_with_schemes(template_source, template_id, version, sc
         key: value
         for key, value in template_outputs.items()
         if not (
-            value["source_type"] == "component_outputs"
-            and set(value["source_info"].keys()) & set(exclude_task_nodes_id)
+            value["source_type"] in ["component_outputs", "component_inputs"]
+            and set(value["source_info"].keys()).issubset(set(exclude_task_nodes_id))
         )
     }
 
