@@ -61,9 +61,13 @@ class GcloudCommonMixin(IAMMixin, ApiMixin):
 class GcloudListViewSet(GcloudCommonMixin):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(queryset)
-
-        serializer = self.get_serializer(page, many=True)
+        # 支持使用方配置pagination_class=None
+        if self.pagination_class:
+            page = self.paginate_queryset(queryset)
+            serializer = self.get_serializer(page, many=True)
+        else:
+            page = None
+            serializer = self.get_serializer(queryset, many=True)
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, queryset)
         return self.get_paginated_response(data) if page is not None else Response(data)
