@@ -25,6 +25,7 @@ from gcloud.iam_auth import IAMMeta, utils as iam_auth_utils
 class CollectionViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin):
     queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
+    pagination_class = None
     permission_classes = [permissions.IsAuthenticated]
     filter_fields = ["id", "category"]
     append_resource_actions = {
