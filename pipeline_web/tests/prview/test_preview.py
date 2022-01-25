@@ -28,6 +28,7 @@ MOCK_PIPELINE_TREE = {
     "constants": {
         "${param1}": {"value": "${parent_param2}"},
         "${param2}": {"value": "constant_value_2"},
+        "${custom_param2}": {"value": "custom_value_2"},
     },
 }
 
@@ -41,50 +42,41 @@ class MockTemplate(object):
 
     def get_outputs(self, version):
         return {
-            "${_loop}": {
-                "name": "循环次数",
-                "key": "${_loop}",
-                "desc": "",
-                "custom_type": "",
-                "source_info": {"node2": ["_loop"]},
-                "source_tag": "",
-                "value": "",
-                "show_type": "hide",
+            "${outputs_param1}": {
+                "name": "outputs_param1",
+                "key": "${outputs_param1}",
+                "source_info": {"node1": ["_loop"]},
                 "source_type": "component_outputs",
-                "validation": "",
-                "index": 1,
-                "version": "legacy",
-                "plugin_code": "",
             },
-            "${_result}": {
-                "name": "执行结果",
-                "key": "${_result}",
-                "desc": "",
-                "custom_type": "",
+            "${outputs_param2}": {
+                "name": "outputs_param2",
+                "key": "${outputs_param2}",
                 "source_info": {"node3": ["_result"]},
-                "source_tag": "",
-                "value": "",
-                "show_type": "hide",
                 "source_type": "component_outputs",
-                "validation": "",
-                "index": 2,
-                "version": "legacy",
-                "plugin_code": "",
             },
-            "${_loop1}": {
-                "name": "循环次数",
-                "key": "${_loop1}",
-                "desc": "",
-                "custom_type": "",
+            "${inputs_param1}": {
+                "name": "inputs_param1",
+                "key": "${inputs_param1}",
+                "source_info": {"node2": ["${_loop}"]},
+                "source_type": "component_inputs",
+            },
+            "${inputs_param2}": {
+                "name": "inputs_param2",
+                "key": "${inputs_param2}",
                 "source_info": {"node4": ["${_loop}"]},
-                "source_tag": "",
-                "value": "",
-                "show_type": "hide",
-                "source_type": "component_outputs",
-                "validation": "",
-                "index": 3,
-                "version": "f7b1ef05ac43e5934cd59ce8bacfab96",
-                "plugin_code": "",
+                "source_type": "component_inputs",
+            },
+            "${custom_param1}": {
+                "name": "custom_param1",
+                "key": "${custom_param1}",
+                "source_info": {},
+                "source_type": "custom",
+            },
+            "${custom_param2}": {
+                "name": "custom_param2",
+                "key": "${custom_param2}",
+                "source_info": {},
+                "source_type": "custom",
             },
         }
 
@@ -101,6 +93,7 @@ def mock_preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_no
     }
 
     pipeline_tree["constants"].pop("${param2}", "")
+    pipeline_tree["constants"].pop("${custom_param2}", "")
 
 
 def mock_get_template_exclude_task_nodes_with_schemes(template_nodes_set, scheme_id_list):
@@ -144,7 +137,10 @@ class PipelineTemplateWebPreviewerTestCase(TestCase):
                     },
                     "constants": {"${param1}": {"value": "${parent_param2}"}},
                 },
-                "constants_not_referred": {"${param2}": {"value": "constant_value_2"}},
+                "constants_not_referred": {
+                    "${param2}": {"value": "constant_value_2"},
+                    "${custom_param2}": {"value": "custom_value_2"},
+                },
             },
         )
 
@@ -168,23 +164,29 @@ class PipelineTemplateWebPreviewerTestCase(TestCase):
                     },
                     "constants": {"${param1}": {"value": "${parent_param2}"}},
                 },
-                "constants_not_referred": {"${param2}": {"value": "constant_value_2"}},
+                "constants_not_referred": {
+                    "${param2}": {"value": "constant_value_2"},
+                    "${custom_param2}": {"value": "custom_value_2"},
+                },
                 "outputs": {
-                    "${_loop1}": {
-                        "name": "循环次数",
-                        "key": "${_loop1}",
-                        "desc": "",
-                        "custom_type": "",
-                        "source_info": {"node4": ["${_loop}"]},
-                        "source_tag": "",
-                        "value": "",
-                        "show_type": "hide",
+                    "${outputs_param1}": {
+                        "name": "outputs_param1",
+                        "key": "${outputs_param1}",
+                        "source_info": {"node1": ["_loop"]},
                         "source_type": "component_outputs",
-                        "validation": "",
-                        "index": 3,
-                        "version": "f7b1ef05ac43e5934cd59ce8bacfab96",
-                        "plugin_code": "",
-                    }
+                    },
+                    "${inputs_param2}": {
+                        "name": "inputs_param2",
+                        "key": "${inputs_param2}",
+                        "source_info": {"node4": ["${_loop}"]},
+                        "source_type": "component_inputs",
+                    },
+                    "${custom_param1}": {
+                        "name": "custom_param1",
+                        "key": "${custom_param1}",
+                        "source_info": {},
+                        "source_type": "custom",
+                    },
                 },
                 "version": "v1",
             },

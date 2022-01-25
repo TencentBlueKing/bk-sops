@@ -60,14 +60,19 @@ def preview_template_tree_with_schemes(template_source, template_id, version, sc
 
     # 添加outputs返回
     template_outputs = template.get_outputs(version)
-    outputs = {
-        key: value
-        for key, value in template_outputs.items()
-        if not (
-            value["source_type"] == "component_outputs"
-            and set(value["source_info"].keys()) & set(exclude_task_nodes_id)
-        )
-    }
+    outputs = {}
+    for key, value in template_outputs.items():
+        # 如果输出变量来源于节点勾选，且来源的节点是执行方案删除节点的子集，则不展示该输出变量
+        if value["source_type"] in ["component_outputs", "component_inputs"] and set(
+            value["source_info"].keys()
+        ).issubset(set(exclude_task_nodes_id)):
+            continue
+
+        # 如果输出变量是自定义全局变量，如果该变量未被引用，也不展示
+        if value["source_type"] == "custom" and key in constants_not_referred.keys():
+            continue
+
+        outputs[key] = value
 
     return {
         "pipeline_tree": pipeline_tree,
