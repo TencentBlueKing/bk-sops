@@ -20,7 +20,7 @@ from rest_framework.viewsets import ModelViewSet
 from gcloud.core.apis.drf.exceptions import ValidationException
 from gcloud.core.apis.drf.viewsets import ApiMixin, permissions
 from gcloud.label.models import Label, TemplateLabelRelation
-from gcloud.label.serilaziers import LabelSerializer
+from gcloud.label.serilaziers import NewLabelSerializer
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.openapi.schema import AnnotationAutoSchema
 
@@ -30,7 +30,7 @@ from iam.shortcuts import allow_or_raise_auth_failed
 iam = get_iam_client()
 
 
-class LabelViewSet(ApiMixin, ModelViewSet):
+class NewLabelViewSet(ApiMixin, ModelViewSet):
     """
     流程标签相关接口
 
@@ -39,7 +39,7 @@ class LabelViewSet(ApiMixin, ModelViewSet):
     """
 
     queryset = Label.objects.all()
-    serializer_class = LabelSerializer
+    serializer_class = NewLabelSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = "__all__"
@@ -55,7 +55,7 @@ class LabelViewSet(ApiMixin, ModelViewSet):
             action=Action(IAMMeta.PROJECT_EDIT_ACTION),
             resources=res_factory.resources_for_project(project_id),
         )
-        return super(LabelViewSet, self).create(request, *args, **kwargs)
+        return super(NewLabelViewSet, self).create(request, *args, **kwargs)
 
     def list(self, request, *args, **kwargs):
         project_id = request.query_params.get("project_id")
@@ -68,7 +68,7 @@ class LabelViewSet(ApiMixin, ModelViewSet):
             action=Action(IAMMeta.PROJECT_VIEW_ACTION),
             resources=res_factory.resources_for_project(project_id),
         )
-        return super(LabelViewSet, self).list(request, *args, **kwargs)
+        return super(NewLabelViewSet, self).list(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
         label = self.get_object()
@@ -82,7 +82,7 @@ class LabelViewSet(ApiMixin, ModelViewSet):
             action=Action(IAMMeta.PROJECT_EDIT_ACTION),
             resources=res_factory.resources_for_project(project_id),
         )
-        return super(LabelViewSet, self).update(request, *args, **kwargs)
+        return super(NewLabelViewSet, self).update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
         label = self.get_object()
