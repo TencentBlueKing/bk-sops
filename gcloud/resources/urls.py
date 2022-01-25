@@ -36,7 +36,7 @@ from gcloud.template_base.apis.drf.viewsets import TemplateSchemeViewSet
 from gcloud.contrib.operate_record.apis.drf.viewsets import TaskOperateRecordSetViewSet, TemplateOperateRecordSetViewSet
 from gcloud.core.resources import VariableModelResource
 from gcloud.common_template.apis.tastypie.resources import CommonTemplateResource, CommonTemplateSchemeResource
-from gcloud.label.viewsets import LabelViewSet as NewLabelViewSet
+from gcloud.label.viewsets import NewLabelViewSet
 from gcloud.project_constants.apis.drf.viewsets import ProjectConstantsViewSet
 
 from gcloud.tasktmpl3.apis.tastypie.resources import TaskTemplateResource
