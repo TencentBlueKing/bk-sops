@@ -217,6 +217,24 @@
             <bk-form-item :label="$t('步骤名称')" property="stageName">
                 <bk-input v-model="formData.stageName" @change="updateData"></bk-input>
             </bk-form-item>
+            <bk-form-item :label="$t('执行方案')">
+                <bk-select
+                    :value="formData.schemeIdList"
+                    :clearable="false"
+                    :multiple="true"
+                    :loading="schemeListLoading"
+                    @selected="onSelectTaskScheme">
+                    <bk-option v-for="item in schemeList" :key="item.id" :id="item.id" :name="item.name"></bk-option>
+                </bk-select>
+                <i
+                    v-bk-tooltips="{
+                        width: 300,
+                        placement: 'bottom-end',
+                        content: $t('每次创建任务会使用该执行方案的最新版本且不会提示该节点需要更新')
+                    }"
+                    class="bk-icon icon-question-circle form-item-tips">
+                </i>
+            </bk-form-item>
             <bk-form-item :label="$t('是否可选')">
                 <bk-switcher
                     theme="primary"
@@ -253,12 +271,14 @@
     export default {
         name: 'BasicInfo',
         props: {
+            projectId: [String, Number],
             nodeConfig: Object,
             basicInfo: Object,
             versionList: Array,
             isSubflow: Boolean,
             inputLoading: Boolean,
-            subflowUpdated: Boolean
+            subflowUpdated: Boolean,
+            common: [String, Number]
         },
         data () {
             return {
@@ -268,6 +288,8 @@
                 version: this.basicInfo.version,
                 formData: tools.deepClone(this.basicInfo),
                 maxNodeExecuteTimeout: window.MAX_NODE_EXECUTE_TIMEOUT,
+                schemeList: [],
+                schemeListLoading: false,
                 pluginRules: {
                     plugin: [
                         {
@@ -377,29 +399,43 @@
             }
         },
         watch: {
-            basicInfo (val) {
+            basicInfo (val, oldVal) {
                 this.formData = tools.deepClone(val)
+                if (val.tpl !== oldVal.tpl) {
+                    this.getSubflowSchemeList()
+                }
             }
         },
         created () {
             if (!this.isSubflow) { // 子流程节点不展示节点标签表单
                 this.getNodeLabelList()
+            } else {
+                if (this.basicInfo.tpl) {
+                    this.getSubflowSchemeList()
+                }
             }
         },
         methods: {
             ...mapMutations('template/', [
                 'setNodeBasicInfo'
             ]),
+            ...mapActions('task', [
+                'loadTaskScheme',
+                'loadSubflowConfig'
+            ]),
             ...mapActions('template/', [
                 'getLabels'
             ]),
-            ...mapActions('atomForm/', [
-                'loadSubflowConfig'
-            ]),
+            // 加载子流程详情，拿到最新版本子流程的version字段
             async getSubflowDetail () {
                 this.subflowLoading = true
                 try {
-                    const resp = await this.loadSubflowConfig({ templateId: this.basicInfo.tpl, common: this.common })
+                    const data = {
+                        project_id: this.project_id,
+                        template_id: this.basicInfo.tpl,
+                        scheme_id_list: this.basicInfo.schemeIdList
+                    }
+                    const resp = await this.loadSubflowConfig(data)
                     this.version = resp.data.version
                 } catch (e) {
                     console.log(e)
@@ -417,6 +453,20 @@
                     console.log(e)
                 } finally {
                     this.labelLoading = false
+                }
+            },
+            // 加载子流程对应的执行方案列表
+            async getSubflowSchemeList () {
+                try {
+                    const data = {
+                        project_id: this.projectId,
+                        template_id: this.basicInfo.tpl,
+                        isCommon: this.common
+                    }
+                    this.schemeList = await this.loadTaskScheme(data)
+                    this.schemeListLoading = false
+                } catch (e) {
+                    console.log(e)
                 }
             },
             // 标签分组
@@ -533,14 +583,20 @@
                 }
                 this.updateData()
             },
+            // 选择执行方案，需要更新子流程输入、输出参数
+            onSelectTaskScheme (val) {
+                this.formData.schemeIdList = val
+                this.updateData()
+                this.$emit('selectScheme', val)
+            },
             updateData () {
                 const {
-                    version, nodeName, stageName, nodeLabel, ignorable, skippable,
-                    retryable, selectable, alwaysUseLatest, autoRetry, timeoutConfig
+                    version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable,
+                    selectable, alwaysUseLatest, autoRetry, timeoutConfig, schemeIdList
                 } = this.formData
                 let data
                 if (this.isSubflow) {
-                    data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, latestVersion: this.version }
+                    data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, latestVersion: this.version }
                 } else {
                     data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, autoRetry, timeoutConfig }
                 }

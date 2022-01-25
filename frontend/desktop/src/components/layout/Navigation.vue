@@ -3,6 +3,7 @@
         navigation-type="left-right"
         :side-title="$t('标准运维')"
         :need-menu="true"
+        :class="$route.name === 'taskList' ? 'hide-header-border' : ''"
         :default-open="sideNavOpen"
         @toggle="toggleSideNav">
         <div slot="side-icon" class="logo-area">
@@ -218,35 +219,43 @@
         color: #313238;
     }
 
-    .bk-navigation >>> {
-        .bk-navigation-wrapper {
-            min-width: 1366px;
-            .navigation-container {
-                max-width: unset !important;
-                .container-content {
-                    padding: 0;
-                    @include scrollbar;
-                }
-            }
-            .navigation-nav {
-                z-index: 111;
-                .nav-slider-list {
-                    padding-top: 0;
-                }
-            }
-            .container-header {
-                justify-content: space-between;
+    .bk-navigation {
+        &.hide-header-border {
+            & >>> .container-header {
+                border-color: transparent;
+                box-shadow: 0;
             }
         }
-        .bk-navigation-menu-group,
-        .bk-navigation-menu-group .group-name-wrap {
-            display: flex;
-            align-items: center;
-            color: #66748f;
-            width: 100%;
-        }
-        .bk-navigation-menu-group {
-            border-top: 1px solid rgba(255,255,255,0.06);
+        & >>> {
+            .bk-navigation-wrapper {
+                min-width: 1366px;
+                .navigation-container {
+                    max-width: unset !important;
+                    .container-content {
+                        padding: 0;
+                        @include scrollbar;
+                    }
+                }
+                .navigation-nav {
+                    z-index: 111;
+                    .nav-slider-list {
+                        padding-top: 0;
+                    }
+                }
+                .container-header {
+                    justify-content: space-between;
+                }
+            }
+            .bk-navigation-menu-group,
+            .bk-navigation-menu-group .group-name-wrap {
+                display: flex;
+                align-items: center;
+                color: #66748f;
+                width: 100%;
+            }
+            .bk-navigation-menu-group {
+                border-top: 1px solid rgba(255,255,255,0.06);
+            }
         }
     }
 </style>

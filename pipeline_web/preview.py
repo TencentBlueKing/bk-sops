@@ -38,7 +38,7 @@ def preview_template_tree(project_id, template_source, template_id, version, exc
     return {"pipeline_tree": pipeline_tree, "constants_not_referred": constants_not_referred}
 
 
-def preview_template_tree_with_schemes(project_id, template_source, template_id, version, scheme_id_list):
+def preview_template_tree_with_schemes(template_source, template_id, version, scheme_id_list, project_id=None):
     if template_source == PROJECT:
         template = TaskTemplate.objects.get(pk=template_id, is_deleted=False, project_id=project_id)
     else:
@@ -58,4 +58,20 @@ def preview_template_tree_with_schemes(project_id, template_source, template_id,
         key: value for key, value in list(template_constants.items()) if key not in pipeline_tree["constants"]
     }
 
-    return {"pipeline_tree": pipeline_tree, "constants_not_referred": constants_not_referred}
+    # 添加outputs返回
+    template_outputs = template.get_outputs(version)
+    outputs = {
+        key: value
+        for key, value in template_outputs.items()
+        if not (
+            value["source_type"] == "component_outputs"
+            and set(value["source_info"].keys()) & set(exclude_task_nodes_id)
+        )
+    }
+
+    return {
+        "pipeline_tree": pipeline_tree,
+        "constants_not_referred": constants_not_referred,
+        "outputs": outputs,
+        "version": version or template.version,
+    }

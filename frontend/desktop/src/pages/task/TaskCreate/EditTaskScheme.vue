@@ -24,9 +24,9 @@
             </p>
             <div class="scheme-active-wrapper" v-else>
                 <div>
-                    <bk-button data-test-id="templateEdit_form_addScheme" :disabled="isCommonProcess" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
-                    <bk-button data-test-id="templateEdit_form_importTemporaryPlan" :disabled="isCommonProcess" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
-                    <bk-button data-test-id="templateEdit_form_setDeafultScheme" :disabled="isCommonProcess" @click="onSetDefaultPlan">{{ $t('设置默认方案') }}</bk-button>
+                    <bk-button data-test-id="templateEdit_form_addScheme" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
+                    <bk-button data-test-id="templateEdit_form_importTemporaryPlan" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
+                    <bk-button data-test-id="templateEdit_form_setDeafultScheme" @click="onSetDefaultPlan">{{ $t('设置默认方案') }}</bk-button>
                 </div>
                 <bk-button
                     data-test-id="templateEdit_form_previewNode"
@@ -36,7 +36,7 @@
             </div>
             <section
                 data-test-id="templateEdit_form_schemeList"
-                :class="['scheme-wrapper', { 'is-diasbled': isCommonProcess, 'is-default-scheme': isDefaultSchemeIng }]"
+                :class="['scheme-wrapper', { 'is-default-scheme': isDefaultSchemeIng }]"
                 v-bkloading="{ isLoading: isSchemeLoading }">
                 <p :class="['scheme-title', { 'data-empty': !schemeList.length && !nameEditing }]">
                     <bk-checkbox
@@ -88,6 +88,7 @@
                         </bk-checkbox>
                         <span class="scheme-name" :title="item.name">{{item.name}}</span>
                         <span v-if="item.isDefault" class="default-label">{{$t('默认')}}</span>
+                        <span v-if="item.quote_count > 0" class="quoted-count">{{ $tc('被个子流程引用', item.quote_count, { n: item.quote_count }) }}</span>
                         <p class="icon-btn-wrapper" v-if="!isDefaultSchemeIng">
                             <i
                                 v-bk-tooltips="{ content: $t('编辑'), boundary: 'window' }"
@@ -96,7 +97,7 @@
                             </i>
                             <i
                                 v-bk-tooltips="{ content: $t('删除'), boundary: 'window' }"
-                                class="bk-icon icon-delete"
+                                :class="['bk-icon icon-delete', { disabled: item.quote_count > 0 }]"
                                 @click="onDeleteScheme(item)">
                             </i>
                         </p>
@@ -137,7 +138,7 @@
     import bus from '@/utils/bus.js'
 
     export default {
-        name: 'EditeTaskScheme',
+        name: 'EditTaskScheme',
         mixins: [permission],
         props: {
             template_id: {
@@ -303,7 +304,7 @@
                     })
                     this.$emit('updateTaskSchemeList', this.schemeList)
                     this.$emit('setDefaultScheme', defaultObj)
-                    this.$emit('setDefaultSelected', false)
+                    this.$emit('setDefaultSelected', this.isDefaultSchemeIng)
                 } catch (error) {
                     console.error(error)
                 }
@@ -532,7 +533,7 @@
              */
             async onDeleteScheme (scheme) {
                 // 提示用户先保存创建方案再进行其他操作
-                if (this.setRemindUserMsg()) return
+                if (this.setRemindUserMsg() || scheme.quote_count > 0) return
                 const tplAction = this.isCommonProcess ? 'common_flow_edit' : 'flow_edit'
                 const hasPermission = this.checkSchemeRelativePermission([tplAction])
 
@@ -734,7 +735,7 @@
                 border-bottom: 1px solid #ebebeb;
             }
             .scheme-name {
-                max-width: 400px;
+                max-width: 310px;
                 margin-left: 10px;
                 overflow: hidden;
                 white-space: nowrap;
@@ -751,6 +752,10 @@
                 color: #14a568;
                 background: #e4faf0;
             }
+            .quoted-count {
+                margin-left: 7px;
+                color: #979ba5;
+            }
             .icon-btn-wrapper {
                 position: absolute;
                 top: 15px;
@@ -765,8 +770,12 @@
                     color: #979ba5;
                     margin-left: 12px;
                     font-weight: 500;
-                    &:hover {
+                    &:not(.disabled):hover {
                         color: #3a84ff !important;
+                    }
+                    &.disabled {
+                        color: #c4c6cc;
+                        cursor: not-allowed;
                     }
                 }
             }

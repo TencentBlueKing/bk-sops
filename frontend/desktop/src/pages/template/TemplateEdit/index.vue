@@ -503,11 +503,13 @@
                 'loadInternalVariable',
                 'getVariableCite'
             ]),
+            ...mapActions('task', [
+                'loadSubflowConfig'
+            ]),
             ...mapActions('atomForm/', [
                 'loadSingleAtomList',
                 'loadSubflowList',
                 'loadAtomConfig',
-                'loadSubflowConfig',
                 'loadPluginServiceList',
                 'loadPluginServiceMeta'
             ]),
@@ -671,7 +673,13 @@
              */
             async getSubflowConfig (location) { // get subflow constants and add node
                 try {
-                    const res = await this.loadSubflowConfig({ templateId: location.atomId, version: location.atomVersion, common: this.common })
+                    const params = {
+                        project_id: this.project_id,
+                        template_id: location.atomId,
+                        scheme_id_list: [],
+                        version: location.atomVersion
+                    }
+                    const res = await this.loadSubflowConfig(params)
                     const constants = tools.deepClone(res.data.form)
                     const activities = tools.deepClone(this.activities[location.id])
                     const project_id = this.common ? undefined : this.project_id
