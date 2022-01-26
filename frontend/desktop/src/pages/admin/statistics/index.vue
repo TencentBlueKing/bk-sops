@@ -153,7 +153,7 @@
 
                 try {
                     const res = await this.loadUserProjectList({ limit: 0 })
-                    this.projectList = res.objects
+                    this.projectList = res.results
                 } catch (e) {
                     console.log(e)
                 } finally {

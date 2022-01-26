@@ -474,6 +474,7 @@
         },
         computed: {
             ...mapState({
+                'username': state => state.username,
                 'site_url': state => state.site_url,
                 'v1_import_flag': state => state.v1_import_flag,
                 'permissionMeta': state => state.permissionMeta
@@ -630,7 +631,7 @@
                 try {
                     this.collectListLoading = true
                     const res = await this.loadCollectList()
-                    this.collectionList = res.objects
+                    this.collectionList = res.data
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -765,6 +766,8 @@
                                 name: tpl.name,
                                 id: tpl.id
                             },
+                            instance_id: tpl.id,
+                            username: this.username,
                             category: 'common_flow'
                         }
                     })
@@ -774,7 +777,7 @@
                     }
                     const res = await this.addToCollectList(data)
                     this.getCollectList()
-                    if (res.objects.length) {
+                    if (res.data.length) {
                         this.$bkMessage({ message: i18n.t('添加收藏成功！'), theme: 'success' })
                     }
                 } catch (e) {
@@ -1011,9 +1014,11 @@
                                 name: template.name,
                                 id: template.id
                             },
+                            instance_id: template.id,
+                            username: this.username,
                             category: 'common_flow'
                         }])
-                        if (res.objects.length) {
+                        if (res.data.length) {
                             this.$bkMessage({ message: i18n.t('添加收藏成功！'), theme: 'success' })
                         }
                     } else { // cancel

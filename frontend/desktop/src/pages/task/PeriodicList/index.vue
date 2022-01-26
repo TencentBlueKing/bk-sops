@@ -365,6 +365,7 @@
         },
         computed: {
             ...mapState({
+                username: state => state.username,
                 hasAdminPerm: state => state.hasAdminPerm
             }),
             adminView () {
@@ -454,7 +455,7 @@
                 try {
                     this.collectListLoading = true
                     const res = await this.loadCollectList()
-                    this.collectionList = res.objects
+                    this.collectionList = res.data
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -671,9 +672,11 @@
                                 name: task.name,
                                 id: task.id
                             },
+                            instance_id: task.id,
+                            username: this.username,
                             category: 'periodic_task'
                         }])
-                        if (res.objects.length) {
+                        if (res.data.length) {
                             this.$bkMessage({ message: i18n.t('添加收藏成功！'), theme: 'success' })
                         }
                     } else { // cancel

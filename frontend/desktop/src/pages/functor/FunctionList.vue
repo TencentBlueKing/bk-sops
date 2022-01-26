@@ -647,7 +647,7 @@
                 this.business.loading = true
                 try {
                     const businessData = await this.loadUserProjectList({ limit: 0, is_disable: false })
-                    this.business.list = businessData.objects
+                    this.business.list = businessData.results
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -658,7 +658,7 @@
                 try {
                     const businessData = await this.loadUserProjectList({ limit: 0 })
                     const form = this.searchForm.find(item => item.key === 'selectedProject')
-                    form.list = businessData.objects.map(m => ({ name: m.name, value: m.id }))
+                    form.list = businessData.results.map(m => ({ name: m.name, value: m.id }))
                     form.loading = false
                 } catch (error) {
                     console.warn(error)

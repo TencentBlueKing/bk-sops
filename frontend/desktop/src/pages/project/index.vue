@@ -338,17 +338,17 @@
                     }
                     
                     if (this.searchStr !== '') {
-                        data.q = this.searchStr
+                        data.search = this.searchStr
                     }
                     
                     const projectList = await this.loadUserProjectList(data)
-                    this.projectList = (projectList.objects || []).map(item => {
+                    this.projectList = (projectList.results || []).map(item => {
                         if (!item.from_cmdb) {
                             item.bk_biz_id = '--'
                         }
                         return item
                     })
-                    this.pagination.count = projectList.meta.total_count
+                    this.pagination.count = projectList.count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
                         this.totalPage = 1
