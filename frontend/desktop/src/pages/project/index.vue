@@ -381,7 +381,6 @@
                 try {
                     this.projectDetailLoading = false
                     this.projectDetail = await this.loadProjectDetail(id)
-                    console.log(this.projectDetail)
                 } catch (e) {
                     console.log(e)
                 } finally {
