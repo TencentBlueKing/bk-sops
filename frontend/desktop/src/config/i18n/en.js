@@ -1248,7 +1248,7 @@ const en = {
     '需要前往配置平台新建业务': 'Need to go to the bk-cmdb creat new business',
     '创建新业务': 'Create new business',
     '删除连线': 'Delete Line',
-    '自动重试': 'Auto Retry',
+    '自动重试': 'auto retry',
     '次': 'Times',
     '子流程有更新，更新时若存在相同表单数据则获取原表单的值。': 'The sub-process has been updated. If the same form data exists during the update, the value of the original form will be obtained.',
     '更新子流程': 'Update subprocess',
@@ -1285,7 +1285,8 @@ const en = {
     '审批': 'Transition',
     '超时': 'Timeout',
     '超时控制': 'Timeout Config',
-    '秒后': 'seconds later',
+    '在': '',
+    '后': '',
     '则': '',
     '强制失败后跳过': 'skip after the force fails',
     '该功能仅对V2引擎生效': 'This function takes effect only for the V2 engine',
@@ -1295,7 +1296,14 @@ const en = {
     '删除失败！': 'Failed to delete!',
     '删除成功！': 'Successfully deleted!',
     '系统变量': 'SYS-VARS',
-    '业务变量': 'BUSINESS-VARS'
+    '业务变量': 'BUSINESS-VARS',
+    '被个子流程引用': 'quoted by one subprocess | quoted by one Subpro. | quoted by {n} Subpro.',
+    '每次创建任务会使用选中执行方案的最新版本且不会提示该节点需要更新': 'Each time a task is created, the latest version of the selected execution solution is used and the node is not prompted for updates',
+    '如果选中执行方案更新增加了新的变量，请打开对应的子流程节点进行填写；在不打开子流程节点进行填写的情况下，会使用变量默认值': 'If a new variable is added to the selected execution scheme update, please open the corresponding sub-process node to fill in; if you do not open the sub-process node to fill in, the default value of the variable will be used',
+    '找不到想要的插件？可以尝试自己动手开发！': "Can't find the plug-in you want? You can try to develop it yourself!",
+    '输出参数中不包含trace_id，无法查看第三方节点日志': 'The trace_id is not included in the output parameters, and the third-party node logs cannot be viewed',
+    '等待': 'wait',
+    '全部流程': 'All processes'
 }
 
 export default en

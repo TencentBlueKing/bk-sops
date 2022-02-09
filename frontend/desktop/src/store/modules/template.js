@@ -74,6 +74,7 @@ const generateInitActivities = (location, line) => {
             skippable: true,
             auto_retry: {
                 enable: false,
+                interval: 0,
                 times: 1
             },
             timeout_config: {
@@ -281,7 +282,7 @@ const template = {
                                     error_ignorable: node.error_ignorable,
                                     retryable: node.can_retry || node.retryable,
                                     skippable: node.isSkipped || node.skippable,
-                                    auto_retry: node.auto_retry || { enable: false, times: 1 },
+                                    auto_retry: node.auto_retry || { enable: false, interval: 0, times: 1 },
                                     timeout_config: node.timeout_config || {
                                         enable: false,
                                         seconds: 10,
@@ -302,7 +303,7 @@ const template = {
         setTemplateData (state, data) {
             const {
                 name, template_id, pipeline_tree, notify_receivers, template_labels, notify_type, description,
-                executor_proxy, time_out, category, subprocess_info, default_flow_type, auto_retry, timeout_config
+                executor_proxy, time_out, category, subprocess_info, default_flow_type
             } = data
 
             const pipelineData = JSON.parse(pipeline_tree)
@@ -318,8 +319,6 @@ const template = {
             state.category = category
             state.subprocess_info = subprocess_info
             state.default_flow_type = default_flow_type
-            state.auto_retry = auto_retry
-            state.timeout_config = timeout_config
             this.commit('template/setPipelineTree', pipelineData)
         },
         setProjectBaseInfo (state, data) {
@@ -378,12 +377,6 @@ const template = {
             state.executor_proxy = ''
             state.template_labels = []
             state.default_flow_type = 'common'
-            state.auto_retry = { enable: false, times: 1 }
-            state.timeout_config = {
-                enable: false,
-                seconds: 10,
-                action: 'forced_fail'
-            }
         },
         // 增加全局变量
         addVariable (state, variable) {
@@ -664,7 +657,7 @@ const template = {
                             type: 'ServiceActivity',
                             retryable: true,
                             skippable: true,
-                            auto_retry: { enable: false, times: 1 },
+                            auto_retry: { enable: false, interval: 0, times: 1 },
                             timeout_config: {
                                 enable: false,
                                 seconds: 10,
@@ -684,7 +677,9 @@ const template = {
                             stage_name: '',
                             template_id: location.atomId,
                             version: location.atomVersion,
-                            type: 'SubProcess'
+                            type: 'SubProcess',
+                            always_use_latest: false,
+                            scheme_id_list: []
                         }
                     }
                     Vue.set(state.activities, location.id, activity)

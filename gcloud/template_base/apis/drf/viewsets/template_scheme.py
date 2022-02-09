@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
+from collections import Counter
 
 from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
@@ -20,7 +21,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import permissions, viewsets
 from rest_framework.exceptions import ErrorDetail
-from pipeline.models import TemplateScheme
+from pipeline.models import TemplateScheme, TemplateRelationship
 from gcloud import err_code
 from gcloud.core.apis.drf.viewsets.utils import ApiMixin
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -61,7 +62,13 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
             model_cls = CommonTemplate
             _filter = {"pk": template_id}
         try:
-            return model_cls.objects.filter(**_filter).only("pipeline_template__id").first().pipeline_template.id
+            pipeline_template = (
+                model_cls.objects.filter(**_filter)
+                .only("pipeline_template__id", "pipeline_template__template_id")
+                .first()
+                .pipeline_template
+            )
+            return pipeline_template.id, pipeline_template.template_id
         except model_cls.DoesNotExist:
             template_type = f'project[{kwargs["project_id"]}]' if "project_id" in kwargs else "common_template"
             message = "flow template[id={template_id}] in {template_type} does not exist".format(
@@ -69,6 +76,22 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
             )
             logger.error(message)
             raise model_cls.DoesNotExist(ErrorDetail(message, err_code.UNKNOWN_ERROR.code))
+
+    @staticmethod
+    def get_scheme_quote_count_dict(template_id):
+        """
+        获取该模版作为子流程时，各执行方案的引用数
+        @return:
+        """
+        queryset = TemplateRelationship.objects.prefetch_related("templatescheme_set").filter(
+            descendant_template_id=template_id
+        )
+
+        total_scheme_id_list = []
+        for relation in queryset:
+            total_scheme_id_list += relation.templatescheme_set.all().values_list("id", flat=True)
+
+        return Counter(total_scheme_id_list)
 
     def get_serializer_data(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -97,7 +120,7 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
         update_schemes = []
         update_scheme_ids = []
 
-        pipeline_template_id = self.get_pipeline_template_id(**validated_data)
+        pipeline_template_id, pipeline_template_template_id = self.get_pipeline_template_id(**validated_data)
 
         # 获取现有方案id列表
         existing_scheme_qs = TemplateScheme.objects.filter(template__id=pipeline_template_id)
@@ -118,7 +141,14 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
                 )
                 create_schemes.append(TemplateScheme(**scheme))
 
-        remove_scheme_ids = list(set(scheme_mappings.keys()) - set(update_scheme_ids))
+        remove_scheme_ids_set = set(scheme_mappings.keys()) - set(update_scheme_ids)
+
+        quote_scheme_ids_set = set(self.get_scheme_quote_count_dict(pipeline_template_template_id).keys())
+        if remove_scheme_ids_set & quote_scheme_ids_set:
+            message = "被子流程节点引用的执行方案禁止删除"
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+
+        remove_scheme_ids = list(remove_scheme_ids_set)
 
         try:
             with transaction.atomic():
@@ -140,15 +170,20 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         validated_data = self.get_serializer_params_data(request)
-        pipeline_template_id = self.get_pipeline_template_id(**validated_data)
+        pipeline_template_id, pipeline_template_template_id = self.get_pipeline_template_id(**validated_data)
         queryset = self.get_queryset().filter(template__id=pipeline_template_id)
         serializer = self.get_serializer(queryset, many=True)
+
+        scheme_quote_count_dict = self.get_scheme_quote_count_dict(pipeline_template_template_id)
+        for item in serializer.data:
+            item.update({"quote_count": scheme_quote_count_dict.get(item["id"], 0)})
+
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         validated_data = self.get_serializer_data(request)
         params_validated_data = self.get_serializer_params_data(request)
-        pipeline_template_id = self.get_pipeline_template_id(**params_validated_data)
+        pipeline_template_id, _ = self.get_pipeline_template_id(**params_validated_data)
         validated_data.update(
             {
                 "unique_id": "{}-{}".format(params_validated_data["template_id"], validated_data["name"]),
@@ -161,4 +196,10 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
+        scheme_quote_num = TemplateRelationship.objects.filter(templatescheme__id=kwargs["pk"]).count()
+
+        if scheme_quote_num != 0:
+            message = "该执行方案被{}个子流程节点引用,禁止删除".format(scheme_quote_num)
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+
         return super(TemplateSchemeViewSet, self).destroy(request, *args, **kwargs)
