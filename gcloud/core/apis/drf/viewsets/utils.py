@@ -27,7 +27,6 @@ iam_logger = logging.getLogger("iam")
 
 
 class ApiMixin(GenericViewSet):
-
     EXEMPT_STATUS_CODES = {status.HTTP_204_NO_CONTENT}
 
     def finalize_response(self, request, response, *args, **kwargs):

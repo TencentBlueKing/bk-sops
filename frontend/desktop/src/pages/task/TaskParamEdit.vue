@@ -119,7 +119,7 @@
                     }
                 }
 
-                this.isNoData = !Object.keys(this.variables).length
+                this.isNoData = variableArray.length === 0
 
                 variableArray = variableArray.sort((a, b) => {
                     return a.index - b.index

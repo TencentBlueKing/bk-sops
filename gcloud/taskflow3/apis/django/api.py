@@ -39,7 +39,6 @@ from gcloud.constants import TASK_CREATE_METHOD, PROJECT
 from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
 from gcloud.taskflow3.domains.context import TaskContext
 from gcloud.contrib.analysis.analyse_items import task_flow_instance
-from gcloud.taskflow3.models import preview_template_tree
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.contrib.operate_record.constants import RecordType, OperateType
 from gcloud.taskflow3.apis.django.validators import (
@@ -73,6 +72,8 @@ from gcloud.iam_auth.view_interceptors.taskflow import (
     StatusViewInterceptor,
 )
 from gcloud.openapi.schema import AnnotationAutoSchema
+
+from pipeline_web.preview import preview_template_tree
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER

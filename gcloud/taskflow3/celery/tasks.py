@@ -86,9 +86,11 @@ def _ensure_node_can_retry(node_id, engine_ver):
 
 
 @task
+@metrics.setup_histogram(metrics.TASKFLOW_NODE_AUTO_RETRY_TASK_DURATION)
 def auto_retry_node(taskflow_id, root_pipeline_id, node_id, retry_times, engine_ver):
     lock_name = "%s-%s-%s" % (root_pipeline_id, node_id, retry_times)
     if not settings.redis_inst.set(name=lock_name, value=1, nx=True, ex=5):
+        metrics.TASKFLOW_NODE_AUTO_RETRY_LOCK_ACCUIRE_FAIL.labels(hostname=HOST_NAME).inc(1)
         logger.warning("[auto_retry_node] lock %s accuire failed, operation give up" % lock_name)
         return
 
