@@ -7,12 +7,12 @@ from gcloud.tasktmpl3.models import TaskTemplate
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S %z"
 
 
-class ProjectSerializer(serializers.ModelSerializer):
+class CollectionProjectSerializer(serializers.ModelSerializer):
     create_at = serializers.DateTimeField(format=DATETIME_FORMAT, read_only=True)
 
     class Meta:
         model = Project
-        exclude = ('relate_business',)
+        exclude = ("relate_business",)
 
 
 class CollectionTemplateSerializer(serializers.ModelSerializer):
@@ -27,12 +27,12 @@ class CollectionTemplateSerializer(serializers.ModelSerializer):
     has_subprocess = serializers.BooleanField(read_only=True)
     template_labels = serializers.SerializerMethodField(read_only=True)
     collection_id = serializers.SerializerMethodField(read_only=True)
-    project = ProjectSerializer(read_only=True)
+    project = CollectionProjectSerializer(read_only=True)
     auth_actions = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = TaskTemplate
-        exclude = ('collector',)
+        exclude = ("collector",)
 
     def get_auth_actions(self, obj):
         return self.context["template_auth_actions"].get(obj.id, [])

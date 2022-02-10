@@ -111,3 +111,4 @@ scripts/check_migrate/
 scripts/check_sensitive_info.sh
 version_logs_html
 .codecc
+staticfiles/*

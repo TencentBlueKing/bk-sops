@@ -221,7 +221,7 @@
                 try {
                     this.collectedLoading = true
                     const res = await this.loadCollectList()
-                    this.collectedList = res.objects
+                    this.collectedList = res.data
                 } catch (e) {
                     console.log(e)
                 } finally {

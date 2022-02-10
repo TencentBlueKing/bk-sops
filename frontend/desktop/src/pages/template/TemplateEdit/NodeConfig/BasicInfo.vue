@@ -448,7 +448,7 @@
                 try {
                     this.labelLoading = true
                     const resp = await this.getLabels({ limit: 0 })
-                    this.labelData = this.transLabelListToGroup(resp.objects)
+                    this.labelData = this.transLabelListToGroup(resp.results)
                 } catch (e) {
                     console.log(e)
                 } finally {
