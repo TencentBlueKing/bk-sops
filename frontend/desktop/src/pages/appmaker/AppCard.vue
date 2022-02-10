@@ -127,6 +127,9 @@
             }
         },
         computed: {
+            ...mapState({
+                'username': state => state.username
+            }),
             ...mapState('project', {
                 'projectId': state => state.project_id,
                 'projectName': state => state.projectName
@@ -233,9 +236,11 @@
                                 name: data.name,
                                 id: data.id
                             },
+                            instance_id: data.id,
+                            username: this.username,
                             category: 'mini_app'
                         }])
-                        if (res.objects.length) {
+                        if (res.data.length) {
                             this.$bkMessage({ message: i18n.t('添加收藏成功！'), theme: 'success' })
                         }
                     } else { // cancel

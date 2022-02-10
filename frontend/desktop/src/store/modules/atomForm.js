@@ -110,7 +110,7 @@ const atomForm = {
          * 加载全量标准插件
          */
         loadSingleAtomList ({ commit }, params) {
-            return axios.get('api/v3/component/', { params }).then(response => response.data.objects)
+            return axios.get('api/v3/component/', { params }).then(response => response.data.data)
         },
         /**
          * 加载全量子流程
@@ -152,14 +152,14 @@ const atomForm = {
                     output_form: outputForm,
                     embedded_output_form: isOutputFormEmbedded,
                     base
-                } = response.data
+                } = response.data.data
                 const result = {
                     input: [],
                     output: [],
                     isRenderOutputForm: !!outputForm
                 }
 
-                commit('setAtomForm', { atomType: atom, data: response.data, version: atomVersion })
+                commit('setAtomForm', { atomType: atom, data: response.data.data, version: atomVersion })
                 commit('setAtomOutputData', { atomType: atom, outputData, version: atomVersion })
 
                 // 加载标准插件 base 文件

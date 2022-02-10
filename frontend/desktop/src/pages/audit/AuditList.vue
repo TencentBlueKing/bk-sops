@@ -439,7 +439,7 @@
                 this.business.loading = true
                 try {
                     const businessData = await this.loadUserProjectList({ limit: 0 })
-                    this.business.list = businessData.objects
+                    this.business.list = businessData.results
                     const form = this.searchForm.find(item => item.key === 'selectedProject')
                     form.list = this.business.list.map(m => ({ name: m.name, value: m.id }))
                     form.loading = false

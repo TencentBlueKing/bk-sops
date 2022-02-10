@@ -63,12 +63,12 @@
                 this.loading = true
                 try {
                     const data = await this.loadPackageSource()
-                    if (!data.objects.length) {
+                    if (!data.results.length) {
                         this.emptyData = true
                         this.isCreating = true
                     } else {
-                        this.sourceData = data.objects
-                        this.transformData(data.objects)
+                        this.sourceData = data.results
+                        this.transformData(data.results)
                     }
                 } catch (e) {
                     console.log(e)

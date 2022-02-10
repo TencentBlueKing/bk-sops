@@ -566,7 +566,7 @@
                     this.getThirdPluginList()
                     // 内置插件
                     const atomList = []
-                    data.forEach(item => {
+                    data.results.forEach(item => {
                         const atom = atomList.find(atom => atom.code === item.code)
                         if (atom) {
                             atom.list.push(item)

@@ -20,7 +20,7 @@ const manage = {
          * @param {Object} fields 包源查询字段
          */
         loadPackageSource () {
-            return axios.get('api/v3/package_source/').then(response => response.data)
+            return axios.get('api/v3/package_source/').then(response => response.data.data)
         },
         /**
          * 新增插件包源配置

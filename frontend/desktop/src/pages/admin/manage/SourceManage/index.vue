@@ -107,10 +107,10 @@
                 this.loading = true
                 try {
                     const data = await this.loadPackageSource()
-                    if (data.objects.length === 0) {
+                    if (data.results.length === 0) {
                         this.emptyData = true
                     } else {
-                        this.transformData(data.objects)
+                        this.transformData(data.results)
                     }
                 } catch (e) {
                     console.log(e)
