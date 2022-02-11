@@ -1315,8 +1315,8 @@ msgstr "请选择集群"
 #: pipeline_plugins/components/static/components/atoms/cc/empty_set_hosts/v1_0.js:164
 #: pipeline_plugins/components/static/components/atoms/cc/update_set/v1_0.js:164
 #: pipeline_plugins/components/static/components/atoms/cc/update_set_service_status/v1_0.js:164
-msgid "请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C`，多个目标集群用换行分隔"
-msgstr "请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C`，多个目标集群用换行分隔"
+msgid "请输入完整路径，从业务拓扑开始，如`业务A>集群B`，多个目标集群用换行分隔"
+msgstr "请输入完整路径，从业务拓扑开始，如`业务A>集群B`，多个目标集群用换行分隔"
 
 #: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:178
 #: pipeline_plugins/components/static/components/atoms/cc/batch_delete_set/v1_0.js:182
@@ -1661,8 +1661,8 @@ msgstr "请选择模块"
 
 #: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:164
 #: pipeline_plugins/components/static/components/atoms/cc/update_module/v1_0.js:164
-msgid "请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C>模块D`，多个目标模块用换行分隔"
-msgstr "请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C>模块D`，多个目标模块用换行分隔"
+msgid "请输入完整路径，从业务拓扑开始，如`业务A>集群B>模块C`，多个目标模块用换行分隔"
+msgstr "请输入完整路径，从业务拓扑开始，如`业务A>集群B>模块C`，多个目标模块用换行分隔"
 
 #: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:179
 #: pipeline_plugins/components/static/components/atoms/cc/transfer_host_module/v1_0.js:183

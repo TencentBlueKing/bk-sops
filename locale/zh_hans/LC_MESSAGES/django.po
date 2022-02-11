@@ -2688,8 +2688,8 @@ msgstr "文本路径-集群"
 #: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/v1_0.py:70
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/v1_0.py:72
 #: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/v1_0.py:71
-msgid "集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C`，多个目标集群用换行分隔"
-msgstr "集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C`，多个目标集群用换行分隔"
+msgid "集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B`，多个目标集群用换行分隔"
+msgstr "集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B`，多个目标集群用换行分隔"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:100
 #: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:115
@@ -3254,8 +3254,8 @@ msgid "文本路径-模块"
 msgstr "文本路径-模块"
 
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/v1_0.py:78
-msgid "请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C>模块D`，多个目标模块用换行分隔"
-msgstr "请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C>模块D`，多个目标模块用换行分隔"
+msgid "请输入完整路径，从业务拓扑开始，如`业务A>集群B>模块C`，多个目标模块用换行分隔"
+msgstr "请输入完整路径，从业务拓扑开始，如`业务A>集群B>模块C`，多个目标模块用换行分隔"
 
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_resource/legacy.py:51
 msgid "转移到资源池的主机内网 IP，多个用英文逗号 `,` 分隔"
@@ -3337,8 +3337,8 @@ msgid "更新模块属性"
 msgstr "更新模块属性"
 
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/v1_0.py:72
-msgid "模块文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C>模块D`，多个目标模块用换行分隔"
-msgstr "模块文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C>模块D`，多个目标模块用换行分隔"
+msgid "模块文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B>模块C`，多个目标模块用换行分隔"
+msgstr "模块文本路径，请输入完整路径，从业务拓扑开始，如`业务A>集群B>模块C`，多个目标模块用换行分隔"
 
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/v1_0.py:122
 msgid "请选择模块填参方式"

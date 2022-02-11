@@ -63,7 +63,17 @@ Query flow templates list of the business
             "bk_biz_name": "blueking",
             "id": 32,
             "editor": "admin",
-            "creator":"admin"
+            "creator":"admin",
+            "auth_actions": [
+                "flow_create",
+                "flow_view",
+                "flow_edit",
+                "flow_delete",
+                "flow_create_task",
+                "flow_create_mini_app",
+                "flow_create_periodic_task",
+                "flow_create_clocked_task"
+            ]
         },
         {
             "category": "Other",
@@ -75,7 +85,17 @@ Query flow templates list of the business
             "bk_biz_name": "blueking",
             "id": 31,
             "editor": null,
-            "creator":"admin"
+            "creator":"admin",
+            "auth_actions": [
+                "flow_create",
+                "flow_view",
+                "flow_edit",
+                "flow_delete",
+                "flow_create_task",
+                "flow_create_mini_app",
+                "flow_create_periodic_task",
+                "flow_create_clocked_task"
+            ]
         },
         {
             "category": "Other",
@@ -87,7 +107,17 @@ Query flow templates list of the business
             "bk_biz_name": "blueking",
             "id": 30,
             "editor": "admin",
-            "creator":"admin"
+            "creator":"admin",
+            "auth_actions": [
+                "flow_create",
+                "flow_view",
+                "flow_edit",
+                "flow_delete",
+                "flow_create_task",
+                "flow_create_mini_app",
+                "flow_create_periodic_task",
+                "flow_create_clocked_task"
+            ]
         },
     ],
     "request_id": "xxx",
@@ -118,6 +148,7 @@ Query flow templates list of the business
 |  create_time   |    string    |      datetime when this flow template created   |
 |  editor        |    string or null | person who edited this flow template last |
 |  edit_time     |    string    |      datetime when this flow template edited          |
+|  auth_actions      |    array   |      actions with permissions for the current user   |
 
 #### data.category
 

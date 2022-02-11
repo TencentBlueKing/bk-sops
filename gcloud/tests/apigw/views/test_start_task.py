@@ -36,7 +36,10 @@ class StartTaskAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -67,12 +70,20 @@ class StartTaskAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
     def test_start_task(self):
-        assert_return = {"result": True, "task_url": TEST_TASKFLOW_URL, "code": 0}
+        assert_return = {
+            "result": True,
+            "data": {"task_url": TEST_TASKFLOW_URL},
+            "task_url": TEST_TASKFLOW_URL,
+            "code": 0,
+        }
         taskflow_instance = MagicMock()
         taskflow_instance.objects.is_task_started = MagicMock(return_value=False)
         taskflow_instance.task_url = MagicMock(return_value=TEST_TASKFLOW_URL)

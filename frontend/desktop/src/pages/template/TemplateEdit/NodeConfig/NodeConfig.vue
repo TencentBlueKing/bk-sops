@@ -830,6 +830,10 @@
                             variable.value = formItemConfig.attrs.value
                         }
                     }
+                    // 特殊处理逻辑，针对子流程节点，如果为自定义类型的下拉框变量，默认开始支持用户创建不存在的选项配置项
+                    if (variable.custom_type === 'select') {
+                        formItemConfig.attrs.allowCreate = true
+                    }
                     formItemConfig.tag_code = key
                     formItemConfig.attrs.name = variable.name
                     // 自定义输入框变量正则校验添加到插件配置项
@@ -851,7 +855,7 @@
             async getNodeBasic (config) {
                 if (config.type === 'ServiceActivity') {
                     const {
-                        component, name, stage_name, labels, error_ignorable, can_retry,
+                        component, name, stage_name = '', labels, error_ignorable, can_retry,
                         retryable, isSkipped, skippable, optional, auto_retry, timeout_config
                     } = config
                     let basicInfoName = i18n.t('请选择插件')
@@ -904,7 +908,7 @@
                         timeoutConfig: timeout_config || { enable: false, seconds: 10, action: 'forced_fail' }
                     }
                 } else {
-                    const { template_id, name, stage_name, labels, optional, always_use_latest, scheme_id_list } = config
+                    const { template_id, name, stage_name = '', labels, optional, always_use_latest, scheme_id_list } = config
                     let templateName = i18n.t('请选择子流程')
 
                     if (template_id) {

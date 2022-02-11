@@ -48,7 +48,15 @@ GET
             "edit_time": "2019-07-15 15:13:22 +0800",
             "create_time": "2019-07-15 15:13:22 +0800",
             "editor": "admin",
-            "id": 10014
+            "id": 10014,
+            "auth_actions": [
+                "common_flow_create_task",
+                "common_flow_edit",
+                "common_flow_delete",
+                "common_flow_view",
+                "common_flow_create",
+                "common_flow_create_periodic_task"
+            ]
         },
         {
             "category": "Other",
@@ -57,7 +65,15 @@ GET
             "edit_time": "2019-07-15 15:13:22 +0800",
             "create_time": "2019-07-15 15:13:22 +0800",
             "editor": "admin",
-            "id": 10013
+            "id": 10013,
+            "auth_actions": [
+                "common_flow_create_task",
+                "common_flow_edit",
+                "common_flow_delete",
+                "common_flow_view",
+                "common_flow_create",
+                "common_flow_create_periodic_task"
+            ]
         },
     ],
     "result": true,
@@ -87,6 +103,7 @@ GET
 |  create_time      |    string    |      模板创建时间   |
 |  editor      |    string 或者 null    |      模板编辑人   |
 |  edit_time      |    string   |      模板最新编辑时间   |
+|  auth_actions      |    array   |      用户对该资源有权限的操作   |
 
 #### data.category
 

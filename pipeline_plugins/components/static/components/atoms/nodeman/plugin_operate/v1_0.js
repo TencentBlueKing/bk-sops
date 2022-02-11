@@ -241,6 +241,7 @@
                             name: gettext("操作类型"),
                             items: [
                                 {value: "MAIN_INSTALL_PLUGIN", text: gettext("安裝")},
+                                {value: "MAIN_STOP_PLUGIN", text: gettext("停止")},
                             ],
                             default: "MAIN_INSTALL_PLUGIN",
                             validation: [
@@ -330,7 +331,23 @@
                             },
                             validation: [
                                 {
-                                    type: "required"
+                                    type: "custom",
+                                    args: function (value) {
+                                        let self = this
+                                        let result = {
+                                            result: true,
+                                            error_message: ""
+                                        }
+                                        if (!self.get_parent) {
+                                            return result
+                                        } else if (self.get_parent().get_child('nodeman_op_type')) {
+                                            if (self.get_parent().get_child('nodeman_op_type').value === "MAIN_INSTALL_PLUGIN" && !value.toString()) {
+                                                result.result = false;
+                                                result.error_message = gettext("操作类型为`安装`时插件版本为必填项");
+                                            }
+                                        }
+                                        return result
+                                    }
                                 }
                             ]
                         },
@@ -363,6 +380,17 @@
                                 action: function (value) {
                                     this.items = []
                                     this.value = ""
+                                }
+                            },
+                            {
+                                source: "nodeman_op_type",
+                                type: "change",
+                                action: function (value) {
+                                    if (value === "MAIN_STOP_PLUGIN") {
+                                        this.hide()
+                                    } else {
+                                        this.show()
+                                    }
                                 }
                             }
                         ]

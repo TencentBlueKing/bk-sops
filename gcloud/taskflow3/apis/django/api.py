@@ -245,6 +245,7 @@ def task_action(request, action, project_id):
 @request_validate(NodesActionValidator)
 @iam_intercept(NodesActionInterceptor())
 @api_view(["POST"])
+@record_operation(RecordType.task.name, OperateType.nodes_action.name)
 def nodes_action(request, action, project_id):
     """
     节点操作

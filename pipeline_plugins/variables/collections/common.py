@@ -115,7 +115,7 @@ class Select(LazyVariable, SelfExplainVariable):
     meta_tag = "select.select_meta"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("下拉框变量"))
-    desc = "单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串"
+    desc = "单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串\n该变量默认不支持输入任意值，仅在子流程节点配置填参时支持输入任意值"
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:

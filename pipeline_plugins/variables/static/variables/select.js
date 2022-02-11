@@ -118,7 +118,6 @@
                     attrs: {
                         name: gettext("下拉框"),
                         hookable: true,
-                        allowCreate: true,
                         items: items,
                         multiple: multiple,
                         value: default_val,

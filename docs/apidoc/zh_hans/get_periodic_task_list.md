@@ -54,7 +54,12 @@ GET
             "last_run_at": "2018-11-28 15:57:01 +0900",
             "enabled": false,
             "id": 11,
-            "template_id": "2"
+            "template_id": "2",
+            "auth_actions": [
+                "periodic_task_view",
+                "periodic_task_delete",
+                "periodic_task_edit"
+            ]
         },
         {
             "cron": "1,2,3-19/2 2 3 4 5 (m/h/d/dM/MY)",
@@ -64,7 +69,12 @@ GET
             "last_run_at": "",
             "enabled": false,
             "id": 6,
-            "template_id": "2"
+            "template_id": "2",
+            "auth_actions": [
+                "periodic_task_view",
+                "periodic_task_delete",
+                "periodic_task_edit"
+            ]
         },
         {
             "cron": "*/5 * * * * (m/h/d/dM/MY)",
@@ -74,7 +84,12 @@ GET
             "last_run_at": "",
             "enabled": false,
             "id": 4,
-            "template_id": "2"
+            "template_id": "2",
+            "auth_actions": [
+                "periodic_task_view",
+                "periodic_task_delete",
+                "periodic_task_edit"
+            ]
         }
     ],
     "result": true,
@@ -106,3 +121,5 @@ GET
 |  enabled      |    bool    |    是否激活   |
 |  id      |    int    |    周期任务ID   |
 |  template_id      |    string    |    用于创建该任务的模板ID   |
+|  auth_actions      |    array   |      用户对该资源有权限的操作   |
+
