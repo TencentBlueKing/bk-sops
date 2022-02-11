@@ -45,4 +45,5 @@ class ComponentModelSetViewSet(GcloudReadOnlyViewSet):
     detail_serializer_class = ComponentModelDetailSerializer
     permission_classes = [permissions.IsAuthenticated]
     filterset_class = ComponentModelFilter
+    pagination_class = None
     lookup_field = "code"
