@@ -60,15 +60,16 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
         else:
             model_cls = CommonTemplate
             _filter = {"pk": template_id}
-        try:
-            return model_cls.objects.filter(**_filter).only("pipeline_template__id").first().pipeline_template.id
-        except model_cls.DoesNotExist:
+
+        template = model_cls.objects.filter(**_filter).only("pipeline_template__id").first()
+        if not template:
             template_type = f'project[{kwargs["project_id"]}]' if "project_id" in kwargs else "common_template"
             message = "flow template[id={template_id}] in {template_type} does not exist".format(
                 template_id=template_id, template_type=template_type
             )
             logger.error(message)
             raise model_cls.DoesNotExist(ErrorDetail(message, err_code.UNKNOWN_ERROR.code))
+        return template.pipeline_template.id
 
     def get_serializer_data(self, request):
         serializer = self.serializer_class(data=request.data)
