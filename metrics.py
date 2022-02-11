@@ -11,9 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import time
+import socket
 from functools import wraps
 
 from prometheus_client import Gauge, Histogram, Counter
+
+
+HOST_NAME = socket.gethostname()
 
 
 def setup_histogram(*histograms):
@@ -25,7 +29,7 @@ def setup_histogram(*histograms):
                 return func(*args, **kwargs)
             finally:
                 for h in histograms:
-                    h.observe(time.time() - start)
+                    h.labels(hostname=HOST_NAME).observe(time.time() - start)
 
         return _wrapper
 

@@ -34,8 +34,8 @@ from gcloud.core.views import page_not_found
 from django.views import static
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    url(r'^account/', include('blueapps.account.urls')),
+    url(r"^django_admin/", admin.site.urls),
+    url(r"^account/", include("blueapps.account.urls")),
 ]
 
 # app自定义路径
@@ -44,12 +44,12 @@ urlpatterns += urlpatterns_custom
 if settings.IS_LOCAL:
     urlpatterns += [
         # media
-        url(r'^media/(?P<path>.*)$', static.serve, {'document_root': settings.MEDIA_ROOT}),
-        url('favicon.ico', static.serve, {'document_root': settings.STATIC_ROOT, 'path': 'core/images/bk_sops.png'}),
+        url(r"^media/(?P<path>.*)$", static.serve, {"document_root": settings.MEDIA_ROOT}),
+        url("favicon.ico", static.serve, {"document_root": settings.STATIC_ROOT, "path": "core/images/bk_sops.png"}),
     ]
     if not settings.DEBUG:
         urlpatterns += [
-            url(r'^static/(?P<path>.*)$', static.serve, {'document_root': settings.STATIC_ROOT}),
+            url(r"^static/(?P<path>.*)$", static.serve, {"document_root": settings.STATIC_ROOT}),
         ]
 
 handler404 = page_not_found

@@ -174,7 +174,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.14.2"
+STATIC_VERSION = "3.14.8"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -610,7 +610,9 @@ def monitor_report_config():
             )
             return
 
-        if not ("er_execute" in queues or "er_schedule" in queues):
+        # 只对存在以下队列的情况进行上报
+        monitor_queues = ["er_execute", "er_schedule", "timeout_node"]
+        if not any([monitor_queue in queues for monitor_queue in monitor_queues]):
             sys.stdout.write("[!]can't found er queue in command: %s, skip celery monitor report config\n" % boot_cmd)
             return
 
@@ -624,10 +626,20 @@ def monitor_report_config():
             target=env.BK_MONITOR_REPORT_TARGET,  # 上报唯一标志符
             url=env.BK_MONITOR_REPORT_URL,  # 上报地址
         )
-        MonitorReportStep.setup_reporter(reporter)
-        celery_app.steps["worker"].add(MonitorReportStep)
 
-    elif "gunicorn wsgi" in boot_cmd:
+        # 针对多进程worker需要做特殊梳理，在worker进程中进行reporter start
+        prefork_config_check = [("-P", "-P prefork"), ("--pool", "--pool=prefork")]
+        if any([config[0] in boot_cmd and config[1] not in boot_cmd for config in prefork_config_check]):
+            MonitorReportStep.setup_reporter(reporter)
+            celery_app.steps["worker"].add(MonitorReportStep)
+        else:
+            from celery.signals import worker_process_init  # noqa
+
+            worker_process_init.connect(reporter.start, weak=False)
+
+    elif "gunicorn wsgi" or "node_timeout_process" in boot_cmd:
+        from bk_monitor_report import MonitorReporter  # noqa
+
         reporter = MonitorReporter(
             data_id=env.BK_MONITOR_REPORT_DATA_ID,  # 监控 Data ID
             access_token=env.BK_MONITOR_REPORT_ACCESS_TOKEN,  # 自定义上报 Token

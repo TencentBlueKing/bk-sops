@@ -98,3 +98,5 @@ If you are interested in contributing, check out the [CONTRIBUTING.md], also joi
 
 ## License
 Standard OPS is based on the MIT protocol. Please refer to [LICENSE](LICENSE.txt) for details.
+
+We undertake not to change the open source license (MIT license) applicable to the current version of the project delivered to anyone in the future.

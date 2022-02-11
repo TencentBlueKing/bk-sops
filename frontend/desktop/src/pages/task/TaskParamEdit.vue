@@ -253,12 +253,16 @@
                             }
                             let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                             currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
-                            variable.meta = tools.deepClone(variable) // JSON.stringify 循环引用的问题，需要深拷贝一下
+                            if (!('meta' in variable)) { // 元变量不存在meta字段
+                                variable.meta = tools.deepClone(variable)
+                            }
                             variable.value = currentFormConfig.attrs.value
                         }
                     } else {
                         variable.value = this.renderData[key]
-                        variable.meta = this.metaConfig[key]
+                        if (variable.is_meta && !('meta' in variable)) { // 元变量不存在meta字段
+                            variable.meta = this.metaConfig[key]
+                        }
                     }
                 }
                 return Promise.resolve(variables)
