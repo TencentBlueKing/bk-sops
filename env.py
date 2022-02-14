@@ -40,3 +40,6 @@ BK_PLUGIN_DEVELOP_URL = os.getenv("BK_PLUGIN_DEVELOP_URL", "")
 
 # 蓝鲸API网关
 BK_APIGW_HOST = os.getenv("BK_APIGW_HOST")
+
+# 节点日志持久化时间
+BK_NODE_LOG_PERSISTENT_DAYS = int(os.getenv("BKAPP_NODE_LOG_PERSISTENT_DAYS", 30))
