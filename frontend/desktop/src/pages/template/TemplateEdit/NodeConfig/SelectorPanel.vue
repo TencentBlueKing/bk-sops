@@ -28,7 +28,7 @@
             type="unborder-card"
             @tab-change="setSearchInputShow">
             <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('内置插件') }"></bk-tab-panel>
-            <bk-tab-panel v-bind="{ name: 'third_praty_plugin', label: $t('第三方插件') }"></bk-tab-panel>
+            <bk-tab-panel v-bind="{ name: 'third_party_plugin', label: $t('第三方插件') }"></bk-tab-panel>
         </bk-tab>
         <!-- 内置插件 -->
         <div class="list-wrapper" v-show="curPluginTab === 'build_in_plugin'">
@@ -173,13 +173,13 @@
             </div>
         </div>
         <!-- 第三方插件 -->
-        <div v-show="curPluginTab === 'third_praty_plugin'" v-bkloading="{ isLoading: pluginLoading }">
-            <ul class="third-praty-list" v-show="atomTypeList.pluginList.length">
+        <div v-show="curPluginTab === 'third_party_plugin'" v-bkloading="{ isLoading: pluginLoading }">
+            <ul class="third-party-list" v-show="atomTypeList.pluginList.length">
                 <li
-                    :class="['plugin-item', { 'is-actived': plugin.code === basicInfo.plugin }]"
+                    :class="['plugin-item', { 'is-active': plugin.code === basicInfo.plugin }]"
                     v-for="(plugin, index) in atomTypeList.pluginList"
                     :key="index"
-                    @click="onThirdPratyClick(plugin)">
+                    @click="onThirdPartyClick(plugin)">
                     <img class="plugin-logo" :src="plugin.logo_url" alt="">
                     <div>
                         <p class="plugin-title">{{ plugin.name }}</p>
@@ -224,7 +224,7 @@
         },
         data () {
             const listData = this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
-            const curPluginTab = this.isThirdParty ? 'third_praty_plugin' : 'build_in_plugin'
+            const curPluginTab = this.isThirdParty ? 'third_party_plugin' : 'build_in_plugin'
             return {
                 curPluginTab,
                 listData,
@@ -268,7 +268,7 @@
         },
         mounted () {
             this.$nextTick(() => {
-                this.scrollDom = document.querySelector('.third-praty-list')
+                this.scrollDom = document.querySelector('.third-party-list')
                 if (this.scrollDom) {
                     this.scrollDom.addEventListener('scroll', this.handlePluginScroll)
                 }
@@ -339,10 +339,10 @@
                 }
             },
             setSearchInputShow () {
-                const isThirdParty = this.curPluginTab === 'third_praty_plugin'
+                const isThirdParty = this.curPluginTab === 'third_party_plugin'
                 if (isThirdParty && !this.scrollDom) {
                     this.$nextTick(() => {
-                        this.scrollDom = document.querySelector('.third-praty-list')
+                        this.scrollDom = document.querySelector('.third-party-list')
                         if (this.scrollDom) {
                             this.scrollDom.addEventListener('scroll', this.handlePluginScroll)
                         }
@@ -358,7 +358,7 @@
             },
             async searchInputhandler () {
                 let result = []
-                if (this.curPluginTab === 'third_praty_plugin') {
+                if (this.curPluginTab === 'third_party_plugin') {
                     this.$emit('updatePluginList', this.searchStr, 'search')
                     return
                 }
@@ -476,7 +476,7 @@
                 }
             },
             // 选中第三方插件
-            async onThirdPratyClick (plugin) {
+            async onThirdPartyClick (plugin) {
                 try {
                     const resp = await this.loadPluginServiceMeta({ plugin_code: plugin.code })
                     const { code, versions, description } = resp.data
@@ -743,7 +743,7 @@
         margin-top: 10px;
     }
 }
-.third-praty-list {
+.third-party-list {
     height: calc(100vh - 110px);
     overflow: auto;
     @include scrollbar;
@@ -776,7 +776,7 @@
             color: #c4c6cc;
             font-weight: 700;
         }
-        &.is-actived, &:hover {
+        &.is-active, &:hover {
             background: hsl(218, 100%, 94%);
         }
     }
