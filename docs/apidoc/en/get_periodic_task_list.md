@@ -54,7 +54,12 @@ Query periodic task for business
             "last_run_at": "2018-11-28 15:57:01 +0900",
             "enabled": false,
             "id": 11,
-            "template_id": "2"
+            "template_id": "2",
+            "auth_actions": [
+                "periodic_task_view",
+                "periodic_task_delete",
+                "periodic_task_edit"
+            ]
         },
         {
             "cron": "1,2,3-19/2 2 3 4 5 (m/h/d/dM/MY)",
@@ -64,7 +69,12 @@ Query periodic task for business
             "last_run_at": "",
             "enabled": false,
             "id": 6,
-            "template_id": "2"
+            "template_id": "2",
+            "auth_actions": [
+                "periodic_task_view",
+                "periodic_task_delete",
+                "periodic_task_edit"
+            ]
         },
         {
             "cron": "*/5 * * * * (m/h/d/dM/MY)",
@@ -74,7 +84,12 @@ Query periodic task for business
             "last_run_at": "",
             "enabled": false,
             "id": 4,
-            "template_id": "2"
+            "template_id": "2",
+            "auth_actions": [
+                "periodic_task_view",
+                "periodic_task_delete",
+                "periodic_task_edit"
+            ]
         }
     ],
     "result": true,
@@ -105,3 +120,4 @@ Query periodic task for business
 |  enabled      |    bool    |   is the task enabled   |
 |  id      |    int    |    task id   |
 |  template_id      |    string    |    template id for the task   |
+|  auth_actions      |    array   |      actions with permissions for the current user   |

@@ -1,5 +1,5 @@
 spec_version: 2
-app_version: "3.14.2"
+app_version: "3.14.8"
 app:
     region: default
     bk_app_code: bk_sops
@@ -208,7 +208,7 @@ modules:
                 command: celery-prometheus-exporter --broker amqp://$RABBITMQ_USER:$RABBITMQ_PASSWORD@$RABBITMQ_HOST:$RABBITMQ_PORT/$RABBITMQ_VHOST --addr :$PORT --queue-list $CELERY_EXPORTER_QUEUE
                 plan: 4C2G5R
                 replicas: 1
-            node-timeout-process:
+            node-timeout:
                 command: python manage.py node_timeout_process
                 plan: 4C1G5R
                 replicas: 1

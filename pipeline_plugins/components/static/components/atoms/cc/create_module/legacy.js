@@ -160,7 +160,7 @@
             attrs: {
                 name: gettext("所属集群"),
                 hookable: true,
-                placeholder: gettext("请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C`，多个目标集群用换行分隔"),
+                placeholder: gettext("请输入完整路径，从业务拓扑开始，如`业务A>集群B`，多个目标集群用换行分隔"),
                 validation: [
                     {
                         // 校验手动输入路径，在选择手动输入时必填

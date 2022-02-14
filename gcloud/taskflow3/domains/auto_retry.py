@@ -53,12 +53,21 @@ class AutoRetryNodeStrategyCreator:
                     except Exception:
                         max_retry_times = gcloud_constants.TASKFLOW_NODE_AUTO_RETRY_MAX_TIMES
 
+                    try:
+                        interval = min(
+                            abs(int(auto_retry.get("interval", 0))),
+                            gcloud_constants.TASKFLOW_NODE_AUTO_RETRY_MAX_INTERVAL,
+                        )
+                    except Exception:
+                        interval = gcloud_constants.TASKFLOW_NODE_AUTO_RETRY_MAX_INTERVAL
+
                     strategies.append(
                         AutoRetryNodeStrategy(
                             taskflow_id=self.taskflow_id,
                             root_pipeline_id=self.root_pipeline_id,
                             node_id=act_id,
                             max_retry_times=max_retry_times,
+                            interval=interval,
                         )
                     )
             return strategies
