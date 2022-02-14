@@ -480,7 +480,7 @@
                 try {
                     const resp = await this.loadPluginServiceMeta({ plugin_code: plugin.code })
                     const { code, versions, description } = resp.data
-                    const versionList = versions.map(version => {
+                    const versionList = versions.sort().map(version => {
                         return { version }
                     })
                     const group = {
