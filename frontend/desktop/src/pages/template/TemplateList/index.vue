@@ -1183,6 +1183,7 @@
             },
             // 标题提示信息，查看子流程更新
             handleSubflowFilter () {
+                this.activeTab = 'all'
                 const searchComp = this.$refs.advanceSearch
                 searchComp.onAdvanceOpen(true)
                 searchComp.onChangeFormItem(1, 'subprocessUpdateVal')
