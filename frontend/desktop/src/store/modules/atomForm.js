@@ -159,7 +159,7 @@ const atomForm = {
                     output: [],
                     isRenderOutputForm: !!outputForm
                 }
-
+                
                 commit('setAtomForm', { atomType: atom, data: respData, version: atomVersion })
                 commit('setAtomOutputData', { atomType: atom, outputData, version: atomVersion })
 
