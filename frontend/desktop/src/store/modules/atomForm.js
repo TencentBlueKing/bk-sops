@@ -152,14 +152,14 @@ const atomForm = {
                     output_form: outputForm,
                     embedded_output_form: isOutputFormEmbedded,
                     base
-                } = response.data.data
+                } = response.data
                 const result = {
                     input: [],
                     output: [],
                     isRenderOutputForm: !!outputForm
                 }
 
-                commit('setAtomForm', { atomType: atom, data: response.data.data, version: atomVersion })
+                commit('setAtomForm', { atomType: atom, data: response.data, version: atomVersion })
                 commit('setAtomOutputData', { atomType: atom, outputData, version: atomVersion })
 
                 // 加载标准插件 base 文件
