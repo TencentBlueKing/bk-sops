@@ -20,10 +20,9 @@ def i18n_footer(language):
     default = """
         <div class="copyright">
             <ul class="link-list">
-                <a href="tencent://message/?uin=800802001&site=qq&menu=yes" class="link-item">{}(800802001)</a>
+                <a href="https://wpa1.qq.com/KziXGWJs?_type=wpa&qidian=true" class="link-item" target="_blank">{}</a>
                 <a href="http://bk.tencent.com/s-mart/community/" class="link-item" target="_blank">{}</a>
-                <a href="http://bk.tencent.com/" class="link-item" target="_blank">{}</a>
-                <a href="${{desktop_link}}" class="link-item" target="_blank">{}</a>
+                <a href="http://bk.tencent.com/index" class="link-item" target="_blank">{}</a>
                 <a href="#" class="link-item focus_us">{}<img class="qr_code" \
                 src="${{static_url}}core/images/bk_qr_code.png"/></a>
             </ul>
@@ -46,7 +45,7 @@ def i18n_footer(language):
             }}
         </style>
         """.format(
-        _("QQ咨询"), _("蓝鲸论坛"), _("蓝鲸官网"), _("蓝鲸智云桌面"), _("关注我们")
+        _("技术支持"), _("社区论坛"), _("产品官网"), _("关注我们")
     )
 
     footer_key = "BKAPP_FOOTER"
