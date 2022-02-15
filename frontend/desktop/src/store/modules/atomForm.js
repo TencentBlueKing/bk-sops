@@ -159,7 +159,7 @@ const atomForm = {
                     isRenderOutputForm: !!outputForm
                 }
 
-                commit('setAtomForm', { atomType: atom, data: response.data.data, version: atomVersion })
+                commit('setAtomForm', { atomType: atom, data: response.data, version: atomVersion })
                 commit('setAtomOutputData', { atomType: atom, outputData, version: atomVersion })
 
                 // 加载标准插件 base 文件
