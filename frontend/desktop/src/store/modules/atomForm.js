@@ -176,7 +176,6 @@ const atomForm = {
                     result.input = await asyncGetAtomConfig(inputForm, isInputFormEmbedded, atom)
                     commit('setInputConfig', { atomType: atom, version: atomVersion, configList: result.input })
                 }
-                console.log(result)
                 return result
             })
         },
