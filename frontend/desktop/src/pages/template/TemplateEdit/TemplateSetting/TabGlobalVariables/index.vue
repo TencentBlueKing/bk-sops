@@ -420,8 +420,8 @@
                     source_tag: 'input.input',
                     source_type: 'custom',
                     validation: '^.+$',
-                    is_condition_hide: false,
-                    pre_render_mako: false,
+                    is_condition_hide: 'false',
+                    pre_render_mako: 'false',
                     value: '',
                     version: 'legacy'
                 }

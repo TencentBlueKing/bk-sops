@@ -152,7 +152,7 @@ const atomForm = {
                     output_form: outputForm,
                     embedded_output_form: isOutputFormEmbedded,
                     base
-                } = response.data.data
+                } = response.data
                 const result = {
                     input: [],
                     output: [],
