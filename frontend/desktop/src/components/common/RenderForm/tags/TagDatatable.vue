@@ -74,8 +74,8 @@
                                 :option="getColumnOptions(scope.$index)"
                                 :value="scope.row[item.tag_code]"
                                 :parent-value="scope.row"
-                                @init="onInitColumn(scope, ...arguments)"
-                                @change="onEditColumn(scope, ...arguments)">
+                                @init="onInitColumn(scope.$index, cIndex, ...arguments)"
+                                @change="onEditColumn(scope.$index, cIndex, ...arguments)">
                             </component>
                         </template>
                     </el-table-column>
@@ -276,7 +276,6 @@
             dataList () {
                 if (this.pagination) {
                     const start = (this.currentPage - 1) * this.page_size
-                    console.log('tableValue', this.tableValue)
                     return this.tableValue.slice(start, start + this.page_size)
                 }
                 return this.tableValue
@@ -551,20 +550,19 @@
             onBtnClick (callback) {
                 typeof callback === 'function' && callback.bind(this)()
             },
-            onInitColumn (scope, val) {
-                this.triggerSameRowEvent('init', scope.$index, scope.column.index, val)
+            onInitColumn (row, col, val) {
+                this.triggerSameRowEvent('init', row, col, val)
             },
             onEdit (index, row) {
                 if (this.pagination) {
                     index = (this.currentPage - 1) * this.page_size + index
                 }
-                console.log(index)
                 this.editRowNumber = index
             },
-            onEditColumn (scope, fieldsArr, val) {
+            onEditColumn (row, col, fieldsArr, val) {
                 const field = fieldsArr.slice(-1)
                 this.$set(this.tableValue[this.editRowNumber], field, val)
-                this.triggerSameRowEvent('change', scope.$index, scope.column.index, val)
+                this.triggerSameRowEvent('change', row, col, val)
             },
             onDelete (index, row) {
                 if (this.pagination) {
