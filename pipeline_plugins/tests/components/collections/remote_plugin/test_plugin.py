@@ -87,7 +87,7 @@ EXECUTE_FAIL_CLIENT = MockPluginClient(
 
 SCHEDULE_FAIL_CLIENT = MockPluginClient(
     invoke_result=(True, {**TRACE_ID_OUTPUTS, "state": State.POLL, "outputs": {}}),
-    get_schedule_result=(True, {"state": State.FAIL, "outputs": {}}),
+    get_schedule_result=(True, {"state": State.FAIL, "outputs": BASE_OUTPUTS}),
     get_detail_result={"result": True, "data": {"context_inputs": {"properties": {}}}},
 )
 
@@ -140,7 +140,7 @@ SCHEDULE_FAIL_CASE = ComponentTestCase(
     parent_data=PARENT_DATA,
     execute_assertion=ExecuteAssertion(success=True, outputs={**TRACE_ID_OUTPUTS}),
     schedule_assertion=ScheduleAssertion(
-        success=False, outputs={**TRACE_ID_OUTPUTS, **SCHEDULE_FAIL_EX_DATA_OUTPUTS}, callback_data={},
+        success=False, outputs={**TRACE_ID_OUTPUTS, **SCHEDULE_FAIL_EX_DATA_OUTPUTS, **BASE_OUTPUTS}, callback_data={},
     ),
     patchers=[Patcher(target=PLUGIN_SERVICE_API_CLIENT, return_value=SCHEDULE_FAIL_CLIENT)],
 )
