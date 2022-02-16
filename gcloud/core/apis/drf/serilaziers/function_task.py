@@ -10,17 +10,16 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from rest_framework import serializers
 
-from .project_config import *  # noqa
-from .resource_config import *  # noqa
-from .business import *  # noqa
-from .project import *  # noqa
-from .component_model import *  # noqa
-from .common_use_project import *  # noqa
-from .label import *  # noqa
-from .package_source import *  # noqa
-from .sync_task import *  # noqa
-from .function_task import *  # noqa
-from .taskflow import *  # noqa
-from .variable import *  # noqa
-from .task_template import *  # noqa
+from gcloud.contrib.function.models import FunctionTask
+from gcloud.core.apis.drf.serilaziers.taskflow import TaskFlowInstanceSerializer
+
+
+class FunctionTaskSerializer(serializers.ModelSerializer):
+    task = TaskFlowInstanceSerializer()
+    status_name = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = FunctionTask
+        fields = "__all__"
