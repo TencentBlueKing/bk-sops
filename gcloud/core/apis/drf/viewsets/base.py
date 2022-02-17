@@ -16,7 +16,7 @@ from collections import Iterable
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.pagination import LimitOffsetPagination, _positive_int
 
 from django_filters.rest_framework import DjangoFilterBackend
 from gcloud.iam_auth import get_iam_client
@@ -28,6 +28,37 @@ iam_logger = logging.getLogger("iam")
 
 class GcloudLimitOffsetPagination(LimitOffsetPagination):
     default_limit = 10
+
+    def get_limit(self, request):
+        if self.limit_query_param:
+            try:
+                """
+                strict=False,允许limit为0
+                """
+                return _positive_int(request.query_params[self.limit_query_param], strict=False, cutoff=self.max_limit)
+            except (KeyError, ValueError):
+                pass
+
+        return self.default_limit
+
+    def paginate_queryset(self, queryset, request, view=None):
+        self.count = self.get_count(queryset)
+        self.limit = self.get_limit(request)
+        if self.limit is None:
+            return None
+        self.offset = self.get_offset(request)
+        """
+        limit=0&offset=0不分页
+        """
+        if self.limit == 0 and self.offset == 0:
+            return None
+        self.request = request
+        if self.count > self.limit and self.template is not None:
+            self.display_page_controls = True
+
+        if self.count == 0 or self.offset > self.count:
+            return []
+        return list(queryset[self.offset : self.offset + self.limit])
 
 
 class GcloudCommonMixin(IAMMixin, ApiMixin):
