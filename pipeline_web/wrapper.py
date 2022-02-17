@@ -128,7 +128,7 @@ class PipelineTemplateWebWrapper(object):
                     template_nodes_set = set(subproc_data[PWE.activities].keys())
                     scheme_id_list = act.get("scheme_id_list", [])
                     exclude_task_nodes_id = PipelineTemplateWebPreviewer.get_template_exclude_task_nodes_with_schemes(
-                        template_nodes_set, scheme_id_list
+                        subproc_data, template_nodes_set, scheme_id_list
                     )
                     PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes(
                         subproc_data, exclude_task_nodes_id

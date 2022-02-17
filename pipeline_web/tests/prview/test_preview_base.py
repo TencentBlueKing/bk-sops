@@ -35,12 +35,25 @@ class PipelineTemplateWebPreviewerTestCase(TestCase):
     def test_get_template_exclude_task_nodes_with_schemes(self):
         template_nodes_set = {"node1", "node2", "node3", "node4", "node5"}
         scheme_id_list = [1, 2, 3]
+        pipeline_tree = {
+            "activities": {
+                "node1": {"id": "node1", "type": "ServiceActivity", "optional": True},
+                "node2": {"id": "node2", "type": "ServiceActivity", "optional": False},
+                "node3": {"id": "node3", "type": "ServiceActivity", "optional": True},
+                "node4": {"id": "node4", "type": "ServiceActivity", "optional": True},
+            },
+            "constants": {
+                "${param1}": {"value": "${parent_param2}"},
+                "${param2}": {"value": "constant_value_2"},
+                "${custom_param2}": {"value": "custom_value_2"},
+            },
+        }
         exclude_task_nodes = PipelineTemplateWebPreviewer.get_template_exclude_task_nodes_with_schemes(
-            template_nodes_set, scheme_id_list
+            pipeline_tree, template_nodes_set, scheme_id_list
         )
         MockTemplateScheme.objects.in_bulk.assert_called_once_with([1, 2, 3])
 
-        self.assertEqual(set(exclude_task_nodes), {"node2", "node4"})
+        self.assertEqual(set(exclude_task_nodes), {"node4"})
 
     def test_preview_pipeline_tree_exclude_task_nodes(self):
         exclude_task_nodes_id = ["node9ab869668031c89ee03bd3b4ce66"]
