@@ -193,14 +193,15 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
   - `editable`：是否显示表格操作列，包含编辑、删除、保存、取消按钮
   - `deleteable`：是否显示删除按钮，用来单独控制表格操作列的删除按钮
   - `add_btn`： 是否显示添加按钮
-  - `table_buttons`: 自定义配置表格按钮，eg: [{text: '点击', callback: function(){console.log(1)}, type: 'xxx or import'}, ...]，其中 type 为非必需字段，值为 import 时，点击回调使用内置的上传函数
+  - `table_buttons`： 自定义配置表格按钮，eg: [{text: '点击', callback: function(){console.log(1)}, type: 'xxx or import'}, ...]，其中 type 为非必需字段，值为 import 时，点击回调使用内置的上传函数
   - `empty_text`：无数据提示
   - `remote_url`：表格数据远程加载，支持 url 字符串以及返回 url 字符串的方法
   - `remote_data_init`：加载数据后的处理函数
-  - `row_click_handler`: 单行点击回调函数，回调参数如下：
+  - `row_click_handler`： 单行点击回调函数，回调参数如下：
     + row, eg: { key1:'value1',key2:'value2' }
     + column, eg: { label: 'name', property: 'key1' }
     + event
+  - `row_draggable`：表格行是否可以拖拽
   - `pagination`：表格数据分页展示，默认不展示（false）
   - `page_size`：表格分页展示时，每页显示的条数(Number)，默认 10 条每页
   - `value`：表格的值

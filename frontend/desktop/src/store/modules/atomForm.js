@@ -145,6 +145,7 @@ const atomForm = {
                 params.version = atomVersion
             }
             return axios.get(url, { params }).then(async (response) => {
+                const respData = atomClassify === 'component' ? response.data.data : response.data
                 const {
                     output: outputData,
                     form: inputForm,
@@ -152,14 +153,14 @@ const atomForm = {
                     output_form: outputForm,
                     embedded_output_form: isOutputFormEmbedded,
                     base
-                } = response.data.data
+                } = respData
                 const result = {
                     input: [],
                     output: [],
                     isRenderOutputForm: !!outputForm
                 }
-
-                commit('setAtomForm', { atomType: atom, data: response.data.data, version: atomVersion })
+                
+                commit('setAtomForm', { atomType: atom, data: respData, version: atomVersion })
                 commit('setAtomOutputData', { atomType: atom, outputData, version: atomVersion })
 
                 // 加载标准插件 base 文件
