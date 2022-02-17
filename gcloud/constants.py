@@ -202,3 +202,7 @@ class Type(Enum):
     LIST = "list"
     DICT = "dict"
     OBJECT = "object"
+
+
+# DateTime格式化
+DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S %z"
