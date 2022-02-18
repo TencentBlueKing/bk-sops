@@ -23,29 +23,12 @@ def i18n_footer(language):
                 <a href="https://wpa1.qq.com/KziXGWJs?_type=wpa&qidian=true" class="link-item" target="_blank">{}</a>
                 <a href="http://bk.tencent.com/s-mart/community/" class="link-item" target="_blank">{}</a>
                 <a href="http://bk.tencent.com/index" class="link-item" target="_blank">{}</a>
-                <a href="#" class="link-item focus_us">{}<img class="qr_code" \
-                src="${{static_url}}core/images/bk_qr_code.png"/></a>
             </ul>
             <div class="desc">Copyright &copy; 2012-${{year}} Tencent BlueKing. \
             All Rights Reserved. V${{sops_version}}</div>
         </div>
-        <style>
-            .focus_us {{
-                position: relative;
-            }}
-            .focus_us:hover .qr_code{{
-                display: block;
-                position: absolute;
-                top: -115px;
-                right: -20px;
-                z-index: 999;
-            }}
-            .qr_code{{
-                display: none;
-            }}
-        </style>
         """.format(
-        _("技术支持"), _("社区论坛"), _("产品官网"), _("关注我们")
+        _("技术支持"), _("社区论坛"), _("产品官网")
     )
 
     footer_key = "BKAPP_FOOTER"
