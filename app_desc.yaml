@@ -67,7 +67,7 @@ modules:
                 - bk_app_code: "bk_sops"
                   module_name: "callback"
         scripts:
-            pre_release_hook: bash bin/post_compile
+            pre_release_hook: bash bin/pre_release
     callback:
         is_default: False
         language: Python
