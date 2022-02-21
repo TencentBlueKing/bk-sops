@@ -447,7 +447,7 @@
             async getNodeLabelList () {
                 try {
                     this.labelLoading = true
-                    const resp = await this.getLabels({ limit: 0 })
+                    const resp = await this.getLabels()
                     this.labelData = this.transLabelListToGroup(resp.results)
                 } catch (e) {
                     console.log(e)
