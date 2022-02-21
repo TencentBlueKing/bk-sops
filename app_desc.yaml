@@ -47,7 +47,7 @@ modules:
               description: GunicornThread数量
         processes:
             web:
-                command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b :$PORT --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=500 -k gthread --threads $GUNICORN_THREAD_NUM
+                command: bin/start_web.sh
                 plan: 4C2G5R
                 replicas: 5
             beat:
@@ -66,6 +66,8 @@ modules:
                 - bk_app_code: "bk_sops"
                 - bk_app_code: "bk_sops"
                   module_name: "callback"
+        scripts:
+            pre_release_hook: bash bin/post_compile
     callback:
         is_default: False
         language: Python
