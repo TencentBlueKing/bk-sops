@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from rest_framework import permissions
+from rest_framework.pagination import LimitOffsetPagination
+
 from pipeline_web.label.models import Label
 
 from .base import GcloudReadOnlyViewSet
@@ -32,3 +34,4 @@ class LabelViewSet(GcloudReadOnlyViewSet):
     serializer_class = LabelSerializer
     permission_classes = [permissions.IsAuthenticated]
     filterset_class = LabelFilter
+    pagination_class = LimitOffsetPagination
