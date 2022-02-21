@@ -15,7 +15,7 @@ from rest_framework import permissions
 from gcloud.core.models import ProjectCounter
 from gcloud.iam_auth.utils import get_user_projects
 
-from ..filter import ALL_LOOKUP, AllLookupSupportFilterSet
+from ..filtersets import ALL_LOOKUP, AllLookupSupportFilterSet
 from ..serilaziers import CommonProjectSerializer
 from .base import GcloudReadOnlyViewSet
 

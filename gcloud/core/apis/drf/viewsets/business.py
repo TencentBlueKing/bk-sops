@@ -16,7 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 from gcloud.core.models import Business
 
 from .base import GcloudReadOnlyViewSet
-from ..filter import AllLookupSupportFilterSet, ALL_LOOKUP
+from ..filtersets import AllLookupSupportFilterSet, ALL_LOOKUP
 from ..serilaziers import BusinessSerializer
 
 
