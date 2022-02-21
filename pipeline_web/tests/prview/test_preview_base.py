@@ -33,7 +33,6 @@ class MockTemplateScheme(object):
 class PipelineTemplateWebPreviewerTestCase(TestCase):
     @patch("pipeline_web.preview_base.TemplateScheme", MockTemplateScheme)
     def test_get_template_exclude_task_nodes_with_schemes(self):
-        template_nodes_set = {"node1", "node2", "node3", "node4", "node5"}
         scheme_id_list = [1, 2, 3]
         pipeline_tree = {
             "activities": {
@@ -49,7 +48,7 @@ class PipelineTemplateWebPreviewerTestCase(TestCase):
             },
         }
         exclude_task_nodes = PipelineTemplateWebPreviewer.get_template_exclude_task_nodes_with_schemes(
-            pipeline_tree, template_nodes_set, scheme_id_list
+            pipeline_tree, scheme_id_list
         )
         MockTemplateScheme.objects.in_bulk.assert_called_once_with([1, 2, 3])
 

@@ -96,7 +96,7 @@ def mock_preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_no
     pipeline_tree["constants"].pop("${custom_param2}", "")
 
 
-def mock_get_template_exclude_task_nodes_with_schemes(pipeline_tree, template_nodes_set, scheme_id_list):
+def mock_get_template_exclude_task_nodes_with_schemes(pipeline_tree, scheme_id_list):
     return ["node2", "node3"]
 
 

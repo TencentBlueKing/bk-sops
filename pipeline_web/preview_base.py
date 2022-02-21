@@ -27,14 +27,14 @@ logger = logging.getLogger("root")
 
 class PipelineTemplateWebPreviewer(object):
     @staticmethod
-    def get_template_exclude_task_nodes_with_schemes(pipeline_tree, template_nodes_set, scheme_id_list):
+    def get_template_exclude_task_nodes_with_schemes(pipeline_tree, scheme_id_list):
         """
         根据执行方案获取要剔除的模版节点
         @param pipeline_tree:
-        @param template_nodes_set:
         @param scheme_id_list:
         @return:
         """
+        template_nodes_set = set(pipeline_tree[PE.activities].keys())
         exclude_task_nodes_id_set = set()
         if scheme_id_list:
             scheme_dict = TemplateScheme.objects.in_bulk(scheme_id_list)
@@ -44,7 +44,7 @@ class PipelineTemplateWebPreviewer(object):
                 scheme_data_set.update(scheme_data)
             exclude_task_nodes_id_set = template_nodes_set - scheme_data_set
 
-        # 兼容性代码,不可选节点一定执行
+        # 不可选节点一定执行
         for node_id, node in pipeline_tree[PE.activities].items():
             if not node["optional"]:
                 exclude_task_nodes_id_set.discard(node_id)

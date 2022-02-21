@@ -125,10 +125,9 @@ class PipelineTemplateWebWrapper(object):
 
                     # 需要将父流程中修改的 constants 传到子流程的 act constants 中
                     # 根据执行方案创建子流程实例
-                    template_nodes_set = set(subproc_data[PWE.activities].keys())
                     scheme_id_list = act.get("scheme_id_list", [])
                     exclude_task_nodes_id = PipelineTemplateWebPreviewer.get_template_exclude_task_nodes_with_schemes(
-                        subproc_data, template_nodes_set, scheme_id_list
+                        subproc_data, scheme_id_list
                     )
                     PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes(
                         subproc_data, exclude_task_nodes_id

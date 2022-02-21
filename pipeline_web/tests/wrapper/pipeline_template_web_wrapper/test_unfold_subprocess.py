@@ -18,7 +18,7 @@ from django.test import TestCase
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 
-def mock_get_template_exclude_task_nodes_with_schemes(pipeline_tree, template_nodes_set, scheme_id_list):
+def mock_get_template_exclude_task_nodes_with_schemes(pipeline_tree, scheme_id_list):
     return ["t1_tree_node_1", "t1_tree_node_3"]
 
 
