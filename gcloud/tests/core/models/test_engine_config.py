@@ -19,7 +19,7 @@ from gcloud.core.models import EngineConfig
 class EngineConfigTestCase(TestCase):
     def test_get_engine_ver__not_config(self):
         engine_ver = EngineConfig.objects.get_engine_ver(project_id=1, template_id=1, template_source="project")
-        self.assertEqual(engine_ver, EngineConfig.ENGINE_VER_V1)
+        self.assertEqual(engine_ver, EngineConfig.ENGINE_VER_V2)
 
     def test_get_engine_ver__config_template(self):
         EngineConfig.objects.create(
@@ -31,7 +31,7 @@ class EngineConfigTestCase(TestCase):
         engine_ver = EngineConfig.objects.get_engine_ver(project_id=1, template_id=1, template_source="project")
         self.assertEqual(engine_ver, EngineConfig.ENGINE_VER_V2)
         engine_ver = EngineConfig.objects.get_engine_ver(project_id=1, template_id=1, template_source="common")
-        self.assertEqual(engine_ver, EngineConfig.ENGINE_VER_V1)
+        self.assertEqual(engine_ver, EngineConfig.ENGINE_VER_V2)
 
         EngineConfig.objects.create(
             scope_id=1,
