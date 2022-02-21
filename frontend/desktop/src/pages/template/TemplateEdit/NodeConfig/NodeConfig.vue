@@ -525,6 +525,7 @@
                 'loadPluginServiceAppDetail'
             ]),
             ...mapActions('template/', [
+                'loadTemplateData',
                 'getMakoOperations',
                 'getVariableFieldExplain'
             ]),
@@ -582,7 +583,7 @@
                     }
                     const resp = await this.loadTemplateList(data)
                     this.totalPage = Math.floor(resp.meta.total_count / this.limit)
-                    this.handleSubflowList(resp)
+                    await this.handleSubflowList(resp)
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -912,12 +913,13 @@
                     let templateName = i18n.t('请选择子流程')
 
                     if (template_id) {
-                        this.atomTypeList.subflow.some(item => {
-                            if (item.template_id === Number(template_id)) {
-                                templateName = item.name
-                                return true
-                            }
-                        })
+                        const subflowInfo = this.atomTypeList.subflow.find(item => item.template_id === Number(template_id))
+                        if (subflowInfo) {
+                            templateName = subflowInfo.name
+                        } else {
+                            const templateData = await this.loadTemplateData({ templateId: template_id, common: this.common })
+                            templateName = templateData.name
+                        }
                     }
                     return {
                         tpl: template_id || '',
