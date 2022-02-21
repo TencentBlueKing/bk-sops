@@ -403,7 +403,7 @@
                     await this.createProject(data)
                     this.isProjectDialogShow = false
                     this.getProjectList()
-                    this.loadUserProjectList({ limit: 0 }) // 新增项目后需要更新导航右上角的项目列表
+                    this.loadUserProjectList() // 新增项目后需要更新导航右上角的项目列表
                 } catch (e) {
                     console.log(e)
                 } finally {
