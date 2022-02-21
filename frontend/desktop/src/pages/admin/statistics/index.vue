@@ -152,7 +152,7 @@
                 this.loading = true
 
                 try {
-                    const res = await this.loadUserProjectList({ limit: 0 })
+                    const res = await this.loadUserProjectList()
                     this.projectList = res.results
                 } catch (e) {
                     console.log(e)
