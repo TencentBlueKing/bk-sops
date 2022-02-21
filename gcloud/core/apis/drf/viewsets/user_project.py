@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from rest_framework import permissions
+from rest_framework.pagination import LimitOffsetPagination
 
 from gcloud.iam_auth import IAMMeta, res_factory
 from gcloud.iam_auth.utils import get_user_projects
@@ -49,6 +50,7 @@ class UserProjectSetViewSet(GcloudListViewSet):
     serializer_class = ProjectSerializer
     permission_classes = [permissions.IsAuthenticated, UserProjectPermission]
     filterset_class = UserProjectFilter
+    pagination_class = LimitOffsetPagination
     search_fields = ["id", "name", "desc", "creator"]
 
     iam_resource_helper = ViewSetResourceHelper(
