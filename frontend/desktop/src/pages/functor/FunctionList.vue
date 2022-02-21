@@ -646,7 +646,7 @@
             async getProjectList () {
                 this.business.loading = true
                 try {
-                    const businessData = await this.loadUserProjectList({ limit: 0, is_disable: false })
+                    const businessData = await this.loadUserProjectList({ is_disable: false })
                     this.business.list = businessData.results
                 } catch (e) {
                     console.log(e)
@@ -656,7 +656,7 @@
             },
             async getProjectSearchForm () {
                 try {
-                    const businessData = await this.loadUserProjectList({ limit: 0 })
+                    const businessData = await this.loadUserProjectList()
                     const form = this.searchForm.find(item => item.key === 'selectedProject')
                     form.list = businessData.results.map(m => ({ name: m.name, value: m.id }))
                     form.loading = false

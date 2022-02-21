@@ -936,8 +936,14 @@ const template = {
             return axios.get('taskflow/api/context/').then(response => response.data)
         },
         // 获取节点标签列表
-        getLabels ({ commit }, data) {
-            return axios.get('api/v3/label/', { params: data }).then(response => response.data.data)
+        getLabels ({ commit }, data = {}) {
+            return axios.get('api/v3/label/', { params: data }).then(response => {
+                if (!('limit' in data)) { // 不传limit代表拉取全量列表
+                    return { results: response.data.data }
+                } else {
+                    return response.data.data
+                }
+            })
         },
         // 获取变量预览值
         getConstantsPreviewResult ({ commit }, data) {
