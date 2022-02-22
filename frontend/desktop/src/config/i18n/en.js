@@ -479,7 +479,7 @@ const en = {
     '查看详情': 'Detail',
     '手动': 'Manual',
     '自动': 'Automation',
-    '周期任务': 'Periodic Tasks',
+    '周期任务': 'Periodic task',
     '远程插件包源管理': 'Remote Plugins Manage',
     '远程插件同步': 'Remote Plugins Sync',
     '编辑包源': 'Edit',
@@ -1303,7 +1303,8 @@ const en = {
     '找不到想要的插件？可以尝试自己动手开发！': "Can't find the plug-in you want? You can try to develop it yourself!",
     '输出参数中不包含trace_id，无法查看第三方节点日志': 'The trace_id is not included in the output parameters, and the third-party node logs cannot be viewed',
     '等待': 'wait',
-    '全部流程': 'All processes'
+    '全部流程': 'All processes',
+    '手动任务': 'Manual task'
 }
 
 export default en
