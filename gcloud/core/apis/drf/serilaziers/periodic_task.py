@@ -75,6 +75,8 @@ class PeriodicTaskSerializer(serializers.ModelSerializer):
             "template_id",
             "template_source",
             "total_run_count",
+            "form",
+            "pipeline_tree",
         ]
 
 
