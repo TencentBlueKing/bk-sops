@@ -27,30 +27,7 @@ iam_logger = logging.getLogger("iam")
 
 
 class GcloudLimitOffsetPagination(LimitOffsetPagination):
-    """
-    分页逻辑：
-    1. 前端不传分页参数：接口全部按照默认分页逻辑进行分页返回。
-    2. 前端传分页参数：接口按照前端参数进行分页返回。
-    3. 前端传特殊豁免分页的参数（ignore_pagination=true）：接口返回全部数据。
-    """
-
     default_limit = 10
-
-    def paginate_queryset(self, queryset, request, view=None):
-        self.count = self.get_count(queryset)
-        self.limit = self.get_limit(request)
-        if request.query_params.get("ignore_pagination", False):
-            return None
-        if self.limit is None:
-            return None
-        self.offset = self.get_offset(request)
-        self.request = request
-        if self.count > self.limit and self.template is not None:
-            self.display_page_controls = True
-
-        if self.count == 0 or self.offset > self.count:
-            return []
-        return list(queryset[self.offset : self.offset + self.limit])
 
 
 class GcloudCommonMixin(IAMMixin, ApiMixin):
