@@ -58,9 +58,12 @@ class TaskTemplateSerializer(serializers.ModelSerializer):
         return {"notify_receivers": json.dumps(data)}
 
     def get_pipeline_tree(self, obj):
-        if not getattr(obj, "pipeline_tree") or not obj.pipeline_tree:
-            return dict()
-        return json.dumps(obj.pipeline_tree)
+        try:
+            if not getattr(obj, "pipeline_tree") or not obj.pipeline_tree:
+                return json.dumps(dict())
+            return json.dumps(obj.pipeline_tree)
+        except TaskTemplate.DoesNotExist:
+            return json.dumps(dict())
 
     class Meta:
         model = TaskTemplate
