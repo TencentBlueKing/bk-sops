@@ -29,7 +29,7 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.common_template.models import CommonTemplate
 from gcloud.template_base.utils import replace_template_id
 from gcloud.utils.strings import standardize_name
-from gcloud.core.apis.drf.viewsets.base import GcloudListViewSet
+from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
 from gcloud.core.apis.drf.serilaziers.periodic_task import PeriodicTaskSerializer, CreatePeriodicTaskSerializer
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.iam_auth import res_factory
@@ -46,7 +46,7 @@ class PeriodicTaskFilter(AllLookupSupportFilterSet):
         fields = {"task__celery_task__enabled": ["exact"], "task__creator": ["contains"], "project__id": ["exact"]}
 
 
-class PeriodicTaskViewSet(GcloudListViewSet, mixins.CreateModelMixin):
+class PeriodicTaskViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin):
     queryset = PeriodicTask.objects.all()
     serializer_class = PeriodicTaskSerializer
     create_serializer_class = CreatePeriodicTaskSerializer
