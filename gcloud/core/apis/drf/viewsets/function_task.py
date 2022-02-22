@@ -16,6 +16,20 @@ from gcloud.core.apis.drf.serilaziers.function_task import FunctionTaskSerialize
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.iam_auth import res_factory
 from gcloud.iam_auth.conf import TASK_ACTIONS
+from ..filtersets import AllLookupSupportFilterSet
+
+
+class FunctionTaskFilter(AllLookupSupportFilterSet):
+    class Meta:
+        model = FunctionTask
+        fields = {
+            "task__project__id": ["exact"],
+            "creator": ["exact", "icontains"],
+            "claimant": ["exact", "icontains"],
+            "status": ["exact"],
+            "create_time": ["gte", "lte"],
+            "claim_time": ["gte", "lte"],
+        }
 
 
 class FunctionTaskViewSet(GcloudListViewSet):
@@ -24,3 +38,4 @@ class FunctionTaskViewSet(GcloudListViewSet):
     iam_resource_helper = ViewSetResourceHelper(
         resource_func=res_factory.resources_for_function_task_obj, actions=TASK_ACTIONS
     )
+    filterset_class = FunctionTaskFilter

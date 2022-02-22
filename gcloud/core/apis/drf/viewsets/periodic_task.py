@@ -17,6 +17,7 @@ import traceback
 from rest_framework import mixins, status
 from rest_framework.response import Response
 from rest_framework.exceptions import ErrorDetail
+from rest_framework.pagination import LimitOffsetPagination
 
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 from pipeline.exceptions import PipelineException
@@ -33,15 +34,24 @@ from gcloud.core.apis.drf.serilaziers.periodic_task import PeriodicTaskSerialize
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta
+from gcloud.core.apis.drf.filtersets import AllLookupSupportFilterSet
 
 
 logger = logging.getLogger("root")
+
+
+class PeriodicTaskFilter(AllLookupSupportFilterSet):
+    class Meta:
+        model = PeriodicTask
+        fields = {"task__celery_task__enabled": ["exact"], "task__creator": ["contains"], "project__id": ["exact"]}
 
 
 class PeriodicTaskViewSet(GcloudListViewSet, mixins.CreateModelMixin):
     queryset = PeriodicTask.objects.all()
     serializer_class = PeriodicTaskSerializer
     create_serializer_class = CreatePeriodicTaskSerializer
+    filter_class = PeriodicTaskFilter
+    pagination_class = LimitOffsetPagination
     iam_resource_helper = ViewSetResourceHelper(
         resource_func=res_factory.resources_for_periodic_task_obj,
         actions=[

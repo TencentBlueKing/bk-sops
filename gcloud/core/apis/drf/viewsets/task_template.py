@@ -14,10 +14,13 @@ import ujson as json
 import logging
 
 from rest_framework.response import Response
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.exceptions import ErrorDetail
 from rest_framework import status
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django_filters import CharFilter
+from django.db.models import Q
 
 from gcloud import err_code
 from pipeline.models import TemplateRelationship
@@ -29,16 +32,46 @@ from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta
 from gcloud.template_base.domains.template_manager import TemplateManager
+from gcloud.core.apis.drf.filtersets import PropertyFilterSet
+from gcloud.core.apis.drf.filters import BooleanPropertyFilter
+from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=TaskTemplate)
 
 
+class TaskTemplateFilter(PropertyFilterSet):
+    label_ids = CharFilter(method="filter_by_label_ids")
+
+    class Meta:
+        model = TaskTemplate
+        fields = {
+            "id": ["exact"],
+            "pipeline_template__name": ["icontains"],
+            "pipeline_template__creator": ["contains"],
+            "category": ["exact"],
+            "pipeline_template__has_subprocess": ["exact"],
+            "pipeline_template__edit_time": ["gte", "lte"],
+            "pipeline_template__create_time": ["gte", "lte"],
+            "project__id": ["exact"],
+        }
+        property_fields = [("subprocess_has_update", BooleanPropertyFilter, ["exact"])]
+
+    def filter_by_label_ids(self, query, name, value):
+        label_ids = [int(label_id) for label_id in value.strip().split(",")]
+        template_ids = list(TemplateLabelRelation.objects.fetch_template_ids_using_union_labels(label_ids))
+        condition = Q(id__in=template_ids)
+        return query.filter(condition)
+
+
 class TaskTemplateViewSet(GcloudModelViewSet):
     queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
+    pagination_class = LimitOffsetPagination
     serializer_class = TaskTemplateSerializer
     create_serializer_class = CreateTaskTemplateSerializer
+    filterset_class = TaskTemplateFilter
     iam_resource_helper = ViewSetResourceHelper(
         resource_func=res_factory.resources_for_flow_obj,
         actions=[
@@ -84,6 +117,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             obj["template_labels"] = templates_labels.get(obj["id"], [])
         return self.get_paginated_response(data) if page is not None else Response(data)
 
+    @record_operation(RecordType.template.name, OperateType.create.name, OperateSource.project.name)
     def create(self, request, *args, **kwargs):
         serializer = self.create_serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -110,6 +144,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             data = self.injection_auth_actions(request, serializer.data, serializer.instance)
             return Response(data, status=status.HTTP_201_CREATED, headers=headers)
 
+    @record_operation(RecordType.template.name, OperateType.update.name, OperateSource.project.name)
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         template = self.get_object()
@@ -142,6 +177,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             data = self.injection_auth_actions(request, serializer.data, template)
             return Response(data)
 
+    @record_operation(RecordType.template.name, OperateType.delete.name, OperateSource.project.name)
     def destroy(self, request, *args, **kwargs):
         template = self.get_object()
         manager = TemplateManager(TaskTemplate)

@@ -12,6 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 
 from django_filters.filterset import BaseFilterSet, FilterSetOptions, FilterSetMetaclass
+from django_filters import Filter
+from django.db import models
+from .filters import BasePropertyFilter
 
 ALL_LOOKUP = "__all__"
 LOOKUP_SEP = "__"
@@ -112,3 +115,80 @@ class AllLookupSupportFilterSet(BaseFilterSet, metaclass=AllLookupSupportFilterS
                 if field not in exclude:
                     cls.set_field_lookup(field, lookups, fields_lookups)
         return fields_lookups
+
+
+class PropertyFilterSet(AllLookupSupportFilterSet):
+
+    _PROPERTY_FIELDS_META_KEY = "property_fields"
+    """
+    example property_fields
+    property_fields = [
+        (property_name, fieldFilter, [support_lookup_expr])
+        property字段名, 过滤器, 受支持的lookup
+    ]
+    """
+
+    """Filtering for properties"""
+
+    def __init__(self, *args, **kwargs):
+        # inject property_filters into base_filters
+        self._loading_property_filters()
+        self.property_filters = set()
+        super().__init__(*args, **kwargs)
+
+    def _build_property_filter(self, property_filter_cls, property_name, lookup):
+        """Add property filters to base_filters"""
+        filter_name = f"{property_name}__{lookup}"
+
+        self.base_filters[filter_name] = property_filter_cls(field_name=filter_name, lookup_expr=lookup)
+
+    def _loading_property_filters(self):
+        property_fields = self.__class__.Meta.__dict__.get(self._PROPERTY_FIELDS_META_KEY, None)
+        filter_model_cls = self.__class__.Meta.__dict__["model"]
+        if not property_fields:
+            return
+        for field in property_fields:
+            property_name, property_filter_cls, lookup_expr = field
+            # valid property_name valid attribute
+            if not isinstance(property_name, str) and not hasattr(filter_model_cls, property_name):
+                raise ValueError(f"{property_name} is not a valid field of {filter_model_cls}")
+            # valid property_filter_cls
+            if not issubclass(property_filter_cls, Filter):
+                raise ValueError(f"{property_filter_cls} is not subclass of django_filter.Filter")
+            # valid lookup_expr
+            if not isinstance(lookup_expr, list):
+                raise ValueError("lookup_expr must be a list")
+            # build Filters
+            for lookup in lookup_expr:
+                self._build_property_filter(property_filter_cls, property_name, lookup)
+
+    def property_filter_queryset(self, queryset):
+        pk_list = queryset.values_list("pk", flat=True)
+        initial_queryset = queryset
+        for name, value in self.property_filters:
+            filter = self.filters[name]
+            # do qs filter
+            pk_list = filter.qs_filter(queryset, name, value)
+        # get new queryset by pk_list
+        return initial_queryset.filter(pk__in=pk_list)
+
+    def filter_queryset(self, queryset):
+        # django_filter
+        for name, value in self.form.cleaned_data.items():
+            if isinstance(self.filters[name], BasePropertyFilter):
+                # PropertyFilter need another process function
+                if value:
+                    self.property_filters.add((name, value))
+                continue
+            queryset = self.filters[name].filter(queryset, value)
+            assert isinstance(
+                queryset, models.QuerySet
+            ), "Expected '%s.%s' to return a QuerySet, but got a %s instead." % (
+                type(self).__name__,
+                name,
+                type(queryset).__name__,
+            )
+        # property filter
+        if self.__class__.Meta.__dict__.get(self._PROPERTY_FIELDS_META_KEY, None):
+            queryset = self.property_filter_queryset(queryset)
+        return queryset

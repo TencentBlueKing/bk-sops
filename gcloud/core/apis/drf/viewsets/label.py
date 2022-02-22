@@ -14,7 +14,7 @@ from rest_framework import permissions
 from pipeline_web.label.models import Label
 
 from .base import GcloudReadOnlyViewSet
-from ..filter import ALL_LOOKUP, AllLookupSupportFilterSet
+from ..filtersets import ALL_LOOKUP, AllLookupSupportFilterSet
 from ..serilaziers import LabelSerializer
 
 
