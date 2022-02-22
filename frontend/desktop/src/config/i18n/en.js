@@ -1138,7 +1138,7 @@ const en = {
     '导入临时方案': 'Import temporaty',
     '设置默认方案': 'Set default',
     '默认': 'Default',
-    '流程执行时，默认执行当前方案的组合。': 'When the process is executed, the combination of the current scheme is executed by default.',
+    '流程直接新建任务执行时，默认执行当前方案的组合。': 'When a process directly creates a task, the current solution combination is executed by default.',
     '方案内容': 'Scheme Text',
     '变更节点对比': 'Node Selected List',
     '选中状态': 'Status',
