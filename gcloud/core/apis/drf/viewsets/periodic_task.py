@@ -129,6 +129,8 @@ class PeriodicTaskViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin):
             logger.warning(traceback.format_exc())
             message = str(e)
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
-
+        serializer.validated_data["template"] = template
+        serializer.validated_data["creator"] = creator
+        self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
