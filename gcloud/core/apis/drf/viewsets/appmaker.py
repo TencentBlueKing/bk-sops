@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework import mixins
 
 from gcloud.core.apis.drf.viewsets.base import GcloudListViewSet
 from gcloud.contrib.appmaker.models import AppMaker
@@ -28,7 +29,7 @@ class AppmakerFilter(AllLookupSupportFilterSet):
         fields = {"editor": ["exact"], "project__id": ["exact"], "edit_time": ["gte", "lte"]}
 
 
-class AppmakerListViewSet(GcloudListViewSet):
+class AppmakerListViewSet(GcloudListViewSet, mixins.DestroyModelMixin):
     queryset = AppMaker.objects.filter(is_deleted=False)
     serializer_class = AppmakerSerializer
     iam_resource_helper = ViewSetResourceHelper(
