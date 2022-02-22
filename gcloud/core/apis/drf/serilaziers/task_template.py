@@ -39,6 +39,7 @@ class TaskTemplateSerializer(serializers.ModelSerializer):
     subprocess_has_update = serializers.BooleanField(read_only=True, help_text="子流程是否更新")
     has_subprocess = serializers.BooleanField(read_only=True, help_text="是否有子流程")
     description = serializers.CharField(read_only=True, help_text="流程描述", source="pipeline_template.description")
+    pipeline_tree = serializers.CharField(read_only=True, help_text="pipeline_tree")
 
     def get_notify_type(self, obj):
         if not getattr(obj, "notify_type") or not obj.notify_type:
