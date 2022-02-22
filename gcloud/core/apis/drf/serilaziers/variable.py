@@ -26,7 +26,7 @@ class VariableSerializer(serializers.ModelSerializer):
     form = serializers.CharField(help_text="表单路径", read_only=True)
     type = serializers.CharField(help_text="变量类型", read_only=True)
     tag = serializers.CharField(help_text="变量tag", read_only=True)
-    meta_tag = serializers.CharField(help_text="变量meta_tag", read_only=True)
+    meta_tag = serializers.CharField(help_text="变量meta_tag", read_only=True, allow_null=True)
     description = ReadWriteSerializerMethodField(read_only=True, help_text="变量描述")
     phase = ReadWriteSerializerMethodField(read_only=True, help_text="phase")
 
