@@ -39,7 +39,7 @@ class TaskTemplateSerializer(serializers.ModelSerializer):
     subprocess_has_update = serializers.BooleanField(read_only=True, help_text="子流程是否更新")
     has_subprocess = serializers.BooleanField(read_only=True, help_text="是否有子流程")
     description = serializers.CharField(read_only=True, help_text="流程描述", source="pipeline_template.description")
-    pipeline_tree = serializers.CharField(read_only=True, help_text="pipeline_tree")
+    pipeline_tree = ReadWriteSerializerMethodField(read_only=True, help_text="pipeline_tree")
 
     def get_notify_type(self, obj):
         if not getattr(obj, "notify_type") or not obj.notify_type:
@@ -56,6 +56,11 @@ class TaskTemplateSerializer(serializers.ModelSerializer):
 
     def set_notify_receivers(self, data):
         return {"notify_receivers": json.dumps(data)}
+
+    def get_pipeline_tree(self, obj):
+        if not getattr(obj, "pipeline_tree") or not obj.pipeline_tree:
+            return dict()
+        return json.dumps(obj.pipeline_tree)
 
     class Meta:
         model = TaskTemplate
