@@ -119,8 +119,8 @@ class TaskTemplateViewSet(GcloudModelViewSet):
                 obj["is_add"] = 1 if obj["id"] in collected_templates else 0
                 obj["template_labels"] = templates_labels.get(obj["id"], [])
             return self.get_paginated_response(data) if page is not None else Response(data)
-        except Exception:
-            logger.exception("未知错误")
+        except TaskTemplate.DoesNotExist as e:
+            logger.exception("未知错误", str(e))
 
     @record_operation(RecordType.template.name, OperateType.create.name, OperateSource.project.name)
     def create(self, request, *args, **kwargs):
