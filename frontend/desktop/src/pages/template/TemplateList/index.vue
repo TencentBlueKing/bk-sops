@@ -655,8 +655,8 @@
                         this.pagination.count = templateListData.data.count
                     } else {
                         templateListData = await this.loadTemplateList(data)
-                        this.templateList = templateListData.objects
-                        this.pagination.count = templateListData.meta.total_count
+                        this.templateList = templateListData.results
+                        this.pagination.count = templateListData.count
                     }
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
@@ -885,7 +885,7 @@
                     data.limit = 0
                     data.offset = 0
                     const res = await this.loadTemplateList(data)
-                    this.selectedTpls = res.objects.slice(0)
+                    this.selectedTpls = res.results.slice(0)
                 } else {
                     this.templateList.forEach(item => {
                         if (!this.selectedTpls.find(tpl => tpl.id === item.id)) {
