@@ -401,17 +401,7 @@
                 }
             },
             getDefaultTaskName () {
-                let nowTime = ''
-                if (this.common) {
-                    if (window.TIMEZONE) {
-                        nowTime = moment.tz(window.TIMEZONE).format('YYYYMMDDHHmmss')
-                    } else {
-                        // 无时区的公共流程使用本地的时间
-                        nowTime = moment().format('YYYYMMDDHHmmss')
-                    }
-                } else {
-                    nowTime = moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
-                }
+                const nowTime = moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
                 if (this.viewMode === 'appmaker') {
                     return this.appmakerTaskName + '_' + nowTime
                 }
