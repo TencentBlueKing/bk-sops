@@ -46,10 +46,9 @@ def preview_template_tree_with_schemes(template_source, template_id, version, sc
 
     pipeline_tree = template.get_pipeline_tree_by_version(version)
     template_constants = deepcopy(pipeline_tree["constants"])
-    template_nodes_set = set(pipeline_tree["activities"].keys())
 
     exclude_task_nodes_id = PipelineTemplateWebPreviewer.get_template_exclude_task_nodes_with_schemes(
-        template_nodes_set, scheme_id_list
+        pipeline_tree, scheme_id_list
     )
 
     PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
