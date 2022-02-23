@@ -846,10 +846,12 @@ const template = {
             } else {
                 prefixUrl = 'api/v3/template/'
             }
-            return axios.get(`${prefixUrl}${templateId}/`).then(response => response.data)
+            return axios.get(`${prefixUrl}${templateId}/`).then(response => response.data.data)
         },
         loadCustomVarCollection () {
-            return axios.get('api/v3/variable/').then(response => response.data.objects)
+            return axios.get('api/v3/variable/').then(response => {
+                return response.data.data
+            })
         },
         /**
          * 保存模板数据
@@ -898,7 +900,7 @@ const template = {
             const notifyReceivers = JSON.stringify(notify_receivers)
             const timeout = time_out
             const headers = {}
-            const project = SITE_URL + 'api/v3/project/' + projectId + '/'
+            const project = projectId || undefined
             let url = ''
             if (common) {
                 url = 'api/v3/common_template/'

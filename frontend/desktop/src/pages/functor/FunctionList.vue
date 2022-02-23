@@ -527,10 +527,10 @@
                         }
                     }
                     const functorListData = await this.loadFunctionTaskList(data)
-                    const list = functorListData.objects
-                    const taskList = functorListData.objects.map(m => m.task)
+                    const list = functorListData.results
+                    const taskList = functorListData.results.map(m => m.task)
                     this.functorList = list
-                    this.pagination.count = functorListData.meta.total_count
+                    this.pagination.count = functorListData.count
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', taskList)
                 } catch (e) {
@@ -672,8 +672,8 @@
                         this.loadTemplateList({ project__id: this.business.id }),
                         this.loadTemplateList({ common: 1 })
                     ]).then(value => {
-                        this.template.list[0].children = value[0].objects
-                        this.template.list[1].children = value[1].objects
+                        this.template.list[0].children = value[0].results
+                        this.template.list[1].children = value[1].results
                         this.clearAtomForm()
                     })
                 } catch (e) {

@@ -412,9 +412,9 @@
                     }
 
                     const periodicListData = await this.loadPeriodicList(data)
-                    const list = periodicListData.objects
+                    const list = periodicListData.results
                     this.periodicList = list
-                    this.pagination.count = periodicListData.meta.total_count
+                    this.pagination.count = periodicListData.count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
                         this.totalPage = 1

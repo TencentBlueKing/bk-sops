@@ -210,7 +210,7 @@
                         data['edit_time__lte'] = moment.tz(updateTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                     }
                     const resp = await this.loadAppmaker(data)
-                    this.list = resp.objects
+                    this.list = resp.results
                 } catch (e) {
                     console.log(e)
                 } finally {
