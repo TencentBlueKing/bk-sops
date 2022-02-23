@@ -472,7 +472,7 @@
                 let name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
                 if (this.common) {
                     if (window.TIMEZONE) {
-                        name = moment.tz(window.TIMEZONE).format('YYYYMMDDHHmmss')
+                        name = 'new' + moment.tz(window.TIMEZONE).format('YYYYMMDDHHmmss')
                     } else {
                         // 无时区的公共流程使用本地的时间
                         name = 'new' + moment().format('YYYYMMDDHHmmss')
