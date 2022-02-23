@@ -20,7 +20,7 @@
                 </template>
             </div>
             <p v-if="isDefaultSchemeIng" class="default-scheme-tip">
-                {{$t('流程执行时，默认执行当前方案的组合。')}}
+                {{$t('流程直接新建任务执行时，默认执行当前方案的组合。')}}
             </p>
             <div class="scheme-active-wrapper" v-else>
                 <div>
