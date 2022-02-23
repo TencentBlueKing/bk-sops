@@ -128,7 +128,8 @@ class RemotePluginService(Service):
 
     @staticmethod
     def _inject_result_data_outputs(data, result_data):
-        for key, output in result_data.get("outputs", {}).items():
+        outputs = result_data.get("outputs") or {}
+        for key, output in outputs.items():
             data.set_outputs(key, output)
 
 
