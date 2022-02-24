@@ -695,7 +695,7 @@ class TaskFlowInstance(models.Model):
     flow_type = models.CharField(_("任务流程类型"), max_length=255, choices=TASK_FLOW_TYPE, default="common")
     current_flow = models.CharField(_("当前任务流程阶段"), max_length=255)
     is_deleted = models.BooleanField(_("是否删除"), default=False)
-    engine_ver = models.IntegerField(_("引擎版本"), choices=EngineConfig.ENGINE_VER, default=1)
+    engine_ver = models.IntegerField(_("引擎版本"), choices=EngineConfig.ENGINE_VER, default=2)
 
     objects = TaskFlowInstanceManager()
 
