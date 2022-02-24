@@ -10,13 +10,23 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+
+from rest_framework import permissions
+
 from gcloud.core.apis.drf.viewsets import GcloudListViewSet
 from gcloud.contrib.function.models import FunctionTask
 from gcloud.core.apis.drf.serilaziers.function_task import FunctionTaskSerializer
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
-from gcloud.iam_auth import res_factory
+from gcloud.iam_auth import res_factory, IAMMeta
 from gcloud.iam_auth.conf import TASK_ACTIONS
 from ..filtersets import AllLookupSupportFilterSet
+from ..permission import IamPermissionInfo, IamPermission
+
+
+class FunctionTaskPermission(IamPermission):
+    actions = {
+        "list": IamPermissionInfo(IAMMeta.FUNCTION_VIEW_ACTION),
+    }
 
 
 class FunctionTaskFilter(AllLookupSupportFilterSet):
@@ -39,3 +49,4 @@ class FunctionTaskViewSet(GcloudListViewSet):
         resource_func=res_factory.resources_for_function_task_obj, actions=TASK_ACTIONS
     )
     filterset_class = FunctionTaskFilter
+    permission_classes = [permissions.IsAuthenticated, FunctionTaskPermission]

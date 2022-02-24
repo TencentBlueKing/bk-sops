@@ -22,11 +22,18 @@ from gcloud import err_code
 from gcloud.iam_auth import IAMMeta, utils as iam_auth_utils
 
 
+class CollectionPermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        action = view.action
+        if action in ["retrieve", "destroy"]:
+            return request.user.username == obj.username
+
+
 class CollectionViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins.DestroyModelMixin):
     queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
     pagination_class = None
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, CollectionPermission]
     filter_fields = ["id", "category"]
     append_resource_actions = {
         IAMMeta.FLOW_RESOURCE: [

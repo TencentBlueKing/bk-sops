@@ -16,7 +16,7 @@ import logging
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.exceptions import ErrorDetail
-from rest_framework import status
+from rest_framework import status, permissions
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django_filters import CharFilter
@@ -36,10 +36,29 @@ from gcloud.core.apis.drf.filtersets import PropertyFilterSet
 from gcloud.core.apis.drf.filters import BooleanPropertyFilter
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
+from ..permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
 
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=TaskTemplate)
+
+
+class TaskTemplatePermission(IamPermission):
+    actions = {
+        "list": IamPermissionInfo(
+            IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project__id"
+        ),
+        "retrieve": IamPermissionInfo(
+            IAMMeta.FLOW_VIEW_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
+        ),
+        "destroy": IamPermissionInfo(
+            IAMMeta.COMMON_FLOW_DELETE_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
+        ),
+        "update": IamPermissionInfo(
+            IAMMeta.COMMON_FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
+        ),
+        "create": IamPermissionInfo(IAMMeta.COMMON_FLOW_CREATE_ACTION),
+    }
 
 
 class TaskTemplateFilter(PropertyFilterSet):
@@ -72,6 +91,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
     serializer_class = TaskTemplateSerializer
     create_serializer_class = CreateTaskTemplateSerializer
     filterset_class = TaskTemplateFilter
+    permission_classes = [permissions.IsAuthenticated, TaskTemplatePermission]
     iam_resource_helper = ViewSetResourceHelper(
         resource_func=res_factory.resources_for_flow_obj,
         actions=[
