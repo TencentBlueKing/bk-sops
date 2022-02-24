@@ -98,7 +98,7 @@ class ClockedTaskStartTestCase(TestCase):
             create_info=task.id,
             flow_type="common",
             current_flow="execute_task",
-            engine_ver=1,
+            engine_ver=2,
         )
         task.refresh_from_db()
         self.assertEqual(task.task_id, taskflow_instance.id)

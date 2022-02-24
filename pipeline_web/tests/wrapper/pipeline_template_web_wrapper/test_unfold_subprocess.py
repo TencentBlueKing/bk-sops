@@ -18,12 +18,11 @@ from django.test import TestCase
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 
-def mock_get_template_exclude_task_nodes_with_schemes(template_nodes_set, scheme_id_list):
+def mock_get_template_exclude_task_nodes_with_schemes(pipeline_tree, scheme_id_list):
     return ["t1_tree_node_1", "t1_tree_node_3"]
 
 
 def mock_preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id=None):
-
     pipeline_tree["activities"] = {
         k: v for k, v in pipeline_tree["activities"].items() if k not in exclude_task_nodes_id
     }
@@ -332,18 +331,10 @@ class UnfoldSubprocessTestCase(TestCase):
     def test_unfold_subprocess_with_schemes(self):
         layer_1_t1_tree = {
             "activities": {
-                "t1_tree_node_1": {
-                    "type": "ServiceActivity",
-                },
-                "t1_tree_node_2": {
-                    "type": "ServiceActivity",
-                },
-                "t1_tree_node_3": {
-                    "type": "ServiceActivity",
-                },
-                "t1_tree_node_4": {
-                    "type": "ServiceActivity",
-                },
+                "t1_tree_node_1": {"type": "ServiceActivity", "optional": True},
+                "t1_tree_node_2": {"type": "ServiceActivity", "optional": True},
+                "t1_tree_node_3": {"type": "ServiceActivity", "optional": True},
+                "t1_tree_node_4": {"type": "ServiceActivity", "optional": True},
             },
             "constants": {"${parent_param2}": {"value": ""}, "${c1}": {"value": "constant_value_1"}},
         }
@@ -375,14 +366,12 @@ class UnfoldSubprocessTestCase(TestCase):
 
         template_model.objects.get.assert_called_once_with(pipeline_template__template_id="layer_1_t1")
         get_return.get_pipeline_tree_by_version.assert_called_once_with("v1")
-        MockPipelineTemplateWebPreviewer.get_template_exclude_task_nodes_with_schemes.assert_called_once_with(
-            {"t1_tree_node_3", "t1_tree_node_2", "t1_tree_node_1", "t1_tree_node_4"}, [1, 2, 3]
-        )
+        MockPipelineTemplateWebPreviewer.get_template_exclude_task_nodes_with_schemes.assert_called()
         MockPipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes.assert_called_once_with(
             {
                 "activities": {
-                    "t1_tree_node_2": {"type": "ServiceActivity"},
-                    "t1_tree_node_4": {"type": "ServiceActivity"},
+                    "t1_tree_node_2": {"type": "ServiceActivity", "optional": True},
+                    "t1_tree_node_4": {"type": "ServiceActivity", "optional": True},
                 },
                 "constants": {
                     "${parent_param2}": {"value": "${parent_param1}"},
@@ -404,8 +393,8 @@ class UnfoldSubprocessTestCase(TestCase):
                         "scheme_id_list": [1, 2, 3],
                         "pipeline": {
                             "activities": {
-                                "t1_tree_node_2": {"type": "ServiceActivity"},
-                                "t1_tree_node_4": {"type": "ServiceActivity"},
+                                "t1_tree_node_2": {"type": "ServiceActivity", "optional": True},
+                                "t1_tree_node_4": {"type": "ServiceActivity", "optional": True},
                             },
                             "constants": {
                                 "${parent_param2}": {"value": "${parent_param1}"},

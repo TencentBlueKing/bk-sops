@@ -97,6 +97,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
         "show_type": "show",
         "value": "",
     }
+    CONSTANT_EXPORT_OPTION_FIELD = ["plugin_code"]
     YAML_DOC_SCHEMA = {
         "type": "object",
         "required": ["meta", "spec", "schema_version"],
@@ -588,6 +589,8 @@ class YamlSchemaConverter(BaseSchemaConverter):
                             cur_constant["hide"] = True
                     else:
                         cur_constant[field] = value
+                if field in self.CONSTANT_EXPORT_OPTION_FIELD and value:
+                    cur_constant[field] = value
         return converted_constants, param_constants
 
     @staticmethod
