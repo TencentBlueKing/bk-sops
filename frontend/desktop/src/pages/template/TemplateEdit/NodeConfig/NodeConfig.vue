@@ -512,13 +512,13 @@
                 if (nodeConfig.type === 'ServiceActivity') {
                     await this.setThirdPartyList(nodeConfig)
                     this.basicInfo = await this.getNodeBasic(nodeConfig)
-                    this.$nextTick(() => {
-                        this.isBaseInfoLoading = false
-                    })
                 } else {
                     this.isSelectorPanelShow = !nodeConfig.template_id
                     this.basicInfo = await this.getNodeBasic(nodeConfig)
                 }
+                this.$nextTick(() => {
+                    this.isBaseInfoLoading = false
+                })
                 const basicInfo = this.basicInfo
                 let versionList = []
                 if (nodeConfig.type === 'ServiceActivity') {
