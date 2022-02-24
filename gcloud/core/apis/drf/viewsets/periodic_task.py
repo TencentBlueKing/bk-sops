@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import logging
 import traceback
 
-from rest_framework import mixins, status
+from rest_framework import mixins, status, permissions
 from rest_framework.response import Response
 from rest_framework.exceptions import ErrorDetail
 from rest_framework.pagination import LimitOffsetPagination
@@ -35,9 +35,25 @@ from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta
 from gcloud.core.apis.drf.filtersets import AllLookupSupportFilterSet
+from ..permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
 
 
 logger = logging.getLogger("root")
+
+
+class PeriodicTaskPermission(IamPermission):
+    actions = {
+        "list": IamPermissionInfo(
+            IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project__id"
+        ),
+        "retrieve": IamPermissionInfo(
+            IAMMeta.PERIODIC_TASK_VIEW_ACTION, res_factory.resources_for_periodic_task_obj, HAS_OBJECT_PERMISSION
+        ),
+        "create": IamPermissionInfo(IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION),
+        "destroy": IamPermissionInfo(
+            IAMMeta.PERIODIC_TASK_DELETE_ACTION, res_factory.resources_for_periodic_task_obj, HAS_OBJECT_PERMISSION
+        ),
+    }
 
 
 class PeriodicTaskFilter(AllLookupSupportFilterSet):
@@ -46,7 +62,7 @@ class PeriodicTaskFilter(AllLookupSupportFilterSet):
         fields = {"task__celery_task__enabled": ["exact"], "task__creator": ["contains"], "project__id": ["exact"]}
 
 
-class PeriodicTaskViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin):
+class PeriodicTaskViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins.DestroyModelMixin):
     queryset = PeriodicTask.objects.all()
     serializer_class = PeriodicTaskSerializer
     create_serializer_class = CreatePeriodicTaskSerializer
@@ -60,6 +76,7 @@ class PeriodicTaskViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin):
             IAMMeta.PERIODIC_TASK_DELETE_ACTION,
         ],
     )
+    permission_classes = [permissions.IsAuthenticated, PeriodicTaskPermission]
 
     def create(self, request, *args, **kwargs):
         serializer = self.create_serializer_class(data=request.data)

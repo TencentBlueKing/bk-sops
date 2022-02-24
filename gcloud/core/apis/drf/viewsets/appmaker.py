@@ -21,6 +21,18 @@ from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta
 from gcloud.core.apis.drf.filtersets import AllLookupSupportFilterSet
+from ..permission import IamPermission, IamPermissionInfo, HAS_OBJECT_PERMISSION
+
+
+class AppmakerPermission(IamPermission):
+    actions = {
+        "list": IamPermissionInfo(
+            IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project__id"
+        ),
+        "destroy": IamPermissionInfo(
+            IAMMeta.MINI_APP_DELETE_ACTION, res_factory.resources_for_mini_app_obj, HAS_OBJECT_PERMISSION
+        ),
+    }
 
 
 class AppmakerFilter(AllLookupSupportFilterSet):
