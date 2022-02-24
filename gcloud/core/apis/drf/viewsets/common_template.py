@@ -15,7 +15,7 @@ import logging
 import ujson as json
 from django.db import transaction
 from rest_framework.exceptions import ErrorDetail
-from rest_framework import status
+from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 
@@ -29,11 +29,31 @@ from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.template_base.domains.template_manager import TemplateManager
 from gcloud.iam_auth import res_factory
 from gcloud.iam_auth.conf import COMMON_FLOW_ACTIONS
+from gcloud.iam_auth import IAMMeta
 from ..filtersets import PropertyFilterSet
 from ..filters import BooleanPropertyFilter
+from ..permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=CommonTemplate)
+
+
+class CommonTemplatePermission(IamPermission):
+    actions = {
+        "list": IamPermissionInfo(
+            IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project__id"
+        ),
+        "detail": IamPermissionInfo(
+            IAMMeta.COMMON_FLOW_VIEW_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
+        ),
+        "destroy": IamPermissionInfo(
+            IAMMeta.COMMON_FLOW_DELETE_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
+        ),
+        "update": IamPermissionInfo(
+            IAMMeta.COMMON_FLOW_EDIT_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
+        ),
+        "create": IamPermissionInfo(IAMMeta.COMMON_FLOW_CREATE_ACTION),
+    }
 
 
 class CommonTemplateFilter(PropertyFilterSet):
@@ -60,6 +80,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         resource_func=res_factory.resources_for_common_flow_obj, actions=COMMON_FLOW_ACTIONS
     )
     filterset_class = CommonTemplateFilter
+    permission_classes = [permissions.IsAuthenticated, CommonTemplatePermission]
 
     @record_operation(RecordType.common_template.name, OperateType.create.name, OperateSource.common.name)
     def create(self, request, *args, **kwargs):
