@@ -30,12 +30,13 @@ class PluginServiceApiClient:
         if not env.USE_PLUGIN_SERVICE == "1":
             raise PluginServiceNotUse("插件服务未启用，请联系管理员进行配置")
         self.plugin_code = plugin_code
-        if not plugin_host:
-            # 如果请求报错，会抛出PluginServiceException类型异常，需要调用方进行捕获处理
-            result = PluginServiceApiClient.get_plugin_app_detail(plugin_code)
-            if not result["result"]:
-                raise PluginServiceException(result["message"])
-            self.plugin_host = os.path.join(result["data"]["url"], "bk_plugin/")
+
+        # 如果请求报错，会抛出PluginServiceException类型异常，需要调用方进行捕获处理
+        result = PluginServiceApiClient.get_plugin_app_detail(plugin_code)
+        if not result["result"]:
+            raise PluginServiceException(result["message"])
+        self.plugin_host = plugin_host or os.path.join(result["data"]["url"], "bk_plugin/")
+        self.plugin_apigw_name = result["data"]["apigw_name"] or plugin_code
 
     @data_parser
     @json_response_decoder
@@ -148,6 +149,7 @@ class PluginServiceApiClient:
         if not info["deployed"]:
             return {"result": False, "data": None, "message": f"Plugin Service {plugin_code} does not deployed."}
         plugin = result["plugin"]
+        profile = result["profile"]
 
         default_host = ""
         hosts = []
@@ -156,6 +158,7 @@ class PluginServiceApiClient:
             if address["type"] == DEFAULT_HOST_TYPE:
                 default_host = address["address"]
             hosts.append(address["address"])
+
         return {
             "result": True,
             "message": None,
@@ -165,6 +168,7 @@ class PluginServiceApiClient:
                 "name": plugin["name"],
                 "code": plugin["code"],
                 "updated": plugin["updated"],
+                "apigw_name": profile["api_gw_name"],
             },
         }
 
@@ -210,7 +214,7 @@ class PluginServiceApiClient:
     def _prepare_apigw_api_request(self, path_params: list):
         """插件服务APIGW接口请求信息准备"""
         url = os.path.join(
-            f"{env.APIGW_NETWORK_PROTOCAL}://{self.plugin_code}.{env.APIGW_URL_SUFFIX}",
+            f"{env.APIGW_NETWORK_PROTOCAL}://{self.plugin_apigw_name}.{env.APIGW_URL_SUFFIX}",
             env.APIGW_ENVIRONMENT,
             *path_params,
         )
