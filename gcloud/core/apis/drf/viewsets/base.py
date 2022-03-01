@@ -105,3 +105,5 @@ class GcloudModelViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, generics
     """
     crate 和 destroy 方法使用原生实现。如有需要，可自行重写方法
     """
+
+    pass
