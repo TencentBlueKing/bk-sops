@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import ujson as json
+import json
 
 from rest_framework import serializers
 from django.utils.translation import ugettext_lazy as _
@@ -18,30 +18,12 @@ from django.utils.translation import ugettext_lazy as _
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.core.models import Project
 from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
-from gcloud.utils.drf.serializer import ReadWriteSerializerMethodField
+from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
 from gcloud.constants import TASK_CATEGORY
 
 
-class BaseTaskTemplateSerializer(serializers.ModelSerializer):
-    notify_type = ReadWriteSerializerMethodField(read_only=True, help_text="通知类型")
-    notify_receivers = ReadWriteSerializerMethodField(read_only=True, help_text="通知人列表")
+class BaseTaskTemplateSerializer(BaseTemplateSerializer):
     project = ProjectSerializer()
-
-    def get_notify_type(self, obj):
-        if not getattr(obj, "notify_type") or not obj.notify_type:
-            return json.loads(dict())
-        return json.loads(obj.notify_type)
-
-    def set_notify_type(self, data):
-        return {"notify_type": json.dumps(data)}
-
-    def get_notify_receivers(self, obj):
-        if not getattr(obj, "notify_receivers") or not obj.notify_receivers:
-            return json.dumps(dict())
-        return json.dumps(obj.notify_receivers)
-
-    def set_notify_receivers(self, data):
-        return {"notify_receivers": json.dumps(data)}
 
 
 class TaskTemplateSerializer(BaseTaskTemplateSerializer):

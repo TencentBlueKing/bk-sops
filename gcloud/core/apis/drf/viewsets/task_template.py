@@ -81,7 +81,7 @@ class TaskTemplateFilter(PropertyFilterSet):
         label_ids = [int(label_id) for label_id in value.strip().split(",")]
         template_ids = list(TemplateLabelRelation.objects.fetch_template_ids_using_union_labels(label_ids))
         condition = {"id__in": template_ids}
-        return query.filter(condition)
+        return query.filter(**condition)
 
 
 class TaskTemplateViewSet(GcloudModelViewSet):
@@ -157,17 +157,17 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             self.perform_create(serializer)
             self._sync_template_lables(serializer.instance.id, template_labels)
             headers = self.get_success_headers(serializer.data)
-            # 注入权限
-            data = self.injection_auth_actions(request, serializer.data, serializer.instance)
-            # 记录操作流水
-            record_template_operation_helper(
-                operator=creator,
-                operate_type=OperateType.create.name,
-                operate_source=OperateSource.project.name,
-                template_id=serializer.instance.id,
-                project_id=serializer.instance.project.id,
-            )
-            return Response(data, status=status.HTTP_201_CREATED, headers=headers)
+        # 注入权限
+        data = self.injection_auth_actions(request, serializer.data, serializer.instance)
+        # 记录操作流水
+        record_template_operation_helper(
+            operator=creator,
+            operate_type=OperateType.create.name,
+            operate_source=OperateSource.project.name,
+            template_id=serializer.instance.id,
+            project_id=serializer.instance.project.id,
+        )
+        return Response(data, status=status.HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
@@ -197,17 +197,17 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             template_labels = serializer.validated_data.pop("template_labels")
             self.perform_update(serializer)
             self._sync_template_lables(serializer.instance.id, template_labels)
-            # 注入权限
-            data = self.injection_auth_actions(request, serializer.data, template)
-            # 记录操作流水
-            record_template_operation_helper(
-                operator=editor,
-                operate_type=OperateType.update.name,
-                operate_source=OperateSource.project.name,
-                template_id=serializer.instance.id,
-                project_id=serializer.instance.project.id,
-            )
-            return Response(data)
+        # 注入权限
+        data = self.injection_auth_actions(request, serializer.data, template)
+        # 记录操作流水
+        record_template_operation_helper(
+            operator=editor,
+            operate_type=OperateType.update.name,
+            operate_source=OperateSource.project.name,
+            template_id=serializer.instance.id,
+            project_id=serializer.instance.project.id,
+        )
+        return Response(data)
 
     def destroy(self, request, *args, **kwargs):
         template = self.get_object()

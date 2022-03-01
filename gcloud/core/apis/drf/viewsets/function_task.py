@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 from rest_framework import permissions
-from django_filters import FilterSet
 
 from gcloud.core.apis.drf.viewsets import GcloudListViewSet
 from gcloud.contrib.function.models import FunctionTask
@@ -29,24 +28,18 @@ class FunctionTaskPermission(IamPermission):
     }
 
 
-class FunctionTaskFilter(FilterSet):
-    class Meta:
-        model = FunctionTask
-        fields = {
-            "task__project__id": ["exact"],
-            "creator": ["exact", "icontains"],
-            "claimant": ["exact", "icontains"],
-            "status": ["exact"],
-            "create_time": ["gte", "lte"],
-            "claim_time": ["gte", "lte"],
-        }
-
-
 class FunctionTaskViewSet(GcloudListViewSet):
     queryset = FunctionTask.objects.filter(task__is_deleted=False)
     serializer_class = FunctionTaskSerializer
     iam_resource_helper = ViewSetResourceHelper(
         resource_func=res_factory.resources_for_function_task_obj, actions=TASK_ACTIONS
     )
-    filterset_class = FunctionTaskFilter
     permission_classes = [permissions.IsAuthenticated, FunctionTaskPermission]
+    filter_fields = {
+        "task__project__id": ["exact"],
+        "creator": ["exact", "icontains"],
+        "claimant": ["exact", "icontains"],
+        "status": ["exact"],
+        "create_time": ["gte", "lte"],
+        "claim_time": ["gte", "lte"],
+    }
