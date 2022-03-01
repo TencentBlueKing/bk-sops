@@ -103,15 +103,15 @@ class CommonTemplateViewSet(GcloudModelViewSet):
             serializer.validated_data["pipeline_template"] = result["data"]
 
             self.perform_create(serializer)
-            # 记录操作流水
-            record_template_operation_helper(
-                operator=creator,
-                operate_type=OperateType.create.name,
-                operate_source=OperateSource.common.name,
-                template_id=serializer.instance.id,
-            )
-            headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        # 记录操作流水
+        record_template_operation_helper(
+            operator=creator,
+            operate_type=OperateType.create.name,
+            operate_source=OperateSource.common.name,
+            template_id=serializer.instance.id,
+        )
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
@@ -139,16 +139,16 @@ class CommonTemplateViewSet(GcloudModelViewSet):
 
             serializer.validated_data["pipeline_template"] = template.pipeline_template
             self.perform_update(serializer)
-            # 注入权限
-            data = self.injection_auth_actions(request, serializer.data, template)
-            # 记录操作流水
-            record_template_operation_helper(
-                operator=editor,
-                operate_type=OperateType.update.name,
-                operate_source=OperateSource.common.name,
-                template_id=serializer.instance.id,
-            )
-            return Response(data)
+        # 注入权限
+        data = self.injection_auth_actions(request, serializer.data, template)
+        # 记录操作流水
+        record_template_operation_helper(
+            operator=editor,
+            operate_type=OperateType.update.name,
+            operate_source=OperateSource.common.name,
+            template_id=serializer.instance.id,
+        )
+        return Response(data)
 
     def destroy(self, request, *args, **kwargs):
         template = self.get_object()
