@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from rest_framework import permissions
+from django_filters import FilterSet
 
 from gcloud.core.apis.drf.viewsets import GcloudListViewSet
 from gcloud.contrib.function.models import FunctionTask
@@ -19,8 +20,7 @@ from gcloud.core.apis.drf.serilaziers.function_task import FunctionTaskSerialize
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.iam_auth import res_factory, IAMMeta
 from gcloud.iam_auth.conf import TASK_ACTIONS
-from ..filtersets import AllLookupSupportFilterSet
-from ..permission import IamPermissionInfo, IamPermission
+from gcloud.core.apis.drf.permission import IamPermissionInfo, IamPermission
 
 
 class FunctionTaskPermission(IamPermission):
@@ -29,7 +29,7 @@ class FunctionTaskPermission(IamPermission):
     }
 
 
-class FunctionTaskFilter(AllLookupSupportFilterSet):
+class FunctionTaskFilter(FilterSet):
     class Meta:
         model = FunctionTask
         fields = {

@@ -15,12 +15,12 @@ from rest_framework import permissions
 from gcloud.iam_auth import IAMMeta, res_factory
 from gcloud.core.models import Project
 
-from ..filtersets import ALL_LOOKUP, AllLookupSupportFilterSet
-from ..serilaziers import ProjectSerializer
-from ..resource_helpers import ViewSetResourceHelper
-from ..permission import IamPermissionInfo, IamPermission, HAS_OBJECT_PERMISSION
+from gcloud.core.apis.drf.filtersets import ALL_LOOKUP, AllLookupSupportFilterSet
+from gcloud.core.apis.drf.serilaziers import ProjectSerializer
+from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
+from gcloud.core.apis.drf.permission import IamPermissionInfo, IamPermission, HAS_OBJECT_PERMISSION
 
-from .base import GcloudListViewSet, GcloudUpdateViewSet
+from gcloud.core.apis.drf.viewsets.base import GcloudListViewSet, GcloudUpdateViewSet
 
 
 class ProjectPermission(IamPermission):

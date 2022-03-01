@@ -35,7 +35,7 @@ from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta
 from gcloud.core.apis.drf.filtersets import AllLookupSupportFilterSet
-from ..permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
+from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
 
 
 logger = logging.getLogger("root")
@@ -65,7 +65,6 @@ class PeriodicTaskFilter(AllLookupSupportFilterSet):
 class PeriodicTaskViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins.DestroyModelMixin):
     queryset = PeriodicTask.objects.all()
     serializer_class = PeriodicTaskSerializer
-    create_serializer_class = CreatePeriodicTaskSerializer
     filter_class = PeriodicTaskFilter
     pagination_class = LimitOffsetPagination
     iam_resource_helper = ViewSetResourceHelper(
@@ -79,7 +78,7 @@ class PeriodicTaskViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins
     permission_classes = [permissions.IsAuthenticated, PeriodicTaskPermission]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.create_serializer_class(data=request.data)
+        serializer = CreatePeriodicTaskSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         template_source = serializer.validated_data["template_source"]
         template_id = serializer.validated_data["template_id"]
@@ -88,35 +87,24 @@ class PeriodicTaskViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins
         cron = serializer.validated_data["cron"]
         name = serializer.validated_data["name"]
         if template_source == PROJECT:
-            try:
-                template = TaskTemplate.objects.get(id=template_id, project=project, is_deleted=False)
-            except TaskTemplate.DoesNotExist:
-                message = "template[id={template_id}] of project[{project_id}] does not exist".format(
-                    template_id=template_id, project_id=project.id
-                )
-                return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
-
-            try:
-                replace_template_id(TaskTemplate, pipeline_tree)
-            except TaskTemplate.DoesNotExist:
-                message = "invalid subprocess, check subprocess node please"
-                return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
-
+            model_cls = TaskTemplate
+            condition = {"id": template_id, "project": project, "is_deleted": False}
         elif template_source == COMMON:
-            try:
-                template = CommonTemplate.objects.get(id=template_id, is_deleted=False)
-            except CommonTemplate.DoesNotExist:
-                message = "common template[id=%s] does not exist" % template_id
-                return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
-
-            try:
-                replace_template_id(CommonTemplate, pipeline_tree)
-            except TaskTemplate.DoesNotExist:
-                message = "invalid subprocess, check subprocess node please"
-                return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
-
+            model_cls = CommonTemplate
+            condition = {"id": template_id, "is_deleted": False}
         else:
             message = "invalid template_source[%s]" % template_source
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+
+        try:
+            template = model_cls.objects.filter(**condition)
+        except model_cls.DoesNotExist:
+            message = "common template[id=%s] does not exist" % template_id
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+        try:
+            replace_template_id(model_cls, pipeline_tree)
+        except model_cls.DoesNotExist:
+            message = "invalid subprocess, check subprocess node please"
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
         # XSS handle

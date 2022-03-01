@@ -18,22 +18,9 @@ from gcloud.constants import TASK_CATEGORY, DATETIME_FORMAT
 from gcloud.common_template.models import CommonTemplate
 
 
-class CommonTemplateSerializer(serializers.ModelSerializer):
-    category_name = serializers.CharField(help_text="分类名称")
-    create_time = serializers.DateTimeField(help_text="创建时间", format=DATETIME_FORMAT)
-    creator_name = serializers.CharField(help_text="创建者名")
-    description = serializers.CharField(help_text="公共流程描述", source="pipeline_template.description")
-    editor_name = serializers.CharField(help_text="编辑者名称")
-    edit_time = serializers.DateTimeField(help_text="编辑时间", format=DATETIME_FORMAT)
-    has_subprocess = serializers.BooleanField(help_text="是否有子流程")
-    name = serializers.CharField(help_text="公共流程名称")
+class BaseCommonTemplateSerializer(serializers.ModelSerializer):
     notify_receivers = ReadWriteSerializerMethodField(help_text="通知人列表")
     notify_type = ReadWriteSerializerMethodField(help_text="通知类型")
-    pipeline_template = serializers.IntegerField(help_text="pipeline模板ID", source="pipeline_template.id")
-    subprocess_has_update = serializers.BooleanField(help_text="子流程是否更新")
-    template_id = serializers.IntegerField(help_text="流程ID")
-    version = serializers.CharField(help_text="流程版本")
-    pipeline_tree = ReadWriteSerializerMethodField(read_only=True, help_text="pipeline_tree")
 
     def get_notify_type(self, obj):
         if not getattr(obj, "notify_type") or not obj.notify_type:
@@ -41,7 +28,7 @@ class CommonTemplateSerializer(serializers.ModelSerializer):
         return json.loads(obj.notify_type)
 
     def set_notify_type(self, data):
-        return {"notify_type": json.loads(data)}
+        return {"notify_type": json.dumps(data)}
 
     def get_notify_receivers(self, obj):
         if not getattr(obj, "notify_receivers") or not obj.notify_receivers:
@@ -50,6 +37,22 @@ class CommonTemplateSerializer(serializers.ModelSerializer):
 
     def set_notify_receivers(self, data):
         return {"notify_receivers": json.dumps(data)}
+
+
+class CommonTemplateSerializer(BaseCommonTemplateSerializer):
+    category_name = serializers.CharField(help_text="分类名称")
+    create_time = serializers.DateTimeField(help_text="创建时间", format=DATETIME_FORMAT)
+    creator_name = serializers.CharField(help_text="创建者名")
+    description = serializers.CharField(help_text="公共流程描述", source="pipeline_template.description")
+    editor_name = serializers.CharField(help_text="编辑者名称")
+    edit_time = serializers.DateTimeField(help_text="编辑时间", format=DATETIME_FORMAT)
+    has_subprocess = serializers.BooleanField(help_text="是否有子流程")
+    name = serializers.CharField(help_text="公共流程名称")
+    pipeline_template = serializers.IntegerField(help_text="pipeline模板ID", source="pipeline_template.id")
+    subprocess_has_update = serializers.BooleanField(help_text="子流程是否更新")
+    template_id = serializers.IntegerField(help_text="流程ID")
+    version = serializers.CharField(help_text="流程版本")
+    pipeline_tree = serializers.SerializerMethodField(read_only=True, help_text="pipeline_tree")
 
     def get_pipeline_tree(self, obj):
         try:
@@ -64,7 +67,7 @@ class CommonTemplateSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class CreateCommonTemplateSerializer(serializers.ModelSerializer):
+class CreateCommonTemplateSerializer(BaseCommonTemplateSerializer):
     name = serializers.CharField(help_text="流程模板名称")
     category = serializers.ChoiceField(choices=TASK_CATEGORY, help_text="模板分类")
     time_out = serializers.IntegerField(help_text="超时时间", required=False)
@@ -85,22 +88,6 @@ class CreateCommonTemplateSerializer(serializers.ModelSerializer):
     pipeline_template = serializers.IntegerField(
         help_text="pipeline模板ID", source="pipeline_template.id", read_only=True
     )
-
-    def set_notify_type(self, obj):
-        return {"notify_type": json.dumps(obj)}
-
-    def get_notify_type(self, obj):
-        if not getattr(obj, "notify_type") or not obj.notify_type:
-            return dict()
-        return json.loads(obj.notify_type)
-
-    def set_notify_receivers(self, obj):
-        return {"notify_receivers": json.dumps(obj)}
-
-    def get_notify_receivers(self, obj):
-        if not getattr(obj, "notify_receivers") or not obj.notify_receivers:
-            return dict()
-        return json.loads(obj.notify_receivers)
 
     class Meta:
         model = CommonTemplate

@@ -11,10 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django_filters.filterset import BaseFilterSet, FilterSetOptions, FilterSetMetaclass
+from django_filters.filterset import BaseFilterSet, FilterSetOptions, FilterSetMetaclass, FilterSet
 from django_filters import Filter
 from django.db import models
-from .filters import BasePropertyFilter
+from gcloud.core.apis.drf.filters import BasePropertyFilter
 
 ALL_LOOKUP = "__all__"
 LOOKUP_SEP = "__"
@@ -117,18 +117,18 @@ class AllLookupSupportFilterSet(BaseFilterSet, metaclass=AllLookupSupportFilterS
         return fields_lookups
 
 
-class PropertyFilterSet(AllLookupSupportFilterSet):
+class PropertyFilterSet(FilterSet):
+    """
+    Filtering for properties
+
+    example property_fields:
+        property_fields = [
+            (property_name, fieldFilter, [support_lookup_expr])
+            property字段名, 过滤器, 受支持的lookup
+        ]
+    """
 
     _PROPERTY_FIELDS_META_KEY = "property_fields"
-    """
-    example property_fields
-    property_fields = [
-        (property_name, fieldFilter, [support_lookup_expr])
-        property字段名, 过滤器, 受支持的lookup
-    ]
-    """
-
-    """Filtering for properties"""
 
     def __init__(self, *args, **kwargs):
         # inject property_filters into base_filters

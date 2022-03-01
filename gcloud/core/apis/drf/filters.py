@@ -11,12 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import abc
+
 from django_filters import Filter, CharFilter, BooleanFilter, DateTimeFilter, NumberFilter
-from .lookups import CharLookup, NumberLookup, DateTimeLookup, BooleanLookup
+from gcloud.core.apis.drf.property_lookups import CharLookup, NumberLookup, DateTimeLookup, BooleanLookup
 
 
-class BasePropertyFilter(Filter):
-    """sub class need add attr: lookup_class"""
+class BasePropertyFilter(Filter, abc.ABC):
+    """subclass needs add attr: lookup_class"""
 
     def _value_comparison_with_lookup(self, real_value, value, lookup_expr: list) -> bool:
         return self.lookup_class.lookup(real_value, value, lookup_expr)

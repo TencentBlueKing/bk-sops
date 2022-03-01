@@ -16,11 +16,11 @@ from rest_framework.exceptions import NotAcceptable
 from gcloud.iam_auth import IAMMeta
 from gcloud.external_plugins.models import CachePackageSource, SyncTask, RUNNING
 
-from .base import GcloudModelViewSet
-from ..filtersets import ALL_LOOKUP, AllLookupSupportFilterSet
-from ..serilaziers import SyncTaskSerializer
-from ..permission import IamPermissionInfo, IamPermission, HAS_OBJECT_PERMISSION
-from ..viewsets.package_source import get_all_source_objects
+from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
+from gcloud.core.apis.drf.filtersets import ALL_LOOKUP, AllLookupSupportFilterSet
+from gcloud.core.apis.drf.serilaziers import SyncTaskSerializer
+from gcloud.core.apis.drf.permission import IamPermissionInfo, IamPermission, HAS_OBJECT_PERMISSION
+from gcloud.core.apis.drf.viewsets.package_source import get_all_source_objects
 
 
 class SyncTaskPermission(IamPermission):
