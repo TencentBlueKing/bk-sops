@@ -20,8 +20,8 @@ from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 
 from gcloud import err_code
-from gcloud.contrib.operate_record.decorators import record_operation
-from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
+from gcloud.contrib.operate_record.helpers import record_template_operation_helper
+from gcloud.contrib.operate_record.constants import OperateType, OperateSource
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.core.apis.drf.serilaziers.common_template import CommonTemplateSerializer, CreateCommonTemplateSerializer
 from gcloud.common_template.models import CommonTemplate
@@ -30,9 +30,9 @@ from gcloud.template_base.domains.template_manager import TemplateManager
 from gcloud.iam_auth import res_factory
 from gcloud.iam_auth.conf import COMMON_FLOW_ACTIONS
 from gcloud.iam_auth import IAMMeta
-from ..filtersets import PropertyFilterSet
-from ..filters import BooleanPropertyFilter
-from ..permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
+from gcloud.core.apis.drf.filtersets import PropertyFilterSet
+from gcloud.core.apis.drf.filters import BooleanPropertyFilter
+from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=CommonTemplate)
@@ -40,9 +40,7 @@ manager = TemplateManager(template_model_cls=CommonTemplate)
 
 class CommonTemplatePermission(IamPermission):
     actions = {
-        "list": IamPermissionInfo(
-            IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project__id"
-        ),
+        "list": IamPermissionInfo(IAMMeta.COMMON_FLOW_VIEW_ACTION),
         "detail": IamPermissionInfo(
             IAMMeta.COMMON_FLOW_VIEW_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
         ),
@@ -75,16 +73,14 @@ class CommonTemplateViewSet(GcloudModelViewSet):
     queryset = CommonTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
     pagination_class = LimitOffsetPagination
     serializer_class = CommonTemplateSerializer
-    create_serializer_class = CreateCommonTemplateSerializer
     iam_resource_helper = ViewSetResourceHelper(
         resource_func=res_factory.resources_for_common_flow_obj, actions=COMMON_FLOW_ACTIONS
     )
     filterset_class = CommonTemplateFilter
     permission_classes = [permissions.IsAuthenticated, CommonTemplatePermission]
 
-    @record_operation(RecordType.common_template.name, OperateType.create.name, OperateSource.common.name)
     def create(self, request, *args, **kwargs):
-        serializer = self.create_serializer_class(data=request.data)
+        serializer = CreateCommonTemplateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
             name = serializer.validated_data.pop("name")
@@ -107,14 +103,20 @@ class CommonTemplateViewSet(GcloudModelViewSet):
             serializer.validated_data["pipeline_template"] = result["data"]
 
             self.perform_create(serializer)
+            # 记录操作流水
+            record_template_operation_helper(
+                operator=creator,
+                operate_type=OperateType.create.name,
+                operate_source=OperateSource.common.name,
+                template_id=serializer.instance.id,
+            )
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-    @record_operation(RecordType.common_template.name, OperateType.update.name, OperateSource.common.name)
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         template = self.get_object()
-        serializer = self.create_serializer_class(template, data=request.data, partial=partial)
+        serializer = CreateCommonTemplateSerializer(template, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         # update pipeline_template
         name = serializer.validated_data.pop("name")
@@ -139,13 +141,26 @@ class CommonTemplateViewSet(GcloudModelViewSet):
             self.perform_update(serializer)
             # 注入权限
             data = self.injection_auth_actions(request, serializer.data, template)
+            # 记录操作流水
+            record_template_operation_helper(
+                operator=editor,
+                operate_type=OperateType.update.name,
+                operate_source=OperateSource.common.name,
+                template_id=serializer.instance.id,
+            )
             return Response(data)
 
-    @record_operation(RecordType.common_template.name, OperateType.delete.name, OperateSource.common.name)
     def destroy(self, request, *args, **kwargs):
         template = self.get_object()
         can_delete, message = manager.can_delete(template)
         if not can_delete:
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
         self.perform_destroy(template)
+        # 记录操作流水
+        record_template_operation_helper(
+            operator=request.user.username,
+            operate_type=OperateType.delete.name,
+            operate_source=OperateSource.common.name,
+            template_id=template.id,
+        )
         return Response(status=status.HTTP_204_NO_CONTENT)

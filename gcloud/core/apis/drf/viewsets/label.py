@@ -15,9 +15,9 @@ from rest_framework.pagination import LimitOffsetPagination
 
 from pipeline_web.label.models import Label
 
-from .base import GcloudReadOnlyViewSet
-from ..filtersets import ALL_LOOKUP, AllLookupSupportFilterSet
-from ..serilaziers import LabelSerializer
+from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
+from gcloud.core.apis.drf.filtersets import ALL_LOOKUP, AllLookupSupportFilterSet
+from gcloud.core.apis.drf.serilaziers import LabelSerializer
 
 
 class LabelFilter(AllLookupSupportFilterSet):

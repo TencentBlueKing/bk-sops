@@ -16,14 +16,13 @@ from rest_framework import serializers
 
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.core.apis.drf.serilaziers import ProjectSerializer
-from gcloud.utils.drf.serializer import ReadWriteSerializerMethodField
 
 
 class AppmakerSerializer(serializers.ModelSerializer):
     project = ProjectSerializer()
     creator_name = serializers.CharField(help_text="创建者名", read_only=True)
     editor_name = serializers.CharField(help_text="编辑者名", read_only=True)
-    desktop_url = ReadWriteSerializerMethodField(help_text="桌面url", read_only=True)
+    desktop_url = serializers.SerializerMethodField(help_text="桌面url", read_only=True)
     template_name = serializers.CharField(source="task_template_name", read_only=True)
     template_id = serializers.IntegerField(source="task_template.id", read_only=True)
 

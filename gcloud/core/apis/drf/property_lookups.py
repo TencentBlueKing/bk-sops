@@ -12,7 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import re
-import datetime
+from datetime import datetime
 
 METHOD_PREFIX = "property_"
 
@@ -24,11 +24,18 @@ def _check_regx(regx, string):
 
 
 class LookupMethods:
+    """all field"""
+
     def property_exact(self, real_value, value):
         return real_value == value
 
     def property_iexact(self, real_value, value):
         return real_value != value
+
+    def property_isnull(self, real_value, value):
+        return real_value is None if value else real_value is not None
+
+    """charfield"""
 
     def property_contains(self, real_value, value):
         return value in real_value
@@ -38,18 +45,6 @@ class LookupMethods:
 
     def property_in(self, real_value, value):
         return value in real_value
-
-    def property_gt(self, real_value, value):
-        return real_value > value
-
-    def property_gte(self, real_value, value):
-        return real_value >= value
-
-    def property_lt(self, real_value, value):
-        return real_value < value
-
-    def property_lte(self, real_value, value):
-        return real_value <= value
 
     def property_startswith(self, real_value, value):
         return real_value.startswith(value)
@@ -63,10 +58,27 @@ class LookupMethods:
     def property_iendswith(self, real_value, value):
         return real_value.lower().endswith(value.lower())
 
-    """real_value must a datetime.datetime object"""
+    def property_regex(self, real_value, value):
+        return _check_regx(regx=value, string=real_value)
 
-    def property_range(self, real_value, value):
-        pass
+    def property_iregex(self, real_value, value):
+        return _check_regx(regx=value.lower(), string=real_value.lower())
+
+    """datetimefield && numberfield"""
+
+    def property_gt(self, real_value, value):
+        return real_value > value
+
+    def property_gte(self, real_value, value):
+        return real_value >= value
+
+    def property_lt(self, real_value, value):
+        return real_value < value
+
+    def property_lte(self, real_value, value):
+        return real_value <= value
+
+    """datetimefield"""
 
     def property_date(self, real_value, value):
         return datetime.date(real_value) == datetime.date(value)
@@ -91,15 +103,6 @@ class LookupMethods:
 
     def property_second(self, real_value, value):
         return real_value.second == value
-
-    def property_isnull(self, real_value, value):
-        return real_value is None if value else real_value is not None
-
-    def property_regex(self, real_value, value):
-        return _check_regx(regx=value, string=real_value)
-
-    def property_iregex(self, real_value, value):
-        return _check_regx(regx=value.lower(), string=real_value.lower())
 
 
 class BaseLookup:

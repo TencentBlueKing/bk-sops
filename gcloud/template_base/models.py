@@ -231,6 +231,12 @@ class BaseTemplate(models.Model):
         abstract = True
         ordering = ["-id"]
 
+    def delete(self, real_delete=False):
+        if real_delete:
+            super().delete()
+        setattr(self, "is_deleted", True)
+        self.save()
+
     @property
     def category_name(self):
         return self.get_category_display()

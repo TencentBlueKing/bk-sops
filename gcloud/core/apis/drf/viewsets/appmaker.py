@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework import mixins
+from django_filters import FilterSet
 
 from gcloud.core.apis.drf.viewsets.base import GcloudListViewSet
 from gcloud.contrib.appmaker.models import AppMaker
@@ -20,8 +21,7 @@ from gcloud.core.apis.drf.serilaziers.appmaker import AppmakerSerializer
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta
-from gcloud.core.apis.drf.filtersets import AllLookupSupportFilterSet
-from ..permission import IamPermission, IamPermissionInfo, HAS_OBJECT_PERMISSION
+from gcloud.core.apis.drf.permission import IamPermission, IamPermissionInfo, HAS_OBJECT_PERMISSION
 
 
 class AppmakerPermission(IamPermission):
@@ -35,7 +35,7 @@ class AppmakerPermission(IamPermission):
     }
 
 
-class AppmakerFilter(AllLookupSupportFilterSet):
+class AppmakerFilter(FilterSet):
     class Meta:
         model = AppMaker
         fields = {"editor": ["exact"], "project__id": ["exact"], "edit_time": ["gte", "lte"]}

@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import ujson as json
+import json
 import logging
 
 from rest_framework.response import Response
@@ -20,7 +20,6 @@ from rest_framework import status, permissions
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django_filters import CharFilter
-from django.db.models import Q
 
 from gcloud import err_code
 from pipeline.models import TemplateRelationship
@@ -34,9 +33,9 @@ from gcloud.iam_auth import IAMMeta
 from gcloud.template_base.domains.template_manager import TemplateManager
 from gcloud.core.apis.drf.filtersets import PropertyFilterSet
 from gcloud.core.apis.drf.filters import BooleanPropertyFilter
-from gcloud.contrib.operate_record.decorators import record_operation
-from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
-from ..permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
+from gcloud.contrib.operate_record.helpers import record_template_operation_helper
+from gcloud.contrib.operate_record.constants import OperateType, OperateSource
+from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
 
 
 logger = logging.getLogger("root")
@@ -81,7 +80,7 @@ class TaskTemplateFilter(PropertyFilterSet):
     def filter_by_label_ids(self, query, name, value):
         label_ids = [int(label_id) for label_id in value.strip().split(",")]
         template_ids = list(TemplateLabelRelation.objects.fetch_template_ids_using_union_labels(label_ids))
-        condition = Q(id__in=template_ids)
+        condition = {"id__in": template_ids}
         return query.filter(condition)
 
 
@@ -89,7 +88,6 @@ class TaskTemplateViewSet(GcloudModelViewSet):
     queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
     pagination_class = LimitOffsetPagination
     serializer_class = TaskTemplateSerializer
-    create_serializer_class = CreateTaskTemplateSerializer
     filterset_class = TaskTemplateFilter
     permission_classes = [permissions.IsAuthenticated, TaskTemplatePermission]
     iam_resource_helper = ViewSetResourceHelper(
@@ -137,9 +135,8 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             obj["template_labels"] = templates_labels.get(obj["id"], [])
         return self.get_paginated_response(data) if page is not None else Response(data)
 
-    @record_operation(RecordType.template.name, OperateType.create.name, OperateSource.project.name)
     def create(self, request, *args, **kwargs):
-        serializer = self.create_serializer_class(data=request.data)
+        serializer = CreateTaskTemplateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         name = serializer.validated_data.pop("name")
         creator = request.user.username
@@ -162,13 +159,20 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             headers = self.get_success_headers(serializer.data)
             # 注入权限
             data = self.injection_auth_actions(request, serializer.data, serializer.instance)
+            # 记录操作流水
+            record_template_operation_helper(
+                operator=creator,
+                operate_type=OperateType.create.name,
+                operate_source=OperateSource.project.name,
+                template_id=serializer.instance.id,
+                project_id=serializer.instance.project.id,
+            )
             return Response(data, status=status.HTTP_201_CREATED, headers=headers)
 
-    @record_operation(RecordType.template.name, OperateType.update.name, OperateSource.project.name)
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         template = self.get_object()
-        serializer = self.create_serializer_class(template, data=request.data, partial=partial)
+        serializer = CreateTaskTemplateSerializer(template, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         # update pipeline_template
         name = serializer.validated_data.pop("name")
@@ -195,9 +199,16 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             self._sync_template_lables(serializer.instance.id, template_labels)
             # 注入权限
             data = self.injection_auth_actions(request, serializer.data, template)
+            # 记录操作流水
+            record_template_operation_helper(
+                operator=editor,
+                operate_type=OperateType.update.name,
+                operate_source=OperateSource.project.name,
+                template_id=serializer.instance.id,
+                project_id=serializer.instance.project.id,
+            )
             return Response(data)
 
-    @record_operation(RecordType.template.name, OperateType.delete.name, OperateSource.project.name)
     def destroy(self, request, *args, **kwargs):
         template = self.get_object()
         manager = TemplateManager(TaskTemplate)
@@ -211,4 +222,12 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             relation.templatescheme_set.clear()
         # 删除流程模板
         self.perform_destroy(template)
+        # 记录操作流水
+        record_template_operation_helper(
+            operator=request.user.username,
+            operate_type=OperateType.delete.name,
+            operate_source=OperateSource.project.name,
+            template_id=template.id,
+            project_id=template.project.id,
+        )
         return Response(status=status.HTTP_204_NO_CONTENT)
