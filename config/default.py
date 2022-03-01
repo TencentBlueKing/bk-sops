@@ -558,6 +558,8 @@ def logging_addition_settings(logging_dict: dict, environment="prod"):
         "propagate": True,
     }
 
+    logging_dict["loggers"]["pipeline"] = {"handlers": ["root"], "level": "INFO", "propagate": True}
+
     logging_dict["loggers"]["pipeline.eri.log"] = {"handlers": ["pipeline_eri"], "level": "INFO", "propagate": True}
 
     logging_dict["loggers"]["bamboo_engine"] = {

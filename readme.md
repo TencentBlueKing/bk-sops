@@ -54,10 +54,11 @@
 - [Tag使用和开发说明](docs/develop/tag_usage_dev.md)
 - [移动端使用说明](docs/features/mobile.md)
 - [redis 部署模式支持](docs/features/redis_usage.md)
+- [版本升级注意事项](docs/ops/version_update_notes.md)
+- [故障排查手册](docs/ops/fault_detection_manual.md)
 
-
-## Version plan
-- [版本日志](docs/release.md)
+## Releases
+- [已发布版本](https://github.com/Tencent/bk-sops/releases)
 
 ## BlueKing Community
 
