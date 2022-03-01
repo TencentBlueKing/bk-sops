@@ -61,8 +61,8 @@ If you want to know more about the above features, please refer to the
 - [Mobile Documents](en_docs/features/mobile.md)
 
 
-## Version plan
-- [Release Notes (In Chinese)](docs/release.md)
+## Releases
+- [Published Releases(In Chinese)](https://github.com/Tencent/bk-sops/releases)
 
 
 ## BlueKing Community
