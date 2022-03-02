@@ -20,8 +20,8 @@ from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 
 from gcloud import err_code
-from gcloud.contrib.operate_record.helpers import record_template_operation_helper
-from gcloud.contrib.operate_record.constants import OperateType, OperateSource
+from gcloud.contrib.operate_record.signal import operate_record_signal
+from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.core.apis.drf.serilaziers.common_template import CommonTemplateSerializer, CreateCommonTemplateSerializer
 from gcloud.common_template.models import CommonTemplate
@@ -104,11 +104,12 @@ class CommonTemplateViewSet(GcloudModelViewSet):
 
             self.perform_create(serializer)
         # 记录操作流水
-        record_template_operation_helper(
+        operate_record_signal.send(
+            sender=RecordType.common_template.name,
             operator=creator,
             operate_type=OperateType.create.name,
             operate_source=OperateSource.common.name,
-            template_id=serializer.instance.id,
+            instance_id=serializer.instance.id,
         )
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
@@ -142,11 +143,12 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, template)
         # 记录操作流水
-        record_template_operation_helper(
+        operate_record_signal.send(
+            sender=RecordType.common_template.name,
             operator=editor,
             operate_type=OperateType.update.name,
             operate_source=OperateSource.common.name,
-            template_id=serializer.instance.id,
+            instance_id=serializer.instance.id,
         )
         return Response(data)
 
@@ -157,10 +159,11 @@ class CommonTemplateViewSet(GcloudModelViewSet):
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
         self.perform_destroy(template)
         # 记录操作流水
-        record_template_operation_helper(
+        operate_record_signal.send(
+            sender=RecordType.common_template.name,
             operator=request.user.username,
             operate_type=OperateType.delete.name,
             operate_source=OperateSource.common.name,
-            template_id=template.id,
+            instance_id=template.id,
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
