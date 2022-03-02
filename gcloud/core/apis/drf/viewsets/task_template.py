@@ -223,7 +223,8 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         for relation in relation_queryset:
             relation.templatescheme_set.clear()
         # 删除流程模板
-        self.perform_destroy(template)
+        template.is_deleted = True
+        template.save()
         # 记录操作流水
         operate_record_signal.send(
             sender=RecordType.template.name,
