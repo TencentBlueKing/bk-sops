@@ -362,7 +362,7 @@ class StaffGroupSet(models.Model):
 
     def delete(self, real_delete=False):
         if real_delete:
-            super().delete()
+            return super().delete()
         setattr(self, "is_deleted", True)
         self.save()
 
