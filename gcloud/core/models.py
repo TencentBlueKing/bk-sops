@@ -365,7 +365,7 @@ class StaffGroupSet(models.Model):
             return super().delete()
         setattr(self, "is_deleted", True)
         self.save()
-
+        
 
 class ProjectConfig(models.Model):
     project_id = models.IntegerField(_("项目 ID"))
