@@ -76,7 +76,10 @@ class PeriodicTaskTestCase(TestCase):
         self.pipeline_template = PipelineTemplate.objects.create(
             template_id=uniqid(), name=self.task_template_name, creator=self.creator, snapshot=self.snapshot
         )
-        task_template = TaskTemplate(project=self.project, pipeline_template=self.pipeline_template,)
+        task_template = TaskTemplate(
+            project=self.project,
+            pipeline_template=self.pipeline_template,
+        )
         task_template.save()
         self.template = task_template
         self.task = self.create_a_task()
@@ -84,8 +87,8 @@ class PeriodicTaskTestCase(TestCase):
     @factory.django.mute_signals(signals.post_delete)
     def tearDown(self):
         if self.task:
-            self.task = self.task.delete()
-        self.template = self.template.delete()
+            self.task = self.task.delete(real_delete=True)
+        self.template = self.template.delete(real_delete=True)
         self.pipeline_template = self.pipeline_template.delete()
         self.snapshot = self.snapshot.delete()
         self.project = self.project.delete()
@@ -192,7 +195,7 @@ class PeriodicTaskTestCase(TestCase):
     @factory.django.mute_signals(signals.post_delete)
     def test_delete(self):
         pipeline_periodic_task_id = self.task.task.id
-        self.task = self.task.delete()
+        self.task = self.task.delete(real_delete=True)
         self.assertRaises(
             PipelinePeriodicTask.DoesNotExist, PipelinePeriodicTask.objects.get, id=pipeline_periodic_task_id
         )
