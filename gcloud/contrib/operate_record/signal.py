@@ -21,7 +21,7 @@ operate_record_signal = Signal(["operator", "operate_type", "operate_source", "i
 
 
 @receiver(operate_record_signal, sender=RecordType.template.name)
-def record_template_receiver(operator, operate_type, operate_source, instance_id, project_id, **kwargs):
+def record_template_handler(operator, operate_type, operate_source, instance_id, project_id, **kwargs):
     record_template_operation_helper(
         operator=operator,
         operate_type=operate_type,
@@ -32,7 +32,7 @@ def record_template_receiver(operator, operate_type, operate_source, instance_id
 
 
 @receiver(operate_record_signal, sender=RecordType.common_template.name)
-def record_common_template_receiver(operator, operate_type, operate_source, instance_id, **kwargs):
+def record_common_template_handler(operator, operate_type, operate_source, instance_id, **kwargs):
     record_template_operation_helper(
         operator=operator,
         operate_type=operate_type,
@@ -42,7 +42,7 @@ def record_common_template_receiver(operator, operate_type, operate_source, inst
 
 
 @receiver(operate_record_signal, sender=RecordType.task.name)
-def record_task_receiver(operator, operate_type, operate_source, instance_id, project_id, **kwargs):
+def record_task_handler(operator, operate_type, operate_source, instance_id, project_id, **kwargs):
     record_task_operation_helper(
         operator=operator,
         operate_type=operate_type,
@@ -53,7 +53,7 @@ def record_task_receiver(operator, operate_type, operate_source, instance_id, pr
 
 
 @receiver(operate_record_signal, sender=RecordType.task.name)
-def record_task_node_receiver(operator, operate_type, operate_source, instance_id, project_id, node_id, **kwargs):
+def record_task_node_handler(operator, operate_type, operate_source, instance_id, project_id, node_id, **kwargs):
     record_task_operation_helper(
         operator=operator,
         operate_type=operate_type,
