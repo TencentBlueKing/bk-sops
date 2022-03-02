@@ -195,7 +195,7 @@ class PeriodicTaskTestCase(TestCase):
     @factory.django.mute_signals(signals.post_delete)
     def test_delete(self):
         pipeline_periodic_task_id = self.task.task.id
-        self.task = self.task.delete(real_delete=True)
+        self.task = self.task.delete()
         self.assertRaises(
             PipelinePeriodicTask.DoesNotExist, PipelinePeriodicTask.objects.get, id=pipeline_periodic_task_id
         )
