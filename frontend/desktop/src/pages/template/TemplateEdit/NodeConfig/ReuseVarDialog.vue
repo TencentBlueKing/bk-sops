@@ -16,49 +16,58 @@
         :mask-close="false"
         :render-directive="'if'"
         :header-position="'left'"
-        :title="title"
+        :title="$t('变量配置')"
         :auto-close="false"
         :value="isShow"
         width="600"
         @confirm="onConfirm"
         @cancel="onCancel">
         <div class="reuse-variable-dialog">
-            <p v-if="createNew" class="new-var-notice">{{$t('已存在相同Key的变量，请新建变量')}}</p>
+            <bk-alert
+                v-if="sameKeyExist && variables.length === 0"
+                style="margin-bottom: 14px;"
+                type="warning"
+                :title="$t('已存在相同KEY的变量，请新建变量')">
+            </bk-alert>
             <bk-form
                 ref="form"
                 :model="formData"
-                :form-type="createNew ? 'vertical' : 'horizontal'"
                 :rules="rules">
-                <template v-if="!createNew">
-                    <bk-form-item :label="$t('复用变量')" property="reused">
-                        <bk-select
-                            v-model="formData.reused"
-                            :disabled="!formData.isReuse"
-                            :popover-options="{ appendTo: 'parent' }"
-                            :clearable="false">
-                            <bk-option
-                                v-for="(option, index) in variables"
-                                :key="index"
-                                :id="option.id"
-                                :name="option.name">
-                            </bk-option>
-                        </bk-select>
+                <bk-form-item :label="$t('创建方式')">
+                    <bk-select
+                        v-model="createMethod"
+                        :clearable="false"
+                        @selected="handleCreateMethodChange">
+                        <bk-option v-if="!sameKeyExist" id="autoCreate" :name="$t('自动创建')"></bk-option>
+                        <bk-option v-if="variables.length > 0" id="reuse" :name="$t('变量复用')"></bk-option>
+                        <bk-option id="manualCreate" :name="$t('手动创建')"></bk-option>
+                    </bk-select>
+                </bk-form-item>
+                <bk-form-item v-if="createMethod === 'reuse'" :label="$t('复用变量')" property="reused">
+                    <bk-select
+                        v-model="formData.reused"
+                        :popover-options="{ appendTo: 'parent' }"
+                        :clearable="false">
+                        <bk-option
+                            v-for="(option, index) in variables"
+                            :key="index"
+                            :id="option.id"
+                            :name="option.name">
+                        </bk-option>
+                    </bk-select>
+                </bk-form-item>
+                <template v-else-if="['manualCreate', 'autoCreate'].includes(createMethod)">
+                    <bk-form-item
+                        property="name"
+                        :label="$t('变量名称')"
+                        :required="true">
+                        <bk-input name="variableName" :disabled="createMethod === 'autoCreate'" v-model="formData.name"></bk-input>
                     </bk-form-item>
-                    <bk-form-item :label="$t('新建变量')" property="isReuse">
-                        <bk-switcher
-                            :value="!formData.isReuse"
-                            size="small"
-                            theme="primary"
-                            @change="toggleReuse">
-                        </bk-switcher>
-                    </bk-form-item>
-                </template>
-                <template v-if="!formData.isReuse || createNew">
-                    <bk-form-item :label="$t('变量名称')" property="name" :required="true">
-                        <bk-input name="variableName" v-model="formData.name"></bk-input>
-                    </bk-form-item>
-                    <bk-form-item :label="$t('变量KEY')" property="key" :required="true">
-                        <bk-input name="variableKey" v-model="formData.key"></bk-input>
+                    <bk-form-item
+                        property="key"
+                        :label="$t('变量KEY')"
+                        :required="true">
+                        <bk-input name="variableKey" :disabled="createMethod === 'autoCreate'" v-model="formData.key"></bk-input>
                     </bk-form-item>
                 </template>
             </bk-form>
@@ -73,19 +82,35 @@
     export default {
         name: 'ReuseVarDialog',
         props: {
-            isShow: Boolean,
-            createNew: Boolean,
-            variables: Array
+            isShow: {
+                type: Boolean,
+                default: false
+            },
+            variables: { // 可复用变量列表
+                type: Array,
+                default: () => []
+            },
+            sameKeyExist: { // 全局变量中存在与被勾选表单相同key的变量
+                type: Boolean,
+                default: false
+            },
+            newVarKeyName: { // 自动创建变量时展示的key、name
+                type: Object,
+                default: () => {
+                    return { key: '', name: '' }
+                }
+            }
         },
         data () {
             const $this = this
+            const createMethod = this.getDefaultCreateMethod()
             const reused = this.variables.length > 0 ? this.variables[0].id : ''
             return {
+                createMethod,
                 formData: {
                     reused,
-                    isReuse: true,
-                    name: '',
-                    key: ''
+                    name: this.newVarKeyName.name,
+                    key: this.newVarKeyName.key
                 },
                 rules: {
                     name: [
@@ -143,33 +168,53 @@
         computed: {
             ...mapState({
                 constants: state => state.template.constants
-            }),
-            title () {
-                if (this.createNew) {
-                    return i18n.t('创建新变量')
-                }
-                return i18n.t('是否复用变量')
-            }
+            })
         },
         watch: {
-            variables (val) {
-                this.formData.reused = val.length > 0 ? this.variables[0].id : ''
+            variables () {
+                this.createMethod = this.getDefaultCreateMethod()
+                this.formData.reused = this.variables.length > 0 ? this.variables[0].id : ''
+            },
+            newVarKeyName (val) {
+                const { name, key } = val
+                this.formData.name = name
+                this.formData.key = key
             }
         },
         methods: {
             ...mapActions('template/', [
                 'checkKey'
             ]),
-            toggleReuse (val) {
-                this.formData.isReuse = !val
+            getDefaultCreateMethod () {
+                console.log(this.variables.length)
+                if (this.variables.length > 0) {
+                    return this.sameKeyExist ? 'reuse' : 'autoCreate'
+                }
+                return 'manualCreate'
             },
-            onConfirm ($event) {
-                if (!this.createNew && this.formData.isReuse) {
-                    this.$emit('confirm', 'reuse', this.formData.reused)
+            handleCreateMethodChange (val) {
+                if (val === 'autoCreate') {
+                    this.formData.reused = ''
+                    this.formData.name = this.newVarKeyName.name
+                    this.formData.key = this.newVarKeyName.key
+                } else if (val === 'reuse') {
+                    this.formData.reused = this.variables.length > 0 ? this.variables[0].id : ''
+                } else {
+                    this.formData.reused = ''
+                    this.formData.name = ''
+                    this.formData.key = ''
+                }
+            },
+            onConfirm () {
+                const { name, key, reused } = this.formData
+
+                if (this.createMethod === 'autoCreate') {
+                    this.$emit('confirm', 'autoCreate', { name, key })
+                } else if (this.createMethod === 'reuse') {
+                    this.$emit('confirm', 'reuse', reused)
                 } else {
                     this.$refs.form.validate().then(async (result) => {
                         if (result) {
-                            const { name, key } = this.formData
                             const checkKeyResult = await this.checkKey({ key })
                             if (!checkKeyResult.result) {
                                 this.$bkMessage({
@@ -178,7 +223,7 @@
                                 })
                                 return
                             }
-                            this.$emit('confirm', 'new', { name, key })
+                            this.$emit('confirm', 'manualCreate', { name, key })
                         }
                     })
                 }

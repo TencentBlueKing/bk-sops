@@ -804,7 +804,7 @@ const en = {
     '新建变量': 'New',
     '变量名称': 'Variable Name',
     '变量KEY': 'Variable KEY',
-    '已存在相同Key的变量，请新建变量': 'Variables that already have the same key, create a new variable please',
+    '已存在相同KEY的变量，请新建变量': 'Variables that already have the same key, create a new variable please',
     '创建新变量': 'Create new variable',
     '是否复用变量': 'Whether To Reuse Variable',
     '已选': ' Selected',
@@ -1295,7 +1295,11 @@ const en = {
     '删除失败！': 'Failed to delete!',
     '删除成功！': 'Successfully deleted!',
     '系统变量': 'SYS-VARS',
-    '业务变量': 'BUSINESS-VARS'
+    '业务变量': 'BUSINESS-VARS',
+    '变量配置': 'variable config',
+    '变量复用': 'varibale reuse',
+    '手动创建': 'manual create',
+    '自动创建': 'auto create'
 }
 
 export default en
