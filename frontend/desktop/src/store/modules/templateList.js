@@ -30,7 +30,13 @@ const templateList = {
             }
             return axios.get(url, {
                 params: data
-            }).then(response => response.data)
+            }).then(response => {
+                if (!('limit' in data)) {
+                    return { results: response.data.data }
+                } else {
+                    return response.data.data
+                }
+            })
         },
         deleteTemplate ({ commit }, data) {
             const { templateId, common } = data

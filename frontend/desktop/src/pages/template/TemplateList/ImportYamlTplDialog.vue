@@ -200,7 +200,7 @@
                         data.project__id = this.project_id
                     }
                     const respData = await this.loadTemplateList(data)
-                    this.templateList = respData.objects
+                    this.templateList = respData.results
                 } catch (e) {
                     console.log(e)
                 } finally {

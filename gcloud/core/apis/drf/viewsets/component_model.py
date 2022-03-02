@@ -17,8 +17,11 @@ from django_filters import CharFilter, FilterSet
 from pipeline.component_framework.models import ComponentModel
 from gcloud.core.models import ProjectBasedComponent
 
-from .base import GcloudReadOnlyViewSet
-from ..serilaziers.component_model import ComponentModelListSerializer, ComponentModelDetailSerializer
+from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
+from gcloud.core.apis.drf.serilaziers.component_model import (
+    ComponentModelListSerializer,
+    ComponentModelDetailSerializer,
+)
 
 
 class ComponentModelFilter(FilterSet):
