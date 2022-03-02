@@ -42,6 +42,12 @@
                     return {}
                 }
             },
+            formData: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            },
             editable: {
                 type: Boolean,
                 default: true
@@ -150,12 +156,13 @@
                     let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
 
                     if (currentFormConfig) {
+                        variable.value = this.formData[variable.key] || variable.value
                         // 若该变量是元变量则进行转换操作
                         if (variable.is_meta || currentFormConfig.meta_transform) {
                             currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
                             this.metaConfig[key] = tools.deepClone(variable)
                             if (!variable.meta) {
-                                variable.value = currentFormConfig.attrs.value
+                                variable.value = this.formData[variable.key] || currentFormConfig.attrs.value
                             }
                         }
                         currentFormConfig.tag_code = key
