@@ -43,7 +43,13 @@ class TestFilterSet(PropertyFilterSet):
 
 class TestPropertyFilterSet(TestCase):
     def setUp(self):
+        print("111111111")
         self.test_filterset = TestFilterSet()
 
     def test_build_filters_success(self):
-        self.assertTrue("test_attr__exact" in self.test_filterset.base_filters.keys())
+        try:
+            print("22222222")
+            self.assertTrue("test_attr__exact" in self.test_filterset.base_filters.keys())
+            print("3333333")
+        except Exception as e:
+            print(str(e))
