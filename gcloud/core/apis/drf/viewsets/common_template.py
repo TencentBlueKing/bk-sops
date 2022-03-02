@@ -157,7 +157,9 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         can_delete, message = manager.can_delete(template)
         if not can_delete:
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
-        self.perform_destroy(template)
+        # 删除流程模板
+        template.is_deleted = True
+        template.save()
         # 记录操作流水
         operate_record_signal.send(
             sender=RecordType.common_template.name,
