@@ -75,6 +75,7 @@
                 hooked: {},
                 hookingVarForm: '', // 正被勾选的表单项
                 isKeyExist: false, // 勾选的表单生成的 key 是否在全局变量列表中存在
+                newVarKeyName: { key: '', name: '' }, // 变量配置弹窗自动创建使用
                 isReuseDialogShow: false,
                 reuseableVarList: [],
                 option: {
