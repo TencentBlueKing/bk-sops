@@ -121,7 +121,7 @@ def create_task(request, template_id, project_id):
         params.setdefault("execute_task_nodes_id", [])
         jsonschema.validate(params, APIGW_CREATE_TASK_PARAMS)
     except jsonschema.ValidationError as e:
-        logger.warning("[API] create_task raise prams error: %s" % e)
+        logger.exception("[API] create_task raise prams error: %s" % e)
         message = "task params is invalid: %s" % e
         return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
@@ -168,7 +168,9 @@ def create_task(request, template_id, project_id):
                 tmpl, pipeline_instance_kwargs, params["constants"], exclude_task_nodes_id, params["simplify_vars"],
             )
         except Exception as e:
-            return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
+            message = f"[API] create_task create pipeline without tree error: {e}"
+            logger.exception(message)
+            return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
 
     task = TaskFlowInstance.objects.create(
         project=project,
