@@ -90,7 +90,7 @@
             async loadData () {
                 try {
                     const response = await this.getTaskList({ offset: this.offset, limit: this.limit })
-                    this.total = response.meta.total_count
+                    this.total = response.count
                     const totalPage = Math.ceil(this.total / this.limit)
                     if (this.currPage >= totalPage) {
                         this.finished = true
@@ -98,7 +98,7 @@
                         this.offset = this.currPage * this.limit
                         this.currPage += 1
                     }
-                    this.taskList = [...this.originalTaskList, ...response.objects]
+                    this.taskList = [...this.originalTaskList, ...response.results]
                     this.originalTaskList = this.taskList
                     this.fillTaskStatus()
                 } catch (e) {

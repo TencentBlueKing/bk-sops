@@ -12,6 +12,7 @@ export default {
     actions: {
         getAtomConfig ({ state }, { atomCode, version }) {
             return http.get(`api/v3/weixin_component/${atomCode}/`, { params: { version } }).then((response) => {
+                response = response.data
                 if (response.form_is_embedded) {
                     /* eslint-disable-next-line */
                     eval(response.form)
@@ -25,6 +26,7 @@ export default {
 
         getVariableConfig ({ state }, { customType, configKey, version }) {
             return http.get(`api/v3/weixin_variable/${customType}/`, { params: { version } }).then((response) => {
+                response = response.data
                 if (response.form_is_embedded) {
                     /* eslint-disable-next-line */
                     eval(response.form)
