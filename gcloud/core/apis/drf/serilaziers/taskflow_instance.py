@@ -46,7 +46,9 @@ class RetrieveTaskFlowInstanceSerializer(TaskFlowInstanceSerializer):
         return json.dumps(obj.pipeline_tree)
 
 
-class CreateTaskFlowInstanceSerializer(serializers.ModelSerializer):
+class CreateTaskFlowInstanceSerializer(TaskSerializer):
+    id = serializers.IntegerField(help_text="任务ID", read_only=True)
+    instance_id = serializers.IntegerField(help_text="任务实例ID", read_only=True)
     name = serializers.CharField(help_text="任务名称")
     description = serializers.CharField(help_text="任务描述", allow_blank=True, write_only=True)
     project = serializers.IntegerField(help_text="项目ID", write_only=True)
@@ -93,15 +95,4 @@ class CreateTaskFlowInstanceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TaskFlowInstance
-        fields = [
-            "name",
-            "description",
-            "project",
-            "template",
-            "creator",
-            "pipeline_tree",
-            "create_method",
-            "create_info",
-            "flow_type",
-            "template_source",
-        ]
+        exclude = ["current_flow"]

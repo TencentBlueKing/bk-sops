@@ -36,6 +36,7 @@ from gcloud.core.apis.drf.filters import BooleanPropertyFilter
 from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.contrib.operate_record.constants import OperateType, OperateSource, RecordType
 from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
+from gcloud.user_custom_config.constants import TASKTMPL_ORDERBY_OPTIONS
 
 
 logger = logging.getLogger("root")
@@ -102,6 +103,9 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION,
         ],
     )
+    ordering_fields = [
+        "pipeline_template",
+    ] + [order["value"] for order in TASKTMPL_ORDERBY_OPTIONS]
 
     def _sync_template_lables(self, template_id, label_ids):
         """
