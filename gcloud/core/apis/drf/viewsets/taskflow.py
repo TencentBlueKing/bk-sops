@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from rest_framework.response import Response
 from rest_framework import serializers, generics, permissions
+from django_filters import FilterSet
 
 from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam import Subject, Action
@@ -42,6 +43,24 @@ from gcloud.contrib.operate_record.constants import OperateType, OperateSource, 
 iam = get_iam_client()
 
 
+class TaskFlowFilterSet(FilterSet):
+    class Meta:
+        model = TaskFlowInstance
+        fields = {
+            "id": ["exact"],
+            "category": ["exact"],
+            "project__id": ["exact"],
+            "pipeline_instance__creator": ["contains"],
+            "pipeline_instance__executor": ["contains"],
+            "pipeline_instance__name": ["icontains"],
+            "pipeline_instance__is_started": ["exact"],
+            "pipeline_instance__is_finished": ["exact"],
+            "pipeline_instance__is_revoked": ["exact"],
+            "create_method": ["exact"],
+            "pipeline_instance__start_time": ["gte", "lte"],
+        }
+
+
 class TaskFlowInstancePermission(IamPermission):
     actions = {
         "list": IamPermissionInfo(IAMMeta.TASK_VIEW_ACTION),
@@ -62,8 +81,7 @@ class TaskFlowInstancePermission(IamPermission):
                 try:
                     app_maker = AppMaker.objects.get(id=app_maker_id)
                 except AppMaker.DoesNotExist:
-                    raise serializers.ValidationError("app_maker[pk=%s] does not exist" % app_maker_id)
-
+                    return False
                 allow_or_raise_immediate_response(
                     iam=iam,
                     system=IAMMeta.SYSTEM_ID,
@@ -74,13 +92,13 @@ class TaskFlowInstancePermission(IamPermission):
 
             # flow create task perm
             else:
-                template_source = request.data["template_source"]
-                template_id = request.data["template"]
+                template_source = request.data.get("template_source", "project")
+                template_id = request.data.get("template", -1)
                 model_cls = TaskTemplate if template_source == "project" else CommonTemplate
                 try:
                     template = model_cls.objects.get(id=template_id)
                 except model_cls.DoesNotExist:
-                    raise serializers.ValidationError(f"id={template_id}的模板不存在")
+                    return False
                 allow_or_raise_immediate_response(
                     iam=iam,
                     system=IAMMeta.SYSTEM_ID,
@@ -100,18 +118,9 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         resource_func=res_factory.resources_for_task_obj,
         actions=TASK_ACTIONS,
     )
-    filter_fields = {
-        "id": ["exact"],
-        "category": ["exact"],
-        "project__id": ["exact"],
-        "pipeline_instance__creator": ["contains"],
-        "pipeline_instance__executor": ["contains"],
-        "pipeline_instance__name": ["icontains"],
-        "pipeline_instance__is_started": ["exact"],
-        "create_method": ["exact"],
-        "pipeline_instance__start_time": ["gte", "lte"],
-    }
+    filter_class = TaskFlowFilterSet
     permission_classes = [permissions.IsAuthenticated, TaskFlowInstancePermission]
+    ordering_fields = ["pipeline_instance"]
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

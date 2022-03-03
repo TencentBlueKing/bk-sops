@@ -78,6 +78,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
     )
     filterset_class = CommonTemplateFilter
     permission_classes = [permissions.IsAuthenticated, CommonTemplatePermission]
+    ordering = ["pipeline_template"]
 
     def create(self, request, *args, **kwargs):
         serializer = CreateCommonTemplateSerializer(data=request.data)
