@@ -326,13 +326,13 @@
                         } else {
                             const result = varTypeList.find(item => item.code === cur.custom_type && item.tag === cur.source_tag)
                             const checkTypeList = ['component_inputs', 'component_outputs']
-                            if (checkTypeList.includes(cur.source_type)) {
-                                this.$set(cur, 'type', i18n.t('组件'))
-                                isHasComponent = true
-                            } else if (result) {
+                            if (result && !checkTypeList.includes(cur.source_type)) {
                                 this.$set(cur, 'type', result.name)
                                 result.checked = this.checkedTypeList.includes(cur.custom_type)
                                 acc.push(result)
+                            } else {
+                                this.$set(cur, 'type', i18n.t('组件'))
+                                isHasComponent = true
                             }
                         }
                         return acc
