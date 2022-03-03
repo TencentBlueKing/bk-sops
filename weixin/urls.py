@@ -12,33 +12,34 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.conf.urls import include, url
-from tastypie.api import Api
+from rest_framework.routers import DefaultRouter
 
-from .resources import (
-    WxTaskTemplateResource,
-    WxTaskFlowInstanceResource,
-    WxComponentModelResource,
-    WxVariableModelResource,
-    WxTemplateSchemeResource,
-    WxUserProjectResource,
-    WxProjectResource,
-    WxCollectionResource,
-)
 from . import views
+from weixin.viewsets import (
+    WxTaskTemplateViewSet,
+    WxTaskFlowInstanceViewSet,
+    WxComponentModelSetViewSet,
+    WxWxVariableViewSet,
+    WxTemplateSchemeViewSet,
+    WxUserProjectViewSet,
+    WxProjectViewSet,
+    WxCollectionViewSet,
+)
 
-weixin_v3_api = Api(api_name="v3")
-weixin_v3_api.register(WxUserProjectResource())
-weixin_v3_api.register(WxProjectResource())
-weixin_v3_api.register(WxTaskTemplateResource())
-weixin_v3_api.register(WxTemplateSchemeResource())
-weixin_v3_api.register(WxTaskFlowInstanceResource())
-weixin_v3_api.register(WxComponentModelResource())
-weixin_v3_api.register(WxVariableModelResource())
-weixin_v3_api.register(WxCollectionResource())
+weixin_v3_drf_api = DefaultRouter()
+weixin_v3_drf_api.register("weixin_template", WxTaskTemplateViewSet)
+weixin_v3_drf_api.register("weixin_taskflow", WxTaskFlowInstanceViewSet)
+weixin_v3_drf_api.register("weixin_component", WxComponentModelSetViewSet)
+weixin_v3_drf_api.register("weixin_variable", WxWxVariableViewSet)
+weixin_v3_drf_api.register("weixin_scheme", WxTemplateSchemeViewSet)
+weixin_v3_drf_api.register("weixin_user_project", WxUserProjectViewSet)
+weixin_v3_drf_api.register("weixin_project", WxProjectViewSet)
+weixin_v3_drf_api.register("weixin_collection", WxCollectionViewSet)
+
 
 urlpatterns = [
     url(r"^$", views.home),
     url(r"^taskflow/", include("gcloud.taskflow3.urls")),
     url(r"^template/", include("gcloud.tasktmpl3.urls")),
-    url(r"^api/", include(weixin_v3_api.urls)),
+    url(r"api/v3/", include(weixin_v3_drf_api.urls)),
 ]

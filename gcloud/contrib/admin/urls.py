@@ -12,24 +12,25 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.conf.urls import include, url
-from tastypie.api import Api
+from rest_framework.routers import DefaultRouter
 
 from gcloud.contrib.admin import views, migration_api
-from gcloud.contrib.admin.resources import (
-    AdminTaskTemplateResource,
-    AdminTaskFlowInstanceResource,
-    AdminPeriodicTaskResource,
-    AdminPeriodicTaskHistoryResource,
+from gcloud.contrib.admin.viewsets import (
+    PeriodicTaskHistoryViewSet,
+    AdminTaskFlowInstanceViewSet,
+    AdminPeriodicTaskViewSet,
+    AdminTaskTemplateViewSet,
 )
 
-v3_api = Api(api_name="v3")
-v3_api.register(AdminTaskTemplateResource())
-v3_api.register(AdminTaskFlowInstanceResource())
-v3_api.register(AdminPeriodicTaskResource())
-v3_api.register(AdminPeriodicTaskHistoryResource())
+v3_drf_api = DefaultRouter()
+v3_drf_api.register(r"periodic_task_history", PeriodicTaskHistoryViewSet)
+v3_drf_api.register(r"taskflow", AdminTaskFlowInstanceViewSet)
+v3_drf_api.register(r"template", AdminTaskTemplateViewSet)
+v3_drf_api.register(r"periodic_task", AdminPeriodicTaskViewSet)
+
 
 urlpatterns = [
-    url(r"^api/", include(v3_api.urls)),
+    url(r"^api/v3/", include(v3_drf_api.urls)),
     url(r"^template/restore", views.restore_template),
     url(r"^template/refresh_template_notify_type/$", views.refresh_template_notify_type),
     url(r"^template/make_template_notify_type_loadable/$", views.make_template_notify_type_loadable),

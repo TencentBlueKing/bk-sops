@@ -52,7 +52,7 @@ def record_task_handler(operator, operate_type, operate_source, instance_id, pro
     )
 
 
-@receiver(operate_record_signal, sender=RecordType.task.name)
+@receiver(operate_record_signal, sender=RecordType.task_node.name)
 def record_task_node_handler(operator, operate_type, operate_source, instance_id, project_id, node_id, **kwargs):
     record_task_operation_helper(
         operator=operator,
