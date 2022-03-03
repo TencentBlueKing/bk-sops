@@ -186,7 +186,6 @@
                 'checkKey'
             ]),
             getDefaultCreateMethod () {
-                console.log(this.variables.length)
                 if (this.variables.length > 0) {
                     return this.sameKeyExist ? 'reuse' : 'autoCreate'
                 }
