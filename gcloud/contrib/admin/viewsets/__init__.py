@@ -11,19 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
-def iam_based_object_list_filter(data, need_actions):
-    data["objects"] = list(
-        filter(lambda bundle: set(need_actions).issubset(set(bundle.data["auth_actions"])), data["objects"])
-    )
-    return data
-
-
-def iam_based_obj_list_filter(data, need_actions):
-    if isinstance(data, dict):
-        data["results"] = list(
-            filter(lambda obj: set(need_actions).issubset(set(obj["auth_actions"])), data["results"])
-        )
-    else:
-        data = list(filter(lambda obj: set(need_actions).issubset(set(obj["auth_actions"])), data))
-    return data
+from gcloud.contrib.admin.viewsets.admin_periodic_task_history import PeriodicTaskHistoryViewSet  # noqa
+from gcloud.contrib.admin.viewsets.admin_taskflow import AdminTaskFlowInstanceViewSet  # noqa
+from gcloud.contrib.admin.viewsets.admin_periodic_task import AdminPeriodicTaskViewSet  # noqa
+from gcloud.contrib.admin.viewsets.admin_task_template import AdminTaskTemplateViewSet  # noqa

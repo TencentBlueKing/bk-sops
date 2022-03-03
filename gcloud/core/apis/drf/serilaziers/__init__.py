@@ -24,3 +24,4 @@ from .function_task import *  # noqa
 from .taskflow import *  # noqa
 from .variable import *  # noqa
 from .task_template import *  # noqa
+from .taskflow_instance import *  # noqa
