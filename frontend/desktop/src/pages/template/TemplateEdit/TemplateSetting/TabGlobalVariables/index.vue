@@ -319,32 +319,20 @@
                     }
                     const varTypeList = tools.deepClone(this.varTypeList)
                     let isHasComponent = false
-                    // 获取子流程节点
-                    const subFlowNodeId = Object.values(this.activities).reduce((acc, cur) => {
-                        if (cur.type === 'SubProcess') {
-                            acc.push(cur.id)
-                        }
-                        return acc
-                    }, [])
                     const listData = this.variableList.reduce((acc, cur) => {
                         if (cur.key in this.internalVariable) {
                             const varInfo = this.internalVariable[cur.key]
                             this.$set(cur, 'type', varInfo.source_type === 'system' ? i18n.t('系统变量') : i18n.t('业务变量'))
                         } else {
                             const result = varTypeList.find(item => item.code === cur.custom_type && item.tag === cur.source_tag)
-                            // 判断是否为子流程节点勾选的变量
-                            let isMatch = false
-                            if (cur.source_info) {
-                                const sourceNodeId = Object.keys(cur.source_info) || []
-                                isMatch = sourceNodeId.some(id => subFlowNodeId.includes(id))
-                            }
-                            if (result && !isMatch) {
+                            const checkTypeList = ['component_inputs', 'component_outputs']
+                            if (checkTypeList.includes(cur.source_type)) {
+                                this.$set(cur, 'type', i18n.t('组件'))
+                                isHasComponent = true
+                            } else if (result) {
                                 this.$set(cur, 'type', result.name)
                                 result.checked = this.checkedTypeList.includes(cur.custom_type)
                                 acc.push(result)
-                            } else {
-                                this.$set(cur, 'type', i18n.t('组件'))
-                                isHasComponent = true
                             }
                         }
                         return acc
