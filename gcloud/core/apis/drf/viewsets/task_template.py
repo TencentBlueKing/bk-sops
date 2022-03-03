@@ -122,21 +122,26 @@ class TaskTemplateViewSet(GcloudModelViewSet):
                 return Response({"detail": ErrorDetail(str(e), err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        # 支持使用方配置不分页
-        page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page if page else queryset, many=True)
-        # 注入权限
-        data = self.injection_auth_actions(request, serializer.data, queryset)
-        user_model = get_user_model()
-        collected_templates = (
-            user_model.objects.get(username=request.user.username).tasktemplate_set.all().values_list("id", flat=True)
-        )
-        template_ids = [obj["id"] for obj in data]
-        templates_labels = TemplateLabelRelation.objects.fetch_templates_labels(template_ids)
-        for obj in data:
-            obj["is_add"] = 1 if obj["id"] in collected_templates else 0
-            obj["template_labels"] = templates_labels.get(obj["id"], [])
+        try:
+            queryset = self.filter_queryset(self.get_queryset())
+            # 支持使用方配置不分页
+            page = self.paginate_queryset(queryset)
+            serializer = self.get_serializer(page if page else queryset, many=True)
+            # 注入权限
+            data = self.injection_auth_actions(request, serializer.data, queryset)
+            user_model = get_user_model()
+            collected_templates = (
+                user_model.objects.get(username=request.user.username)
+                .tasktemplate_set.all()
+                .values_list("id", flat=True)
+            )
+            template_ids = [obj["id"] for obj in data]
+            templates_labels = TemplateLabelRelation.objects.fetch_templates_labels(template_ids)
+            for obj in data:
+                obj["is_add"] = 1 if obj["id"] in collected_templates else 0
+                obj["template_labels"] = templates_labels.get(obj["id"], [])
+        except Exception as e:
+            logger.exception(str(e))
         return self.get_paginated_response(data) if page is not None else Response(data)
 
     def create(self, request, *args, **kwargs):
