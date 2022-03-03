@@ -28,7 +28,7 @@ export default {
                     offset,
                     project__id: rootState.bizId
                 }
-            }).then(response => response)
+            }).then(response => response.data)
         }
     }
 }

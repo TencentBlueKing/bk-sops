@@ -22,20 +22,20 @@ const admin = {
         template ({ commit }, data) {
             return axios.get('admin/api/v3/template/', {
                 params: { ...data }
-            }).then(response => response.data)
+            }).then(response => response.data.data)
         },
         // 管理员搜索任务列表
         taskflow ({ commit }, data) {
             return axios.get('admin/api/v3/taskflow/', {
                 params: { ...data }
-            }).then(response => response.data)
+            }).then(response => response.data.data)
         },
         // 周期任务启动记录
         periodTaskHistory ({ commit }, data) {
             const { task_id, limit, offset } = data
             return axios.get('admin/api/v3/periodic_task_history/', {
                 params: { task_id, limit, offset }
-            }).then(response => response.data)
+            }).then(response => response.data.data)
         },
         // 恢复模板
         templateRestore ({ commit }, data) {
