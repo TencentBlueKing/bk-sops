@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from werkzeug.local import Local
+from bamboo_engine import local as engine_local
 
 local = Local()
 
@@ -20,4 +21,13 @@ local = Local()
 class TraceIDInjectFilter(logging.Filter):
     def filter(self, record):
         record.trace_id = getattr(local, "trace_id", None)
+        return True
+
+
+class BambooEngineNodeInfoFilter(logging.Filter):
+    def filter(self, record):
+        node_info = engine_local.get_node_info()
+        if node_info:
+            record.node_id = node_info.node_id
+            record.version = node_info.version
         return True
