@@ -1338,6 +1338,9 @@
         /deep/.bk-tab-header {
             background-image: initial !important;
         }
+        /deep/.bk-tab-section {
+            padding: 0;
+        }
     }
 }
 .create-template-btn {
