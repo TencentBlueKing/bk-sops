@@ -214,7 +214,7 @@ def modify_app_logo(operator, app_maker_code, logo):
         "bk_app_code": settings.APP_CODE,
         "bk_app_secret": settings.SECRET_KEY,
         "light_app_code": app_maker_code,
-        "logo": logo,
+        "logo": logo.decode("ascii"),
     }
 
     resp = _request_paasv3_light_app_api(url=LIGHT_APP_API, method="patch", data=data)
