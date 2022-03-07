@@ -179,7 +179,7 @@ def get_node_callback_url(root_pipeline_id, node_id, node_version=""):
     engine_ver = EngineConfig.ENGINE_VER_V1 if not node_version else EngineConfig.ENGINE_VER_V2
     f = Fernet(settings.CALLBACK_KEY)
     callback_entry = (
-        env.BKAPP_INNER_CALLBACK_ENTRY or "%staskflow/api/v4/nodes/callback/%s/" % env.BKAPP_INNER_CALLBACK_HOST
+        env.BKAPP_INNER_CALLBACK_ENTRY or env.BKAPP_INNER_CALLBACK_HOST + "taskflow/api/v4/nodes/callback/%s/"
     )
     return (
         callback_entry
