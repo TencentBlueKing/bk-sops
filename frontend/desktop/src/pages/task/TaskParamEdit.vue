@@ -42,12 +42,6 @@
                     return {}
                 }
             },
-            formData: {
-                type: Object,
-                default () {
-                    return {}
-                }
-            },
             editable: {
                 type: Boolean,
                 default: true
@@ -161,10 +155,8 @@
                             currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
                             this.metaConfig[key] = tools.deepClone(variable)
                             if (!variable.meta) {
-                                variable.value = this.formData[variable.key] || currentFormConfig.attrs.value
+                                variable.value = currentFormConfig.attrs.value
                             }
-                        } else {
-                            variable.value = this.formData[variable.key] || variable.value
                         }
                         currentFormConfig.tag_code = key
                         currentFormConfig.name = variable.name // 变量名称，全局变量编辑时填写的名称，和表单配置项 label 名称不同
