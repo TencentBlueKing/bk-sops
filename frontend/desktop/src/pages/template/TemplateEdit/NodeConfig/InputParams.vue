@@ -37,7 +37,8 @@
         <reuse-var-dialog
             :is-show="isReuseDialogShow"
             :variables="reuseableVarList"
-            :create-new="isKeyExist"
+            :same-key-exist="isKeyExist"
+            :new-var-key-name="newVarKeyName"
             @confirm="onConfirmReuseVar"
             @cancel="onCancelReuseVar">
         </reuse-var-dialog>
@@ -90,6 +91,7 @@
                 hooked: {},
                 hookingVarForm: '', // 正被勾选的表单项
                 isKeyExist: false, // 勾选的表单生成的 key 是否在全局变量列表中存在
+                newVarKeyName: { key: '', name: '' }, // 变量配置弹窗自动创建使用
                 isReuseDialogShow: false,
                 reuseableVarList: [],
                 notReferredExpand: false, // 未引用变量是否展开
@@ -156,9 +158,13 @@
                 }
             },
             /**
-             * 勾选表单
+             * 输入参数勾选
              *
-             * 判断全局变量中是否有相同的 tag_code，有则显示复用弹窗，没有则判断是否有相同 key 的变量，有则提示手动创建，没有则自动创建
+             * 勾选逻辑：
+             * 1.判断是否存在类型相同的变量(表单项的tag_code是否相同)，存在则显示变量复用弹窗，
+             * 提供“复用已有变量”、“手动创建变量”固定两种方式给用户选择，如果全局变量中不存在与被勾选变量相同key的变量，
+             * 再提供第三种“自动创建变量”的选项，不存在则进行下一步判断
+             * 2.判断是否存在相同key的变量，存在则提示用户手动新建变量，不存在则自动创建变量
              */
             hookForm (form) {
                 const reuseList = []
@@ -177,12 +183,16 @@
                 this.hookingVarForm = form
                 this.hooked[form] = true
 
+                const formConfig = this.scheme.find(item => item.tag_code === form)
+                const config = this.getNewVarConfig(formConfig.attrs.name, variableKey)
+
                 Object.keys(this.constants).forEach(keyItem => {
                     const constant = this.constants[keyItem]
                     const sourceTag = constant.source_tag
                     if (sourceTag) { // 判断 sourceTag 是否存在是为了兼容旧数据自定义全局变量 source_tag 为空
                         const tagCode = sourceTag.split('.')[1]
-                        if (tagCode === formCode && constant.source_type !== 'component_outputs') { // 输入参数和输出参数不复用
+                        // 判断全局变量中是否有与被勾选表单项存在相同类型的，输入参数和输出参数不做比较
+                        if (tagCode === formCode && constant.source_type !== 'component_outputs') {
                             reuseList.push({
                                 name: `${constant.name}(${constant.key})`,
                                 id: constant.key
@@ -195,16 +205,22 @@
                     }
                 })
 
-                if (reuseList.length > 0) { // 复用变量
+                if (reuseList.length > 0) { // 存在类型相同的全局变量
                     this.reuseableVarList = reuseList
-                    this.isKeyExist = false
+                    this.isKeyExist = isKeyInVariables
                     this.isReuseDialogShow = true
-                } else if (isKeyInVariables) { // 已存在相同 key，手动创建新变量
+                    this.newVarKeyName = {
+                        key: config.key,
+                        name: config.name
+                    }
+                } else if (isKeyInVariables) { // 存在相同key的变量，手动创建新变量
                     this.isKeyExist = true
                     this.isReuseDialogShow = true
+                    this.reuseableVarList = []
+                    this.newVarKeyName = { key: '', name: '' }
                 } else { // 自动创建新变量
-                    const formConfig = this.scheme.find(item => item.tag_code === form)
-                    const config = this.getNewVarConfig(formConfig.attrs.name, variableKey)
+                    this.reuseableVarList = []
+                    this.newVarKeyName = { key: '', name: '' }
                     this.createVariable(config)
                 }
             },
@@ -292,12 +308,12 @@
             /**
              * 复用变量弹窗点击确认回调
              *
-             * @param {String} type 复用已有全局变量(reuse)或者创建新变量(new)
+             * @param {String} type 自动创建新变量(autoCreate)、复用已有全局变量(reuse)或者创建新变量(manualCreate)
              * @param {String, Obejct} data 复用时为 formcode，新建时为 {name, key}
              */
             onConfirmReuseVar (type, data) {
                 this.isReuseDialogShow = false
-                if (type === 'new') { // 创建新变量
+                if (['autoCreate', 'manualCreate'].includes(type)) { // 创建新变量
                     const { name, key } = data
                     const config = this.getNewVarConfig(name, key)
                     this.createVariable(config)

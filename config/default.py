@@ -580,15 +580,25 @@ def logging_addition_settings(logging_dict: dict, environment="prod"):
         "propagate": True,
     }
 
+    def handler_filter_injection(filters: list):
+        for _, handler in logging_dict["handlers"].items():
+            handler.setdefault("filters", []).extend(filters)
+
+    logging_dict.setdefault("filters", {}).update(
+        {"bamboo_engine_node_info_filter": {"()": "gcloud.core.logging.BambooEngineNodeInfoFilter"}}
+    )
+    handler_filter_injection(["bamboo_engine_node_info_filter"])
+
     # 日志中添加trace_id
     if env.ENABLE_OTEL_TRACE:
         trace_format = (
             "[trace_id]: %(otelTraceID)s [span_id]: %(otelSpanID)s [resource.service.name]: %(otelServiceName)s"
         )
     else:
-        logging_dict.update({"filters": {"trace_id_inject_filter": {"()": "gcloud.core.logging.TraceIDInjectFilter"}}})
-        for _, logging_handler in logging_dict["handlers"].items():
-            logging_handler.update({"filters": ["trace_id_inject_filter"]})
+        logging_dict.setdefault("filters", {}).update(
+            {"trace_id_inject_filter": {"()": "gcloud.core.logging.TraceIDInjectFilter"}}
+        )
+        handler_filter_injection(["trace_id_inject_filter"])
         trace_format = "[trace_id]: %(trace_id)s"
     inject_logging_trace_info(logging_dict, ("verbose",), trace_format)
 
