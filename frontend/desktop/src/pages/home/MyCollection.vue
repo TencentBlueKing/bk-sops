@@ -127,8 +127,8 @@
                 try {
                     this.collectionBodyLoading = true
                     const res = await this.loadCollectList()
-                    this.collectionList = res.objects
-                    this.collectionGrounpList = this.getGrounpList(res.objects)
+                    this.collectionList = res.data
+                    this.collectionGrounpList = this.getGrounpList(res.data)
                     this.collectionBodyLoading = false
                 } catch (e) {
                     console.log(e)

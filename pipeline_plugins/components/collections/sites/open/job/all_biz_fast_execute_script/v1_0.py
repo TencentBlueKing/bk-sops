@@ -35,12 +35,7 @@ from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud.utils.ip import get_ip_by_regex
-from pipeline.core.flow.io import (
-    StringItemSchema,
-    ObjectItemSchema,
-    IntItemSchema,
-    ArrayItemSchema,
-)
+from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema, IntItemSchema, ArrayItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url
@@ -94,10 +89,16 @@ class AllBizJobFastExecuteScriptService(JobService):
                 schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
             ),
             self.InputItem(
-                name=_("脚本超时时间"), key="job_target_account", type="int", schema=IntItemSchema(description=_("脚本超时时间")),
+                name=_("脚本超时时间"),
+                key="job_target_account",
+                type="int",
+                schema=IntItemSchema(description=_("脚本超时时间")),
             ),
             self.InputItem(
-                name=_("脚本超时时间"), key="job_target_account", type="int", schema=IntItemSchema(description=_("脚本超时时间")),
+                name=_("脚本超时时间"),
+                key="job_target_account",
+                type="int",
+                schema=IntItemSchema(description=_("脚本超时时间")),
             ),
             self.InputItem(
                 name=_("执行目标信息"),
@@ -113,6 +114,12 @@ class AllBizJobFastExecuteScriptService(JobService):
                         },
                     ),
                 ),
+            ),
+            self.InputItem(
+                name=_("IP Tag 分组"),
+                key="is_tagged_ip",
+                type="boolean",
+                schema=BooleanItemSchema(description=_("是否对 IP 进行 Tag 分组")),
             ),
         ]
 
@@ -131,6 +138,12 @@ class AllBizJobFastExecuteScriptService(JobService):
                         "value": StringItemSchema(description=_("全局变量值")),
                     },
                 ),
+            ),
+            self.OutputItem(
+                name=_("JOB执行IP分组"),
+                key="job_tagged_ip_dict",
+                type="string",
+                schema=StringItemSchema(description=_("根据JOB步骤执行标签获取的IP分组")),
             ),
         ]
 

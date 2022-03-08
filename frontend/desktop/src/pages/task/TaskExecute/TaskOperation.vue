@@ -369,6 +369,7 @@
                 conditionData: {},
                 isShowDialog: false,
                 isSaveLoading: false,
+                tabIconState: '',
                 approval: { // 节点审批
                     id: '',
                     dialogShow: false,
@@ -555,6 +556,7 @@
                         }
                         if (this.state === 'RUNNING' || (!this.isTopTask && this.state === 'FINISHED' && !['FINISHED', 'REVOKED', 'FAILED'].includes(this.rootState))) {
                             this.setTaskStatusTimer()
+                            this.setRunningNode(instanceStatus.data.children)
                         }
                         this.updateNodeInfo()
                     } else {
@@ -1388,9 +1390,14 @@
                         break
                     case 'RUNNING':
                     case 'READY':
+                        nameSuffix = 'running'
+                        if (this.tabIconState === 'SUSPENDED') {
+                            nameSuffix = 'suspended'
+                        }
+                        break
                     case 'SUSPENDED':
                     case 'NODE_SUSPENDED':
-                        nameSuffix = 'running'
+                        nameSuffix = 'suspended'
                 }
                 const picName = nameSuffix ? `bk_sops_${nameSuffix}` : 'bk_sops'
                 const path = `${window.SITE_URL}static/core/images/${picName}.png`
@@ -1504,6 +1511,15 @@
             onHiddenSideslider () {
                 this.nodeInfoType = ''
                 this.updateNodeActived(this.nodeDetailConfig.node_id, false)
+            },
+            // 判断RUNNING的节点是否有暂停节点，若有，则将当前任务状态标记为暂停状态
+            setRunningNode (node = {}) {
+                this.tabIconState
+                    = Object.keys(node).some(key => (node[key].state === 'RUNNING'
+                        && this.pipelineData.activities[key].type === 'ServiceActivity'
+                        && this.pipelineData.activities[key].component.code === 'pause_node'))
+                        ? 'SUSPENDED'
+                        : ''
             }
         }
     }

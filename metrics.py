@@ -14,7 +14,7 @@ import time
 import socket
 from functools import wraps
 
-from prometheus_client import Gauge, Histogram
+from prometheus_client import Gauge, Histogram, Counter
 
 
 HOST_NAME = socket.gethostname()
@@ -61,4 +61,10 @@ TASKFLOW_TIMEOUT_NODES_SCANNING_TIME = Histogram(
 )
 TASKFLOW_TIMEOUT_NODES_PROCESSING_TIME = Histogram(
     "taskflow_timeout_nodes_processing_time", "time to process timeout nodes", labelnames=["hostname"]
+)
+TASKFLOW_NODE_AUTO_RETRY_TASK_DURATION = Histogram(
+    "taskflow_node_auto_retry_task_duration", "time to process node auto retry task", labelnames=["hostname"]
+)
+TASKFLOW_NODE_AUTO_RETRY_LOCK_ACCUIRE_FAIL = Counter(
+    "taskflow_node_auto_retry_lock_accuire_fail", "node auto retry lock fetch fail count", labelnames=["hostname"]
 )

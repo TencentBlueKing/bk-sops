@@ -16,57 +16,48 @@ from tastypie.api import Api
 from rest_framework.routers import DefaultRouter
 
 from gcloud.clocked_task.viewset import ClockedTaskViewSet
-from gcloud.core.apis.drf.viewsets import ProjectConfigViewSet, ResourceConfigViewSet, StaffGroupSetViewSet
+from gcloud.tasktmpl3.apis.drf.viewsets.collection_template import CollectionTemplateViewSet
+from gcloud.core.apis.drf.viewsets import (
+    ProjectConfigViewSet,
+    ResourceConfigViewSet,
+    StaffGroupSetViewSet,
+    BusinessSetViewSet,
+    ComponentModelSetViewSet,
+    ProjectSetViewSet,
+    UserProjectSetViewSet,
+    CommonProjectViewSet,
+    LabelViewSet,
+    PackageSourceViewSet,
+    SyncTaskViewSet,
+    CollectionViewSet,
+)
+
 from gcloud.template_base.apis.drf.viewsets import TemplateSchemeViewSet
 from gcloud.contrib.operate_record.apis.drf.viewsets import TaskOperateRecordSetViewSet, TemplateOperateRecordSetViewSet
-from gcloud.core.resources import (
-    BusinessResource,
-    ProjectResource,
-    ComponentModelResource,
-    VariableModelResource,
-    CommonProjectResource,
-    LabelGroupModelResource,
-    LabelModelResource,
-    UserProjectResource,
-)
+from gcloud.core.resources import VariableModelResource
 from gcloud.common_template.apis.tastypie.resources import CommonTemplateResource, CommonTemplateSchemeResource
-from gcloud.label.viewsets import LabelViewSet
+from gcloud.label.viewsets import NewLabelViewSet
 from gcloud.project_constants.apis.drf.viewsets import ProjectConstantsViewSet
 
-from gcloud.tasktmpl3.apis.tastypie.resources import (
-    TaskTemplateResource,
-    # TemplateSchemeResource,
-)
+from gcloud.tasktmpl3.apis.tastypie.resources import TaskTemplateResource
 from gcloud.taskflow3.apis.tastypie.resources import TaskFlowInstanceResource
 from gcloud.contrib.appmaker.resources import AppMakerResource
 from gcloud.contrib.function.resources import FunctionTaskResource
-from gcloud.contrib.collection.resources import CollectionResources
 from gcloud.periodictask.resources import PeriodicTaskResource
-from gcloud.external_plugins.resources import PackageSourceResource, SyncTaskResource
+
 from gcloud.template_base.apis.drf.viewsets.template import ProjectTemplateViewSet, CommonTemplateViewSet
 from gcloud.user_custom_config.viewsets.user_custom_config import UserCustomConfViewset
 from gcloud.user_custom_config.viewsets.user_custom_config_options import UserCustomConfigOptions
 
 v3_api = Api(api_name="v3")
-v3_api.register(BusinessResource())
-v3_api.register(ProjectResource())
-v3_api.register(UserProjectResource())
-v3_api.register(CommonProjectResource())
 v3_api.register(TaskTemplateResource())
-v3_api.register(ComponentModelResource())
 v3_api.register(VariableModelResource())
-# v3_api.register(TemplateSchemeResource())
 v3_api.register(TaskFlowInstanceResource())
 v3_api.register(AppMakerResource())
 v3_api.register(FunctionTaskResource())
-v3_api.register(CollectionResources())
 v3_api.register(PeriodicTaskResource())
 v3_api.register(CommonTemplateResource())
 v3_api.register(CommonTemplateSchemeResource())
-v3_api.register(PackageSourceResource())
-v3_api.register(SyncTaskResource())
-v3_api.register(LabelGroupModelResource())
-v3_api.register(LabelModelResource())
 
 drf_router = DefaultRouter()
 drf_router.register(r"project_config", ProjectConfigViewSet)
@@ -74,9 +65,20 @@ drf_router.register(r"resource_config", ResourceConfigViewSet)
 drf_router.register(r"staff_group", StaffGroupSetViewSet)
 drf_router.register(r"operate_record_task", TaskOperateRecordSetViewSet)
 drf_router.register(r"operate_record_template", TemplateOperateRecordSetViewSet)
-drf_router.register(r"new_label", LabelViewSet)
+drf_router.register(r"new_label", NewLabelViewSet)
 drf_router.register(r"scheme", TemplateSchemeViewSet)
 drf_router.register(r"project_constants", ProjectConstantsViewSet)
+drf_router.register(r"collection_template", CollectionTemplateViewSet)
+drf_router.register(r"business", BusinessSetViewSet)
+drf_router.register(r"component", ComponentModelSetViewSet)
+drf_router.register(r"project", ProjectSetViewSet)
+drf_router.register(r"user_project", UserProjectSetViewSet)
+drf_router.register(r"common_project", CommonProjectViewSet)
+drf_router.register(r"label", LabelViewSet)
+drf_router.register(r"package_source", PackageSourceViewSet, basename="package_source")
+drf_router.register(r"sync_task", SyncTaskViewSet)
+drf_router.register(r"collection", CollectionViewSet)
+
 
 v4_drf_router = DefaultRouter()
 v4_drf_router.register(r"project_template/(?P<project_id>\d+)", ProjectTemplateViewSet, basename="project_template")

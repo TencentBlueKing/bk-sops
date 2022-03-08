@@ -338,17 +338,17 @@
                     }
                     
                     if (this.searchStr !== '') {
-                        data.q = this.searchStr
+                        data.search = this.searchStr
                     }
                     
                     const projectList = await this.loadUserProjectList(data)
-                    this.projectList = (projectList.objects || []).map(item => {
+                    this.projectList = (projectList.results || []).map(item => {
                         if (!item.from_cmdb) {
                             item.bk_biz_id = '--'
                         }
                         return item
                     })
-                    this.pagination.count = projectList.meta.total_count
+                    this.pagination.count = projectList.count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
                         this.totalPage = 1
@@ -403,7 +403,7 @@
                     await this.createProject(data)
                     this.isProjectDialogShow = false
                     this.getProjectList()
-                    this.loadUserProjectList({ limit: 0 }) // 新增项目后需要更新导航右上角的项目列表
+                    this.loadUserProjectList() // 新增项目后需要更新导航右上角的项目列表
                 } catch (e) {
                     console.log(e)
                 } finally {

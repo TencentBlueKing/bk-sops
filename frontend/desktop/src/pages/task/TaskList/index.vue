@@ -11,134 +11,145 @@
 */
 <template>
     <div class="task-container">
-        <skeleton :loading="firstLoading" loader="taskList">
-            <div class="list-wrapper">
-                <advance-search-form
-                    id="taskList"
-                    :open="isSearchFormOpen"
-                    :search-config="{ placeholder: $t('请输入任务名称') }"
-                    :search-form="searchForm"
-                    @onSearchInput="onSearchInput"
-                    @submit="onSearchFormSubmit">
-                    <template v-slot:operation>
-                        <bk-button
-                            theme="primary"
-                            style="min-width: 120px;"
-                            data-test-id="taskList_form_createTask"
-                            @click="onCreateTask">
-                            {{$t('新建')}}
-                        </bk-button>
-                    </template>
-                </advance-search-form>
-                <div class="task-table-content" data-test-id="taskList_table_taskList">
-                    <bk-table
-                        :data="taskList"
-                        :pagination="pagination"
-                        :size="setting.size"
-                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1, zIndex: 100 }"
-                        @page-change="onPageChange"
-                        @page-limit-change="onPageLimitChange">
-                        <bk-table-column
-                            v-for="item in setting.selectedFields"
-                            :key="item.id"
-                            :label="item.label"
-                            :prop="item.id"
-                            :width="item.width"
-                            :min-width="item.min_width">
-                            <template slot-scope="props">
-                                <!--任务名称-->
-                                <div v-if="item.id === 'name'">
-                                    <a
-                                        v-if="!hasPermission(['task_view'], props.row.auth_actions)"
-                                        v-cursor
-                                        class="text-permission-disable"
-                                        :title="props.row.name"
-                                        @click="onTaskPermissonCheck(['task_view'], props.row)">
-                                        {{props.row.name}}
-                                    </a>
-                                    <router-link
-                                        v-else
-                                        class="template-operate-btn"
-                                        :title="props.row.name"
-                                        :to="{
-                                            name: 'taskExecute',
-                                            params: { project_id: project_id },
-                                            query: { instance_id: props.row.id }
-                                        }">
-                                        {{props.row.name}}
-                                    </router-link>
-                                </div>
-                                <!--创建方式-->
-                                <div v-else-if="item.id === 'create_method'">
-                                    {{ transformCreateMethod(props.row.create_method) }}
-                                </div>
-                                <!--状态-->
-                                <div v-else-if="item.id === 'task_status'" class="task-status">
-                                    <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
-                                    <span v-if="executeStatus[props.$index]" class="task-status-text">{{executeStatus[props.$index].text}}</span>
-                                </div>
-                                <!-- 其他 -->
-                                <template v-else>
-                                    <span :title="props.row[item.id] || '--'">{{ props.row[item.id] || '--' }}</span>
-                                </template>
-                            </template>
-                        </bk-table-column>
-                        <bk-table-column :label="$t('操作')" width="190">
-                            <template slot-scope="props">
-                                <div class="task-operation">
-                                    <!-- 事后鉴权，后续对接新版权限中心 -->
-                                    <a v-if="props.row.template_deleted || props.row.template_source === 'onetime'" class="task-operation-btn disabled" data-test-id="taskList_table_recreateBtn">{{$t('再创建')}}</a>
-                                    <a
-                                        v-else-if="!hasCreateTaskPerm(props.row)"
-                                        v-cursor
-                                        class="text-permission-disable task-operation-btn"
-                                        data-test-id="taskList_table_recreateBtn"
-                                        @click="onTaskPermissonCheck([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row)">
-                                        {{$t('再创建')}}
-                                    </a>
-                                    <router-link
-                                        v-else
-                                        class="task-operation-btn"
-                                        data-test-id="taskList_table_recreateBtn"
-                                        :to="getCreateTaskUrl(props.row)">
-                                        {{$t('再创建')}}
-                                    </router-link>
-                                    <a
-                                        v-cursor="{ active: !hasPermission(['task_clone'], props.row.auth_actions) }"
-                                        :class="['task-operation-btn', {
-                                            'text-permission-disable': !hasPermission(['task_clone'], props.row.auth_actions)
-                                        }]"
-                                        href="javascript:void(0);"
-                                        data-test-id="taskList_table_cloneBtn"
-                                        @click="onCloneTaskClick(props.row, $event)">
-                                        {{ $t('克隆') }}
-                                    </a>
-                                    <a
-                                        v-cursor="{ active: !hasPermission(['task_delete'], props.row.auth_actions) }"
-                                        :class="['task-operation-btn', {
-                                            'text-permission-disable': !hasPermission(['task_delete'], props.row.auth_actions)
-                                        }]"
-                                        href="javascript:void(0);"
-                                        data-test-id="taskList_table_deleteBtn"
-                                        @click="onDeleteTask(props.row, $event)">
-                                        {{ $t('删除') }}
-                                    </a>
-                                </div>
-                            </template>
-                        </bk-table-column>
-                        <bk-table-column type="setting">
-                            <bk-table-setting-content
-                                :fields="setting.fieldList"
-                                :selected="setting.selectedFields"
-                                :size="setting.size"
-                                @setting-change="handleSettingChange">
-                            </bk-table-setting-content>
-                        </bk-table-column>
-                        <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
-                    </bk-table>
-                </div>
+        <div class="task-create-method-tabs">
+            <div
+                v-for="method in createMethodTabs"
+                :class="['create-method-tab-item', { active: crtCreateMethodTab === method.id }]"
+                :key="method.id"
+                @click="handleCreateMethodTabClick(method.id)">
+                {{ method.name }}
             </div>
-        </skeleton>
+        </div>
+        <div class="task-content-wrapper">
+            <skeleton :loading="firstLoading" loader="taskList">
+                <div class="list-wrapper">
+                    <advance-search-form
+                        id="taskList"
+                        :open="isSearchFormOpen"
+                        :search-config="{ placeholder: $t('请输入任务名称') }"
+                        :search-form="searchForm"
+                        @onSearchInput="onSearchInput"
+                        @submit="onSearchFormSubmit">
+                        <template v-slot:operation>
+                            <bk-button
+                                theme="primary"
+                                style="min-width: 120px;"
+                                data-test-id="taskList_form_createTask"
+                                @click="onCreateTask">
+                                {{$t('新建')}}
+                            </bk-button>
+                        </template>
+                    </advance-search-form>
+                    <div class="task-table-content" data-test-id="taskList_table_taskList">
+                        <bk-table
+                            :data="taskList"
+                            :pagination="pagination"
+                            :size="setting.size"
+                            v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1, zIndex: 100 }"
+                            @page-change="onPageChange"
+                            @page-limit-change="onPageLimitChange">
+                            <bk-table-column
+                                v-for="item in setting.selectedFields"
+                                :key="item.id"
+                                :label="item.label"
+                                :prop="item.id"
+                                :width="item.width"
+                                :min-width="item.min_width">
+                                <template slot-scope="props">
+                                    <!--任务名称-->
+                                    <div v-if="item.id === 'name'">
+                                        <a
+                                            v-if="!hasPermission(['task_view'], props.row.auth_actions)"
+                                            v-cursor
+                                            class="text-permission-disable"
+                                            :title="props.row.name"
+                                            @click="onTaskPermissonCheck(['task_view'], props.row)">
+                                            {{props.row.name}}
+                                        </a>
+                                        <router-link
+                                            v-else
+                                            class="template-operate-btn"
+                                            :title="props.row.name"
+                                            :to="{
+                                                name: 'taskExecute',
+                                                params: { project_id: project_id },
+                                                query: { instance_id: props.row.id }
+                                            }">
+                                            {{props.row.name}}
+                                        </router-link>
+                                    </div>
+                                    <!--创建方式-->
+                                    <div v-else-if="item.id === 'create_method'">
+                                        {{ transformCreateMethod(props.row.create_method) }}
+                                    </div>
+                                    <!--状态-->
+                                    <div v-else-if="item.id === 'task_status'" class="task-status">
+                                        <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
+                                        <span v-if="executeStatus[props.$index]" class="task-status-text">{{executeStatus[props.$index].text}}</span>
+                                    </div>
+                                    <!-- 其他 -->
+                                    <template v-else>
+                                        <span :title="props.row[item.id] || '--'">{{ props.row[item.id] || '--' }}</span>
+                                    </template>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('操作')" width="190">
+                                <template slot-scope="props">
+                                    <div class="task-operation">
+                                        <!-- 事后鉴权，后续对接新版权限中心 -->
+                                        <a v-if="props.row.template_deleted || props.row.template_source === 'onetime'" class="task-operation-btn disabled" data-test-id="taskList_table_recreateBtn">{{$t('再创建')}}</a>
+                                        <a
+                                            v-else-if="!hasCreateTaskPerm(props.row)"
+                                            v-cursor
+                                            class="text-permission-disable task-operation-btn"
+                                            data-test-id="taskList_table_recreateBtn"
+                                            @click="onTaskPermissonCheck([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row)">
+                                            {{$t('再创建')}}
+                                        </a>
+                                        <router-link
+                                            v-else
+                                            class="task-operation-btn"
+                                            data-test-id="taskList_table_recreateBtn"
+                                            :to="getCreateTaskUrl(props.row)">
+                                            {{$t('再创建')}}
+                                        </router-link>
+                                        <a
+                                            v-cursor="{ active: !hasPermission(['task_clone'], props.row.auth_actions) }"
+                                            :class="['task-operation-btn', {
+                                                'text-permission-disable': !hasPermission(['task_clone'], props.row.auth_actions)
+                                            }]"
+                                            href="javascript:void(0);"
+                                            data-test-id="taskList_table_cloneBtn"
+                                            @click="onCloneTaskClick(props.row, $event)">
+                                            {{ $t('克隆') }}
+                                        </a>
+                                        <a
+                                            v-cursor="{ active: !hasPermission(['task_delete'], props.row.auth_actions) }"
+                                            :class="['task-operation-btn', {
+                                                'text-permission-disable': !hasPermission(['task_delete'], props.row.auth_actions)
+                                            }]"
+                                            href="javascript:void(0);"
+                                            data-test-id="taskList_table_deleteBtn"
+                                            @click="onDeleteTask(props.row, $event)">
+                                            {{ $t('删除') }}
+                                        </a>
+                                    </div>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column type="setting">
+                                <bk-table-setting-content
+                                    :fields="setting.fieldList"
+                                    :selected="setting.selectedFields"
+                                    :size="setting.size"
+                                    @setting-change="handleSettingChange">
+                                </bk-table-setting-content>
+                            </bk-table-column>
+                            <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
+                        </bk-table>
+                    </div>
+                </div>
+            </skeleton>
+        </div>
         <TaskCreateDialog
             :entrance="'taskflow'"
             :project_id="project_id"
@@ -379,6 +390,14 @@
                     limit: Number(limit),
                     'limit-list': [15, 30, 50, 100]
                 },
+                createMethodTabs: [
+                    { id: 'all', name: i18n.t('全部') },
+                    { id: 'app', name: i18n.t('手动任务') },
+                    { id: 'api', name: 'API ' + i18n.t('任务') },
+                    { id: 'periodic', name: i18n.t('周期任务') },
+                    { id: 'clocked', name: i18n.t('计划任务') }
+                ],
+                crtCreateMethodTab: 'all', // 当前选中创建方法tab
                 tableFields: TABLE_FIELDS,
                 defaultSelected: ['id', 'name', 'start_time', 'finish_time', 'executor_name', 'task_status'],
                 setting: {
@@ -520,6 +539,19 @@
                     selectedFields = this.defaultSelected
                 }
                 this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
+            },
+            // 创建方式tab切换
+            handleCreateMethodTabClick (method) {
+                this.crtCreateMethodTab = method
+                if (method !== 'all') {
+                    this.searchForm = SEARCH_FORM.filter(item => item.key !== 'createMethod')
+                    this.requestData.createMethod = method
+                } else {
+                    this.searchForm = SEARCH_FORM.slice(0)
+                    this.requestData.createMethod = ''
+                }
+                this.pagination.current = 1
+                this.getTaskList()
             },
             searchInputhandler (data) {
                 this.requestData.taskName = data
@@ -736,11 +768,36 @@
 @import '@/scss/mixins/advancedSearch.scss';
 @import '@/scss/task.scss';
 @import '@/scss/mixins/scrollbar.scss';
-
 @include advancedSearch;
+
 .task-container {
-    padding: 20px 24px;
     height: 100%;
+}
+.task-create-method-tabs {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    background: #ffffff;
+    box-shadow: 0px 3px 4px 0px rgba(64, 112, 203, 0.06);
+    z-index: 101;
+}
+.create-method-tab-item {
+    margin-right: 17px;
+    padding: 0 7px;
+    height: 36px;
+    line-height: 36px;
+    font-size: 14px;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    &.active {
+        color: #3a84ff;
+        border-bottom: 2px solid #3a84ff;
+    }
+}
+.task-content-wrapper {
+    padding: 20px 24px;
+    height: calc(100% - 36px);
     overflow: auto;
     @include scrollbar;
 }

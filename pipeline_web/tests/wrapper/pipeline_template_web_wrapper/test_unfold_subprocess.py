@@ -18,11 +18,29 @@ from django.test import TestCase
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 
+def mock_get_template_exclude_task_nodes_with_schemes(pipeline_tree, scheme_id_list):
+    return ["t1_tree_node_1", "t1_tree_node_3"]
+
+
+def mock_preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id=None):
+    pipeline_tree["activities"] = {
+        k: v for k, v in pipeline_tree["activities"].items() if k not in exclude_task_nodes_id
+    }
+
+
+class MockPipelineTemplateWebPreviewer(object):
+    get_template_exclude_task_nodes_with_schemes = MagicMock(
+        side_effect=mock_get_template_exclude_task_nodes_with_schemes
+    )
+    preview_pipeline_tree_exclude_task_nodes = MagicMock(side_effect=mock_preview_pipeline_tree_exclude_task_nodes)
+
+
 class UnfoldSubprocessTestCase(TestCase):
     def setUp(self):
         self.maxDiff = None
 
     @patch("pipeline_web.wrapper.replace_template_id", MagicMock())
+    @patch("pipeline_web.wrapper.PipelineTemplateWebPreviewer", MagicMock())
     def test_unfold_1_layer_subprocess(self):
         layer_1_t1_tree = {
             "activities": {},
@@ -76,6 +94,7 @@ class UnfoldSubprocessTestCase(TestCase):
         )
 
     @patch("pipeline_web.wrapper.replace_template_id", MagicMock())
+    @patch("pipeline_web.wrapper.PipelineTemplateWebPreviewer", MagicMock())
     def test_unfold_2_layer_subprocess(self):
         layer_2_t1_tree = {
             "activities": {
@@ -160,6 +179,7 @@ class UnfoldSubprocessTestCase(TestCase):
         )
 
     @patch("pipeline_web.wrapper.replace_template_id", MagicMock())
+    @patch("pipeline_web.wrapper.PipelineTemplateWebPreviewer", MagicMock())
     def test_unfold_3_layer_subprocess(self):
         layer_3_t1_tree = {
             "activities": {
@@ -274,6 +294,7 @@ class UnfoldSubprocessTestCase(TestCase):
         )
 
     @patch("pipeline_web.wrapper.replace_template_id", MagicMock())
+    @patch("pipeline_web.wrapper.PipelineTemplateWebPreviewer", MagicMock())
     def test_always_use_latest(self):
         layer_1_t1_tree = {
             "activities": {},
@@ -304,3 +325,85 @@ class UnfoldSubprocessTestCase(TestCase):
 
         template_model.objects.get.assert_called_once_with(pipeline_template__template_id="layer_1_t1")
         get_return.get_pipeline_tree_by_version.assert_called_once_with(None)
+
+    @patch("pipeline_web.wrapper.replace_template_id", MagicMock())
+    @patch("pipeline_web.wrapper.PipelineTemplateWebPreviewer", MockPipelineTemplateWebPreviewer)
+    def test_unfold_subprocess_with_schemes(self):
+        layer_1_t1_tree = {
+            "activities": {
+                "t1_tree_node_1": {"type": "ServiceActivity", "optional": True},
+                "t1_tree_node_2": {"type": "ServiceActivity", "optional": True},
+                "t1_tree_node_3": {"type": "ServiceActivity", "optional": True},
+                "t1_tree_node_4": {"type": "ServiceActivity", "optional": True},
+            },
+            "constants": {"${parent_param2}": {"value": ""}, "${c1}": {"value": "constant_value_1"}},
+        }
+
+        # prepare pipeline data
+        pipeline_data = {
+            "activities": {
+                "subproc_1": {
+                    "type": "SubProcess",
+                    "template_id": "layer_1_t1",
+                    "version": "v1",
+                    "scheme_id_list": [1, 2, 3],
+                    "constants": {"${parent_param2}": {"value": "${parent_param1}"}},
+                }
+            },
+            "constants": {"${parent_param1}": "${another_constants}"},
+        }
+
+        def get_pipeline_tree_by_version(v):
+            return {"v1": layer_1_t1_tree}[v]
+
+        # prepare template model mock
+        template_model = MagicMock()
+        get_return = MagicMock()
+        get_return.get_pipeline_tree_by_version = MagicMock(side_effect=get_pipeline_tree_by_version)
+        template_model.objects.get = MagicMock(return_value=get_return)
+
+        PipelineTemplateWebWrapper.unfold_subprocess(pipeline_data, template_model)
+
+        template_model.objects.get.assert_called_once_with(pipeline_template__template_id="layer_1_t1")
+        get_return.get_pipeline_tree_by_version.assert_called_once_with("v1")
+        MockPipelineTemplateWebPreviewer.get_template_exclude_task_nodes_with_schemes.assert_called()
+        MockPipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes.assert_called_once_with(
+            {
+                "activities": {
+                    "t1_tree_node_2": {"type": "ServiceActivity", "optional": True},
+                    "t1_tree_node_4": {"type": "ServiceActivity", "optional": True},
+                },
+                "constants": {
+                    "${parent_param2}": {"value": "${parent_param1}"},
+                    "${c1}": {"value": "constant_value_1"},
+                },
+                "id": "subproc_1",
+            },
+            ["t1_tree_node_1", "t1_tree_node_3"],
+        )
+
+        self.assertDictEqual(
+            pipeline_data,
+            {
+                "activities": {
+                    "subproc_1": {
+                        "type": "SubProcess",
+                        "template_id": "layer_1_t1",
+                        "version": "v1",
+                        "scheme_id_list": [1, 2, 3],
+                        "pipeline": {
+                            "activities": {
+                                "t1_tree_node_2": {"type": "ServiceActivity", "optional": True},
+                                "t1_tree_node_4": {"type": "ServiceActivity", "optional": True},
+                            },
+                            "constants": {
+                                "${parent_param2}": {"value": "${parent_param1}"},
+                                "${c1}": {"value": "constant_value_1"},
+                            },
+                            "id": "subproc_1",
+                        },
+                    }
+                },
+                "constants": {"${parent_param1}": "${another_constants}"},
+            },
+        )
