@@ -67,9 +67,9 @@ def preview_template_tree_with_schemes(template_source, template_id, version, sc
         ).issubset(set(exclude_task_nodes_id)):
             continue
 
-        # 如果输出变量是自定义全局变量，如果该变量未被引用，也不展示
+        # 如果输出变量是自定义全局变量，即使该变量未被引用，也要展示
         if value["source_type"] == "custom" and key in constants_not_referred.keys():
-            continue
+            constants_not_referred.pop(key, None)
 
         outputs[key] = value
 
