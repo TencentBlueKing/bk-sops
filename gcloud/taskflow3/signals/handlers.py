@@ -22,9 +22,11 @@ from pipeline.engine.signals import activity_failed
 from pipeline.core.pipeline import Pipeline
 from pipeline.models import PipelineInstance
 from pipeline.signals import post_pipeline_finish, post_pipeline_revoke
-from pipeline.eri.signals import post_set_state
+from pipeline.eri.signals import post_set_state, execute_interrupt, schedule_interrupt
 from pipeline.engine.signals import pipeline_end, pipeline_revoke
+from bk_monitor_report.reporter import MonitorReporter
 
+from gcloud import env
 from gcloud.taskflow3.models import TaskFlowInstance, AutoRetryNodeStrategy, EngineConfig, TimeoutNodeConfig
 from gcloud.taskflow3.signals import taskflow_finished, taskflow_revoked
 from gcloud.taskflow3.celery.tasks import send_taskflow_message, auto_retry_node
@@ -165,3 +167,33 @@ def bamboo_engine_eri_post_set_state_handler(sender, node_id, to_state, version,
         _node_timeout_info_update(settings.redis_inst, to_state, node_id, version)
     except Exception:
         logger.exception("node_timeout_info_update error")
+
+
+def _report_interrupt_event(name, content, dimension):
+    if not env.BK_MONITOR_REPORT_ENABLE:
+        return
+    reporter = MonitorReporter(
+        data_id=env.BK_MONITOR_REPORT_DATA_ID,
+        access_token=env.BK_MONITOR_REPORT_ACCESS_TOKEN,
+        target=env.BK_MONITOR_REPORT_TARGET,
+        url=env.BK_MONITOR_REPORT_URL,
+    )
+    reporter.report_event(name=name, content=content, dimension=dimension)
+
+
+@receiver(execute_interrupt)
+def execute_interrupt_handler(sender, event, **kwargs):
+    _report_interrupt_event(
+        name="execute_interrupt",
+        content="node({}) execute interrupt".format(event.node_id),
+        dimension={"name": event.name, "process_id": event.process_id, "traceback": event.exception_traceback},
+    )
+
+
+@receiver(schedule_interrupt)
+def schedule_interrupt_handler(sender, event, **kwargs):
+    _report_interrupt_event(
+        name="schedule_interrupt",
+        content="node({}) schedule interrupt".format(event.node_id),
+        dimension={"name": event.name, "process_id": event.process_id, "traceback": event.exception_traceback},
+    )
