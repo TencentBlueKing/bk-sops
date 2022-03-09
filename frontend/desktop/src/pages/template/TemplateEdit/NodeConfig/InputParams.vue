@@ -77,7 +77,7 @@
             version: String, // 标准插件版本或子流程版本
             isSubflow: Boolean,
             subflowForms: Object, // 子流程模板输入参数变量配置
-            formsNotReferred: {
+            formsNotReferred: { // 子流程未引用的变量
                 type: Object,
                 default: () => ({})
             },
