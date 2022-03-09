@@ -680,7 +680,7 @@
                         version: ''
                     }
                     const res = await this.loadSubflowConfig(params)
-                    const constants = tools.deepClone({ ...res.data.pipeline_tree.constants, ...res.data.outputs })
+                    const constants = tools.deepClone(res.data.pipeline_tree.constants)
                     const activity = tools.deepClone(this.activities[location.id])
                     const project_id = this.common ? undefined : this.project_id
                     for (const key in constants) {
