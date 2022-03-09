@@ -26,9 +26,9 @@ MOCK_PIPELINE_TREE = {
         "node4": {"id": "node4", "type": "ServiceActivity", "optional": True},
     },
     "constants": {
-        "${param1}": {"value": "${parent_param2}"},
-        "${param2}": {"value": "constant_value_2"},
-        "${custom_param2}": {"value": "custom_value_2"},
+        "${param1}": {"value": "${parent_param2}", "show_type": "show", "source_type": "else"},
+        "${param2}": {"value": "constant_value_2", "show_type": "show", "source_type": "else"},
+        "${custom_param2}": {"value": "custom_value_2", "show_type": "show", "source_type": "custom"},
     },
 }
 
@@ -135,11 +135,13 @@ class PipelineTemplateWebPreviewerTestCase(TestCase):
                         "node2": {"id": "node2", "type": "ServiceActivity", "optional": True},
                         "node3": {"id": "node3", "type": "ServiceActivity", "optional": True},
                     },
-                    "constants": {"${param1}": {"value": "${parent_param2}"}},
+                    "constants": {
+                        "${param1}": {"value": "${parent_param2}", "show_type": "show", "source_type": "else"}
+                    },
                 },
                 "constants_not_referred": {
-                    "${param2}": {"value": "constant_value_2"},
-                    "${custom_param2}": {"value": "custom_value_2"},
+                    "${param2}": {"value": "constant_value_2", "show_type": "show", "source_type": "else"},
+                    "${custom_param2}": {"value": "custom_value_2", "show_type": "show", "source_type": "custom"},
                 },
             },
         )
@@ -160,10 +162,15 @@ class PipelineTemplateWebPreviewerTestCase(TestCase):
                         "node1": {"id": "node1", "type": "ServiceActivity", "optional": True},
                         "node4": {"id": "node4", "type": "ServiceActivity", "optional": True},
                     },
-                    "constants": {"${param1}": {"value": "${parent_param2}"}},
+                    "constants": {
+                        "${param1}": {"value": "${parent_param2}", "show_type": "show", "source_type": "else"}
+                    },
+                },
+                "custom_constants": {
+                    "${custom_param2}": {"value": "custom_value_2", "show_type": "show", "source_type": "custom"}
                 },
                 "constants_not_referred": {
-                    "${param2}": {"value": "constant_value_2"},
+                    "${param2}": {"value": "constant_value_2", "show_type": "show", "source_type": "else"}
                 },
                 "outputs": {
                     "${outputs_param1}": {

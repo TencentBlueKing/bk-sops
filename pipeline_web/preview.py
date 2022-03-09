@@ -53,9 +53,15 @@ def preview_template_tree_with_schemes(template_source, template_id, version, sc
 
     PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
 
-    constants_not_referred = {
-        key: value for key, value in list(template_constants.items()) if key not in pipeline_tree["constants"]
-    }
+    constants_not_referred = {}
+    custom_constants = {}
+    for key, value in template_constants.items():
+        if value["show_type"] == "show" and key not in pipeline_tree["constants"]:
+            if value["source_type"] == "custom":
+                custom_constants[key] = value
+                continue
+
+            constants_not_referred[key] = value
 
     # 添加outputs返回
     template_outputs = template.get_outputs(version)
@@ -67,14 +73,11 @@ def preview_template_tree_with_schemes(template_source, template_id, version, sc
         ).issubset(set(exclude_task_nodes_id)):
             continue
 
-        # 如果输出变量是自定义全局变量，即使该变量未被引用，也要展示
-        if value["source_type"] == "custom" and key in constants_not_referred.keys():
-            constants_not_referred.pop(key, None)
-
         outputs[key] = value
 
     return {
         "pipeline_tree": pipeline_tree,
+        "custom_constants": custom_constants,
         "constants_not_referred": constants_not_referred,
         "outputs": outputs,
         "version": version or template.version,
