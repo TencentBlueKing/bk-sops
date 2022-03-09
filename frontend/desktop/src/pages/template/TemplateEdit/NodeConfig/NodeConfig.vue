@@ -694,9 +694,9 @@
                         params.project_id = this.project_id
                     }
                     const resp = await this.loadSubflowConfig(params)
-                    // 子流程的输入参数包括流程引用的变量、勾选为输出的变量和未被引用的变量
-                    this.subflowForms = { ...resp.data.pipeline_tree.constants, ...resp.data.constants_not_referred, ...resp.data.outputs }
-                    this.formsNotReferred = { ...resp.data.constants_not_referred, ...resp.data.outputs }
+                    // 子流程的输入参数包括流程引用的变量、自定义变量和未被引用的变量
+                    this.subflowForms = { ...resp.data.pipeline_tree.constants, ...resp.data.custom_constants, ...resp.data.constants_not_referred }
+                    this.formsNotReferred = resp.data.constants_not_referred
                     // 子流程模板版本更新时，未带版本信息，需要请求接口后获取最新版本
                     this.updateBasicInfo({ version: resp.data.version })
 
