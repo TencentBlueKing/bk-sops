@@ -22,7 +22,9 @@ def mock_get_template_exclude_task_nodes_with_schemes(pipeline_tree, scheme_id_l
     return ["t1_tree_node_1", "t1_tree_node_3"]
 
 
-def mock_preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id=None):
+def mock_preview_pipeline_tree_exclude_task_nodes(
+    pipeline_tree, exclude_task_nodes_id=None, is_remove_custom_constants=False
+):
     pipeline_tree["activities"] = {
         k: v for k, v in pipeline_tree["activities"].items() if k not in exclude_task_nodes_id
     }
@@ -380,6 +382,7 @@ class UnfoldSubprocessTestCase(TestCase):
                 "id": "subproc_1",
             },
             ["t1_tree_node_1", "t1_tree_node_3"],
+            False,
         )
 
         self.assertDictEqual(
