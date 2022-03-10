@@ -53,8 +53,14 @@ class PipelineTemplateWebPreviewer(object):
 
     @staticmethod
     def preview_pipeline_tree_exclude_task_nodes(
-        pipeline_tree, exclude_task_nodes_id=None, is_remove_custom_constants=True
+        pipeline_tree, exclude_task_nodes_id=None, remove_outputs_without_refs=True
     ):
+        """
+        @param pipeline_tree:
+        @param exclude_task_nodes_id:
+        @param remove_outputs_without_refs: 是否移除在当前流程设置为输出但未被引用的自定义变量
+        @return:
+        """
         if exclude_task_nodes_id is None:
             exclude_task_nodes_id = []
 
@@ -84,7 +90,7 @@ class PipelineTemplateWebPreviewer(object):
         PipelineTemplateWebPreviewer._remove_useless_constants(
             exclude_task_nodes_id=exclude_task_nodes_id,
             pipeline_tree=pipeline_tree,
-            is_remove_custom_constants=is_remove_custom_constants,
+            remove_outputs_without_refs=remove_outputs_without_refs,
         )
 
         return True
@@ -199,7 +205,13 @@ class PipelineTemplateWebPreviewer(object):
             )
 
     @staticmethod
-    def _remove_useless_constants(exclude_task_nodes_id, pipeline_tree, is_remove_custom_constants=True):
+    def _remove_useless_constants(exclude_task_nodes_id, pipeline_tree, remove_outputs_without_refs=True):
+        """
+        @param exclude_task_nodes_id:
+        @param pipeline_tree:
+        @param remove_outputs_without_refs: 是否移除在当前流程设置为输出但未被引用的自定义变量
+        @return:
+        """
         # pop unreferenced constant
         data = {}
         for act_id, act in list(pipeline_tree[PE.activities].items()):
@@ -256,7 +268,7 @@ class PipelineTemplateWebPreviewer(object):
                     value["source_info"].pop(act_id)
             new_constants[key] = value
 
-        if not is_remove_custom_constants:
+        if not remove_outputs_without_refs:
             for key, value in constants.items():
                 if value["source_type"] == "custom" and key in init_outputs and key not in pipeline_tree[PE.outputs]:
                     new_constants[key] = value

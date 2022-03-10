@@ -23,7 +23,7 @@ def mock_get_template_exclude_task_nodes_with_schemes(pipeline_tree, scheme_id_l
 
 
 def mock_preview_pipeline_tree_exclude_task_nodes(
-    pipeline_tree, exclude_task_nodes_id=None, is_remove_custom_constants=False
+    pipeline_tree, exclude_task_nodes_id=None, remove_outputs_without_refs=False
 ):
     pipeline_tree["activities"] = {
         k: v for k, v in pipeline_tree["activities"].items() if k not in exclude_task_nodes_id
