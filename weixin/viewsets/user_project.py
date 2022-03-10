@@ -24,6 +24,4 @@ class WxUserProjectPermission(IamPermission):
 
 
 class WxUserProjectViewSet(UserProjectSetViewSet):
-    permission_classes = [
-        permissions.IsAuthenticated,
-    ]
+    permission_classes = [permissions.IsAuthenticated, WxUserProjectPermission]
