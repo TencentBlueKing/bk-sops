@@ -130,7 +130,7 @@ class PipelineTemplateWebWrapper(object):
                         subproc_data, scheme_id_list
                     )
                     PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes(
-                        subproc_data, exclude_task_nodes_id
+                        subproc_data, exclude_task_nodes_id, False
                     )
 
                     _unfold_subprocess(subproc_data, template_model)

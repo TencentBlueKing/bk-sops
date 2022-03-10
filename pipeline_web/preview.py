@@ -44,6 +44,8 @@ def preview_template_tree_with_schemes(template_source, template_id, version, sc
     else:
         template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
 
+    version = version or template.version
+
     pipeline_tree = template.get_pipeline_tree_by_version(version)
     template_constants = deepcopy(pipeline_tree["constants"])
 
@@ -80,5 +82,5 @@ def preview_template_tree_with_schemes(template_source, template_id, version, sc
         "custom_constants": custom_constants,
         "constants_not_referred": constants_not_referred,
         "outputs": outputs,
-        "version": version or template.version,
+        "version": version,
     }
