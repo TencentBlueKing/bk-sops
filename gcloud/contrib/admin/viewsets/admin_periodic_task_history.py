@@ -11,15 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from rest_framework import permissions
-
 from gcloud.core.apis.drf.viewsets.base import GcloudListViewSet
 from gcloud.periodictask.models import PeriodicTaskHistory
 from gcloud.contrib.admin.serializers.admin_periodic_task_history import AdminPeriodicTaskHistorySerializer
+from gcloud.contrib.admin.permission import IsAdminPermission
 
 
 class PeriodicTaskHistoryViewSet(GcloudListViewSet):
     queryset = PeriodicTaskHistory.objects.all().order_by("-id")
     serializer_class = AdminPeriodicTaskHistorySerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminPermission]
     filter_fields = ["task__id"]

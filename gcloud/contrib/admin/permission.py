@@ -11,11 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud.core.apis.drf.viewsets.taskflow import TaskFlowInstanceViewSet
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.contrib.admin.permission import IsAdminPermission
+from gcloud.core.apis.drf.permission import IamPermission, IamPermissionInfo
+from gcloud.iam_auth import IAMMeta
 
 
-class AdminTaskFlowInstanceViewSet(TaskFlowInstanceViewSet):
-    queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False)
-    permission_classes = [IsAdminPermission]
+class IsAdminPermission(IamPermission):
+    actions = {
+        "list": IamPermissionInfo(IAMMeta.ADMIN_VIEW_ACTION),
+        "retrieve": IamPermissionInfo(IAMMeta.ADMIN_VIEW_ACTION),
+        "create": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION),
+        "update": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION),
+        "destroy": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION),
+    }
