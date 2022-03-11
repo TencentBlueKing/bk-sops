@@ -106,7 +106,7 @@ class TaskFlowInstancePermission(IamPermission):
                     action=Action(IAMMeta.FLOW_CREATE_TASK_ACTION),
                     resources=res_factory.resources_for_flow_obj(template),
                 )
-        return self.check_permission(request, view, check_hook=HAS_PERMISSION)
+        return super().check_permission(request, view, check_hook=HAS_PERMISSION)
 
 
 class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, generics.DestroyAPIView):
