@@ -34,7 +34,7 @@ from gcloud.iam_auth.conf import TASK_ACTIONS
 from pipeline.exceptions import PipelineException
 from gcloud.core.models import EngineConfig
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
-from gcloud.core.apis.drf.permission import IamPermission, IamPermissionInfo, HAS_OBJECT_PERMISSION, HAS_PERMISSION
+from gcloud.core.apis.drf.permission import IamPermission, IamPermissionInfo, HAS_OBJECT_PERMISSION
 from gcloud.iam_auth import IAMMeta, res_factory, get_iam_client
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.operate_record.signal import operate_record_signal
@@ -106,7 +106,7 @@ class TaskFlowInstancePermission(IamPermission):
                     action=Action(IAMMeta.FLOW_CREATE_TASK_ACTION),
                     resources=res_factory.resources_for_flow_obj(template),
                 )
-        return super().check_permission(request, view, check_hook=HAS_PERMISSION)
+        return super().has_permission(request, view)
 
 
 class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, generics.DestroyAPIView):
