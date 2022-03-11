@@ -106,6 +106,8 @@ class HostNFSManagerTestCase(TestCase):
 
         esb_client.job.fast_push_file.assert_called_once_with(
             {
+                "bk_scope_type": "biz",
+                "bk_scope_id": str(bk_biz_id),
                 "bk_biz_id": bk_biz_id,
                 "account": account,
                 "file_target_path": target_path,
@@ -158,6 +160,8 @@ class HostNFSManagerTestCase(TestCase):
 
         esb_client.job.fast_push_file.assert_called_once_with(
             {
+                "bk_scope_type": "biz",
+                "bk_scope_id": str(bk_biz_id),
                 "bk_biz_id": bk_biz_id,
                 "account": account,
                 "file_target_path": target_path,
@@ -231,6 +235,8 @@ class HostNFSManagerTestCase(TestCase):
         )
 
         job_kwargs = {
+            "bk_scope_type": "biz",
+            "bk_scope_id": str(bk_biz_id),
             "bk_biz_id": bk_biz_id,
             "account": account,
             "file_target_path": target_path,

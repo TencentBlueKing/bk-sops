@@ -35,7 +35,7 @@ from gcloud import err_code
 from gcloud.core.models import EngineConfig
 from gcloud.utils.decorators import request_validate
 from gcloud.conf import settings
-from gcloud.constants import TASK_CREATE_METHOD, PROJECT
+from gcloud.constants import TASK_CREATE_METHOD, PROJECT, JobBizScopeType
 from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
 from gcloud.taskflow3.domains.context import TaskContext
 from gcloud.contrib.analysis.analyse_items import task_flow_instance
@@ -202,7 +202,13 @@ def detail(request, project_id):
 @request_validate(GetJobInstanceLogValidator)
 def get_job_instance_log(request, biz_cc_id):
     job_instance_id = request.GET["job_instance_id"]
-    log_kwargs = {"bk_biz_id": biz_cc_id, "job_instance_id": job_instance_id}
+    bk_scope_type = request.GET.get("bk_scope_type", JobBizScopeType.BIZ.value)
+    log_kwargs = {
+        "bk_scope_type": bk_scope_type,
+        "bk_scope_id": str(biz_cc_id),
+        "bk_biz_id": biz_cc_id,
+        "job_instance_id": job_instance_id,
+    }
 
     client = get_client_by_user(request.user.username)
     job_result = client.job.get_job_instance_log(log_kwargs)
