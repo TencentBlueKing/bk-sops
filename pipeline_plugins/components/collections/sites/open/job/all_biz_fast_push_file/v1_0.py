@@ -23,6 +23,7 @@ from pipeline_plugins.components.utils.common import batch_execute_func
 from pipeline_plugins.components.utils import get_job_instance_url, loose_strip
 from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg
 from gcloud.conf import settings
+from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
 from gcloud.utils.ip import get_ip_by_regex
 
@@ -34,6 +35,9 @@ job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
 class AllBizJobFastPushFileService(JobScheduleService):
+
+    biz_scope_type = JobBizScopeType.BIZ_SET.value
+
     def inputs_format(self):
         return [
             self.InputItem(
@@ -54,7 +58,10 @@ class AllBizJobFastPushFileService(JobScheduleService):
                 ),
             ),
             self.InputItem(
-                name=_("上传限速"), key="upload_speed_limit", type="string", schema=StringItemSchema(description=_("MB/s")),
+                name=_("上传限速"),
+                key="upload_speed_limit",
+                type="string",
+                schema=StringItemSchema(description=_("MB/s")),
             ),
             self.InputItem(
                 name=_("下载限速"),
@@ -130,6 +137,8 @@ class AllBizJobFastPushFileService(JobScheduleService):
                     for _ip in get_ip_by_regex(attr["job_ip_list"])
                 ]
                 job_kwargs = {
+                    "bk_scope_type": JobBizScopeType.BIZ_SET.value,
+                    "bk_scope_id": str(biz_cc_id),
                     "bk_biz_id": biz_cc_id,
                     "file_source": [source],
                     "ip_list": ip_list,

@@ -23,6 +23,7 @@ from pipeline.core.flow.io import (
 )
 from pipeline.component_framework.component import Component
 from gcloud.conf import settings
+from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _("作业平台(JOB)")
@@ -64,10 +65,16 @@ class JobCronTaskService(Service):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("定时作业ID"), key="cron_id", type="int", schema=IntItemSchema(description=_("成功创建的定时作业 ID")),
+                name=_("定时作业ID"),
+                key="cron_id",
+                type="int",
+                schema=IntItemSchema(description=_("成功创建的定时作业 ID")),
             ),
             self.OutputItem(
-                name=_("定时作业状态"), key="status", type="string", schema=StringItemSchema(description=_("成功创建的定时作业状态")),
+                name=_("定时作业状态"),
+                key="status",
+                type="string",
+                schema=StringItemSchema(description=_("成功创建的定时作业状态")),
             ),
         ]
 
@@ -78,6 +85,8 @@ class JobCronTaskService(Service):
         job_cron_name = data.get_one_of_inputs("job_cron_name")
         job_cron_expression = data.get_one_of_inputs("job_cron_expression")
         job_kwargs = {
+            "bk_scope_type": JobBizScopeType.BIZ.value,
+            "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
             "bk_job_id": job_cron_job_id,
             "cron_name": job_cron_name,
@@ -104,6 +113,8 @@ class JobCronTaskService(Service):
         job_cron_status = data.get_one_of_inputs("job_cron_status")
         if job_cron_status == 1:
             job_update_cron_kwargs = {
+                "bk_scope_type": JobBizScopeType.BIZ.value,
+                "bk_scope_id": str(biz_cc_id),
                 "bk_biz_id": biz_cc_id,
                 "cron_status": 1,
                 "cron_id": job_save_result["data"]["cron_id"],
@@ -113,7 +124,11 @@ class JobCronTaskService(Service):
                 data.outputs.status = _("启动")
             else:
                 message = _("新建定时任务成功但是启动失败：{error}").format(
-                    error=job_handle_api_error("job.update_cron_status", job_update_cron_kwargs, job_update_result,)
+                    error=job_handle_api_error(
+                        "job.update_cron_status",
+                        job_update_cron_kwargs,
+                        job_update_result,
+                    )
                 )
                 self.logger.error(message)
                 data.outputs.ex_data = message

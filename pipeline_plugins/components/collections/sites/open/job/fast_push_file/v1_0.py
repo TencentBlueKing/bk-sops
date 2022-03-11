@@ -29,6 +29,7 @@ from pipeline_plugins.components.utils import (
 )
 
 from gcloud.conf import settings
+from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _("作业平台(JOB)")
@@ -70,7 +71,10 @@ class JobFastPushFileService(JobService):
                 schema=StringItemSchema(description=_("文件分发目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("文件分发目标机器账户")),
+                name=_("目标账户"),
+                key="job_account",
+                type="string",
+                schema=StringItemSchema(description=_("文件分发目标机器账户")),
             ),
             self.InputItem(
                 name=_("目标路径"),
@@ -121,6 +125,8 @@ class JobFastPushFileService(JobService):
 
         job_timeout = data.get_one_of_inputs("job_timeout")
         job_kwargs = {
+            "bk_scope_type": JobBizScopeType.BIZ.value,
+            "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
             "file_source": file_source,
             "ip_list": ip_list,

@@ -231,6 +231,8 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
             "ex_data": ("调用作业平台(JOB)接口job.execute_job返回失败, params={params}, " "error=message token").format(
                 params=json.dumps(
                     {
+                        "bk_scope_type": "biz",
+                        "bk_scope_id": "1",
                         "bk_biz_id": 1,
                         "bk_job_id": 12345,
                         "global_vars": [
@@ -258,6 +260,8 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
             calls=[
                 Call(
                     {
+                        "bk_scope_type": "biz",
+                        "bk_scope_id": "1",
                         "bk_biz_id": 1,
                         "bk_job_id": 12345,
                         "global_vars": [
@@ -326,6 +330,8 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
             calls=[
                 Call(
                     {
+                        "bk_scope_type": "biz",
+                        "bk_scope_id": "1",
                         "bk_biz_id": 1,
                         "bk_job_id": 12345,
                         "global_vars": [
@@ -399,6 +405,8 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
             calls=[
                 Call(
                     {
+                        "bk_scope_type": "biz",
+                        "bk_scope_id": "1",
                         "bk_biz_id": 1,
                         "bk_job_id": 12345,
                         "global_vars": [
@@ -457,7 +465,11 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             "ex_data": (
                 "调用作业平台(JOB)接口job.get_job_instance_global_var_value"
                 "返回失败, params={params}, error=global var message token"
-            ).format(params=json.dumps({"bk_biz_id": 1, "job_instance_id": 56789})),
+            ).format(
+                params=json.dumps(
+                    {"bk_scope_type": "biz", "bk_scope_id": "1", "bk_biz_id": 1, "job_instance_id": 56789}
+                )
+            ),
         },
         callback_data={"job_instance_id": 56789, "status": 3},
     ),
@@ -471,6 +483,8 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             calls=[
                 Call(
                     {
+                        "bk_scope_type": "biz",
+                        "bk_scope_id": "1",
                         "bk_biz_id": 1,
                         "bk_job_id": 12345,
                         "global_vars": [
@@ -490,7 +504,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
     schedule_call_assertion=[
         CallAssertion(
             func=GET_GLOBAL_VAR_CALL_FAIL_CLIENT.job.get_job_instance_global_var_value,
-            calls=[Call({"bk_biz_id": 1, "job_instance_id": 56789})],
+            calls=[Call({"bk_scope_type": "biz", "bk_scope_id": "1", "bk_biz_id": 1, "job_instance_id": 56789})],
         )
     ],
     patchers=[
@@ -562,6 +576,8 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             calls=[
                 Call(
                     {
+                        "bk_scope_type": "biz",
+                        "bk_scope_id": "1",
                         "bk_biz_id": 1,
                         "bk_job_id": 12345,
                         "global_vars": [
@@ -588,7 +604,7 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
     schedule_call_assertion=[
         CallAssertion(
             func=EXECUTE_SUCCESS_CLIENT.job.get_job_instance_global_var_value,
-            calls=[Call({"bk_biz_id": 1, "job_instance_id": 56789})],
+            calls=[Call({"bk_scope_type": "biz", "bk_scope_id": "1", "bk_biz_id": 1, "job_instance_id": 56789})],
         )
     ],
     patchers=[
@@ -658,6 +674,8 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
             calls=[
                 Call(
                     {
+                        "bk_scope_type": "biz",
+                        "bk_scope_id": "1",
                         "bk_biz_id": 1,
                         "bk_job_id": 12345,
                         "global_vars": [
@@ -677,7 +695,7 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
     schedule_call_assertion=[
         CallAssertion(
             func=GET_VAR_ERROR_SUCCESS_CLIENT.job.get_job_instance_global_var_value,
-            calls=[Call({"bk_biz_id": 1, "job_instance_id": 56789})],
+            calls=[Call({"bk_scope_type": "biz", "bk_scope_id": "1", "bk_biz_id": 1, "job_instance_id": 56789})],
         )
     ],
     patchers=[

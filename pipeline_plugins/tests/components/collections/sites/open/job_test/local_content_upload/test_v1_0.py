@@ -167,6 +167,8 @@ ACROSS_BIZ_INPUTS = {
 }
 
 KWARGS = {
+    "bk_scope_type": "biz",
+    "bk_scope_id": "1",
     "bk_biz_id": 1,
     "account": "root",
     "file_target_path": "/tmp/bk_sops_test/",
@@ -201,13 +203,18 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = ComponentTestCa
     parent_data=PARENT_DATA,
     execute_assertion=ExecuteAssertion(success=True, outputs=SUCCESS_OUTPUTS),
     schedule_assertion=ScheduleAssertion(
-        success=True, schedule_finished=True, outputs=dict(list(SUCCESS_OUTPUTS.items())),
+        success=True,
+        schedule_finished=True,
+        outputs=dict(list(SUCCESS_OUTPUTS.items())),
     ),
     execute_call_assertion=[
         CallAssertion(func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.job.push_config_file, calls=[Call(KWARGS)]),
     ],
     patchers=[
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []},),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR,
+            return_value={"ip_result": []},
+        ),
         Patcher(target=GET_CLIENT_BY_USER, return_value=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
@@ -248,7 +255,10 @@ FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE = ComponentTestCase(
         CallAssertion(func=LOCAL_CONTENT_UPLOAD_FAIL_CLIENT.job.push_config_file, calls=[Call(KWARGS)]),
     ],
     patchers=[
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []},),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR,
+            return_value={"ip_result": []},
+        ),
         Patcher(target=GET_CLIENT_BY_USER, return_value=LOCAL_CONTENT_UPLOAD_FAIL_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
@@ -273,6 +283,8 @@ LOCAL_CONTENT_UPLOAD_ACROSS_BIZ_SUCCESS = ComponentTestCase(
             calls=[
                 Call(
                     {
+                        "bk_scope_type": "biz",
+                        "bk_scope_id": "1",
                         "bk_biz_id": 1,
                         "account": "root",
                         "file_target_path": "/tmp/bk_sops_test/",

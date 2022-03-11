@@ -74,13 +74,24 @@ class JobRepoManager(Manager):
         return {"type": "job_repo", "tags": {"file_path": upload_path, "name": file_name}}
 
     def push_files_to_ips(
-        self, esb_client, bk_biz_id, file_tags, target_path, ips, account, callback_url=None, timeout=None
+        self,
+        esb_client,
+        bk_biz_id,
+        file_tags,
+        target_path,
+        ips,
+        account,
+        callback_url=None,
+        timeout=None,
+        bk_scope_type="biz",
     ):
 
         if not all([tag["type"] == "job_repo" for tag in file_tags]):
             raise InvalidOperationError("can not do files push operation on different types files, need job_repo")
 
         job_kwargs = {
+            "bk_scope_type": bk_scope_type,
+            "bk_scope_id": str(bk_biz_id),
             "bk_biz_id": bk_biz_id,
             "account_alias": account,
             "file_target_path": target_path,

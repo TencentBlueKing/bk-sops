@@ -79,7 +79,7 @@
 
                     return ipList
                 },
-                remote_url: $.context.get("site_url") + "pipeline/job_get_instance_detail/" + ($.context.getInput("bk_biz_id") || $.context.getBkBizId()) + "/" + $.context.getOutput("job_inst_id") + "/"
+                remote_url: $.context.get("site_url") + "pipeline/job_get_instance_detail/" + ($.context.getInput("bk_biz_id") || $.context.getBkBizId()) + "/" + $.context.getOutput("job_inst_id") + ""
             }
         },
         {
