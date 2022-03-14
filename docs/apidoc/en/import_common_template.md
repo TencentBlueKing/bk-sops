@@ -1,11 +1,3 @@
-### Request Address
-
-/v2/sops/import_common_template/
-
-### Request Method
-
-POST
-
 ### Functional description
 
 import common flow template

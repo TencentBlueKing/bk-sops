@@ -325,7 +325,8 @@
                             this.$set(cur, 'type', varInfo.source_type === 'system' ? i18n.t('系统变量') : i18n.t('业务变量'))
                         } else {
                             const result = varTypeList.find(item => item.code === cur.custom_type && item.tag === cur.source_tag)
-                            if (result) {
+                            const checkTypeList = ['component_inputs', 'component_outputs']
+                            if (result && !checkTypeList.includes(cur.source_type)) {
                                 this.$set(cur, 'type', result.name)
                                 result.checked = this.checkedTypeList.includes(cur.custom_type)
                                 acc.push(result)

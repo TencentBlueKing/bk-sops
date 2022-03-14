@@ -1,11 +1,3 @@
-### 请求地址
-
-/v2/sops/import_project_template/
-
-### 请求方法
-
-POST
-
 ### 功能描述
 
 导入项目流程

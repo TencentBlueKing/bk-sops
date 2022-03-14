@@ -479,7 +479,7 @@ const en = {
     '查看详情': 'Detail',
     '手动': 'Manual',
     '自动': 'Automation',
-    '周期任务': 'Periodic Tasks',
+    '周期任务': 'Periodic task',
     '远程插件包源管理': 'Remote Plugins Manage',
     '远程插件同步': 'Remote Plugins Sync',
     '编辑包源': 'Edit',
@@ -804,7 +804,7 @@ const en = {
     '新建变量': 'New',
     '变量名称': 'Variable Name',
     '变量KEY': 'Variable KEY',
-    '已存在相同Key的变量，请新建变量': 'Variables that already have the same key, create a new variable please',
+    '已存在相同KEY的变量，请新建变量': 'Variables that already have the same key, create a new variable please',
     '创建新变量': 'Create new variable',
     '是否复用变量': 'Whether To Reuse Variable',
     '已选': ' Selected',
@@ -1138,7 +1138,7 @@ const en = {
     '导入临时方案': 'Import temporaty',
     '设置默认方案': 'Set default',
     '默认': 'Default',
-    '流程执行时，默认执行当前方案的组合。': 'When the process is executed, the combination of the current scheme is executed by default.',
+    '流程直接新建任务执行时，默认执行当前方案的组合。': 'When a process directly creates a task, the current solution combination is executed by default.',
     '方案内容': 'Scheme Text',
     '变更节点对比': 'Node Selected List',
     '选中状态': 'Status',
@@ -1303,7 +1303,12 @@ const en = {
     '找不到想要的插件？可以尝试自己动手开发！': "Can't find the plug-in you want? You can try to develop it yourself!",
     '输出参数中不包含trace_id，无法查看第三方节点日志': 'The trace_id is not included in the output parameters, and the third-party node logs cannot be viewed',
     '等待': 'wait',
-    '全部流程': 'All processes'
+    '全部流程': 'All processes',
+    '手动任务': 'Manual task',
+    '变量配置': 'variable config',
+    '变量复用': 'varibale reuse',
+    '手动创建': 'manual create',
+    '自动创建': 'auto create'
 }
 
 export default en

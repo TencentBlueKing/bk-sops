@@ -1,0 +1,14 @@
+{
+    "system_id": "bk_sops",
+    "operations": [
+        {
+            "operation": "update_action",
+            "data": {
+                "id": "common_flow_create_task",
+                "related_actions": [
+                    "common_flow_view"
+                ]
+            }
+        }
+    ]
+}

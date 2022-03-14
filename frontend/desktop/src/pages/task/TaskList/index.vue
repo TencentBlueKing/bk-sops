@@ -391,11 +391,11 @@
                     'limit-list': [15, 30, 50, 100]
                 },
                 createMethodTabs: [
-                    { id: 'all', name: '全部' },
-                    { id: 'app', name: '手动任务' },
-                    { id: 'api', name: 'API任务' },
-                    { id: 'periodic', name: '周期任务' },
-                    { id: 'clocked', name: '计划任务' }
+                    { id: 'all', name: i18n.t('全部') },
+                    { id: 'app', name: i18n.t('手动任务') },
+                    { id: 'api', name: 'API ' + i18n.t('任务') },
+                    { id: 'periodic', name: i18n.t('周期任务') },
+                    { id: 'clocked', name: i18n.t('计划任务') }
                 ],
                 crtCreateMethodTab: 'all', // 当前选中创建方法tab
                 tableFields: TABLE_FIELDS,

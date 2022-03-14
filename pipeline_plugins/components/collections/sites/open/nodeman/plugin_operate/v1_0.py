@@ -38,7 +38,10 @@ class NodemanPluginOperateService(NodeManBaseService):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"), key="bk_biz_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"),
+                key="bk_biz_id",
+                type="int",
+                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("插件操作信息"),
@@ -87,7 +90,10 @@ class NodemanPluginOperateService(NodeManBaseService):
         outputs_format.extend(
             [
                 self.OutputItem(
-                    name=_("任务链接"), key="job_url", type="string", schema=StringItemSchema(description=_("任务链接")),
+                    name=_("任务链接"),
+                    key="job_url",
+                    type="string",
+                    schema=StringItemSchema(description=_("任务链接")),
                 ),
             ]
         )
@@ -129,8 +135,10 @@ class NodemanPluginOperateService(NodeManBaseService):
             "job_type": op_type,
             "bk_biz_id": [bk_biz_id],
             "bk_host_id": host,
-            "plugin_params": {"name": plugin, "version": plugin_version},
+            "plugin_params": {"name": plugin},
         }
+        if plugin_version:
+            params["plugin_params"]["version"] = plugin_version
 
         if op_type == "MAIN_INSTALL_PLUGIN" and install_config:
             if "keep_config" in install_config:

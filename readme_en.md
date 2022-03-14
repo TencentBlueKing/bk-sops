@@ -53,7 +53,7 @@ If you want to know more about the above features, please refer to the
 
 
 ## Usage
-- [API Documents](docs/apidoc/readme.md)
+- [API Documents](https://bk.tencent.com/docs/document/6.0/167/13157)
 - [Standard Plugin Documents](en_docs/features/plugin_usage.md)
 - [Standard Plugin Remote Importing](en_docs/features/remote_plugins.md)
 - [Variables Engine](en_docs/features/variables_engine.md)
@@ -61,8 +61,8 @@ If you want to know more about the above features, please refer to the
 - [Mobile Documents](en_docs/features/mobile.md)
 
 
-## Version plan
-- [Release Notes (In Chinese)](docs/release.md)
+## Releases
+- [Published Releases(In Chinese)](https://github.com/Tencent/bk-sops/releases)
 
 
 ## BlueKing Community

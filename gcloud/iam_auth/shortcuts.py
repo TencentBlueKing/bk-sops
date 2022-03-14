@@ -23,6 +23,6 @@ def get_iam_client():
     app_secret = env.BKAPP_SOPS_IAM_APP_SECRET_KEY
     if settings.BK_IAM_SKIP:
         return DummyIAM(app_code, app_secret, settings.BK_IAM_INNER_HOST, settings.BK_PAAS_ESB_HOST)
-    if settings.BK_APIGW_HOST:
-        return IAM(app_code, app_secret, bk_apigateway_url=settings.BK_APIGW_HOST)
+    if settings.BK_IAM_APIGW_HOST:
+        return IAM(app_code, app_secret, bk_apigateway_url=settings.BK_IAM_APIGW_HOST)
     return IAM(app_code, app_secret, settings.BK_IAM_INNER_HOST, settings.BK_PAAS_ESB_HOST)

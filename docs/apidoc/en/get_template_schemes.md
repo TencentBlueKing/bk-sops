@@ -1,11 +1,3 @@
-### Request Address
-
-/v2/sops/get_template_schemes/
-
-### Request Method
-
-GET
-
 ### Functional description
 
 Get template execution scheme list

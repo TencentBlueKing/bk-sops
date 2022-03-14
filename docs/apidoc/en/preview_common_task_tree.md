@@ -1,11 +1,3 @@
-### Request Address
-
-/v2/sops/preview_common_task_tree/
-
-### Request Method
-
-POST
-
 ### Functional description
 
 Get task tree after node exclude (used for common template)

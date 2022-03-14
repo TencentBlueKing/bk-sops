@@ -66,7 +66,7 @@
                 <bk-switcher
                     size="small"
                     theme="primary"
-                    :disabled="variableData.isSysVar"
+                    :disabled="variableData.isSysVar || variableData.source_type === 'component_outputs'"
                     :value="variableData.show_type === 'show'"
                     @change="onChangeVariableShow(variableData.key, $event)">
                 </bk-switcher>
