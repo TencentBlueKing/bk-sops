@@ -136,3 +136,16 @@ class TaskTmplExecuteTopN(models.Model):
     class Meta:
         verbose_name = _("流程执行次数topn统计面板配置")
         verbose_name_plural = _("流程执行次数topn统计面板配置")
+
+
+class TemplateVariableStatistics(models.Model):
+    project_id = models.IntegerField(verbose_name="项目 ID")
+    template_id = models.BigIntegerField(verbose_name="模板 ID")
+    template_type = models.CharField(verbose_name="模板类型", max_length=32)
+    variable_key = models.CharField(verbose_name="变量键", max_length=256)
+    variable_type = models.CharField(verbose_name="变量类型", max_length=256, db_index=True)
+    variable_source = models.CharField(verbose_name="变量来源", max_length=64)
+    refs = models.IntegerField(verbose_name="被引用次数")
+
+    class Meta:
+        unique_together = ["template_id", "template_type", "variable_key"]
