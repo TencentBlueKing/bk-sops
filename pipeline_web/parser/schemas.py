@@ -11,8 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-KEY_PATTERN = r"^((\$\{[a-zA-Z0-9_]+\})|([a-zA-Z0-9_]+))$"
-SYSTEM_KEY_PATTERN = r"^((\$\{[a-zA-Z0-9_\.]+\})|([a-zA-Z0-9_\.]+))$"
+import re
+
+KEY_PATTERN = r"^(\$\{(?!_env_|_system\.)[a-zA-Z0-9_]+\})$"
+KEY_PATTERN_RE = re.compile(KEY_PATTERN)
+
 ACT_MAX_LENGTH = 50
 CONSTANT_MAX_LENGTH = 30
 ONE_FLOW = {
@@ -179,7 +182,7 @@ WEB_PIPELINE_SCHEMA = {
         "constants": {
             "type": "object",
             "patternProperties": {
-                KEY_PATTERN: {
+                ".": {
                     "type": "object",
                     "properties": {
                         "source_tag": {"type": "string"},
@@ -194,14 +197,14 @@ WEB_PIPELINE_SCHEMA = {
                             "type": "object",
                             "patternProperties": {"^\\w+$": {"type": "array", "items": {"type": "string"}}},
                         },
-                        "key": {"type": "string", "pattern": KEY_PATTERN},
+                        "key": {"type": "string", "pattern": "."},
                         "desc": {"type": "string"},
                         "show_type": {"type": "string", "enum": ["show", "hide"]},
                     },
                 }
             },
         },
-        "outputs": {"type": "array", "items": {"type": "string", "pattern": SYSTEM_KEY_PATTERN}},
+        "outputs": {"type": "array", "items": {"type": "string"}},
     },
     "required": ["start_event", "end_event", "activities", "gateways", "outputs", "constants"],
 }
