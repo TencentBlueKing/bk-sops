@@ -16,15 +16,35 @@ from jsonschema import Draft4Validator
 from pipeline.validators import validate_pipeline_tree
 
 from pipeline_web import exceptions
-from pipeline_web.parser.schemas import WEB_PIPELINE_SCHEMA
+from pipeline_web.parser.schemas import WEB_PIPELINE_SCHEMA, KEY_PATTERN_RE
 
 
 def validate_web_pipeline_tree(web_pipeline_tree):
+    # schema validate
     valid = Draft4Validator(WEB_PIPELINE_SCHEMA)
     errors = []
     for error in sorted(valid.iter_errors(web_pipeline_tree), key=str):
-        errors.append('%s: %s' % ('→'.join(map(str, error.absolute_path)), error.message))
+        errors.append("%s: %s" % ("→".join(map(str, error.absolute_path)), error.message))
     if errors:
-        raise exceptions.ParserWebTreeException(','.join(errors))
+        raise exceptions.ParserWebTreeException(",".join(errors))
+
+    # constants key pattern validate
+    key_validation_erros = []
+    for key, const in web_pipeline_tree["constants"].items():
+        key_value = const.get("key")
+        if key != key_value:
+            key_validation_erros.append("constants {} key property value: {} not matched".format(key, key_value))
+            continue
+
+        if not KEY_PATTERN_RE.match(key):
+            key_validation_erros.append("invalid key: {}".format(key))
+
+    # outputs key pattern validate
+    for output_key in web_pipeline_tree["outputs"]:
+        if not KEY_PATTERN_RE.match(output_key):
+            key_validation_erros.append("invalid outputs key: {}".format(key))
+
+    if key_validation_erros:
+        raise exceptions.ParserWebTreeException("\n".join(key_validation_erros))
 
     validate_pipeline_tree(web_pipeline_tree, cycle_tolerate=True)
