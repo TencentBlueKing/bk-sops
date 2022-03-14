@@ -1,11 +1,3 @@
-### Request Address
-
-/v2/sops/operate_node/
-
-### Request Method
-
-POST
-
 ### Functional description
 
 Operate node

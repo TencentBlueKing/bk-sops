@@ -1,11 +1,3 @@
-### Request Address
-
-/v2/sops/get_task_detail/
-
-### Request Method
-
-GET
-
 ### Functional description
 
 Query a task execution details

@@ -1,11 +1,3 @@
-### Request Address
-
-/v2/sops/query_task_count/
-
-### Request Method
-
-POST
-
 ### Functional description
 
 Query task instance classification statistics

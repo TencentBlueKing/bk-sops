@@ -1,11 +1,3 @@
-### 请求地址
-
-/v2/sops/get_user_project_detail/
-
-### 请求方法
-
-GET
-
 ### 功能描述
 
 获取项目的详情

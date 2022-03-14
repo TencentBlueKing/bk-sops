@@ -1,11 +1,3 @@
-### Request Address
-
-/v2/sops/get_periodic_task_info/
-
-### Request Method
-
-GET
-
 ### Functional description
 
 Query periodic task detail
