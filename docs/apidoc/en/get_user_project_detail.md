@@ -1,11 +1,3 @@
-### Request Address
-
-/v2/sops/get_user_project_detail/
-
-### Request Method
-
-GET
-
 ### Functional description
 
 Get project detail

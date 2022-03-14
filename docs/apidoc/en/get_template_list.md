@@ -1,11 +1,3 @@
-### Request Address
-
-/v2/sops/get_template_list/
-
-### Request Method
-
-GET
-
 ### Functional description
 
 Query flow templates list of the business

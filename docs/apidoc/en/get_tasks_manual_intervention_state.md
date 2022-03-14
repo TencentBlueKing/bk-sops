@@ -1,11 +1,3 @@
-### Request Address
-
-/v2/sops/get_tasks_manual_intervention_state/
-
-### Request Method
-
-POST
-
 ### Functional description
 
 Get tasks manual intervention state

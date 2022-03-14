@@ -1,11 +1,3 @@
-### 请求地址
-
-/v2/sops/claim_functionalization_task/
-
-### 请求方法
-
-POST
-
 ### 功能描述
 
 职能化任务认领

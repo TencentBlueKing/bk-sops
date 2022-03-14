@@ -1,11 +1,3 @@
-### Request Address
-
-/v2/sops/create_task/
-
-### Request Method
-
-POST
-
 ### Functional description
 
 Create a task with a flow template
