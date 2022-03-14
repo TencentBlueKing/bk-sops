@@ -1,11 +1,3 @@
-### 请求地址
-
-/v2/sops/set_periodic_task_enabled/
-
-### 请求方法
-
-POST
-
 ### 功能描述
 
 设置某个周期任务是否激活

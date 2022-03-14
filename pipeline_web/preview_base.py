@@ -27,26 +27,40 @@ logger = logging.getLogger("root")
 
 class PipelineTemplateWebPreviewer(object):
     @staticmethod
-    def get_template_exclude_task_nodes_with_schemes(template_nodes_set, scheme_id_list):
+    def get_template_exclude_task_nodes_with_schemes(pipeline_tree, scheme_id_list):
         """
         根据执行方案获取要剔除的模版节点
-        @param template_nodes_set:
+        @param pipeline_tree:
         @param scheme_id_list:
         @return:
         """
-        exclude_task_nodes_id = []
+        template_nodes_set = set(pipeline_tree[PE.activities].keys())
+        exclude_task_nodes_id_set = set()
         if scheme_id_list:
             scheme_dict = TemplateScheme.objects.in_bulk(scheme_id_list)
             scheme_data_set = set()
             for scheme in scheme_dict.values():
                 scheme_data = json.loads(scheme.data)
                 scheme_data_set.update(scheme_data)
-            exclude_task_nodes_id = list(template_nodes_set - scheme_data_set)
+            exclude_task_nodes_id_set = template_nodes_set - scheme_data_set
 
-        return exclude_task_nodes_id
+        # 不可选节点一定执行
+        for node_id, node in pipeline_tree[PE.activities].items():
+            if not node["optional"]:
+                exclude_task_nodes_id_set.discard(node_id)
+
+        return list(exclude_task_nodes_id_set)
 
     @staticmethod
-    def preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id=None):
+    def preview_pipeline_tree_exclude_task_nodes(
+        pipeline_tree, exclude_task_nodes_id=None, remove_outputs_without_refs=True
+    ):
+        """
+        @param pipeline_tree:
+        @param exclude_task_nodes_id:
+        @param remove_outputs_without_refs: 是否移除在当前流程设置为输出但未被引用的自定义变量
+        @return:
+        """
         if exclude_task_nodes_id is None:
             exclude_task_nodes_id = []
 
@@ -74,7 +88,9 @@ class PipelineTemplateWebPreviewer(object):
         pipeline_tree["location"] = list(locations.values())
 
         PipelineTemplateWebPreviewer._remove_useless_constants(
-            exclude_task_nodes_id=exclude_task_nodes_id, pipeline_tree=pipeline_tree
+            exclude_task_nodes_id=exclude_task_nodes_id,
+            pipeline_tree=pipeline_tree,
+            remove_outputs_without_refs=remove_outputs_without_refs,
         )
 
         return True
@@ -189,7 +205,13 @@ class PipelineTemplateWebPreviewer(object):
             )
 
     @staticmethod
-    def _remove_useless_constants(exclude_task_nodes_id, pipeline_tree):
+    def _remove_useless_constants(exclude_task_nodes_id, pipeline_tree, remove_outputs_without_refs=True):
+        """
+        @param exclude_task_nodes_id:
+        @param pipeline_tree:
+        @param remove_outputs_without_refs: 是否移除在当前流程设置为输出但未被引用的自定义变量
+        @return:
+        """
         # pop unreferenced constant
         data = {}
         for act_id, act in list(pipeline_tree[PE.activities].items()):
@@ -232,8 +254,8 @@ class PipelineTemplateWebPreviewer(object):
         # keep outputs constants
         outputs_keys = [key for key, value in list(constants.items()) if value["source_type"] == "component_outputs"]
         referenced_keys = list(set(referenced_keys + outputs_keys))
-        pipeline_tree[PE.outputs] = [key for key in pipeline_tree[PE.outputs] if key in referenced_keys]
-
+        init_outputs = pipeline_tree[PE.outputs]
+        pipeline_tree[PE.outputs] = [key for key in init_outputs if key in referenced_keys]
         # rebuild constants index
         referenced_keys.sort(key=lambda x: constants[x]["index"])
         new_constants = {}
@@ -245,6 +267,13 @@ class PipelineTemplateWebPreviewer(object):
                 if act_id in value["source_info"]:
                     value["source_info"].pop(act_id)
             new_constants[key] = value
+
+        if not remove_outputs_without_refs:
+            for key, value in constants.items():
+                if value["source_type"] == "custom" and key in init_outputs and key not in pipeline_tree[PE.outputs]:
+                    new_constants[key] = value
+                    pipeline_tree[PE.outputs].append(key)
+
         pipeline_tree[PE.constants] = new_constants
 
     @staticmethod

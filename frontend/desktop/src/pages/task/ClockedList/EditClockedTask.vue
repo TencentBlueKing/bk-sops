@@ -175,10 +175,15 @@
                         template_source: 'project'
                     }
                     const resp = await this.loadPreviewNodeData(params)
-                    this.constants = resp.data.pipeline_tree.constants
-                    Object.values(this.constants).forEach(item => {
-                        item.value = taskParams.constants[item.key] || item.value
-                    })
+                    const { constants } = resp.data.pipeline_tree
+                    this.constants = Object.values(constants).reduce((acc, cur) => {
+                        acc[cur.key] = {
+                            ...cur,
+                            meta: { ...cur },
+                            value: taskParams.constants[cur.key]
+                        }
+                        return acc
+                    }, {})
                 } catch (error) {
                     console.warn(error)
                 } finally {

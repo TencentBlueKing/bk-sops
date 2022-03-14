@@ -61,21 +61,18 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
         else:
             model_cls = CommonTemplate
             _filter = {"pk": template_id}
-        try:
-            pipeline_template = (
-                model_cls.objects.filter(**_filter)
-                .only("pipeline_template__id", "pipeline_template__template_id")
-                .first()
-                .pipeline_template
-            )
-            return pipeline_template.id, pipeline_template.template_id
-        except model_cls.DoesNotExist:
+
+        template = (
+            model_cls.objects.filter(**_filter).only("pipeline_template__id", "pipeline_template__template_id").first()
+        )
+        if not template:
             template_type = f'project[{kwargs["project_id"]}]' if "project_id" in kwargs else "common_template"
             message = "flow template[id={template_id}] in {template_type} does not exist".format(
                 template_id=template_id, template_type=template_type
             )
             logger.error(message)
             raise model_cls.DoesNotExist(ErrorDetail(message, err_code.UNKNOWN_ERROR.code))
+        return template.pipeline_template.id, template.pipeline_template.template_id
 
     @staticmethod
     def get_scheme_quote_count_dict(template_id):

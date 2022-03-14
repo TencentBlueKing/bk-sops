@@ -781,12 +781,14 @@
                     } else {
                         this.executeInfo = respData
                         this.inputsInfo = inputs
-                        this.historyInfo = respData.histories.map(item => {
-                            this.$set(item, 'historyLogTab', 'build_in_plugin')
-                            this.$set(item, 'scrollId', '')
-                            this.$set(item, 'observer', null)
-                            return item
-                        })
+                        if (respData.histories) {
+                            this.historyInfo = respData.histories.map(item => {
+                                this.$set(item, 'historyLogTab', 'build_in_plugin')
+                                this.$set(item, 'scrollId', '')
+                                this.$set(item, 'observer', null)
+                                return item
+                            })
+                        }
                         for (const key in this.inputsInfo) {
                             this.$set(this.renderData, key, this.inputsInfo[key])
                         }

@@ -392,7 +392,7 @@ class EngineConfigManager(models.Manager):
         if project_config:
             return project_config.first().engine_ver
 
-        return EngineConfig.ENGINE_VER_V1
+        return EngineConfig.ENGINE_VER_V2
 
 
 class EngineConfig(models.Model):

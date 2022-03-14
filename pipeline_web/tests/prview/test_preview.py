@@ -20,15 +20,15 @@ from pipeline_web.preview import preview_template_tree, preview_template_tree_wi
 
 MOCK_PIPELINE_TREE = {
     "activities": {
-        "node1": {"id": "node1", "type": "ServiceActivity"},
-        "node2": {"id": "node2", "type": "ServiceActivity"},
-        "node3": {"id": "node3", "type": "ServiceActivity"},
-        "node4": {"id": "node4", "type": "ServiceActivity"},
+        "node1": {"id": "node1", "type": "ServiceActivity", "optional": True},
+        "node2": {"id": "node2", "type": "ServiceActivity", "optional": True},
+        "node3": {"id": "node3", "type": "ServiceActivity", "optional": True},
+        "node4": {"id": "node4", "type": "ServiceActivity", "optional": True},
     },
     "constants": {
-        "${param1}": {"value": "${parent_param2}"},
-        "${param2}": {"value": "constant_value_2"},
-        "${custom_param2}": {"value": "custom_value_2"},
+        "${param1}": {"value": "${parent_param2}", "show_type": "show", "source_type": "else"},
+        "${param2}": {"value": "constant_value_2", "show_type": "show", "source_type": "else"},
+        "${custom_param2}": {"value": "custom_value_2", "show_type": "show", "source_type": "custom"},
     },
 }
 
@@ -96,7 +96,7 @@ def mock_preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_no
     pipeline_tree["constants"].pop("${custom_param2}", "")
 
 
-def mock_get_template_exclude_task_nodes_with_schemes(template_nodes_set, scheme_id_list):
+def mock_get_template_exclude_task_nodes_with_schemes(pipeline_tree, scheme_id_list):
     return ["node2", "node3"]
 
 
@@ -132,14 +132,16 @@ class PipelineTemplateWebPreviewerTestCase(TestCase):
             {
                 "pipeline_tree": {
                     "activities": {
-                        "node2": {"id": "node2", "type": "ServiceActivity"},
-                        "node3": {"id": "node3", "type": "ServiceActivity"},
+                        "node2": {"id": "node2", "type": "ServiceActivity", "optional": True},
+                        "node3": {"id": "node3", "type": "ServiceActivity", "optional": True},
                     },
-                    "constants": {"${param1}": {"value": "${parent_param2}"}},
+                    "constants": {
+                        "${param1}": {"value": "${parent_param2}", "show_type": "show", "source_type": "else"}
+                    },
                 },
                 "constants_not_referred": {
-                    "${param2}": {"value": "constant_value_2"},
-                    "${custom_param2}": {"value": "custom_value_2"},
+                    "${param2}": {"value": "constant_value_2", "show_type": "show", "source_type": "else"},
+                    "${custom_param2}": {"value": "custom_value_2", "show_type": "show", "source_type": "custom"},
                 },
             },
         )
@@ -149,9 +151,7 @@ class PipelineTemplateWebPreviewerTestCase(TestCase):
     def test_preview_template_tree_with_schemes(self):
         data = preview_template_tree_with_schemes("project", 2, "v1", [1, 2, 3], 1)
 
-        MockPipelineTemplateWebPreviewer2.get_template_exclude_task_nodes_with_schemes.assert_called_once_with(
-            {"node2", "node1", "node3", "node4"}, [1, 2, 3]
-        )
+        MockPipelineTemplateWebPreviewer2.get_template_exclude_task_nodes_with_schemes.assert_called()
         MockPipelineTemplateWebPreviewer1.preview_pipeline_tree_exclude_task_nodes.assert_called()
         MockTaskTemplate2.objects.get.assert_called_once_with(pk=2, is_deleted=False, project_id=1)
         self.assertEqual(
@@ -159,14 +159,18 @@ class PipelineTemplateWebPreviewerTestCase(TestCase):
             {
                 "pipeline_tree": {
                     "activities": {
-                        "node1": {"id": "node1", "type": "ServiceActivity"},
-                        "node4": {"id": "node4", "type": "ServiceActivity"},
+                        "node1": {"id": "node1", "type": "ServiceActivity", "optional": True},
+                        "node4": {"id": "node4", "type": "ServiceActivity", "optional": True},
                     },
-                    "constants": {"${param1}": {"value": "${parent_param2}"}},
+                    "constants": {
+                        "${param1}": {"value": "${parent_param2}", "show_type": "show", "source_type": "else"}
+                    },
+                },
+                "custom_constants": {
+                    "${custom_param2}": {"value": "custom_value_2", "show_type": "show", "source_type": "custom"}
                 },
                 "constants_not_referred": {
-                    "${param2}": {"value": "constant_value_2"},
-                    "${custom_param2}": {"value": "custom_value_2"},
+                    "${param2}": {"value": "constant_value_2", "show_type": "show", "source_type": "else"}
                 },
                 "outputs": {
                     "${outputs_param1}": {
@@ -184,6 +188,12 @@ class PipelineTemplateWebPreviewerTestCase(TestCase):
                     "${custom_param1}": {
                         "name": "custom_param1",
                         "key": "${custom_param1}",
+                        "source_info": {},
+                        "source_type": "custom",
+                    },
+                    "${custom_param2}": {
+                        "name": "custom_param2",
+                        "key": "${custom_param2}",
                         "source_info": {},
                         "source_type": "custom",
                     },

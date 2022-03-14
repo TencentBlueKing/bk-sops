@@ -45,7 +45,7 @@ class ComponentModelSetViewSet(GcloudReadOnlyViewSet):
     queryset = ComponentModel.objects.filter(status=True).exclude(code="remote_plugin").order_by("name")
     retrieve_queryset = ComponentModel.objects.filter(status=True).order_by("name")
     serializer_class = ComponentModelListSerializer
-    detail_serializer_class = ComponentModelDetailSerializer
+    retrieve_serializer_class = ComponentModelDetailSerializer
     permission_classes = [permissions.IsAuthenticated]
     filterset_class = ComponentModelFilter
     pagination_class = None

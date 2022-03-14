@@ -174,7 +174,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.15.0"
+STATIC_VERSION = "3.16.6"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -558,6 +558,8 @@ def logging_addition_settings(logging_dict: dict, environment="prod"):
         "propagate": True,
     }
 
+    logging_dict["loggers"]["pipeline"] = {"handlers": ["root"], "level": "INFO", "propagate": True}
+
     logging_dict["loggers"]["pipeline.eri.log"] = {"handlers": ["pipeline_eri"], "level": "INFO", "propagate": True}
 
     logging_dict["loggers"]["bamboo_engine"] = {
@@ -578,15 +580,25 @@ def logging_addition_settings(logging_dict: dict, environment="prod"):
         "propagate": True,
     }
 
+    def handler_filter_injection(filters: list):
+        for _, handler in logging_dict["handlers"].items():
+            handler.setdefault("filters", []).extend(filters)
+
+    logging_dict.setdefault("filters", {}).update(
+        {"bamboo_engine_node_info_filter": {"()": "gcloud.core.logging.BambooEngineNodeInfoFilter"}}
+    )
+    handler_filter_injection(["bamboo_engine_node_info_filter"])
+
     # 日志中添加trace_id
     if env.ENABLE_OTEL_TRACE:
         trace_format = (
             "[trace_id]: %(otelTraceID)s [span_id]: %(otelSpanID)s [resource.service.name]: %(otelServiceName)s"
         )
     else:
-        logging_dict.update({"filters": {"trace_id_inject_filter": {"()": "gcloud.core.logging.TraceIDInjectFilter"}}})
-        for _, logging_handler in logging_dict["handlers"].items():
-            logging_handler.update({"filters": ["trace_id_inject_filter"]})
+        logging_dict.setdefault("filters", {}).update(
+            {"trace_id_inject_filter": {"()": "gcloud.core.logging.TraceIDInjectFilter"}}
+        )
+        handler_filter_injection(["trace_id_inject_filter"])
         trace_format = "[trace_id]: %(trace_id)s"
     inject_logging_trace_info(logging_dict, ("verbose",), trace_format)
 
@@ -672,8 +684,8 @@ MAX_NODE_EXECUTE_TIMEOUT = 60 * 60 * 24
 # 蓝鲸插件开发地址
 BK_PLUGIN_DEVELOP_URL = env.BK_PLUGIN_DEVELOP_URL
 
-# 蓝鲸API网关
-BK_APIGW_HOST = env.BK_APIGW_HOST
+# IAM APIGW 地址
+BK_IAM_APIGW_HOST = env.BK_IAM_APIGW_HOST
 
 # 节点日志持久化时间
 LOG_PERSISTENT_DAYS = env.BK_NODE_LOG_PERSISTENT_DAYS

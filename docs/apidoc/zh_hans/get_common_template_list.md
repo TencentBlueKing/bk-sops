@@ -1,11 +1,3 @@
-### 请求地址
-
-/v2/sops/get_common_template_list/
-
-### 请求方法
-
-GET
-
 ### 功能描述
 
 查询公共模板列表

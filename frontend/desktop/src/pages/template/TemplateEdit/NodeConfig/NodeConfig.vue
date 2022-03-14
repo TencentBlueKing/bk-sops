@@ -164,7 +164,6 @@
                     :basic-info="basicInfo"
                     :common="common"
                     :is-third-party="isThirdParty"
-                    :sublist-loading="subAtomListLoading"
                     :plugin-loading="pluginLoading"
                     @updatePluginList="updatePluginList"
                     @back="isSelectorPanelShow = false"
@@ -376,15 +375,6 @@
                 variableData: {}, // 当前编辑的变量
                 localConstants: {}, // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
                 randomKey: new Date().getTime(), // 输入、输出参数勾选状态改变时更新popover
-                totalPage: 0,
-                currentPage: 0,
-                limit: Math.ceil(((window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight) - 120) / 40) + 5, // 浏览器高度判断每次请求数量
-                offset: 0,
-                pollingTimer: null,
-                isPageOver: false,
-                isThrottled: false, // 滚动节流 是否进入cd
-                subflowListDom: null,
-                subAtomListLoading: false, // 子流程列表loading
                 isThirdParty: false // 是否为第三方插件
             }
         },
@@ -430,18 +420,6 @@
                     })
                 }
             },
-            isSelectorPanelShow: {
-                handler (val) {
-                    if (val && this.isSubflow && !this.subflowListDom) {
-                        this.$nextTick(() => {
-                            const subflowListDom = document.querySelector('.tpl-list')
-                            subflowListDom && subflowListDom.addEventListener('scroll', this.handleTableScroll)
-                            this.subflowListDom = subflowListDom
-                        })
-                    }
-                },
-                immediate: true
-            },
             isQuickInsertPanelShow (val) {
                 if (val) {
                     window.addEventListener('mouseup', this.handleClickOutside)
@@ -450,11 +428,6 @@
                     this.onResetMakoTemp()
                     window.removeEventListener('mouseup', this.handleClickOutside)
                 }
-            }
-        },
-        beforeDestroy () {
-            if (this.subflowListDom) {
-                this.subflowListDom.removeEventListener('scroll', this.handleTableScroll)
             }
         },
         created () {
@@ -510,12 +483,6 @@
                 this[key] = val
             }
             this.initData()
-            if (this.isSelectorPanelShow) {
-                this.$nextTick(function () {
-                    this.subflowListDom = document.querySelector('.tpl-list')
-                    this.subflowListDom && this.subflowListDom.addEventListener('scroll', this.handleTableScroll)
-                })
-            }
         },
         methods: {
             ...mapActions('atomForm/', [
@@ -525,6 +492,7 @@
                 'loadPluginServiceAppDetail'
             ]),
             ...mapActions('template/', [
+                'loadTemplateData',
                 'getMakoOperations',
                 'getVariableFieldExplain'
             ]),
@@ -538,22 +506,19 @@
                 'setConstants',
                 'setOutputs'
             ]),
-            ...mapActions('templateList', [
-                'loadTemplateList'
-            ]),
             async initDefaultData () {
                 const nodeConfig = this.activities[this.nodeId]
                 const isThirdParty = nodeConfig.component && nodeConfig.component.code === 'remote_plugin'
                 if (nodeConfig.type === 'ServiceActivity') {
                     await this.setThirdPartyList(nodeConfig)
                     this.basicInfo = await this.getNodeBasic(nodeConfig)
-                    this.$nextTick(() => {
-                        this.isBaseInfoLoading = false
-                    })
                 } else {
                     this.isSelectorPanelShow = !nodeConfig.template_id
-                    await this.getSubflowList()
+                    this.basicInfo = await this.getNodeBasic(nodeConfig)
                 }
+                this.$nextTick(() => {
+                    this.isBaseInfoLoading = false
+                })
                 const basicInfo = this.basicInfo
                 let versionList = []
                 if (nodeConfig.type === 'ServiceActivity') {
@@ -567,57 +532,6 @@
                     basicInfo,
                     versionList,
                     isSelectorPanelShow
-                }
-            },
-            async getSubflowList () {
-                this.subAtomListLoading = true
-                const { params } = this.$route
-                try {
-                    const data = {
-                        project__id: params.project_id,
-                        common: this.common,
-                        templateId: this.template_id,
-                        limit: this.limit,
-                        offset: this.currentPage * this.limit
-                    }
-                    const resp = await this.loadTemplateList(data)
-                    this.totalPage = Math.floor(resp.count / this.limit)
-                    this.handleSubflowList(resp)
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.subAtomListLoading = false
-                    this.isBaseInfoLoading = false
-                }
-            },
-            async handleSubflowList (data) {
-                const list = []
-                const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
-                const { params, query } = this.$route
-                const nodeConfig = this.$store.state.template.activities[this.nodeId]
-                data.results.forEach(item => {
-                    // 克隆模板可以引用被克隆的模板，模板不可以引用自己
-                    if (params.type === 'clone' || item.id !== Number(query.template_id)) {
-                        item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
-                        list.push(item)
-                    }
-                })
-                this.atomTypeList.subflow.push(...list)
-                this.basicInfo = await this.getNodeBasic(nodeConfig)
-            },
-            handleTableScroll () {
-                if (!this.isPageOver && !this.isThrottled) {
-                    this.isThrottled = true
-                    this.pollingTimer = setTimeout(() => {
-                        this.isThrottled = false
-                        const el = this.subflowListDom
-                        if (el.scrollHeight - el.offsetHeight - el.scrollTop < 10) {
-                            this.currentPage += 1
-                            this.isPageOver = this.currentPage === this.totalPage
-                            clearTimeout(this.pollingTimer)
-                            this.getSubflowList()
-                        }
-                    }, 500)
                 }
             },
             async setThirdPartyList (nodeConfig) {
@@ -780,7 +694,8 @@
                         params.project_id = this.project_id
                     }
                     const resp = await this.loadSubflowConfig(params)
-                    this.subflowForms = { ...resp.data.pipeline_tree.constants, ...resp.data.constants_not_referred }
+                    // 子流程的输入参数包括流程引用的变量、自定义变量和未被引用的变量
+                    this.subflowForms = { ...resp.data.pipeline_tree.constants, ...resp.data.custom_constants, ...resp.data.constants_not_referred }
                     this.formsNotReferred = resp.data.constants_not_referred
                     // 子流程模板版本更新时，未带版本信息，需要请求接口后获取最新版本
                     this.updateBasicInfo({ version: resp.data.version })
@@ -912,12 +827,13 @@
                     let templateName = i18n.t('请选择子流程')
 
                     if (template_id) {
-                        this.atomTypeList.subflow.some(item => {
-                            if (item.template_id === Number(template_id)) {
-                                templateName = item.name
-                                return true
-                            }
-                        })
+                        const subflowInfo = this.atomTypeList.subflow.find(item => item.template_id === Number(template_id))
+                        if (subflowInfo) {
+                            templateName = subflowInfo.name
+                        } else {
+                            const templateData = await this.loadTemplateData({ templateId: template_id, common: this.common })
+                            templateName = templateData.name
+                        }
                     }
                     return {
                         tpl: template_id || '',

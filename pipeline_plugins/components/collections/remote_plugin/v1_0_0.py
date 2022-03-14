@@ -78,16 +78,15 @@ class RemotePluginService(Service):
             data.set_outputs("ex_data", message)
             return False
 
-        state = result_data["state"]
         data.set_outputs("trace_id", result_data["trace_id"])
+        self._inject_result_data_outputs(data, result_data)
+
+        state = result_data["state"]
         if state == State.FAIL:
             data.set_outputs("ex_data", result_data["err"])
             return False
         if state == State.POLL:
             setattr(self, "__need_schedule__", True)
-        if state in [State.SUCCESS, State.POLL]:
-            for key, output in result_data["outputs"].items():
-                data.set_outputs(key, output)
         return True
 
     def schedule(self, data, parent_data, callback_data=None):
@@ -113,6 +112,8 @@ class RemotePluginService(Service):
             data.set_outputs("ex_data", message)
             return False
 
+        self._inject_result_data_outputs(data, result_data)
+
         state = result_data["state"]
         if state == State.FAIL:
             default_message = "please check the logs for the reason of task failure."
@@ -121,12 +122,15 @@ class RemotePluginService(Service):
             return False
         if state == State.POLL:
             setattr(self, "__need_schedule__", True)
-        if state in [State.SUCCESS, State.POLL]:
-            for key, output in result_data["outputs"].items():
-                data.set_outputs(key, output)
         if state == State.SUCCESS:
             self.finish_schedule()
         return True
+
+    @staticmethod
+    def _inject_result_data_outputs(data, result_data):
+        outputs = result_data.get("outputs") or {}
+        for key, output in outputs.items():
+            data.set_outputs(key, output)
 
 
 class RemotePluginComponent(Component):

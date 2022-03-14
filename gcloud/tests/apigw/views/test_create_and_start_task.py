@@ -91,7 +91,7 @@ class CreateAndStartTaskAPITest(APITest):
                         flow_type="common",
                         create_info=TEST_APP_CODE,
                         current_flow="execute_task",
-                        engine_ver=1,
+                        engine_ver=2,
                     )
 
                     data = json.loads(response.content)

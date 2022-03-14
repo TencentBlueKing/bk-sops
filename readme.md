@@ -47,17 +47,18 @@
 
 
 ## Usage
-- [API使用说明](docs/apidoc/readme.md)
+- [API使用说明](https://bk.tencent.com/docs/document/6.0/167/13157)
 - [标准插件说明](docs/features/plugin_usage.md)
 - [标准插件远程加载](docs/features/remote_plugins.md)
 - [变量引擎](docs/features/variables_engine.md)
 - [Tag使用和开发说明](docs/develop/tag_usage_dev.md)
 - [移动端使用说明](docs/features/mobile.md)
 - [redis 部署模式支持](docs/features/redis_usage.md)
+- [版本升级注意事项](docs/ops/version_update_notes.md)
+- [故障排查手册](docs/ops/fault_detection_manual.md)
 
-
-## Version plan
-- [版本日志](docs/release.md)
+## Releases
+- [已发布版本](https://github.com/Tencent/bk-sops/releases)
 
 ## BlueKing Community
 

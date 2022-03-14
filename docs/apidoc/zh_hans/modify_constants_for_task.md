@@ -1,11 +1,3 @@
-### 请求地址
-
-/v2/sops/modify_constants_for_task/
-
-### 请求方法
-
-POST
-
 ### 功能描述
 
 修改任务名称和变量
