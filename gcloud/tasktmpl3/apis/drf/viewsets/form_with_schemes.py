@@ -24,6 +24,7 @@ from gcloud.tasktmpl3.apis.drf.serilaziers.form_with_schemes import (
     TemplateFormWithSchemesSerializer,
     TemplateFormResponseSerializer,
 )
+from gcloud.tasktmpl3.apis.drf.permissions import TemplateFormWithSchemesPermissions
 
 from drf_yasg.utils import swagger_auto_schema
 
@@ -33,7 +34,7 @@ logger = logging.getLogger("root")
 
 
 class TemplateFormWithSchemesView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, TemplateFormWithSchemesPermissions]
 
     @swagger_auto_schema(
         method="POST",
