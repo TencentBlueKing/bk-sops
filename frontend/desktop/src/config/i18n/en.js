@@ -364,6 +364,7 @@ const en = {
     '变量name不能包含特殊字符': `Variable name cannot contain '‘"”$&<>`,
     '变量KEY值不能为空': 'KEY cannot be empty',
     '变量KEY由英文字母、数字、下划线组成，且不能以数字开头': 'KEY is composed of letters, numbers, underline and cannot begin with number',
+    '变量KEY由英文字母、数字、下划线组成，不允许使用系统变量及业务环境变量命名规则，且不能以数字开头': 'KEY is composed of letters, numbers, underline and system variable and business environment variable naming rules are not allowed and cannot begin with number',
     '变量value由英文字母、数字、下划线组成，且不能以数字开头': 'Value is composed of letters, numbers, underline',
     '变量KEY由英文字母、数字、下划线组成，以"${_env_"开头,以"}"结尾': 'KEY is composed of letters, numbers, underline and beginning with "${_env_" and ending with "}"',
     '变量KEY由英文字母、数字、下划线组成': 'VALUE is composed of letters, numbers, underline',
