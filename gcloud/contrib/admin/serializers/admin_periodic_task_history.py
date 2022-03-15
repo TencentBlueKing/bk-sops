@@ -11,10 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .project import ProjectIAMAuthorizationHelper  # noqa
-from .flow import FlowIAMAuthorizationHelper  # noqa
-from .task import TaskIAMAuthorizationHelper  # noqa
-from .common_flow import CommonFlowIAMAuthorizationHelper  # noqa
-from .mini_app import MiniAppIAMAuthorizationHelper  # noqa
-from .periodic_task import PeriodicTaskIAMAuthorizationHelper  # noqa
-from .function_task import FunctionTaskIAMAuthorizationHelper  # noqa
+from rest_framework import serializers
+from gcloud.periodictask.models import PeriodicTaskHistory
+
+
+class AdminPeriodicTaskHistorySerializer(serializers.ModelSerializer):
+
+    task_id = serializers.IntegerField(source="task.id")
+
+    class Meta:
+        model = PeriodicTaskHistory
+        fields = ["id", "ex_data", "start_at", "start_success", "task_id"]

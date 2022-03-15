@@ -11,19 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud.iam_auth import res_factory
-from gcloud.iam_auth.authorization_helpers.base import EmptyEnvIAMAuthorizationHelper
+from rest_framework import permissions
+
+from gcloud.core.apis.drf.viewsets.user_project import UserProjectSetViewSet
+from gcloud.core.apis.drf.permission import IamPermission, IamPermissionInfo
 
 
-class TaskIAMAuthorizationHelper(EmptyEnvIAMAuthorizationHelper):
-    def get_create_detail_resources(self, bundle):
-        return None
+class WxUserProjectPermission(IamPermission):
+    actions = {
+        "list": IamPermissionInfo(pass_all=True),
+    }
 
-    def get_read_detail_resources(self, bundle):
-        return res_factory.resources_for_task_obj(bundle.obj)
 
-    def get_update_detail_resources(self, bundle):
-        return res_factory.resources_for_task_obj(bundle.obj)
-
-    def get_delete_detail_resources(self, bundle):
-        return res_factory.resources_for_task_obj(bundle.obj)
+class WxUserProjectViewSet(UserProjectSetViewSet):
+    permission_classes = [permissions.IsAuthenticated, WxUserProjectPermission]

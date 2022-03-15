@@ -11,19 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud.iam_auth import res_factory
-from gcloud.iam_auth.authorization_helpers.base import EmptyEnvIAMAuthorizationHelper
+from gcloud.core.apis.drf.viewsets import TaskTemplateViewSet
+from gcloud.taskflow3.models import TaskTemplate
+from gcloud.contrib.admin.permission import IsAdminPermission
 
 
-class PeriodicTaskIAMAuthorizationHelper(EmptyEnvIAMAuthorizationHelper):
-    def get_create_detail_resources(self, bundle):
-        return None
-
-    def get_read_detail_resources(self, bundle):
-        return res_factory.resources_for_periodic_task_obj(bundle.obj)
-
-    def get_update_detail_resources(self, bundle):
-        return res_factory.resources_for_periodic_task_obj(bundle.obj)
-
-    def get_delete_detail_resources(self, bundle):
-        return res_factory.resources_for_periodic_task_obj(bundle.obj)
+class AdminTaskTemplateViewSet(TaskTemplateViewSet):
+    queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False)
+    permission_classes = [IsAdminPermission]

@@ -15,7 +15,7 @@ from collections import Iterable
 
 from rest_framework import generics
 from rest_framework.response import Response
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.pagination import LimitOffsetPagination
 
 from django_filters.rest_framework import DjangoFilterBackend
@@ -30,9 +30,13 @@ class GcloudLimitOffsetPagination(LimitOffsetPagination):
     default_limit = 10
 
 
+class GcloudOrderingFilter(OrderingFilter):
+    ordering_param = "order_by"
+
+
 class GcloudCommonMixin(IAMMixin, ApiMixin):
     pagination_class = GcloudLimitOffsetPagination
-    filter_backends = (DjangoFilterBackend, SearchFilter)
+    filter_backends = (DjangoFilterBackend, SearchFilter, GcloudOrderingFilter)
 
     def get_queryset(self):
         """支持不同acton调用不同的queryset"""

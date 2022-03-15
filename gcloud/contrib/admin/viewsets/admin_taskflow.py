@@ -11,6 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .resources import GCloudModelResource  # noqa
-from .serializers import AppSerializer  # noqa
-from .paginators import PropertyFilterPaginator, TemplateFilterPaginator  # noqa
+from gcloud.core.apis.drf.viewsets.taskflow import TaskFlowInstanceViewSet
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.contrib.admin.permission import IsAdminPermission
+
+
+class AdminTaskFlowInstanceViewSet(TaskFlowInstanceViewSet):
+    queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False)
+    permission_classes = [IsAdminPermission]

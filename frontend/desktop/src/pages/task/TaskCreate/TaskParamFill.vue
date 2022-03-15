@@ -576,14 +576,14 @@
                                     url = {
                                         name: 'appmakerTaskExecute',
                                         params: { app_id: this.app_id, project_id: this.project_id },
-                                        query: { instance_id: taskData.instance_id, template_id }
+                                        query: { instance_id: taskData.id, template_id }
                                     }
                                 }
                             } else if (this.$route.name === 'functionTemplateStep' && this.entrance === 'function') { // 职能化创建任务
                                 url = {
                                     name: 'functionTaskExecute',
                                     params: { project_id: this.project_id },
-                                    query: { instance_id: taskData.instance_id, common: this.common }
+                                    query: { instance_id: taskData.id, common: this.common }
                                 }
                             } else if (this.isSelectFunctionalType) { // 手动选择职能化流程
                                 url = {
@@ -595,7 +595,7 @@
                                 url = {
                                     name: 'taskExecute',
                                     params: { project_id: this.project_id },
-                                    query: { instance_id: taskData.instance_id, common: this.common } // 公共流程创建职能化任务
+                                    query: { instance_id: taskData.id, common: this.common } // 公共流程创建职能化任务
                                 }
                             }
                             this.$router.push(url)

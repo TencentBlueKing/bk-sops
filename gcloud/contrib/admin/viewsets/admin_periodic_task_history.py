@@ -11,21 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from tastypie.exceptions import Unauthorized
+from gcloud.core.apis.drf.viewsets.base import GcloudListViewSet
+from gcloud.periodictask.models import PeriodicTaskHistory
+from gcloud.contrib.admin.serializers.admin_periodic_task_history import AdminPeriodicTaskHistorySerializer
+from gcloud.contrib.admin.permission import IsAdminPermission
 
-from gcloud.iam_auth import res_factory
-from gcloud.iam_auth.authorization_helpers.base import EmptyEnvIAMAuthorizationHelper
 
-
-class ProjectIAMAuthorizationHelper(EmptyEnvIAMAuthorizationHelper):
-    def get_create_detail_resources(self, bundle):
-        raise Unauthorized()
-
-    def get_read_detail_resources(self, bundle):
-        return res_factory.resources_for_project_obj(bundle.obj)
-
-    def get_update_detail_resources(self, bundle):
-        return res_factory.resources_for_project_obj(bundle.obj)
-
-    def get_delete_detail_resources(self, bundle):
-        raise Unauthorized()
+class PeriodicTaskHistoryViewSet(GcloudListViewSet):
+    queryset = PeriodicTaskHistory.objects.all().order_by("-id")
+    serializer_class = AdminPeriodicTaskHistorySerializer
+    permission_classes = [IsAdminPermission]
+    filter_fields = ["task__id"]

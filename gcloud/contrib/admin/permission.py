@@ -11,19 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud.iam_auth import res_factory
-from gcloud.iam_auth.authorization_helpers.base import EmptyEnvIAMAuthorizationHelper
+from gcloud.core.apis.drf.permission import IamPermission, IamPermissionInfo
+from gcloud.iam_auth import IAMMeta
 
 
-class CommonFlowIAMAuthorizationHelper(EmptyEnvIAMAuthorizationHelper):
-    def get_create_detail_resources(self, bundle):
-        return []
-
-    def get_read_detail_resources(self, bundle):
-        return res_factory.resources_for_common_flow_obj(bundle.obj)
-
-    def get_update_detail_resources(self, bundle):
-        return res_factory.resources_for_common_flow_obj(bundle.obj)
-
-    def get_delete_detail_resources(self, bundle):
-        return res_factory.resources_for_common_flow_obj(bundle.obj)
+class IsAdminPermission(IamPermission):
+    actions = {
+        "list": IamPermissionInfo(IAMMeta.ADMIN_VIEW_ACTION),
+        "retrieve": IamPermissionInfo(IAMMeta.ADMIN_VIEW_ACTION),
+        "create": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION),
+        "update": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION),
+        "destroy": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION),
+    }

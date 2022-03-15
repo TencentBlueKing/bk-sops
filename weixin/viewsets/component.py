@@ -11,23 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from tastypie.authorization import ReadOnlyAuthorization
-from tastypie.constants import ALL
-
-from pipeline.models import PipelineTemplate
-
-from gcloud.commons.tastypie import GCloudModelResource
+from gcloud.core.apis.drf.viewsets import ComponentModelSetViewSet
 
 
-class PipelineTemplateResource(GCloudModelResource):
-    class Meta(GCloudModelResource.CommonMeta):
-        queryset = PipelineTemplate.objects.filter(is_deleted=False)
-        resource_name = "pipeline_template"
-        authorization = ReadOnlyAuthorization()
-        filtering = {
-            "name": ALL,
-            "creator": ALL,
-            "category": ALL,
-            "subprocess_has_update": ALL,
-            "edit_time": ["gte", "lte"],
-        }
+class WxComponentModelSetViewSet(ComponentModelSetViewSet):
+    pass

@@ -24,7 +24,7 @@ const taskList = {
     },
     actions: {
         loadTaskList ({ commit }, params) {
-            return axios.get('api/v3/taskflow/', { params }).then(response => response.data)
+            return axios.get('api/v3/taskflow/', { params }).then(response => response.data.data)
         },
         deleteTask ({ commit }, task_id) {
             return axios.delete(`api/v3/taskflow/${task_id}/`).then(response => response.data.objects)
