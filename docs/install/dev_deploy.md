@@ -47,12 +47,9 @@ pip install -r requirements.txt
 export APP_ID = "bk_sops"
 export APP_TOKEN = "{你的标准运维应用 TOKEN}"
 export BK_PAAS_HOST = "{开发环境 PAAS 域名}"
-export RUN_VER = "open"
 export DB_NAME = "{你的 DB 名}"
-export BKAPP_PYINSTRUMENT_ENABLE = "1"
-export BKAPP_BK_IAM_SYSTEM_ID="bk_sops"
+export RUN_VER = "open"
 export BKAPP_API_JWT_EXEMPT="1"
-export BK_IAM_SKIP="True"
 export BKAPP_IAM_SKIP="True"
 ```
 
