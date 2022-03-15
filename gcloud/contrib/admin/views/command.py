@@ -16,12 +16,16 @@ superuser command
 from django.conf import settings
 from django.core.cache import cache
 from django.http import JsonResponse
+from drf_yasg.utils import swagger_auto_schema
 from iam.api.client import Client
+from rest_framework.decorators import api_view
 
 import env
 from gcloud import err_code
 from gcloud.core.decorators import check_is_superuser
+from gcloud.core.models import ProjectBasedComponent
 from gcloud.core.tasks import migrate_pipeline_parent_data_task
+from gcloud.openapi.schema import AnnotationAutoSchema
 
 
 @check_is_superuser()
@@ -69,3 +73,23 @@ def upsert_iam_system_provider_config(request):
     )
     ok, message = iam_client.update_system(system_id=env.BKAPP_BK_IAM_SYSTEM_ID, data=data)
     return JsonResponse({"result": ok, "data": None, "message": message})
+
+
+@swagger_auto_schema(method="post", auto_schema=AnnotationAutoSchema)
+@api_view(["POST"])
+@check_is_superuser()
+def batch_insert_project_based_component(request):
+    """
+    给某业务添加一批基于业务的插件
+
+    body: data
+    {
+        "project_id(required)": "项目 ID",
+        "component_codes(required)": "插件code列表(list)"
+    }
+    """
+    project_id = str(request.data.get("project_id"))
+    component_codes = request.data.get("component_codes")
+    components = [ProjectBasedComponent(project_id=project_id, component_code=code) for code in component_codes]
+    create_results = ProjectBasedComponent.objects.bulk_create(components)
+    return JsonResponse({"result": True, "data": create_results, "message": ""})
