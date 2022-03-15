@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ("template_id", models.BigIntegerField(verbose_name="模板 ID")),
                 ("project_id", models.IntegerField(verbose_name="项目 ID, 公共流程的数据为 -1")),
                 ("variable_key", models.CharField(max_length=256, verbose_name="变量键")),
-                ("variable_type", models.CharField(db_index=True, max_length=256, verbose_name="变量类型")),
+                ("variable_type", models.CharField(db_index=True, max_length=255, verbose_name="变量类型")),
                 ("variable_source", models.CharField(max_length=64, verbose_name="变量来源")),
                 ("refs", models.IntegerField(verbose_name="被引用次数")),
             ],

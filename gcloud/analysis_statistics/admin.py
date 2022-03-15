@@ -22,6 +22,7 @@ from gcloud.analysis_statistics.models import (
     ProjectStatisticsDimension,
     TaskTmplExecuteTopN,
     TemplateVariableStatistics,
+    TemplateCustomVariableSummary,
 )
 from gcloud.analysis_statistics.tasks import backfill_template_variable_statistics_task
 
@@ -93,6 +94,12 @@ class TaskTmplExecuteTopNAdmin(admin.ModelAdmin):
 @admin.register(TemplateVariableStatistics)
 class TemplateVariableStatisticsAdmin(admin.ModelAdmin):
     list_display = ("template_id", "project_id", "variable_key", "variable_type", "variable_source", "refs")
+    actions = ["backfill"]
+
+
+@admin.register(TemplateCustomVariableSummary)
+class TemplateCustomVariableSummaryAdmin(admin.ModelAdmin):
+    list_display = ("variable_type", "task_template_refs", "common_template_refs")
     actions = ["backfill"]
 
     def backfill(modeladmin, request, queryset):

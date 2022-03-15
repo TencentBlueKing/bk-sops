@@ -24,23 +24,56 @@ def _constants_refs_count(refs: dict) -> int:
     return count
 
 
-def update_statistics(project_id: int, template_id: int, pipeline_tree: dict):
+def update_statistics(project_id: int, template_id: int, pipeline_tree: dict) -> set:
 
     constants_refs = analysis_pipeline_constants_ref(pipeline_tree=pipeline_tree)
+    constants = pipeline_tree.get("constants", {})
 
     variable_statistic = []
+    custom_constants_types = set({})
+    collected_keys = set({})
 
-    for key, const in pipeline_tree.get("constants", {}).items():
+    # collect referenced key
+    for key, refs in constants_refs.items():
+        const = constants.get(key)
+        if const:
+            variable_type, variable_source = const["source_tag"], const["source_type"]
+        elif key.startswith("${_env_"):
+            variable_type, variable_source = "", "project"
+        else:
+            continue
+
         variable_statistic.append(
             TemplateVariableStatistics(
                 project_id=project_id,
                 template_id=template_id,
                 variable_key=key,
-                variable_type=const["source_tag"],
-                variable_source=const["source_type"],
-                refs=_constants_refs_count(constants_refs.get(key, {})),
+                variable_type=variable_type,
+                variable_source=variable_source,
+                refs=_constants_refs_count(refs),
             )
         )
+        collected_keys.add(key)
+
+    # collect not referenced key and custom constants types
+    for key, const in constants.items():
+        if const["source_type"] == "custom":
+            custom_constants_types.add(const["source_tag"])
+
+        if key not in collected_keys:
+            variable_statistic.append(
+                TemplateVariableStatistics(
+                    project_id=project_id,
+                    template_id=template_id,
+                    variable_key=key,
+                    variable_type=const["source_tag"],
+                    variable_source=const["source_type"],
+                    refs=0,
+                )
+            )
+
     with transaction.atomic():
         TemplateVariableStatistics.objects.filter(template_id=template_id, project_id=project_id).delete()
         TemplateVariableStatistics.objects.bulk_create(variable_statistic, batch_size=100)
+
+    return custom_constants_types

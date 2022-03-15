@@ -24,6 +24,7 @@ from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.core.apis.drf.serilaziers.common_template import CommonTemplateSerializer, CreateCommonTemplateSerializer
+from gcloud.common_template.signals import post_template_save_commit
 from gcloud.common_template.models import CommonTemplate
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.template_base.domains.template_manager import TemplateManager
@@ -104,6 +105,8 @@ class CommonTemplateViewSet(GcloudModelViewSet):
             serializer.validated_data["pipeline_template"] = result["data"]
 
             self.perform_create(serializer)
+        # 发送信号
+        post_template_save_commit.send(sender=CommonTemplate, template_id=serializer.instance.id, is_deleted=False)
         # 记录操作流水
         operate_record_signal.send(
             sender=RecordType.common_template.name,
@@ -141,6 +144,8 @@ class CommonTemplateViewSet(GcloudModelViewSet):
 
             serializer.validated_data["pipeline_template"] = template.pipeline_template
             self.perform_update(serializer)
+        # 发送信号
+        post_template_save_commit.send(sender=CommonTemplate, template_id=serializer.instance.id, is_deleted=False)
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, template)
         # 记录操作流水
@@ -158,6 +163,8 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         can_delete, message = manager.can_delete(template)
         if not can_delete:
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+        # 发送信号
+        post_template_save_commit.send(sender=CommonTemplate, template_id=template.id, is_deleted=True)
         # 删除流程模板
         self.perform_destroy(template)
         # 记录操作流水
