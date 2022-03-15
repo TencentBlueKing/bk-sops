@@ -913,7 +913,8 @@ const template = {
                 headers['X-HTTP-Method-Override'] = 'PATCH'
             }
 
-            return axios.post(url, {
+            // 新增用post, 编辑用put
+            return axios[templateId === undefined ? 'post' : 'put'](url, {
                 name,
                 project,
                 category,
