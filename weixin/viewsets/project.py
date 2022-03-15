@@ -11,19 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud.iam_auth import res_factory
-from gcloud.iam_auth.authorization_helpers.base import EmptyEnvIAMAuthorizationHelper
+from rest_framework.exceptions import PermissionDenied
+
+from gcloud.core.apis.drf.viewsets.project import ProjectSetViewSet
 
 
-class MiniAppIAMAuthorizationHelper(EmptyEnvIAMAuthorizationHelper):
-    def get_create_detail_resources(self, bundle):
-        return res_factory.resources_for_project(bundle.obj.project__id)
-
-    def get_read_detail_resources(self, bundle):
-        return res_factory.resources_for_mini_app_obj(bundle.obj)
-
-    def get_update_detail_resources(self, bundle):
-        return res_factory.resources_for_mini_app_obj(bundle.obj)
-
-    def get_delete_detail_resources(self, bundle):
-        return res_factory.resources_for_mini_app_obj(bundle.obj)
+class WxProjectViewSet(ProjectSetViewSet):
+    def list(self, request, *args, **kwargs):
+        raise PermissionDenied

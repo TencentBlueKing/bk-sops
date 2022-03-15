@@ -359,10 +359,9 @@
                         ...this.tplFilter.filter
                     }
                     const res = await this.template(params)
-                    this.tplData = res.objects
-                    this.templateResultTotal = res.meta.total_count
-                    this.tplResource = res.meta.auth_resource
-                    this.tplPagination.count = res.meta.total_count
+                    this.tplData = res.results
+                    this.templateResultTotal = res.count
+                    this.tplPagination.count = res.count
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -378,12 +377,12 @@
                         ...this.taskFilter.filter
                     }
                     const res = await this.taskflow(params)
-                    this.taskData = res.objects
-                    this.taskResultTotal = res.meta.total_count
-                    this.taskOperations = res.meta.auth_operations
-                    this.taskResource = res.meta.auth_resource
-                    this.taskPagination.count = res.meta.total_count
-                    this.executeStatus = res.objects.map((item, index) => {
+                    this.taskData = res.results
+                    this.taskResultTotal = res.count
+                    this.taskOperations = res.auth_operations
+                    this.taskResource = res.auth_resource
+                    this.taskPagination.count = res.count
+                    this.executeStatus = res.results.map((item, index) => {
                         const status = {}
                         
                         if (item.is_finished) {

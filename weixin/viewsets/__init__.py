@@ -10,20 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-from gcloud.iam_auth import res_factory
-from gcloud.iam_auth.authorization_helpers.base import EmptyEnvIAMAuthorizationHelper
-
-
-class FunctionTaskIAMAuthorizationHelper(EmptyEnvIAMAuthorizationHelper):
-    def get_create_detail_resources(self, bundle):
-        return None
-
-    def get_read_detail_resources(self, bundle):
-        return res_factory.resources_for_task(bundle.obj.task_id)
-
-    def get_update_detail_resources(self, bundle):
-        return res_factory.resources_for_task(bundle.obj.task_id)
-
-    def get_delete_detail_resources(self, bundle):
-        return res_factory.resources_for_task(bundle.obj.task_id)
+from .collection import *  # noqa
+from .component import *  # noqa
+from .project import *  # noqa
+from .task_template import *  # noqa
+from .taskflow import *  # noqa
+from .template_scheme import *  # noqa
+from .user_project import *  # noqa
+from .variable import *  # noqa

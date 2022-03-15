@@ -337,9 +337,6 @@ BK_USER_MANAGE_HOST = env.BK_USER_MANAGE_HOST
 # 人员选择数据来源
 BK_MEMBER_SELECTOR_DATA_HOST = env.BK_MEMBER_SELECTOR_DATA_HOST
 
-# tastypie 配置
-TASTYPIE_DEFAULT_FORMATS = ["json"]
-
 TEMPLATES[0]["OPTIONS"]["context_processors"] += ("gcloud.core.context_processors.mysetting",)
 
 STATIC_VER = {"DEVELOP": "dev", "PRODUCT": "prod", "STAGING": "stag"}

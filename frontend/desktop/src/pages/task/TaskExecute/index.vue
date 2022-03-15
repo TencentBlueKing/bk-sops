@@ -80,6 +80,7 @@
                 try {
                     this.taskDataLoading = true
                     const instanceData = await this.getTaskInstanceData(this.instance_id)
+                    console.log(instanceData)
                     const { flow_type, current_flow, pipeline_tree, name, template_id, template_source, auth_actions, engine_ver } = instanceData
                     if (this.isFunctional && current_flow === 'func_claim') {
                         this.showParamsFill = true

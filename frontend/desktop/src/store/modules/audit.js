@@ -18,7 +18,7 @@ const auditTask = {
             const querystring = Object.assign({}, data)
             return axios.get('api/v3/taskflow/', {
                 params: querystring
-            }).then(response => response.data)
+            }).then(response => response.data.data)
         }
     }
 }

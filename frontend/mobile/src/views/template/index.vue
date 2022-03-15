@@ -103,7 +103,7 @@
                 try {
                     this.tplLoading = true
                     const response = await this.getTemplateList({ offset: this.offset, limit: this.limit })
-                    this.total = response.meta.total_count
+                    this.total = response.count
                     const totalPage = Math.ceil(this.total / this.limit)
                     if (this.currPage >= totalPage) {
                         this.finished = true
@@ -111,7 +111,7 @@
                         this.offset = this.currPage * this.limit
                         this.currPage += 1
                     }
-                    this.templateList = [...this.templateList, ...response.objects]
+                    this.templateList = [...this.templateList, ...response.results]
                     this.originalTemplateList = this.templateList
                     if (this.templateList.length > 0) {
                         this.project = this.templateList[0]['project']
@@ -127,7 +127,7 @@
                 this.collectedLoading = true
                 try {
                     const response = await this.getCollectedTemplate()
-                    this.collectTemplateList = response.objects.filter(item => item.extra_info.project_id === Number(this.$store.state.bizId))
+                    this.collectTemplateList = response.results.filter(item => item.extra_info.project_id === Number(this.$store.state.bizId))
                     this.originalCollectTemplateList = this.collectTemplateList.slice(0)
                 } catch (e) {
                     this.error = true
