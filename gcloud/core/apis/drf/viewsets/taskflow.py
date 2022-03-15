@@ -124,7 +124,6 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        # 支持使用方配置不分页
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page, many=True)
         # 注入权限
