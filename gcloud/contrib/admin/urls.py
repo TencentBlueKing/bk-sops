@@ -21,6 +21,7 @@ from gcloud.contrib.admin.viewsets import (
     AdminPeriodicTaskViewSet,
     AdminTaskTemplateViewSet,
 )
+from gcloud.contrib.admin.views import batch_insert_project_based_component
 
 v3_drf_api = DefaultRouter()
 v3_drf_api.register(r"periodic_task_history", PeriodicTaskHistoryViewSet)
@@ -49,4 +50,5 @@ urlpatterns = [
     url(r"^migration/migrate_staff_group/$", migration_api.migrate_staff_group),
     url(r"^migration/migrate_template_category/$", migration_api.migrate_template_category),
     url(r"^migration/fix_engine_version_zero_task/$", migration_api.fix_engine_version_zero_task),
+    url(r"^batch_insert_project_based_component/$", batch_insert_project_based_component),
 ]
