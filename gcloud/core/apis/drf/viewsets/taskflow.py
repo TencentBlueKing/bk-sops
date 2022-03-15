@@ -126,9 +126,9 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         queryset = self.filter_queryset(self.get_queryset())
         # 支持使用方配置不分页
         page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page if page else queryset, many=True)
+        serializer = self.get_serializer(page, many=True)
         # 注入权限
-        data = self.injection_auth_actions(request, serializer.data, page if page else queryset)
+        data = self.injection_auth_actions(request, serializer.data, page)
         # 注入template_info（name、deleted
         # 项目流程
         template_ids = [
