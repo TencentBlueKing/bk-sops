@@ -58,11 +58,19 @@ class TemplateFormWithSchemesView(APIView):
                 template = TaskTemplate.objects.get(pk=template_id, is_deleted=False, project_id=project_id)
             else:
                 template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
+        except TaskTemplate.DoesNotExist:
+            err_msg = "[form_with_schemes] project[{}] template[{}] doesn't exist".format(project_id, template_id)
+            logger.exception(err_msg)
+            return Response({"result": False, "message": err_msg, "data": {}})
+        except CommonTemplate.DoesNotExist:
+            err_msg = "[form_with_schemes] common template[{}] doesn't exist".format(template_id)
+            logger.exception(err_msg)
+            return Response({"result": False, "message": err_msg, "data": {}})
 
+        try:
             template_data = preview_template_tree_with_schemes(template, version, scheme_id_list)
-
         except Exception as e:
-            err_msg = "get template form with schemes fail: {}".format(e)
+            err_msg = "[preview_template_tree_with_schemes]get template form with schemes fail: {}".format(e)
             logger.exception(err_msg)
             return Response({"result": False, "message": err_msg, "data": {}})
 

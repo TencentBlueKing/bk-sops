@@ -70,11 +70,11 @@ class BatchTemplateFormWithSchemesView(APIView):
         template_queryset = []
         common_template_queryset = []
         if project_template_ids:
-            template_queryset = TaskTemplate.objects.select_related().filter(
+            template_queryset = TaskTemplate.objects.select_related("pipeline_template").filter(
                 id__in=project_template_ids, project_id=project_id, is_deleted=False
             )
         if common_template_ids:
-            common_template_queryset = CommonTemplate.objects.select_related().filter(
+            common_template_queryset = CommonTemplate.objects.select_related("pipeline_template").filter(
                 id__in=common_template_ids, is_deleted=False
             )
         queryset = itertools.chain(template_queryset, common_template_queryset)
@@ -85,7 +85,7 @@ class BatchTemplateFormWithSchemesView(APIView):
             pipeline_template_ids.append(template.pipeline_template.id)
 
         # 获取各流程对应的执行方案列表
-        scheme_queryset = TemplateScheme.objects.filter(template__id__in=pipeline_template_ids).values(
+        scheme_queryset = TemplateScheme.objects.filter(template_id__in=pipeline_template_ids).values(
             "template__id", "id", "name", "data"
         )
         scheme_dict = {}
