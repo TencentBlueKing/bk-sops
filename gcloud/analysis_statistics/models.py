@@ -139,13 +139,14 @@ class TaskTmplExecuteTopN(models.Model):
 
 
 class TemplateVariableStatistics(models.Model):
-    project_id = models.IntegerField(verbose_name="项目 ID")
     template_id = models.BigIntegerField(verbose_name="模板 ID")
-    template_type = models.CharField(verbose_name="模板类型", max_length=32)
+    project_id = models.IntegerField(verbose_name="项目 ID, 公共流程的数据为 -1")
     variable_key = models.CharField(verbose_name="变量键", max_length=256)
     variable_type = models.CharField(verbose_name="变量类型", max_length=256, db_index=True)
     variable_source = models.CharField(verbose_name="变量来源", max_length=64)
     refs = models.IntegerField(verbose_name="被引用次数")
 
     class Meta:
-        unique_together = ["template_id", "template_type", "variable_key"]
+        unique_together = ["template_id", "project_id", "variable_key"]
+        verbose_name = _("流程模板变量统计数据")
+        verbose_name_plural = _("流程模板变量统计数据")

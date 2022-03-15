@@ -24,4 +24,5 @@ class AnalysisStatisticsConfig(AppConfig):
             task_template_post_save_handler,
             pipeline_instance_finish_handler,
             pipeline_instance_revoke_handler,
+            common_template_post_save_handler,
         )

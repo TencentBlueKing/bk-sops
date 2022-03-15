@@ -30,11 +30,14 @@ from pipeline.engine.utils import calculate_elapsed_time
 from pipeline.eri.runtime import BambooDjangoRuntime
 
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.common_template.models import CommonTemplate
+from gcloud.analysis_statistics import variable
 from gcloud.analysis_statistics.models import (
     TaskflowStatistics,
     TemplateNodeStatistics,
     TemplateStatistics,
     TaskflowExecutedNodeStatistics,
+    TemplateVariableStatistics,
 )
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.domains.dispatchers.task import TaskCommandDispatcher
@@ -332,3 +335,51 @@ def pipeline_archive_statistics_task(instance_id):
         )
         return False
     return True
+
+
+@task
+def update_template_variable_statistics_task(project_id: int, template_id: int, is_deleted: bool):
+    if is_deleted:
+        TemplateVariableStatistics.objects.filter(template_id=template_id, project_id=project_id).delete()
+        return
+
+    if project_id != -1:
+        template = TaskTemplate.objects.get(id=template_id)
+    else:
+        template = CommonTemplate.objects.get(id=template_id)
+
+    variable.update_statistics(project_id=project_id, template_id=template_id, pipeline_tree=template.pipeline_tree)
+
+
+@task
+def backfill_template_variable_statistics_task():
+    # process common template
+    common_templates = CommonTemplate.objects.filter(is_deleted=False)
+    common_templates_counts = CommonTemplate.objects.filter(is_deleted=False).count()
+    for i, template in enumerate(common_templates, 1):
+        logger.info(
+            "[backfill_template_variable_statistics_task] process {}/{} common template".format(
+                i, common_templates_counts
+            )
+        )
+        try:
+            variable.update_statistics(project_id=-1, template_id=template.id, pipeline_tree=template.pipeline_tree)
+        except Exception:
+            logger.exception(
+                "[backfill_template_variable_statistics_task]backfill common template {} failed".format(template.id)
+            )
+
+    task_templates = TaskTemplate.objects.filter(is_deleted=False)
+    task_templates_counts = TaskTemplate.objects.filter(is_deleted=False).count()
+    for i, template in enumerate(task_templates, 1):
+        logger.info(
+            "[backfill_template_variable_statistics_task] process {}/{} task template".format(i, task_templates_counts)
+        )
+        try:
+            variable.update_statistics(
+                project_id=template.project_id, template_id=template.id, pipeline_tree=template.pipeline_tree
+            )
+        except Exception:
+            logger.exception(
+                "[backfill_template_variable_statistics_task]backfill task template {} failed".format(template.id)
+            )

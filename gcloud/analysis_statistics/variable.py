@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.db import transaction
+
 from gcloud.tasktmpl3.domains.constants import analysis_pipeline_constants_ref
 from gcloud.analysis_statistics.models import TemplateVariableStatistics
 
@@ -22,8 +24,7 @@ def _constants_refs_count(refs: dict) -> int:
     return count
 
 
-def update_statistics(project_id: int, template_id: int, template_type: str, pipeline_tree: dict):
-    TemplateVariableStatistics.objects.filter(template_id=template_id, template_type=template_type).delete()
+def update_statistics(project_id: int, template_id: int, pipeline_tree: dict):
 
     constants_refs = analysis_pipeline_constants_ref(pipeline_tree=pipeline_tree)
 
@@ -34,12 +35,12 @@ def update_statistics(project_id: int, template_id: int, template_type: str, pip
             TemplateVariableStatistics(
                 project_id=project_id,
                 template_id=template_id,
-                template_type=template_type,
                 variable_key=key,
                 variable_type=const["source_tag"],
                 variable_source=const["source_type"],
                 refs=_constants_refs_count(constants_refs.get(key, {})),
             )
         )
-
-    TemplateVariableStatistics.objects.bulk_create(variable_statistic, batch_size=100)
+    with transaction.atomic():
+        TemplateVariableStatistics.objects.filter(template_id=template_id, project_id=project_id).delete()
+        TemplateVariableStatistics.objects.bulk_create(variable_statistic, batch_size=100)

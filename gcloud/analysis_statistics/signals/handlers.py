@@ -20,11 +20,13 @@ from pipeline.signals import post_pipeline_finish, post_pipeline_revoke
 from pipeline.models import PipelineInstance
 
 from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.common_template.models import CommonTemplate
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.analysis_statistics.tasks import (
     taskflowinstance_post_save_statistics_task,
     tasktemplate_post_save_statistics_task,
     pipeline_archive_statistics_task,
+    update_template_variable_statistics_task,
 )
 
 logger = logging.getLogger("root")
@@ -39,7 +41,7 @@ def task_flow_post_save_handler(sender, instance, created, **kwargs):
         task_instance_id = instance.id
         taskflowinstance_post_save_statistics_task.delay(task_instance_id, created)
     except Exception:
-        logger.error(
+        logger.exception(
             ("task_flow_post_save_handler[instance_id]={instance_id} send message error").format(
                 instance_id=instance.id
             )
@@ -49,14 +51,28 @@ def task_flow_post_save_handler(sender, instance, created, **kwargs):
 @receiver(post_save, sender=TaskTemplate)
 def task_template_post_save_handler(sender, instance, created, **kwargs):
     """
-    @summary:TaskflowStatistics的更新
+    @summary:TaskflowStatistics以及TemplateVariableStatistics的更新
     """
     template_id = instance.id
     try:
         tasktemplate_post_save_statistics_task.delay(template_id)
+        update_template_variable_statistics_task.delay(instance.project_id, template_id, instance.is_deleted)
     except Exception:
-        logger.error(
+        logger.exception(
             ("task_template_post_save_handler[template_id]={task_template_id} send message error").format(
+                task_template_id=template_id
+            )
+        )
+
+
+@receiver(post_save, sender=CommonTemplate)
+def common_template_post_save_handler(sender, instance, created, **kwargs):
+    template_id = instance.id
+    try:
+        update_template_variable_statistics_task.delay(-1, template_id, instance.is_deleted)
+    except Exception:
+        logger.exception(
+            ("common_template_post_save_handler[template_id]={task_template_id} send message error").format(
                 task_template_id=template_id
             )
         )
@@ -70,7 +86,7 @@ def pipeline_instance_finish_handler(sender, instance_id, **kwargs):
     try:
         pipeline_archive_statistics_task.delay(instance_id=instance_id)
     except Exception:
-        logger.error(
+        logger.exception(
             ("pipeline_instance_finish_handler[instance_id]={instance_id} send message error").format(
                 instance_id=instance_id
             )
@@ -85,7 +101,7 @@ def pipeline_instance_revoke_handler(sender, instance_id, **kwargs):
     try:
         pipeline_archive_statistics_task.delay(instance_id=instance_id)
     except Exception:
-        logger.error(
+        logger.exception(
             ("pipeline_instance_revoke_handler[instance_id]={instance_id} send message error").format(
                 instance_id=instance_id
             )
