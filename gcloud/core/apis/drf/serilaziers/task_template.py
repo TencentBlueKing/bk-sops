@@ -19,7 +19,7 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.core.models import Project
 from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
-from gcloud.constants import TASK_CATEGORY
+from gcloud.constants import TASK_CATEGORY, DATETIME_FORMAT
 
 
 class BaseTaskTemplateSerializer(BaseTemplateSerializer):
@@ -32,8 +32,8 @@ class TaskTemplateSerializer(BaseTaskTemplateSerializer):
     category_name = serializers.CharField(read_only=True, help_text="分类名称")
     creator_name = serializers.CharField(read_only=True, help_text="创建者名称")
     editor_name = serializers.CharField(read_only=True, help_text="编辑者名称")
-    create_time = serializers.CharField(read_only=True, help_text="创建时间")
-    edit_time = serializers.CharField(read_only=True, help_text="编辑时间")
+    create_time = serializers.DateTimeField(help_text="创建时间", format=DATETIME_FORMAT)
+    edit_time = serializers.DateTimeField(help_text="编辑时间", format=DATETIME_FORMAT)
     template_id = serializers.CharField(read_only=True, help_text="模板id")
     subprocess_info = serializers.DictField(read_only=True, help_text="子流程信息")
     version = serializers.CharField(read_only=True, help_text="版本")
