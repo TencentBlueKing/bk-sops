@@ -17,11 +17,9 @@ from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.exceptions import ErrorDetail
 from rest_framework import status, permissions
-from rest_framework.filters import SearchFilter
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django_filters import CharFilter
-from django_filters.rest_framework import DjangoFilterBackend
 
 from gcloud import err_code
 from pipeline.models import TemplateRelationship
@@ -39,25 +37,10 @@ from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.contrib.operate_record.constants import OperateType, OperateSource, RecordType
 from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
 from gcloud.user_custom_config.constants import TASKTMPL_ORDERBY_OPTIONS
-from gcloud.core.apis.drf.viewsets.base import GcloudOrderingFilter
 
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=TaskTemplate)
-
-
-class TaskTemplateOrdering(GcloudOrderingFilter):
-    extra_ordering = {"edit_time", "create_time"}
-
-    def get_ordering(self, request, queryset, view):
-        params = request.query_params.get(self.ordering_param)
-        prefix = "pipeline_template__"
-        if params.startswith("-"):
-            prefix = "-" + prefix
-        if params.lstrip("-") in self.__class__.extra_ordering:
-            params = prefix + params.lstrip("-")
-            return [params]
-        return super().get_ordering(request, queryset, view)
 
 
 class TaskTemplatePermission(IamPermission):
@@ -107,7 +90,6 @@ class TaskTemplateViewSet(GcloudModelViewSet):
     pagination_class = LimitOffsetPagination
     serializer_class = TaskTemplateSerializer
     filterset_class = TaskTemplateFilter
-    filter_backends = (DjangoFilterBackend, SearchFilter, TaskTemplateOrdering)
     permission_classes = [permissions.IsAuthenticated, TaskTemplatePermission]
     iam_resource_helper = ViewSetResourceHelper(
         resource_func=res_factory.resources_for_flow_obj,
