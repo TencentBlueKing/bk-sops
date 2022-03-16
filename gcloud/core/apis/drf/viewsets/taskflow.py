@@ -89,7 +89,7 @@ class TaskFlowInstancePermission(IamPermission):
                     action=Action(IAMMeta.MINI_APP_CREATE_TASK_ACTION),
                     resources=res_factory.resources_for_mini_app_obj(app_maker),
                 )
-
+                return True
             # flow create task perm
             else:
                 template_source = request.data.get("template_source", "project")
@@ -106,6 +106,7 @@ class TaskFlowInstancePermission(IamPermission):
                     action=Action(IAMMeta.FLOW_CREATE_TASK_ACTION),
                     resources=res_factory.resources_for_flow_obj(template),
                 )
+                return True
         return super().has_permission(request, view)
 
 
