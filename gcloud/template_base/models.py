@@ -15,6 +15,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from gcloud.template_base.constants import TemplateType
 from gcloud.utils import managermixins
 from pipeline.exceptions import SubprocessExpiredError
 from pipeline_web.core.abstract import NodeAttr
@@ -29,7 +30,7 @@ from gcloud.exceptions import FlowExportError
 from gcloud.conf import settings
 from gcloud.constants import TASK_CATEGORY
 from gcloud.core.utils import convert_readable_username
-from gcloud.template_base.utils import replace_template_id
+from gcloud.template_base.utils import replace_template_id, fetch_templates_info
 from gcloud.iam_auth.resource_creator_action.signals import batch_create
 
 
@@ -287,10 +288,12 @@ class BaseTemplate(models.Model):
     def subprocess_info(self):
         info = self.pipeline_template.subprocess_version_info
         pipeline_temp_ids = [item["descendant_template_id"] for item in info["details"]]
-        qs = self.__class__.objects.filter(pipeline_template_id__in=pipeline_temp_ids).values(
-            "pipeline_template_id", "id"
+        templates = fetch_templates_info(
+            pipeline_temp_ids,
+            fetch_fields=("id", "pipeline_template_id"),
+            appointed_template_type=TemplateType.COMMON.value if self.__class__.__name__ == "CommonTemplate" else None,
         )
-        pid_to_tid = {item["pipeline_template_id"]: item["id"] for item in qs}
+        pid_to_tid = {item["pipeline_template_id"]: item["id"] for item in templates}
         for subprocess_info in info["details"]:
             subprocess_info["template_id"] = pid_to_tid[subprocess_info.pop("descendant_template_id")]
 
