@@ -82,6 +82,7 @@ class TestMigrateInstance(TestCase):
             project_id=self.taskflow_instance.project.id,
             category=self.task_template.category,
             template_id=self.pipeline_template.id,
+            task_template_id=self.task_template.id,
             creator=self.pipeline_instance.creator,
             create_time=self.pipeline_instance.create_time,
             start_time=self.pipeline_instance.start_time,
