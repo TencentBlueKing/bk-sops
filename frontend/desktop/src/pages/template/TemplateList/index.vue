@@ -92,6 +92,7 @@
                         :data="templateList"
                         :pagination="pagination"
                         :size="setting.size"
+                        :default-sort="getSortConfig"
                         v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1, zIndex: 100 }"
                         @sort-change="handleSortChange"
                         @page-change="onPageChange"
@@ -578,6 +579,16 @@
             },
             isMyCollect () {
                 return this.activeTab === 'collect'
+            },
+            getSortConfig () {
+                const { ordering } = this
+                if (ordering) {
+                    if (/^-/.test(this.ordering)) {
+                        return { prop: ordering.replace(/^-/, ''), order: 'descending' }
+                    }
+                    return { prop: ordering, order: 'ascending' }
+                }
+                return {}
             }
         },
         watch: {
@@ -1034,7 +1045,9 @@
                 }))
                 if (order && order !== this.ordering) {
                     this.ordering = order
-                    this.getTemplateList()
+                    this.$refs.templateTable.clearSort()
+                    this.$refs.templateTable.sort(/^-/.test(order) ? order.replace(/^-/, '') : order, /^-/.test(order) ? 'descending' : 'ascending')
+                    // this.getTemplateList()
                     this.setUserProjectConfig({ id: this.project_id, params: { task_template_ordering: order } })
                 }
             },
