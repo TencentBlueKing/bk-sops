@@ -39,6 +39,7 @@ from gcloud.iam_auth import IAMMeta, res_factory, get_iam_client
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.contrib.operate_record.constants import OperateType, OperateSource, RecordType
+from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user, get_common_flow_allowed_actions_for_user
 
 iam = get_iam_client()
 
@@ -136,6 +137,10 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             for instance in data
             if instance["template_id"] and instance["template_source"] == "project"
         ]
+        # 注入流程相关权限
+        templates_allowed_actions = get_flow_allowed_actions_for_user(
+            request.user.username, [IAMMeta.FLOW_VIEW_ACTION, IAMMeta.FLOW_CREATE_TASK_ACTION], template_ids
+        )
         template_info = TaskTemplate.objects.filter(id__in=template_ids).values(
             "id", "pipeline_template__name", "is_deleted"
         )
@@ -148,6 +153,11 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             for instance in data
             if instance["template_id"] and instance["template_source"] == "common"
         ]
+        common_templates_allowed_actions = get_common_flow_allowed_actions_for_user(
+            request.user.username,
+            [IAMMeta.COMMON_FLOW_VIEW_ACTION],
+            common_template_ids,
+        )
         common_template_info = CommonTemplate.objects.filter(id__in=common_template_ids).values(
             "id", "pipeline_template__name", "is_deleted"
         )
@@ -161,11 +171,17 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
                 instance["template_deleted"] = template_info_map.get(instance["template_id"], {}).get(
                     "is_deleted", True
                 )
+                for act, allowed in templates_allowed_actions.get(str(instance["template_id"]), {}).items():
+                    if allowed:
+                        instance["auth_actions"].append(act)
             else:
                 instance["template_name"] = common_template_info_map.get(instance["template_id"], {}).get("name")
                 instance["template_deleted"] = common_template_info_map.get(instance["template_id"], {}).get(
                     "is_deleted", True
                 )
+                for act, allowed in common_templates_allowed_actions.get(str(instance["template_id"]), {}).items():
+                    if allowed:
+                        instance["auth_actions"].append(act)
         return self.get_paginated_response(data) if page is not None else Response(data)
 
     @staticmethod
