@@ -93,7 +93,7 @@ class TaskFlowInstancePermission(IamPermission):
             # flow create task perm
             else:
                 template_source = request.data.get("template_source", "project")
-                template_id = request.data.get("template", -1)
+                template_id = int(request.data.get("template", -1))
                 model_cls = TaskTemplate if template_source == "project" else CommonTemplate
                 try:
                     template = model_cls.objects.get(id=template_id)
