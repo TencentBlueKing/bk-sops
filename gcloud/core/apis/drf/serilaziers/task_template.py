@@ -66,6 +66,7 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
     default_flow_type = serializers.CharField(help_text="默认流程类型")
     pipeline_tree = serializers.CharField()
     project = serializers.IntegerField(write_only=True)
+    template_id = serializers.IntegerField(help_text="模板ID", source="id", read_only=True)
 
     def set_notify_type(self, obj):
         return {"notify_type": json.dumps(obj)}
@@ -103,4 +104,5 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
             "notify_receivers",
             "pipeline_tree",
             "project",
+            "template_id",
         ]
