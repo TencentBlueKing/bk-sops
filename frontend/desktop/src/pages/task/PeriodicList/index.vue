@@ -61,6 +61,7 @@
                                         <router-link
                                             v-else
                                             class="periodic-name"
+                                            target="_blank"
                                             :title="row.task_template_name"
                                             :to="templateNameUrl(row)">
                                             {{row.task_template_name}}

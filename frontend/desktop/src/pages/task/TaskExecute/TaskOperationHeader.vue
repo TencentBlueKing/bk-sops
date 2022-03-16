@@ -198,6 +198,9 @@
                         name: 'auditHome'
                     })
                 }
+                if (this.$route.name === 'taskExecute') {
+                    return this.$router.back()
+                }
                 this.$router.push({
                     name: 'taskList',
                     params: { project_id: this.project_id }
