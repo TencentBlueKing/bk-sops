@@ -17,6 +17,7 @@ import copy
 import logging
 
 import ujson as json
+from django.apps import apps
 from django.db.models import Q
 
 from pipeline.utils.uniqid import uniqid
@@ -105,8 +106,12 @@ class PipelineTemplateWebWrapper(object):
                         version = None
                     else:
                         version = act.get("version")
-
-                    subproc_data = template_model.objects.get(
+                    subprocess_template_model = (
+                        apps.get_model("template", "CommonTemplate")
+                        if act.get("template_type") == "common"
+                        else template_model
+                    )
+                    subproc_data = subprocess_template_model.objects.get(
                         pipeline_template__template_id=act["template_id"]
                     ).get_pipeline_tree_by_version(version)
 
