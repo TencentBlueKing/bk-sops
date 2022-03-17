@@ -60,7 +60,7 @@ importlib-metadata==3.7.3
 # blueapps
 blueapps==3.6.1rc0
 whitenoise==3.3.0
-raven==6.1.0
+raven==6.4.0
 ddtrace==0.15.0
 python-json-logger==0.1.9
 gevent==1.2.2
