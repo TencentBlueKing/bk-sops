@@ -61,6 +61,8 @@ class UploadModuleFileTag(models.Model):
 class BKJobFileCredentialManager(models.Manager):
     def register_credential(self, bk_biz_id, esb_client):
         job_kwargs = {
+            "bk_scope_type": "biz_set",
+            "bk_scope_id": str(bk_biz_id),
             "bk_biz_id": bk_biz_id,
             "name": env.JOB_CREDENTIAL_NAME,
             "type": "USERNAME_PASSWORD",
@@ -90,6 +92,8 @@ class BKJobFileCredential(models.Model):
 class BKJobFileSourceManager(models.Manager):
     def register_file_source(self, bk_biz_id, credential_id, esb_client):
         job_kwargs = {
+            "bk_scope_type": "biz_set",
+            "bk_scope_id": str(bk_biz_id),
             "bk_biz_id": bk_biz_id,
             "code": env.JOB_FILE_SOURCE_CODE,
             "alias": env.JOB_FILE_SOURCE_ALIAS,
