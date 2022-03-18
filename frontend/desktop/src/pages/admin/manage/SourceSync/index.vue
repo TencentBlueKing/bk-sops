@@ -148,8 +148,8 @@
                     this.listLoading = true
 
                     const syncTaskData = await this.loadSyncTask(data)
-                    this.list = syncTaskData.objects
-                    this.totalCount = syncTaskData.meta.total_count
+                    this.list = syncTaskData.results
+                    this.totalCount = syncTaskData.count
                     const totalPage = Math.ceil(this.totalCount / this.countPerPage)
                     if (!totalPage) {
                         this.totalPage = 1
