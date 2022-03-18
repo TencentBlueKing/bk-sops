@@ -372,7 +372,7 @@
                         offset: this.currentPage * this.limit
                     }
                     const resp = await this.loadTemplateList(data)
-                    this.totalPage = Math.floor(resp.meta.total_count / this.limit)
+                    this.totalPage = Math.floor(resp.count / this.limit)
                     const list = this.handleSubflowList(resp)
                     if (labels || searchStr) {
                         const result = []
@@ -415,7 +415,7 @@
                 const list = []
                 const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
                 const { params, query } = this.$route
-                data.objects.forEach(item => {
+                data.results.forEach(item => {
                     // 克隆模板可以引用被克隆的模板，模板不可以引用自己
                     if (params.type === 'clone' || item.id !== Number(query.template_id)) {
                         item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
