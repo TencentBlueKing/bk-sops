@@ -12,13 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 
 from rest_framework.response import Response
-from rest_framework import serializers, generics, permissions
+from rest_framework.exceptions import ErrorDetail
+from rest_framework import serializers, generics, permissions, status
 from django_filters import FilterSet
 
 from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam import Subject, Action
 
 from gcloud.constants import TASK_NAME_MAX_LENGTH
+from gcloud import err_code
 from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
 from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
@@ -240,11 +242,13 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             project_id=serializer.instance.project.id,
         )
 
-    def perform_destroy(self, instance):
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
         if instance.is_started:
             if not (instance.is_finished or instance.is_revoked):
-                raise serializers.ValidationError("无法删除未进入完成或撤销状态的流程")
-        super().perform_destroy(instance)
+                message = "无法删除未进入完成或撤销状态的流程"
+                return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+        self.perform_destroy(instance)
         # 记录操作流水
         operate_record_signal.send(
             sender=RecordType.task.name,
@@ -254,6 +258,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             instance_id=instance.id,
             project_id=instance.project.id,
         )
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_serializer_class(self, *args, **kwargs):
         if self.action == "create":
