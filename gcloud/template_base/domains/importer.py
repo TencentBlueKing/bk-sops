@@ -30,6 +30,7 @@ class TemplateImporter:
         :param template_data: [
             {
                 "override_template_id": "要覆盖的模板的主键ID",
+                "refer_template_id": "要引用的模版的主键ID",
                 "name": "模板名",
                 "pipeline_tree": "dict, 模板 pipeline tree",
                 "description": "模板描述"，
@@ -46,48 +47,68 @@ class TemplateImporter:
         manager = TemplateManager(template_model_cls=self.template_model_cls)
         import_result = []
         pipeline_id_map = {}
+        source_info_map = {}
         with transaction.atomic():
             for td in template_data:
                 override_template_id = td["override_template_id"]
+                refer_template_id = td["refer_template_id"]
                 name = td["name"]
                 pipeline_tree = td["pipeline_tree"]
                 description = td["description"]
 
                 if bk_biz_id:
                     replace_biz_id_value(pipeline_tree, bk_biz_id)
-                replace_result = self._replace_subprocess_template_id(pipeline_tree, pipeline_id_map)
+                replace_result = self._replace_subprocess_template_id(pipeline_tree, pipeline_id_map, source_info_map)
                 if not replace_result["result"]:
                     import_result.append(replace_result)
                     continue
 
-                if not override_template_id:
-                    create_result = manager.create(
-                        name=name,
-                        creator=operator,
-                        pipeline_tree=pipeline_tree,
-                        template_kwargs=td["template_kwargs"],
-                        description=description,
-                    )
-                    if create_result["result"]:
-                        pipeline_id_map[td["id"]] = create_result["data"].id
-                    import_result.append(create_result)
-                else:
-                    template = self.template_model_cls.objects.get(id=override_template_id)
-                    update_result = manager.update(
+                if override_template_id or refer_template_id:
+                    template_id = override_template_id or refer_template_id
+                    try:
+                        template = self.template_model_cls.objects.get(id=template_id)
+                    except self.template_model_cls.DoesNotExist as e:
+                        import_result.append(
+                            {
+                                "result": False,
+                                "data": "",
+                                "message": f"Template does not exist with id {template_id}",
+                                "verbose_message": e,
+                            }
+                        )
+                        continue
+
+                if override_template_id:
+                    operate_result = manager.update(
                         template=template,
                         editor=operator,
                         name=name,
                         pipeline_tree=pipeline_tree,
                         description=description,
                     )
-                    if update_result["result"]:
-                        pipeline_id_map[td["id"]] = update_result["data"].id
-                    import_result.append(update_result)
+                    if operate_result["result"]:
+                        pipeline_id_map[td["id"]] = operate_result["data"].id
+                elif refer_template_id:
+                    for key, constant in template.pipeline_tree["constants"].items():
+                        source_info_map.setdefault(td["id"], {}).update({key: constant.get("source_info", {})})
+                    pipeline_id_map[td["id"]] = refer_template_id
+                    operate_result = {"result": True, "data": None, "message": "success", "verbose_message": "success"}
+                else:
+                    operate_result = manager.create(
+                        name=name,
+                        creator=operator,
+                        pipeline_tree=pipeline_tree,
+                        template_kwargs=td["template_kwargs"],
+                        description=description,
+                    )
+                    if operate_result["result"]:
+                        pipeline_id_map[td["id"]] = operate_result["data"].id
+                import_result.append(operate_result)
 
         return {"result": True, "data": import_result, "message": "success", "verbose_message": "success"}
 
     @staticmethod
-    def _replace_subprocess_template_id(pipeline_tree: dict, pipeline_id_map: dict) -> dict:
+    def _replace_subprocess_template_id(pipeline_tree: dict, pipeline_id_map: dict, source_map_info: dict) -> dict:
         """
         将模板数据中临时的模板 ID 替换成数据库中模型的主键 ID
 
@@ -95,6 +116,8 @@ class TemplateImporter:
         :type pipeline_tree: dict
         :param pipeline_id_map: Subprocess 节点中临时 ID 到数据库模型主键 ID 的映射
         :type pipeline_id_map: dict
+        :param source_map_info: Subprocess 节点变量的的source_info替换成对应子流程一样的值
+        :type source_map_info: dict
         """
         if not pipeline_id_map:
             return {
@@ -114,9 +137,11 @@ class TemplateImporter:
                             act["template_id"], pipeline_id_map
                         ),
                     }
-
-                act["template_id"] = pipeline_id_map[act["template_id"]]
-
+                imported_template_id = act["template_id"]
+                act["template_id"] = pipeline_id_map[imported_template_id]
+                if imported_template_id in source_map_info:
+                    for key, constant in act["constants"].items():
+                        constant["source_info"] = source_map_info[imported_template_id].get(key, {})
         return {
             "result": True,
             "data": None,
