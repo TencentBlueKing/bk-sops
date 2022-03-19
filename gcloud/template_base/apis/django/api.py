@@ -284,6 +284,7 @@ def import_yaml_templates(request: Request):
     """
     f = request.data.get("data_file")
     override_mappings = request.data.get("override_mappings") or {}
+    refer_mappings = request.data.get("refer_mappings") or {}
     template_type = request.data.get("template_type")
     project_id = request.data.get("project_id")
     template_kwargs = request.data.get("template_kwargs") or {}
@@ -318,6 +319,7 @@ def import_yaml_templates(request: Request):
                 "description": templates[template_id]["description"],
                 "pipeline_tree": templates[template_id]["tree"],
                 "override_template_id": override_mappings.get(template_id),
+                "refer_template_id": refer_mappings.get(template_id),
                 "template_kwargs": template_kwargs,
                 "id": template_id,
             }

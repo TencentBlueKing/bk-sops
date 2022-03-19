@@ -96,6 +96,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
         "custom_type": "",
         "show_type": "show",
         "value": "",
+        "source_tag": "",
     }
     CONSTANT_EXPORT_OPTION_FIELD = ["plugin_code"]
     YAML_DOC_SCHEMA = {
@@ -282,6 +283,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                         constant, is_create = self._reconvert_constant(
                             constant=param,
                             cur_constants=reconverted_tree["constants"],
+                            source_tag=param.get("source_tag"),
                             source_info=source_info,
                             source_type=source_type,
                         )
@@ -350,7 +352,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
             "gateways": {},
             "line": [],
             "location": [],
-            "outputs": [],
+            "outputs": template.get("outputs") or [],
             "start_event": {},
         }
         # 恢复节点值
@@ -399,7 +401,6 @@ class YamlSchemaConverter(BaseSchemaConverter):
         reconverted_constant = {
             **self.CONSTANT_DEFAULT_FIELD_VALUE,
             "source_info": {},
-            "source_tag": "",
             "source_type": "custom" if not source_type else source_type,
         }
         if "type" in constant:
@@ -524,6 +525,8 @@ class YamlSchemaConverter(BaseSchemaConverter):
         converted_tree = {"nodes": result_nodes}
         if converted_constants:
             converted_tree["constants"] = converted_constants
+        if tree["outputs"]:
+            converted_tree["outputs"] = tree["outputs"]
         return converted_tree
 
     def _convert_node(self, node: dict, param_constants: dict):
@@ -539,6 +542,9 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 is_hooked = data.pop("hook")
                 if is_hooked:
                     input_constant = param_constants["component_inputs"][node["id"]][form_key]
+                    # 组件节点下可以通过component_code+type拼接source_tag，所以这里不需要保留
+                    if "source_tag" in input_constant:
+                        input_constant.pop("source_tag")
                     component_data[form_key] = input_constant
             for form_key, constant in param_constants["component_outputs"].get(node["id"], {}).items():
                 converted_node.setdefault("output", {})[form_key] = constant
@@ -587,6 +593,9 @@ class YamlSchemaConverter(BaseSchemaConverter):
                     elif field == "show_type":
                         if constant["source_type"] == "component_outputs":
                             cur_constant["hide"] = True
+                    elif field == "source_tag":
+                        if not constant["custom_type"]:
+                            cur_constant["source_tag"] = value
                     else:
                         cur_constant[field] = value
                 if field in self.CONSTANT_EXPORT_OPTION_FIELD and value:
