@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -88,6 +88,17 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         subprocess_temp_list = list(
             self.filter(pipeline_template_id__in=additional_template_id).select_related("pipeline_template").values()
         )
+
+        # 处理项目流程中引用了公共流程的情况
+        if len(subprocess_temp_list) < len(additional_template_id):
+            common_template_model = apps.get_model("template", "CommonTemplate")
+            common_subprocess_temp_list = list(
+                common_template_model.objects.filter(pipeline_template_id__in=additional_template_id)
+                .select_related("pipeline_template")
+                .values()
+            )
+            subprocess_temp_list += common_subprocess_temp_list
+
         for sub_temp in subprocess_temp_list:
             sub_temp["pipeline_template_str_id"] = sub_temp["pipeline_template_id"]
             template[sub_temp["id"]] = sub_temp
