@@ -573,6 +573,7 @@ class Jobv3Service(Service):
                 self.logger,
                 job_instance_id,
                 data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+                self.biz_scope_type,
             )
             if not get_jobv3_sops_var_dict_return["result"]:
                 self.logger.warning(
