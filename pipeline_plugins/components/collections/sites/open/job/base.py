@@ -261,7 +261,7 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id, jo
     - fail { "result": False, "message": message}
     """
     get_job_instance_log_result = get_job_instance_log(
-        client, service_logger, job_instance_id, bk_biz_id, job_scope_type
+        client, service_logger, job_instance_id, bk_biz_id, job_scope_type=job_scope_type
     )
     if not get_job_instance_log_result["result"]:
         return get_job_instance_log_result
