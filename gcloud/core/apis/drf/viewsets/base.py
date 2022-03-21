@@ -69,7 +69,7 @@ class GcloudListViewSet(GcloudCommonMixin):
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page if page else queryset, many=True)
         # 注入权限
-        data = self.injection_auth_actions(request, serializer.data, queryset)
+        data = self.injection_auth_actions(request, serializer.data, page if page else queryset)
         return self.get_paginated_response(data) if page is not None else Response(data)
 
 
