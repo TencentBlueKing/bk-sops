@@ -44,11 +44,11 @@ class TaskTemplateSerializer(BaseTaskTemplateSerializer):
 
     def get_pipeline_tree(self, obj):
         try:
-            if not getattr(obj, "pipeline_tree") or not obj.pipeline_tree:
-                return json.dumps(dict())
-            return json.dumps(obj.pipeline_tree)
+            if not getattr(obj, "pipeline_tree"):
+                return json.dumps(obj.pipeline_template.data)
+            return json.dumps(getattr(obj, "pipeline_tree"))
         except TaskTemplate.DoesNotExist:
-            return json.dumps(dict())
+            return json.dumps(obj.pipeline_template.data)
 
     class Meta:
         model = TaskTemplate
@@ -66,7 +66,7 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
     default_flow_type = serializers.CharField(help_text="默认流程类型")
     pipeline_tree = serializers.CharField()
     project = serializers.IntegerField(write_only=True)
-    template_id = serializers.IntegerField(help_text="模板ID", source="id", read_only=True)
+    template_id = serializers.CharField(help_text="模板ID", source="id", read_only=True)
 
     def set_notify_type(self, obj):
         return {"notify_type": json.dumps(obj)}
