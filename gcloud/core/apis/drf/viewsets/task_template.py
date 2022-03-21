@@ -127,7 +127,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page if page else queryset, many=True)
         # 注入权限
-        data = self.injection_auth_actions(request, serializer.data, queryset)
+        data = self.injection_auth_actions(request, serializer.data, page if page else queryset)
         user_model = get_user_model()
         collected_templates = (
             user_model.objects.get(username=request.user.username).tasktemplate_set.all().values_list("id", flat=True)
