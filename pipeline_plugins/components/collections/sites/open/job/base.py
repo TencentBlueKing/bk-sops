@@ -249,7 +249,7 @@ def get_job_tagged_ip_dict(
     return True, tagged_ip_dict
 
 
-def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
+def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id, job_scope_type=JobBizScopeType.BIZ.value):
     """
     解析作业日志：默认取每个步骤/节点的第一个ip_logs
     :param client:
@@ -260,7 +260,9 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
     - success { "result": True, "data": {"key1": "value1"}}
     - fail { "result": False, "message": message}
     """
-    get_job_instance_log_result = get_job_instance_log(client, service_logger, job_instance_id, bk_biz_id)
+    get_job_instance_log_result = get_job_instance_log(
+        client, service_logger, job_instance_id, bk_biz_id, job_scope_type
+    )
     if not get_job_instance_log_result["result"]:
         return get_job_instance_log_result
     log_text = get_job_instance_log_result["data"]
@@ -359,6 +361,7 @@ class JobService(Service):
                 self.logger,
                 job_instance_id,
                 data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+                self.biz_scope_type,
             )
             if not get_job_sops_var_dict_return["result"]:
                 self.logger.warning(
