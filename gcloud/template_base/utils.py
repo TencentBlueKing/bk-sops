@@ -20,7 +20,7 @@ from typing import Tuple, List, Optional, Dict
 import ujson as json
 from django.apps import apps
 
-from gcloud.template_base.constants import TemplateType
+from gcloud.constants import COMMON, PROJECT
 from pipeline.core.constants import PE
 from gcloud import err_code
 from gcloud.conf import settings
@@ -63,9 +63,7 @@ def replace_template_id(template_model, pipeline_data, reverse=False):
     for act_id, act in list(activities.items()):
         if act["type"] == PE.SubProcess:
             subprocess_template_model = (
-                apps.get_model("template", "CommonTemplate")
-                if act.get("template_type") == TemplateType.COMMON.value
-                else template_model
+                apps.get_model("template", "CommonTemplate") if act.get("template_type") == COMMON else template_model
             )
             if not reverse:
                 act["template_id"] = subprocess_template_model.objects.get(
@@ -106,17 +104,13 @@ def fetch_templates_info(
         template_qs = template_model.objects.filter(pipeline_template_id__in=pipeline_template_ids).values(
             *fetch_fields
         )
-        template_type = (
-            TemplateType.COMMON.value if template_model.__name__ == "CommonTemplate" else TemplateType.PROJECT.value
-        )
+        template_type = COMMON if template_model.__name__ == "CommonTemplate" else PROJECT
         return [{"template_type": template_type, **template} for template in template_qs]
 
     task_template_model = apps.get_model("tasktmpl3", "TaskTemplate")
     common_template_model = apps.get_model("template", "CommonTemplate")
     if appointed_template_type:
-        templates = get_templates(
-            common_template_model if appointed_template_type == TemplateType.COMMON.value else task_template_model
-        )
+        templates = get_templates(common_template_model if appointed_template_type == COMMON else task_template_model)
     else:
         task_templates = get_templates(task_template_model)
         common_templates = (

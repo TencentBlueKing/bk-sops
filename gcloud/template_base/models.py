@@ -15,7 +15,6 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.template_base.constants import TemplateType
 from gcloud.utils import managermixins
 from pipeline.exceptions import SubprocessExpiredError
 from pipeline_web.core.abstract import NodeAttr
@@ -25,7 +24,7 @@ from pipeline.models import PipelineTemplate, TemplateRelationship, TemplateCurr
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 from gcloud import err_code
-from gcloud.constants import TEMPLATE_EXPORTER_VERSION
+from gcloud.constants import TEMPLATE_EXPORTER_VERSION, COMMON, PROJECT
 from gcloud.exceptions import FlowExportError
 from gcloud.conf import settings
 from gcloud.constants import TASK_CATEGORY
@@ -70,6 +69,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         return pipeline_template
 
     def export_templates(self, template_id_list):
+        template_source_type = PROJECT if self.model.__name__ == "TaskTemplate" else COMMON
         templates = list(self.filter(id__in=template_id_list).select_related("pipeline_template").values())
         pipeline_template_id_list = []
         template = {}
@@ -89,8 +89,8 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
             self.filter(pipeline_template_id__in=additional_template_id).select_related("pipeline_template").values()
         )
 
-        # 处理项目流程中引用了公共流程的情况
-        if len(subprocess_temp_list) < len(additional_template_id):
+        # 项目流程下导出才会处理项目流程中引用了公共流程的情况
+        if template_source_type == PROJECT and len(subprocess_temp_list) < len(additional_template_id):
             common_template_model = apps.get_model("template", "CommonTemplate")
             common_subprocess_temp_list = list(
                 common_template_model.objects.filter(pipeline_template_id__in=additional_template_id)
@@ -107,6 +107,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
             "template": template,
             "pipeline_template_data": pipeline_temp_data,
             "exporter_version": TEMPLATE_EXPORTER_VERSION,
+            "template_source": template_source_type,
         }
         return result
 
@@ -302,7 +303,7 @@ class BaseTemplate(models.Model):
         templates = fetch_templates_info(
             pipeline_temp_ids,
             fetch_fields=("id", "pipeline_template_id"),
-            appointed_template_type=TemplateType.COMMON.value if self.__class__.__name__ == "CommonTemplate" else None,
+            appointed_template_type=COMMON if self.__class__.__name__ == "CommonTemplate" else None,
         )
         pid_to_tid = {item["pipeline_template_id"]: item["id"] for item in templates}
         for subprocess_info in info["details"]:
