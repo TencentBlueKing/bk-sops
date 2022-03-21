@@ -36,11 +36,11 @@ class CommonTemplateSerializer(BaseTemplateSerializer):
 
     def get_pipeline_tree(self, obj):
         try:
-            if not getattr(obj, "pipeline_tree") or not obj.pipeline_tree:
-                return json.dumps(dict())
-            return json.dumps(obj.pipeline_tree)
+            if not getattr(obj, "pipeline_tree"):
+                return json.dumps(obj.pipeline_template.data)
+            return json.dumps(getattr(obj, "pipeline_tree"))
         except CommonTemplate.DoesNotExist:
-            return json.dumps(dict())
+            return json.dumps(obj.pipeline_template.data)
 
     class Meta:
         model = CommonTemplate
