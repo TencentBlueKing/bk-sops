@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud import err_code
-from gcloud.constants import TEMPLATE_EXPORTER_SOURCE_COMMON
 from gcloud.template_base.models import BaseTemplateManager, BaseTemplate
 
 
@@ -60,11 +59,6 @@ class CommonTemplateManager(BaseTemplateManager):
             defaults_getter=defaults_getter,
             operator=operator,
         )
-
-    def export_templates(self, template_id_list):
-        data = super(CommonTemplateManager, self).export_templates(template_id_list)
-        data["template_source"] = TEMPLATE_EXPORTER_SOURCE_COMMON
-        return data
 
 
 class CommonTemplate(BaseTemplate):
