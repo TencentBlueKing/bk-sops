@@ -48,18 +48,18 @@ class GcloudCommonMixin(IAMMixin, ApiMixin):
         self.serializer_class = getattr(self, f"{self.action}_serializer_class", self.serializer_class)
         return super(GcloudCommonMixin, self).get_serializer_class()
 
-    def injection_auth_actions(self, request, instance_data, instances):
+    def injection_auth_actions(self, request, serializer_data, queryset_data):
         """注入auth_action"""
-        if isinstance(instances, Iterable):
-            auth_actions = self.iam_get_instances_auth_actions(request, list(instances))
+        if isinstance(queryset_data, Iterable):
+            auth_actions = self.iam_get_instances_auth_actions(request, list(queryset_data))
             if auth_actions:
-                for data in instance_data:
+                for data in serializer_data:
                     data["auth_actions"] = auth_actions[data["id"]]
         else:
-            auth_actions = self.iam_get_instance_auth_actions(request, instances)
+            auth_actions = self.iam_get_instance_auth_actions(request, queryset_data)
             if auth_actions:
-                instance_data["auth_actions"] = auth_actions
-        return instance_data
+                serializer_data["auth_actions"] = auth_actions
+        return serializer_data
 
 
 class GcloudListViewSet(GcloudCommonMixin):
