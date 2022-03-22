@@ -99,6 +99,8 @@ class BatchTemplateFormWithSchemesView(APIView):
         data = {}
         for template_id, template in template_dict.items():
             data[template_id] = []
+            # 每个模板要获取当前版本的和最新版本的表单数据
+            # 两次获取数据只有模版版本不同，使用for循环减少重复逻辑,使用is_current标识是否是当前版本的表单数据
             for index in range(2):
                 if index == 0:
                     version = template.version

@@ -19,7 +19,9 @@ from gcloud.tasktmpl3.apis.drf.viewsets.form_with_schemes import TemplateFormWit
 from gcloud.tasktmpl3.apis.drf.viewsets.batch_form_with_schemes import BatchTemplateFormWithSchemesView
 
 urlpatterns = [
+    # [deprecated] this api will be instead of form_with_schemes
     url(r"^api/form/(?P<project_id>\d+)/$", api.form),
+    # [deprecated] this api will be instead of batch_form_with_schemes
     url(r"^api/batch_form/(?P<project_id>\d+)/$", api.batch_form),
     url(r"^api/export/(?P<project_id>\d+)/$", api.export_templates),
     url(r"^api/import/(?P<project_id>\d+)/$", api.import_templates),
