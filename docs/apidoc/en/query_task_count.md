@@ -15,18 +15,18 @@ Query task instance classification statistics
 
 #### conditions
 
-| Field      | Type      | Description      |
-| ------------ | ---------- | ------------------------------ |
-|  template_id      |    string    |      the template id    |
-|  name      |    string    |      the task name   |
-|  creator      |    string    |      creator    |
-|  create_time__gte      |    string    |      task creation time start time   |
-|  create_time__lte      |    string    |      task creation time end time   |
-|  executor      |    string    |      executor    |
-|  start_time__gte      |    string   |      task execution time start time  |
-|  start_time__lte      |    string   |      task execution time end time  |
-|  is_started      |    bool   |      whether the task started  |
-|  is_finished      |    bool   |      whether the task finished  |
+| Field      | Type      |Required   | Description      |
+| ------------ | ---------- |--------| ------------------------------ |
+|  template_id      |    string    |   NO   |      the template id    |
+|  name      |    string    |   NO   |      the task name   |
+|  creator      |    string    |   NO   |      creator    |
+|  create_time__gte      |    string    |   NO   |      task creation time start time   |
+|  create_time__lte      |    string    |   NO   |      task creation time end time   |
+|  executor      |    string    |   NO   |      executor    |
+|  start_time__gte      |    string   |   NO   |      task execution time start time  |
+|  start_time__lte      |    string   |   NO   |      task execution time end time  |
+|  is_started      |    bool   |   NO   |      whether the task started  |
+|  is_finished      |    bool   |   NO   |      whether the task finished  |
 
 ### Request Parameters Example
 
