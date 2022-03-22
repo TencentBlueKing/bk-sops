@@ -26,7 +26,7 @@ from pipeline.eri.signals import post_set_state, execute_interrupt, schedule_int
 from pipeline.engine.signals import pipeline_end, pipeline_revoke
 from bk_monitor_report.reporter import MonitorReporter
 
-from gcloud import env
+import env
 from gcloud.taskflow3.models import TaskFlowInstance, AutoRetryNodeStrategy, EngineConfig, TimeoutNodeConfig
 from gcloud.taskflow3.signals import taskflow_finished, taskflow_revoked
 from gcloud.taskflow3.celery.tasks import send_taskflow_message, auto_retry_node
