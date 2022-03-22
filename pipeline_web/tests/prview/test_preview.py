@@ -149,11 +149,11 @@ class PipelineTemplateWebPreviewerTestCase(TestCase):
     @patch("pipeline_web.preview.TaskTemplate", MockTaskTemplate2)
     @patch("pipeline_web.preview.PipelineTemplateWebPreviewer", MockPipelineTemplateWebPreviewer2)
     def test_preview_template_tree_with_schemes(self):
-        data = preview_template_tree_with_schemes("project", 2, "v1", [1, 2, 3], 1)
+        template = MockTemplate(copy.deepcopy(MOCK_PIPELINE_TREE))
+        data = preview_template_tree_with_schemes(template, "v1", [1, 2, 3])
 
         MockPipelineTemplateWebPreviewer2.get_template_exclude_task_nodes_with_schemes.assert_called()
         MockPipelineTemplateWebPreviewer1.preview_pipeline_tree_exclude_task_nodes.assert_called()
-        MockTaskTemplate2.objects.get.assert_called_once_with(pk=2, is_deleted=False, project_id=1)
         self.assertEqual(
             data,
             {
