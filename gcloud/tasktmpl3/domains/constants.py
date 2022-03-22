@@ -72,8 +72,35 @@ def get_constant_values(constants, extra_data):
     return constant_values
 
 
-def analysis_pipeline_constants_ref(pipeline_tree):
+def _system_constants_to_mako_str(value):
+    """
+    将内置系统变量(_system.xxx)转换为可用于mako渲染统计的变量(_system点xxx)
+    """
+    if isinstance(value, dict):
+        for k, v in value.items():
+            value[k] = _system_constants_to_mako_str(v)
 
+    if isinstance(value, list):
+        for i, v in enumerate(value):
+            value[i] = _system_constants_to_mako_str(v)
+
+    if isinstance(value, str):
+        return value.replace("_system.", "_system点") if "_system." in value else value
+
+    return value
+
+
+def _mako_str_to_system_constants(value):
+    """
+    将用于mako渲染统计的变量(_system点xxx)还原为内置系统变量(_system.xxx)
+    """
+    if isinstance(value, str):
+        return value.replace("_system点", "_system.") if "_system点" in value else value
+
+    return value
+
+
+def analysis_pipeline_constants_ref(pipeline_tree):
     result = {key: {"activities": [], "conditions": [], "constants": []} for key in pipeline_tree.get("constants", {})}
 
     def ref_counter(key):
@@ -83,15 +110,19 @@ def analysis_pipeline_constants_ref(pipeline_tree):
         if act["type"] == "SubProcess":
             subproc_consts = act.get("constants", {})
             for key, info in subproc_consts.items():
-                refs = ConstantTemplate(info["value"]).get_reference()
+                value = _system_constants_to_mako_str(info["value"])
+                refs = ConstantTemplate(value).get_reference()
                 for r in refs:
+                    r = _mako_str_to_system_constants(r)
                     ref_counter(r)["activities"].append(act_id)
 
         elif act["type"] == "ServiceActivity":
             act_data = act.get("component", {}).get("data", {})
             for data_item in act_data.values():
-                refs = ConstantTemplate(data_item["value"]).get_reference()
+                value = _system_constants_to_mako_str(data_item["value"])
+                refs = ConstantTemplate(value).get_reference()
                 for r in refs:
+                    r = _mako_str_to_system_constants(r)
                     ref_counter(r)["activities"].append(act_id)
 
     for gateway in pipeline_tree.get("gateways", {}).values():
@@ -99,13 +130,17 @@ def analysis_pipeline_constants_ref(pipeline_tree):
             continue
 
         for condition_id, condition in gateway.get("conditions", {}).items():
-            refs = ConstantTemplate(condition["evaluate"]).get_reference()
+            value = _system_constants_to_mako_str(condition["evaluate"])
+            refs = ConstantTemplate(value).get_reference()
             for r in refs:
+                r = _mako_str_to_system_constants(r)
                 ref_counter(r)["conditions"].append(condition_id)
 
     for key, const in pipeline_tree.get("constants", {}).items():
-        refs = ConstantTemplate(const.get("value")).get_reference()
+        value = _system_constants_to_mako_str(const.get("value"))
+        refs = ConstantTemplate(value).get_reference()
         for r in refs:
+            r = _mako_str_to_system_constants(r)
             ref_counter(r)["constants"].append(key)
 
     return result
