@@ -12,7 +12,10 @@
 <template>
     <div class="variable-item">
         <div class="variable-content" @click="onEditVariable(variableData.key, variableData.index)">
-            <i v-if="!isSystemVar && !isProjectVar && !showCitedList" class="col-item-drag bk-icon icon-sort"></i>
+            <i v-if="!isSystemVar && !isProjectVar && !showCitedList" class="col-item-drag common-icon-drawable f16"></i>
+            <span v-if="!isSystemVar && !isProjectVar" @click.stop class="col-item-checkbox">
+                <bk-checkbox :value="variableChecked" @change="onChooseVariable"></bk-checkbox>
+            </span>
             <i v-if="isSystemVar" class="variable-icon common-icon-lock-disable"></i>
             <i v-if="isProjectVar" class="variable-icon common-icon-paper"></i>
             <span class="col-item col-name" v-bk-overflow-tips="{ distance: 0 }">
@@ -128,7 +131,8 @@
             outputed: Boolean,
             variableData: Object,
             common: [String, Number],
-            variableCited: Object
+            variableCited: Object,
+            variableChecked: Boolean
         },
         data () {
             return {
@@ -283,6 +287,9 @@
             },
             onCloneVariable () {
                 this.$emit('onCloneVariable', this.variableData)
+            },
+            onChooseVariable (value) {
+                this.$emit('onChooseVariable', this.variableData, value)
             }
         }
     }
@@ -328,7 +335,7 @@ $localBorderColor: #d8e2e7;
     }
     .variable-content {
         position: relative;
-        padding-left: 50px;
+        padding-left: 55px;
         display: flex;
         height: 42px;
         line-height: 42px;
@@ -404,14 +411,20 @@ $localBorderColor: #d8e2e7;
 .col-item-drag {
     display: none;
     position: absolute;
+    margin-top: 1px;
     top: 50%;
-    left: 20px;
+    left: 5px;
     transform: translate(0, -50%);
     color: #979ba5;
     cursor: move;
     &:hover {
         color: #348aff;
     }
+}
+.col-item-checkbox {
+    display: inline-block;
+    position: absolute;
+    left: 28px;
 }
 .col-name {
     overflow: hidden;
@@ -464,7 +477,8 @@ $localBorderColor: #d8e2e7;
 .variable-icon {
     position: absolute;
     top: 50%;
-    left: 20px;
+    left: 28px;
+    font-size: 16px;
     transform: translate(0, -50%);
     color: #979ba5;
 }
