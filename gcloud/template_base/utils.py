@@ -63,7 +63,7 @@ def replace_template_id(template_model, pipeline_data, reverse=False):
     for act_id, act in list(activities.items()):
         if act["type"] == PE.SubProcess:
             subprocess_template_model = (
-                apps.get_model("template", "CommonTemplate") if act.get("template_type") == COMMON else template_model
+                apps.get_model("template", "CommonTemplate") if act.get("template_source") == COMMON else template_model
             )
             if not reverse:
                 act["template_id"] = subprocess_template_model.objects.get(
