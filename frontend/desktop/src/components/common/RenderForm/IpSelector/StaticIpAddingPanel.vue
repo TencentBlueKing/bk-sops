@@ -240,7 +240,8 @@
                     this.selectedIp = []
                     this.listAllSelected = false
                 } else {
-                    this.selectedIp = [...this.staticIpList]
+                    const list = this.isSearchMode ? this.searchResult : this.list
+                    this.selectedIp = [...list]
                     this.listAllSelected = true
                 }
             },
