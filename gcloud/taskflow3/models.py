@@ -23,6 +23,7 @@ from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.constants import PE
+from pipeline.eri.runtime import BambooDjangoRuntime
 from pipeline.models import PipelineInstance
 from pipeline.engine import states
 
@@ -1045,9 +1046,12 @@ class TaskFlowInstance(models.Model):
             )
             return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
+        runtime = BambooDjangoRuntime()
+        inputs["is_send_fail_message"] = False
+        runtime.set_execution_data_inputs(node_id, inputs)
         dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
-
-        action_result = dispatcher.dispatch(command="forced_fail", operator=username)
+        inputs.pop("is_send_fail_message", "")
+        action_result = dispatcher.dispatch(command="forced_fail", operator=username, inputs=inputs)
         if not action_result["result"]:
             return action_result
 

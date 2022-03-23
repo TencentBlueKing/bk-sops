@@ -29,6 +29,7 @@ from gcloud.taskflow3.models import TaskFlowInstance, AutoRetryNodeStrategy, Eng
 from gcloud.taskflow3.signals import taskflow_finished, taskflow_revoked
 from gcloud.taskflow3.celery.tasks import send_taskflow_message, auto_retry_node
 from gcloud.shortcuts.message import ATOM_FAILED, TASK_FINISHED
+import env
 
 logger = logging.getLogger("celery")
 
@@ -59,11 +60,22 @@ def _send_node_fail_message(node_id, pipeline_id):
         return
 
     try:
+
         activity = taskflow.get_act_web_info(node_id)
         # is not activity
         if not activity:
             return
         activity_name = activity["name"]
+        plugin_code = activity.get("component", {}).get("code", "")
+
+        if plugin_code in env.CONFIG_SEND_FAIL_MESSAGE_PLUGIN_LIST:
+            result = taskflow.get_node_data(node_id, taskflow.executor)
+            if result["result"]:
+                inputs = result["data"].get("inputs", {})
+                is_send_fail_message = inputs.get("is_send_fail_message", True)
+                if not is_send_fail_message:
+                    return
+
         send_taskflow_message.delay(task_id=taskflow.id, msg_type=ATOM_FAILED, node_name=activity_name)
     except Exception as e:
         logger.exception("pipeline_fail_handler[taskflow_id=%s] task delay error: %s" % (taskflow.id, e))
