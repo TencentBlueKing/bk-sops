@@ -1519,6 +1519,7 @@
             setRunningNode (node = {}) {
                 this.tabIconState
                     = Object.keys(node).some(key => (node[key].state === 'RUNNING'
+                        && this.pipelineData.activities[key]
                         && this.pipelineData.activities[key].type === 'ServiceActivity'
                         && this.pipelineData.activities[key].component.code === 'pause_node'))
                         ? 'SUSPENDED'
