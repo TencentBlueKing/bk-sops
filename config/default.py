@@ -144,6 +144,9 @@ MIDDLEWARE += (
     "django_prometheus.middleware.PrometheusAfterMiddleware",
 )
 
+# 默认数据库AUTO字段类型
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = ()
 if env.BKAPP_CORS_ALLOW:

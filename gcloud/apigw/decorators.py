@@ -16,7 +16,6 @@ from functools import wraps
 import ujson as json
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
-from django.utils.decorators import available_attrs
 
 from gcloud import err_code
 from gcloud.conf import settings
@@ -48,7 +47,7 @@ def inject_user(request):
 
 
 def mark_request_whether_is_trust(view_func):
-    @wraps(view_func, assigned=available_attrs(view_func))
+    @wraps(view_func)
     def wrapper(request, *args, **kwargs):
 
         setattr(request, "is_trust", check_white_apps(request))
@@ -74,7 +73,7 @@ def _get_project_scope_from_request(request):
 
 
 def project_inject(view_func):
-    @wraps(view_func, assigned=available_attrs(view_func))
+    @wraps(view_func)
     def wrapper(request, *args, **kwargs):
 
         obj_id = kwargs.get("project_id")
