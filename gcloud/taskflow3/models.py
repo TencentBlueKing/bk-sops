@@ -1051,7 +1051,7 @@ class TaskFlowInstance(models.Model):
         runtime.set_execution_data_inputs(node_id, inputs)
         dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
         inputs.pop("is_send_fail_message", "")
-        action_result = dispatcher.dispatch(command="forced_fail", operator=username, inputs=inputs)
+        action_result = dispatcher.dispatch(command="forced_fail", operator=username)
         if not action_result["result"]:
             return action_result
 

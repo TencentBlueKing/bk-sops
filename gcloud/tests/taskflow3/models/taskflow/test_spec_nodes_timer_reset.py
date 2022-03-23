@@ -42,7 +42,7 @@ class SpecNodesTimerResetTestCase(TestCase):
 
         node_id = "node_id"
         username = "username"
-        inputs = "inputs"
+        inputs = {}
 
         with patch(TASKFLOW_MODEL_NODE_CMD_DISPATCHER, dispatcher_init):
             detail = taskflow.spec_nodes_timer_reset(node_id=node_id, username=username, inputs=inputs)
@@ -64,14 +64,14 @@ class SpecNodesTimerResetTestCase(TestCase):
 
         node_id = "node_id"
         username = "username"
-        inputs = "inputs"
+        inputs = {}
 
         with patch(TASKFLOW_MODEL_NODE_CMD_DISPATCHER, dispatcher_init):
             detail = taskflow.spec_nodes_timer_reset(node_id=node_id, username=username, inputs=inputs)
 
         dispatcher_init.assert_called_once_with(engine_ver=taskflow.engine_ver, node_id=node_id, taskflow_id=1)
         dispatcher.dispatch.assert_has_calls(
-            [call(command="forced_fail", operator=username), call(command="retry", operator=username, inputs="inputs")]
+            [call(command="forced_fail", operator=username), call(command="retry", operator=username, inputs={})]
         )
         self.assertEqual(detail, retry_return)
 
@@ -87,13 +87,13 @@ class SpecNodesTimerResetTestCase(TestCase):
 
         node_id = "node_id"
         username = "username"
-        inputs = "inputs"
+        inputs = {}
 
         with patch(TASKFLOW_MODEL_NODE_CMD_DISPATCHER, dispatcher_init):
             detail = taskflow.spec_nodes_timer_reset(node_id=node_id, username=username, inputs=inputs)
 
         dispatcher_init.assert_called_once_with(engine_ver=taskflow.engine_ver, node_id=node_id, taskflow_id=1)
         dispatcher.dispatch.assert_has_calls(
-            [call(command="forced_fail", operator=username), call(command="retry", operator=username, inputs="inputs")]
+            [call(command="forced_fail", operator=username), call(command="retry", operator=username, inputs={})]
         )
         self.assertEqual(detail, dispatch_return)
