@@ -15,7 +15,6 @@ import os
 from functools import wraps
 
 from django.http import JsonResponse
-from django.utils.decorators import available_attrs
 from .utils import FancyDict
 
 try:
@@ -28,7 +27,7 @@ def apigw_required(view_func):
     """apigw装饰器
     """
 
-    @wraps(view_func, assigned=available_attrs(view_func))
+    @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
 
         request.jwt = JWTClient(request)
