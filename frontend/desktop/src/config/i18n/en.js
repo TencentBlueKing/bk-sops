@@ -1308,7 +1308,8 @@ const en = {
     '变量配置': 'variable config',
     '变量复用': 'varibale reuse',
     '手动创建': 'manual create',
-    '自动创建': 'auto create'
+    '自动创建': 'auto create',
+    '模板预渲染为是的变量，会在开始节点执行时就完成渲染，引用了节点输出的变量开启预渲染后会渲染失败': 'If the template pre-rendering is a yes variable, the rendering will be completed when the node starts executing. If the pre rendering is enabled, the rendering will fail'
 }
 
 export default en
