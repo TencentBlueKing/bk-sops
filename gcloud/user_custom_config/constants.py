@@ -14,8 +14,8 @@ specific language governing permissions and limitations under the License.
 
 TASKTMPL_ORDERBY_OPTIONS = [
     {"name": "模板ID", "value": "id"},
-    {"name": "创建时间", "value": "create_time"},
-    {"name": "修改时间", "value": "edit_time"},
+    {"name": "创建时间", "value": "pipeline_template__create_time"},
+    {"name": "修改时间", "value": "pipeline_template__edit_time"},
     {"name": "模板类型", "value": "category"},
 ]
 

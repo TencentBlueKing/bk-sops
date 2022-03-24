@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="task-manage">
+    <div class="task-manage" style="height: 100%;">
         <router-view></router-view>
     </div>
 </template>

@@ -49,6 +49,7 @@
         </div>
         <template v-if="Array.isArray(value) && !loading">
             <el-table
+                ref="tableEl"
                 style="width: 100%; font-size: 12px"
                 border
                 :data="dataList"
@@ -58,8 +59,7 @@
                 <template v-for="(item, cIndex) in cellColumns">
                     <el-table-column
                         v-if="'hidden' in item.attrs ? !item.attrs.hidden : true"
-                        :key="item.tag_code"
-                        :index="cIndex"
+                        :key="`${item.tag_code}_${cIndex}`"
                         :prop="item.tag_code"
                         :label="'name' in item.attrs ? item.attrs.name : ''"
                         :width="'width' in item.attrs ? item.attrs.width : ''"
@@ -74,8 +74,8 @@
                                 :option="getColumnOptions(scope.$index)"
                                 :value="scope.row[item.tag_code]"
                                 :parent-value="scope.row"
-                                @init="onInitColumn(scope, ...arguments)"
-                                @change="onEditColumn(scope, ...arguments)">
+                                @init="onInitColumn(scope.$index, cIndex, ...arguments)"
+                                @change="onEditColumn(scope.$index, cIndex, ...arguments)">
                             </component>
                         </template>
                     </el-table-column>
@@ -116,6 +116,7 @@
     import FormItem from '../FormItem.vue'
     import FormGroup from '../FormGroup.vue'
     import XLSX from 'xlsx'
+    import Sortable from 'sortablejs'
     import atomFilter from '@/utils/atomFilter.js'
     import bus from '@/utils/bus.js'
 
@@ -228,6 +229,12 @@
             require: false,
             default: function () {},
             desc: 'on table row click callback function'
+        },
+        row_draggable: {
+            type: Boolean,
+            require: false,
+            default: false,
+            desc: 'Whether table columns can be dragged'
         }
     }
     export default {
@@ -249,6 +256,7 @@
         mixins: [getFormMixins(attrs)],
         data () {
             return {
+                sortableIns: null, // 拖拽实例
                 cellColumns: [], // 单元格的 scheme 配置项
                 editRowNumber: undefined,
                 tableValue: tools.deepClone(this.value),
@@ -304,8 +312,45 @@
                 this.setOutputParams(this.value)
             }
             this.remoteMethod()
+            if (this.row_draggable) {
+                this.initRowDrag()
+            }
+        },
+        beforeDestroy () {
+            this.destroyRowDrag()
         },
         methods: {
+            // 初始化行拖拽
+            initRowDrag () {
+                const self = this
+                const $table = this.$refs.tableEl.$el
+                this.destroyRowDrag()
+                if ($table) {
+                    const $el = $table.querySelector('.el-table__body-wrapper tbody')
+                    Sortable.create($el, {
+                        onEnd ({ oldIndex, newIndex }) {
+                            console.log('end', { oldIndex, newIndex })
+                            let offset = 0
+                            if (self.pagination) {
+                                offset = (self.currentPage - 1) * self.page_size
+                            }
+                            const startIdx = oldIndex + offset
+                            const endIdx = newIndex + offset
+                            const crtRow = self.tableValue.splice(startIdx, 1)[0]
+                            self.tableValue.splice(endIdx, 0, crtRow)
+                            console.log(self.tableValue)
+                            self.updateForm(self.tableValue)
+                        }
+                    })
+                }
+            },
+            // 销毁行拖拽实例
+            destroyRowDrag () {
+                if (this.sortableIns) {
+                    this.sortableIns.destroy()
+                    this.sortableIns = null
+                }
+            },
             formatJson (filterVal, jsonData) {
                 return jsonData.map(v => filterVal.map(j => v[j]))
             },
@@ -505,8 +550,8 @@
             onBtnClick (callback) {
                 typeof callback === 'function' && callback.bind(this)()
             },
-            onInitColumn (scope, val) {
-                this.triggerSameRowEvent('init', scope.$index, scope.column.index, val)
+            onInitColumn (row, col, val) {
+                this.triggerSameRowEvent('init', row, col, val)
             },
             onEdit (index, row) {
                 if (this.pagination) {
@@ -514,10 +559,10 @@
                 }
                 this.editRowNumber = index
             },
-            onEditColumn (scope, fieldsArr, val) {
+            onEditColumn (row, col, fieldsArr, val) {
                 const field = fieldsArr.slice(-1)
                 this.$set(this.tableValue[this.editRowNumber], field, val)
-                this.triggerSameRowEvent('change', scope.$index, scope.column.index, val)
+                this.triggerSameRowEvent('change', row, col, val)
             },
             onDelete (index, row) {
                 if (this.pagination) {

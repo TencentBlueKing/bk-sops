@@ -21,6 +21,12 @@
             @input="onSearchInput"
             @clear="onClearSearch">
         </bk-input>
+        <p
+            v-if="bkPluginDevelopUrl"
+            class="jump-link"
+            @click="jumpToPluginDevelop">
+            {{ $t('找不到想要的插件？可以尝试自己动手开发！') }}
+        </p>
         <!-- 内置插件/第三方插件tab -->
         <bk-tab
             v-if="!isSubflow"
@@ -67,7 +73,7 @@
                 </template>
                 <no-data v-else></no-data>
             </template>
-            <div v-else class="subflow-list">
+            <div v-else class="subflow-list" v-bkloading="{ isLoading: subAtomListLoading, zIndex: 10 }">
                 <div class="list-table">
                     <div class="table-head">
                         <div class="th-item tpl-name">{{ $t('流程名称') }}</div>
@@ -137,10 +143,10 @@
                             </div>
                         </div>
                     </div>
-                    <div class="tpl-list" v-bkloading="{ isLoading: sublistLoading || searchLoading, zIndex: 10 }">
-                        <template v-if="listInPanel.length > 0">
+                    <div class="tpl-list">
+                        <template v-if="atomTypeList.subflow.length > 0">
                             <div
-                                v-for="item in listInPanel"
+                                v-for="item in atomTypeList.subflow"
                                 v-cursor="{ active: !item.hasPermission }"
                                 :class="['tpl-item', {
                                     'active': getSelectedStatus(item),
@@ -213,7 +219,6 @@
         mixins: [permission],
         props: {
             project_id: [String, Number],
-            sublistLoading: Boolean,
             templateLabels: Array, // 模板标签
             atomTypeList: Object,
             isSubflow: Boolean,
@@ -223,7 +228,7 @@
             pluginLoading: Boolean
         },
         data () {
-            const listData = this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
+            const listData = this.atomTypeList.tasknode
             const curPluginTab = this.isThirdParty ? 'third_party_plugin' : 'build_in_plugin'
             return {
                 curPluginTab,
@@ -237,7 +242,16 @@
                 isLabelSelectorOpen: false,
                 activeGroup: this.isSubflow ? '' : this.getDefaultActiveGroup(),
                 searchLoading: false,
-                scrollDom: null
+                scrollDom: null,
+                subAtomListLoading: false,
+                totalPage: 0,
+                currentPage: 0,
+                limit: Math.ceil(((window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight) - 120) / 40) + 5, // 浏览器高度判断每次请求数量
+                offset: 0,
+                isPageOver: false,
+                isThrottled: false, // 滚动节流 是否进入cd
+                pollingTimer: null,
+                subflowListDom: null
             }
         },
         computed: {
@@ -261,20 +275,35 @@
                     return this.templateLabels.find(item => item.id === this.activeGroup).name
                 }
                 return ''
+            },
+            bkPluginDevelopUrl () {
+                return window.BK_PLUGIN_DEVELOP_URL
             }
         },
         created () {
+            if (this.isSubflow) {
+                this.getSubflowList()
+            }
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         mounted () {
             this.$nextTick(() => {
-                this.scrollDom = document.querySelector('.third-party-list')
-                if (this.scrollDom) {
-                    this.scrollDom.addEventListener('scroll', this.handlePluginScroll)
+                if (this.isSubflow) {
+                    const subflowListDom = document.querySelector('.tpl-list')
+                    subflowListDom && subflowListDom.addEventListener('scroll', this.handleSubflowScroll)
+                    this.subflowListDom = subflowListDom
+                } else {
+                    this.scrollDom = document.querySelector('.third-party-list')
+                    if (this.scrollDom) {
+                        this.scrollDom.addEventListener('scroll', this.handlePluginScroll)
+                    }
                 }
             })
         },
         beforeDestroy () {
+            if (this.subflowListDom) {
+                this.subflowListDom.removeEventListener('scroll', this.handleSubflowScroll)
+            }
             if (this.scrollDom) {
                 this.scrollDom.removeEventListener('scroll', this.handlePluginScroll)
             }
@@ -327,6 +356,89 @@
                 }
                 return { color: '#000000', minWidth: 'unset', padding: '2px' }
             },
+            async getSubflowList (isScroll) {
+                if (this.subAtomListLoading) return
+                this.subAtomListLoading = true
+                const { params } = this.$route
+                try {
+                    const searchStr = this.escapeRegExp(this.searchStr)
+                    const labels = this.activeGroup
+                    const data = {
+                        label_ids: labels || undefined,
+                        pipeline_template__name__icontains: searchStr || undefined,
+                        project__id: params.project_id,
+                        common: this.common,
+                        limit: this.limit,
+                        offset: this.currentPage * this.limit
+                    }
+                    const resp = await this.loadTemplateList(data)
+                    this.totalPage = Math.floor(resp.count / this.limit)
+                    const list = this.handleSubflowList(resp)
+                    if (labels || searchStr) {
+                        const result = []
+                        list.forEach(tpl => {
+                            let matchLabel = true
+                            let matchName = true
+                            const tplCopy = { ...tpl }
+                            if (labels) {
+                                matchLabel = tpl.template_labels.find(label => label.label_id === Number(labels))
+                            }
+                            if (searchStr !== '') {
+                                const reg = new RegExp(searchStr, 'i')
+                                if (!reg.test(tpl.name)) {
+                                    matchName = false
+                                } else {
+                                    tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff5757;">${searchStr}</span>`)
+                                }
+                            }
+                            if (matchLabel && matchName) {
+                                result.push(tplCopy)
+                            }
+                        })
+                        if (isScroll) {
+                            this.atomTypeList.subflow.push(...result)
+                        } else {
+                            this.atomTypeList.subflow = [...result]
+                        }
+                    } else if (isScroll) {
+                        this.atomTypeList.subflow.push(...list)
+                    } else {
+                        this.atomTypeList.subflow = [...list]
+                    }
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.subAtomListLoading = false
+                }
+            },
+            handleSubflowList (data) {
+                const list = []
+                const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
+                const { params, query } = this.$route
+                data.results.forEach(item => {
+                    // 克隆模板可以引用被克隆的模板，模板不可以引用自己
+                    if (params.type === 'clone' || item.id !== Number(query.template_id)) {
+                        item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
+                        list.push(item)
+                    }
+                })
+                return list
+            },
+            handleSubflowScroll () {
+                if (!this.isPageOver && !this.isThrottled) {
+                    this.isThrottled = true
+                    this.pollingTimer = setTimeout(() => {
+                        this.isThrottled = false
+                        const el = this.subflowListDom
+                        if (el.scrollHeight - el.offsetHeight - el.scrollTop < 10) {
+                            this.currentPage += 1
+                            this.isPageOver = this.currentPage === this.totalPage
+                            clearTimeout(this.pollingTimer)
+                            this.getSubflowList(true)
+                        }
+                    }, 500)
+                }
+            },
             /**
              * 选择插件分组
              */
@@ -348,10 +460,17 @@
                         }
                     })
                 }
-                if (!isThirdParty && this.searchStr) {
+                if (this.searchStr) {
                     this.searchStr = ''
-                    this.$emit('updatePluginList', undefined, 'search')
+                    if (isThirdParty) {
+                        this.listInPanel = toolsUtils.deepClone(this.listData)
+                    } else {
+                        this.$emit('updatePluginList', undefined, 'search')
+                    }
                 }
+            },
+            jumpToPluginDevelop () {
+                window.open(this.bkPluginDevelopUrl, '_blank')
             },
             onClearSearch () {
                 this.searchInputhandler()
@@ -401,66 +520,17 @@
                             this.activeGroup = result[0].type
                         }
                     }
-                } else if (this.searchStr !== '') {
-                    this.searchLoading = true
-                    try {
-                        const searchStr = this.escapeRegExp(this.searchStr)
-                        const reg = new RegExp(searchStr, 'i')
-                        const data = {
-                            pipeline_template__name__icontains: this.searchStr || undefined
-                        }
-                        if (this.common) {
-                            data.common = 1
-                        } else {
-                            data.project__id = this.project_id
-                        }
-                        const resp = await this.loadTemplateList(data)
-                        this.handleSubflowList(resp).forEach(tpl => {
-                            let matchLabel = true
-                            let matchName = true
-                            const tplCopy = { ...tpl }
-                            if (this.activeGroup) {
-                                matchLabel = tpl.template_labels.find(label => label.label_id === Number(this.activeGroup))
-                            }
-                            if (this.searchStr !== '') {
-                                if (!reg.test(tpl.name)) {
-                                    matchName = false
-                                } else {
-                                    tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
-                                }
-                            }
-                            if (matchLabel && matchName) {
-                                result.push(tplCopy)
-                            }
-                        })
-                    } catch (e) {
-                        console.log(e)
-                    } finally {
-                        this.searchLoading = false
-                    }
+                    this.listInPanel = result
                 } else {
-                    result = this.listData
+                    this.currentPage = 0
+                    this.getSubflowList()
                 }
-
-                this.listInPanel = result
             },
             escapeRegExp (str) {
                 if (typeof str !== 'string') {
                     return ''
                 }
                 return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')
-            },
-            handleSubflowList (data) {
-                const list = []
-                const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
-                data.objects.forEach(item => {
-                    // 克隆模板可以引用被克隆的模板，模板不可以引用自己
-                    if (this.type === 'clone' || item.id !== Number(this.template_id)) {
-                        item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
-                        list.push(item)
-                    }
-                })
-                return list
             },
             handleLabelSelectorOpen () {
                 this.isLabelSelectorOpen = true
@@ -551,6 +621,15 @@
     top: -45px;
     right: 20px;
     width: 300px;
+}
+.jump-link {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    z-index: 2;
+    font-size: 12px;
+    color: #3a84ff;
+    cursor: pointer;
 }
 .list-wrapper {
     height: calc(100vh - 102px);

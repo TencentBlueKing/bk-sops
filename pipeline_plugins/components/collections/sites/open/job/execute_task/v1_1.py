@@ -17,6 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 from .execute_task_base import JobExecuteTaskServiceBase
 from ..base import GetJobHistoryResultMixin
 from pipeline.component_framework.component import Component
+from pipeline.core.flow.io import StringItemSchema, BooleanItemSchema
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
@@ -28,6 +29,26 @@ job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
 class JobExecuteTaskService(JobExecuteTaskServiceBase, GetJobHistoryResultMixin):
+    def inputs_format(self):
+        return super(JobExecuteTaskServiceBase, self).inputs_format() + [
+            self.InputItem(
+                name=_("IP Tag 分组"),
+                key="is_tagged_ip",
+                type="boolean",
+                schema=BooleanItemSchema(description=_("是否对 IP 进行 Tag 分组")),
+            ),
+        ]
+
+    def outputs_format(self):
+        return super(JobExecuteTaskServiceBase, self).outputs_format() + [
+            self.OutputItem(
+                name=_("JOB执行IP分组"),
+                key="job_tagged_ip_dict",
+                type="string",
+                schema=StringItemSchema(description=_("根据JOB步骤执行标签获取的IP分组")),
+            ),
+        ]
+
     def execute(self, data, parent_data):
         job_success_id = data.get_one_of_inputs("job_success_id")
         if not job_success_id:
@@ -46,6 +67,8 @@ class JobExecuteTaskComponent(Component):
     form = "%scomponents/atoms/job/execute_task/v1_1.js" % settings.STATIC_URL
     output_form = "%scomponents/atoms/job/job_execute_task_output.js" % settings.STATIC_URL
     version = "1.1"
-    desc = "1.当用户选择JOB成功历史后，插件将不再创建新的JOB实例，直接继承JOB成功状态." \
-           "2.在接收到用户编辑的全局变量后，v1.0及以上版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n" \
-           "如果不需要双引号包裹，可以使用legacy版本插件，也可以手动在表格中去掉。"
+    desc = (
+        "1.当用户选择JOB成功历史后，插件将不再创建新的JOB实例，直接继承JOB成功状态."
+        "2.在接收到用户编辑的全局变量后，v1.0及以上版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n"
+        "如果不需要双引号包裹，可以使用legacy版本插件，也可以手动在表格中去掉。"
+    )

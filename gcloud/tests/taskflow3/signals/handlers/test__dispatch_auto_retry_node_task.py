@@ -56,6 +56,7 @@ class DispatchAutoRetryNodeTaskTestCase(TestCase):
             },
             queue="node_auto_retry",
             routing_key="node_auto_retry",
+            countdown=0,
         )
 
     def test_success(self):
@@ -63,7 +64,12 @@ class DispatchAutoRetryNodeTaskTestCase(TestCase):
         node_id = "node"
         engine_ver = 2
         strategy = AutoRetryNodeStrategy.objects.create(
-            taskflow_id=1, root_pipeline_id=root_pipeline_id, node_id=node_id, retry_times=2, max_retry_times=10
+            taskflow_id=1,
+            root_pipeline_id=root_pipeline_id,
+            node_id=node_id,
+            retry_times=2,
+            max_retry_times=10,
+            interval=2,
         )
         auto_retry_node = MagicMock()
 
@@ -81,4 +87,5 @@ class DispatchAutoRetryNodeTaskTestCase(TestCase):
             },
             queue="node_auto_retry",
             routing_key="node_auto_retry",
+            countdown=2,
         )

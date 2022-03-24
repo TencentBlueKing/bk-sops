@@ -469,7 +469,15 @@
             if (this.type === 'edit' || this.type === 'clone') {
                 this.getTemplateData()
             } else {
-                const name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
+                let name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
+                if (this.common) {
+                    if (window.TIMEZONE) {
+                        name = 'new' + moment.tz(window.TIMEZONE).format('YYYYMMDDHHmmss')
+                    } else {
+                        // 无时区的公共流程使用本地的时间
+                        name = 'new' + moment().format('YYYYMMDDHHmmss')
+                    }
+                }
                 this.setTemplateName(name)
                 this.templateDataLoading = false
             }
@@ -503,11 +511,13 @@
                 'loadInternalVariable',
                 'getVariableCite'
             ]),
+            ...mapActions('task', [
+                'loadSubflowConfig'
+            ]),
             ...mapActions('atomForm/', [
                 'loadSingleAtomList',
                 'loadSubflowList',
                 'loadAtomConfig',
-                'loadSubflowConfig',
                 'loadPluginServiceList',
                 'loadPluginServiceMeta'
             ]),
@@ -671,9 +681,15 @@
              */
             async getSubflowConfig (location) { // get subflow constants and add node
                 try {
-                    const res = await this.loadSubflowConfig({ templateId: location.atomId, version: location.atomVersion, common: this.common })
-                    const constants = tools.deepClone(res.data.form)
-                    const activities = tools.deepClone(this.activities[location.id])
+                    const params = {
+                        project_id: this.project_id,
+                        template_id: location.atomId,
+                        scheme_id_list: [],
+                        version: ''
+                    }
+                    const res = await this.loadSubflowConfig(params)
+                    const constants = tools.deepClone(res.data.pipeline_tree.constants)
+                    const activity = tools.deepClone(this.activities[location.id])
                     const project_id = this.common ? undefined : this.project_id
                     for (const key in constants) {
                         const form = constants[key]
@@ -695,8 +711,8 @@
                             }
                         }
                     }
-                    activities.constants = constants || {}
-                    this.setActivities({ type: 'edit', location: activities })
+                    activity.constants = constants || {}
+                    this.setActivities({ type: 'edit', location: activity })
                 } catch (e) {
                     console.log(e)
                 }
@@ -769,6 +785,10 @@
 
                 try {
                     const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
+                    if (this.type === 'new') {
+                        this.type = 'edit'
+                        this.template_id = data.template_id
+                    }
                     this.tplActions = data.auth_actions
                     this.$bkMessage({
                         message: i18n.t('保存成功'),

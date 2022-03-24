@@ -9,9 +9,9 @@
                 <span>{{$t('执行方案')}}</span>
                 <i @click="toggleSchemePanel" class="bk-icon icon-close-line"></i>
             </div>
-            <div class="scheme-active-wrapper">
+            <div class="scheme-active-wrapper" v-if="!isPreviewMode">
                 <div>
-                    <bk-button data-test-id="createTask_form_createScheme" :disabled="isCommonProcess" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
+                    <bk-button data-test-id="createTask_form_createScheme" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
                     <bk-button data-test-id="createTask_form_importTemporaryPlan" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
                 </div>
                 <bk-button data-test-id="createTask_form_togglePreview" @click="onChangePreviewNode">{{ isPreview ? $t('关闭预览') : $t('节点预览')}}</bk-button>
@@ -449,7 +449,6 @@
             justify-content: space-between;
             font-size: 16px;
             color: #313238;
-            border-bottom: 1px solid #dcdee5;
             .icon-close-line {
                 color: #63656e;
                 font-size: 14px;
@@ -465,7 +464,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin: 16px 0px 15px;
+            padding: 16px 0px 15px;
+            border-top: 1px solid #dcdee5;
             /deep/.bk-button {
                 width: auto;
                 margin-left: 10px;

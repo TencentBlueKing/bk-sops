@@ -42,7 +42,6 @@
                         v-bkloading="{ isLoading: isLoading, opacity: 1, zIndex: 100 }"
                         class="task-param-wrapper"
                         ref="TaskParamEdit"
-                        :form-data="renderData"
                         :constants="constants">
                     </TaskParamEdit>
                 </section>
@@ -139,7 +138,6 @@
                 },
                 saveLoading: false,
                 constants: {},
-                renderData: {},
                 isShowDialog: false
             }
         },
@@ -177,11 +175,15 @@
                         template_source: 'project'
                     }
                     const resp = await this.loadPreviewNodeData(params)
-                    this.constants = resp.data.pipeline_tree.constants
-                    this.renderData = {}
-                    Object.keys(this.constants).forEach(key => {
-                        this.renderData[key] = taskParams.constants[key]
-                    })
+                    const { constants } = resp.data.pipeline_tree
+                    this.constants = Object.values(constants).reduce((acc, cur) => {
+                        acc[cur.key] = {
+                            ...cur,
+                            meta: { ...cur },
+                            value: taskParams.constants[cur.key]
+                        }
+                        return acc
+                    }, {})
                 } catch (error) {
                     console.warn(error)
                 } finally {

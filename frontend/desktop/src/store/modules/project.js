@@ -55,17 +55,19 @@ const project = {
             return axios.post(`core/api/change_default_project/${id}/`).then(response => response.data)
         },
         // 加载用户有权限的项目列表
-        loadUserProjectList ({ state, commit }, params) {
+        loadUserProjectList ({ state, commit }, params = {}) {
             return axios.get(`api/v3/user_project/`, { params }).then((response) => {
-                if (params.limit === 0) { // 拉全量项目时更新项目列表，区分项目管理页面的分页数据
-                    commit('setUserProjectList', response.data.objects)
+                // 不传limit代表拉取全量列表
+                if (!('limit' in params)) { // 拉全量项目时更新项目列表，区分项目管理页面的分页数据
+                    commit('setUserProjectList', response.data.data)
+                    return { results: response.data.data }
                 }
-                return response.data
+                return response.data.data
             })
         },
         // 获取常用业务
         loadCommonProject ({ commit }, data) {
-            return axios.get('api/v3/common_use_project/').then(response => response.data)
+            return axios.get('api/v3/common_project/').then(response => response.data.data)
         },
         // 获取环境变量列表
         loadEnvVariableList ({ commit }, params) {
@@ -95,7 +97,7 @@ const project = {
             }).then(response => response.data)
         },
         loadProjectDetail ({ commit }, id) {
-            return axios.get(`api/v3/project/${id}/`).then(response => response.data)
+            return axios.get(`api/v3/project/${id}/`).then(response => response.data.data)
         },
         // 更新项目详情
         updateProject ({ commit }, data) {

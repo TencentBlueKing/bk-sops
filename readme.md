@@ -47,7 +47,7 @@
 
 
 ## Usage
-- [API使用说明](docs/apidoc/readme.md)
+- [API使用说明](https://bk.tencent.com/docs/document/6.0/167/13157)
 - [标准插件说明](docs/features/plugin_usage.md)
 - [标准插件远程加载](docs/features/remote_plugins.md)
 - [变量引擎](docs/features/variables_engine.md)

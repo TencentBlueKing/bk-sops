@@ -201,6 +201,7 @@ Table. Used to display multiple lines of data in parallel. It supports loading r
     + row, eg: { key1:'value1',key2:'value2' }
     + column, eg: { label: 'name', property: 'key1' }
     + event
+  - `row_draggable`: Whether table rows can be dragged
   - `pagination`: pagination display of table data, not displayed by default (false).
   - `page_size`: when the table is displayed in pages, the number of items displayed in each page. Default: 10 items per page.
   - `value`: table value

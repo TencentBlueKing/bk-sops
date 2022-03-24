@@ -13,16 +13,14 @@
             <slot></slot>
         </section>
         <section class="chart-wrapper">
-            <div class="canvas-content">
-                <template v-if="hasAmountBizTotal">
-                    <canvas :class="`${canvasId}-canvas`" style="height: 240px; width: 240px"></canvas>
-                    <div class="center-circle">
-                        <span class="total">{{ statsInfo.total }}</span>
-                        <span class="desc">{{ statsInfo.name + $t('总数') }}</span>
-                    </div>
-                </template>
-                <no-data v-else></no-data>
+            <div class="canvas-content" v-if="hasAmountBizTotal">
+                <canvas :class="`${canvasId}-canvas`" style="height: 240px; width: 240px"></canvas>
+                <div class="center-circle">
+                    <span class="total">{{ statsInfo.total }}</span>
+                    <span class="desc">{{ statsInfo.name + $t('总数') }}</span>
+                </div>
             </div>
+            <no-data class="canvas-content" v-else></no-data>
             <div class="percent-table">
                 <bk-table
                     :data="statsList"
@@ -153,13 +151,13 @@
                     const statsList = info.map(item => {
                         item.color = this.randomColor()
                         item.amount = item.value
-                        item.percentage = Math.round(item.value / total * 10000) / 100.00 + '%'
+                        item.percentage = total ? (Math.round(item.value / total * 10000) / 100.00 + '%') : '0%'
                         return item
                     })
                     statsList.push({
                         name: i18n.t('总计'),
                         amount: total,
-                        percentage: '100%'
+                        percentage: total ? '100%' : '0%'
                     })
                     this.statsList = statsList
                     this.statsObj[this.dimensionId] = {
@@ -192,6 +190,7 @@
             },
             initChart (labels, backgroundColor, data, counts) {
                 const context = document.querySelector(`.${this.canvasId}-canvas`)
+                if (!context) return
                 this.chart = new BKChart(context, {
                     type: 'doughnut',
                     data: {

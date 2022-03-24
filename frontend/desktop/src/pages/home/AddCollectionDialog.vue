@@ -157,6 +157,9 @@
             }
         },
         computed: {
+            ...mapState({
+                'username': state => state.username
+            }),
             ...mapState('project', {
                 projectList: state => state.userProjectList
             }),
@@ -272,21 +275,21 @@
                     project__id: projectId || undefined,
                     pipeline_template__name__icontains: searchStr || undefined
                 })
-                return data.objects || []
+                return data.results || []
             },
             async getAppMakerList (projectId, searchStr) {
                 const data = await this.loadAppmaker({
                     project__id: projectId,
                     q: searchStr || undefined
                 })
-                return data.objects || []
+                return data.results || []
             },
             async getPeriodicList (projectId, searchStr) {
                 const data = await this.loadPeriodicList({
                     project__id: projectId,
                     task__name__icontains: searchStr || undefined
                 })
-                return data.objects || []
+                return data.results || []
             },
             // 分组
             getGroupData (list, type) {
@@ -405,12 +408,14 @@
                     const extra_info = this.getExtraInfo(template, template.collectType, projectId)
                     return {
                         extra_info,
+                        instance_id: extra_info.id,
+                        username: this.username,
                         category: template.collectType
                     }
                 })
                 try {
                     const res = await this.addToCollectList(saveList)
-                    if (res.objects) {
+                    if (res.result) {
                         this.$bkMessage({
                             message: i18n.t('保存成功'),
                             theme: 'success'

@@ -68,14 +68,14 @@
                 try {
                     this.page += 1
                     const response = await this.getProjectList({ offset: this.offset, limit: this.limit })
-                    this.total = response.meta.total_count
+                    this.total = response.count
                     const totalPage = Math.ceil(this.total / this.limit)
                     if (this.page === totalPage) {
                         this.finished = true
                     } else {
                         this.offset = this.page * this.limit
                     }
-                    this.projectList = [...this.projectList, ...response.objects]
+                    this.projectList = [...this.projectList, ...response.results]
                     this.projectList.map(item => {
                         ({ tagColor: item.tagColor, tag: item.tag } = this.getTagColor(item))
                     })

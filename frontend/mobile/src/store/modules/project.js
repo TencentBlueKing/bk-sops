@@ -16,7 +16,7 @@ export default {
             const { limit, offset } = params
             return http.get('api/v3/weixin_user_project/', {
                 params: { limit, offset }
-            }).then(response => response)
+            }).then(response => response.data)
         }
     }
 }

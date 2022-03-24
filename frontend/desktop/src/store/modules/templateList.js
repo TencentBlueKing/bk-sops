@@ -30,7 +30,13 @@ const templateList = {
             }
             return axios.get(url, {
                 params: data
-            }).then(response => response.data)
+            }).then(response => {
+                if (!('limit' in data)) {
+                    return { results: response.data.data }
+                } else {
+                    return response.data.data
+                }
+            })
         },
         deleteTemplate ({ commit }, data) {
             const { templateId, common } = data
@@ -42,6 +48,19 @@ const templateList = {
             }
 
             return axios.delete(`${url}${templateId}/`).then(response => response.data.objects)
+        },
+        // 我收藏的流程模板
+        loadCollectTemplateList ({ commit }, data) {
+            return axios.get('api/v3/collection_template/', {
+                params: data
+            }).then(response => response.data)
+        },
+        // 批量取消收藏流程模板
+        batchCancelCollectTpl ({ commit }, data) {
+            const { projectId, cancelList } = data
+            return axios.post('collection/api/batch_cancel_collection/', {
+                project_id: projectId,
+                batch_cancel_collection_ids: cancelList }).then(response => response.data)
         },
         // 批量删除流程模板
         batchDeleteTpl ({ commit }, data) {

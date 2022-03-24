@@ -358,10 +358,10 @@
                         }
                     }
                     const auditListData = await this.loadAuditTaskList(data)
-                    const list = auditListData.objects
+                    const list = auditListData.results
                     this.auditList = list
-                    this.pagination.count = auditListData.meta.total_count
-                    this.totalCount = auditListData.meta.total_count
+                    this.pagination.count = auditListData.count
+                    this.totalCount = auditListData.count
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', list)
                 } catch (e) {
@@ -438,8 +438,8 @@
             async getProjectList () {
                 this.business.loading = true
                 try {
-                    const businessData = await this.loadUserProjectList({ limit: 0 })
-                    this.business.list = businessData.objects
+                    const businessData = await this.loadUserProjectList()
+                    this.business.list = businessData.results
                     const form = this.searchForm.find(item => item.key === 'selectedProject')
                     form.list = this.business.list.map(m => ({ name: m.name, value: m.id }))
                     form.loading = false

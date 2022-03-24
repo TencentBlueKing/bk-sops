@@ -22,14 +22,14 @@ export default {
             const { limit, offset } = params
             return http.get('api/v3/weixin_template/', {
                 params: { limit, offset, project__id: rootState.bizId }
-            }).then(response => response)
+            }).then(response => response.data)
         },
         getTemplate ({ commit, state }, templateId) {
             commit('setTemplateId', templateId)
-            return http.get(`api/v3/weixin_template/${templateId}/`).then(response => response)
+            return http.get(`api/v3/weixin_template/${templateId}/`).then(response => response.data)
         },
         getCollectedTemplate ({ rootState }) {
-            return http.get(`api/v3/weixin_collection/`).then(response => response)
+            return http.get(`api/v3/weixin_collection/`).then(response => response.data)
         },
         collectTemplate ({ rootState }, list) {
             return http.put(
@@ -47,7 +47,7 @@ export default {
                     template_id: state.id
                 }
             }).then((response) => {
-                const data = response.objects || []
+                const data = response.data.results || []
                 data.map((o) => {
                     o.text = o.name
                     return o
@@ -56,7 +56,7 @@ export default {
             })
         },
         getScheme ({ commit, state }, id) {
-            return http.get(`api/v3/weixin_scheme/${id}/`).then(response => response)
+            return http.get(`api/v3/weixin_scheme/${id}/`).then(response => response.data)
         },
         getPreviewTaskTree ({ rootState }, data) {
             return http.post(`taskflow/api/preview_task_tree/${rootState.bizId}/`, data).then(response => response.data.pipeline_tree)

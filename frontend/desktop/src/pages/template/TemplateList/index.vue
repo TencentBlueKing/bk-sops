@@ -11,6 +11,16 @@
 */
 <template>
     <div class="template-container">
+        <div class="tab-wrap">
+            <bk-tab
+                :active.sync="activeTab"
+                type="unborder-card"
+                :label-height="42"
+                @tab-change="handleTabChange">
+                <bk-tab-panel v-bind="{ name: 'all', label: $t('全部流程') }"></bk-tab-panel>
+                <bk-tab-panel v-bind="{ name: 'collect', label: $t('我的收藏') }"></bk-tab-panel>
+            </bk-tab>
+        </div>
         <skeleton :loading="firstLoading" loader="templateList">
             <div class="list-wrapper">
                 <list-page-tips-title
@@ -26,27 +36,29 @@
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
                     <template v-slot:operation>
-                        <bk-button
-                            v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
-                            theme="primary"
-                            :class="['create-template-btn', {
-                                'btn-permission-disable': !hasPermission(['flow_create'], authActions)
-                            }]"
-                            data-test-id="process_form_creatProcess"
-                            @click="checkCreatePermission">
-                            {{$t('新建')}}
-                        </bk-button>
-                        <bk-dropdown-menu style="margin-left: 14px;">
-                            <div class="import-tpl-btn" slot="dropdown-trigger">
-                                <span>{{ $t('导入') }}</span>
-                                <i :class="['bk-icon icon-angle-down']"></i>
-                            </div>
-                            <ul class="import-option-list" slot="dropdown-content">
-                                <li data-test-id="process_list_importDatFile" @click="isImportDialogShow = true">{{ $t('导入') }}DAT{{ $t('文件') }}</li>
-                                <li data-test-id="process_list_importYamlFile" @click="isImportYamlDialogShow = true">{{ $t('导入') }}YAML{{ $t('文件') }}</li>
-                            </ul>
-                        </bk-dropdown-menu>
-                        <bk-dropdown-menu style="margin-left: 14px;">
+                        <template v-if="!isMyCollect">
+                            <bk-button
+                                v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
+                                theme="primary"
+                                :class="['create-template-btn', {
+                                    'btn-permission-disable': !hasPermission(['flow_create'], authActions)
+                                }]"
+                                data-test-id="process_form_creatProcess"
+                                @click="checkCreatePermission">
+                                {{$t('新建')}}
+                            </bk-button>
+                            <bk-dropdown-menu style="margin: 0 14px;">
+                                <div class="import-tpl-btn" slot="dropdown-trigger">
+                                    <span>{{ $t('导入') }}</span>
+                                    <i :class="['bk-icon icon-angle-down']"></i>
+                                </div>
+                                <ul class="import-option-list" slot="dropdown-content">
+                                    <li data-test-id="process_list_importDatFile" @click="isImportDialogShow = true">{{ $t('导入') }}DAT{{ $t('文件') }}</li>
+                                    <li data-test-id="process_list_importYamlFile" @click="isImportYamlDialogShow = true">{{ $t('导入') }}YAML{{ $t('文件') }}</li>
+                                </ul>
+                            </bk-dropdown-menu>
+                        </template>
+                        <bk-dropdown-menu>
                             <div class="export-tpl-btn" slot="dropdown-trigger">
                                 <span>{{ $t('批量操作') }}</span>
                                 <i :class="['bk-icon icon-angle-down']"></i>
@@ -54,6 +66,7 @@
                             <ul class="batch-operation-list" slot="dropdown-content">
                                 <template v-for="operate in operateList">
                                     <li
+                                        v-if="operate.type === 'cancelCollect' || !isMyCollect"
                                         :key="operate.type"
                                         v-bk-tooltips="{
                                             content: operate.content,
@@ -74,6 +87,7 @@
                 </advance-search-form>
                 <div class="template-table-content" data-test-id="process_table_processList">
                     <bk-table
+                        ref="templateTable"
                         class="template-table"
                         :data="templateList"
                         :pagination="pagination"
@@ -462,6 +476,11 @@
                     value: i18n.t('收藏'),
                     customAttr: 'collectProcess'
                 }, {
+                    type: 'cancelCollect',
+                    content: noViewAuthTip,
+                    value: i18n.t('取消收藏'),
+                    customAttr: 'cancelCollect'
+                }, {
                     type: 'delete',
                     content: noEditAuthTip,
                     value: i18n.t('删除'),
@@ -470,6 +489,7 @@
                 }
             ]
             return {
+                activeTab: 'all',
                 firstLoading: true,
                 listLoading: false,
                 projectInfoLoading: true, // 模板分类信息 loading
@@ -555,6 +575,9 @@
                     result = this.selectedTpls.every(template => this.hasPermission(['flow_delete'], template.auth_actions))
                 }
                 return result
+            },
+            isMyCollect () {
+                return this.activeTab === 'collect'
             }
         },
         watch: {
@@ -566,6 +589,7 @@
             }
         },
         async created () {
+            this.activeTab = this.$route.query.curTab || 'all'
             this.getFields()
             this.getProjectBaseInfo()
             this.getProjectLabelList()
@@ -593,6 +617,8 @@
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList',
+                'loadCollectTemplateList',
+                'batchCancelCollectTpl',
                 'deleteTemplate',
                 'templateImport',
                 'getExpiredSubProcess',
@@ -622,9 +648,16 @@
                 this.listLoading = true
                 try {
                     const data = this.getQueryData()
-                    const templateListData = await this.loadTemplateList(data)
-                    this.templateList = templateListData.objects
-                    this.pagination.count = templateListData.meta.total_count
+                    let templateListData = {}
+                    if (this.isMyCollect) {
+                        templateListData = await this.loadCollectTemplateList(data)
+                        this.templateList = templateListData.data.results
+                        this.pagination.count = templateListData.data.count
+                    } else {
+                        templateListData = await this.loadTemplateList(data)
+                        this.templateList = templateListData.results
+                        this.pagination.count = templateListData.count
+                    }
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
                         this.totalPage = 1
@@ -649,18 +682,27 @@
                 const has_subprocess = (subprocessUpdateVal === 1 || subprocessUpdateVal === -1) ? true : (subprocessUpdateVal === 0 ? false : undefined)
                 const subprocess_has_update = subprocessUpdateVal === 1 ? true : (subprocessUpdateVal === -1 ? false : undefined)
                 const data = {
-                    project__id: this.project_id,
                     limit: this.pagination.limit,
                     offset: (this.pagination.current - 1) * this.pagination.limit,
                     pipeline_template__name__icontains: flowName || undefined,
                     pipeline_template__creator__contains: creator || undefined,
                     category: category || undefined,
                     label_ids: label_ids && label_ids.length ? label_ids.join(',') : undefined,
-                    order_by: this.ordering,
                     subprocess_has_update,
                     has_subprocess
                 }
-
+                const projectId = this.isMyCollect ? 'project_id' : 'project__id'
+                data[projectId] = this.project_id
+                // 我的收藏栏下order排序重新赋值
+                const orderKey = this.isMyCollect ? 'ordering' : 'order_by'
+                const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
+                if (keys.includes(this.ordering)) {
+                    const symbol = /^-/.test(this.ordering) ? '-' : ''
+                    const orderVal = this.ordering.replace(/^-/, '')
+                    data[orderKey] = `${symbol}pipeline_template__${orderVal}`
+                } else {
+                    data[orderKey] = this.ordering
+                }
                 if (queryTime[0] && queryTime[1]) {
                     data['pipeline_template__edit_time__gte'] = moment.tz(queryTime[0], this.timeZone).format('YYYY-MM-DD')
                     data['pipeline_template__edit_time__lte'] = moment.tz(queryTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
@@ -712,7 +754,7 @@
                 try {
                     this.collectListLoading = true
                     const res = await this.loadCollectList()
-                    this.collectionList = res.objects
+                    this.collectionList = res.data
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -843,7 +885,7 @@
                     data.limit = 0
                     data.offset = 0
                     const res = await this.loadTemplateList(data)
-                    this.selectedTpls = res.objects.slice(0)
+                    this.selectedTpls = res.results.slice(0)
                 } else {
                     this.templateList.forEach(item => {
                         if (!this.selectedTpls.find(tpl => tpl.id === item.id)) {
@@ -875,6 +917,8 @@
                                 name: tpl.name,
                                 id: tpl.id
                             },
+                            instance_id: tpl.id,
+                            username: this.username,
                             category: 'flow'
                         }
                     })
@@ -884,7 +928,7 @@
                     }
                     const res = await this.addToCollectList(data)
                     this.getCollectList()
-                    if (res.objects.length) {
+                    if (res.data.length) {
                         this.$bkMessage({ message: i18n.t('添加收藏成功！'), theme: 'success' })
                     }
                 } catch (e) {
@@ -952,6 +996,10 @@
                         if (!this.hasBatchViewAuth) return
                         this.onBatchCollect()
                         break
+                    case 'cancelCollect':
+                        if (!this.hasBatchViewAuth) return
+                        this.onBatchCancelCollect()
+                        break
                     case 'delete':
                         if (!this.hasBatchEditAuth) return
                         this.onBatchDelete()
@@ -996,7 +1044,7 @@
                 } else if (order === 'descending') {
                     this.ordering = '-' + prop
                 } else {
-                    this.ordering = ''
+                    this.ordering = undefined
                 }
                 this.pagination.current = 1
                 this.getTemplateList()
@@ -1044,7 +1092,8 @@
                     page: current,
                     queryTime: queryTime.every(item => item) ? queryTime.join(',') : '',
                     label_ids: label_ids.length ? label_ids.join(',') : '',
-                    keyword: flowName
+                    keyword: flowName,
+                    curTab: this.activeTab
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {
@@ -1134,6 +1183,7 @@
             },
             // 标题提示信息，查看子流程更新
             handleSubflowFilter () {
+                this.activeTab = 'all'
                 const searchComp = this.$refs.advanceSearch
                 searchComp.onAdvanceOpen(true)
                 searchComp.onChangeFormItem(1, 'subprocessUpdateVal')
@@ -1169,9 +1219,11 @@
                                 name: template.name,
                                 id: template.id
                             },
+                            instance_id: template.id,
+                            username: this.username,
                             category: 'flow'
                         }])
-                        if (res.objects.length) {
+                        if (res.data.length) {
                             this.$bkMessage({ message: i18n.t('添加收藏成功！'), theme: 'success' })
                         }
                     } else { // cancel
@@ -1184,6 +1236,46 @@
                     console.log(e)
                 } finally {
                     this.collectingId = ''
+                }
+            },
+            // 批量取消收藏
+            async onBatchCancelCollect () {
+                if (this.selectedTpls.length === 0 || !this.hasBatchViewAuth) {
+                    return
+                }
+                
+                try {
+                    let cancelList = []
+                    if (this.isMyCollect) { // 我的收藏
+                        cancelList = this.selectedTpls.map(tpl => tpl.collection_id)
+                    } else if (this.pagination.count === this.selectedTpls.length) { // 跨页全选
+                        cancelList = this.collectionList.map(m => m.id)
+                    } else { // 全部流程
+                        cancelList = this.selectedTpls.reduce((acc, cur) => {
+                            const collectTpl = this.collectionList.find(m => m.extra_info.id === cur.id && m.category === 'flow')
+                            if (collectTpl) {
+                                acc.push(collectTpl.id)
+                            }
+                            return acc
+                        }, [])
+                    }
+                    if (cancelList.length === 0) { // 所选流程都已是取消收藏状态
+                        this.$bkMessage({ message: i18n.t('取消收藏成功！'), theme: 'success' })
+                        return
+                    }
+                    await this.batchCancelCollectTpl({
+                        projectId: Number(this.project_id),
+                        cancelList
+                    })
+                    this.getTemplateList()
+                    this.getCollectList()
+                    // 清掉勾选的已删除模板
+                    if (this.isMyCollect) {
+                        this.selectedTpls = []
+                    }
+                    this.$bkMessage({ message: i18n.t('取消收藏成功！'), theme: 'success' })
+                } catch (error) {
+                    console.warn(error)
                 }
             },
             // 判断是否已在收藏列表
@@ -1209,6 +1301,17 @@
                     return visitedList.some(item => item === saveId)
                 }
                 return false
+            },
+            // 切换流程tab
+            handleTabChange (val) {
+                // 重置排序过滤参数
+                this.$refs.templateTable.clearSort()
+                this.ordering = this.$store.state.project.config.task_template_ordering
+                this.selectedTpls = []
+                this.pagination.current = 1
+                const searchComp = this.$refs.advanceSearch
+                searchComp.onAdvanceOpen(false)
+                searchComp.onResetForm()
             }
         }
     }
@@ -1218,10 +1321,27 @@
 @import '@/scss/mixins/scrollbar.scss';
 
 .template-container {
-    padding: 20px 24px;
+    padding: 62px 24px 20px;
     height: 100%;
     overflow: auto;
     @include scrollbar;
+    .tab-wrap {
+        height: 42px;
+        width: 100%;
+        position: absolute;
+        top: 51px;
+        left: 0;
+        z-index: 102;
+        padding-left: 15px;
+        background: #fff;
+        box-shadow: 0px 3px 4px 0px rgba(64,112,203,0.06);
+        /deep/.bk-tab-header {
+            background-image: initial !important;
+        }
+        /deep/.bk-tab-section {
+            padding: 0;
+        }
+    }
 }
 .create-template-btn {
     min-width: 120px;

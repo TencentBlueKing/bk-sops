@@ -144,6 +144,9 @@ MIDDLEWARE += (
     "django_prometheus.middleware.PrometheusAfterMiddleware",
 )
 
+# 默认数据库AUTO字段类型
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = ()
 if env.BKAPP_CORS_ALLOW:
@@ -174,7 +177,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.15.7"
+STATIC_VERSION = "3.16.6"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -336,9 +339,6 @@ BK_USER_MANAGE_HOST = env.BK_USER_MANAGE_HOST
 
 # 人员选择数据来源
 BK_MEMBER_SELECTOR_DATA_HOST = env.BK_MEMBER_SELECTOR_DATA_HOST
-
-# tastypie 配置
-TASTYPIE_DEFAULT_FORMATS = ["json"]
 
 TEMPLATES[0]["OPTIONS"]["context_processors"] += ("gcloud.core.context_processors.mysetting",)
 
@@ -560,11 +560,7 @@ def logging_addition_settings(logging_dict: dict, environment="prod"):
 
     logging_dict["loggers"]["pipeline"] = {"handlers": ["root"], "level": "INFO", "propagate": True}
 
-    logging_dict["loggers"]["pipeline.eri.log"] = {
-        "handlers": ["root", "pipeline_eri"],
-        "level": "INFO",
-        "propagate": True,
-    }
+    logging_dict["loggers"]["pipeline.eri.log"] = {"handlers": ["pipeline_eri"], "level": "INFO", "propagate": True}
 
     logging_dict["loggers"]["bamboo_engine"] = {
         "handlers": ["root", "bamboo_engine_context"],
@@ -684,3 +680,12 @@ EXECUTING_NODE_POOL = "sops_executing_node_pool"
 
 # 节点超时最长配置时间
 MAX_NODE_EXECUTE_TIMEOUT = 60 * 60 * 24
+
+# 蓝鲸插件开发地址
+BK_PLUGIN_DEVELOP_URL = env.BK_PLUGIN_DEVELOP_URL
+
+# IAM APIGW 地址
+BK_IAM_APIGW_HOST = env.BK_IAM_APIGW_HOST
+
+# 节点日志持久化时间
+LOG_PERSISTENT_DAYS = env.BK_NODE_LOG_PERSISTENT_DAYS

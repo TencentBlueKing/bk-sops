@@ -1,11 +1,3 @@
-### Request Address
-
-/v2/sops/claim_functionalization_task/
-
-### Request Method
-
-POST
-
 ### Functional description
 
 claim a functionalization task

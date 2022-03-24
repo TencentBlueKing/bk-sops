@@ -89,18 +89,38 @@
                         :disabled="formData.ignorable || formData.timeoutConfig.enable"
                         @change="onErrorHandlerChange($event, 'autoRetry')">
                         <span class="error-handle-icon"><span class="text">AR</span></span>
-                        {{ $t('自动重试') }}
                     </bk-checkbox>
-                    <span v-if="formData.autoRetry.enable" class="auto-retry-times">
-                        <bk-input
-                            v-model.number="formData.autoRetry.times"
-                            type="number"
-                            style="width: 60px; margin: 0 4px;"
-                            :max="10"
-                            :min="1"
-                            @change="updateData">
-                        </bk-input>
-                        {{ $t('次') }}
+                    <span class="auto-retry-times">
+                        {{ $t('在') }}
+                        <div class="number-input" style="margin: 0 4px;">
+                            <bk-input
+                                v-model.number="formData.autoRetry.interval"
+                                type="number"
+                                style="width: 68px;"
+                                :placeholder="' '"
+                                :disabled="!formData.autoRetry.enable"
+                                :max="10"
+                                :min="0"
+                                :precision="0"
+                                @change="updateData">
+                            </bk-input>
+                            <span class="unit">{{ $tc('秒', 0) }}</span>
+                        </div>
+                        {{ $t('后') }}{{ $t('，') }}{{ $t('自动重试') }}
+                        <div class="number-input" style=" margin-left: 4px;">
+                            <bk-input
+                                v-model.number="formData.autoRetry.times"
+                                type="number"
+                                style="width: 68px;"
+                                :placeholder="' '"
+                                :disabled="!formData.autoRetry.enable"
+                                :max="10"
+                                :min="1"
+                                :precision="0"
+                                @change="updateData">
+                            </bk-input>
+                            <span class="unit">{{ $t('次') }}</span>
+                        </div>
                     </span>
                 </div>
                 <p
@@ -128,15 +148,20 @@
                     </bk-switcher>
                     <template v-if="formData.timeoutConfig.enable">
                         {{ $t('超时') }}
-                        <bk-input
-                            v-model.number="formData.timeoutConfig.seconds"
-                            :min="10"
-                            :max="maxNodeExecuteTimeout"
-                            type="number"
-                            style="width: 75px; margin: 0 4px;"
-                            @change="updateData">
-                        </bk-input>
-                        {{ $t('秒后') }}{{ $t('，') }}{{ $t('则') }}
+                        <div class="number-input" style="margin: 0 4px;">
+                            <bk-input
+                                v-model.number="formData.timeoutConfig.seconds"
+                                type="number"
+                                style="width: 75px;"
+                                :placeholder="' '"
+                                :min="10"
+                                :max="maxNodeExecuteTimeout"
+                                :precision="0"
+                                @change="updateData">
+                            </bk-input>
+                            <span class="unit">{{ $tc('秒', 0) }}</span>
+                        </div>
+                        {{ $t('后') }}{{ $t('，') }}{{ $t('则') }}
                         <bk-select
                             style="width: 160px; margin-left: 4px;"
                             v-model="formData.timeoutConfig.action"
@@ -192,6 +217,24 @@
             <bk-form-item :label="$t('步骤名称')" property="stageName">
                 <bk-input v-model="formData.stageName" @change="updateData"></bk-input>
             </bk-form-item>
+            <bk-form-item :label="$t('执行方案')">
+                <bk-select
+                    :value="formData.schemeIdList"
+                    :clearable="false"
+                    :multiple="true"
+                    :loading="schemeListLoading"
+                    @selected="onSelectTaskScheme">
+                    <bk-option v-for="item in schemeList" :key="item.id" :id="item.id" :name="item.name"></bk-option>
+                </bk-select>
+                <i
+                    v-bk-tooltips="{
+                        width: 300,
+                        placement: 'bottom-end',
+                        content: $t('每次创建任务会使用选中执行方案的最新版本且不会提示该节点需要更新')
+                    }"
+                    class="bk-icon icon-question-circle form-item-tips">
+                </i>
+            </bk-form-item>
             <bk-form-item :label="$t('是否可选')">
                 <bk-switcher
                     theme="primary"
@@ -228,12 +271,14 @@
     export default {
         name: 'BasicInfo',
         props: {
+            projectId: [String, Number],
             nodeConfig: Object,
             basicInfo: Object,
             versionList: Array,
             isSubflow: Boolean,
             inputLoading: Boolean,
-            subflowUpdated: Boolean
+            subflowUpdated: Boolean,
+            common: [String, Number]
         },
         data () {
             return {
@@ -243,6 +288,8 @@
                 version: this.basicInfo.version,
                 formData: tools.deepClone(this.basicInfo),
                 maxNodeExecuteTimeout: window.MAX_NODE_EXECUTE_TIMEOUT,
+                schemeList: [],
+                schemeListLoading: false,
                 pluginRules: {
                     plugin: [
                         {
@@ -352,29 +399,43 @@
             }
         },
         watch: {
-            basicInfo (val) {
+            basicInfo (val, oldVal) {
                 this.formData = tools.deepClone(val)
+                if (val.tpl !== oldVal.tpl) {
+                    this.getSubflowSchemeList()
+                }
             }
         },
         created () {
             if (!this.isSubflow) { // 子流程节点不展示节点标签表单
                 this.getNodeLabelList()
+            } else {
+                if (this.basicInfo.tpl) {
+                    this.getSubflowSchemeList()
+                }
             }
         },
         methods: {
             ...mapMutations('template/', [
                 'setNodeBasicInfo'
             ]),
+            ...mapActions('task', [
+                'loadTaskScheme',
+                'loadSubflowConfig'
+            ]),
             ...mapActions('template/', [
                 'getLabels'
             ]),
-            ...mapActions('atomForm/', [
-                'loadSubflowConfig'
-            ]),
+            // 加载子流程详情，拿到最新版本子流程的version字段
             async getSubflowDetail () {
                 this.subflowLoading = true
                 try {
-                    const resp = await this.loadSubflowConfig({ templateId: this.basicInfo.tpl, common: this.common })
+                    const data = {
+                        project_id: this.project_id,
+                        template_id: this.basicInfo.tpl,
+                        scheme_id_list: this.basicInfo.schemeIdList
+                    }
+                    const resp = await this.loadSubflowConfig(data)
                     this.version = resp.data.version
                 } catch (e) {
                     console.log(e)
@@ -386,12 +447,26 @@
             async getNodeLabelList () {
                 try {
                     this.labelLoading = true
-                    const resp = await this.getLabels({ limit: 0 })
-                    this.labelData = this.transLabelListToGroup(resp.objects)
+                    const resp = await this.getLabels()
+                    this.labelData = this.transLabelListToGroup(resp.results)
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.labelLoading = false
+                }
+            },
+            // 加载子流程对应的执行方案列表
+            async getSubflowSchemeList () {
+                try {
+                    const data = {
+                        project_id: this.projectId,
+                        template_id: this.basicInfo.tpl,
+                        isCommon: this.common
+                    }
+                    this.schemeList = await this.loadTaskScheme(data)
+                    this.schemeListLoading = false
+                } catch (e) {
+                    console.log(e)
                 }
             },
             // 标签分组
@@ -458,6 +533,7 @@
                 this.updateData()
             },
             onErrorHandlerChange (val, type) {
+                this.formData.autoRetry.interval = 0
                 this.formData.autoRetry.times = 1
                 if (type === 'autoRetry') {
                     this.formData.autoRetry.enable = val
@@ -465,6 +541,7 @@
                 } else {
                     if (type === 'retryable') {
                         this.formData.autoRetry.enable = false
+                        this.formData.autoRetry.interval = 0
                         this.formData.autoRetry.times = 1
                     }
                     if (type === 'ignorable' && val) {
@@ -506,14 +583,20 @@
                 }
                 this.updateData()
             },
+            // 选择执行方案，需要更新子流程输入、输出参数
+            onSelectTaskScheme (val) {
+                this.formData.schemeIdList = val
+                this.updateData()
+                this.$emit('selectScheme', val)
+            },
             updateData () {
                 const {
-                    version, nodeName, stageName, nodeLabel, ignorable, skippable,
-                    retryable, selectable, alwaysUseLatest, autoRetry, timeoutConfig
+                    version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable,
+                    selectable, alwaysUseLatest, autoRetry, timeoutConfig, schemeIdList
                 } = this.formData
                 let data
                 if (this.isSubflow) {
-                    data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, latestVersion: this.version }
+                    data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, latestVersion: this.version }
                 } else {
                     data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, autoRetry, timeoutConfig }
                 }
@@ -548,7 +631,7 @@
         height: 32px;
         /deep/ .bk-form-checkbox {
             &:not(:last-of-type) {
-                margin-right: 20px;
+                margin-right: 8px;
             }
             &.is-disabled .bk-checkbox-text {
                 color: #c4c6cc;
@@ -556,7 +639,6 @@
         }
         .error-handle-icon {
             display: inline-block;
-            padding: 0 3px;
             line-height: 12px;
             color: #ffffff;
             background: #979ba5;
@@ -569,6 +651,9 @@
         }
         .auto-retry-times {
             display: inline-flex;
+            align-items: center;
+            margin-left: 4px;
+            height: 32px;
             font-size: 12px;
             color: #999999;
         }
@@ -584,6 +669,24 @@
         height: 32px;
         font-size: 12px;
         color: #63656e;
+    }
+    .number-input {
+        position: relative;
+        .unit {
+            position: absolute;
+            right: 8px;
+            top: 1px;
+            height: 30px;
+            line-height: 30px;
+            color: #999999;
+            background: transparent;
+        }
+    }
+    .auto-retry-times,
+    .timeout-setting-wrap {
+        /deep/ .bk-input-number .input-number-option {
+            display: none;
+        }
     }
     /deep/ .bk-form {
         .bk-label {

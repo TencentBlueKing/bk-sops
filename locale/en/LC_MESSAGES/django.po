@@ -301,6 +301,10 @@ msgstr "BK Enterprise Edition"
 msgid "蓝鲸智云社区版"
 msgstr "BK Community Edition"
 
+#: gcloud/conf/sites/community/ver_settings.py:19
+msgid "腾讯蓝鲸智云"
+msgstr "Tencent Blueking"
+
 #: gcloud/contrib/appmaker/api.py:47
 #, python-format
 msgid "参数格式错误：%s"
@@ -870,20 +874,20 @@ msgid "调用远程服务失败，Http请求错误状态码：%(code)s， 请求
 msgstr "Remote service called failed, HTTP request error status error: %(code)s, request url: %(url)s"
 
 #: gcloud/core/footer/sites/open/footer.py:31
-msgid "QQ咨询"
-msgstr "QQ"
+msgid "技术支持"
+msgstr "Support"
 
 #: gcloud/core/footer/sites/open/footer.py:31
-msgid "蓝鲸论坛"
-msgstr "Blueking Forum"
+msgid "社区论坛"
+msgstr "Forum"
 
 #: gcloud/core/footer/sites/open/footer.py:31
-msgid "蓝鲸官网"
-msgstr "BlueKing Official"
+msgid "产品官网"
+msgstr "Official"
 
 #: gcloud/core/footer/sites/open/footer.py:31
-msgid "蓝鲸智云桌面"
-msgstr "BlueKing Desktop"
+msgid "关注我们"
+msgstr "Follow Us"
 
 #: gcloud/external_plugins/models/base.py:79
 msgid "包源类型"

@@ -18,7 +18,7 @@ from gcloud.taskflow3.apis.django import api
 from gcloud.taskflow3.apis.django.v4.urls import v4_urlpatterns
 from gcloud.taskflow3.apis.drf.viewsets.render_current_constants import RenderCurrentConstantsView
 from gcloud.taskflow3.apis.drf.viewsets.engine_v2_node_log import EngineV2NodeLogView
-
+from gcloud.taskflow3.apis.drf.viewsets.preview_task_tree import PreviewTaskTreeWithSchemesView
 
 urlpatterns = [
     url(r"^api/context/$", api.context),
@@ -43,4 +43,5 @@ urlpatterns = [
         r"api/engine_v2/node_log/<int:project_id>/<int:task_id>/<str:node_id>/<str:version>/",
         EngineV2NodeLogView.as_view(),
     ),
+    path(r"api/preview_task_tree_with_schemes/", PreviewTaskTreeWithSchemesView.as_view()),
 ]

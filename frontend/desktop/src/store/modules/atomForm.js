@@ -11,7 +11,6 @@
 */
 import Vue from 'vue'
 import axios from 'axios'
-import store from '@/store/index.js'
 import transAtom from '@/utils/transAtom.js'
 
 /**
@@ -111,7 +110,7 @@ const atomForm = {
          * 加载全量标准插件
          */
         loadSingleAtomList ({ commit }, params) {
-            return axios.get('api/v3/component/', { params }).then(response => response.data.objects)
+            return axios.get('api/v3/component/', { params }).then(response => response.data.data)
         },
         /**
          * 加载全量子流程
@@ -153,14 +152,14 @@ const atomForm = {
                     output_form: outputForm,
                     embedded_output_form: isOutputFormEmbedded,
                     base
-                } = response.data
+                } = response.data.data
                 const result = {
                     input: [],
                     output: [],
                     isRenderOutputForm: !!outputForm
                 }
-
-                commit('setAtomForm', { atomType: atom, data: response.data, version: atomVersion })
+                
+                commit('setAtomForm', { atomType: atom, data: response.data.data, version: atomVersion })
                 commit('setAtomOutputData', { atomType: atom, outputData, version: atomVersion })
 
                 // 加载标准插件 base 文件
@@ -178,29 +177,6 @@ const atomForm = {
                 }
                 return result
             })
-        },
-        /**
-         * 加载子流程参数详情
-         * @param {String} payload.templateId 模板id
-         * @param {String} payload.version 模板版本
-         * @param {String} payload.common 是否为公共流程
-         */
-        loadSubflowConfig ({ commit }, payload) {
-            const { project_id } = store.state.project
-            const { templateId, version, common } = payload
-            let url = ''
-            if (common) {
-                url = 'common_template/api/form/'
-            } else {
-                url = `template/api/form/${project_id}/`
-            }
-
-            return axios.get(url, {
-                params: {
-                    template_id: templateId,
-                    version
-                }
-            }).then(response => response.data)
         },
         /**
          * 加载第三方插件列表

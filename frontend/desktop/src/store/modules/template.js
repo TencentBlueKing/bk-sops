@@ -74,6 +74,7 @@ const generateInitActivities = (location, line) => {
             skippable: true,
             auto_retry: {
                 enable: false,
+                interval: 0,
                 times: 1
             },
             timeout_config: {
@@ -281,7 +282,7 @@ const template = {
                                     error_ignorable: node.error_ignorable,
                                     retryable: node.can_retry || node.retryable,
                                     skippable: node.isSkipped || node.skippable,
-                                    auto_retry: node.auto_retry || { enable: false, times: 1 },
+                                    auto_retry: node.auto_retry || { enable: false, interval: 0, times: 1 },
                                     timeout_config: node.timeout_config || {
                                         enable: false,
                                         seconds: 10,
@@ -302,7 +303,7 @@ const template = {
         setTemplateData (state, data) {
             const {
                 name, template_id, pipeline_tree, notify_receivers, template_labels, notify_type, description,
-                executor_proxy, time_out, category, subprocess_info, default_flow_type, auto_retry, timeout_config
+                executor_proxy, time_out, category, subprocess_info, default_flow_type
             } = data
 
             const pipelineData = JSON.parse(pipeline_tree)
@@ -318,8 +319,6 @@ const template = {
             state.category = category
             state.subprocess_info = subprocess_info
             state.default_flow_type = default_flow_type
-            state.auto_retry = auto_retry
-            state.timeout_config = timeout_config
             this.commit('template/setPipelineTree', pipelineData)
         },
         setProjectBaseInfo (state, data) {
@@ -378,12 +377,6 @@ const template = {
             state.executor_proxy = ''
             state.template_labels = []
             state.default_flow_type = 'common'
-            state.auto_retry = { enable: false, times: 1 }
-            state.timeout_config = {
-                enable: false,
-                seconds: 10,
-                action: 'forced_fail'
-            }
         },
         // 增加全局变量
         addVariable (state, variable) {
@@ -664,7 +657,7 @@ const template = {
                             type: 'ServiceActivity',
                             retryable: true,
                             skippable: true,
-                            auto_retry: { enable: false, times: 1 },
+                            auto_retry: { enable: false, interval: 0, times: 1 },
                             timeout_config: {
                                 enable: false,
                                 seconds: 10,
@@ -684,7 +677,9 @@ const template = {
                             stage_name: '',
                             template_id: location.atomId,
                             version: location.atomVersion,
-                            type: 'SubProcess'
+                            type: 'SubProcess',
+                            always_use_latest: false,
+                            scheme_id_list: []
                         }
                     }
                     Vue.set(state.activities, location.id, activity)
@@ -851,10 +846,12 @@ const template = {
             } else {
                 prefixUrl = 'api/v3/template/'
             }
-            return axios.get(`${prefixUrl}${templateId}/`).then(response => response.data)
+            return axios.get(`${prefixUrl}${templateId}/`).then(response => response.data.data)
         },
         loadCustomVarCollection () {
-            return axios.get('api/v3/variable/').then(response => response.data.objects)
+            return axios.get('api/v3/variable/').then(response => {
+                return response.data.data
+            })
         },
         /**
          * 保存模板数据
@@ -903,7 +900,7 @@ const template = {
             const notifyReceivers = JSON.stringify(notify_receivers)
             const timeout = time_out
             const headers = {}
-            const project = SITE_URL + 'api/v3/project/' + projectId + '/'
+            const project = projectId || undefined
             let url = ''
             if (common) {
                 url = 'api/v3/common_template/'
@@ -916,7 +913,8 @@ const template = {
                 headers['X-HTTP-Method-Override'] = 'PATCH'
             }
 
-            return axios.post(url, {
+            // 新增用post, 编辑用put
+            return axios[templateId === undefined ? 'post' : 'put'](url, {
                 name,
                 project,
                 category,
@@ -930,7 +928,7 @@ const template = {
                 notify_receivers: notifyReceivers
             }, {
                 headers
-            }).then(response => response.data)
+            }).then(response => response.data.data)
         },
         // 自动排版
         getLayoutedPipeline ({ commit }, data) {
@@ -941,8 +939,14 @@ const template = {
             return axios.get('taskflow/api/context/').then(response => response.data)
         },
         // 获取节点标签列表
-        getLabels ({ commit }, data) {
-            return axios.get('api/v3/label/', { params: data }).then(response => response.data)
+        getLabels ({ commit }, data = {}) {
+            return axios.get('api/v3/label/', { params: data }).then(response => {
+                if (!('limit' in data)) { // 不传limit代表拉取全量列表
+                    return { results: response.data.data }
+                } else {
+                    return response.data.data
+                }
+            })
         },
         // 获取变量预览值
         getConstantsPreviewResult ({ commit }, data) {

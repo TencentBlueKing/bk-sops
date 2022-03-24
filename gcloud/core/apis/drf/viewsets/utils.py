@@ -14,6 +14,7 @@ import logging
 
 from iam import Subject, Action, MultiActionRequest
 from iam.shortcuts import allow_or_raise_auth_failed
+
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 from rest_framework.response import Response
@@ -27,7 +28,6 @@ iam_logger = logging.getLogger("iam")
 
 
 class ApiMixin(GenericViewSet):
-
     EXEMPT_STATUS_CODES = {status.HTTP_204_NO_CONTENT}
 
     def finalize_response(self, request, response, *args, **kwargs):

@@ -143,6 +143,17 @@ const task = {
             return axios.delete(`template/api/default_scheme/${id}/`).then(response => response.data)
         },
         /**
+         * 加载子流程详情
+         * @param {String} data.projectId 项目id
+         * @param {String} data.templateId 流程id
+         * @param {String} data.version 流程版本
+         * @param {String} data.common 是否为公共流程
+         * @param {Array} data.scheme_id_list 执行方案列表
+         */
+        loadSubflowConfig ({ commit }, data) {
+            return axios.post('/taskflow/api/preview_task_tree_with_schemes/', data).then(response => response.data)
+        },
+        /**
          * 获取任务节点预览数据
          * @param {Object} payload 筛选条件
          */
@@ -192,8 +203,8 @@ const task = {
             const requestData = {
                 name,
                 description,
-                'project': `api/v3/project/${project_id}/`,
-                'template_id': templateId,
+                'project': project_id,
+                'template': templateId,
                 'creator': username,
                 'pipeline_tree': execData,
                 'create_method': view_mode === 'appmaker' ? 'app_maker' : 'app',
@@ -206,14 +217,14 @@ const task = {
                 requestData.template_source = 'common'
             }
 
-            return axios.post('api/v3/taskflow/', requestData).then(response => response.data)
+            return axios.post('api/v3/taskflow/', requestData).then(response => response.data.data)
         },
         /**
          * 获取任务实例详细数据
          * @param {String} instance_id 实例id
          */
         getTaskInstanceData ({ commit }, instance_id) {
-            return axios.get(`api/v3/taskflow/${instance_id}/`).then(response => response.data)
+            return axios.get(`api/v3/taskflow/${instance_id}/`).then(response => response.data.data)
         },
         /**
          * 职能化认领

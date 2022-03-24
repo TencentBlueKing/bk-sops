@@ -20,7 +20,7 @@ const manage = {
          * @param {Object} fields 包源查询字段
          */
         loadPackageSource () {
-            return axios.get('api/v3/package_source/').then(response => response.data)
+            return axios.get('api/v3/package_source/').then(response => response.data.data)
         },
         /**
          * 新增插件包源配置
@@ -49,7 +49,7 @@ const manage = {
             const { limit, offset } = data
             return axios.get('api/v3/sync_task/', {
                 params: { limit, offset }
-            }).then(response => response.data)
+            }).then(response => response.data.data)
         },
         /**
          * 创建远程包源同步

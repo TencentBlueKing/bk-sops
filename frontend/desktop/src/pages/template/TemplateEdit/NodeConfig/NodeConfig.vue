@@ -164,7 +164,6 @@
                     :basic-info="basicInfo"
                     :common="common"
                     :is-third-party="isThirdParty"
-                    :sublist-loading="subAtomListLoading"
                     :plugin-loading="pluginLoading"
                     @updatePluginList="updatePluginList"
                     @back="isSelectorPanelShow = false"
@@ -198,10 +197,12 @@
                                                 :version-list="versionList"
                                                 :is-subflow="isSubflow"
                                                 :input-loading="inputLoading"
+                                                :project-id="project_id"
                                                 :common="common"
                                                 :subflow-updated="subflowUpdated"
                                                 @openSelectorPanel="isSelectorPanelShow = true"
                                                 @versionChange="versionChange"
+                                                @selectScheme="onSelectSubflowScheme"
                                                 @viewSubflow="onViewSubflow"
                                                 @updateSubflowVersion="updateSubflowVersion"
                                                 @update="updateBasicInfo">
@@ -211,7 +212,18 @@
                                 </section>
                                 <!-- 输入参数 -->
                                 <section class="config-section" data-test-id="templateEdit_form_inputParamsInfo">
-                                    <h3>{{$t('输入参数')}}</h3>
+                                    <h3>
+                                        {{$t('输入参数')}}
+                                        <i
+                                            v-if="isSubflow"
+                                            v-bk-tooltips="{
+                                                width: 500,
+                                                placement: 'bottom-end',
+                                                content: $t('如果选中执行方案更新增加了新的变量，请打开对应的子流程节点进行填写；在不打开子流程节点进行填写的情况下，会使用变量默认值')
+                                            }"
+                                            class="bk-icon icon-question-circle section-tips">
+                                        </i>
+                                    </h3>
                                     <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading, zIndex: 100 }">
                                         <template v-if="!inputLoading">
                                             <input-params
@@ -222,6 +234,7 @@
                                                 :plugin="basicInfo.plugin"
                                                 :version="basicInfo.version"
                                                 :subflow-forms="subflowForms"
+                                                :forms-not-referred="formsNotReferred"
                                                 :value="inputsParamValue"
                                                 :render-config="inputsRenderConfig"
                                                 :is-subflow="isSubflow"
@@ -347,6 +360,7 @@
                 inputsRenderConfig: {}, // 输入参数是否配置渲染豁免
                 outputs: [], // 输出参数
                 subflowForms: {}, // 子流程输入参数
+                formsNotReferred: {}, // 未被子流程引用的全局变量
                 isSelectorPanelShow: false, // 是否显示选择插件(子流程)面板
                 isQuickInsertPanelShow: false, // 是否显示快捷插入面板
                 isPanelLoading: false,
@@ -361,15 +375,6 @@
                 variableData: {}, // 当前编辑的变量
                 localConstants: {}, // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
                 randomKey: new Date().getTime(), // 输入、输出参数勾选状态改变时更新popover
-                totalPage: 0,
-                currentPage: 0,
-                limit: Math.ceil(((window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight) - 120) / 40) + 5, // 浏览器高度判断每次请求数量
-                offset: 0,
-                pollingTimer: null,
-                isPageOver: false,
-                isThrottled: false, // 滚动节流 是否进入cd
-                subflowListDom: null,
-                subAtomListLoading: false, // 子流程列表loading
                 isThirdParty: false // 是否为第三方插件
             }
         },
@@ -415,18 +420,6 @@
                     })
                 }
             },
-            isSelectorPanelShow: {
-                handler (val) {
-                    if (val && this.isSubflow && !this.subflowListDom) {
-                        this.$nextTick(() => {
-                            const subflowListDom = document.querySelector('.tpl-list')
-                            subflowListDom && subflowListDom.addEventListener('scroll', this.handleTableScroll)
-                            this.subflowListDom = subflowListDom
-                        })
-                    }
-                },
-                immediate: true
-            },
             isQuickInsertPanelShow (val) {
                 if (val) {
                     window.addEventListener('mouseup', this.handleClickOutside)
@@ -435,11 +428,6 @@
                     this.onResetMakoTemp()
                     window.removeEventListener('mouseup', this.handleClickOutside)
                 }
-            }
-        },
-        beforeDestroy () {
-            if (this.subflowListDom) {
-                this.subflowListDom.removeEventListener('scroll', this.handleTableScroll)
             }
         },
         created () {
@@ -495,24 +483,21 @@
                 this[key] = val
             }
             this.initData()
-            if (this.isSelectorPanelShow) {
-                this.$nextTick(function () {
-                    this.subflowListDom = document.querySelector('.tpl-list')
-                    this.subflowListDom && this.subflowListDom.addEventListener('scroll', this.handleTableScroll)
-                })
-            }
         },
         methods: {
             ...mapActions('atomForm/', [
                 'loadAtomConfig',
-                'loadSubflowConfig',
                 'loadPluginServiceMeta',
                 'loadPluginServiceDetail',
                 'loadPluginServiceAppDetail'
             ]),
             ...mapActions('template/', [
+                'loadTemplateData',
                 'getMakoOperations',
                 'getVariableFieldExplain'
+            ]),
+            ...mapActions('task', [
+                'loadSubflowConfig'
             ]),
             ...mapMutations('template/', [
                 'setSubprocessUpdated',
@@ -521,22 +506,19 @@
                 'setConstants',
                 'setOutputs'
             ]),
-            ...mapActions('templateList', [
-                'loadTemplateList'
-            ]),
             async initDefaultData () {
                 const nodeConfig = this.activities[this.nodeId]
                 const isThirdParty = nodeConfig.component && nodeConfig.component.code === 'remote_plugin'
                 if (nodeConfig.type === 'ServiceActivity') {
                     await this.setThirdPartyList(nodeConfig)
                     this.basicInfo = await this.getNodeBasic(nodeConfig)
-                    this.$nextTick(() => {
-                        this.isBaseInfoLoading = false
-                    })
                 } else {
                     this.isSelectorPanelShow = !nodeConfig.template_id
-                    await this.getSubflowList()
+                    this.basicInfo = await this.getNodeBasic(nodeConfig)
                 }
+                this.$nextTick(() => {
+                    this.isBaseInfoLoading = false
+                })
                 const basicInfo = this.basicInfo
                 let versionList = []
                 if (nodeConfig.type === 'ServiceActivity') {
@@ -550,57 +532,6 @@
                     basicInfo,
                     versionList,
                     isSelectorPanelShow
-                }
-            },
-            async getSubflowList () {
-                this.subAtomListLoading = true
-                const { params } = this.$route
-                try {
-                    const data = {
-                        project__id: params.project_id,
-                        common: this.common,
-                        templateId: this.template_id,
-                        limit: this.limit,
-                        offset: this.currentPage * this.limit
-                    }
-                    const resp = await this.loadTemplateList(data)
-                    this.totalPage = Math.floor(resp.meta.total_count / this.limit)
-                    this.handleSubflowList(resp)
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.subAtomListLoading = false
-                    this.isBaseInfoLoading = false
-                }
-            },
-            async handleSubflowList (data) {
-                const list = []
-                const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
-                const { params, query } = this.$route
-                const nodeConfig = this.$store.state.template.activities[this.nodeId]
-                data.objects.forEach(item => {
-                    // 克隆模板可以引用被克隆的模板，模板不可以引用自己
-                    if (params.type === 'clone' || item.id !== Number(query.template_id)) {
-                        item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
-                        list.push(item)
-                    }
-                })
-                this.atomTypeList.subflow.push(...list)
-                this.basicInfo = await this.getNodeBasic(nodeConfig)
-            },
-            handleTableScroll () {
-                if (!this.isPageOver && !this.isThrottled) {
-                    this.isThrottled = true
-                    this.pollingTimer = setTimeout(() => {
-                        this.isThrottled = false
-                        const el = this.subflowListDom
-                        if (el.scrollHeight - el.offsetHeight - el.scrollTop < 10) {
-                            this.currentPage += 1
-                            this.isPageOver = this.currentPage === this.totalPage
-                            clearTimeout(this.pollingTimer)
-                            this.getSubflowList()
-                        }
-                    }, 500)
                 }
             },
             async setThirdPartyList (nodeConfig) {
@@ -749,25 +680,29 @@
             /**
              * 加载子流程任务节点输入、输出、版本配置项
              */
-            async getSubflowDetail (tpl, version) {
+            async getSubflowDetail (tpl, version = '') {
                 this.subflowLoading = true
                 try {
                     const params = {
-                        templateId: tpl,
-                        common: this.common
+                        template_id: tpl,
+                        scheme_id_list: this.basicInfo.schemeIdList,
+                        version
                     }
-                    if (version) {
-                        params.version = version
+                    if (this.common) {
+                        params.template_source = 'common'
+                    } else {
+                        params.project_id = this.project_id
                     }
-                    const resp = await this.loadSubflowConfig({ ...params })
-                    const data = resp.data
-                    this.subflowForms = data.form
+                    const resp = await this.loadSubflowConfig(params)
+                    // 子流程的输入参数包括流程引用的变量、自定义变量和未被引用的变量
+                    this.subflowForms = { ...resp.data.pipeline_tree.constants, ...resp.data.custom_constants, ...resp.data.constants_not_referred }
+                    this.formsNotReferred = resp.data.constants_not_referred
                     // 子流程模板版本更新时，未带版本信息，需要请求接口后获取最新版本
-                    this.updateBasicInfo({ version: data.version })
+                    this.updateBasicInfo({ version: resp.data.version })
 
                     // 输出变量
-                    this.outputs = Object.keys(data.outputs).map(item => {
-                        const output = data.outputs[item]
+                    this.outputs = Object.keys(resp.data.outputs).map(item => {
+                        const output = resp.data.outputs[item]
                         return {
                             plugin_code: output.plugin_code,
                             name: output.name,
@@ -775,7 +710,6 @@
                             version: output.hasOwnProperty('version') ? output.version : 'legacy'
                         }
                     })
-                    return data
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -885,20 +819,21 @@
                         skippable: isSkipped === undefined ? skippable : isSkipped,
                         retryable: can_retry === undefined ? retryable : can_retry,
                         selectable: optional,
-                        autoRetry: auto_retry || { enable: false, times: 1 },
+                        autoRetry: Object.assign({}, { enable: false, interval: 0, times: 1 }, auto_retry),
                         timeoutConfig: timeout_config || { enable: false, seconds: 10, action: 'forced_fail' }
                     }
                 } else {
-                    const { template_id, name, stage_name = '', labels, optional, always_use_latest } = config
+                    const { template_id, name, stage_name = '', labels, optional, always_use_latest, scheme_id_list } = config
                     let templateName = i18n.t('请选择子流程')
 
                     if (template_id) {
-                        this.atomTypeList.subflow.some(item => {
-                            if (item.template_id === Number(template_id)) {
-                                templateName = item.name
-                                return true
-                            }
-                        })
+                        const subflowInfo = this.atomTypeList.subflow.find(item => item.template_id === Number(template_id))
+                        if (subflowInfo) {
+                            templateName = subflowInfo.name
+                        } else {
+                            const templateData = await this.loadTemplateData({ templateId: template_id, common: this.common })
+                            templateName = templateData.name
+                        }
                     }
                     return {
                         tpl: template_id || '',
@@ -908,6 +843,7 @@
                         nodeLabel: labels || [], // 兼容旧数据，节点标签字段为后面新增
                         selectable: optional,
                         alwaysUseLatest: always_use_latest || false, // 兼容旧数据，该字段为新增
+                        schemeIdList: scheme_id_list || [], // 兼容旧数据，该字段为后面新增
                         version: config.hasOwnProperty('version') ? config.version : '' // 子流程版本，区别于标准插件版本
                     }
                 }
@@ -1090,7 +1026,8 @@
                     tpl: id,
                     nodeName: name,
                     selectable: true,
-                    alwaysUseLatest: false
+                    alwaysUseLatest: false,
+                    schemeIdList: []
                 }
                 this.updateBasicInfo(config)
                 await this.getSubflowDetail(id, version)
@@ -1251,6 +1188,23 @@
                 const { href } = this.$router.resolve(pathData)
                 window.open(href, '_blank')
             },
+            // 切换子流程执行方案，需要重新请求输入、输出参数
+            async onSelectSubflowScheme () {
+                const oldForms = Object.assign({}, this.subflowForms)
+                await this.getSubflowDetail(this.basicInfo.tpl, this.basicInfo.version)
+                this.subflowUpdateParamsChange()
+                this.inputs = await this.getSubflowInputsConfig()
+                this.$nextTick(() => {
+                    this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms, oldForms)
+                    this.inputsRenderConfig = Object.keys(this.subflowForms).reduce((acc, crt) => {
+                        const formItem = this.subflowForms[crt]
+                        if (formItem.show_type === 'show') {
+                            acc[crt] = 'need_render' in formItem ? formItem.need_render : true
+                        }
+                        return acc
+                    }, {})
+                })
+            },
             // 是否渲染豁免切换
             onRenderConfigChange (data) {
                 const [key, val] = data
@@ -1322,7 +1276,7 @@
             getNodeFullConfig () {
                 let config
                 if (this.isSubflow) {
-                    const { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, version, tpl } = this.basicInfo
+                    const { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, version, tpl } = this.basicInfo
                     const constants = {}
                     Object.keys(this.subflowForms).forEach(key => {
                         const constant = this.subflowForms[key]
@@ -1340,7 +1294,8 @@
                         labels: nodeLabel,
                         template_id: tpl,
                         optional: selectable,
-                        always_use_latest: alwaysUseLatest
+                        always_use_latest: alwaysUseLatest,
+                        scheme_id_list: schemeIdList
                     })
                 } else {
                     const { ignorable, nodeName, stageName, nodeLabel, plugin, retryable, skippable, selectable, version, autoRetry, timeoutConfig } = this.basicInfo
@@ -1775,6 +1730,13 @@
         .inputs-wrapper,
         .outputs-wrapper {
             min-height: 80px;
+        }
+        .section-tips {
+            font-size: 16px;
+            color: #c4c6cc;
+            &:hover {
+                color: #f4aa1a;
+            }
         }
     }
     .bk-sideslider-content {

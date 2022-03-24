@@ -9,7 +9,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
- (function () {
+(function () {
     $.atoms.job_fast_execute_script = [
         {
             tag_code: "biz_cc_id",
@@ -350,21 +350,21 @@
             type: "input",
             attrs: {
                 name: gettext("超时时间"),
-                placeholder: gettext("单位为秒，为空时使用 JOB 默认值"),
+                placeholder: gettext("单位为秒(60 - 86400)，为空时使用 JOB 默认值"),
                 hookable: true,
                 validation: [
                     {
                         type: "custom",
                         args: function (value) {
-                            var result = {
+                            let result = {
                                 result: true,
                                 error_message: ""
-                            }
-                            if (value && !Number(value)) {
+                            };
+                            if (+value < 60 || +value > 86400) {
                                 result.result = false;
-                                result.error_message = gettext("请输入数字");
+                                result.error_message = gettext("超时时间必须在 60 - 86400 范围内")
                             }
-                            return result;
+                            return result
                         }
                     }
                 ]
@@ -439,6 +439,23 @@
                     {value: false, name: gettext("否")},
                 ],
                 default: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        },
+        {
+            tag_code: "is_tagged_ip",
+            type: "radio",
+            attrs: {
+                name: gettext("IP Tag 分组"),
+                items: [
+                    {value: true, name: gettext("是")},
+                    {value: false, name: gettext("否")},
+                ],
+                default: false,
                 validation: [
                     {
                         type: "required"
