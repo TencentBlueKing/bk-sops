@@ -156,7 +156,11 @@
                 </div>
                 <!-- 模板预渲染 -->
                 <div class="form-item clearfix" v-if="!isInternalVal">
-                    <label class="form-label">{{ $t('模板预渲染')}}</label>
+                    <label
+                        class="form-label condition-tip"
+                        v-bk-tooltips.top="$t('模板预渲染为是的变量，会在开始节点执行时就完成渲染，引用了节点输出的变量开启预渲染后会渲染失败')">
+                        {{ $t('模板预渲染')}}
+                    </label>
                     <div class="form-content">
                         <bk-select
                             :value="String(theEditingData.pre_render_mako)"
