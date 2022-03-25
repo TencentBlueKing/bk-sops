@@ -1016,6 +1016,7 @@ class TaskFlowInstance(models.Model):
         else:
             self.current_flow = "execute_task"
         self.is_deleted = False
+        self.engine_ver = EngineConfig.ENGINE_VER_V2
         self.save()
         return self
 

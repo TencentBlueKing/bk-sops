@@ -771,7 +771,7 @@
                     variable.name = variable.name.trim()
 
                     // 触发条件
-                    if (variable.is_condition_hide === 'true') {
+                    if (variable.show_type === 'show' && variable.is_condition_hide === 'true') {
                         const isTrue = this.hideConditionList.every(condition => {
                             return Object.values(condition).every(val => val)
                         })
