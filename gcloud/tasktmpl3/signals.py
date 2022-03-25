@@ -11,17 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.apps import AppConfig
+from django.dispatch import Signal
 
-
-class AnalysisStatisticsConfig(AppConfig):
-    name = "gcloud.analysis_statistics"
-    verbose_name = "GcloudAnalysisStatistics"
-
-    def ready(self):
-        from gcloud.analysis_statistics.signals.handlers import (  # noqa
-            task_flow_post_save_handler,
-            task_template_post_save_commit_handler,
-            pipeline_instance_finish_handler,
-            pipeline_instance_revoke_handler,
-        )
+# 项目模板保存后可见的信号，在模板保存事务提交后发出
+# project_id: 模板对应的项目 ID
+# template_id: 模板 ID
+# is_deleted: 模板是否被删除
+post_template_save_commit = Signal(providing_args=["project_id", "template_id", "is_deleted"])

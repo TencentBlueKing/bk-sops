@@ -25,6 +25,7 @@ from gcloud import err_code
 from pipeline.models import TemplateRelationship
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.label.models import TemplateLabelRelation, Label
+from gcloud.tasktmpl3.signals import post_template_save_commit
 from gcloud.taskflow3.models import TaskTemplate
 from gcloud.core.apis.drf.serilaziers.task_template import TaskTemplateSerializer, CreateTaskTemplateSerializer
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
@@ -160,6 +161,13 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             self.perform_create(serializer)
             self._sync_template_lables(serializer.instance.id, template_labels)
             headers = self.get_success_headers(serializer.data)
+        # 发送信号
+        post_template_save_commit.send(
+            sender=TaskTemplate,
+            project_id=serializer.instance.project_id,
+            template_id=serializer.instance.id,
+            is_deleted=False,
+        )
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, serializer.instance)
         # 记录操作流水
@@ -201,6 +209,13 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             template_labels = serializer.validated_data.pop("template_labels")
             self.perform_update(serializer)
             self._sync_template_lables(serializer.instance.id, template_labels)
+        # 发送信号
+        post_template_save_commit.send(
+            sender=TaskTemplate,
+            project_id=serializer.instance.project_id,
+            template_id=serializer.instance.id,
+            is_deleted=serializer.instance.is_deleted,
+        )
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, template)
         # 记录操作流水
@@ -228,6 +243,10 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         # 删除流程模板
         template.is_deleted = True
         template.save()
+        # 发送信号
+        post_template_save_commit.send(
+            sender=TaskTemplate, project_id=template.project_id, template_id=template.id, is_deleted=template.is_deleted
+        )
         # 记录操作流水
         operate_record_signal.send(
             sender=RecordType.template.name,
