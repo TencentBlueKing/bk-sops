@@ -25,7 +25,7 @@ mock.mock._magics.add("__round__")
 TEST_TASK_INSTANCE_ID = 1
 TEST_PIPELINE_INSTANCE = MockPipelineInstance(execution_data=TEST_EXECUTION_DATA)
 
-taskflow = MockTaskFlowInstance(pipeline_instance=TEST_PIPELINE_INSTANCE)
+taskflow = MockTaskFlowInstance(pipeline_instance=TEST_PIPELINE_INSTANCE, id=1)
 
 
 class TestPipelineArchiveStatisticsTask(TestCase):
