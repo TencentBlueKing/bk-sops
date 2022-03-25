@@ -25,7 +25,7 @@
                                 <span
                                     :class="['checkbox', {
                                         'checked': listAllSelected,
-                                        'half-checked': selectedIp.length > 0 && selectedIp.length < staticIpList.length
+                                        'half-checked': selectedIp.length > 0 && selectedIp.length < list.length
                                     }]"
                                     @click="onSelectAllClick">
                                 </span>
@@ -172,7 +172,7 @@
                 ipSortActive: '',
                 hostNameSortActive: '',
                 ipString: '',
-                list: this.staticIpList,
+                list: this.staticIpList, // 筛选/排序后存放列表
                 errorStr: '',
                 errorIpList: [],
                 tooltipConfig: {
@@ -240,8 +240,7 @@
                     this.selectedIp = []
                     this.listAllSelected = false
                 } else {
-                    const list = this.isSearchMode ? this.searchResult : this.list
-                    this.selectedIp = [...list]
+                    this.selectedIp = [...this.list]
                     this.listAllSelected = true
                 }
             },
@@ -252,7 +251,7 @@
                 } else {
                     this.selectedIp.push(host)
                 }
-                const half = this.selectedIp.length > 0 && this.selectedIp.length < this.staticIpList.length
+                const half = this.selectedIp.length > 0 && this.selectedIp.length < this.list.length
                 if (half || this.selectedIp.length === 0) {
                     this.listAllSelected = false
                 } else {
