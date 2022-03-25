@@ -312,6 +312,7 @@ class JobService(Service):
                         self.logger,
                         job_instance_id,
                         data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+                        job_scope_type=self.biz_scope_type,
                     )
 
                     if not result:
@@ -525,6 +526,7 @@ class Jobv3Service(Service):
                         self.logger,
                         job_instance_id,
                         data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+                        job_scope_type=self.biz_scope_type,
                     )
 
                     if not result:
