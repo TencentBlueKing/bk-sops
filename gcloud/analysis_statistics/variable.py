@@ -10,18 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from itertools import chain
 from django.db import transaction
 
 from gcloud.tasktmpl3.domains.constants import analysis_pipeline_constants_ref
 from gcloud.analysis_statistics.models import TemplateVariableStatistics
-
-
-def _constants_refs_count(refs: dict) -> int:
-    count = 0
-    for _, referencer in refs.items():
-        count += len(referencer)
-    return count
 
 
 def update_statistics(project_id: int, template_id: int, pipeline_tree: dict) -> set:
@@ -50,7 +43,7 @@ def update_statistics(project_id: int, template_id: int, pipeline_tree: dict) ->
                 variable_key=key,
                 variable_type=variable_type,
                 variable_source=variable_source,
-                refs=_constants_refs_count(refs),
+                refs=len(list(chain(*refs.values()))),
             )
         )
         collected_keys.add(key)

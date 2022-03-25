@@ -94,7 +94,6 @@ class TaskTmplExecuteTopNAdmin(admin.ModelAdmin):
 @admin.register(TemplateVariableStatistics)
 class TemplateVariableStatisticsAdmin(admin.ModelAdmin):
     list_display = ("template_id", "project_id", "variable_key", "variable_type", "variable_source", "refs")
-    actions = ["backfill"]
 
 
 @admin.register(TemplateCustomVariableSummary)
