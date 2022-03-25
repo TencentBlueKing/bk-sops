@@ -10,15 +10,22 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import uuid
+import socket
 import logging
 import traceback
-import uuid
 
 import pytz
 from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 from django.utils.deprecation import MiddlewareMixin
 from django.db.models import ObjectDoesNotExist
+from django_prometheus.middleware import (
+    Metrics,
+    PrometheusAfterMiddleware,
+    PrometheusBeforeMiddleware,
+)
+from django_prometheus.utils import Time, TimeSince
 
 from gcloud import err_code
 from gcloud.core.models import Project
@@ -82,3 +89,37 @@ class TraceIDInjectMiddleware(MiddlewareMixin):
         ):
             response.setdefault("Sops-Trace-Id", request.trace_id)
         return response
+
+
+HOSTNAME = socket.gethostname()
+
+
+class CustomMetics(Metrics):
+    def register_metric(self, metric_cls, name, documentation, labelnames=(), **kwargs):
+        return super().register_metric(metric_cls, name, documentation, labelnames=[*labelnames, "hostname"], **kwargs)
+
+
+class AppMetricsBeforeMiddleware(PrometheusBeforeMiddleware):
+    metrics_cls = CustomMetics
+
+    def process_request(self, request):
+        self.metrics.requests_total.labels(hostname=HOSTNAME).inc()
+        request.prometheus_before_middleware_event = Time()
+
+    def process_response(self, request, response):
+        self.metrics.responses_total.labels(hostname=HOSTNAME).inc()
+        if hasattr(request, "prometheus_before_middleware_event"):
+            self.metrics.requests_latency_before.labels(hostname=HOSTNAME).observe(
+                TimeSince(request.prometheus_before_middleware_event)
+            )
+        else:
+            self.metrics.requests_unknown_latency_before.labels(hostname=HOSTNAME).inc()
+        return response
+
+
+class AppMetricsAfterMiddleware(PrometheusAfterMiddleware):
+    metrics_cls = CustomMetics
+
+    def label_metric(self, metric, request, response=None, **labels):
+        labels.update({"hostname": HOSTNAME})
+        return super().label_metric(metric, request, response=response, **labels)
