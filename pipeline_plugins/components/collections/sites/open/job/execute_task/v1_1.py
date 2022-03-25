@@ -30,7 +30,7 @@ job_handle_api_error = partial(handle_api_error, __group_name__)
 
 class JobExecuteTaskService(JobExecuteTaskServiceBase, GetJobHistoryResultMixin):
     def inputs_format(self):
-        return super(JobExecuteTaskServiceBase, self).inputs_format() + [
+        return super().inputs_format() + [
             self.InputItem(
                 name=_("IP Tag 分组"),
                 key="is_tagged_ip",
@@ -40,7 +40,7 @@ class JobExecuteTaskService(JobExecuteTaskServiceBase, GetJobHistoryResultMixin)
         ]
 
     def outputs_format(self):
-        return super(JobExecuteTaskServiceBase, self).outputs_format() + [
+        return super().outputs_format() + [
             self.OutputItem(
                 name=_("JOB执行IP分组"),
                 key="job_tagged_ip_dict",
