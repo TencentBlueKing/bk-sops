@@ -22,7 +22,6 @@ from functools import wraps
 import yaml
 from django.db.models import Model
 from django.http import JsonResponse, HttpResponse
-from django.utils.decorators import available_attrs
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
@@ -116,7 +115,7 @@ def base_check_before_import(request: Request, template_model_cls: object, impor
 
 def is_full_param_process(template_model_cls: object, project_related: bool):
     def decorator(view_func):
-        @wraps(view_func, assigned=available_attrs(view_func))
+        @wraps(view_func)
         def wrapped_view(request, *args, **kwargs):
             if request.data["is_full"]:
                 template_filters = {"is_deleted": False}

@@ -75,6 +75,12 @@ EXECUTE_AND_SCHEDULE_SUCCESS_CLIENT = MockPluginClient(
     get_detail_result={"result": True, "data": {"context_inputs": {"properties": {}}}},
 )
 
+EXECUTE_AND_SCHEDULE_SUCCESS_CALLBACK_CLIENT = MockPluginClient(
+    invoke_result=(True, {**TRACE_ID_OUTPUTS, "state": State.CALLBACK, "outputs": {}}),
+    get_schedule_result=(True, {"state": State.SUCCESS, "outputs": BASE_OUTPUTS}),
+    get_detail_result={"result": True, "data": {"context_inputs": {"properties": {}}}},
+)
+
 INVOKE_API_FAIL_CLIENT = MockPluginClient(
     invoke_result=(False, {**TRACE_ID_OUTPUTS, "message": "ex_data"}),
     get_detail_result={"result": True, "data": {"context_inputs": {"properties": {}}}},
@@ -140,7 +146,21 @@ SCHEDULE_FAIL_CASE = ComponentTestCase(
     parent_data=PARENT_DATA,
     execute_assertion=ExecuteAssertion(success=True, outputs={**TRACE_ID_OUTPUTS}),
     schedule_assertion=ScheduleAssertion(
-        success=False, outputs={**TRACE_ID_OUTPUTS, **SCHEDULE_FAIL_EX_DATA_OUTPUTS, **BASE_OUTPUTS}, callback_data={},
+        success=False,
+        outputs={**TRACE_ID_OUTPUTS, **SCHEDULE_FAIL_EX_DATA_OUTPUTS, **BASE_OUTPUTS},
+        callback_data={},
     ),
     patchers=[Patcher(target=PLUGIN_SERVICE_API_CLIENT, return_value=SCHEDULE_FAIL_CLIENT)],
+)
+
+# [plugin callback]both execute and schedule success
+EXECUTE_AND_SCHEDULE_SUCCESS_CASE = ComponentTestCase(
+    name="[plugin callback]both execute and schedule success",
+    inputs=BASE_INPUTS,
+    parent_data=PARENT_DATA,
+    execute_assertion=ExecuteAssertion(success=True, outputs={**TRACE_ID_OUTPUTS}),
+    schedule_assertion=ScheduleAssertion(
+        success=True, outputs={**TRACE_ID_OUTPUTS, **BASE_OUTPUTS}, callback_data={}, schedule_finished=True
+    ),
+    patchers=[Patcher(target=PLUGIN_SERVICE_API_CLIENT, return_value=EXECUTE_AND_SCHEDULE_SUCCESS_CALLBACK_CLIENT)],
 )

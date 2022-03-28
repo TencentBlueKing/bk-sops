@@ -92,8 +92,6 @@ class CreatePeriodicTaskSerializer(serializers.ModelSerializer):
         return {"pipeline_tree": json.loads(obj)}
 
     def get_pipeline_tree(self, obj):
-        if not getattr(obj, "pipeline_tree") or not obj.pipeline_tree:
-            return json.dumps(dict())
         return json.dumps(obj.pipeline_tree)
 
     def validate_project(self, value):

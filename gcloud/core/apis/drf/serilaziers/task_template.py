@@ -15,7 +15,6 @@ import json
 from rest_framework import serializers
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.common_template.models import CommonTemplate
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.core.models import Project
 from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
@@ -44,12 +43,7 @@ class TaskTemplateSerializer(BaseTaskTemplateSerializer):
     pipeline_tree = serializers.SerializerMethodField(read_only=True, help_text="pipeline_tree")
 
     def get_pipeline_tree(self, obj):
-        try:
-            if not getattr(obj, "pipeline_tree"):
-                return json.dumps(obj.pipeline_template.data)
-            return json.dumps(getattr(obj, "pipeline_tree"))
-        except (TaskTemplate.DoesNotExist, CommonTemplate.DoesNotExist):
-            return json.dumps(obj.pipeline_template.data)
+        return json.dumps(obj.pipeline_tree)
 
     class Meta:
         model = TaskTemplate

@@ -21,7 +21,7 @@ class AnalysisStatisticsConfig(AppConfig):
     def ready(self):
         from gcloud.analysis_statistics.signals.handlers import (  # noqa
             task_flow_post_save_handler,
-            task_template_post_save_handler,
+            task_template_post_save_commit_handler,
             pipeline_instance_finish_handler,
             pipeline_instance_revoke_handler,
         )

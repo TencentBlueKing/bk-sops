@@ -696,7 +696,7 @@
                 // 我的收藏栏下order排序重新赋值
                 const orderKey = this.isMyCollect ? 'ordering' : 'order_by'
                 const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
-                if (this.isMyCollect && keys.includes(this.ordering)) {
+                if (keys.includes(this.ordering)) {
                     const symbol = /^-/.test(this.ordering) ? '-' : ''
                     const orderVal = this.ordering.replace(/^-/, '')
                     data[orderKey] = `${symbol}pipeline_template__${orderVal}`
