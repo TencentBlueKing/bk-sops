@@ -202,3 +202,8 @@ class Type(Enum):
     LIST = "list"
     DICT = "dict"
     OBJECT = "object"
+
+
+class JobBizScopeType(Enum):
+    BIZ = "biz"
+    BIZ_SET = "biz_set"

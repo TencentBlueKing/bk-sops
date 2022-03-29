@@ -127,6 +127,8 @@ class BKRepoManagerTestCase(TestCase):
 
                 esb_client.jobv3.fast_transfer_file.assert_called_once_with(
                     {
+                        "bk_scope_type": "biz",
+                        "bk_scope_id": str(JOB_FILE_BIZ_ID),
                         "bk_biz_id": JOB_FILE_BIZ_ID,
                         "account_alias": account,
                         "file_target_path": target_path,
@@ -177,6 +179,8 @@ class BKRepoManagerTestCase(TestCase):
                 )
 
                 job_kwargs = {
+                    "bk_scope_type": "biz",
+                    "bk_scope_id": str(JOB_FILE_BIZ_ID),
                     "bk_biz_id": JOB_FILE_BIZ_ID,
                     "account_alias": account,
                     "file_target_path": target_path,
@@ -253,6 +257,8 @@ class BKRepoManagerTestCase(TestCase):
 
                         esb_client.jobv3.fast_transfer_file.assert_called_once_with(
                             {
+                                "bk_scope_type": "biz",
+                                "bk_scope_id": str(JOB_FILE_BIZ_ID),
                                 "bk_biz_id": JOB_FILE_BIZ_ID,
                                 "account_alias": account,
                                 "file_target_path": target_path,

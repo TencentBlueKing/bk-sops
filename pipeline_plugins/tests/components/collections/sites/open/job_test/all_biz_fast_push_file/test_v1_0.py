@@ -124,6 +124,8 @@ FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT = MockClient(
 CLL_INFO = MagicMock(
     side_effect=[
         {
+            "bk_scope_type": "biz_set",
+            "bk_scope_id": "321456",
             "bk_biz_id": 321456,
             "file_source": [
                 {
@@ -144,6 +146,8 @@ CLL_INFO = MagicMock(
             "timeout": 100,
         },
         {
+            "bk_scope_type": "biz_set",
+            "bk_scope_id": "321456",
             "bk_biz_id": 321456,
             "file_source": [
                 {
@@ -164,6 +168,8 @@ CLL_INFO = MagicMock(
             "timeout": 100,
         },
         {
+            "bk_scope_type": "biz_set",
+            "bk_scope_id": "321456",
             "bk_biz_id": 321456,
             "file_source": [
                 {
@@ -184,6 +190,8 @@ CLL_INFO = MagicMock(
             "timeout": 100,
         },
         {
+            "bk_scope_type": "biz_set",
+            "bk_scope_id": "321456",
             "bk_biz_id": 321456,
             "file_source": [
                 {

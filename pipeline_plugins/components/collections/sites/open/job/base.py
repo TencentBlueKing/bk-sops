@@ -45,6 +45,7 @@ from pipeline.core.flow.io import (
 from env import JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from gcloud.constants import JobBizScopeType
 from pipeline_plugins.components.utils.common import batch_execute_func
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
@@ -103,7 +104,9 @@ def get_sops_var_dict_from_log_text(log_text, service_logger):
     return sops_var_dict
 
 
-def get_job_instance_log(client, service_logger, job_instance_id, bk_biz_id, target_ip=None):
+def get_job_instance_log(
+    client, service_logger, job_instance_id, bk_biz_id, target_ip=None, job_scope_type=JobBizScopeType.BIZ.value
+):
     """
     获取作业日志：获取某个ip每个步骤的日志
     :param client:
@@ -144,8 +147,10 @@ def get_job_instance_log(client, service_logger, job_instance_id, bk_biz_id, tar
     - fail { "result": False, "message": message}
     """
     get_job_instance_status_kwargs = {
-        "job_instance_id": job_instance_id,
+        "bk_scope_type": job_scope_type,
+        "bk_scope_id": str(bk_biz_id),
         "bk_biz_id": bk_biz_id,
+        "job_instance_id": job_instance_id,
         "return_ip_result": True,
     }
     get_job_instance_status_return = client.jobv3.get_job_instance_status(get_job_instance_status_kwargs)
@@ -179,8 +184,10 @@ def get_job_instance_log(client, service_logger, job_instance_id, bk_biz_id, tar
         else:
             step_ip_result = step_instance["step_ip_result_list"][0]
         get_job_instance_ip_log_kwargs = {
-            "job_instance_id": job_instance_id,
+            "bk_scope_type": job_scope_type,
+            "bk_scope_id": str(bk_biz_id),
             "bk_biz_id": bk_biz_id,
+            "job_instance_id": job_instance_id,
             "step_instance_id": step_instance["step_instance_id"],
             "bk_cloud_id": step_ip_result["bk_cloud_id"],
             "ip": step_ip_result["ip"],
@@ -202,11 +209,15 @@ def get_job_instance_log(client, service_logger, job_instance_id, bk_biz_id, tar
     return {"result": True, "data": log_text}
 
 
-def get_job_tagged_ip_dict(client, service_logger, job_instance_id, bk_biz_id):
+def get_job_tagged_ip_dict(
+    client, service_logger, job_instance_id, bk_biz_id, job_scope_type=JobBizScopeType.BIZ.value
+):
     """根据job步骤执行标签获取 IP 分组"""
     kwargs = {
-        "job_instance_id": job_instance_id,
+        "bk_scope_type": job_scope_type,
+        "bk_scope_id": str(bk_biz_id),
         "bk_biz_id": bk_biz_id,
+        "job_instance_id": job_instance_id,
         "return_ip_result": True,
     }
     result = client.jobv3.get_job_instance_status(kwargs)
@@ -238,7 +249,7 @@ def get_job_tagged_ip_dict(client, service_logger, job_instance_id, bk_biz_id):
     return True, tagged_ip_dict
 
 
-def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
+def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id, job_scope_type=JobBizScopeType.BIZ.value):
     """
     解析作业日志：默认取每个步骤/节点的第一个ip_logs
     :param client:
@@ -249,7 +260,9 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
     - success { "result": True, "data": {"key1": "value1"}}
     - fail { "result": False, "message": message}
     """
-    get_job_instance_log_result = get_job_instance_log(client, service_logger, job_instance_id, bk_biz_id)
+    get_job_instance_log_result = get_job_instance_log(
+        client, service_logger, job_instance_id, bk_biz_id, job_scope_type=job_scope_type
+    )
     if not get_job_instance_log_result["result"]:
         return get_job_instance_log_result
     log_text = get_job_instance_log_result["data"]
@@ -262,6 +275,8 @@ class JobService(Service):
     reload_outputs = True
 
     need_get_sops_var = False
+
+    biz_scope_type = JobBizScopeType.BIZ.value
 
     def execute(self, data, parent_data):
         pass
@@ -297,6 +312,7 @@ class JobService(Service):
                         self.logger,
                         job_instance_id,
                         data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+                        job_scope_type=self.biz_scope_type,
                     )
 
                     if not result:
@@ -308,9 +324,12 @@ class JobService(Service):
                 if "is_tagged_ip" in data.get_inputs():
                     data.set_outputs("job_tagged_ip_dict", tagged_ip_dict)
 
+                bk_biz_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
                 # 全局变量重载
                 get_var_kwargs = {
-                    "bk_biz_id": data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+                    "bk_scope_type": self.biz_scope_type,
+                    "bk_scope_id": str(bk_biz_id),
+                    "bk_biz_id": bk_biz_id,
                     "job_instance_id": job_instance_id,
                 }
                 global_var_result = client.job.get_job_instance_global_var_value(get_var_kwargs)
@@ -318,7 +337,9 @@ class JobService(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "job.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
+                        "job.get_job_instance_global_var_value",
+                        get_var_kwargs,
+                        global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
@@ -341,6 +362,7 @@ class JobService(Service):
                 self.logger,
                 job_instance_id,
                 data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+                self.biz_scope_type,
             )
             if not get_job_sops_var_dict_return["result"]:
                 self.logger.warning(
@@ -396,6 +418,7 @@ class JobService(Service):
 
 class JobScheduleService(JobService):
     __need_schedule__ = True
+
     interval = StaticIntervalGenerator(5)
 
     def schedule(self, data, parent_data, callback_data=None):
@@ -405,7 +428,12 @@ class JobScheduleService(JobService):
             data.outputs.ex_data = ""
 
         params_list = [
-            {"bk_biz_id": data.inputs.biz_cc_id, "job_instance_id": job_id}
+            {
+                "bk_scope_type": self.biz_scope_type,
+                "bk_scope_id": str(data.inputs.biz_cc_id),
+                "bk_biz_id": data.inputs.biz_cc_id,
+                "job_instance_id": job_id,
+            }
             for job_id in data.outputs.job_id_of_batch_execute
         ]
         client = get_client_by_user(parent_data.inputs.executor)
@@ -462,6 +490,8 @@ class Jobv3Service(Service):
 
     need_get_sops_var = False
 
+    biz_scope_type = JobBizScopeType.BIZ.value
+
     def execute(self, data, parent_data):
         pass
 
@@ -496,6 +526,7 @@ class Jobv3Service(Service):
                         self.logger,
                         job_instance_id,
                         data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+                        job_scope_type=self.biz_scope_type,
                     )
 
                     if not result:
@@ -509,6 +540,8 @@ class Jobv3Service(Service):
 
                 # 全局变量重载
                 get_var_kwargs = {
+                    "bk_scope_type": self.biz_scope_type,
+                    "bk_scope_id": str(data.inputs.biz_cc_id),
                     "bk_biz_id": data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
                     "job_instance_id": job_instance_id,
                 }
@@ -542,6 +575,7 @@ class Jobv3Service(Service):
                 self.logger,
                 job_instance_id,
                 data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+                self.biz_scope_type,
             )
             if not get_jobv3_sops_var_dict_return["result"]:
                 self.logger.warning(
@@ -606,7 +640,12 @@ class Jobv3ScheduleService(Jobv3Service):
             data.outputs.ex_data = ""
 
         params_list = [
-            {"bk_biz_id": data.inputs.biz_cc_id, "job_instance_id": job_id}
+            {
+                "bk_scope_type": self.biz_scope_type,
+                "bk_scope_id": str(data.inputs.biz_cc_id),
+                "bk_biz_id": data.inputs.biz_cc_id,
+                "job_instance_id": job_id,
+            }
             for job_id in data.outputs.job_id_of_batch_execute
         ]
         client = get_client_by_user(parent_data.inputs.executor)
@@ -660,11 +699,22 @@ class GetJobHistoryResultMixin(object):
         # get job_instance[job_success_id] execute status
         job_success_id = data.get_one_of_inputs("job_success_id")
         client = get_client_by_user(parent_data.inputs.executor)
-        job_kwargs = {"bk_biz_id": data.inputs.biz_cc_id, "job_instance_id": job_success_id}
+        bk_scope_type = getattr(self, "biz_scope_type", JobBizScopeType.BIZ.value)
+        job_kwargs = {
+            "bk_scope_type": bk_scope_type,
+            "bk_scope_id": str(data.inputs.biz_cc_id),
+            "bk_biz_id": data.inputs.biz_cc_id,
+            "job_instance_id": job_success_id,
+        }
         job_result = client.jobv3.get_job_instance_status(job_kwargs)
 
         if not job_result["result"]:
-            message = handle_api_error(__group_name__, "jobv3.get_job_instance_status", job_kwargs, job_result,)
+            message = handle_api_error(
+                __group_name__,
+                "jobv3.get_job_instance_status",
+                job_kwargs,
+                job_result,
+            )
             self.logger.error(message)
             data.outputs.ex_data = message
             self.logger.info(data.outputs)
@@ -684,7 +734,10 @@ class GetJobHistoryResultMixin(object):
             return True
 
         get_job_sops_var_dict_return = get_job_sops_var_dict(
-            client, self.logger, job_success_id, data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+            client,
+            self.logger,
+            job_success_id,
+            data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
         )
         if not get_job_sops_var_dict_return["result"]:
             self.logger.error(

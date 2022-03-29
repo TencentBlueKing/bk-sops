@@ -53,7 +53,16 @@ class HostNFSManager(Manager):
         return {"type": "host_nfs", "tags": {"uid": uid, "shims": shims, "name": name}}
 
     def push_files_to_ips(
-        self, esb_client, bk_biz_id, file_tags, target_path, ips, account, callback_url=None, timeout=None
+        self,
+        esb_client,
+        bk_biz_id,
+        file_tags,
+        target_path,
+        ips,
+        account,
+        callback_url=None,
+        timeout=None,
+        bk_scope_type="biz",
     ):
 
         if not all([tag["type"] == "host_nfs" for tag in file_tags]):
@@ -75,6 +84,8 @@ class HostNFSManager(Manager):
         ]
 
         job_kwargs = {
+            "bk_scope_type": bk_scope_type,
+            "bk_scope_id": str(bk_biz_id),
             "bk_biz_id": bk_biz_id,
             "account": account,
             "file_target_path": target_path,

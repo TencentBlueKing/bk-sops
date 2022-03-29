@@ -472,7 +472,7 @@
                 hookable: false,
                 remote: true,
                 remote_url: function () {
-                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_instance_list/' + $.context.getBkBizId() + '/1/3/';
+                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/jobv3_get_instance_list/' + $.context.getBkBizId() + '/1/3/';
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -501,7 +501,7 @@
                     action: function () {
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         if (cc_id !== '' && $.context.canSelectBiz()) {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_instance_list/' + cc_id + '/1/3/';
+                            this.remote_url = $.context.get('site_url') + 'pipeline/jobv3_get_instance_list/' + cc_id + '/1/3/';
                             this.remoteMethod();
                         }
                     }
@@ -512,7 +512,7 @@
                     action: function (value) {
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         if (cc_id !== '') {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_instance_list/' + cc_id + '/1/3/';
+                            this.remote_url = $.context.get('site_url') + 'pipeline/jobv3_get_instance_list/' + cc_id + '/1/3/';
                             this.remoteMethod();
                         }
                     }
@@ -528,7 +528,7 @@
                         if (value === '') {
                             return;
                         }
-                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_instance_list/' + value + '/1/3/';
+                        this.remote_url = $.context.get('site_url') + 'pipeline/jobv3_get_instance_list/' + value + '/1/3/';
                         this.remoteMethod();
                     }
                 }
