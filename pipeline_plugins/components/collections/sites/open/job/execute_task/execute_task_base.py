@@ -168,6 +168,8 @@ class JobExecuteTaskServiceBase(JobService):
                 global_vars.append({"name": _value["name"], "value": val})
 
         job_kwargs = {
+            "bk_scope_type": self.biz_scope_type,
+            "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
             "bk_job_id": data.get_one_of_inputs("job_task_id"),
             "global_vars": global_vars,

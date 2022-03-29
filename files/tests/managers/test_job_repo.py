@@ -82,6 +82,8 @@ class JobRepoManagerTestCase(TestCase):
         )
 
         job_kwargs = {
+            "bk_scope_type": "biz",
+            "bk_scope_id": str(self.bk_biz_id),
             "bk_biz_id": self.bk_biz_id,
             "account_alias": account,
             "file_target_path": target_path,
@@ -136,6 +138,8 @@ class JobRepoManagerTestCase(TestCase):
         )
 
         job_kwargs = {
+            "bk_scope_type": "biz",
+            "bk_scope_id": str(self.bk_biz_id),
             "bk_biz_id": self.bk_biz_id,
             "account_alias": account,
             "file_target_path": target_path,

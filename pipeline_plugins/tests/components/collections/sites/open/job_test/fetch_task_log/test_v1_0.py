@@ -110,6 +110,8 @@ EXECUTE_SUCCESS_GET_STATUS_RETURN = {
 }
 
 MANUAL_KWARGS = {
+    "bk_scope_type": "biz",
+    "bk_scope_id": "1",
     "job_instance_id": "12345",
     "bk_biz_id": 1,
     "step_instance_id": 75,
@@ -127,7 +129,10 @@ FETCH_TASK_LOG_SUCCESS_CASE = ComponentTestCase(
     name="fetch task log success case",
     inputs={"biz_cc_id": 1, "job_task_id": "12345"},
     parent_data={"executor": "executor", "project_id": "project_id", "biz_cc_id": 1},
-    execute_assertion=ExecuteAssertion(success=True, outputs={"job_task_log": "log text\n"},),
+    execute_assertion=ExecuteAssertion(
+        success=True,
+        outputs={"job_task_log": "log text\n"},
+    ),
     execute_call_assertion=[
         CallAssertion(func=FETCH_TASK_LOG_CLIENT.jobv3.get_job_instance_ip_log, calls=[Call(MANUAL_KWARGS)]),
     ],
@@ -142,7 +147,10 @@ FETCH_TASK_LOG_WITH_TARGET_IP_SUCCESS_CASE = ComponentTestCase(
     name="fetch task log with target ip success case",
     inputs={"biz_cc_id": 1, "job_task_id": "12345", "job_target_ip": "1.1.1.1"},
     parent_data={"executor": "executor", "project_id": "project_id", "biz_cc_id": 1},
-    execute_assertion=ExecuteAssertion(success=True, outputs={"job_task_log": "log text\n"},),
+    execute_assertion=ExecuteAssertion(
+        success=True,
+        outputs={"job_task_log": "log text\n"},
+    ),
     execute_call_assertion=[
         CallAssertion(func=FETCH_TASK_LOG_CLIENT.jobv3.get_job_instance_ip_log, calls=[Call(MANUAL_KWARGS)]),
     ],

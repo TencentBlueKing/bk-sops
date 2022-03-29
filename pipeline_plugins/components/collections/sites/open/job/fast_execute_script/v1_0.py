@@ -44,6 +44,7 @@ from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, get_biz_ip_from_frontend
 
 from gcloud.conf import settings
+from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _("作业平台(JOB)")
@@ -119,7 +120,10 @@ class JobFastExecuteScriptService(JobService):
                 schema=StringItemSchema(description=_("执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
+                name=_("目标账户"),
+                key="job_account",
+                type="string",
+                schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
             ),
             self.InputItem(
                 name=_("IP 存在性校验"),
@@ -174,6 +178,8 @@ class JobFastExecuteScriptService(JobService):
             return False
 
         job_kwargs = {
+            "bk_scope_type": JobBizScopeType.BIZ.value,
+            "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
             "script_timeout": data.get_one_of_inputs("job_script_timeout"),
             "account": data.get_one_of_inputs("job_account"),
@@ -192,7 +198,13 @@ class JobFastExecuteScriptService(JobService):
             script_name = data.get_one_of_inputs("job_script_list_{}".format(script_source))
             kwargs = {"script_name": script_name}
             if script_source == "general":
-                kwargs.update({"bk_biz_id": biz_cc_id})
+                kwargs.update(
+                    {
+                        "bk_scope_type": JobBizScopeType.BIZ.value,
+                        "bk_scope_id": str(biz_cc_id),
+                        "bk_biz_id": biz_cc_id,
+                    }
+                )
                 scripts = client.job.get_script_list(kwargs)
             else:
                 scripts = client.job.get_public_script_list(kwargs)

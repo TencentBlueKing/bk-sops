@@ -206,3 +206,8 @@ class Type(Enum):
 
 # DateTime格式化
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S %z"
+
+
+class JobBizScopeType(Enum):
+    BIZ = "biz"
+    BIZ_SET = "biz_set"
