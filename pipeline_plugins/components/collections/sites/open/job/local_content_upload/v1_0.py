@@ -20,6 +20,7 @@ from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema, IntItemSch
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.utils import cc_get_ips_info_by_str, get_job_instance_url, plat_ip_reg
 from gcloud.conf import settings
+from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _("作业平台(JOB)")
@@ -38,10 +39,16 @@ class JobLocalContentUploadService(Service):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("生成文件名[后缀]"), key="local_name", type="string", schema=StringItemSchema(description=_("生成文件名")),
+                name=_("生成文件名[后缀]"),
+                key="local_name",
+                type="string",
+                schema=StringItemSchema(description=_("生成文件名")),
             ),
             self.InputItem(
-                name=_("文本内容"), key="local_content", type="string", schema=StringItemSchema(description=_("文本内容")),
+                name=_("文本内容"),
+                key="local_content",
+                type="string",
+                schema=StringItemSchema(description=_("文本内容")),
             ),
             self.InputItem(
                 name=_("目标IP"),
@@ -58,7 +65,10 @@ class JobLocalContentUploadService(Service):
                 schema=StringItemSchema(description=_("请输入在蓝鲸作业平台上注册的账户名")),
             ),
             self.InputItem(
-                name=_("目标路径"), key="file_path", type="string", schema=StringItemSchema(description=_("目标路径")),
+                name=_("目标路径"),
+                key="file_path",
+                type="string",
+                schema=StringItemSchema(description=_("目标路径")),
             ),
             self.InputItem(
                 name=_("是否允许跨业务"),
@@ -115,11 +125,16 @@ class JobLocalContentUploadService(Service):
                 ip_info["ip_result"].append({"InnerIP": inner_ip, "Source": cloud_id})
         else:
             ip_info = cc_get_ips_info_by_str(
-                username=executor, biz_cc_id=biz_cc_id, ip_str=original_ip_list, use_cache=False,
+                username=executor,
+                biz_cc_id=biz_cc_id,
+                ip_str=original_ip_list,
+                use_cache=False,
             )
         ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
 
         job_kwargs = {
+            "bk_scope_type": JobBizScopeType.BIZ.value,
+            "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
             "account": data.get_one_of_inputs("file_account"),
             "file_target_path": data.get_one_of_inputs("file_path"),
@@ -151,9 +166,12 @@ class JobLocalContentUploadService(Service):
 
     def schedule(self, data, parent_data, callback_data=None):
         client = get_client_by_user(parent_data.get_one_of_inputs("executor"))
+        biz_cc_id = parent_data.get_one_of_inputs("biz_cc_id")
         get_job_instance_log_kwargs = {
+            "bk_scope_type": JobBizScopeType.BIZ.value,
+            "bk_scope_id": str(biz_cc_id),
+            "bk_biz_id": biz_cc_id,
             "job_instance_id": data.outputs.job_inst_id,
-            "bk_biz_id": parent_data.get_one_of_inputs("biz_cc_id"),
         }
         get_job_instance_log_return = client.job.get_job_instance_log(get_job_instance_log_kwargs)
         if not get_job_instance_log_return["result"]:

@@ -76,7 +76,14 @@ SAVE_CRON_FAIL_CASE = ComponentTestCase(
         outputs={
             "ex_data": ("调用作业平台(JOB)接口job.save_cron返回失败, params={params}, " "error=save_cron fail").format(
                 params=json.dumps(
-                    {"bk_biz_id": 1, "bk_job_id": 1, "cron_name": "job_cron_name", "cron_expression": "0 0/5 * * * ?"}
+                    {
+                        "bk_scope_type": "biz",
+                        "bk_scope_id": "1",
+                        "bk_biz_id": 1,
+                        "bk_job_id": 1,
+                        "cron_name": "job_cron_name",
+                        "cron_expression": "0 0/5 * * * ?",
+                    }
                 )
             )
         },
@@ -86,7 +93,16 @@ SAVE_CRON_FAIL_CASE = ComponentTestCase(
         CallAssertion(
             func=SAVE_CRON_CALL_FAIL_CLIENT.job.save_cron,
             calls=[
-                Call({"bk_biz_id": 1, "bk_job_id": 1, "cron_name": "job_cron_name", "cron_expression": "0 0/5 * * * ?"})
+                Call(
+                    {
+                        "bk_scope_type": "biz",
+                        "bk_scope_id": "1",
+                        "bk_biz_id": 1,
+                        "bk_job_id": 1,
+                        "cron_name": "job_cron_name",
+                        "cron_expression": "0 0/5 * * * ?",
+                    }
+                )
             ],
         ),
     ],
@@ -107,7 +123,16 @@ SAVE_CRON_SUCCESS_CASE = ComponentTestCase(
         CallAssertion(
             func=SAVE_CRON_CALL_SUCCESS_CLIENT.job.save_cron,
             calls=[
-                Call({"bk_biz_id": 1, "bk_job_id": 1, "cron_name": "job_cron_name", "cron_expression": "0 0/5 * * * ?"})
+                Call(
+                    {
+                        "bk_scope_type": "biz",
+                        "bk_scope_id": "1",
+                        "bk_biz_id": 1,
+                        "bk_job_id": 1,
+                        "cron_name": "job_cron_name",
+                        "cron_expression": "0 0/5 * * * ?",
+                    }
+                )
             ],
         ),
     ],
@@ -129,7 +154,11 @@ UPDATE_CRON_STATUS_FAIL_CASE = ComponentTestCase(
             "ex_data": (
                 "新建定时任务成功但是启动失败：调用作业平台(JOB)接口job.update_cron_status返回失败, "
                 "params={params}, error=update_cron_status fail"
-            ).format(params=json.dumps({"bk_biz_id": 1, "cron_status": 1, "cron_id": 1})),
+            ).format(
+                params=json.dumps(
+                    {"bk_scope_type": "biz", "bk_scope_id": "1", "bk_biz_id": 1, "cron_status": 1, "cron_id": 1}
+                )
+            ),
             "status": "暂停",
         },
     ),
@@ -138,12 +167,21 @@ UPDATE_CRON_STATUS_FAIL_CASE = ComponentTestCase(
         CallAssertion(
             func=UPDATE_CRON_STATUS_CALL_FAIL_CLIENT.job.save_cron,
             calls=[
-                Call({"bk_biz_id": 1, "bk_job_id": 1, "cron_name": "job_cron_name", "cron_expression": "0 0/5 * * * ?"})
+                Call(
+                    {
+                        "bk_scope_type": "biz",
+                        "bk_scope_id": "1",
+                        "bk_biz_id": 1,
+                        "bk_job_id": 1,
+                        "cron_name": "job_cron_name",
+                        "cron_expression": "0 0/5 * * * ?",
+                    }
+                )
             ],
         ),
         CallAssertion(
             func=UPDATE_CRON_STATUS_CALL_FAIL_CLIENT.job.update_cron_status,
-            calls=[Call({"bk_biz_id": 1, "cron_status": 1, "cron_id": 1})],
+            calls=[Call({"bk_scope_type": "biz", "bk_scope_id": "1", "bk_biz_id": 1, "cron_status": 1, "cron_id": 1})],
         ),
     ],
     patchers=[Patcher(target=GET_CLIENT_BY_USER, return_value=UPDATE_CRON_STATUS_CALL_FAIL_CLIENT)],
@@ -163,12 +201,21 @@ JOB_CRON_SUCCESS_CASE = ComponentTestCase(
         CallAssertion(
             func=JOB_CRON_SUCCESS_CLIENT.job.save_cron,
             calls=[
-                Call({"bk_biz_id": 1, "bk_job_id": 1, "cron_name": "job_cron_name", "cron_expression": "0 0/5 * * * ?"})
+                Call(
+                    {
+                        "bk_scope_type": "biz",
+                        "bk_scope_id": "1",
+                        "bk_biz_id": 1,
+                        "bk_job_id": 1,
+                        "cron_name": "job_cron_name",
+                        "cron_expression": "0 0/5 * * * ?",
+                    }
+                )
             ],
         ),
         CallAssertion(
             func=JOB_CRON_SUCCESS_CLIENT.job.update_cron_status,
-            calls=[Call({"bk_biz_id": 1, "cron_status": 1, "cron_id": 1})],
+            calls=[Call({"bk_scope_type": "biz", "bk_scope_id": "1", "bk_biz_id": 1, "cron_status": 1, "cron_id": 1})],
         ),
     ],
     patchers=[Patcher(target=GET_CLIENT_BY_USER, return_value=JOB_CRON_SUCCESS_CLIENT)],

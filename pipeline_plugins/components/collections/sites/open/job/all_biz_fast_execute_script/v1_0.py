@@ -34,6 +34,7 @@ from functools import partial
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
+from gcloud.constants import JobBizScopeType
 from gcloud.utils.ip import get_ip_by_regex
 from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema, IntItemSchema, ArrayItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
@@ -52,6 +53,8 @@ job_handle_api_error = partial(handle_api_error, __group_name__)
 
 class AllBizJobFastExecuteScriptService(JobService):
     need_get_sops_var = True
+
+    biz_scope_type = JobBizScopeType.BIZ_SET.value
 
     def inputs_format(self):
         return [
@@ -167,6 +170,8 @@ class AllBizJobFastExecuteScriptService(JobService):
         ]
 
         job_kwargs = {
+            "bk_scope_type": JobBizScopeType.BIZ_SET.value,
+            "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
             "account": data.get_one_of_inputs("job_target_account"),
             "ip_list": ip_list,
