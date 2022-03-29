@@ -48,7 +48,9 @@ class SpecNodesTimerResetTestCase(TestCase):
             detail = taskflow.spec_nodes_timer_reset(node_id=node_id, username=username, inputs=inputs)
 
         dispatcher_init.assert_called_once_with(engine_ver=taskflow.engine_ver, node_id=node_id, taskflow_id=1)
-        dispatcher.dispatch.assert_called_once_with(command="forced_fail", operator=username)
+        dispatcher.dispatch.assert_called_once_with(
+            command="forced_fail", operator=username, send_post_set_state_signal=False
+        )
         self.assertEqual(detail, dispatch_return)
 
     def test_retry_fail(self):
@@ -71,7 +73,10 @@ class SpecNodesTimerResetTestCase(TestCase):
 
         dispatcher_init.assert_called_once_with(engine_ver=taskflow.engine_ver, node_id=node_id, taskflow_id=1)
         dispatcher.dispatch.assert_has_calls(
-            [call(command="forced_fail", operator=username), call(command="retry", operator=username, inputs="inputs")]
+            [
+                call(command="forced_fail", operator=username, send_post_set_state_signal=False),
+                call(command="retry", operator=username, inputs="inputs"),
+            ]
         )
         self.assertEqual(detail, retry_return)
 
@@ -94,6 +99,9 @@ class SpecNodesTimerResetTestCase(TestCase):
 
         dispatcher_init.assert_called_once_with(engine_ver=taskflow.engine_ver, node_id=node_id, taskflow_id=1)
         dispatcher.dispatch.assert_has_calls(
-            [call(command="forced_fail", operator=username), call(command="retry", operator=username, inputs="inputs")]
+            [
+                call(command="forced_fail", operator=username, send_post_set_state_signal=False),
+                call(command="retry", operator=username, inputs="inputs"),
+            ]
         )
         self.assertEqual(detail, dispatch_return)
