@@ -43,3 +43,6 @@ BK_IAM_APIGW_HOST = os.getenv("BK_IAM_APIGW_HOST")
 
 # CALLBACK 回调入口，处理走网关回调的场景
 BKAPP_INNER_CALLBACK_ENTRY = os.getenv("BKAPP_INNER_CALLBACK_ENTRY", "")
+
+# 网关管理员
+BK_APIGW_MANAGER_MAINTAINERS = os.getenv("BK_APIGW_MANAGER_MAINTAINERS", "admin").split(",")
