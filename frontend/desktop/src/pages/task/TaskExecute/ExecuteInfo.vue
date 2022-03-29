@@ -870,6 +870,9 @@
                         const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
                         this.isShowSkipBtn = this.location.type === 'tasknode' && activity.skippable
                         this.isShowRetryBtn = this.location.type === 'tasknode' ? activity.retryable : this.location.type === 'subflow'
+                    } else {
+                        this.isShowSkipBtn = false
+                        this.isShowRetryBtn = false
                     }
                     // 获取第三方插件节点日志
                     const traceId = outputs.length && outputs[0].value
