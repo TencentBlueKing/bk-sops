@@ -21,3 +21,4 @@ logger = logging.getLogger("root")
 class ApiConfig(AppConfig):
     name = "gcloud.apigw"
     verbose_name = "GcloudApigw"
+    label = "gcloud.apigw"
