@@ -36,6 +36,7 @@ const en = {
     '请填写变量值': 'Please fill in the value of the variable',
     '请填入项目变量说明': 'Please fill in the project variable description',
     '管理项目变量': 'Manage project variables',
+    '变量快捷处理': 'Variable quick processing',
     '运维工具': 'Maintenance tools',
     '监控告警': 'Monitoring alarm',
     '配置管理': 'Configuration management',
@@ -1310,6 +1311,8 @@ const en = {
     '变量复用': 'varibale reuse',
     '手动创建': 'manual create',
     '自动创建': 'auto create',
+    '已选择x项': '{num} items selected',
+    '确认删除所选的x个变量？': 'Are you sure to delete the selected {num} variables?',
     '模板预渲染为是的变量，会在开始节点执行时就完成渲染，引用了节点输出的变量开启预渲染后会渲染失败': 'If the template pre-rendering is a yes variable, the rendering will be completed when the node starts executing. If the pre rendering is enabled, the rendering will fail'
 }
 
