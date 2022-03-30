@@ -52,7 +52,7 @@
             RenderForm,
             NoData
         },
-        props: ['nodeDetailConfig'],
+        props: ['nodeDetailConfig', 'engineVer'],
         data () {
             return {
                 loading: false,
@@ -98,16 +98,18 @@
             async loadNodeInfo () {
                 this.loading = true
                 try {
-                    const version = this.nodeDetailConfig.version
+                    const { version, componentData } = this.nodeDetailConfig
                     this.nodeInfo = await this.getNodeActInfo(this.nodeDetailConfig)
                     await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
                     if (this.nodeInfo.result) {
-                        if (this.nodeInfo) {
-                            for (const key in this.nodeInfo.data.inputs) {
+                        for (const key in this.nodeInfo.data.inputs) {
+                            if (this.engineVer === 1) {
                                 this.$set(this.renderData, key, this.nodeInfo.data.inputs[key])
+                            } else if (componentData[key]) {
+                                this.$set(this.renderData, key, componentData[key].value)
                             }
-                            this.initalRenderData = tools.deepClone(this.renderData)
                         }
+                        this.initalRenderData = tools.deepClone(this.renderData)
                     }
                 } catch (e) {
                     console.log(e)

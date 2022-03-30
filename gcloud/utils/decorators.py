@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 from functools import wraps
 
 from django.http.response import JsonResponse
-from django.utils.decorators import available_attrs
 
 from gcloud import err_code
 from .validate import RequestValidator
@@ -26,7 +25,7 @@ def request_validate(validator_cls):
         raise TypeError("validator_cls must be subclass of {}".format("gcloud.utils.validate.RequestValidator"))
 
     def decorator(view_func):
-        @wraps(view_func, assigned=available_attrs(view_func))
+        @wraps(view_func)
         def _wrapped_view(request, *args, **kwargs):
 
             is_valid, err = validator_cls().validate(request, *args, **kwargs)

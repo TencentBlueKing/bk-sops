@@ -19,7 +19,7 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.core.models import Project
 from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
-from gcloud.constants import TASK_CATEGORY
+from gcloud.constants import TASK_CATEGORY, DATETIME_FORMAT
 
 
 class BaseTaskTemplateSerializer(BaseTemplateSerializer):
@@ -32,8 +32,8 @@ class TaskTemplateSerializer(BaseTaskTemplateSerializer):
     category_name = serializers.CharField(read_only=True, help_text="分类名称")
     creator_name = serializers.CharField(read_only=True, help_text="创建者名称")
     editor_name = serializers.CharField(read_only=True, help_text="编辑者名称")
-    create_time = serializers.CharField(read_only=True, help_text="创建时间")
-    edit_time = serializers.CharField(read_only=True, help_text="编辑时间")
+    create_time = serializers.DateTimeField(help_text="创建时间", format=DATETIME_FORMAT)
+    edit_time = serializers.DateTimeField(help_text="编辑时间", format=DATETIME_FORMAT)
     template_id = serializers.CharField(read_only=True, help_text="模板id")
     subprocess_info = serializers.DictField(read_only=True, help_text="子流程信息")
     version = serializers.CharField(read_only=True, help_text="版本")
@@ -43,12 +43,7 @@ class TaskTemplateSerializer(BaseTaskTemplateSerializer):
     pipeline_tree = serializers.SerializerMethodField(read_only=True, help_text="pipeline_tree")
 
     def get_pipeline_tree(self, obj):
-        try:
-            if not getattr(obj, "pipeline_tree") or not obj.pipeline_tree:
-                return json.dumps(dict())
-            return json.dumps(obj.pipeline_tree)
-        except TaskTemplate.DoesNotExist:
-            return json.dumps(dict())
+        return json.dumps(obj.pipeline_tree)
 
     class Meta:
         model = TaskTemplate
@@ -66,6 +61,7 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
     default_flow_type = serializers.CharField(help_text="默认流程类型")
     pipeline_tree = serializers.CharField()
     project = serializers.IntegerField(write_only=True)
+    template_id = serializers.CharField(help_text="模板ID", source="id", read_only=True)
 
     def set_notify_type(self, obj):
         return {"notify_type": json.dumps(obj)}
@@ -103,4 +99,5 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
             "notify_receivers",
             "pipeline_tree",
             "project",
+            "template_id",
         ]

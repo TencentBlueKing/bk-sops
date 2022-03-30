@@ -12,13 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 
 from rest_framework.response import Response
-from rest_framework import serializers, generics, permissions
+from rest_framework.exceptions import ErrorDetail
+from rest_framework import serializers, generics, permissions, status
 from django_filters import FilterSet
 
 from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam import Subject, Action
 
 from gcloud.constants import TASK_NAME_MAX_LENGTH
+from gcloud import err_code
 from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
 from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
@@ -39,6 +41,7 @@ from gcloud.iam_auth import IAMMeta, res_factory, get_iam_client
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.contrib.operate_record.constants import OperateType, OperateSource, RecordType
+from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user, get_common_flow_allowed_actions_for_user
 
 iam = get_iam_client()
 
@@ -89,11 +92,11 @@ class TaskFlowInstancePermission(IamPermission):
                     action=Action(IAMMeta.MINI_APP_CREATE_TASK_ACTION),
                     resources=res_factory.resources_for_mini_app_obj(app_maker),
                 )
-
+                return True
             # flow create task perm
             else:
                 template_source = request.data.get("template_source", "project")
-                template_id = request.data.get("template", -1)
+                template_id = int(request.data.get("template", -1))
                 model_cls = TaskTemplate if template_source == "project" else CommonTemplate
                 try:
                     template = model_cls.objects.get(id=template_id)
@@ -106,6 +109,7 @@ class TaskFlowInstancePermission(IamPermission):
                     action=Action(IAMMeta.FLOW_CREATE_TASK_ACTION),
                     resources=res_factory.resources_for_flow_obj(template),
                 )
+                return True
         return super().has_permission(request, view)
 
 
@@ -124,11 +128,10 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        # 支持使用方配置不分页
         page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page if page else queryset, many=True)
+        serializer = self.get_serializer(page, many=True)
         # 注入权限
-        data = self.injection_auth_actions(request, serializer.data, queryset)
+        data = self.injection_auth_actions(request, serializer.data, page)
         # 注入template_info（name、deleted
         # 项目流程
         template_ids = [
@@ -136,6 +139,10 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             for instance in data
             if instance["template_id"] and instance["template_source"] == "project"
         ]
+        # 注入流程相关权限
+        templates_allowed_actions = get_flow_allowed_actions_for_user(
+            request.user.username, [IAMMeta.FLOW_VIEW_ACTION, IAMMeta.FLOW_CREATE_TASK_ACTION], template_ids
+        )
         template_info = TaskTemplate.objects.filter(id__in=template_ids).values(
             "id", "pipeline_template__name", "is_deleted"
         )
@@ -148,6 +155,11 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             for instance in data
             if instance["template_id"] and instance["template_source"] == "common"
         ]
+        common_templates_allowed_actions = get_common_flow_allowed_actions_for_user(
+            request.user.username,
+            [IAMMeta.COMMON_FLOW_VIEW_ACTION],
+            common_template_ids,
+        )
         common_template_info = CommonTemplate.objects.filter(id__in=common_template_ids).values(
             "id", "pipeline_template__name", "is_deleted"
         )
@@ -161,11 +173,17 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
                 instance["template_deleted"] = template_info_map.get(instance["template_id"], {}).get(
                     "is_deleted", True
                 )
+                for act, allowed in templates_allowed_actions.get(str(instance["template_id"]), {}).items():
+                    if allowed:
+                        instance["auth_actions"].append(act)
             else:
                 instance["template_name"] = common_template_info_map.get(instance["template_id"], {}).get("name")
                 instance["template_deleted"] = common_template_info_map.get(instance["template_id"], {}).get(
                     "is_deleted", True
                 )
+                for act, allowed in common_templates_allowed_actions.get(str(instance["template_id"]), {}).items():
+                    if allowed:
+                        instance["auth_actions"].append(act)
         return self.get_paginated_response(data) if page is not None else Response(data)
 
     @staticmethod
@@ -224,11 +242,13 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             project_id=serializer.instance.project.id,
         )
 
-    def perform_destroy(self, instance):
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
         if instance.is_started:
             if not (instance.is_finished or instance.is_revoked):
-                raise serializers.ValidationError("无法删除未进入完成或撤销状态的流程")
-        super().perform_destroy(instance)
+                message = "无法删除未进入完成或撤销状态的流程"
+                return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+        self.perform_destroy(instance)
         # 记录操作流水
         operate_record_signal.send(
             sender=RecordType.task.name,
@@ -238,6 +258,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             instance_id=instance.id,
             project_id=instance.project.id,
         )
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_serializer_class(self, *args, **kwargs):
         if self.action == "create":

@@ -785,6 +785,10 @@
 
                 try {
                     const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
+                    if (this.type === 'new') {
+                        this.type = 'edit'
+                        this.template_id = data.template_id
+                    }
                     this.tplActions = data.auth_actions
                     this.$bkMessage({
                         message: i18n.t('保存成功'),

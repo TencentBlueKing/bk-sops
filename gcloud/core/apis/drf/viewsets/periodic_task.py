@@ -97,7 +97,7 @@ class PeriodicTaskViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
         try:
-            template = model_cls.objects.filter(**condition)
+            template = model_cls.objects.filter(**condition).first()
         except model_cls.DoesNotExist:
             message = "common template[id=%s] does not exist" % template_id
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)

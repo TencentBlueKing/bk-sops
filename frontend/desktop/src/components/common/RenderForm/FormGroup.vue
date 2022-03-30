@@ -304,7 +304,7 @@
         z-index: 1;
         .hook-icon,
         .render-skip-icon {
-            font-size: 14px;
+            font-size: 16px;
             color: #979ba5;
             cursor: pointer;
             &.disabled {
@@ -312,8 +312,11 @@
                 cursor: not-allowed;
             }
             &.actived {
-                color: #1768ef;
+                color: #3a84ff;
             }
+        }
+        .hook-icon {
+            font-size: 19px;
         }
     }
 }

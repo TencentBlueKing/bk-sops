@@ -25,6 +25,7 @@ from gcloud import err_code
 from pipeline.models import TemplateRelationship
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.label.models import TemplateLabelRelation, Label
+from gcloud.tasktmpl3.signals import post_template_save_commit
 from gcloud.taskflow3.models import TaskTemplate
 from gcloud.core.apis.drf.serilaziers.task_template import TaskTemplateSerializer, CreateTaskTemplateSerializer
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
@@ -123,11 +124,10 @@ class TaskTemplateViewSet(GcloudModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        # 支持使用方配置不分页
         page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page if page else queryset, many=True)
+        serializer = self.get_serializer(page if page is not None else queryset, many=True)
         # 注入权限
-        data = self.injection_auth_actions(request, serializer.data, queryset)
+        data = self.injection_auth_actions(request, serializer.data, serializer.instance)
         user_model = get_user_model()
         collected_templates = (
             user_model.objects.get(username=request.user.username).tasktemplate_set.all().values_list("id", flat=True)
@@ -161,6 +161,13 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             self.perform_create(serializer)
             self._sync_template_lables(serializer.instance.id, template_labels)
             headers = self.get_success_headers(serializer.data)
+        # 发送信号
+        post_template_save_commit.send(
+            sender=TaskTemplate,
+            project_id=serializer.instance.project_id,
+            template_id=serializer.instance.id,
+            is_deleted=False,
+        )
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, serializer.instance)
         # 记录操作流水
@@ -202,6 +209,13 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             template_labels = serializer.validated_data.pop("template_labels")
             self.perform_update(serializer)
             self._sync_template_lables(serializer.instance.id, template_labels)
+        # 发送信号
+        post_template_save_commit.send(
+            sender=TaskTemplate,
+            project_id=serializer.instance.project_id,
+            template_id=serializer.instance.id,
+            is_deleted=serializer.instance.is_deleted,
+        )
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, template)
         # 记录操作流水
@@ -229,6 +243,10 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         # 删除流程模板
         template.is_deleted = True
         template.save()
+        # 发送信号
+        post_template_save_commit.send(
+            sender=TaskTemplate, project_id=template.project_id, template_id=template.id, is_deleted=template.is_deleted
+        )
         # 记录操作流水
         operate_record_signal.send(
             sender=RecordType.template.name,

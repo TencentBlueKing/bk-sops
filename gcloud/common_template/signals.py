@@ -11,9 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.dispatch import Signal
 
-from django.apps import AppConfig
-
-
-class ProjectConstantsConfig(AppConfig):
-    name = "gcloud.project_constants"
+# 项目模板保存后可见的信号，在模板保存事务提交后发出
+# template_id: 模板 ID
+# is_deleted: 模板是否被删除
+post_template_save_commit = Signal(providing_args=["template_id", "is_deleted"])

@@ -365,6 +365,7 @@ const en = {
     '变量name不能包含特殊字符': `Variable name cannot contain '‘"”$&<>`,
     '变量KEY值不能为空': 'KEY cannot be empty',
     '变量KEY由英文字母、数字、下划线组成，且不能以数字开头': 'KEY is composed of letters, numbers, underline and cannot begin with number',
+    '变量KEY由英文字母、数字、下划线组成，不允许使用系统变量及业务环境变量命名规则，且不能以数字开头': 'KEY is composed of letters, numbers, underline and system variable and business environment variable naming rules are not allowed and cannot begin with number',
     '变量value由英文字母、数字、下划线组成，且不能以数字开头': 'Value is composed of letters, numbers, underline',
     '变量KEY由英文字母、数字、下划线组成，以"${_env_"开头,以"}"结尾': 'KEY is composed of letters, numbers, underline and beginning with "${_env_" and ending with "}"',
     '变量KEY由英文字母、数字、下划线组成': 'VALUE is composed of letters, numbers, underline',
@@ -1311,7 +1312,8 @@ const en = {
     '手动创建': 'manual create',
     '自动创建': 'auto create',
     '已选择x项': '{num} items selected',
-    '确认删除所选的x个变量？': 'Are you sure to delete the selected {num} variables?'
+    '确认删除所选的x个变量？': 'Are you sure to delete the selected {num} variables?',
+    '模板预渲染为是的变量，会在开始节点执行时就完成渲染，引用了节点输出的变量开启预渲染后会渲染失败': 'If the template pre-rendering is a yes variable, the rendering will be completed when the node starts executing. If the pre rendering is enabled, the rendering will fail'
 }
 
 export default en

@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import traceback
 from django.contrib import admin
 
 from gcloud.analysis_statistics.models import (
@@ -20,7 +21,10 @@ from gcloud.analysis_statistics.models import (
     TemplateStatistics,
     ProjectStatisticsDimension,
     TaskTmplExecuteTopN,
+    TemplateVariableStatistics,
+    TemplateCustomVariableSummary,
 )
+from gcloud.analysis_statistics.tasks import backfill_template_variable_statistics_task
 
 
 @admin.register(TemplateNodeStatistics)
@@ -85,3 +89,22 @@ class ProjectStatisticsDimensionAdmin(admin.ModelAdmin):
 @admin.register(TaskTmplExecuteTopN)
 class TaskTmplExecuteTopNAdmin(admin.ModelAdmin):
     list_display = ("topn",)
+
+
+@admin.register(TemplateVariableStatistics)
+class TemplateVariableStatisticsAdmin(admin.ModelAdmin):
+    list_display = ("template_id", "project_id", "variable_key", "variable_type", "variable_source", "refs")
+
+
+@admin.register(TemplateCustomVariableSummary)
+class TemplateCustomVariableSummaryAdmin(admin.ModelAdmin):
+    list_display = ("variable_type", "task_template_refs", "common_template_refs")
+    actions = ["backfill"]
+
+    def backfill(modeladmin, request, queryset):
+        try:
+            backfill_template_variable_statistics_task.delay()
+        except Exception:
+            modeladmin.message_user(request, "backfill failed: {}".format(traceback.format_exc()))
+
+    backfill.short_description = "backfill template variables statistics"
