@@ -21,6 +21,7 @@ const COMMON_ROUTE_LIST = [
             name: i18n.t('任务记录'),
             icon: 'common-icon-task-record',
             hasProjectId: true,
+            subRoutes: ['taskExecute'],
             url: '/taskflow/home/list/'
         },
         {
