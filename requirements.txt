@@ -72,6 +72,7 @@ factory_boy==2.11.1
 mock==2.0.0
 fakeredis==1.4.5
 gevent==1.2.2
+dango-test-toolkit==1.0.0
 
 # rsa
 pyCryptodome==3.9.7
