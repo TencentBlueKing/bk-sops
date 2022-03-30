@@ -198,7 +198,7 @@
                         name: 'auditHome'
                     })
                 }
-                if (this.$route.name === 'taskExecute') {
+                if (this.$route.name === 'taskExecute' && window.history.length > 2) {
                     return this.$router.back()
                 }
                 this.$router.push({
