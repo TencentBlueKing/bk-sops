@@ -22,12 +22,12 @@ from gcloud.periodictask.models import PeriodicTask
 from gcloud.apigw.views.utils import info_data_from_period_task
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import GetPeriodicTaskInfoInterceptor
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
 @require_GET
-@apigw_required
+@apigw_require
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(GetPeriodicTaskInfoInterceptor())

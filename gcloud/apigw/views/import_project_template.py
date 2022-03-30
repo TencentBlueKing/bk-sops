@@ -23,13 +23,13 @@ from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.template_base.utils import read_encoded_template_data
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.apigw.views.utils import logger
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
 @csrf_exempt
 @require_POST
-@apigw_required
+@apigw_require
 @project_inject
 @mark_request_whether_is_trust
 def import_project_template(request, project_id):

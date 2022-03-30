@@ -48,3 +48,6 @@ class Command(BaseCommand):
 
         print("[bk-sops]call fetch_apigw_public_key")
         call_command("fetch_apigw_public_key")
+
+        print("[bk-sops]call fetch_esb_public_key")
+        call_command("fetch_esb_public_key")

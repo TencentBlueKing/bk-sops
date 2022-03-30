@@ -28,13 +28,13 @@ from gcloud.iam_auth.view_interceptors.apigw import TaskOperateInterceptor
 from gcloud.utils.throttle import check_task_operation_throttle
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
 @csrf_exempt
 @require_POST
-@apigw_required
+@apigw_require
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(TaskOperateInterceptor())

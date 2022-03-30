@@ -24,13 +24,13 @@ from gcloud.iam_auth.view_interceptors.apigw import FunctionTaskInterceptor
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
 @csrf_exempt
 @require_POST
-@apigw_required
+@apigw_require
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(FunctionTaskInterceptor())

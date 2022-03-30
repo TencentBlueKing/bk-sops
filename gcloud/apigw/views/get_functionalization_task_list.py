@@ -21,12 +21,12 @@ from gcloud.contrib.function.models import FunctionTask
 from gcloud.apigw.views.utils import logger, format_function_task_list_data, paginate_list_data
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import FunctionViewInterceptor
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
 @require_GET
-@apigw_required
+@apigw_require
 @mark_request_whether_is_trust
 @iam_intercept(FunctionViewInterceptor())
 def get_functionalization_task_list(request):

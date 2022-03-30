@@ -34,7 +34,7 @@ from gcloud.apigw.validators import CreatePriodicTaskValidator
 from gcloud.utils.decorators import request_validate
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CreatePeriodicTaskInterceptor
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 
@@ -42,7 +42,7 @@ from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 @login_exempt
 @csrf_exempt
 @require_POST
-@apigw_required
+@apigw_require
 @mark_request_whether_is_trust
 @project_inject
 @request_validate(CreatePriodicTaskValidator)

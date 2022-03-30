@@ -22,13 +22,13 @@ from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.views.utils import logger
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
 @csrf_exempt
 @require_POST
-@apigw_required
+@apigw_require
 @mark_request_whether_is_trust
 def dispatch_plugin_query(request):
     """

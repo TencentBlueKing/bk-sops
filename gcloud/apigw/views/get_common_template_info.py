@@ -21,12 +21,12 @@ from gcloud.common_template.models import CommonTemplate
 from gcloud.apigw.views.utils import format_template_data
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CommonFlowViewInterceptor
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
 @require_GET
-@apigw_required
+@apigw_require
 @mark_request_whether_is_trust
 @iam_intercept(CommonFlowViewInterceptor())
 def get_common_template_info(request, template_id):

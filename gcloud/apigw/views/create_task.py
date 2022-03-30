@@ -42,7 +42,7 @@ from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CreateTaskInterceptor
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 
 def get_exclude_nodes_by_execute_nodes(execute_nodes, template):
@@ -64,7 +64,7 @@ def get_exclude_nodes_by_execute_nodes(execute_nodes, template):
 @login_exempt
 @csrf_exempt
 @require_POST
-@apigw_required
+@apigw_require
 @mark_request_whether_is_trust
 @project_inject
 @request_validate(CreateTaskValidator)
@@ -108,7 +108,7 @@ def create_task(request, template_id, project_id):
             }
             return result
 
-    app_code = getattr(request.jwt.app, settings.APIGW_APP_CODE_KEY)
+    app_code = getattr(request.app, settings.APIGW_APP_CODE_KEY)
     if not app_code:
         message = "app_code cannot be empty, make sure api gateway has sent correct params"
         return {"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code}
@@ -165,7 +165,11 @@ def create_task(request, template_id, project_id):
             exclude_task_nodes_id = get_exclude_nodes_by_execute_nodes(params["execute_task_nodes_id"], tmpl)
         try:
             data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
-                tmpl, pipeline_instance_kwargs, params["constants"], exclude_task_nodes_id, params["simplify_vars"],
+                tmpl,
+                pipeline_instance_kwargs,
+                params["constants"],
+                exclude_task_nodes_id,
+                params["simplify_vars"],
             )
         except Exception as e:
             message = f"[API] create_task create pipeline without tree error: {e}"

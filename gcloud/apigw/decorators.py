@@ -31,15 +31,15 @@ WHETHER_PREPARE_BIZ = getattr(settings, "WHETHER_PREPARE_BIZ_IN_API_CALL", True)
 
 
 def check_white_apps(request):
-    app_code = getattr(request.jwt.app, settings.APIGW_APP_CODE_KEY)
+    app_code = getattr(request.app, settings.APIGW_APP_CODE_KEY)
     return app_whitelist.has(app_code)
 
 
 def inject_user(request):
-    username = getattr(request.jwt.user, settings.APIGW_USER_USERNAME_KEY)
+    username = getattr(request.user, settings.APIGW_USER_USERNAME_KEY)
     if not username:
         raise InvalidUserError(
-            "username cannot be empty, make sure api gateway has sent correct params: {}".format(request.jwt.user)
+            "username cannot be empty, make sure api gateway has sent correct params: {}".format(request.user)
         )
     user_model = get_user_model()
     user, _ = user_model.objects.get_or_create(username=username)
@@ -50,13 +50,7 @@ def inject_user(request):
 def mark_request_whether_is_trust(view_func):
     @wraps(view_func, assigned=available_attrs(view_func))
     def wrapper(request, *args, **kwargs):
-
         setattr(request, "is_trust", check_white_apps(request))
-
-        try:
-            inject_user(request)
-        except InvalidUserError as e:
-            return JsonResponse({"result": False, "message": str(e), "code": err_code.REQUEST_PARAM_INVALID.code})
 
         return view_func(request, *args, **kwargs)
 

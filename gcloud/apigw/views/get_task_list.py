@@ -24,12 +24,12 @@ from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 from gcloud.iam_auth.utils import get_task_allowed_actions_for_user
 from gcloud.iam_auth.conf import TASK_ACTIONS
 from gcloud.apigw.forms import GetTaskListForm
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
 @require_GET
-@apigw_required
+@apigw_require
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(ProjectViewInterceptor())

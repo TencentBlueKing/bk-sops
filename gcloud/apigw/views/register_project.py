@@ -21,7 +21,7 @@ from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.core.models import EnvironmentVariables, Business, Project
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 from gcloud.conf import settings
 
 logger = logging.getLogger("root")
@@ -31,7 +31,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 @login_exempt
 @csrf_exempt
 @require_POST
-@apigw_required
+@apigw_require
 @mark_request_whether_is_trust
 def register_project(request):
     """

@@ -23,13 +23,13 @@ from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.common_template.models import CommonTemplate
 from gcloud.template_base.utils import read_encoded_template_data
 from gcloud.apigw.views.utils import logger
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
 @csrf_exempt
 @require_POST
-@apigw_required
+@apigw_require
 @mark_request_whether_is_trust
 def import_common_template(request):
     if not request.is_trust:

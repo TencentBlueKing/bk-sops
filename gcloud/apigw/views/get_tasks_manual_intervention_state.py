@@ -24,7 +24,7 @@ from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 logger = logging.getLogger("root")
 
@@ -32,7 +32,7 @@ logger = logging.getLogger("root")
 @csrf_exempt
 @login_exempt
 @require_POST
-@apigw_required
+@apigw_require
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(ProjectViewInterceptor())

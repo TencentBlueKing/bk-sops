@@ -25,7 +25,7 @@ from gcloud.taskflow3.utils import add_node_name_to_status_tree
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 
 def cache_decisioner(key, value):
@@ -40,7 +40,7 @@ def cache_decisioner(key, value):
 
 @login_exempt
 @require_GET
-@apigw_required
+@apigw_require
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(TaskViewInterceptor())
