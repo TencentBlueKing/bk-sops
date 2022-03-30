@@ -1,5 +1,5 @@
 # Base
-Django==3.2.4
+Django==3.2.12
 PyMySQL==0.6.7
 mysqlclient==2.0.3
 requests==2.25.1
@@ -72,6 +72,7 @@ factory_boy==2.11.1
 mock==2.0.0
 fakeredis==1.4.5
 gevent==1.2.2
+django-test-toolkit==1.0.0
 
 # rsa
 pyCryptodome==3.9.7
