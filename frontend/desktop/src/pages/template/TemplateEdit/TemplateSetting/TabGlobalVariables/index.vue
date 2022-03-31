@@ -194,7 +194,7 @@
                 :mask-close="false"
                 :title="$t('删除')"
                 @confirm="onDeleteVarList">
-                <span v-if="deleteVarListLen === 1">{{ $t('确认删除') }} “{{deleteVarList[0].name}}” ?</span>
+                <span v-if="deleteVarListLen === 1">{{ $t('确认删除') }} “{{deleteVarList[0].name}} / {{deleteVarList[0].key}}” ?</span>
                 <span v-else-if="deleteVarListLen">{{ $t('确认删除所选的x个变量？', { num: deleteVarListLen }) }}</span>
             </bk-dialog>
         </div>
