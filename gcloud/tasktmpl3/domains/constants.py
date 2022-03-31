@@ -13,13 +13,14 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from django.utils.translation import ugettext_lazy as _
+from bamboo_engine.context import Context
+from bamboo_engine.eri import ContextValue
+from bamboo_engine.utils.constants import VAR_CONTEXT_MAPPING
+from pipeline.eri.runtime import BambooDjangoRuntime
 
 from pipeline.core.data.expression import ConstantTemplate
 
 from pipeline.core.data import var
-from pipeline.core.data.context import Context
-from pipeline.core.data.converter import get_variable
 from pipeline.core.data.library import VariableLibrary
 from pipeline_web.parser.format import calculate_constants_type
 
@@ -58,18 +59,20 @@ def get_constant_values(constants, extra_data):
         to_calculate_constants, classified_constants, change_calculated=True
     )
 
-    # 对变量进行第一次解析，放到context中
-    context = Context({})
-    for key, info in list(classified_constants.items()):
-        variable = get_variable(key, info, context, extra_data)
-        context.set_global_var(key, variable)
-    # 变量值最终获取
-    for key, info in list(classified_constants.items()):
-        var_value = get_variable(key, info, context, extra_data).get()
-        if var_value in ["", "[]", "{}"]:
-            var_value = _("预览值为空，需要业务相关信息的变量不支持预览")
-        constant_values[key] = str(var_value)
-    return constant_values
+    # 沿用V2引擎的变量渲染逻辑
+    runtime = BambooDjangoRuntime()
+    context_values = [
+        ContextValue(key=key, type=VAR_CONTEXT_MAPPING[info["type"]], value=info["value"], code=info.get("custom_type"))
+        for key, info in classified_constants.items()
+    ]
+    context = Context(runtime, context_values, extra_data)
+    hydrated_context = context.hydrate()
+
+    for key, value in hydrated_context.items():
+        if value in ["", "[]", "{}"]:
+            hydrated_context[key] = "预览值为空，需要业务相关信息的变量不支持预览"
+
+    return hydrated_context
 
 
 def analysis_pipeline_constants_ref(pipeline_tree):
