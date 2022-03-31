@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 from functools import wraps
 
 import ujson as json
-from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.utils.decorators import available_attrs
 
@@ -23,7 +22,6 @@ from gcloud.conf import settings
 from gcloud.core.models import Project
 from gcloud.apigw.utils import get_project_with
 from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ, DEFAULT_APP_WHITELIST
-from gcloud.apigw.exceptions import InvalidUserError
 from gcloud.apigw.whitelist import EnvWhitelist
 
 app_whitelist = EnvWhitelist(transient_list=DEFAULT_APP_WHITELIST, env_key="APP_WHITELIST")
@@ -33,18 +31,6 @@ WHETHER_PREPARE_BIZ = getattr(settings, "WHETHER_PREPARE_BIZ_IN_API_CALL", True)
 def check_white_apps(request):
     app_code = getattr(request.app, settings.APIGW_APP_CODE_KEY)
     return app_whitelist.has(app_code)
-
-
-def inject_user(request):
-    username = getattr(request.user, settings.APIGW_USER_USERNAME_KEY)
-    if not username:
-        raise InvalidUserError(
-            "username cannot be empty, make sure api gateway has sent correct params: {}".format(request.user)
-        )
-    user_model = get_user_model()
-    user, _ = user_model.objects.get_or_create(username=username)
-
-    setattr(request, "user", user)
 
 
 def mark_request_whether_is_trust(view_func):

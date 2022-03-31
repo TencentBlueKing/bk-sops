@@ -23,7 +23,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: {{ settings.SITE_URL }}/taskflow/api/v4/nodes/callback/{token}/
+          path: {{ settings.BK_APIGW_CALLBACK_SERVER_SUB_PATH }}/taskflow/api/v4/nodes/callback/{token}/
           matchSubpath: false
           timeout: 0
           upstreams:
@@ -54,7 +54,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: {{ settings.SITE_URL }}/taskflow/api/v4/nodes/callback/{token}/
+          path: {{ settings.BK_APIGW_CALLBACK_SERVER_SUB_PATH }}/taskflow/api/v4/nodes/callback/{token}/
           matchSubpath: false
           timeout: 0
           upstreams:
@@ -85,7 +85,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: {{ settings.SITE_URL }}/apigw/create_periodic_task/{template_id}/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/create_periodic_task/{template_id}/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -109,7 +109,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: {{ settings.SITE_URL }}/apigw/create_task/{template_id}/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/create_task/{template_id}/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -133,7 +133,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: {{ settings.SITE_URL }}/apigw/dispatch_plugin_query/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/dispatch_plugin_query/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -157,7 +157,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: {{ settings.SITE_URL }}/apigw/fast_create_task/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/fast_create_task/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -181,7 +181,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: {{ settings.SITE_URL }}/apigw/get_common_template_info/{template_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/get_common_template_info/{template_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -205,7 +205,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: {{ settings.SITE_URL }}/apigw/get_common_template_list/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/get_common_template_list/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -229,7 +229,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: {{ settings.SITE_URL }}/apigw/get_periodic_task_info/{task_id}/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/get_periodic_task_info/{task_id}/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -253,7 +253,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: {{ settings.SITE_URL }}/apigw/get_periodic_task_list/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/get_periodic_task_list/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -277,7 +277,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: {{ settings.SITE_URL }}/apigw/get_plugin_list/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/get_plugin_list/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -301,7 +301,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: {{ settings.SITE_URL }}/apigw/get_tasks_status/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/get_tasks_status/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -325,7 +325,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: {{ settings.SITE_URL }}/apigw/get_task_detail/{task_id}/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/get_task_detail/{task_id}/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -349,7 +349,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: {{ settings.SITE_URL }}/apigw/get_task_list/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/get_task_list/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -373,7 +373,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: {{ settings.SITE_URL }}/apigw/get_task_node_data/{bk_biz_id}/{task_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/get_task_node_data/{bk_biz_id}/{task_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -397,7 +397,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: {{ settings.SITE_URL }}/apigw/get_task_node_detail/{task_id}/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/get_task_node_detail/{task_id}/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -421,7 +421,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: {{ settings.SITE_URL }}/apigw/get_task_status/{task_id}/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/get_task_status/{task_id}/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -445,7 +445,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: {{ settings.SITE_URL }}/apigw/get_template_info/{template_id}/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/get_template_info/{template_id}/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -469,7 +469,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: {{ settings.SITE_URL }}/apigw/get_template_list/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/get_template_list/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -493,7 +493,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: {{ settings.SITE_URL }}/apigw/get_template_schemes/{bk_biz_id}/{template_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/get_template_schemes/{bk_biz_id}/{template_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -517,7 +517,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: {{ settings.SITE_URL }}/apigw/get_user_project_detail/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/get_user_project_detail/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -541,7 +541,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: {{ settings.SITE_URL }}/apigw/get_user_project_list/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/get_user_project_list/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -565,7 +565,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: {{ settings.SITE_URL }}/apigw/import_project_template/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/import_project_template/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -589,7 +589,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: {{ settings.SITE_URL }}/apigw/modify_constants_for_periodic_task/{task_id}/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/modify_constants_for_periodic_task/{task_id}/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -613,7 +613,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: {{ settings.SITE_URL }}/apigw/modify_cron_for_periodic_task/{task_id}/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/modify_cron_for_periodic_task/{task_id}/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -637,7 +637,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: {{ settings.SITE_URL }}/apigw/node_callback/{task_id}/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/node_callback/{task_id}/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -661,7 +661,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: {{ settings.SITE_URL }}/apigw/operate_node/{bk_biz_id}/{task_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/operate_node/{bk_biz_id}/{task_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -685,7 +685,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: {{ settings.SITE_URL }}/apigw/operate_task/{task_id}/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/operate_task/{task_id}/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -709,7 +709,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: {{ settings.SITE_URL }}/apigw/preview_task_tree/{bk_biz_id}/{template_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/preview_task_tree/{bk_biz_id}/{template_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -733,7 +733,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: {{ settings.SITE_URL }}/apigw/register_project/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/register_project/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -757,7 +757,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: {{ settings.SITE_URL }}/apigw/set_periodic_task_enabled/{task_id}/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/set_periodic_task_enabled/{task_id}/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -781,7 +781,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: {{ settings.SITE_URL }}/apigw/start_task/{task_id}/{bk_biz_id}/
+          path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}/apigw/start_task/{task_id}/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}

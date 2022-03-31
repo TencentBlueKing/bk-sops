@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 import os
 
-from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.core.management import call_command
 
@@ -40,11 +39,6 @@ class Command(BaseCommand):
 
         print("[mock-cmdb]call sync_resource_docs_by_archive with definition: %s" % definition_file_path)
         call_command("sync_resource_docs_by_archive", file=definition_file_path)
-
-        print("[bk-sops]call create_version_and_release_apigw with definition: %s" % definition_file_path)
-        call_command(
-            "create_version_and_release_apigw", file=definition_file_path, stage=[settings.BK_APIGW_STAGE_NAME]
-        )
 
         print("[bk-sops]call fetch_apigw_public_key")
         call_command("fetch_apigw_public_key")
