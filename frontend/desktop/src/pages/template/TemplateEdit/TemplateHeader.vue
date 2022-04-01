@@ -117,7 +117,6 @@
             activeTab: String,
             isGlobalVariableUpdate: Boolean,
             isTemplateDataChanged: Boolean,
-            isFromTplListRoute: Boolean,
             isEditProcessPage: Boolean,
             isPreviewMode: Boolean,
             tplActions: {
@@ -307,10 +306,10 @@
                 this.schemeInfo = null
             },
             goBackTplList () {
-                if (this.isFromTplListRoute) {
+                if (window.history.length > 1) {
                     this.$router.back() // 由模板页跳转进入需要保留分页参数
                 } else {
-                    const url = this.common ? { name: 'commonProcessList' } : { name: 'process', params: { project_id: this.project_id } }
+                    const url = this.common ? { name: 'commonProcessList' } : { name: 'processHome', params: { project_id: this.project_id } }
                     this.$router.push(url)
                 }
             },

@@ -21,7 +21,6 @@
                 :template_id="template_id"
                 :is-global-variable-update="isGlobalVariableUpdate"
                 :is-template-data-changed="isTemplateDataChanged"
-                :is-from-tpl-list-route="isFromTplListRoute"
                 :template-saving="templateSaving"
                 :create-task-saving="createTaskSaving"
                 :active-tab="activeSettingTab"
@@ -282,7 +281,6 @@
                 isShowConditionEdit: false,
                 isNodeConfigPanelShow: false, // 右侧模板是否展开
                 isSelectorPanelShow: false, // 右侧子流程模板是否展开
-                isFromTplListRoute: false, // 是否由模板列表页跳转进入
                 isLeaveDialogShow: false,
                 nodeMenuOpen: false, // 左侧边栏节点列表菜单是否展开
                 activeSettingTab: '',
@@ -447,13 +445,6 @@
                     this.getNodeVariableCitedData()
                 }
             }
-        },
-        beforeRouteEnter (to, from, next) {
-            next(vm => {
-                if (['commonProcessList', 'process'].includes(from.name)) {
-                    vm.isFromTplListRoute = true
-                }
-            })
         },
         created () {
             this.initTemplateData()
@@ -821,7 +812,6 @@
                     if (this.type !== 'edit') {
                         this.saveTempSnapshoot(data.template_id)
                         this.allowLeave = true
-                        this.isFromTplListRoute = false // 克隆、新建保存后，url 会发生变更，点击返回按钮需要回到流程列表页
                         const url = { name: 'templatePanel', params: { type: 'edit' }, query: { 'template_id': data.template_id, 'common': this.common } }
                         if (this.common) {
                             url.name = 'commonTemplatePanel'

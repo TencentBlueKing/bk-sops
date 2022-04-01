@@ -74,7 +74,7 @@
             onBackClick () {
                 const backObj = {
                     'business': {
-                        name: 'process',
+                        name: 'processHome',
                         params: { project_id: this.project_id }
                     },
                     'periodicTask': {

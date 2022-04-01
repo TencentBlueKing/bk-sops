@@ -10,10 +10,10 @@ const COMMON_ROUTE_LIST = [
         },
         {
             id: 'process',
-            name: i18n.t('项目流程'),
+            name: i18n.t('流程'),
             icon: 'icon-sitemap-shape',
             hasProjectId: true,
-            subRoutes: ['templatePanel'],
+            subRoutes: ['processHome', 'processCommon', 'processCollect', 'templatePanel'],
             url: '/template/home/'
         },
         {
@@ -48,13 +48,6 @@ const COMMON_ROUTE_LIST = [
     ],
     [
         {
-            id: 'commonProcessList',
-            name: i18n.t('公共流程'),
-            icon: 'icon-execute',
-            subRoutes: ['commonTemplatePanel'],
-            url: '/common/home/'
-        },
-        {
             id: 'functionHome',
             name: i18n.t('职能化'),
             icon: 'icon-project',
@@ -66,6 +59,13 @@ const COMMON_ROUTE_LIST = [
             name: i18n.t('审计中心'),
             icon: 'icon-order-shape',
             url: '/audit/home/'
+        },
+        {
+            id: 'commonProcessList',
+            name: i18n.t('公共流程管理'),
+            icon: 'icon-execute',
+            subRoutes: ['commonTemplatePanel'],
+            url: '/common/home/'
         },
         {
             id: 'projectHome',
