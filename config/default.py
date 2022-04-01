@@ -637,6 +637,7 @@ def monitor_report_config():
             access_token=env.BK_MONITOR_REPORT_ACCESS_TOKEN,  # 自定义上报 Token
             target=env.BK_MONITOR_REPORT_TARGET,  # 上报唯一标志符
             url=env.BK_MONITOR_REPORT_URL,  # 上报地址
+            report_interval=env.BK_MONITOR_REPORT_INTERVAL,  # 上报周期，秒
         )
 
         # 针对多进程worker需要做特殊梳理，在worker进程中进行reporter start
