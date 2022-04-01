@@ -67,11 +67,6 @@ def get_constant_values(constants, extra_data):
     ]
     context = Context(runtime, context_values, extra_data)
     hydrated_context = context.hydrate()
-
-    for key, value in hydrated_context.items():
-        if value in ["", "[]", "{}"]:
-            hydrated_context[key] = "预览值为空，需要业务相关信息的变量不支持预览"
-
     return hydrated_context
 
 
