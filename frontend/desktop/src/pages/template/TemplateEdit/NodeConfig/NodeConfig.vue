@@ -38,7 +38,7 @@
                         </i>
                         {{ $t('节点配置') }}
                     </span>
-                    <!-- 选择面板展开，并且标准插件或子流程不为空时，显示 -->
+                    <!-- 二级面包屑title，选择面板展开，并且标准插件或子流程不为空时显示 -->
                     <span
                         v-if="isSelectorPanelShow && (basicInfo.plugin || basicInfo.tpl)"
                         class="go-back">
@@ -111,7 +111,7 @@
             </div>
             <template slot="content">
                 <!-- 插件/子流程选择面板 -->
-                <selector-panel
+                <select-panel
                     v-if="isSelectorPanelShow"
                     :project_id="project_id"
                     :template-labels="templateLabels"
@@ -125,7 +125,7 @@
                     @back="isSelectorPanelShow = false"
                     @viewSubflow="onViewSubflow"
                     @select="onPluginOrTplChange">
-                </selector-panel>
+                </select-panel>
                 <!-- 变量编辑面板 -->
                 <div v-else-if="isVariablePanelShow" class="variable-edit-panel">
                     <variable-edit
@@ -269,7 +269,7 @@
     import BasicInfo from './BasicInfo.vue'
     import InputParams from './InputParams.vue'
     import OutputParams from './OutputParams.vue'
-    import SelectorPanel from './SelectorPanel.vue'
+    import SelectPanel from './SelectPanel/index.vue'
     import VariableEdit from '../TemplateSetting/TabGlobalVariables/VariableEdit.vue'
     import QuickOperateVariable from '../../common/QuickOperateVariable.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -281,7 +281,7 @@
             BasicInfo,
             InputParams,
             OutputParams,
-            SelectorPanel,
+            SelectPanel,
             VariableEdit,
             NoData,
             QuickOperateVariable
@@ -356,6 +356,10 @@
             },
             selectorTitle () {
                 return this.isSubflow ? i18n.t('选择子流程') : i18n.t('选择标准插件')
+            },
+            // 子流程节点是否为公共流程
+            isCommonTpl () {
+                return this.common || this.nodeConfig.template_source === 'common'
             }
         },
         watch: {
@@ -446,7 +450,7 @@
                 'setOutputs'
             ]),
             async initDefaultData () {
-                const nodeConfig = this.activities[this.nodeId]
+                const nodeConfig = tools.deepClone(this.activities[this.nodeId])
                 const isThirdParty = nodeConfig.component && nodeConfig.component.code === 'remote_plugin'
                 if (nodeConfig.type === 'ServiceActivity') {
                     await this.setThirdPartyList(nodeConfig)
@@ -563,7 +567,7 @@
              */
             async getAtomConfig (config) {
                 const { plugin, version, classify, name, isThird } = config
-                const project_id = this.common ? undefined : this.project_id
+                const project_id = this.isCommonTpl ? undefined : this.project_id
                 try {
                     // 先取标准节点缓存的数据
                     const pluginGroup = this.pluginConfigs[plugin]
@@ -627,7 +631,7 @@
                         scheme_id_list: this.basicInfo.schemeIdList,
                         version
                     }
-                    if (this.common) {
+                    if (this.isCommonTpl) {
                         params.template_source = 'common'
                     } else {
                         params.project_id = this.project_id
@@ -770,7 +774,7 @@
                         if (subflowInfo) {
                             templateName = subflowInfo.name
                         } else {
-                            const templateData = await this.loadTemplateData({ templateId: template_id, common: this.common })
+                            const templateData = await this.loadTemplateData({ templateId: template_id, common: this.common || config.template_source === 'common' })
                             templateName = templateData.name
                         }
                     }
@@ -875,9 +879,9 @@
 
             // 标准插件（子流程）选择面板切换插件（子流程）
             // isThirdParty 是否为第三方插件
-            onPluginOrTplChange (val, isThirdParty = false) {
+            onPluginOrTplChange (val) {
                 this.isSelectorPanelShow = false
-                this.isThirdParty = isThirdParty
+                this.isThirdParty = val.id === 'remote_plugin'
                 this.clearParamsSourceInfo()
                 if (this.isSubflow) {
                     this.tplChange(val)
@@ -969,6 +973,11 @@
                     schemeIdList: []
                 }
                 this.updateBasicInfo(config)
+                if ('project' in data && typeof data.project.id === 'number') {
+                    this.$set(this.nodeConfig, 'template_source', 'business')
+                } else {
+                    this.$set(this.nodeConfig, 'template_source', 'common')
+                }
                 await this.getSubflowDetail(id, version)
                 this.inputs = await this.getSubflowInputsConfig()
                 this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms)
@@ -1101,7 +1110,7 @@
             // 查看子流程模板
             onViewSubflow (id) {
                 let pathData = {}
-                if (this.common) {
+                if (this.isCommonTpl) {
                     pathData = {
                         name: 'commonTemplatePanel',
                         params: {
