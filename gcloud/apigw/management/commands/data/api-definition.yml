@@ -8,17 +8,25 @@ apigateway:
 
 stage:
   name: {{ settings.BK_APIGW_STAGE_NAME }}
-  vars: {}
+  vars:
+    api_sub_path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}
+    callback_sub_path: {{ settings.BK_APIGW_CALLBACK_SERVER_SUB_PATH }}
+    callback_host: {{ settings.BK_APIGW_CALLBACK_SERVER_HOST }}
   proxy_http:
-    timeout: 0
+    timeout: 120
     upstreams:
       loadbalance: roundrobin
       hosts:
-        - host: {{ settings.BK_APIGW_API_SERVER_HOST }}
+        - host: http://{{ settings.BK_APIGW_API_SERVER_HOST }}
           weight: 100
+  rate_limit:
+    enabled: false
+    rate:
+      tokens: 5000
+      period: 60
 
 resource_docs:
   basedir: {{ settings.BK_APIGW_RESOURCE_DOCS_BASE_DIR }}
 
 release:
-  comment: "auto release by apigw-manger"
+  comment: "auto release by bk-sops"

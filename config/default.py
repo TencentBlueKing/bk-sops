@@ -156,12 +156,12 @@ if env.IS_OPEN_V3:
     BK_APIGW_MANAGER_MAINTAINERS = env.BK_APIGW_MANAGER_MAINTAINERS
 
     api_host = urlparse(env.BKAPP_INNER_API_SERVER_HOST)
-    BK_APIGW_API_SERVER_HOST = "{}://{}".format(api_host.scheme, api_host.netloc)
-    BK_APIGW_API_SERVER_SUB_PATH = api_host.path.rstrip("/")
+    BK_APIGW_API_SERVER_HOST = api_host.netloc
+    BK_APIGW_API_SERVER_SUB_PATH = api_host.path.lstrip("/")
 
     callback_host = urlparse(env.BKAPP_INNER_CALLBACK_HOST)
-    BK_APIGW_CALLBACK_SERVER_HOST = "{}://{}".format(callback_host.scheme, callback_host.netloc)
-    BK_APIGW_CALLBACK_SERVER_SUB_PATH = callback_host.path.rstrip("/")
+    BK_APIGW_CALLBACK_SERVER_HOST = callback_host.netloc
+    BK_APIGW_CALLBACK_SERVER_SUB_PATH = callback_host.path.lstrip("/")
 
     BK_APIGW_RESOURCE_DOCS_BASE_DIR = os.path.join(BASE_DIR, "docs", "apidoc")
 
