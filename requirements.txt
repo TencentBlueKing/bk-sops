@@ -21,7 +21,7 @@ python-magic==0.4.15
 cryptography==3.3.2
 gitdb2==2.0.6
 GitPython==2.1.11
-PyJWT==1.6.1
+PyJWT==1.6.4
 future==0.18.1
 django-cors-headers==3.5.0
 pyinstrument==3.1.3
