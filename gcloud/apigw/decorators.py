@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from functools import wraps
 
+import pytz
 import ujson as json
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
@@ -96,6 +97,27 @@ def project_inject(view_func):
             )
 
         setattr(request, "project", project)
+        return view_func(request, *args, **kwargs)
+
+    return wrapper
+
+
+def timezone_inject(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        expected_timezone = request.GET.get("expected_timezone", None)
+        try:
+            tz = pytz.timezone(expected_timezone) if expected_timezone else None
+        except pytz.UnknownTimeZoneError:
+            return JsonResponse(
+                {
+                    "result": False,
+                    "data": "",
+                    "message": f"expected_timezone {expected_timezone} is unknown.",
+                    "code": err_code.VALIDATION_ERROR.code,
+                }
+            )
+        setattr(request, "tz", tz)
         return view_func(request, *args, **kwargs)
 
     return wrapper

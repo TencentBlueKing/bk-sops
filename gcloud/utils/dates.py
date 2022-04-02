@@ -39,17 +39,18 @@ def timestamp_to_datetime(timestamp):
         return None
 
 
-def format_datetime(dt):
+def format_datetime(dt, tz=None):
     """
     时间转换为字符串格式（附带时区）
     :param dt: type:datetime.datetime
+    :param tz: type:datetime.tzinfo
     :return:
     """
     # translate to time in local timezone
     if not dt:
         return ""
     if timezone.is_aware(dt):
-        dt = timezone.localtime(dt)
+        dt = dt.astimezone(tz) if tz else timezone.localtime(dt)
     return dt.strftime("%Y-%m-%d %H:%M:%S %z")
 
 
