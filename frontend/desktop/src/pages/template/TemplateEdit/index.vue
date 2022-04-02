@@ -1833,7 +1833,7 @@
     .update-tips {
         position: absolute;
         top: 64px;
-        left: 495px;
+        left: 450px;
         min-height: 40px;
         overflow: hidden;
         z-index: 4;

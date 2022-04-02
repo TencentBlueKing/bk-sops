@@ -1,12 +1,20 @@
 <template>
-    <div class="subflow-select-panel">
-        <p>请选择流程进行节点配置</p>
+    <div class="subflow-select-panel" ref="subflowSelectPanel">
+        <p class="select-title">请选择流程进行节点配置</p>
         <div class="type-select-wrapper">
             <bk-select style="width: 240px;" :value="tplType" :clearable="false" @change="onTplTypeChange">
-                <bk-option id="project" name="项目流程"></bk-option>
+                <bk-option id="business" name="项目流程"></bk-option>
                 <bk-option id="common" name="公共流程"></bk-option>
             </bk-select>
-            <bk-input v-model="searchStr" placeholder="请输入流程名称" style="width: 240px;" @change="handleNameSearch"></bk-input>
+            <bk-input
+                v-model="searchStr"
+                placeholder="请输入流程名称"
+                style="width: 240px;"
+                :clearable="true"
+                @change="handleSearchEmpty"
+                @clear="handleSearch"
+                @enter="handleSearch">
+            </bk-input>
         </div>
         <div class="list-table">
             <div class="table-head">
@@ -14,76 +22,73 @@
                 <div class="th-item tpl-label">
                     <span>{{ $t('标签') }}</span>
                     <div v-if="!commonTpl" class="label-select-wrap">
-                        <div
-                            class="selected-label-name"
-                            v-bk-tooltips="{
-                                placement: 'bottom-left',
-                                allowHtml: 'true',
-                                theme: 'light',
-                                hideOnClick: false,
-                                extCls: 'tpl-label-popover',
-                                content: '#tpl-label-popover-content',
-                                onShow: handleLabelSelectorOpen,
-                                onHide: handleLabelSelectorClose
-                            }">
-                            <span v-bk-overflow-tips class="label-content" :style="getLabelStyle(activeGroup)">{{ selectedLabelName }}</span>
-                            <i :class="['bk-icon', 'icon-angle-down', { 'active': isLabelSelectorOpen }]"></i>
-                        </div>
-                        <div id="tpl-label-popover-content">
-                            <div
-                                v-for="item in labels"
-                                v-bk-overflow-tips
-                                :class="['tpl-label-item', { 'active': activeGroup === item.id }]"
-                                :key="item.id"
-                                @click="onSelectLabel(item.id)">
-                                <span
-                                    class="label-content"
-                                    :style="getLabelStyle(item.id)">
-                                    {{ item.name }}
-                                </span>
-                            </div>
-                        </div>
+                        <bk-select
+                            v-model="labels"
+                            class="tpl-label-filter"
+                            ext-popover-cls="label-select"
+                            :searchable="true"
+                            :clearable="false"
+                            :multiple="true"
+                            @selected="onSelectLabel">
+                            <i slot="trigger" class="bk-icon icon-funnel filter-icon"></i>
+                            <bk-option
+                                v-for="option in templateLabels"
+                                :key="option.id"
+                                :id="option.id"
+                                :name="option.name">
+                                <div class="label-select-option">
+                                    <span
+                                        class="label-select-color"
+                                        :style="{ background: option.color }">
+                                    </span>
+                                    <span>{{option.name}}</span>
+                                    <i class="bk-option-icon bk-icon icon-check-1"></i>
+                                </div>
+                            </bk-option>
+                        </bk-select>
                     </div>
                 </div>
             </div>
-            <div class="tpl-list" v-bkloading="{ isLoading: listLoading }">
-                <template v-if="tplList.length > 0">
-                    <div
-                        v-for="item in tplList"
-                        v-cursor="{ active: !item.hasPermission }"
-                        :class="['tpl-item', {
-                            'active': String(item.id) === String(basicInfo.tpl),
-                            'text-permission-disable': !item.hasPermission
-                        }]"
-                        :key="item.id"
-                        @click="onSelectTpl(item)">
-                        <div class="tpl-name name-content">
-                            <div class="name" v-if="item.highlightName" v-html="item.highlightName"></div>
-                            <div class="name" v-else>{{ item.name }}</div>
-                            <span class="view-tpl" @click.stop="onViewTpl(item.id)">
-                                <i class="common-icon-box-top-right-corner"></i>
-                            </span>
+            <!-- 加一层div用来放bkLoading -->
+            <div v-bkloading="{ isLoading: listLoading }">
+                <div class="tpl-list">
+                    <template v-if="tableList.length > 0">
+                        <div
+                            v-for="item in tableList"
+                            v-cursor="{ active: !item.hasPermission }"
+                            :class="['tpl-item', {
+                                'active': String(item.id) === String(nodeConfig.template_id),
+                                'text-permission-disable': !item.hasPermission
+                            }]"
+                            :key="item.id"
+                            @click="onSelectTpl(item)">
+                            <div class="tpl-name name-content">
+                                <div class="name" v-if="item.highlightName" v-html="item.highlightName"></div>
+                                <div class="name" v-else>{{ item.name }}</div>
+                                <span class="view-tpl" @click.stop="onViewTpl(item.id)">
+                                    <i class="common-icon-box-top-right-corner"></i>
+                                </span>
+                            </div>
+                            <!-- 公共流程列表不展示标签 -->
+                            <div v-if="!commonTpl && item.template_labels.length > 0" class="tpl-label labels-wrap">
+                                <span
+                                    v-for="label in item.template_labels"
+                                    v-bk-overflow-tips
+                                    class="label-item"
+                                    :key="label.id"
+                                    :style="getLabelStyle(label.label_id)">
+                                    {{ label.name }}
+                                </span>
+                            </div>
                         </div>
-                        <!-- 公共流程列表不展示标签 -->
-                        <div v-if="!commonTpl && item.template_labels.length > 0" class="tpl-label labels-wrap">
-                            <span
-                                v-for="label in item.template_labels"
-                                v-bk-overflow-tips
-                                class="label-item"
-                                :key="label.id"
-                                :style="getLabelStyle(label.label_id)">
-                                {{ label.name }}
-                            </span>
-                        </div>
-                    </div>
-                </template>
-                <bk-exception v-else class="exception-part" type="empty" scene="part"></bk-exception>
+                    </template>
+                    <bk-exception v-else class="exception-part" type="empty" scene="part"></bk-exception>
+                </div>
             </div>
         </div>
     </div>
 </template>
 <script>
-    import i18n from '@/config/i18n/index.js'
     import permission from '@/mixins/permission.js'
     import { DARK_COLOR_LIST } from '@/constants/index.js'
 
@@ -92,37 +97,60 @@
         mixins: [permission],
         props: {
             common: [String, Number],
-            basicInfo: Object,
+            nodeConfig: {
+                type: Object,
+                default: () => ({})
+            },
             templateLabels: Array // 模板标签
         },
         data () {
             return {
-                tplType: 'project', // 项目流程 project，公共流程 common
+                tplType: this.nodeConfig.template_source || 'business', // 项目流程 business，公共流程 common
                 tplList: [],
                 listLoading: false,
                 isLabelSelectorOpen: false,
-                activeGroup: '',
+                isCompleteLoading: false,
                 selectedLabelName: '',
                 searchStr: '',
-                selectedLabels: [],
-                currentPage: 0
+                labels: [],
+                limit: 20, // 每页的条数，默认值，在mounted会根据屏幕高度动态计算
+                crtPage: 1 // 分页加载当前页数
             }
         },
         computed: {
-            labels () {
-                const list = this.templateLabels.slice(0)
-                list.unshift({
-                    id: 0,
-                    name: i18n.t('默认全部')
+            tableList () {
+                // 除流程克隆的情况，流程列表中需要过滤掉url中template_id对应的流程
+                if (this.$route.params.type === 'clone') {
+                    return this.tplList
+                }
+                return this.tplList.filter(tpl => {
+                    return tpl.id !== Number(this.$route.query.template_id)
                 })
-                return list
             },
             commonTpl () {
                 return this.common || this.tplType === 'common'
             }
         },
         created () {
+        },
+        mounted () {
+            // 设置滚动加载
+            const listWrapEl = this.$refs.subflowSelectPanel.querySelector('.tpl-list')
+            listWrapEl.addEventListener('scroll', this.handleScroll, false)
+            const maxHeight = window.getComputedStyle(listWrapEl).maxHeight
+
+            // 计算出每页加载的条数
+            // 规则为容器高度除以每条的高度，考虑到后续可能需要触发容器滚动事件，在实际可容纳的条数上再增加5条
+            // @notice: 每个流程条目的高度需要固定，目前取的css定义的高度40px
+            if (maxHeight) {
+                const height = Number(maxHeight.replace('px', ''))
+                this.limit = Math.ceil(height / 40) + 1
+            }
             this.getTplList()
+        },
+        beforeDestroy () {
+            const listWrapEl = this.$refs.subflowSelectPanel.querySelector('.tpl-list')
+            listWrapEl.removeEventListener('scroll', this.handleScroll, false)
         },
         methods: {
             // 加载项目流程或公共流程列表
@@ -134,13 +162,11 @@
                     this.listLoading = true
                     const { params } = this.$route
                     const searchStr = this.escapeRegExp(this.searchStr)
-                    const labels = this.activeGroup
-                    const limit = 30
                     const data = {
-                        label_ids: labels || undefined,
+                        label_ids: this.labels.join(','),
                         pipeline_template__name__icontains: searchStr || undefined,
-                        limit,
-                        offset: this.currentPage * limit
+                        limit: this.limit,
+                        offset: (this.crtPage - 1) * this.limit
                     }
                     if (this.commonTpl) {
                         data.common = true
@@ -148,33 +174,22 @@
                         data.project__id = params.project_id
                     }
                     const resp = await this.$store.dispatch('templateList/loadTemplateList', data)
-                    this.totalPage = Math.floor(resp.count / this.limit)
                     const reqPermission = this.commonTpl ? ['common_flow_view'] : ['flow_view']
                     const result = []
                     resp.results.forEach(tpl => {
-                        // 除流程克隆的情况，流程列表中需要过滤掉url中template_id对应的流程
-                        if (this.$route.params.type === 'clone' || tpl.id !== Number(this.$route.query.template_id)) {
-                            tpl.hasPermission = this.hasPermission(reqPermission, tpl.auth_actions)
-                            let matchLabel = true
-                            let matchName = true
-                            const tplCopy = { ...tpl }
-                            if (labels) {
-                                matchLabel = tpl.template_labels.find(label => label.label_id === Number(labels))
-                            }
-                            if (searchStr !== '') {
-                                const reg = new RegExp(searchStr, 'i')
-                                if (!reg.test(tpl.name)) {
-                                    matchName = false
-                                } else {
-                                    tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff5757;">${searchStr}</span>`)
-                                }
-                            }
-                            if (matchLabel && matchName) {
-                                result.push(tplCopy)
+                        tpl.hasPermission = this.hasPermission(reqPermission, tpl.auth_actions)
+                        const tplCopy = { ...tpl }
+                        // 高亮搜索匹配的文字部分
+                        if (searchStr !== '') {
+                            const reg = new RegExp(searchStr, 'i')
+                            if (reg.test(tpl.name)) {
+                                tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff5757;">${searchStr}</span>`)
                             }
                         }
+                        result.push(tplCopy)
                     })
-                    this.tplList = result
+                    this.tplList.push(...result)
+                    this.isCompleteLoading = resp.count === this.tplList.length
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -195,14 +210,22 @@
             // 流程类型切换
             onTplTypeChange (val) {
                 this.tplType = val
-                this.currentPage = 0
+                this.crtPage = 1
+                this.tplList = []
+                this.labels = []
                 this.getTplList()
             },
-            handleLabelSelectorOpen () {
-                this.isLabelSelectorOpen = true
-            },
-            handleLabelSelectorClose () {
-                this.isLabelSelectorOpen = false
+            // 滚动加载
+            handleScroll (e) {
+                if (this.listLoading || this.isCompleteLoading) {
+                    return
+                }
+                const { scrollTop, clientHeight, scrollHeight } = e.target
+                const isScrollBottom = scrollHeight === (scrollTop + clientHeight)
+                if (isScrollBottom) {
+                    this.crtPage += 1
+                    this.getTplList()
+                }
             },
             escapeRegExp (str) {
                 if (typeof str !== 'string') {
@@ -210,11 +233,22 @@
                 }
                 return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')
             },
-            handleNameSearch (val) {
-
+            // 搜索框清空后触发搜索
+            handleSearchEmpty (val) {
+                if (val === '') {
+                    this.handleSearch('')
+                }
+            },
+            handleSearch (val) {
+                this.searchStr = val
+                this.crtPage = 1
+                this.tplList = []
+                this.getTplList()
             },
             // 选择标签
             onSelectLabel () {
+                this.crtPage = 1
+                this.tplList = []
                 this.getTplList()
             },
             // 选择流程
@@ -290,6 +324,22 @@
     padding: 26px 32px;
     height: 100%;
 }
+.select-title {
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    font-size: 14px;
+    color: #313238;
+    font-weight: bold;
+    border-bottom: 1px solid #dcdee5;
+}
+.type-select-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.exception-part {
+    margin: 50px 0;
+}
 .list-table {
     margin-top: 16px;
     border: 1px solid #dcdee5;
@@ -314,38 +364,27 @@
             align-items: center;
             .label-select-wrap {
                 cursor: pointer;
-                .selected-label-name {
-                    display: flex;
-                    align-items: center;
-                    transition: transform .3s cubic-bezier(.4, 0, .2, 1);
-                    & > i {
-                        font-size: 14px;
-                        &.active {
-                            transform: rotate(-180deg);
-                        }
+            }
+            .tpl-label-filter {
+                width: 260px;
+                height: 16px;
+                line-height: 16px;
+                border: none;
+                &:hover {
+                    .filter-icon {
+                        color: #3a84ff;
                     }
                 }
-                .label-content {
-                    display: inline-block;
+                .filter-icon {
                     margin-left: 4px;
-                    max-width: 144px;
-                    min-width: 40px;
-                    padding: 2px 6px;
-                    font-size: 12px;
-                    line-height: 1;
-                    color: #63656e;
-                    border-radius: 8px;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    cursor: pointer;
+                    color: #c4c6cc;
                 }
             }
         }
     }
 }
 .tpl-list {
-    max-height: calc(100vh - 204px);
+    max-height: calc(100vh - 260px);
     overflow: auto;
     @include scrollbar;
     .no-data-wrapper {
@@ -354,7 +393,7 @@
 }
 .tpl-item {
     display: flex;
-    min-height: 40px;
+    height: 40px;
     align-items: center;
     color: #63656e;
     border-top: 1px solid #dcdee5;
@@ -414,58 +453,4 @@
     text-align: center;
     margin-top: 10px;
 }
-.type-select-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-</style>
-<style lang="scss">
-@import '@/scss/mixins/scrollbar.scss';
-    .tpl-label-popover {
-        background: #ffffff;
-        .tippy-tooltip {
-            padding: 7px 0;
-            max-height: 180px;
-            overflow: auto;
-            @include scrollbar;
-        }
-        .tpl-label-item {
-            padding: 4px 13px;
-            cursor: pointer;
-            &:hover {
-                background: #eaf3ff;
-            }
-            &.active {
-                background: #f4f6fa;
-            }
-            .label-content {
-                display: inline-block;
-                max-width: 144px;
-                min-width: 40px;
-                padding: 2px 6px;
-                font-size: 12px;
-                line-height: 1;
-                color: #63656e;
-                border-radius: 8px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                cursor: pointer;
-            }
-        }
-    }
-    .selector-panel .bk-tab{
-        .bk-tab-header {
-            padding-left: 17px;
-        }
-        .bk-tab-section {
-            display: none;
-        }
-    }
-    .plugin-desc-tips {
-        .tippy-arrow {
-            left: 370px !important;
-        }
-    }
 </style>

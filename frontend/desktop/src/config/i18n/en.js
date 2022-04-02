@@ -244,7 +244,7 @@ const en = {
     '重试': 'Retry',
     '修改时间': 'Reset Timer',
     '流程模板中该标准插件节点未配置失败处理方式，不可操作': 'There is not failure process set to this node when editing flow, you can not operate',
-    '请输入名称': 'Please enter a name',
+    '请输入插件名称': 'Please enter the plugin name',
     '所有分组': 'All groups',
     '所有分类': 'All categories',
     '标准插件节点：': 'Standard Plugins Node: ',

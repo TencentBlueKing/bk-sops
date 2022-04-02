@@ -45,68 +45,72 @@
                         <i class="common-icon-angle-right"></i>
                         {{ selectorTitle }}
                     </span>
-                    <div class="view-variable">
-                        <bk-popover
-                            v-if="!isSelectorPanelShow"
-                            :key="randomKey"
-                            ext-cls="variable-popover"
-                            placement="bottom-end"
-                            :tippy-options="{ hideOnClick: false }">
-                            <div style="cursor: pointer;">{{ $t('全局变量') }}</div>
-                            <div class="variable-list" slot="content">
-                                <div class="header-area">
-                                    <span>{{ $t('全局变量') }}</span>
-                                    <bk-link theme="primary" icon="bk-icon icon-plus" @click="openVariablePanel">{{ $t('新建变量') }}</bk-link>
+                    <!-- 展示选择面板是隐藏 -->
+                    <template v-if="!isSelectorPanelShow">
+                        <!-- 全局变量popover -->
+                        <div class="view-variable">
+                            <bk-popover
+                                v-if="!isSelectorPanelShow"
+                                :key="randomKey"
+                                ext-cls="variable-popover"
+                                placement="bottom-end"
+                                :tippy-options="{ hideOnClick: false }">
+                                <div style="cursor: pointer;">{{ $t('全局变量') }}</div>
+                                <div class="variable-list" slot="content">
+                                    <div class="header-area">
+                                        <span>{{ $t('全局变量') }}</span>
+                                        <bk-link theme="primary" icon="bk-icon icon-plus" @click="openVariablePanel">{{ $t('新建变量') }}</bk-link>
+                                    </div>
+                                    <bk-table :data="variableList" :outer-border="false" :max-height="400">
+                                        <bk-table-column :label="$t('名称')" prop="name" width="165" :show-overflow-tooltip="true"></bk-table-column>
+                                        <bk-table-column label="KEY" :show-overflow-tooltip="true" width="209">
+                                            <template slot-scope="props" width="165">
+                                                <div class="key">{{ props.row.key }}</div>
+                                                <i class="copy-icon common-icon-double-paper-2" @click="onCopyKey(props.row.key)"></i>
+                                            </template>
+                                        </bk-table-column>
+                                        <bk-table-column :label="$t('属性')" width="80">
+                                            <div class="icon-wrap" slot-scope="props">
+                                                <i
+                                                    :class="[props.row.source_type !== 'component_outputs' ? 'common-icon-show-left' : 'common-icon-show-right color-org']"
+                                                    v-bk-tooltips="{
+                                                        content: props.row.source_type !== 'component_outputs' ? $t('输入') : $t('输出'),
+                                                        placements: ['bottom']
+                                                    }">
+                                                </i>
+                                                <i
+                                                    :class="[props.row.show_type === 'show' ? 'common-icon-eye-show' : 'common-icon-eye-hide color-org']"
+                                                    v-bk-tooltips="{
+                                                        content: props.row.show_type === 'show' ? $t('显示') : $t('隐藏'),
+                                                        placements: ['bottom']
+                                                    }">
+                                                </i>
+                                            </div>
+                                        </bk-table-column>
+                                        <bk-table-column :label="$t('操作')" width="80">
+                                            <template slot-scope="props">
+                                                <bk-link
+                                                    :theme="props.row.source_type === 'system' ? 'default' : 'primary'"
+                                                    :disabled="props.row.source_type === 'system'"
+                                                    @click="openVariablePanel(props.row)">
+                                                    {{ $t('编辑') }}
+                                                </bk-link>
+                                            </template>
+                                        </bk-table-column>
+                                    </bk-table>
                                 </div>
-                                <bk-table :data="variableList" :outer-border="false" :max-height="400">
-                                    <bk-table-column :label="$t('名称')" prop="name" width="165" :show-overflow-tooltip="true"></bk-table-column>
-                                    <bk-table-column label="KEY" :show-overflow-tooltip="true" width="209">
-                                        <template slot-scope="props" width="165">
-                                            <div class="key">{{ props.row.key }}</div>
-                                            <i class="copy-icon common-icon-double-paper-2" @click="onCopyKey(props.row.key)"></i>
-                                        </template>
-                                    </bk-table-column>
-                                    <bk-table-column :label="$t('属性')" width="80">
-                                        <div class="icon-wrap" slot-scope="props">
-                                            <i
-                                                :class="[props.row.source_type !== 'component_outputs' ? 'common-icon-show-left' : 'common-icon-show-right color-org']"
-                                                v-bk-tooltips="{
-                                                    content: props.row.source_type !== 'component_outputs' ? $t('输入') : $t('输出'),
-                                                    placements: ['bottom']
-                                                }">
-                                            </i>
-                                            <i
-                                                :class="[props.row.show_type === 'show' ? 'common-icon-eye-show' : 'common-icon-eye-hide color-org']"
-                                                v-bk-tooltips="{
-                                                    content: props.row.show_type === 'show' ? $t('显示') : $t('隐藏'),
-                                                    placements: ['bottom']
-                                                }">
-                                            </i>
-                                        </div>
-                                    </bk-table-column>
-                                    <bk-table-column :label="$t('操作')" width="80">
-                                        <template slot-scope="props">
-                                            <bk-link
-                                                :theme="props.row.source_type === 'system' ? 'default' : 'primary'"
-                                                :disabled="props.row.source_type === 'system'"
-                                                @click="openVariablePanel(props.row)">
-                                                {{ $t('编辑') }}
-                                            </bk-link>
-                                        </template>
-                                    </bk-table-column>
-                                </bk-table>
-                            </div>
-                        </bk-popover>
-                    </div>
-                    <!-- 快捷操作按钮 -->
-                    <div class="quick-insert-btn" @click="quickOperateVariableVisable = true">
-                        {{ $t('变量快捷处理') }}
-                        <quick-operate-variable
-                            v-if="quickOperateVariableVisable"
-                            :variable-list="variableList"
-                            @closePanel="quickOperateVariableVisable = false">
-                        </quick-operate-variable>
-                    </div>
+                            </bk-popover>
+                        </div>
+                        <!-- 快捷操作按钮 -->
+                        <div class="quick-insert-btn" @click="quickOperateVariableVisable = true">
+                            {{ $t('变量快捷处理') }}
+                            <quick-operate-variable
+                                v-if="quickOperateVariableVisable"
+                                :variable-list="variableList"
+                                @closePanel="quickOperateVariableVisable = false">
+                            </quick-operate-variable>
+                        </div>
+                    </template>
                 </template>
             </div>
             <template slot="content">
@@ -115,7 +119,7 @@
                     v-if="isSelectorPanelShow"
                     :project_id="project_id"
                     :template-labels="templateLabels"
-                    :is-subflow="isSubflow"
+                    :node-config="nodeConfig"
                     :atom-type-list="atomTypeList"
                     :basic-info="basicInfo"
                     :common="common"
