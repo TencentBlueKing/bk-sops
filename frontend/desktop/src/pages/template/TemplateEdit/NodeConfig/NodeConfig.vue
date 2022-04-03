@@ -125,7 +125,6 @@
                     :common="common"
                     :is-third-party="isThirdParty"
                     :plugin-loading="pluginLoading"
-                    @updatePluginList="updatePluginList"
                     @back="isSelectorPanelShow = false"
                     @viewSubflow="onViewSubflow"
                     @select="onPluginOrTplChange">
@@ -729,13 +728,8 @@
                         if (component.code === 'remote_plugin') {
                             const atom = this.$parent.thirdPartyList[this.nodeId]
                             code = component.data.plugin_code.value
-                            const pluginInfo = this.atomTypeList.pluginList.find(item => item.code === code)
-                            if (pluginInfo) {
-                                basicInfoName = pluginInfo.name
-                            } else {
-                                const resp = await this.loadPluginServiceAppDetail({ plugin_code: code })
-                                basicInfoName = resp.data.name
-                            }
+                            const resp = await this.loadPluginServiceAppDetail({ plugin_code: code })
+                            basicInfoName = resp.data.name
                             version = atom.version
                             desc = atom.desc
                         } else {
@@ -1107,9 +1101,6 @@
                         }
                     }
                 }
-            },
-            updatePluginList (val, type) {
-                this.$emit('updatePluginList', val, type)
             },
             // 查看子流程模板
             onViewSubflow (id) {

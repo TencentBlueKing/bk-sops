@@ -817,6 +817,7 @@ const en = {
     '编辑流程': 'Edit Flow',
     '保存并新建任务': 'Save And NewTask',
     '说明': 'Description',
+    '节点': 'Node',
     '引用节点': 'Refers',
     '引用变量的': 'Variable Reference ',
     '任务节点': 'Task Nodes',

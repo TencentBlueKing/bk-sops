@@ -2,15 +2,22 @@
     <div class="subflow-select-panel" ref="subflowSelectPanel">
         <p class="select-title">请选择流程进行节点配置</p>
         <div class="type-select-wrapper">
-            <bk-select style="width: 240px;" :value="tplType" :clearable="false" @change="onTplTypeChange">
+            <!-- 公共流程编辑不显示切换流程类型下拉框 -->
+            <bk-select
+                v-if="!common"
+                style="width: 240px;"
+                :value="tplType"
+                :clearable="false"
+                @change="onTplTypeChange">
                 <bk-option id="business" name="项目流程"></bk-option>
                 <bk-option id="common" name="公共流程"></bk-option>
             </bk-select>
             <bk-input
                 v-model="searchStr"
+                class="search-text-input"
                 placeholder="请输入流程名称"
-                style="width: 240px;"
                 :clearable="true"
+                right-icon="bk-icon icon-search"
                 @change="handleSearchEmpty"
                 @clear="handleSearch"
                 @enter="handleSearch">
@@ -105,7 +112,8 @@
         },
         data () {
             return {
-                tplType: this.nodeConfig.template_source || 'business', // 项目流程 business，公共流程 common
+                // 项目流程 business，公共流程 common, 公共流程编辑默认都是common
+                tplType: this.common ? 'common' : (this.nodeConfig.template_source || 'business'),
                 tplList: [],
                 listLoading: false,
                 isLabelSelectorOpen: false,
@@ -131,8 +139,6 @@
                 return this.common || this.tplType === 'common'
             }
         },
-        created () {
-        },
         mounted () {
             // 设置滚动加载
             const listWrapEl = this.$refs.subflowSelectPanel.querySelector('.tpl-list')
@@ -140,7 +146,7 @@
             const maxHeight = window.getComputedStyle(listWrapEl).maxHeight
 
             // 计算出每页加载的条数
-            // 规则为容器高度除以每条的高度，考虑到后续可能需要触发容器滚动事件，在实际可容纳的条数上再增加5条
+            // 规则为容器高度除以每条的高度，考虑到后续可能需要触发容器滚动事件，在实际可容纳的条数上再增加1条
             // @notice: 每个流程条目的高度需要固定，目前取的css定义的高度40px
             if (maxHeight) {
                 const height = Number(maxHeight.replace('px', ''))
@@ -160,7 +166,6 @@
                 }
                 try {
                     this.listLoading = true
-                    const { params } = this.$route
                     const searchStr = this.escapeRegExp(this.searchStr)
                     const data = {
                         label_ids: this.labels.join(','),
@@ -171,7 +176,7 @@
                     if (this.commonTpl) {
                         data.common = true
                     } else {
-                        data.project__id = params.project_id
+                        data.project__id = this.$route.params.project_id
                     }
                     const resp = await this.$store.dispatch('templateList/loadTemplateList', data)
                     const reqPermission = this.commonTpl ? ['common_flow_view'] : ['flow_view']
@@ -333,9 +338,14 @@
     border-bottom: 1px solid #dcdee5;
 }
 .type-select-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    position: relative;
+    height: 32px;
+    .search-text-input {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 240px;
+    }
 }
 .exception-part {
     margin: 50px 0;

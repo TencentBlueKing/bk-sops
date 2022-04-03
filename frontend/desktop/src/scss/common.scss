@@ -207,30 +207,6 @@
     }
 }
 
-// 解决下拉框组件多选 tag 模式，单条宽度没有溢出省略效果，会盖住删除icon问题
-.bk-select {
-    .bk-select-tag-container {
-        padding-top: 4px;
-        .bk-select-tag {
-            position: relative;
-            display: inline-block;
-            padding-right: 20px;
-            line-height: 22px;
-            max-width: 150px;
-            & > .icon-close {
-                position: absolute;
-                right: 0;
-                top: 4px;
-            }
-        }
-        .bk-select-overflow-tag {
-            display: inline-block;
-            overflow: hidden;
-        }
-    }
-}
-
-
 .label-select {
     .label-select-option {
         display: flex;

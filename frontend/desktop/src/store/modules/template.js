@@ -680,7 +680,7 @@ const template = {
                             type: 'SubProcess',
                             always_use_latest: false,
                             scheme_id_list: [],
-                            template_source: 'business'
+                            template_source: location.tplSource || 'business'
                         }
                     }
                     Vue.set(state.activities, location.id, activity)

@@ -106,7 +106,7 @@
                 activeGroup: this.getDefaultActiveGroup(),
                 thirdPartyPlugin: [],
                 thirdPluginLoading: false,
-                thirdPluginPagelimit: 20,
+                thirdPluginPagelimit: 15,
                 isThirdPluginCompleteLoading: false,
                 thirdPluginOffset: 0,
                 searchStr: '',
@@ -120,9 +120,7 @@
             }
         },
         mounted () {
-            if (this.curTab === 'thirdParty') {
-                this.setThirdParScrollLoading()
-            }
+            this.setThirdParScrollLoading()
         },
         beforeDestroy () {
             const listWrapEl = this.$refs.thirdPartyPanel.$el.querySelector('.third-party-list')
@@ -194,7 +192,7 @@
                 const height = listWrapEl.getBoundingClientRect().height
 
                 // 计算出每页加载的条数
-                // 规则为容器高度除以每条的高度，考虑到后续可能需要触发容器滚动事件，在实际可容纳的条数上再增加5条
+                // 规则为容器高度除以每条的高度，考虑到后续可能需要触发容器滚动事件，在实际可容纳的条数上再增加1条
                 // @notice: 每个流程条目的高度需要固定，目前取的css定义的高度80px
                 if (height > 0) {
                     this.thirdPluginPagelimit = Math.ceil(height / 80) + 1
@@ -216,9 +214,6 @@
             onTabChange (val) {
                 this.curTab = val
                 this.searchStr = ''
-                if (val === 'thirdParty') {
-                    this.setThirdParScrollLoading()
-                }
             },
             // 搜索框字符为空
             handleSearchEmpty (val) {
