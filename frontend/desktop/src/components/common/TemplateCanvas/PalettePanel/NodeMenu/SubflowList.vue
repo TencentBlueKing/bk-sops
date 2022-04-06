@@ -218,7 +218,6 @@
                         }]
                     }
                 }
-                debugger
                 this.applyForPermission([reqPerm], [], permissionData)
             }
         }
