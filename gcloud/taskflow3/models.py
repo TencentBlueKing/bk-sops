@@ -1047,7 +1047,7 @@ class TaskFlowInstance(models.Model):
 
         dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
 
-        action_result = dispatcher.dispatch(command="forced_fail", operator=username)
+        action_result = dispatcher.dispatch(command="forced_fail", operator=username, send_post_set_state_signal=False)
         if not action_result["result"]:
             return action_result
 
