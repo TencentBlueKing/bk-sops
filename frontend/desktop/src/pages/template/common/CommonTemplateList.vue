@@ -880,7 +880,6 @@
                 this.isDeleteDialogShow = true
             },
             handleSortChange ({ prop, order }) {
-                debugger
                 const params = 'pipeline_template__' + prop
                 if (order === 'ascending') {
                     this.ordering = params
