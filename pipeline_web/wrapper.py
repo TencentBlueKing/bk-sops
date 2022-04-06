@@ -17,6 +17,7 @@ import copy
 import logging
 
 import ujson as json
+from django.apps import apps
 from django.db.models import Q
 
 from pipeline.utils.uniqid import uniqid
@@ -105,8 +106,12 @@ class PipelineTemplateWebWrapper(object):
                         version = None
                     else:
                         version = act.get("version")
-
-                    subproc_data = template_model.objects.get(
+                    subprocess_template_model = (
+                        apps.get_model("template", "CommonTemplate")
+                        if act.get("template_source") == "common"
+                        else template_model
+                    )
+                    subproc_data = subprocess_template_model.objects.get(
                         pipeline_template__template_id=act["template_id"]
                     ).get_pipeline_tree_by_version(version)
 
@@ -172,6 +177,9 @@ class PipelineTemplateWebWrapper(object):
                 # record referencer id
                 # referenced template -> referencer -> reference act
                 refs.setdefault(act["template_id"], {}).setdefault(template["template_id"], set()).add(act_id)
+                # 因为只会导入同一业务下，所以导出时抹去原环境子流程的类型信息
+                if "template_source" in act:
+                    act.pop("template_source")
                 subprocess_obj = PipelineTemplate.objects.get(template_id=act["template_id"])
                 cls._export_template(subprocess_obj, subprocess, refs, template_versions, False)
 

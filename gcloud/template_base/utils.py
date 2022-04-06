@@ -15,9 +15,12 @@ import base64
 import hashlib
 import logging
 from functools import partial
+from typing import Tuple, List, Optional, Dict
 
 import ujson as json
+from django.apps import apps
 
+from gcloud.constants import COMMON, PROJECT
 from pipeline.core.constants import PE
 from gcloud import err_code
 from gcloud.conf import settings
@@ -59,10 +62,15 @@ def replace_template_id(template_model, pipeline_data, reverse=False):
     activities = pipeline_data[PE.activities]
     for act_id, act in list(activities.items()):
         if act["type"] == PE.SubProcess:
+            subprocess_template_model = (
+                apps.get_model("template", "CommonTemplate") if act.get("template_source") == COMMON else template_model
+            )
             if not reverse:
-                act["template_id"] = template_model.objects.get(pk=act["template_id"]).pipeline_template.template_id
+                act["template_id"] = subprocess_template_model.objects.get(
+                    pk=act["template_id"]
+                ).pipeline_template.template_id
             else:
-                template = template_model.objects.get(pipeline_template__template_id=act["template_id"])
+                template = subprocess_template_model.objects.get(pipeline_template__template_id=act["template_id"])
                 act["template_id"] = str(template.pk)
 
 
@@ -79,3 +87,34 @@ def replace_biz_id_value(pipeline_tree: dict, bk_biz_id: int):
                 constant["source_tag"].endswith(".biz_cc_id") or constant["source_tag"].endswith(".bk_biz_id")
             ) and constant["value"]:
                 constant["value"] = bk_biz_id
+
+
+def fetch_templates_info(
+    pipeline_template_ids: List, fetch_fields: Tuple, appointed_template_type: Optional[str] = None,
+) -> List[Dict]:
+    """
+    根据pipeline template id列表获取上层template数据，
+    :param pipeline_template_ids: PipelineTemplate id 列表
+    :param fetch_fields: 返回的模版包含的字段
+    :param appointed_template_type: 搜索的模版类型，common/project/None，None表示不指定类型
+    :return: 模版信息列表，不保证返回数据与输入id一一对应
+    """
+
+    def get_templates(template_model):
+        template_qs = template_model.objects.filter(pipeline_template_id__in=pipeline_template_ids).values(
+            *fetch_fields
+        )
+        template_type = COMMON if template_model.__name__ == "CommonTemplate" else PROJECT
+        return [{"template_type": template_type, **template} for template in template_qs]
+
+    task_template_model = apps.get_model("tasktmpl3", "TaskTemplate")
+    common_template_model = apps.get_model("template", "CommonTemplate")
+    if appointed_template_type:
+        templates = get_templates(common_template_model if appointed_template_type == COMMON else task_template_model)
+    else:
+        task_templates = get_templates(task_template_model)
+        common_templates = (
+            get_templates(common_template_model) if len(pipeline_template_ids) > len(task_templates) else []
+        )
+        templates = task_templates + common_templates
+    return templates
