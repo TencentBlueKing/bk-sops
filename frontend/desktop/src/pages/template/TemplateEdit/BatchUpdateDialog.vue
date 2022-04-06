@@ -6,7 +6,7 @@
                 <span class="legend-item delete">删除</span>
                 <span class="legend-item add">新增</span>
             </div>
-            <i class="bk-dialog-close bk-icon icon-close" @click="onCloseDialog"></i>
+            <i class="bk-dialog-close bk-icon icon-close" @click="onCloseDialog(false)"></i>
         </div>
         <bk-alert ref="diffAlert" type="warning" style="margin: 10px;" :show-icon="false">
             <div class="diff-alert" slot="title">
@@ -123,7 +123,7 @@
                     @click="onConfirm">
                     {{ $t('批量更新') }}
                 </bk-button>
-                <bk-button @click="onCloseDialog">{{ $t('取消') }}</bk-button>
+                <bk-button @click="onCloseDialog(false)">{{ $t('取消') }}</bk-button>
             </div>
         </div>
     </div>
@@ -604,7 +604,7 @@
                         })
                     })
                     this.handleVariableChange()
-                    this.onCloseDialog()
+                    this.onCloseDialog(true)
                 } else {
                     const errorEl = document.querySelector('.subflow-form-wrap .common-error-tip')
                     if (errorEl) {
@@ -612,8 +612,8 @@
                     }
                 }
             },
-            onCloseDialog () {
-                this.$emit('close')
+            onCloseDialog (updated = false) {
+                this.$emit('close', updated)
             }
         }
     }
