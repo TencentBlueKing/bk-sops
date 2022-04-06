@@ -56,10 +56,10 @@ class AllBizJobFastExecuteScriptService(JobService):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("全业务 ID"),
+                name=_("业务集 ID"),
                 key="all_biz_cc_id",
                 type="string",
-                schema=StringItemSchema(description=_("当前操作全业务 ID")),
+                schema=StringItemSchema(description=_("当前操作业务集 ID")),
             ),
             self.InputItem(
                 name=_("脚本类型"),
@@ -204,7 +204,7 @@ class AllBizJobFastExecuteScriptService(JobService):
 
 
 class AllBizJobFastExecuteScriptComponent(Component):
-    name = _("全业务快速执行脚本")
+    name = _("业务集快速执行脚本")
     code = "all_biz_job_fast_execute_script"
     bound_service = AllBizJobFastExecuteScriptService
     version = "v1.0"

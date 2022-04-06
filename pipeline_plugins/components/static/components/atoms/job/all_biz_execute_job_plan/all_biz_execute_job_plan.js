@@ -15,13 +15,13 @@
             tag_code: "all_biz_job_config",
             type: "combine",
             attrs: {
-                name: "全业务作业配置",
+                name: "业务集作业配置",
                 hookable: true,
                 children: [
                     {
                         type: "input",
                         attrs: {
-                            name: gettext("全业务ID"),
+                            name: gettext("业务集ID"),
                             validation: [{
                                 type: "required"
                             }],
