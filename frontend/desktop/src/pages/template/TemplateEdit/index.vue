@@ -138,7 +138,7 @@
                     :project-id="project_id"
                     :list="subflowShouldUpdated"
                     @globalVariableUpdate="globalVariableUpdate"
-                    @close="isBatchUpdateDialogShow = false">
+                    @close="closeBatchUpdateDialog">
                 </batch-update-dialog>
             </bk-dialog>
             <bk-dialog
@@ -1492,6 +1492,12 @@
                         skippable: nodes[node].isSkipped || nodes[node].skippable
                     })
                 })
+            },
+            closeBatchUpdateDialog (updated) {
+                this.isBatchUpdateDialogShow = false
+                if (updated) {
+                    this.templateDataChanged()
+                }
             },
             // 打开分支条件编辑
             onOpenConditionEdit (data) {
