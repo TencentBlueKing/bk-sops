@@ -10,13 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust
+from gcloud.apigw.decorators import mark_request_whether_is_trust, timezone_inject
 from gcloud.common_template.models import CommonTemplate
 from gcloud.apigw.views.utils import format_template_list_data
 from gcloud.iam_auth.conf import COMMON_FLOW_ACTIONS
@@ -28,14 +26,13 @@ from packages.bkoauth.decorators import apigw_required
 @require_GET
 @apigw_required
 @mark_request_whether_is_trust
+@timezone_inject
 def get_common_template_list(request):
     templates = CommonTemplate.objects.select_related("pipeline_template").filter(is_deleted=False)
-    templates_data, common_templates_id_list = format_template_list_data(templates, return_id_list=True)
+    templates_data, common_templates_id_list = format_template_list_data(templates, return_id_list=True, tz=request.tz)
     # 注入用户有权限的actions
     common_templates_allowed_actions = get_common_flow_allowed_actions_for_user(
-        request.user.username,
-        COMMON_FLOW_ACTIONS,
-        common_templates_id_list,
+        request.user.username, COMMON_FLOW_ACTIONS, common_templates_id_list,
     )
     for template in templates_data:
         template_id = template["id"]

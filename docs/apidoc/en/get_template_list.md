@@ -21,6 +21,7 @@ Query flow templates list of the business
 | template_source | string   | NO    | source of flow，default value is business. business: from business, common: from common flow |
 | id_in         |  string    | NO     | source id list of template, separated by `,` |
 | name_keyword  |  string    | NO     | keyword of template name, ignore case |
+| expected_timezone | string | NO | expected timezone of time related field in response, e.g. Asia/Shanghai |
 | scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 ### Request Parameters Example

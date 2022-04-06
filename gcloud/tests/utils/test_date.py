@@ -10,12 +10,20 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from datetime import datetime
 
-from django import forms
+import pytz
+from django.test import TestCase
+
+from gcloud.utils.dates import format_datetime
 
 
-class GetTaskListForm(forms.Form):
-    is_started = forms.BooleanField(required=False)
-    is_finished = forms.BooleanField(required=False)
-    keyword = forms.CharField(required=False)
-    executor = forms.CharField(required=False)
+class DateTestCase(TestCase):
+    def test_format_datetime(self):
+        dt = None
+        self.assertEqual(format_datetime(dt), "")
+        dt = datetime.strptime("2021-09-10T12:00:00Z", "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=pytz.utc)
+        self.assertEqual(format_datetime(dt), "2021-09-10 20:00:00 +0800")
+        timezone = "America/Chicago"
+        tz = pytz.timezone(timezone)
+        self.assertEqual(format_datetime(dt, tz), "2021-09-10 07:00:00 -0500")
