@@ -15,7 +15,7 @@
             tag_code: "all_biz_cc_id",
             type: "input",
             attrs: {
-                name: gettext("全业务ID"),
+                name: gettext("业务集ID"),
                 hookable: true,
                 validation: [
                     {
