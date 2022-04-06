@@ -13,6 +13,7 @@
     <div
         class="entry-item"
         :data-config-atom-id="type === 'tasknode' ? node.code : node.template_id"
+        :data-config-tpl-source="node.tplSource"
         :data-config-name="node.name.replace(/\s/g, '')"
         :data-config-group="node.group_name"
         :data-config-icon="node.group_icon"
@@ -51,14 +52,15 @@
 </script>
 <style lang="scss" scoped>
     .plugin-item {
-        min-height: 70px;
         display: flex;
         align-items: center;
-        cursor: move;
         padding: 0 7px 0 13px;
+        height: 70px;
         background: #fff;
         border-bottom: 1px solid #e2e4ed;
         color: #63656e;
+        overflow: hidden;
+        cursor: move;
         .plugin-logo {
             flex-shrink: 0;
             width: 32px;
@@ -70,9 +72,9 @@
             font-weight: 700;
             line-height: 19px;
             margin-bottom: 4px;
-            overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
+            overflow: hidden;
         }
         .plugin-desc {
             font-size: 12px;

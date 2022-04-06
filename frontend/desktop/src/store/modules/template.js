@@ -679,7 +679,8 @@ const template = {
                             version: location.atomVersion,
                             type: 'SubProcess',
                             always_use_latest: false,
-                            scheme_id_list: []
+                            scheme_id_list: [],
+                            template_source: location.tplSource || 'business'
                         }
                     }
                     Vue.set(state.activities, location.id, activity)

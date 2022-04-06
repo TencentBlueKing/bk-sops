@@ -21,7 +21,6 @@
                 :template_id="template_id"
                 :is-global-variable-update="isGlobalVariableUpdate"
                 :is-template-data-changed="isTemplateDataChanged"
-                :is-from-tpl-list-route="isFromTplListRoute"
                 :template-saving="templateSaving"
                 :create-task-saving="createTaskSaving"
                 :active-tab="activeSettingTab"
@@ -40,10 +39,9 @@
             <template v-if="isEditProcessPage">
                 <SubflowUpdateTips
                     v-if="subflowShouldUpdated.length > 0"
-                    :class="['update-tips', { 'update-tips-with-menu-open': nodeMenuOpen }]"
+                    class="update-tips"
                     :list="subflowShouldUpdated"
                     :locations="locations"
-                    :node-menu-open="nodeMenuOpen"
                     @viewClick="viewUpdatedNode"
                     @batchUpdate="isBatchUpdateDialogShow = true"
                     @foldClick="clearDotAnimation">
@@ -55,13 +53,9 @@
                     :name="name"
                     :type="type"
                     :common="common"
-                    :subflow-list-loading="subflowListLoading"
                     :template-labels="templateLabels"
                     :canvas-data="canvasData"
-                    :node-memu-open.sync="nodeMenuOpen"
-                    :plugin-loading="pagination.isLoading"
                     :node-variable-info="nodeVariableInfo"
-                    @updatePluginList="getThirdPluginList"
                     @hook:mounted="canvasMounted"
                     @onConditionClick="onOpenConditionEdit"
                     @templateDataChanged="templateDataChanged"
@@ -72,7 +66,6 @@
                     @onReplaceLineAndLocation="onReplaceLineAndLocation"
                     @onShowNodeConfig="onShowNodeConfig"
                     @onTogglePerspective="onTogglePerspective"
-                    @getAtomList="getAtomList"
                     @updateCondition="setBranchCondition($event)">
                 </TemplateCanvas>
             </template>
@@ -103,9 +96,6 @@
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
                     :back-to-variable-panel="backToVariablePanel"
-                    :subflow-list-loading="subflowListLoading"
-                    :plugin-loading="pagination.isLoading"
-                    @updatePluginList="getThirdPluginList"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
@@ -270,7 +260,6 @@
                 isEditProcessPage: true,
                 excludeNode: [],
                 singleAtomListLoading: false,
-                subflowListLoading: false,
                 projectInfoLoading: false,
                 templateDataLoading: false,
                 templateSaving: false,
@@ -282,19 +271,15 @@
                 isShowConditionEdit: false,
                 isNodeConfigPanelShow: false, // 右侧模板是否展开
                 isSelectorPanelShow: false, // 右侧子流程模板是否展开
-                isFromTplListRoute: false, // 是否由模板列表页跳转进入
                 isLeaveDialogShow: false,
-                nodeMenuOpen: false, // 左侧边栏节点列表菜单是否展开
                 activeSettingTab: '',
                 allowLeave: false,
                 leaveToPath: '',
                 idOfNodeInConfigPanel: '',
-                isGetAtomList: false,
                 atomList: [],
                 atomTypeList: {
                     tasknode: [],
-                    subflow: [],
-                    pluginList: []
+                    subflow: []
                 },
                 thirdPartyList: {},
                 snapshoots: [],
@@ -330,13 +315,6 @@
                     ]
                 },
                 typeOfNodeNameEmpty: '', // 新建流程未选择插件的节点类型
-                pagination: {
-                    limit: 15,
-                    offset: 0,
-                    count: 0,
-                    pageOver: false,
-                    isLoading: false
-                },
                 totalPage: 0,
                 currentPage: 0,
                 limit: 25,
@@ -448,13 +426,6 @@
                 }
             }
         },
-        beforeRouteEnter (to, from, next) {
-            next(vm => {
-                if (['commonProcessList', 'process'].includes(from.name)) {
-                    vm.isFromTplListRoute = true
-                }
-            })
-        },
         created () {
             this.initTemplateData()
             // 获取流程内置变量
@@ -518,7 +489,6 @@
                 'loadSingleAtomList',
                 'loadSubflowList',
                 'loadAtomConfig',
-                'loadPluginServiceList',
                 'loadPluginServiceMeta'
             ]),
             ...mapActions('project/', [
@@ -555,9 +525,6 @@
                 'loadTaskScheme',
                 'saveTaskSchemList'
             ]),
-            getAtomList  (val) {
-                this.isGetAtomList = val
-            },
             /**
              * 加载标准插件列表
              */
@@ -569,9 +536,6 @@
                         params.project_id = this.project_id
                     }
                     const data = await this.loadSingleAtomList(params)
-
-                    // 获取第三方插件列表
-                    this.getThirdPluginList()
                     // 内置插件
                     const atomList = []
                     data.forEach(item => {
@@ -600,18 +564,6 @@
                 } finally {
                     this.singleAtomListLoading = false
                 }
-            },
-            /**
-             * 获取第三方插件列表每页多少条
-             * 60 侧滑头高度
-             * 50 tab高度
-             * 80 第三方插件高度
-             */
-            getPaginationLimit () {
-                const bodyHeight = document.body.clientHeight
-                const thirdListHeight = bodyHeight - 60 - 50
-                const limit = Math.ceil(thirdListHeight / 80)
-                this.pagination.limit = limit + 1
             },
             async getProjectBaseInfo () {
                 this.projectInfoLoading = true
@@ -686,6 +638,11 @@
                         template_id: location.atomId,
                         scheme_id_list: [],
                         version: ''
+                    }
+                    if (this.common || location.tplSource === 'common') {
+                        params.template_source = 'common'
+                    } else {
+                        params.project_id = this.project_id
                     }
                     const res = await this.loadSubflowConfig(params)
                     const constants = tools.deepClone(res.data.pipeline_tree.constants)
@@ -821,7 +778,6 @@
                     if (this.type !== 'edit') {
                         this.saveTempSnapshoot(data.template_id)
                         this.allowLeave = true
-                        this.isFromTplListRoute = false // 克隆、新建保存后，url 会发生变更，点击返回按钮需要回到流程列表页
                         const url = { name: 'templatePanel', params: { type: 'edit' }, query: { 'template_id': data.template_id, 'common': this.common } }
                         if (this.common) {
                             url.name = 'commonTemplatePanel'
@@ -1595,39 +1551,6 @@
                     this.nodeGuide.instance.hide()
                 }
             },
-            // 获取第三方插件列表
-            async getThirdPluginList (val, type) {
-                try {
-                    this.getPaginationLimit() // 获取第三方插件列表每页多少条
-                    const { limit, offset, pageOver, isLoading } = this.pagination
-                    const isScrollLoad = type === 'scroll' // 是否为滚动加载
-                    // 加载时需要判断是否正在加载中,滚动加载需要额外判断是否加载完毕
-                    if (isLoading || (isScrollLoad && pageOver)) return
-                    this.pagination.isLoading = true
-                    const params = {
-                        search_term: val || undefined,
-                        limit,
-                        offset: isScrollLoad ? offset : 0,
-                        exclude_not_deployed: true
-                    }
-                    const resp = await this.loadPluginServiceList(params)
-                    const { next_offset, plugins, return_plugin_count } = resp.data
-                    this.pagination.pageOver = limit !== return_plugin_count
-                    this.pagination.offset = next_offset
-                    const pluginList = plugins.map(item => {
-                        return Object.assign({}, item.plugin, item.profile)
-                    })
-                    if (isScrollLoad) {
-                        this.atomTypeList.pluginList.push(...pluginList)
-                    } else {
-                        this.atomTypeList.pluginList = pluginList
-                    }
-                    this.pagination.isLoading = false
-                } catch (error) {
-                    this.pagination.isLoading = false
-                    console.warn(error)
-                }
-            },
             canvasMounted () {
                 this.handlerGuideTips()
             },
@@ -1843,14 +1766,11 @@
     .update-tips {
         position: absolute;
         top: 64px;
-        left: 495px;
+        left: 450px;
         min-height: 40px;
         overflow: hidden;
         z-index: 4;
         transition: left 0.5s ease;
-        &.update-tips-with-menu-open {
-            left: 700px;
-        }
     }
     .pipeline-canvas-wrapper {
         height: 100%;
