@@ -98,7 +98,7 @@
                     <i class="bk-icon icon-more"></i>
                     <template slot="content">
                         <p class="operate-item" @click.stop="onCloneVariable()">{{ $t('克隆') }}</p>
-                        <p class="operate-item" @click.stop="onDeleteVariable(variableData.key)">{{ $t('删除') }}</p>
+                        <p class="operate-item" @click.stop="deleteVarVisible = true">{{ $t('删除') }}</p>
                     </template>
                 </bk-popover>
             </span>
@@ -113,6 +113,14 @@
             :keyid="variableData.key"
             :params="previewParams">
         </VariablePreviewValue>
+        <bk-dialog v-model="deleteVarVisible"
+            theme="primary"
+            header-position="left"
+            :mask-close="false"
+            :title="$t('删除')"
+            @confirm="onDeleteVariable">
+            <span>{{ $t('确认删除') }} “{{variableData.name}} / {{variableData.key}}” ?</span>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -139,7 +147,8 @@
                 showCitedList: false,
                 showPreviewValue: false,
                 copyText: '',
-                previewParams: {}
+                previewParams: {},
+                deleteVarVisible: false
             }
         },
         computed: {
@@ -273,14 +282,8 @@
                     this.showPreviewValue = true
                 }
             },
-            onDeleteVariable (key) {
-                this.$bkInfo({
-                    title: i18n.t('确认删除该变量？'),
-                    confirmLoading: true,
-                    confirmFn: () => {
-                        this.$emit('onDeleteVariable', key)
-                    }
-                })
+            onDeleteVariable () {
+                this.$emit('onDeleteVariable', this.variableData.key)
             },
             onEditVariable (key, index) {
                 this.$emit('onEditVariable', key, index)
@@ -411,7 +414,7 @@ $localBorderColor: #d8e2e7;
 .col-item-drag {
     display: none;
     position: absolute;
-    margin-top: 1px;
+    margin-top: 2px;
     top: 50%;
     left: 5px;
     transform: translate(0, -50%);
