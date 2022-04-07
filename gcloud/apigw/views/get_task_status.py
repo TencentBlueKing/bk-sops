@@ -57,7 +57,7 @@ def get_task_status(request, task_id, project_id):
         task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
     except Exception as e:
         message = "task[id={task_id}] get status error: {error}".format(task_id=task_id, error=e)
-        logger.error(message)
+        logger.exception(message)
         return {
             "result": False,
             "message": message,
@@ -76,7 +76,16 @@ def get_task_status(request, task_id, project_id):
 
     # add node name
     if "name" not in result["data"]:
-        add_node_name_to_status_tree(task.pipeline_instance.execution_data, result["data"].get("children", {}))
+        try:
+            add_node_name_to_status_tree(task.pipeline_instance.execution_data, result["data"].get("children", {}))
+        except Exception as e:
+            message = "task[id={task_id}] add node name error: {error}".format(task_id=task_id, error=e)
+            logger.exception(message)
+            return {
+                "result": False,
+                "message": message,
+                "code": err_code.UNKNOWN_ERROR.code,
+            }
     result["data"]["name"] = task.name
 
     return result
