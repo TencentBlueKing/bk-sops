@@ -64,9 +64,7 @@ from gcloud.template_base.apis.django.validators import (
 logger = logging.getLogger("root")
 
 
-@swagger_auto_schema(
-    methods=["get"], auto_schema=AnnotationAutoSchema,
-)
+@swagger_auto_schema(methods=["get"], auto_schema=AnnotationAutoSchema, deprecated=True)
 @api_view(["GET"])
 @request_validate(FormValidator)
 @iam_intercept(FormInterceptor())
@@ -90,9 +88,7 @@ def form(request, project_id):
     return base_form(request, TaskTemplate, filters={"project_id": project_id})
 
 
-@swagger_auto_schema(
-    methods=["post"], auto_schema=AnnotationAutoSchema,
-)
+@swagger_auto_schema(methods=["post"], auto_schema=AnnotationAutoSchema, deprecated=True)
 @api_view(["POST"])
 @request_validate(BatchFormValidator)
 @iam_intercept(BatchFormInterceptor())
@@ -128,7 +124,8 @@ def batch_form(request, project_id):
 
 
 @swagger_auto_schema(
-    methods=["post"], auto_schema=AnnotationAutoSchema,
+    methods=["post"],
+    auto_schema=AnnotationAutoSchema,
 )
 @api_view(["POST"])
 @request_validate(ExportTemplateApiViewValidator)
@@ -155,7 +152,8 @@ def export_templates(request, project_id):
 
 
 @swagger_auto_schema(
-    methods=["post"], auto_schema=AnnotationAutoSchema,
+    methods=["post"],
+    auto_schema=AnnotationAutoSchema,
 )
 @api_view(["POST"])
 @request_validate(ImportValidator)
@@ -183,7 +181,8 @@ def import_templates(request, project_id):
 
 
 @swagger_auto_schema(
-    methods=["post"], auto_schema=AnnotationAutoSchema,
+    methods=["post"],
+    auto_schema=AnnotationAutoSchema,
 )
 @api_view(["POST"])
 @request_validate(CheckBeforeImportValidator)
@@ -327,7 +326,8 @@ def analysis_constants_ref(request):
 
 
 @swagger_auto_schema(
-    methods=["get"], auto_schema=AnnotationAutoSchema,
+    methods=["get"],
+    auto_schema=AnnotationAutoSchema,
 )
 @api_view(["GET"])
 @request_validate(TemplateParentsValidator)

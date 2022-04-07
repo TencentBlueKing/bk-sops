@@ -15,7 +15,9 @@ Query common flow templates list
 
 #### Interface Parameters
 
-None
+|   Field         |  Type       | Required | Description                                                             |
+|-----------------|-------------|----|-------------------------------------------------------------------------|
+| expected_timezone | string | NO | expected timezone of time related field in response, e.g. Asia/Shanghai |
 
 ### Request Parameters Example
 

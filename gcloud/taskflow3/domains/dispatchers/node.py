@@ -175,7 +175,10 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
     @ensure_return_is_dict
     def forced_fail_v2(self, operator: str, **kwargs) -> dict:
         return bamboo_engine_api.forced_fail_activity(
-            runtime=BambooDjangoRuntime(), node_id=self.node_id, ex_data="forced fail by {}".format(operator)
+            runtime=BambooDjangoRuntime(),
+            node_id=self.node_id,
+            ex_data="forced fail by {}".format(operator),
+            send_post_set_state_signal=kwargs.get("send_post_set_state_signal", True),
         )
 
     def retry_subprocess_v1(self, operator: str, **kwargs) -> dict:

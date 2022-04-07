@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -24,12 +24,12 @@ from pipeline.models import PipelineTemplate, TemplateRelationship, TemplateCurr
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 from gcloud import err_code
-from gcloud.constants import TEMPLATE_EXPORTER_VERSION
+from gcloud.constants import TEMPLATE_EXPORTER_VERSION, COMMON, PROJECT
 from gcloud.exceptions import FlowExportError
 from gcloud.conf import settings
 from gcloud.constants import TASK_CATEGORY
 from gcloud.core.utils import convert_readable_username
-from gcloud.template_base.utils import replace_template_id
+from gcloud.template_base.utils import replace_template_id, fetch_templates_info
 from gcloud.iam_auth.resource_creator_action.signals import batch_create
 
 
@@ -69,6 +69,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         return pipeline_template
 
     def export_templates(self, template_id_list):
+        template_source_type = PROJECT if self.model.__name__ == "TaskTemplate" else COMMON
         templates = list(self.filter(id__in=template_id_list).select_related("pipeline_template").values())
         pipeline_template_id_list = []
         template = {}
@@ -87,6 +88,17 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         subprocess_temp_list = list(
             self.filter(pipeline_template_id__in=additional_template_id).select_related("pipeline_template").values()
         )
+
+        # 项目流程下导出才会处理项目流程中引用了公共流程的情况
+        if template_source_type == PROJECT and len(subprocess_temp_list) < len(additional_template_id):
+            common_template_model = apps.get_model("template", "CommonTemplate")
+            common_subprocess_temp_list = list(
+                common_template_model.objects.filter(pipeline_template_id__in=additional_template_id)
+                .select_related("pipeline_template")
+                .values()
+            )
+            subprocess_temp_list += common_subprocess_temp_list
+
         for sub_temp in subprocess_temp_list:
             sub_temp["pipeline_template_str_id"] = sub_temp["pipeline_template_id"]
             template[sub_temp["id"]] = sub_temp
@@ -95,6 +107,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
             "template": template,
             "pipeline_template_data": pipeline_temp_data,
             "exporter_version": TEMPLATE_EXPORTER_VERSION,
+            "template_source": template_source_type,
         }
         return result
 
@@ -287,10 +300,12 @@ class BaseTemplate(models.Model):
     def subprocess_info(self):
         info = self.pipeline_template.subprocess_version_info
         pipeline_temp_ids = [item["descendant_template_id"] for item in info["details"]]
-        qs = self.__class__.objects.filter(pipeline_template_id__in=pipeline_temp_ids).values(
-            "pipeline_template_id", "id"
+        templates = fetch_templates_info(
+            pipeline_temp_ids,
+            fetch_fields=("id", "pipeline_template_id"),
+            appointed_template_type=COMMON if self.__class__.__name__ == "CommonTemplate" else None,
         )
-        pid_to_tid = {item["pipeline_template_id"]: item["id"] for item in qs}
+        pid_to_tid = {item["pipeline_template_id"]: item["id"] for item in templates}
         for subprocess_info in info["details"]:
             subprocess_info["template_id"] = pid_to_tid[subprocess_info.pop("descendant_template_id")]
 

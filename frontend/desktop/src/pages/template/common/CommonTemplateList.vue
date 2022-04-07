@@ -23,6 +23,7 @@
                     @submit="onSearchFormSubmit">
                     <template v-slot:operation>
                         <bk-button
+                            v-if="!useMode"
                             v-cursor="{ active: !hasCreateCommonTplPerm }"
                             theme="primary"
                             style="min-width: 120px;"
@@ -33,7 +34,7 @@
                             @click="checkCreatePermission">
                             {{$t('新建')}}
                         </bk-button>
-                        <bk-dropdown-menu style="margin-left: 20px;">
+                        <bk-dropdown-menu v-if="!useMode" style="margin: 0 14px;">
                             <div class="import-tpl-btn" slot="dropdown-trigger">
                                 <span>{{ $t('导入') }}</span>
                                 <i :class="['bk-icon icon-angle-down']"></i>
@@ -43,7 +44,7 @@
                                 <li data-test-id="commonProcess_list_importYamlFile" @click="isImportYamlDialogShow = true">{{ $t('导入') }}YAML{{ $t('文件') }}</li>
                             </ul>
                         </bk-dropdown-menu>
-                        <bk-dropdown-menu style="margin-left: 14px;">
+                        <bk-dropdown-menu>
                             <div class="export-tpl-btn" slot="dropdown-trigger">
                                 <span>{{ $t('批量操作') }}</span>
                                 <i :class="['bk-icon icon-angle-down']"></i>
@@ -129,21 +130,36 @@
                                             @click.prevent="handleCreateTaskClick(props.row)">
                                             {{$t('新建任务')}}
                                         </a>
-                                        <a
-                                            v-if="!hasPermission(['common_flow_view'], props.row.auth_actions)"
-                                            v-cursor
-                                            class="text-permission-disable"
-                                            @click="onTemplatePermissonCheck(['common_flow_view'], props.row)">
-                                            {{$t('克隆')}}
-                                        </a>
-                                        <a
-                                            v-else
-                                            class="template-operate-btn"
-                                            @click.prevent="getJumpUrl('clone', props.row.id)">
-                                            {{$t('克隆')}}
-                                        </a>
+                                        <template v-if="!useMode">
+                                            <a
+                                                v-if="!hasPermission(['common_flow_view'], props.row.auth_actions)"
+                                                v-cursor
+                                                class="text-permission-disable"
+                                                @click="onTemplatePermissonCheck(['common_flow_view'], props.row)">
+                                                {{$t('克隆')}}
+                                            </a>
+                                            <a
+                                                v-else
+                                                class="template-operate-btn"
+                                                @click.prevent="getJumpUrl('clone', props.row.id)">
+                                                {{$t('克隆')}}
+                                            </a>
+                                        </template>
                                         <router-link class="template-operate-btn" :to="getExecuteHistoryUrl(props.row.id)">{{ $t('执行历史') }}</router-link>
+                                        <a
+                                            v-if="useMode"
+                                            v-cursor="{ active: !hasPermission(['common_flow_view'], props.row.auth_actions) }"
+                                            href="javascript:void(0);"
+                                            :class="{
+                                                'template-operate-btn': true,
+                                                'disable': collectingId === props.row.id || collectListLoading,
+                                                'text-permission-disable': !hasPermission(['common_flow_view'], props.row.auth_actions)
+                                            }"
+                                            @click="onCollectTemplate(props.row, $event)">
+                                            {{ isCollected(props.row.id) ? $t('取消收藏') : $t('收藏') }}
+                                        </a>
                                         <bk-popover
+                                            v-if="!useMode"
                                             theme="light"
                                             placement="bottom-start"
                                             ext-cls="common-dropdown-btn-popver"
@@ -363,6 +379,9 @@
             NoData
         },
         mixins: [permission],
+        props: {
+            useMode: Boolean
+        },
         data () {
             const {
                 page = 1,
@@ -373,6 +392,7 @@
                 creator = '',
                 keyword = ''
             } = this.$route.query
+            console.log(page)
             const searchForm = SEARCH_FORM.map(item => {
                 if (this.$route.query[item.key]) {
                     if (Array.isArray(item.value)) {
@@ -911,7 +931,7 @@
                         query[key] = val
                     }
                 })
-                this.$router.replace({ name: 'commonProcessList', query })
+                this.$router.replace({ name: this.$route.name, query })
             },
             /**
              * 单个模板操作项点击时校验

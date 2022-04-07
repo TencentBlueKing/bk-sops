@@ -19,6 +19,7 @@
 |---------------|------------|--------|------------------|
 |   bk_biz_id    |   string     |   是   |  任务所属业务ID |
 | scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
+| expected_timezone | string |   否   |  任务时间相关字段期望返回的时区，形如Asia/Shanghai |
 
 ### 请求参数示例
 

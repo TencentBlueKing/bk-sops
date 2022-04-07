@@ -97,38 +97,6 @@ const routers = new VueRouter({
             })
         },
         {
-            path: '/common',
-            component: CommonTemplate,
-            children: [
-                {
-                    path: '',
-                    component: NotFoundComponent
-                },
-                {
-                    path: 'home/',
-                    name: 'commonProcessList',
-                    pathToRegexpOptions: { strict: true },
-                    component: CommonTemplateList,
-                    props: route => ({
-                        common: '1',
-                        page: route.query.page
-                    })
-                },
-                {
-                    path: ':type(new|edit|clone)/',
-                    component: TemplatePanel,
-                    name: 'commonTemplatePanel',
-                    pathToRegexpOptions: { strict: true },
-                    props: route => ({
-                        template_id: route.query.template_id,
-                        type: route.params.type,
-                        common: '1'
-                    }),
-                    meta: { project: false }
-                }
-            ]
-        },
-        {
             path: '/template',
             component: Template,
             children: [
@@ -136,13 +104,39 @@ const routers = new VueRouter({
                     path: '',
                     component: NotFoundComponent
                 },
+                // 默认流程列表
                 {
                     path: 'home/:project_id/',
-                    name: 'process',
+                    name: 'processHome',
                     pathToRegexpOptions: { strict: true },
                     component: TemplateList,
                     props: route => ({
-                        project_id: route.params.project_id
+                        project_id: route.params.project_id,
+                        type: 'processHome'
+                    }),
+                    meta: { project: true }
+                },
+                // 公共流程列表
+                {
+                    path: 'common/:project_id/',
+                    name: 'processCommon',
+                    pathToRegexpOptions: { strict: true },
+                    component: TemplateList,
+                    props: route => ({
+                        project_id: route.params.project_id,
+                        type: 'processCommon'
+                    }),
+                    meta: { project: true }
+                },
+                // 我的收藏列表
+                {
+                    path: 'collect/:project_id/',
+                    name: 'processCollect',
+                    pathToRegexpOptions: { strict: true },
+                    component: TemplateList,
+                    props: route => ({
+                        project_id: route.params.project_id,
+                        type: 'processCollect'
                     }),
                     meta: { project: true }
                 },
@@ -276,21 +270,6 @@ const routers = new VueRouter({
                 app_id: route.params.app_id
             }),
             meta: { project: true }
-        },
-        {
-            path: '/project/home/',
-            name: 'projectHome',
-            pathToRegexpOptions: { strict: true },
-            component: ProjectHome
-        },
-        {
-            path: '/project/config/:id/',
-            name: 'projectConfig',
-            pathToRegexpOptions: { strict: true },
-            component: ProjectConfig,
-            props: route => ({
-                id: route.params.id
-            })
         },
         {
             path: '/function',
@@ -455,6 +434,52 @@ const routers = new VueRouter({
                     component: AtomDev
                 }
             ]
+        },
+        {
+            path: '/common',
+            component: CommonTemplate,
+            children: [
+                {
+                    path: '',
+                    component: NotFoundComponent
+                },
+                {
+                    path: 'home/',
+                    name: 'commonProcessList',
+                    pathToRegexpOptions: { strict: true },
+                    component: CommonTemplateList,
+                    props: route => ({
+                        page: route.query.page
+                    })
+                },
+                {
+                    path: ':type(new|edit|clone)/',
+                    name: 'commonTemplatePanel',
+                    pathToRegexpOptions: { strict: true },
+                    component: TemplatePanel,
+                    props: route => ({
+                        template_id: route.query.template_id,
+                        type: route.params.type,
+                        common: '1'
+                    }),
+                    meta: { project: false }
+                }
+            ]
+        },
+        {
+            path: '/project/home/',
+            name: 'projectHome',
+            pathToRegexpOptions: { strict: true },
+            component: ProjectHome
+        },
+        {
+            path: '/project/config/:id/',
+            name: 'projectConfig',
+            pathToRegexpOptions: { strict: true },
+            component: ProjectConfig,
+            props: route => ({
+                id: route.params.id
+            })
         },
         {
             path: '/error/:code(401|403|405|406|500)/',

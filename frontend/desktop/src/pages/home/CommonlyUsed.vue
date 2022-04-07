@@ -133,7 +133,7 @@
                 this.setProjectId(id)
                 this.changeDefaultProject(id)
                 this.$router.push({
-                    name: 'process',
+                    name: 'processHome',
                     params: { project_id: id }
                 })
             },
