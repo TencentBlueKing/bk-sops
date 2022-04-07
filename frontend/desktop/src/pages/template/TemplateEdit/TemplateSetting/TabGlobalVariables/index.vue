@@ -129,7 +129,7 @@
                             </thead-popover>
                         </span>
                         <span class="col-attributes t-head">
-                            {{ $t('属性') }}
+                            {{ $t('来源') }}
                             <thead-popover
                                 :content-list="varAttrList"
                                 type="attributes"
@@ -368,7 +368,7 @@
                     const listData = this.variableList.reduce((acc, cur) => {
                         if (cur.key in this.internalVariable) {
                             const varInfo = this.internalVariable[cur.key]
-                            this.$set(cur, 'type', varInfo.source_type === 'system' ? i18n.t('系统变量') : i18n.t('业务变量'))
+                            this.$set(cur, 'type', varInfo.source_type === 'system' ? i18n.t('系统变量') : i18n.t('项目变量'))
                         } else {
                             const result = varTypeList.find(item => item.code === cur.custom_type && item.tag === cur.source_tag)
                             const checkTypeList = ['component_inputs', 'component_outputs']
@@ -389,7 +389,7 @@
                     if (!this.isHideSystemVar) {
                         const internalVar = [
                             { checked: this.checkedTypeList.includes('system'), name: i18n.t('系统变量'), code: 'system' },
-                            { checked: this.checkedTypeList.includes('project'), name: i18n.t('业务变量'), code: 'project' }
+                            { checked: this.checkedTypeList.includes('project'), name: i18n.t('项目变量'), code: 'project' }
                         ]
                         listData.unshift(...internalVar)
                     }
