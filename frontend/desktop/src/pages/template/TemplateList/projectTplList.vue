@@ -83,7 +83,7 @@
                         :data="templateList"
                         :pagination="pagination"
                         :size="setting.size"
-                        :default-sort="defaultSortConfig"
+                        :default-sort="getDefaultSortConfig"
                         v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1, zIndex: 100 }"
                         @sort-change="handleSortChange"
                         @page-change="onPageChange"
@@ -493,7 +493,6 @@
                 selectedTpls: [], // 选中的流程模板
                 templateList: [],
                 sortableCols: [],
-                defaultSortConfig: this.getDefaultSortConfig(),
                 isDeleteDialogShow: false,
                 isImportDialogShow: false,
                 isImportYamlDialogShow: false,
@@ -566,6 +565,17 @@
                     result = this.selectedTpls.every(template => this.hasPermission(['flow_delete'], template.auth_actions))
                 }
                 return result
+            },
+            // 获取默认排序配置
+            getDefaultSortConfig () {
+                const { ordering } = this
+                if (ordering) {
+                    if (/^-/.test(this.ordering)) {
+                        return { prop: ordering.replace(/^-/, ''), order: 'descending' }
+                    }
+                    return { prop: ordering, order: 'ascending' }
+                }
+                return {}
             }
         },
         watch: {
@@ -656,18 +666,6 @@
                 } finally {
                     this.listLoading = false
                 }
-            },
-            // 获取默认排序配置
-            getDefaultSortConfig () {
-                const { ordering } = this
-                if (ordering) {
-                    console.log(ordering)
-                    if (/^-/.test(this.ordering)) {
-                        return { prop: ordering.replace(/^-/, ''), order: 'descending' }
-                    }
-                    return { prop: ordering, order: 'ascending' }
-                }
-                return {}
             },
             getQueryData () {
                 const { subprocessUpdateVal, creator, category, queryTime, flowName, label_ids } = this.requestData
