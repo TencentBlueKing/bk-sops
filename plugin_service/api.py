@@ -79,7 +79,7 @@ def get_plugin_detail_list(request: Request):
         cur_limit = limit * 2
         while True:
             result = PluginServiceApiClient.get_plugin_detail_list(
-                search_term=search_term, limit=cur_limit, offset=cur_offset, order_by="name"
+                search_term=search_term, limit=cur_limit, offset=cur_offset, order_by="name", include_addresses=0
             )
             if not result["result"]:
                 return JsonResponse(result)
@@ -107,7 +107,7 @@ def get_plugin_detail_list(request: Request):
         }
     else:
         result = PluginServiceApiClient.get_plugin_detail_list(
-            search_term=search_term, limit=limit, offset=offset, order_by="name"
+            search_term=search_term, limit=limit, offset=offset, order_by="name", include_addresses=0
         )
         if not result["result"]:
             return JsonResponse(result)
@@ -127,7 +127,7 @@ def get_plugin_detail_list(request: Request):
 @validate_params(PluginDetailQuerySerializer)
 @inject_plugin_client
 def get_plugin_detail(request: Request):
-    """ 获取插件服务详情 """
+    """获取插件服务详情"""
     plugin_version = request.validated_data.get("plugin_version")
     with_app_detail = request.validated_data.get("with_app_detail")
     plugin_detail = request.plugin_client.get_detail(plugin_version)
@@ -164,7 +164,7 @@ def get_meta(request: Request):
 @api_view(["GET"])
 @validate_params(LogQuerySerializer)
 def get_logs(request: Request):
-    """ 获取插件服务执行日志 """
+    """获取插件服务执行日志"""
     trace_id = request.validated_data.get("trace_id")
     scroll_id = request.validated_data.get("scroll_id")
     plugin_code = request.validated_data.get("plugin_code")
