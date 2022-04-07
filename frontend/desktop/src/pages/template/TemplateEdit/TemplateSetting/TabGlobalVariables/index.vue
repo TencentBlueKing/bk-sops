@@ -103,7 +103,7 @@
                 </div>
                 <div class="global-variable-content" data-test-id="templateEdit_table_variableList">
                     <div class="variable-header clearfix">
-                        <bk-checkbox :value="editVarList.length === deleteVarListLen" class="variable-checkbox" @change="onSelectAll">
+                        <bk-checkbox v-if="editVarList.length" :value="editVarList.length === deleteVarListLen" class="variable-checkbox" @change="onSelectAll">
                         </bk-checkbox>
                         <span class="col-name t-head">{{ $t('名称') }}</span>
                         <span class="col-key t-head">KEY</span>
