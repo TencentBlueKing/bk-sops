@@ -61,13 +61,245 @@ msgstr ""
 "Note: If you need to move the host to the free machine pool, please use the plugin as follows:\n"
 "Transfer the host to the module to be recovered, transfer the host to the failed machine module, and transfer the host to the idle machine module"
 
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/v1_0.py
+msgid ""
+"注意：如果需要移动主机到空闲机池，请使用插件如下插件:\n"
+"转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块\n"
+"转移方式为【追加】且主机源模块为A（非空闲模块）目标模块为B（非空闲模块）时，主机最终会属于A+B，其它情况下主机均仅属于B"
+msgstr ""
+"Note: If you need to move the host to the free machine pool, please use the plugin as follows:\n"
+"Transfer the host to the module to be recovered, transfer the host to the failed machine module, and transfer the host to the idle machine module"
+"When the transfer method is [Add] and the host source module is A (non-idle module) and the target module is B (non-idle module), the host will eventually belong to A+B, and in other cases, the host only belongs to B"
+
+#: pipeline_plugins/components/collections/sites/open/bk/display/v1_0.py
+msgid "消息展示"
+msgstr "Message Display"
+
+#: pipeline_plugins/components/collections/sites/open/bk/display/v1_0.py
+msgid ""
+"v3.0版本支持多云区域主机新建任务 \n"
+"注意：节点类型PROXY仅支持非直连区域"
+msgstr ""
+"v3.0 version supports multi-cloud regional host creation tasks \n"
+"Note: Node type PROXY only supports non-directly connected areas"
+
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/v1_0.py
-msgid "全业务_快速分发文件"
+msgid "全业务快速分发文件"
 msgstr "All Business Fast Push File"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/v1_0.py
-msgid "全业务_快速执行脚本"
+msgid "全业务快速执行脚本"
 msgstr "All Business Fast Execute Script"
+
+#: pipeline_plugins/components/collections/sites/open/job/all_biz_execute_job_plan/v1_0.py
+msgid "全业务执行作业"
+msgstr "All Business Execute Job"
+
+#: pipeline_plugins/components/collections/sites/open/job/fetch_task_log/v1_0.py
+msgid "获取任务日志"
+msgstr "Fetch Task Log"
+
+#: pipeline_plugins/components/collections/sites/open/cc/batch_transfer_host_module/v1_0.py
+msgid ""
+"1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
+"2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，插件后台会自动将其扩展成多行，如 \"1,2,3,4\" 会被扩展成四行：1 2 3 4 \n"
+"3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据 \n"
+"注意：如果需要移动主机到待回收/故障机/空闲机，请使用插件如下插件:\n"
+"转移主机至待回收模块, 转移主机至故障机模块, 转移主机至空闲机模块"
+msgstr ""
+"1. Parameter filling supports manual filling and generating with template (single-row automatic extension) \n"
+"2. When using single-row automatic extension, each line supports filling in multiple data separated by custom delimiters or commas, and the plug-in background will automatically expand it to multiple lines. For example,\"1, 2, 3, 4\" will be expanded to four lines: 1, 2, 3, 4,\n"
+"3. Combined with template generation (single-row automatic extension) when one column has more than one piece of data, other columns either have the same number of data, or there is only one piece of data \n"
+"Note: If you need to move the host to the module to be recycled/the failed machine module/to the idle machine module, please use the plugin as follows:\n"
+"Transfer the host to the module to be recovered, transfer the host to the failed machine module, and transfer the host to the idle machine module"
+
+#: pipeline_plugins/variables/collections/common.py
+msgid "文本值下拉框"
+msgstr "Text Value Select"
+
+#: pipeline_plugins/variables/collections/common.py
+msgid ""
+"单选模式下 ${KEY[\"value\"]} 输出选中的 value，\n"
+"${KEY[\"text\"]} 输出选中的 text。\n"
+"多选模式下 ${KEY[\"value\"]} 输出选中的 value 以 \",\"拼接的字符串，\n"
+"${KEY[\"text\"]} 输出选中的 text 以 \",\" 拼接的字符串。\n"
+"对于未选择的 text 和 value，通过 ${KEY[\"text_not_selected\"]} 和 ${KEY[\"value_not_selected\"]} 输出对应拼接字符串。\n"
+"注意：请确保不同选项的value值不相同。"
+msgstr ""
+"Use single mode, ${KEY[\"value\"]} output the selected value, \n"
+"${KEY[\"text\"]} output the selected text. \n"
+"Use multiple mode, ${KEY[\"value\"]} output the selected value string concatenated with \",\", \n"
+"for unselected text and value, output the corresponding concatenated string by ${KEY[\"text_not_selected\"]} and ${KEY[\"value_not_selected\"]}. \n"
+"Note: please make sure that the value of different options is not the same"
+
+#: pipeline_plugins/variables/collections/common.py
+msgid "输出格式: 2000-04-19 14:45:16"
+msgstr "Output Format: 2000-04-19 14:45:16"
+
+#: pipeline_plugins/variables/collections/common.py
+msgid "输出格式: 2000-04-19"
+msgstr "Output Format: 2000-04-19"
+
+#: pipeline_plugins/variables/collections/common.py
+msgid "输出格式: 14:45"
+msgstr "Output Format: 14:45"
+
+#: pipeline_plugins/variables/collections/common.py
+msgid "请注意，并非所有插件字段都支持密码变量的使用，请结合具体插件进行使用"
+msgstr "Please note that not all plugin fields support the use of password variables, please use in conjunction with specific plugins"
+
+#: pipeline_plugins/variables/collections/common.py
+msgid "用户输入的密码加密后的值"
+msgstr "The encrypted value of the password entered by the user"
+
+#: pipeline_plugins/variables/collections/common.py
+msgid "日期时间（支持格式自定义）"
+msgstr "Datetime (support format customization)"
+
+#: pipeline_plugins/variables/collections/common.py
+msgid "默认输出格式: 2020-10-10 14:45:00, 可自行配置显示格式"
+msgstr "Default Output Format: 2020-10-10 14:45:00, you can configure a custom display format"
+
+#: pipeline_plugins/variables/collections/common.py
+msgid "用户选择的自定义格式的日期时间"
+msgstr "User-selected datetime in a custom format"
+
+#: pipeline_plugins/variables/collections/common.py
+msgid "单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串\n该变量默认不支持输入任意值，仅在子流程节点配置填参时支持输入任意值"
+msgstr "In single-selection mode, output the selected value, and in multi-selection mode, output the selected value as a string spliced with ','\n"
+"By default, this variable does not support the input of arbitrary values. It only supports input of arbitrary values when the sub-process node is configured to fill in the parameters."
+
+#: pipeline_plugins/variables/collections/common.py
+msgid "输出格式为选中人员用户名以 ',' 拼接的字符串"
+msgstr "The output format is a string concatenated with ',' in the user name of the selected person"
+
+#: pipeline_plugins/variables/collections/sites/open/cmdb/var_set_filter_selector.py
+msgid "集群选择器"
+msgstr "Set Selector"
+
+#: pipeline_plugins/variables/collections/sites/open/cmdb/var_set_filter_selector.py
+msgid "该变量返回对象类型，可通过${KEY.bk_sets}获得筛选的所有集群信息，对于所有集群都有的属性(如attr)，可以通过${KEY.attr}获得所有集群该属性的值列表，可以通过${KEY.flat__attr}获得所有集群该属性的值拼接结果字符串"
+msgstr "This variable returns the object type. You can get all the filtered cluster information through ${KEY.bk_sets}. For attributes (such as attr) that all clusters have, you can get the value list of this attribute for all clusters through ${KEY.attr}. You can use ${KEY.flat__attr} to get the value concatenation result string of all clusters of this attribute"
+
+#: pipeline_plugins/variables/collections/sites/open/cc.py
+msgid "IP选择器(已废弃)"
+msgstr "IP selector(Obsolete)"
+
+#: pipeline_plugins/variables/collections/sites/open/cc.py
+msgid "该变量已废弃，请替换为新版 IP 选择器"
+msgstr "This variable is obsolete, please replace it with the new version of the IP selector"
+
+#: pipeline_plugins/variables/collections/sites/open/cc.py
+msgid ""
+"输出字典，键为主机IP，值为主机所有的属性值字典（键为属性，值为属性值）\n"
+"例如，通过 ${hosts[\"1.1.1.1\"][\"bk_host_id\"]} 获取主机在 CMDB 中的唯一 ID\n"
+"更多可使用的主机属性请在 CMDB 主机模型页面查阅"
+msgstr ""
+"Output dictionary, the key is the host IP, and the value is a dictionary of all attribute values of the host (the key is the attribute, and the value is the attribute value)\n"
+"E.g, Get the unique ID of the host in the CMDB by ${hosts[\"1.1.1.1\"][\"bk_host_id\"]}\n"
+"More available host properties can be found on the CMDB host model page"
+
+#: pipeline_plugins/variables/collections/sites/open/cmdb/var_cmdb_set_module_ip_selector.py
+msgid "集群模块IP选择器只能拉取使用服务模板创建的模块，不适用于自定义拓扑的场景，自定义拓扑请使用IP选择器，输出为选择IP以 ',' 分隔的字符串"
+msgstr "The set module IP selector can only pull modules created using service templates, and is not applicable to custom topology scenarios. For custom topology, please use the IP selector. The output is a string separated by ',' for the selected IP."
+
+#: pipeline_plugins/variables/collections/sites/open/cc.py
+msgid ""
+"用于获取集群和模块的信息（名称或ID）\n"
+"引用${KEY}，返回类型为字符串，值的格式为set: {用英文逗号连接的集群名称}, modules: {用英文逗号连接的模块名称}\n"
+"引用${KEY.set_name}，返回类型为字符串，值为集群名称\n"
+"引用${KEY.set_id}，返回类型为数字，值为集群ID\n"
+"引用${KEY.module_name}，返回类型为列表，列表值为模块名称\n"
+"引用${KEY.flat__module_name}，返回类型为字符串，值为用英文逗号,连接的模块名称\n"
+"引用${KEY.module_id}，返回类型为列表，列表值为模块ID\n"
+"引用${KEY.flat__module_id}，返回类型为字符串，值为用英文逗号,连接的模块ID"
+msgstr ""
+"Get information(name or ID) of the set and module"
+"Quote ${KEY},the return type is a string, and the format of the value is set: {name of set connected with ','}, modules: {name of module connected with ','}\n"
+"Quote ${KEY.set_name},the return type is a string and the value is the cluster name\n"
+"Quote ${KEY.set_id}, the return type is a number and the value is the cluster ID\n"
+"Quote ${KEY.module_name},the return type is a list, and the list value is the module name\n"
+"Quote ${KEY.flat__module_name},the return type is a string, and the value is the module name connected with ','.\n"
+"Quote ${KEY.module_id},the return type is a list, and the list value is the module ID\n"
+"Quote ${KEY.flat__module_id},the return type is a string, and the value is the module ID connected with ','."
+
+#: pipeline_plugins/variables/collections/sites/open/cmdb/var_set_group_selector.py
+msgid ""
+"用于获取集群类型的动态分组的集群信息，输出字典，键为集群的属性名称，值为集群的属性值"
+"引用${KEY.{集群属性编码}}，返回类型为列表，列表值为集群属性值"
+"获取集群的名称列表: ${KEY.bk_set_name}"
+"获取集群环境类型: ${KEY.bk_set_env}"
+"引用${KEY.flat__{集群属性编码}}，返回类型为字符串，值为用英文逗号，连接的集群属性值"
+"获取集群的名称值: ${KEY.flat__bk_set_name}"
+"获取集群环境类型值: ${KEY.flat__bk_set_env}"
+"更多集群属性请查阅 CMDB 集群模型字段页面"
+msgstr ""
+"Used to obtain set information of dynamic grouping of cluster types, output dictionary, the key is the attribute name of the set, and the value is the attribute value of the set\n"
+"Quote ${KEY.{Set attribute code}}, the return type is a list, and the list value is the cluster attribute value\n"
+"Get a list of set names: ${KEY.bk_set_name}\n"
+"Get the set environment type: ${KEY.bk_set_env}\n"
+"Quote ${KEY.flat__{Set attribute code}},the return type is a string, and the value is the set attribute value concatenated with ','\n"
+"Get the name value of the set: ${KEY.flat__bk_set_name}\n"
+"Get the set environment type value: ${KEY.flat__bk_set_env}\n"
+"For more set properties see the CMDB Cluster Model Fields page"
+
+#: pipeline_plugins/variables/collections/datatable.py
+msgid ""
+"引用表格变量某一列某一行的属性，如 ${KEY.columnA[0]} -> \"test1\"\n"
+"引用表格变量某一列的全部属性，多行用换行符 `\\n` 分隔，如 ${KEY.flat__columnA} -> \"test1\ntest2\""
+msgstr ""
+"Refers to the properties of a column and a row of a table variable,e.g ${KEY.columnA[0]} -> \"test1\"\n"
+"Reference all properties of a column of a table variable,Multiple lines are separated by newlines `\\n`,e.g ${KEY.flat__columnA} -> \"test1\ntest2\" "
+
+#: pipeline_plugins/variables/collections/sites/open/cc.py
+msgid ""
+"输出格式为选中 IP 以 ',' 分隔的字符串\n"
+"筛选条件和排除条件为 AND 关系\n"
+"- 筛选：会从IP列表中筛选出符合条件的IP\n"
+"- 排除：会从IP列表中去除符合条件的IP\n"
+"变量值是否带云区域\n"
+"- 是，返回格式为{cloud_id}:{ip},{cloud_id}:{ip}\n"
+"- 否，返回格式为{ip},{ip}"
+msgstr ""
+"The output format is a string separated by ',' for the selected IP\n"
+"Filter and exclude conditions are AND relationships\n"
+"- Filter: Filter out eligible IPs from the IP list\n"
+"- Exclude: Remove eligible IPs from IP list\n"
+"Whether the variable value has cloud area\n"
+"- True,The return format is {cloud_id}:{ip},{cloud_id}:{ip}\n"
+"- False,The return format is {ip},{ip}"
+
+#: pipeline_plugins/variables/collections/sites/open/cc.py
+msgid ""
+"此变量用于按照资源筛选方案配置的新集群信息（此变量不会在 CMDB 创建新集群）\n"
+"引用${KEY}，返回的是创建集群成功的信息Allocate {set_number} sets with names: {set_names}\n"
+"引用${KEY._module}，返回的是集群下的模块信息列表，元素类型为字典，键为模块名，值为模块下的主机列\n"
+"引用${KEY.{集群属性编码}}，返回的是本次操作创建的所有集群的指定属性值的列表\n"
+"如：\n"
+"获取集群的名称列表: ${KEY.bk_set_name}\n"
+"获取集群环境类型: ${KEY.bk_set_env}\n"
+"引用${KEY.flat__{集群属性编码}}，返回的是本次操作创建的所有集群的指定属性值，用 ',' 连接\n"
+"如：\n"
+"获取集群的名称值: ${KEY.flat__bk_set_name}\n"
+"获取集群环境类型值: ${KEY.flat__bk_set_env}\n"
+"引用${KEY.flat__ip_list}，返回的是本次操作创建的所有集群下的主机（去重后），用 ',' 连接\n"
+"引用${KEY.flat__verbose_ip_list}，返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接\n"
+"引用${KEY.flat__verbose_ip_module_list}，返回的是本次操作创建的所有模块名称，格式为set_name>module_name，用 ',' 连接"
+msgstr ""
+"This variable is used for new set information configured by resource filtering scheme(this variable does not create a new set in the CMDB)\n"
+"Quote ${KEY},The returned information is that the set was created successfully, Allocate {set_number} sets with names: {set_names}\n"
+"Quote ${KEY._module},What is returned is the list of module information under the set, the element type is dictionary, the key is the module name, and the value is the host column under the module\n"
+"Quote ${KEY.{Set attribute code}},What is returned is a list of the specified attribute values of all sets created by this operation \n"
+"E.g\n"
+"Get a list of set names: ${KEY.flat__bk_set_name}\n"
+"Get the set environment type: ${KEY.flat__bk_set_env}\n"
+"Quote ${KEY.{Set attribute code}},What is returned is the specified attribute value of all sets created by this operation,connect with ','\n"
+"E.g\n"
+"Get a list of set names:  ${KEY.flat__bk_set_name}\n"
+"Get the set environment type: ${KEY.flat__bk_set_env}\n"
+"Quote ${KEY.flat__ip_list},What is returned is the hosts under all sets created by this operation (after deduplication),connect with ','\n"
+"Quote ${KEY.flat__verbose_ip_list},What is returned is the hosts under all sets created by this operation (without deduplication),connect with ','\n"
+"Quote ${KEY.flat__verbose_ip_module_list},returns the names of all modules created by this operation,format is set_name>module_name,connect with ','"
 
 #: pipeline_plugins/components/collections/sites/open/job/local_content_upload/v1_0.py
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_execute_script/v1_0.py
@@ -1852,6 +2084,16 @@ msgstr "Boolean of execution result, True or False"
 #: pipeline/engine/models/core.py:992 pipeline/engine/models/core.py:1111
 msgid "循环次数"
 msgstr "Loop Times"
+
+#: pipeline/core/flow/activity/service_activity.py:38
+#: pipeline/engine/models/core.py:992 pipeline/engine/models/core.py:1111
+msgid "当前流程循环次数"
+msgstr "Current Flow Loop Times"
+
+#: pipeline/core/flow/activity/service_activity.py:38
+#: pipeline/engine/models/core.py:992 pipeline/engine/models/core.py:1111
+msgid "在当前流程节点循环执行次数，由父流程重新进入时会重置（仅支持新版引擎）"
+msgstr "The times of loop executions of the current flow, which will be reset when the parent flow re-enters (only supports the new version of the engine)"
 
 #: pipeline/core/flow/activity/service_activity.py:38
 msgid "循环执行次数"

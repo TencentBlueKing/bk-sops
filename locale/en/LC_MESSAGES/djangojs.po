@@ -2243,6 +2243,11 @@ msgstr "Allow Empty, Each Newline Character in Row Automatic Expansion Mode, Def
 msgid "主机所属模块修改详情"
 msgstr "Host Module Modifying Detail"
 
+#: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_0.js
+#: staticfiles/components/atoms/cc/batch_transfer_host_module/v1_0.js
+msgid "更新方式"
+msgstr "Update Type"
+
 #: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_0.js:65
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:66
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:173
@@ -3877,10 +3882,68 @@ msgstr "Strategy"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:63
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:89
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:89
 #: staticfiles/components/atoms/nodeman/create_task/legacy.js:63
 #: staticfiles/components/atoms/nodeman/create_task/v2_0.js:89
+#: staticfiles/components/atoms/nodeman/create_task/v3_0.js:89
 msgid "节点类型"
 msgstr "Node type"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v2_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v3_0.js
+msgid "ticket获取方式"
+msgstr "Ticket Get Type"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v2_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v3_0.js
+msgid "获取ticket"
+msgstr "Get Ticket"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v2_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v3_0.js
+msgid "实时获取ticket"
+msgstr "Real Time Get Ticket"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v2_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v3_0.js
+msgid "不使用ticket"
+msgstr "Don't use ticket"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v2_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v3_0.js
+msgid "说明"
+msgstr "tip"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v2_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v3_0.js
+msgid "This option will save the ticket to the template. If the plugin is not executed for a long time, the ticket may expire and fail, resulting in authentication failure."
+msgstr "tip"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v2_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v3_0.js
+msgid "此选项将在任务执行前获取ticket,选择此选项需要(ticket使用方式)勾选为全局变量"
+msgstr "This option will get the ticket before the task is executed. Selecting this option requires (ticket usage) to be checked as a global variable"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v2_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v3_0.js
+msgid "TJJ认证需要获取用户的ticket,请选择ticket获取方式"
+msgstr "TJJ authentication needs to obtain the user's ticket, please select the ticket acquisition method"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:66
 #: staticfiles/components/atoms/nodeman/create_task/legacy.js:66
@@ -4296,8 +4359,6 @@ msgstr "Filter Attributes"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_filter_selector.js:26
 #: staticfiles/variables/cmdb/var_set_filter_selector.js:26
-#, fuzzy
-#| msgid "请选择需要更新的集群属性"
 msgid "请选择要进行过滤的集群属性"
 msgstr "Please select a set attribute to update"
 
@@ -4308,8 +4369,6 @@ msgstr "Attribute Value Range"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_filter_selector.js:55
 #: staticfiles/variables/cmdb/var_set_filter_selector.js:55
-#, fuzzy
-#| msgid "请输入集群名称，多个以,分隔"
 msgid "请输入要过滤的属性值，多个以`,`分隔开"
 msgstr "Input Set Name, separated by `,`"
 
