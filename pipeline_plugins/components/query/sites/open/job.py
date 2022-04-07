@@ -54,7 +54,7 @@ def _job_get_scripts_data(request, biz_cc_id=None):
     source_type = request.GET.get("type")
     script_type = request.GET.get("script_type")
 
-    if source_type == "public":
+    if biz_cc_id is None or source_type == "public":
         kwargs = None
         script_result = client.job.get_public_script_list()
         api_name = "job.get_public_script_list"
@@ -88,6 +88,16 @@ def job_get_script_name_list(request, biz_cc_id):
     return JsonResponse({"result": True, "data": script_names})
 
 
+def job_get_public_script_name_list(request):
+    script_result = _job_get_scripts_data(request)
+    if not script_result["result"]:
+        return JsonResponse(script_result)
+    script_names = []
+    for script in script_result["data"]["data"]:
+        script_names.append({"text": script["name"], "value": script["name"]})
+    return JsonResponse({"result": True, "data": script_names})
+
+
 def job_get_script_list(request, biz_cc_id):
     """
     查询业务脚本列表
@@ -113,17 +123,10 @@ def job_get_script_list(request, biz_cc_id):
 def job_get_job_tasks_by_biz(request, biz_cc_id):
     client = get_client_by_user(request.user.username)
     job_result = client.job.get_job_list(
-        {
-            "bk_scope_type": JobBizScopeType.BIZ.value,
-            "bk_scope_id": str(biz_cc_id),
-            "bk_biz_id": biz_cc_id,
-        }
+        {"bk_scope_type": JobBizScopeType.BIZ.value, "bk_scope_id": str(biz_cc_id), "bk_biz_id": biz_cc_id}
     )
     if not job_result["result"]:
-        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (
-            biz_cc_id,
-            job_result["message"],
-        )
+        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (biz_cc_id, job_result["message"])
 
         if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
             logger.warning(message)
@@ -150,10 +153,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
     )
     if not job_result["result"]:
 
-        message = _("查询作业平台(JOB)的作业模板详情[app_id=%s]接口job.get_task_detail返回失败: %s") % (
-            biz_cc_id,
-            job_result["message"],
-        )
+        message = _("查询作业平台(JOB)的作业模板详情[app_id=%s]接口job.get_task_detail返回失败: %s") % (biz_cc_id, job_result["message"],)
 
         if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
             logger.warning(message)
@@ -266,11 +266,7 @@ def jobv3_get_job_template_list(request, biz_cc_id):
     bk_scope_type = request.GET.get("bk_scope_type", JobBizScopeType.BIZ.value)
     template_list = batch_request(
         func=client.jobv3.get_job_template_list,
-        params={
-            "bk_scope_type": bk_scope_type,
-            "bk_scope_id": str(biz_cc_id),
-            "bk_biz_id": biz_cc_id,
-        },
+        params={"bk_scope_type": bk_scope_type, "bk_scope_id": str(biz_cc_id), "bk_biz_id": biz_cc_id},
         get_data=lambda x: x["data"]["data"],
         get_count=lambda x: x["data"]["total"],
         page_param={"cur_page_param": "start", "page_size_param": "length"},
@@ -413,11 +409,9 @@ def jobv3_get_instance_list(request, biz_cc_id, type, status):
 job_urlpatterns = [
     url(r"^job_get_script_list/(?P<biz_cc_id>\d+)/$", job_get_script_list),
     url(r"^job_get_script_name_list/(?P<biz_cc_id>\d+)/$", job_get_script_name_list),
+    url(r"^job_get_public_script_name_list/$", job_get_public_script_name_list),
     url(r"^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$", job_get_job_tasks_by_biz),
-    url(
-        r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$",
-        job_get_job_task_detail,
-    ),
+    url(r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_job_task_detail,),
     url(r"^job_get_instance_detail/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_instance_detail),
     # jobv3接口
     url(r"^jobv3_get_job_template_list/(?P<biz_cc_id>\d+)/$", jobv3_get_job_template_list),
