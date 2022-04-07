@@ -76,6 +76,10 @@ msgid "消息展示"
 msgstr "Message Display"
 
 #: pipeline_plugins/components/collections/sites/open/bk/display/v1_0.py
+msgid "本插件为仅用于消息展示的空节点"
+msgstr "This plugin is an empty node only for message display"
+
+#: pipeline_plugins/components/collections/sites/open/bk/display/v1_0.py
 msgid ""
 "v3.0版本支持多云区域主机新建任务 \n"
 "注意：节点类型PROXY仅支持非直连区域"
@@ -96,8 +100,16 @@ msgid "全业务执行作业"
 msgstr "All Business Execute Job"
 
 #: pipeline_plugins/components/collections/sites/open/job/fetch_task_log/v1_0.py
+msgid "任务日志"
+msgstr "Task Log"
+
+#: pipeline_plugins/components/collections/sites/open/job/fetch_task_log/v1_0.py
 msgid "获取任务日志"
 msgstr "Fetch Task Log"
+
+#: pipeline_plugins/components/collections/sites/open/job/fetch_task_log/v1_0.py
+msgid "出于性能考虑，该插件仅支持获取对应任务中某一IP的任务日志。"
+msgstr "For performance reasons, this plugin only supports obtaining the task log of a certain IP in the corresponding task."
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_transfer_host_module/v1_0.py
 msgid ""
@@ -322,6 +334,16 @@ msgstr ""
 "The plugin version legacy will execute the script according to the script id, and the original script will still be executed when the version of the script on the JOB platform changes. \n"
 "The plugin version v1.0 will execute the script according to the script name, and automatically synchronize the current online version of the JOB platform for execution. \n"
 "Note: In the plug-in version v1.0, it is necessary to add a whitelist to the operating platform when executing scripts across businesses"
+
+#: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/v1_1.py
+msgid ""
+"插件版本legacy会依据脚本id来执行脚本，JOB平台脚本上线版本变动仍执行原来脚本。\n"
+"插件版本v1.1会依据脚本名称来执行脚本，自动同步JOB平台当前上线版本进行执行。\n"
+"注：插件版本v1.1中跨业务执行脚本时需要在作业平台添加白名单"
+msgstr ""
+"The plugin version legacy will execute the script according to the script id, and the original script will still be executed when the version of the script on the JOB platform changes. \n"
+"The plugin version v1.1 will execute the script according to the script name, and automatically synchronize the current online version of the JOB platform for execution. \n"
+"Note: In the plug-in version v1.1, it is necessary to add a whitelist to the operating platform when executing scripts across businesses"
 
 #: pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/v1_0.py
 msgid "跨业务分发文件时需要在作业平台添加白名单"
@@ -3835,6 +3857,18 @@ msgstr "Validate IP existence or not, if yes, raise error if there is IP not exi
 msgid "JOB全局变量"
 msgstr "JOB global vars"
 
+#: pipeline_plugins/components/collections/sites/open/job/execute_task/legacy.py:90
+#: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/legacy.py:135
+#: pipeline_plugins/components/collections/sites/open/job/local_content_upload/v1_0.py:68
+msgid "JOB执行IP分组"
+msgstr "JOB Tagged IP"
+
+#: pipeline_plugins/components/collections/sites/open/job/execute_task/legacy.py:90
+#: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/legacy.py:135
+#: pipeline_plugins/components/collections/sites/open/job/local_content_upload/v1_0.py:68
+msgid "根据JOB步骤执行标签获取的IP分组"
+msgstr "Execute the IP packet obtained by the label according to the JOB step"
+
 #: pipeline_plugins/components/collections/sites/open/job/execute_task/legacy.py:94
 #: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/legacy.py:139
 #: pipeline_plugins/components/collections/sites/open/job/local_content_upload/v1_0.py:72
@@ -3861,6 +3895,24 @@ msgstr "IP Validate Failed, Please Check the Input IP"
 #: pipeline_plugins/components/collections/sites/open/job/execute_task/legacy.py:171
 msgid "执行作业"
 msgstr "Execution JOB"
+
+#: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_0.py
+msgid ""
+"在接收到用户编辑的全局变量后，v1.0版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n"
+"如果不需要双引号包裹，可以使用legacy版本插件，也可以手动在表格中去掉。"
+msgstr ""
+"After receiving the global variable edited by the user, the v1.0 version will wrap the default variable value in English double quotation marks by default, and then pass the obtained string as a whole when calling the API. \n"
+"If you don't need double quotation marks, you can use the legacy version plugin, or you can manually remove it from the table."
+
+#: pipeline_plugins/components/collections/sites/open/job/execute_task/v1_1.py
+msgid ""
+"1.当用户选择JOB成功历史后，插件将不再创建新的JOB实例，直接继承JOB成功状态. \n"
+"2.在接收到用户编辑的全局变量后，v1.0及以上版本会默认用英文双引号将默认变量值包裹起来，再将得到的字符串作为一个整体在调用API时进行传参。\n"
+"如果不需要双引号包裹，可以使用legacy版本插件，也可以手动在表格中去掉。"
+msgstr ""
+"1. When the user selects the JOB success history, the plugin will no longer create a new JOB instance and directly inherit the JOB success status. \n"
+"2. After receiving the global variable edited by the user, v1.0 and above will wrap the default variable value in English double quotation marks by default, and then pass the obtained string as a whole when calling the API.\n"
+"If you don't need double quotation marks, you can use the legacy version plugin, or you can manually remove it from the table."
 
 #: pipeline_plugins/components/collections/sites/open/job/fast_execute_script/legacy.py:74
 msgid "脚本来源"
@@ -4036,6 +4088,11 @@ msgstr "Upload Local Text Box Content"
 #: pipeline_plugins/components/collections/sites/open/job/push_local_files/v1_0_0.py:100
 msgid "分发本地文件"
 msgstr "Push Local File"
+
+#: pipeline_plugins/components/collections/sites/open/job/push_local_files/v1_0_0.py
+#: pipeline_plugins/components/collections/sites/open/job/push_local_files/v2_0.py
+msgid "本地上传的文件不保证长期保存并可用于多次分发，推荐勾选上传变量并在创建任务时进行上传操作。如果希望多次分发相同文件，请使用快速分发文件插件。"
+msgstr "The files uploaded locally are not guaranteed to be stored for a long time and can be used for multiple distributions. It is recommended to select the upload variable and perform the upload operation when creating a task. If you want to distribute the same file multiple times, use the Quick Distribute Files plugin."
 
 #: pipeline_plugins/components/collections/sites/open/monitor/__init__.py:16
 #: pipeline_plugins/components/collections/sites/open/monitor/alarm_shield/v1_0.py:37

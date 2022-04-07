@@ -1689,6 +1689,11 @@ msgstr "Seconds(s) or Datetime(%Y-%m-%d %H:%M:%S)"
 msgid "定时时间"
 msgstr "Timing"
 
+#: pipeline_plugins/components/static/components/atoms/bk/display.js
+#: staticfiles/components/atoms/bk/display.js
+msgid "展示内容"
+msgstr "Display Content"
+
 #: frontend/mobile/src/views/task/timing.vue:75
 msgid "修改定时时间成功"
 msgstr "Reset timing successfully"
@@ -2830,6 +2835,11 @@ msgstr "Process Instance ID"
 msgid "全业务ID"
 msgstr "All Business ID"
 
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan.js
+#: staticfiles/components/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan.js
+msgid "拉取作业"
+msgstr "Fetch Job"
+
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:31
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:77
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:77
@@ -3211,6 +3221,22 @@ msgstr "Allow Cross Business"
 msgid "目标IP"
 msgstr "Target IP"
 
+#: pipeline_plugins/components/static/components/atoms/job/fetch_task_log/v1_0.js
+#: staticfiles/components/atoms/job/fetch_task_log/v1_0.js
+msgid "任务ID"
+msgstr "Task ID"
+
+#: pipeline_plugins/components/static/components/atoms/job/fetch_task_log/v1_0.js
+#: staticfiles/components/atoms/job/fetch_task_log/v1_0.js
+msgid "非必填，只支持单个目标IP"
+msgstr "Not required, only a single target IP is supported"
+
+#: pipeline_plugins/components/static/components/atoms/job/fetch_task_log/v1_0.js
+#: staticfiles/components/atoms/job/fetch_task_log/v1_0.js
+msgid "只支持单个任务ID"
+msgstr "Only supports a single task ID"
+
+
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:409
 #: staticfiles/components/atoms/job/fast_execute_script/v1_0.js:409
 #, fuzzy
@@ -3374,8 +3400,6 @@ msgstr "Can not upload file at common flow edit state, please upload at param fi
 
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v1_0_0.js:42
 #: staticfiles/components/atoms/job/job_push_local_files/v1_0_0.js:42
-#, fuzzy
-#| msgid "文件名不能包含中文和特殊字符且大小不能超过2G"
 msgid "文件名不能包含特殊字符且大小不能超过2G"
 msgstr "File name can not contain chinese and size can not over 2G"
 
@@ -3928,8 +3952,8 @@ msgstr "tip"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js
 #: staticfiles/components/atoms/nodeman/create_task/v2_0.js
 #: staticfiles/components/atoms/nodeman/create_task/v3_0.js
-msgid "This option will save the ticket to the template. If the plugin is not executed for a long time, the ticket may expire and fail, resulting in authentication failure."
-msgstr "tip"
+msgid "此选项将保存ticket到模板,插件长时间未执行可能发生ticket过期失效导致认证失败"
+msgstr "This option will save the ticket to the template. If the plugin is not executed for a long time, the ticket may expire and fail, resulting in authentication failure."
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js
