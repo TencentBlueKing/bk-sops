@@ -20,7 +20,7 @@
                 <project-tpl-list v-if="activeTab === 'processHome'" :project_id="project_id"></project-tpl-list>
             </bk-tab-panel>
             <bk-tab-panel v-bind="{ name: 'processCommon', label: $t('公共流程') }">
-                <common-tpl-list v-if="activeTab === 'processCommon'" :use-model="true"></common-tpl-list>
+                <common-tpl-list v-if="activeTab === 'processCommon'" :use-mode="true"></common-tpl-list>
             </bk-tab-panel>
             <bk-tab-panel v-bind="{ name: 'processCollect', label: $t('我的收藏') }">
                 <project-tpl-list v-if="activeTab === 'processCollect'" :project_id="project_id" :is-my-collect="activeTab === 'collect'"></project-tpl-list>
@@ -30,7 +30,7 @@
 </template>
 <script>
     import ProjectTplList from './projectTplList.vue'
-    import CommonTplList from '../common/CommonTemplateList.vue'
+    import CommonTplList from './CommonTplList.vue'
 
     export default {
         name: 'TplListPage',
