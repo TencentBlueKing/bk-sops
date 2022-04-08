@@ -120,7 +120,13 @@ def get_service_template_list_by_names(service_template_names, service_template_
 
 
 def get_module_id_list_by_name(bk_biz_id, username, set_list, service_template_list):
-    module_id = [1, 2, 3, 4, 5]
+    module_id = [
+        {"default": 0, "bk_module_id": 1},
+        {"default": 0, "bk_module_id": 2},
+        {"default": 0, "bk_module_id": 3},
+        {"default": 0, "bk_module_id": 4},
+        {"default": 0, "bk_module_id": 5},
+    ]
     return module_id
 
 
