@@ -194,7 +194,7 @@
                                             :z-index="2000"
                                             :distance="0"
                                             :arrow="false"
-                                            :tippy-options="{ boundary: 'window', duration: [0, 0] }"
+                                            :tippy-options="{ boundary: 'window', duration: [0, 0], hideOnClick: false }"
                                             :on-show="onShowMoreOperation">
                                             <i class="bk-icon icon-more drop-icon-ellipsis"></i>
                                             <ul slot="content">
