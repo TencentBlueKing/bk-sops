@@ -177,7 +177,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.17.0"
+STATIC_VERSION = "3.17.1"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -658,6 +658,7 @@ def monitor_report_config():
             access_token=env.BK_MONITOR_REPORT_ACCESS_TOKEN,  # 自定义上报 Token
             target=env.BK_MONITOR_REPORT_TARGET,  # 上报唯一标志符
             url=env.BK_MONITOR_REPORT_URL,  # 上报地址
+            report_interval=env.BK_MONITOR_REPORT_INTERVAL,  # 上报周期，秒
         )
         reporter.start()
 
