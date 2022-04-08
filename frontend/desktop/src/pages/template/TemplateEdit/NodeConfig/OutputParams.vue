@@ -208,7 +208,7 @@
                             setKey = `\$\{${key}\}`
                         }
                         const config = {
-                            name: this.formData.name,
+                            name: props.row.name,
                             key: setKey,
                             source_info: {
                                 [this.nodeId]: [this.params[index].key]
