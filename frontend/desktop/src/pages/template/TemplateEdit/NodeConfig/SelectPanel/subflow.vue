@@ -188,7 +188,7 @@
                         if (searchStr !== '') {
                             const reg = new RegExp(searchStr, 'i')
                             if (reg.test(tpl.name)) {
-                                tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff5757;">${searchStr}</span>`)
+                                tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff9c01;">${searchStr}</span>`)
                             }
                         }
                         result.push(tplCopy)

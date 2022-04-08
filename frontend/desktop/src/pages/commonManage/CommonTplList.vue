@@ -23,7 +23,6 @@
                     @submit="onSearchFormSubmit">
                     <template v-slot:operation>
                         <bk-button
-                            v-if="!useMode"
                             v-cursor="{ active: !hasCreateCommonTplPerm }"
                             theme="primary"
                             style="min-width: 120px;"
@@ -34,7 +33,7 @@
                             @click="checkCreatePermission">
                             {{$t('新建')}}
                         </bk-button>
-                        <bk-dropdown-menu v-if="!useMode" style="margin: 0 14px;">
+                        <bk-dropdown-menu style="margin: 0 14px;">
                             <div class="import-tpl-btn" slot="dropdown-trigger">
                                 <span>{{ $t('导入') }}</span>
                                 <i :class="['bk-icon icon-angle-down']"></i>
@@ -130,36 +129,21 @@
                                             @click.prevent="handleCreateTaskClick(props.row)">
                                             {{$t('新建任务')}}
                                         </a>
-                                        <template v-if="!useMode">
-                                            <a
-                                                v-if="!hasPermission(['common_flow_view'], props.row.auth_actions)"
-                                                v-cursor
-                                                class="text-permission-disable"
-                                                @click="onTemplatePermissonCheck(['common_flow_view'], props.row)">
-                                                {{$t('克隆')}}
-                                            </a>
-                                            <a
-                                                v-else
-                                                class="template-operate-btn"
-                                                @click.prevent="getJumpUrl('clone', props.row.id)">
-                                                {{$t('克隆')}}
-                                            </a>
-                                        </template>
-                                        <router-link class="template-operate-btn" :to="getExecuteHistoryUrl(props.row.id)">{{ $t('执行历史') }}</router-link>
                                         <a
-                                            v-if="useMode"
-                                            v-cursor="{ active: !hasPermission(['common_flow_view'], props.row.auth_actions) }"
-                                            href="javascript:void(0);"
-                                            :class="{
-                                                'template-operate-btn': true,
-                                                'disable': collectingId === props.row.id || collectListLoading,
-                                                'text-permission-disable': !hasPermission(['common_flow_view'], props.row.auth_actions)
-                                            }"
-                                            @click="onCollectTemplate(props.row, $event)">
-                                            {{ isCollected(props.row.id) ? $t('取消收藏') : $t('收藏') }}
+                                            v-if="!hasPermission(['common_flow_view'], props.row.auth_actions)"
+                                            v-cursor
+                                            class="text-permission-disable"
+                                            @click="onTemplatePermissonCheck(['common_flow_view'], props.row)">
+                                            {{$t('克隆')}}
                                         </a>
+                                        <a
+                                            v-else
+                                            class="template-operate-btn"
+                                            @click.prevent="getJumpUrl('clone', props.row.id)">
+                                            {{$t('克隆')}}
+                                        </a>
+                                        <router-link class="template-operate-btn" :to="getExecuteHistoryUrl(props.row.id)">{{ $t('执行历史') }}</router-link>
                                         <bk-popover
-                                            v-if="!useMode"
                                             theme="light"
                                             placement="bottom-start"
                                             ext-cls="common-dropdown-btn-popver"
@@ -274,9 +258,9 @@
     import { mapState, mapMutations, mapActions } from 'vuex'
     import toolsUtils from '@/utils/tools.js'
     import Skeleton from '@/components/skeleton/index.vue'
-    import ImportDatTplDialog from '../TemplateList/ImportDatTplDialog.vue'
-    import ImportYamlTplDialog from '../TemplateList/ImportYamlTplDialog.vue'
-    import ExportTemplateDialog from '../TemplateList/ExportTemplateDialog.vue'
+    import ImportDatTplDialog from '@/pages/template/TemplateList/ImportDatTplDialog.vue'
+    import ImportYamlTplDialog from '@/pages/template/TemplateList/ImportYamlTplDialog.vue'
+    import ExportTemplateDialog from '@/pages/template/TemplateList/ExportTemplateDialog.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
@@ -379,9 +363,6 @@
             NoData
         },
         mixins: [permission],
-        props: {
-            useMode: Boolean
-        },
         data () {
             const {
                 page = 1,

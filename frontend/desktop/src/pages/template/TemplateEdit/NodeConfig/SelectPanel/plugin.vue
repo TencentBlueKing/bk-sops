@@ -226,6 +226,7 @@
                 if (this.curTab === 'builtIn') {
                     this.setBuiltInPluginSearchResult(val)
                 } else {
+                    this.thirdPartyPlugin = []
                     this.thirdPluginOffset = 0
                     this.getThirdPartyPlugin()
                 }
@@ -244,7 +245,7 @@
                         const list = []
 
                         if (reg.test(group_name)) { // 分组名称匹配
-                            const hglGroupName = group_name.replace(reg, `<span style="color: #ff5757;">${val}</span>`)
+                            const hglGroupName = group_name.replace(reg, `<span style="color: #ff9c01;">${val}</span>`)
                             result.push({
                                 ...group,
                                 group_name: hglGroupName
@@ -253,7 +254,7 @@
                             group.list.forEach(item => {
                                 if (reg.test(item.name)) {
                                     const node = { ...item }
-                                    node.highlightName = item.name.replace(reg, `<span style="color: #ff5757;">${val}</span>`)
+                                    node.highlightName = item.name.replace(reg, `<span style="color: #ff9c01;">${val}</span>`)
                                     list.push(node)
                                 }
                             })

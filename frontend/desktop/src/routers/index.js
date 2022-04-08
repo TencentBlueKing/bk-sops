@@ -21,9 +21,9 @@ const Home = () => import('@/pages/home/index.vue')
 const Template = () => import('@/pages/template/index.vue')
 const TemplateList = () => import('@/pages/template/TemplateList/index.vue')
 
-const CommonTemplate = () => import('@/pages/template/common/index.vue')
+const CommonTemplate = () => import('@/pages/commonManage/index.vue')
+const CommonTemplateList = () => import('@/pages/commonManage/CommonTplList.vue')
 const TemplatePanel = () => import('@/pages/template/TemplateEdit/index.vue')
-const CommonTemplateList = () => import('@/pages/template/common/CommonTemplateList.vue')
 
 const Task = () => import('@/pages/task/index.vue')
 const TaskManage = () => import('@/pages/task/TaskManage.vue')
