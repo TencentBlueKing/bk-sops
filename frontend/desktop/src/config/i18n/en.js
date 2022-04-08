@@ -1299,7 +1299,7 @@ const en = {
     '删除失败！': 'Failed to delete!',
     '删除成功！': 'Successfully deleted!',
     '系统变量': 'SYS-VARS',
-    '业务变量': 'BUSINESS-VARS',
+    '项目变量': 'BUSINESS-VARS',
     '被个子流程引用': 'quoted by one subprocess | quoted by one Subpro. | quoted by {n} Subpros.',
     '每次创建任务会使用选中执行方案的最新版本且不会提示该节点需要更新': 'Each time a task is created, the latest version of the selected execution solution is used and the node is not prompted for updates',
     '如果选中执行方案更新增加了新的变量，请打开对应的子流程节点进行填写；在不打开子流程节点进行填写的情况下，会使用变量默认值': 'If a new variable is added to the selected execution scheme update, please open the corresponding sub-process node to fill in; if you do not open the sub-process node to fill in, the default value of the variable will be used',
