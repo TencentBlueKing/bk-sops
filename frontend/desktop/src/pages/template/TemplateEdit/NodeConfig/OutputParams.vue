@@ -31,6 +31,11 @@
                                 actived: props.row.hooked,
                                 disabled: !hook
                             }]"
+                            v-bk-tooltips="{
+                                content: props.row.hooked ? $t('取消勾选') : $t('勾选参数作为全局变量'),
+                                placement: 'bottom',
+                                zIndex: 3000
+                            }"
                             @click="onHookChange(props)">
                         </i>
                     </span>
