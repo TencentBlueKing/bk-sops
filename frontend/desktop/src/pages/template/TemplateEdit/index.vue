@@ -399,7 +399,16 @@
             },
             subflowShouldUpdated () {
                 if (this.subprocess_info) {
-                    return this.subprocess_info.details
+                    return this.subprocess_info.details.reduce((acc, cur) => {
+                        const nodeId = cur.subprocess_node_id
+                        const schemeIdList = this.activities[nodeId].scheme_id_list || []
+                        acc.push({
+                            ...cur,
+                            scheme_id_list: schemeIdList,
+                            template_source: this.isCommon ? 'common' : 'project'
+                        })
+                        return acc
+                    }, [])
                 }
                 return []
             },

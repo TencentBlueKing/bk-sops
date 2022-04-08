@@ -201,7 +201,9 @@
                             tpls.push({
                                 id: item.template_id,
                                 nodeId: item.subprocess_node_id,
-                                version: item.version
+                                version: item.version,
+                                scheme_id_list: item.scheme_id_list,
+                                template_source: item.template_source
                             })
                         }
                     })
