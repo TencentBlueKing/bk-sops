@@ -509,7 +509,6 @@ msgstr "Or"
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:144
 #: staticfiles/bk_sops/js/4.1a0aabf941.js:1
 #: staticfiles/bk_sops/js/4.f9b677c368.js:1
-#, fuzzy
 #| msgid "主机"
 msgid "主机名"
 msgstr "Host"
@@ -1872,6 +1871,34 @@ msgstr "Business"
 #: staticfiles/components/atoms/bk/notify/v1_0.js:49
 msgid "通知方式"
 msgstr "Notification Method"
+
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:49
+#: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:49
+#: staticfiles/components/atoms/bk/notify/legacy.js:49
+#: staticfiles/components/atoms/bk/notify/v1_0.js:49
+msgid "固定分组"
+msgstr "Fixed Group"
+
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:49
+#: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:49
+#: staticfiles/components/atoms/bk/notify/legacy.js:49
+#: staticfiles/components/atoms/bk/notify/v1_0.js:49
+msgid "通知执行人"
+msgstr "Notification Executor"
+
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:49
+#: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:49
+#: staticfiles/components/atoms/bk/notify/legacy.js:49
+#: staticfiles/components/atoms/bk/notify/v1_0.js:49
+msgid "项目人员分组"
+msgstr "Project Staff Group"
+
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:49
+#: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:49
+#: staticfiles/components/atoms/bk/notify/legacy.js:49
+#: staticfiles/components/atoms/bk/notify/v1_0.js:49
+msgid "请选择项目人员分组"
+msgstr "please select project staff group"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:52
 #: staticfiles/components/atoms/bk/notify/legacy.js:52
@@ -3337,6 +3364,15 @@ msgstr "Global Variable"
 msgid "没选中作业模板或当前作业模板全局变量为空"
 msgstr "No job selected or global variable are empty"
 
+msgid "IP Tag 分组"
+msgstr "IP Tag Group"
+
+msgid "JOB成功历史"
+msgstr "JOB Success History"
+
+msgid "停止"
+msgstr "Stop"
+
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:178
 #: staticfiles/components/atoms/job/job_execute_task.js:178
 msgid "刷新全局变量"
@@ -3349,7 +3385,6 @@ msgstr "Refresh"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:278
 #: staticfiles/components/atoms/job/job_execute_task.js:278
-#, fuzzy
 #| msgid "是否允许跨业务"
 msgid "IP 允许跨业务"
 msgstr "Allow Cross Business"
@@ -4400,6 +4435,11 @@ msgstr "Input Set Name, separated by `,`"
 #: staticfiles/variables/cmdb/var_set_group_selector.js:20
 msgid "请选择集群分组"
 msgstr "Select set please"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_group_selector.js:20
+#: staticfiles/variables/cmdb/var_set_group_selector.js:20
+msgid "集群分组"
+msgstr "Set Group"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:17
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:19

@@ -678,6 +678,12 @@ msgstr "Common Flow"
 msgid "周期任务"
 msgstr "Periodic Task"
 
+#: gcloud/contrib/collection/models.py:27 gcloud/iam_auth/conf.py:33
+#: gcloud/periodictask/models.py:230 gcloud/taskflow3/constants.py:23
+#: pipeline/contrib/periodic_task/models.py:382
+msgid "计划任务"
+msgstr "Clocked Task"
+
 #: gcloud/contrib/collection/models.py:28 gcloud/iam_auth/conf.py:32
 #: gcloud/taskflow3/constants.py:22
 msgid "轻应用"
@@ -1558,6 +1564,10 @@ msgstr "Date Started"
 #: gcloud/taskflow3/context.py:86
 msgid "执行环境语言CODE"
 msgstr "Language Code"
+
+#: gcloud/taskflow3/context.py:86
+msgid "任务URL"
+msgstr "Task URL"
 
 #: gcloud/taskflow3/context.py:88
 msgid "中文对应 zh-hans，英文对应 en"
