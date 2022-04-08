@@ -1308,7 +1308,9 @@ const en = {
     '变量配置': 'variable config',
     '变量复用': 'varibale reuse',
     '手动创建': 'manual create',
-    '自动创建': 'auto create'
+    '自动创建': 'auto create',
+    '请输入用户': 'Please enter user',
+    '批量更新子流程': 'Batch update subprocess'
 }
 
 export default en
