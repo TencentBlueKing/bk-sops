@@ -401,11 +401,11 @@
                 if (this.subprocess_info) {
                     return this.subprocess_info.details.reduce((acc, cur) => {
                         const nodeId = cur.subprocess_node_id
-                        const schemeIdList = this.activities[nodeId].scheme_id_list || []
+                        const { scheme_id_list = [], template_source } = this.activities[nodeId]
                         acc.push({
                             ...cur,
-                            scheme_id_list: schemeIdList,
-                            template_source: this.isCommon ? 'common' : 'project'
+                            scheme_id_list,
+                            template_source: template_source === 'common' ? 'common' : 'project'
                         })
                         return acc
                     }, [])
