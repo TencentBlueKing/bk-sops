@@ -156,14 +156,14 @@
             tag_code: "nodeman_ticket",
             type: "combine",
             attrs: {
-                name: "ticket信息",
+                name: gettext("ticket信息"),
                 hookable: true,
                 hidden: NODEMAN_TJJ_IS_HIDDEN,
                 children: [{
                     tag_code: "nodeman_ticket_save",
                     type: "radio",
                     attrs: {
-                        name: "ticket获取方式",
+                        name: gettext("ticket获取方式"),
                         hookable: true,
                         hidden: false,
                         value: 2,
@@ -171,15 +171,15 @@
                         default: 2,
                         items: [
                             {
-                                name: "获取ticket",
+                                name: gettext("获取ticket"),
                                 value: 0
                             },
                             {
-                                name: "实时获取ticket",
+                                name: gettext("实时获取ticket"),
                                 value: 1
                             },
                             {
-                                name: "不使用ticket",
+                                name: gettext("不使用ticket"),
                                 value: 2
                             }
                         ],
@@ -193,7 +193,7 @@
                             hookable: true,
                             hidden: false,
                             raw: false,
-                            value: "TJJ认证需要获取用户的ticket,请选择ticket获取方式"
+                            value: gettext("TJJ认证需要获取用户的ticket,请选择ticket获取方式")
                         },
                         events: [
                             {
@@ -201,13 +201,13 @@
                                 type: "change",
                                 action: function (value) {
                                     if (value === 0) {
-                                        this._set_value("此选项将保存ticket到模板,插件长时间未执行可能发生ticket过期失效导致认证失败")
+                                        this._set_value(gettext("此选项将保存ticket到模板,插件长时间未执行可能发生ticket过期失效导致认证失败"))
                                     }
                                     if (value === 1) {
-                                        this._set_value("此选项将在任务执行前获取ticket,选择此选项需要(ticket使用方式)勾选为全局变量")
+                                        this._set_value(gettext("此选项将在任务执行前获取ticket,选择此选项需要(ticket使用方式)勾选为全局变量"))
                                     }
                                     if (value === 2) {
-                                        this._set_value("TJJ认证需要获取用户的ticket,请选择ticket获取方式")
+                                        this._set_value(gettext("TJJ认证需要获取用户的ticket,请选择ticket获取方式"))
                                     }
                                 }
                             },]

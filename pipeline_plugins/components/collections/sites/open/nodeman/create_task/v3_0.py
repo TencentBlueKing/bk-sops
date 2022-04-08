@@ -194,7 +194,10 @@ class NodemanCreateTaskService(NodeManBaseService):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"), key="bk_biz_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"),
+                key="bk_biz_id",
+                type="int",
+                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("节点类型"),
@@ -256,7 +259,4 @@ class NodemanCreateTaskComponent(Component):
     bound_service = NodemanCreateTaskService
     form = "%scomponents/atoms/nodeman/create_task/v3_0.js" % settings.STATIC_URL
     version = VERSION
-    desc = """
-    v3.0版本支持多云区域主机新建任务
-    注意：节点类型PROXY仅支持非直连区域
-    """
+    desc = _("v3.0版本支持多云区域主机新建任务 \n" "注意：节点类型PROXY仅支持非直连区域")

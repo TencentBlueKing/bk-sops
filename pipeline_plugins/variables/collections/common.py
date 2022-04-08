@@ -70,7 +70,7 @@ class Datetime(CommonPlainVariable, SelfExplainVariable):
     tag = "datetime.datetime"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("日期时间变量"))
-    desc = "输出格式: 2000-04-19 14:45:16"
+    desc = _("输出格式: 2000-04-19 14:45:16")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
@@ -97,11 +97,11 @@ class Password(LazyVariable, SelfExplainVariable):
     tag = "password.password"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("密码变量"))
-    desc = "请注意，并非所有插件字段都支持密码变量的使用，请结合具体插件进行使用"
+    desc = _("请注意，并非所有插件字段都支持密码变量的使用，请结合具体插件进行使用")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户输入的密码加密后的值")]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description=_("用户输入的密码加密后的值"))]
 
     def get_value(self):
         return self.value
@@ -115,7 +115,7 @@ class Select(LazyVariable, SelfExplainVariable):
     meta_tag = "select.select_meta"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("下拉框变量"))
-    desc = "单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串\n该变量默认不支持输入任意值，仅在子流程节点配置填参时支持输入任意值"
+    desc = _("单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串\n该变量默认不支持输入任意值，仅在子流程节点配置填参时支持输入任意值")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
@@ -138,14 +138,14 @@ class TextValueSelect(LazyVariable, SelfExplainVariable):
     meta_tag = "select.select_meta"
     form = "%svariables/%s.js" % (settings.STATIC_URL, "select")
     schema = StringItemSchema(description=_("文本值下拉框变量"))
-    desc = """
-        单选模式下 ${KEY["value"]} 输出选中的 value，
-        ${KEY["text"]} 输出选中的 text。
-        多选模式下 ${KEY["value"]} 输出选中的 value 以 ','拼接的字符串，
-        ${KEY["text"]} 输出选中的 text 以 ',' 拼接的字符串。
-        对于未选择的 text 和 value，通过 ${KEY["text_not_selected"]} 和 ${KEY["value_not_selected"]} 输出对应拼接字符串。
-        注意：请确保不同选项的value值不相同。
-        """
+    desc = _(
+        '单选模式下 ${KEY["value"]} 输出选中的 value，\n'
+        '${KEY["text"]} 输出选中的 text。\n'
+        '多选模式下 ${KEY["value"]} 输出选中的 value 以 ","拼接的字符串，\n'
+        '${KEY["text"]} 输出选中的 text 以 "," 拼接的字符串。\n'
+        '对于未选择的 text 和 value，通过 ${KEY["text_not_selected"]} 和 ${KEY["value_not_selected"]} 输出对应拼接字符串。\n'
+        "注意：请确保不同选项的value值不相同。"
+    )
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
@@ -251,11 +251,11 @@ class Date(CommonPlainVariable, SelfExplainVariable):
     tag = "date.date"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("日期变量"))
-    desc = "输出格式: 2000-04-19"
+    desc = _("输出格式: 2000-04-19")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户选择的日期，格式为2000-04-19")]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description=_("用户选择的日期，格式为2000-04-19"))]
 
 
 class Time(LazyVariable, SelfExplainVariable):
@@ -265,7 +265,7 @@ class Time(LazyVariable, SelfExplainVariable):
     tag = "time.time"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("时间变量"))
-    desc = "输出格式: 14:45"
+    desc = _("输出格式: 14:45")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
@@ -284,11 +284,11 @@ class FormatSupportDateTime(LazyVariable, SelfExplainVariable):
     type = "general"
     tag = "format_support_datetime.format_support_datetime"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
-    desc = "默认输出格式: 2020-10-10 14:45:00, 可自行配置显示格式"
+    desc = _("默认输出格式: 2020-10-10 14:45:00, 可自行配置显示格式")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户选择的自定义格式的日期时间")]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description=_("用户选择的自定义格式的日期时间"))]
 
     def get_value(self):
         time_format = self.value.get("datetime_format", "%Y-%m-%d %H:%M:%S").strip()
@@ -302,7 +302,7 @@ class StaffGroupSelector(LazyVariable, SelfExplainVariable):
     type = "dynamic"
     tag = "staff_group_multi_selector.staff_group_selector"
     form = "%svariables/staff_group_multi_selector.js" % settings.STATIC_URL
-    desc = "输出格式为选中人员用户名以 ',' 拼接的字符串"
+    desc = _("输出格式为选中人员用户名以 ',' 拼接的字符串")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
