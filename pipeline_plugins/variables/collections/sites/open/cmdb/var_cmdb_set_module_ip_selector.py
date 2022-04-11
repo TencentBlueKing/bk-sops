@@ -46,7 +46,7 @@ class SetModuleIpSelector(LazyVariable, SelfExplainVariable):
     type = "dynamic"
     tag = "set_module_ip_selector.ip_selector"
     form = "%svariables/cmdb/var_set_module_ip_selector.js" % settings.STATIC_URL
-    desc = "集群模块IP选择器只能拉取使用服务模板创建的模块，不适用于自定义拓扑的场景，自定义拓扑请使用IP选择器，输出为选择IP以 ',' 分隔的字符串"  # noqa
+    desc = _("集群模块IP选择器只能拉取使用服务模板创建的模块，不适用于自定义拓扑的场景，自定义拓扑请使用IP选择器，输出为选择IP以 ',' 分隔的字符串")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
@@ -80,7 +80,13 @@ class SetModuleIpSelector(LazyVariable, SelfExplainVariable):
             service_template_list = get_service_template_list(username, bk_biz_id, bk_supplier_account)
             # 如果勾选的set中有空闲机池，则会将所有空闲机module id添加进去
             service_template_list.extend(
-                get_biz_inner_module_list(var_ip_selector, username, bk_biz_id, bk_supplier_account, produce_method,)
+                get_biz_inner_module_list(
+                    var_ip_selector,
+                    username,
+                    bk_biz_id,
+                    bk_supplier_account,
+                    produce_method,
+                )
             )
 
             # 通过集群模块筛选的ip

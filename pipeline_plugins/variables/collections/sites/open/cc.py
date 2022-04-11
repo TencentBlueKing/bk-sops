@@ -42,7 +42,7 @@ class VarIpPickerVariable(LazyVariable):
     type = "dynamic"
     tag = "var_ip_picker.ip_picker"
     form = "%svariables/cmdb/var_ip_picker.js" % settings.STATIC_URL
-    desc = "该变量已废弃，请替换为新版 IP 选择器"
+    desc = _("该变量已废弃，请替换为新版 IP 选择器")
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
@@ -101,15 +101,15 @@ class VarCmdbIpSelector(LazyVariable, SelfExplainVariable):
     type = "dynamic"
     tag = "var_cmdb_ip_selector.ip_selector"
     form = "%svariables/cmdb/var_cmdb_ip_selector.js" % settings.STATIC_URL
-    desc = """
-    输出格式为选中 IP 以 ',' 分隔的字符串
-    筛选条件和排除条件为 AND 关系
-    - 筛选：会从IP列表中筛选出符合条件的IP
-    - 排除：会从IP列表中去除符合条件的IP
-    变量值是否带云区域
-    - 是，返回格式为{cloud_id}:{ip},{cloud_id}:{ip}
-    - 否，返回格式为{ip},{ip}
-    """
+    desc = _(
+        "输出格式为选中 IP 以 ',' 分隔的字符串\n"
+        "筛选条件和排除条件为 AND 关系\n"
+        "- 筛选：会从IP列表中筛选出符合条件的IP\n"
+        "- 排除：会从IP列表中去除符合条件的IP\n"
+        "变量值是否带云区域\n"
+        "- 是，返回格式为{cloud_id}:{ip},{cloud_id}:{ip}\n"
+        "- 否，返回格式为{ip},{ip}"
+    )
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
@@ -187,22 +187,22 @@ class VarCmdbSetAllocation(LazyVariable, SelfExplainVariable):
     type = "general"
     tag = "var_cmdb_resource_allocation.set_allocation"
     form = "%svariables/cmdb/var_cmdb_resource_allocation.js" % settings.STATIC_URL
-    desc = """
-    此变量用于按照资源筛选方案配置的新集群信息（此变量不会在 CMDB 创建新集群）
-    引用${KEY}，返回的是创建集群成功的信息Allocate {set_number} sets with names: {set_names}
-    引用${KEY._module}，返回的是集群下的模块信息列表，元素类型为字典，键为模块名，值为模块下的主机列
-    引用${KEY.{集群属性编码}}，返回的是本次操作创建的所有集群的指定属性值的列表
-    如：
-    获取集群的名称列表: ${KEY.bk_set_name}
-    获取集群环境类型: ${KEY.bk_set_env}
-    引用${KEY.flat__{集群属性编码}}，返回的是本次操作创建的所有集群的指定属性值，用 ',' 连接
-    如：
-    获取集群的名称值: ${KEY.flat__bk_set_name}
-    获取集群环境类型值: ${KEY.flat__bk_set_env}
-    引用${KEY.flat__ip_list}，返回的是本次操作创建的所有集群下的主机（去重后），用 ',' 连接
-    引用${KEY.flat__verbose_ip_list}，返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接
-    引用${KEY.flat__verbose_ip_module_list}，返回的是本次操作创建的所有模块名称，格式为set_name>module_name，用 ',' 连接
-    """
+    desc = _(
+        "此变量用于按照资源筛选方案配置的新集群信息（此变量不会在 CMDB 创建新集群）\n"
+        "引用${KEY}，返回的是创建集群成功的信息Allocate {set_number} sets with names: {set_names}\n"
+        "引用${KEY._module}，返回的是集群下的模块信息列表，元素类型为字典，键为模块名，值为模块下的主机列\n"
+        "引用${KEY.{集群属性编码}}，返回的是本次操作创建的所有集群的指定属性值的列表\n"
+        "如：\n"
+        "获取集群的名称列表: ${KEY.bk_set_name}\n"
+        "获取集群环境类型: ${KEY.bk_set_env}\n"
+        "引用${KEY.flat__{集群属性编码}}，返回的是本次操作创建的所有集群的指定属性值，用 ',' 连接\n"
+        "如：\n"
+        "获取集群的名称值: ${KEY.flat__bk_set_name}\n"
+        "获取集群环境类型值: ${KEY.flat__bk_set_env}\n"
+        "引用${KEY.flat__ip_list}，返回的是本次操作创建的所有集群下的主机（去重后），用 ',' 连接\n"
+        "引用${KEY.flat__verbose_ip_list}，返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接\n"
+        "引用${KEY.flat__verbose_ip_module_list}，返回的是本次操作创建的所有模块名称，格式为set_name>module_name，用 ',' 连接"
+    )
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
@@ -213,7 +213,9 @@ class VarCmdbSetAllocation(LazyVariable, SelfExplainVariable):
             FieldExplain(key="${KEY._module}", type=Type.LIST, description="集群下的模块信息列表，元素类型为字典，键为模块名，值为模块下的主机列"),
             FieldExplain(key="${KEY.flat__ip_list}", type=Type.STRING, description="本次操作创建的所有集群下的主机（去重后），用 ',' 连接"),
             FieldExplain(
-                key="${KEY.flat__verbose_ip_list}", type=Type.STRING, description="返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接",
+                key="${KEY.flat__verbose_ip_list}",
+                type=Type.STRING,
+                description="返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接",
             ),
             FieldExplain(
                 key="${KEY.flat__verbose_ip_module_list}",
@@ -272,11 +274,11 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
     type = "dynamic"
     tag = "var_cmdb_attr_query.attr_query"
     form = "%svariables/cmdb/var_cmdb_attribute_query.js" % settings.STATIC_URL
-    desc = """
-    输出字典，键为主机IP，值为主机所有的属性值字典（键为属性，值为属性值）
-    例如，通过 ${hosts["1.1.1.1"]["bk_host_id"]} 获取主机在 CMDB 中的唯一 ID
-    更多可使用的主机属性请在 CMDB 主机模型页面查阅
-    """
+    desc = _(
+        "输出字典，键为主机IP，值为主机所有的属性值字典（键为属性，值为属性值）\n"
+        '例如，通过 ${hosts["1.1.1.1"]["bk_host_id"]} 获取主机在 CMDB 中的唯一 ID\n'
+        "更多可使用的主机属性请在 CMDB 主机模型页面查阅"
+    )
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
