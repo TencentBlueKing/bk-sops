@@ -25,6 +25,7 @@
                 :label="panel.name">
                 <component
                     :is="panel.comp"
+                    :is-show="crtTab === panel.id"
                     :common="panel.id === 'common'"
                     :built-in-plugins="builtInPlugins"
                     :template-labels="templateLabels">

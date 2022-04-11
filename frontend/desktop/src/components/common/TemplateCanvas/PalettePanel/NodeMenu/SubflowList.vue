@@ -86,6 +86,7 @@
         mixins: [permission],
         props: {
             common: Boolean, // 是否为公共流程列表
+            isShow: Boolean,
             templateLabels: Array
         },
         data () {
@@ -100,19 +101,19 @@
                 isCompleteLoading: false
             }
         },
-        mounted () {
-            // 设置滚动加载
-            const listWrapEl = this.$refs.subflowListPanel.querySelector('.tpl-list')
-            listWrapEl.addEventListener('scroll', this.handleScroll, false)
-            const height = listWrapEl.getBoundingClientRect().height
-
-            // 计算出每页加载的条数
-            // 规则为容器高度除以每条的高度，考虑到后续可能需要触发容器滚动事件，在实际可容纳的条数上再增加1条
-            // @notice: 每个流程条目的高度需要固定，目前取的css定义的高度40px
-            if (height > 0) {
-                this.limit = Math.ceil(height / 40) + 1
+        watch: {
+            isShow (val) {
+                if (val) {
+                    if (this.crtPage === 1 && this.tplList.length === 0) {
+                        this.setScrollLoading()
+                    }
+                }
             }
-            this.getTplList()
+        },
+        mounted () {
+            if (this.isShow) {
+                this.setScrollLoading()
+            }
         },
         beforeDestroy () {
             const listWrapEl = this.$refs.subflowListPanel.querySelector('.tpl-list')
@@ -161,6 +162,20 @@
                 } finally {
                     this.listLoading = false
                 }
+            },
+            setScrollLoading () {
+                // 设置滚动加载
+                const listWrapEl = this.$refs.subflowListPanel.querySelector('.tpl-list')
+                listWrapEl.addEventListener('scroll', this.handleScroll, false)
+                const height = listWrapEl.getBoundingClientRect().height
+
+                // 计算出每页加载的条数
+                // 规则为容器高度除以每条的高度，考虑到后续可能需要触发容器滚动事件，在实际可容纳的条数上再增加1条
+                // @notice: 每个流程条目的高度需要固定，目前取的css定义的高度40px
+                if (height > 0) {
+                    this.limit = Math.ceil(height / 40) + 1
+                }
+                this.getTplList()
             },
             // 切换搜索模式，按标签过滤和文本过滤
             handleChangeSearchMode (type) {

@@ -71,7 +71,8 @@
                         @click="onSelectThirdPartyPlugin(plugin)">
                         <img class="plugin-logo" :src="plugin.logo_url" alt="">
                         <div>
-                            <p class="plugin-title">{{ plugin.name }}</p>
+                            <p class="plugin-title" v-if="plugin.highlightName" v-html="plugin.highlightName"></p>
+                            <p class="plugin-title" v-else>{{ plugin.name }}</p>
                             <p
                                 class="plugin-desc"
                                 v-bk-overflow-tips="{ placement: 'bottom-end', extCls: 'plugin-desc-tips' }">
@@ -120,7 +121,9 @@
             }
         },
         mounted () {
-            this.setThirdParScrollLoading()
+            if (this.isThirdParty) {
+                this.setThirdParScrollLoading()
+            }
         },
         beforeDestroy () {
             const listWrapEl = this.$refs.thirdPartyPanel.$el.querySelector('.third-party-list')
@@ -170,8 +173,14 @@
                     }
                     const resp = await this.$store.dispatch('atomForm/loadPluginServiceList', params)
                     const { next_offset, plugins, return_plugin_count } = resp.data
+                    const searchStr = this.escapeRegExp(this.searchStr)
+                    const reg = new RegExp(searchStr, 'i')
                     const pluginList = plugins.map(item => {
-                        return Object.assign({}, item.plugin, item.profile)
+                        const pluginItem = Object.assign({}, item.plugin, item.profile)
+                        if (this.searchStr !== '') {
+                            pluginItem.highlightName = item.plugin.name.replace(reg, `<span style="color: #ff9c01;">${this.searchStr}</span>`)
+                        }
+                        return pluginItem
                     })
                     this.thirdPluginOffset = next_offset
                     this.thirdPartyPlugin.push(...pluginList)
@@ -214,6 +223,11 @@
             onTabChange (val) {
                 this.curTab = val
                 this.searchStr = ''
+                if (this.thirdPartyPlugin.length === 0 && this.thirdPluginOffset === 0) {
+                    this.$nextTick(() => {
+                        this.setThirdParScrollLoading()
+                    })
+                }
             },
             // 搜索框字符为空
             handleSearchEmpty (val) {
