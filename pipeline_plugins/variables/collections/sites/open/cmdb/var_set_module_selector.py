@@ -91,16 +91,16 @@ class VarSetModuleSelector(LazyVariable, SelfExplainVariable):
     type = "dynamic"
     tag = "var_set_module_selector.set_module_selector"
     form = "%svariables/cmdb/var_set_module_selector.js" % settings.STATIC_URL
-    desc = """
-    用于获取集群和模块的信息（名称或ID）
-    引用${KEY}，返回类型为字符串，值的格式为set: {用英文逗号连接的集群名称}, modules: {用英文逗号连接的模块名称}
-    引用${KEY.set_name}，返回类型为字符串，值为集群名称
-    引用${KEY.set_id}，返回类型为数字，值为集群ID
-    引用${KEY.module_name}，返回类型为列表，列表值为模块名称
-    引用${KEY.flat__module_name}，返回类型为字符串，值为用英文逗号,连接的模块名称
-    引用${KEY.module_id}，返回类型为列表，列表值为模块ID
-    引用${KEY.flat__module_id}，返回类型为字符串，值为用英文逗号,连接的模块ID
-    """
+    desc = _(
+        "用于获取集群和模块的信息（名称或ID）\n"
+        "引用${KEY}，返回类型为字符串，值的格式为set: {用英文逗号连接的集群名称}, modules: {用英文逗号连接的模块名称}\n"
+        "引用${KEY.set_name}，返回类型为字符串，值为集群名称\n"
+        "引用${KEY.set_id}，返回类型为数字，值为集群ID\n"
+        "引用${KEY.module_name}，返回类型为列表，列表值为模块名称\n"
+        "引用${KEY.flat__module_name}，返回类型为字符串，值为用英文逗号,连接的模块名称\n"
+        "引用${KEY.module_id}，返回类型为列表，列表值为模块ID\n"
+        "引用${KEY.flat__module_id}，返回类型为字符串，值为用英文逗号,连接的模块ID"
+    )
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:

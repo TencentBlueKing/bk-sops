@@ -509,7 +509,6 @@ msgstr "Or"
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:144
 #: staticfiles/bk_sops/js/4.1a0aabf941.js:1
 #: staticfiles/bk_sops/js/4.f9b677c368.js:1
-#, fuzzy
 #| msgid "主机"
 msgid "主机名"
 msgstr "Host"
@@ -1689,6 +1688,11 @@ msgstr "Seconds(s) or Datetime(%Y-%m-%d %H:%M:%S)"
 msgid "定时时间"
 msgstr "Timing"
 
+#: pipeline_plugins/components/static/components/atoms/bk/display.js
+#: staticfiles/components/atoms/bk/display.js
+msgid "展示内容"
+msgstr "Display Content"
+
 #: frontend/mobile/src/views/task/timing.vue:75
 msgid "修改定时时间成功"
 msgstr "Reset timing successfully"
@@ -1756,6 +1760,16 @@ msgstr "Request Headers, one header per line"
 #: staticfiles/components/atoms/job/job_fast_push_file.js:152
 msgid "超时时间"
 msgstr "Timeout(s) "
+
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js
+#: staticfiles/components/atoms/job/fast_execute_script/v1_0.js
+msgid "自定义任务名"
+msgstr "Custom Task Name"
+
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:351
+#: staticfiles/components/atoms/job/fast_execute_script/v1_0.js:351
+msgid "用户自定义任务名称。不填的话，作业平台会自动生成任务名称"
+msgstr "User-defined task name. If not filled, the job platform will automatically generate the task name"
 
 #: pipeline_plugins/components/static/components/atoms/bk/http/v1_0.js:88
 #: staticfiles/components/atoms/bk/http/v1_0.js:88
@@ -1867,6 +1881,34 @@ msgstr "Business"
 #: staticfiles/components/atoms/bk/notify/v1_0.js:49
 msgid "通知方式"
 msgstr "Notification Method"
+
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:49
+#: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:49
+#: staticfiles/components/atoms/bk/notify/legacy.js:49
+#: staticfiles/components/atoms/bk/notify/v1_0.js:49
+msgid "固定分组"
+msgstr "Fixed Group"
+
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:49
+#: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:49
+#: staticfiles/components/atoms/bk/notify/legacy.js:49
+#: staticfiles/components/atoms/bk/notify/v1_0.js:49
+msgid "通知执行人"
+msgstr "Notification Executor"
+
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:49
+#: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:49
+#: staticfiles/components/atoms/bk/notify/legacy.js:49
+#: staticfiles/components/atoms/bk/notify/v1_0.js:49
+msgid "项目人员分组"
+msgstr "Project Staff Group"
+
+#: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:49
+#: pipeline_plugins/components/static/components/atoms/bk/notify/v1_0.js:49
+#: staticfiles/components/atoms/bk/notify/legacy.js:49
+#: staticfiles/components/atoms/bk/notify/v1_0.js:49
+msgid "请选择项目人员分组"
+msgstr "please select project staff group"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify/legacy.js:52
 #: staticfiles/components/atoms/bk/notify/legacy.js:52
@@ -2242,6 +2284,11 @@ msgstr "Allow Empty, Each Newline Character in Row Automatic Expansion Mode, Def
 #: staticfiles/components/atoms/cc/batch_transfer_host_module/v1_0.js:46
 msgid "主机所属模块修改详情"
 msgstr "Host Module Modifying Detail"
+
+#: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_0.js
+#: staticfiles/components/atoms/cc/batch_transfer_host_module/v1_0.js
+msgid "更新方式"
+msgstr "Update Type"
 
 #: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_0.js:65
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:66
@@ -2825,6 +2872,11 @@ msgstr "Process Instance ID"
 msgid "全业务ID"
 msgstr "All Business ID"
 
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan.js
+#: staticfiles/components/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan.js
+msgid "拉取作业"
+msgstr "Fetch Job"
+
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:31
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:77
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:77
@@ -3206,6 +3258,22 @@ msgstr "Allow Cross Business"
 msgid "目标IP"
 msgstr "Target IP"
 
+#: pipeline_plugins/components/static/components/atoms/job/fetch_task_log/v1_0.js
+#: staticfiles/components/atoms/job/fetch_task_log/v1_0.js
+msgid "任务ID"
+msgstr "Task ID"
+
+#: pipeline_plugins/components/static/components/atoms/job/fetch_task_log/v1_0.js
+#: staticfiles/components/atoms/job/fetch_task_log/v1_0.js
+msgid "非必填，只支持单个目标IP"
+msgstr "Not required, only a single target IP is supported"
+
+#: pipeline_plugins/components/static/components/atoms/job/fetch_task_log/v1_0.js
+#: staticfiles/components/atoms/job/fetch_task_log/v1_0.js
+msgid "只支持单个任务ID"
+msgstr "Only supports a single task ID"
+
+
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:409
 #: staticfiles/components/atoms/job/fast_execute_script/v1_0.js:409
 #, fuzzy
@@ -3306,6 +3374,15 @@ msgstr "Global Variable"
 msgid "没选中作业模板或当前作业模板全局变量为空"
 msgstr "No job selected or global variable are empty"
 
+msgid "IP Tag 分组"
+msgstr "IP Tag Group"
+
+msgid "JOB成功历史"
+msgstr "JOB Success History"
+
+msgid "停止"
+msgstr "Stop"
+
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:178
 #: staticfiles/components/atoms/job/job_execute_task.js:178
 msgid "刷新全局变量"
@@ -3318,7 +3395,6 @@ msgstr "Refresh"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:278
 #: staticfiles/components/atoms/job/job_execute_task.js:278
-#, fuzzy
 #| msgid "是否允许跨业务"
 msgid "IP 允许跨业务"
 msgstr "Allow Cross Business"
@@ -3369,8 +3445,6 @@ msgstr "Can not upload file at common flow edit state, please upload at param fi
 
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v1_0_0.js:42
 #: staticfiles/components/atoms/job/job_push_local_files/v1_0_0.js:42
-#, fuzzy
-#| msgid "文件名不能包含中文和特殊字符且大小不能超过2G"
 msgid "文件名不能包含特殊字符且大小不能超过2G"
 msgstr "File name can not contain chinese and size can not over 2G"
 
@@ -3877,10 +3951,68 @@ msgstr "Strategy"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:63
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:89
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:89
 #: staticfiles/components/atoms/nodeman/create_task/legacy.js:63
 #: staticfiles/components/atoms/nodeman/create_task/v2_0.js:89
+#: staticfiles/components/atoms/nodeman/create_task/v3_0.js:89
 msgid "节点类型"
 msgstr "Node type"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v2_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v3_0.js
+msgid "ticket获取方式"
+msgstr "Ticket Get Type"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v2_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v3_0.js
+msgid "获取ticket"
+msgstr "Get Ticket"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v2_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v3_0.js
+msgid "实时获取ticket"
+msgstr "Real Time Get Ticket"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v2_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v3_0.js
+msgid "不使用ticket"
+msgstr "Don't use ticket"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v2_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v3_0.js
+msgid "说明"
+msgstr "tip"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v2_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v3_0.js
+msgid "此选项将保存ticket到模板,插件长时间未执行可能发生ticket过期失效导致认证失败"
+msgstr "This option will save the ticket to the template. If the plugin is not executed for a long time, the ticket may expire and fail, resulting in authentication failure."
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v2_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v3_0.js
+msgid "此选项将在任务执行前获取ticket,选择此选项需要(ticket使用方式)勾选为全局变量"
+msgstr "This option will get the ticket before the task is executed. Selecting this option requires (ticket usage) to be checked as a global variable"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v2_0.js
+#: staticfiles/components/atoms/nodeman/create_task/v3_0.js
+msgid "TJJ认证需要获取用户的ticket,请选择ticket获取方式"
+msgstr "TJJ authentication needs to obtain the user's ticket, please select the ticket acquisition method"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:66
 #: staticfiles/components/atoms/nodeman/create_task/legacy.js:66
@@ -4296,8 +4428,6 @@ msgstr "Filter Attributes"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_filter_selector.js:26
 #: staticfiles/variables/cmdb/var_set_filter_selector.js:26
-#, fuzzy
-#| msgid "请选择需要更新的集群属性"
 msgid "请选择要进行过滤的集群属性"
 msgstr "Please select a set attribute to update"
 
@@ -4308,8 +4438,6 @@ msgstr "Attribute Value Range"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_filter_selector.js:55
 #: staticfiles/variables/cmdb/var_set_filter_selector.js:55
-#, fuzzy
-#| msgid "请输入集群名称，多个以,分隔"
 msgid "请输入要过滤的属性值，多个以`,`分隔开"
 msgstr "Input Set Name, separated by `,`"
 
@@ -4317,6 +4445,11 @@ msgstr "Input Set Name, separated by `,`"
 #: staticfiles/variables/cmdb/var_set_group_selector.js:20
 msgid "请选择集群分组"
 msgstr "Select set please"
+
+#: pipeline_plugins/variables/static/variables/cmdb/var_set_group_selector.js:20
+#: staticfiles/variables/cmdb/var_set_group_selector.js:20
+msgid "集群分组"
+msgstr "Set Group"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:17
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:19
