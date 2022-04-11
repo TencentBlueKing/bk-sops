@@ -1308,7 +1308,10 @@ const en = {
     '变量配置': 'variable config',
     '变量复用': 'varibale reuse',
     '手动创建': 'manual create',
-    '自动创建': 'auto create'
+    '自动创建': 'auto create',
+    '请输入用户': 'Please enter user',
+    '批量更新子流程': 'Batch update subprocess',
+    '子流程更新时，如果新旧版本存在相同表单，表单数据会默认取原表单数据': 'When the sub-process is updated, if the same form exists in the old and new versions, the form data will default to the original form data'
 }
 
 export default en

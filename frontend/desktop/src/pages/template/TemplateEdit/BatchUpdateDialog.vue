@@ -1,10 +1,10 @@
 <template>
     <div class="batch-update-dialog-content">
         <div class="header-wrapper">
-            <h4>批量更新子流程{{ $t('（') + expiredTplNum + $t('）') }}</h4>
+            <h4>{{ $t('批量更新子流程') + $t('（') + expiredTplNum + $t('）') }}</h4>
             <div class="legend-area">
-                <span class="legend-item delete">删除</span>
-                <span class="legend-item add">新增</span>
+                <span class="legend-item delete">{{ $t('删除') }}</span>
+                <span class="legend-item add">{{ $t('新增') }}</span>
             </div>
             <i class="bk-dialog-close bk-icon icon-close" @click="onCloseDialog"></i>
         </div>
