@@ -36,7 +36,12 @@ from gcloud.iam_auth.conf import TASK_ACTIONS
 from pipeline.exceptions import PipelineException
 from gcloud.core.models import EngineConfig
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
-from gcloud.core.apis.drf.permission import IamPermission, IamPermissionInfo, HAS_OBJECT_PERMISSION
+from gcloud.core.apis.drf.permission import (
+    IamPermission,
+    IamPermissionInfo,
+    HAS_OBJECT_PERMISSION,
+    IamUserTypeBasedValidator,
+)
 from gcloud.iam_auth import IAMMeta, res_factory, get_iam_client
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.operate_record.signal import operate_record_signal
@@ -66,7 +71,6 @@ class TaskFlowFilterSet(FilterSet):
 
 class TaskFlowInstancePermission(IamPermission):
     actions = {
-        "list": IamPermissionInfo(IAMMeta.TASK_VIEW_ACTION),
         "retrieve": IamPermissionInfo(
             IAMMeta.TASK_VIEW_ACTION, res_factory.resources_for_task_obj, HAS_OBJECT_PERMISSION
         ),
@@ -110,6 +114,9 @@ class TaskFlowInstancePermission(IamPermission):
                     resources=res_factory.resources_for_flow_obj(template),
                 )
                 return True
+        elif view.action == "list":
+            user_type_validator = IamUserTypeBasedValidator()
+            return user_type_validator.validate(request)
         return super().has_permission(request, view)
 
 
@@ -118,10 +125,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False, is_deleted=False).order_by(
         "pipeline_instance"
     )
-    iam_resource_helper = ViewSetResourceHelper(
-        resource_func=res_factory.resources_for_task_obj,
-        actions=TASK_ACTIONS,
-    )
+    iam_resource_helper = ViewSetResourceHelper(resource_func=res_factory.resources_for_task_obj, actions=TASK_ACTIONS,)
     filter_class = TaskFlowFilterSet
     permission_classes = [permissions.IsAuthenticated, TaskFlowInstancePermission]
     ordering_fields = ["pipeline_instance"]
@@ -156,9 +160,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             if instance["template_id"] and instance["template_source"] == "common"
         ]
         common_templates_allowed_actions = get_common_flow_allowed_actions_for_user(
-            request.user.username,
-            [IAMMeta.COMMON_FLOW_VIEW_ACTION],
-            common_template_ids,
+            request.user.username, [IAMMeta.COMMON_FLOW_VIEW_ACTION], common_template_ids,
         )
         common_template_info = CommonTemplate.objects.filter(id__in=common_template_ids).values(
             "id", "pipeline_template__name", "is_deleted"

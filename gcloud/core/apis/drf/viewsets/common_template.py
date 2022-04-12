@@ -41,7 +41,7 @@ manager = TemplateManager(template_model_cls=CommonTemplate)
 
 class CommonTemplatePermission(IamPermission):
     actions = {
-        "list": IamPermissionInfo(IAMMeta.COMMON_FLOW_VIEW_ACTION),
+        "list": IamPermissionInfo(pass_all=True),
         "retrieve": IamPermissionInfo(
             IAMMeta.COMMON_FLOW_VIEW_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
         ),

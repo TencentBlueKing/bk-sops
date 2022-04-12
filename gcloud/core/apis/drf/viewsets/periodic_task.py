@@ -35,17 +35,18 @@ from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta
 from gcloud.core.apis.drf.filtersets import AllLookupSupportFilterSet
-from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
-
+from gcloud.core.apis.drf.permission import (
+    HAS_OBJECT_PERMISSION,
+    IamPermission,
+    IamPermissionInfo,
+    IamUserTypeBasedValidator,
+)
 
 logger = logging.getLogger("root")
 
 
 class PeriodicTaskPermission(IamPermission):
     actions = {
-        "list": IamPermissionInfo(
-            IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project__id"
-        ),
         "retrieve": IamPermissionInfo(
             IAMMeta.PERIODIC_TASK_VIEW_ACTION, res_factory.resources_for_periodic_task_obj, HAS_OBJECT_PERMISSION
         ),
@@ -54,6 +55,12 @@ class PeriodicTaskPermission(IamPermission):
             IAMMeta.PERIODIC_TASK_DELETE_ACTION, res_factory.resources_for_periodic_task_obj, HAS_OBJECT_PERMISSION
         ),
     }
+
+    def has_permission(self, request, view):
+        if view.action == "list":
+            user_type_validator = IamUserTypeBasedValidator()
+            return user_type_validator.validate(request)
+        return super().has_permission(request, view)
 
 
 class PeriodicTaskFilter(AllLookupSupportFilterSet):
