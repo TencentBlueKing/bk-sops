@@ -13,7 +13,9 @@ specific language governing permissions and limitations under the License.
 from rest_framework import permissions
 from rest_framework.exceptions import PermissionDenied
 
+from gcloud.core.api_adapter import user_role
 from gcloud.core.apis.drf.viewsets import IAMMixin
+from gcloud.iam_auth import IAMMeta, res_factory
 
 HAS_PERMISSION = "has_permission"
 HAS_OBJECT_PERMISSION = "has_object_permission"
@@ -21,12 +23,7 @@ HAS_OBJECT_PERMISSION = "has_object_permission"
 
 class IamPermissionInfo:
     def __init__(
-        self,
-        iam_action=None,
-        resource_func=None,
-        check_hook=HAS_PERMISSION,
-        id_field="id",
-        pass_all=False,
+        self, iam_action=None, resource_func=None, check_hook=HAS_PERMISSION, id_field="id", pass_all=False,
     ):
         """
         :param iam_action: 权限类型
@@ -85,3 +82,29 @@ class IamPermission(IAMMixin, permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         return self.check_permission(request, view, obj, HAS_OBJECT_PERMISSION)
+
+
+class IamUserTypeBasedValidator(IAMMixin):
+    """通过用户身份类型和request用户来进行创建者和审计人的校验"""
+
+    def validate(self, request):
+        """只有在符合条件且校验通过时返回True，否则都为False"""
+        user_type = request.query_params.get("user_type")
+        if user_type:
+            func = getattr(self, f"query_{user_type}_type", None)
+            return callable(func) and func(request)
+        project_id = request.query_params.get("project__id")
+        action = IAMMeta.PROJECT_VIEW_ACTION if project_id else IAMMeta.ADMIN_VIEW_ACTION
+        resources = res_factory.resources_for_project(project_id) if project_id else []
+        self.iam_auth_check(request, action=action, resources=resources)
+        return True
+
+    @staticmethod
+    def query_user_type(request):
+        user_in_query = request.query_params.get("creator_or_executor")
+        return user_in_query == request.user.username
+
+    @staticmethod
+    def query_auditor_type(request):
+        user = request.user.username
+        return user_role.is_user_role(user, IAMMeta.AUDIT_VIEW_ACTION)
