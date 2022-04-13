@@ -161,10 +161,13 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         user_collections = Collection.objects.filter(category="flow", username=request.user.username).values()
         # 取出用户在当前项目的收藏id
         collection_template_ids = []
+        collection_id_template_id_map = {}
         for user_collection in user_collections:
             extra_info = json.loads(user_collection["extra_info"])
             if int(extra_info["project_id"]) == project_id:
-                collection_template_ids.append(user_collection["instance_id"])
+                instance_id = user_collection["instance_id"]
+                collection_template_ids.append(instance_id)
+                collection_id_template_id_map[instance_id] = user_collection["id"]
 
         queryset = (
             self.filter_queryset(self.get_queryset())
@@ -180,6 +183,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         for obj in data:
             obj["template_labels"] = templates_labels.get(obj["id"], [])
             obj["is_collected"] = 1 if obj["id"] in collection_template_ids else 0
+            obj["collection_id"] = collection_id_template_id_map.get(obj["id"], -1)
         return self.get_paginated_response(data) if page is not None else Response(data)
 
     def create(self, request, *args, **kwargs):
