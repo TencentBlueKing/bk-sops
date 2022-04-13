@@ -13,6 +13,9 @@ specific language governing permissions and limitations under the License.
 import json
 import logging
 
+from django.db.models import BooleanField, ExpressionWrapper, Q
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.exceptions import ErrorDetail
@@ -23,11 +26,17 @@ from django_filters import CharFilter
 
 from gcloud import err_code
 from pipeline.models import TemplateRelationship
+
+from gcloud.contrib.collection.models import Collection
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.label.models import TemplateLabelRelation, Label
 from gcloud.tasktmpl3.signals import post_template_save_commit
 from gcloud.taskflow3.models import TaskTemplate
-from gcloud.core.apis.drf.serilaziers.task_template import TaskTemplateSerializer, CreateTaskTemplateSerializer
+from gcloud.core.apis.drf.serilaziers.task_template import (
+    TaskTemplateSerializer,
+    CreateTaskTemplateSerializer,
+    TopCollectionTaskTemplateSerializer,
+)
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta
@@ -47,6 +56,9 @@ manager = TemplateManager(template_model_cls=TaskTemplate)
 class TaskTemplatePermission(IamPermission):
     actions = {
         "list": IamPermissionInfo(
+            IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project__id"
+        ),
+        "list_with_top_collection": IamPermissionInfo(
             IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project__id"
         ),
         "retrieve": IamPermissionInfo(
@@ -104,9 +116,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION,
         ],
     )
-    ordering_fields = [
-        "pipeline_template",
-    ] + [order["value"] for order in TASKTMPL_ORDERBY_OPTIONS]
+    ordering_fields = ["pipeline_template"] + [order["value"] for order in TASKTMPL_ORDERBY_OPTIONS]
 
     def _sync_template_lables(self, template_id, label_ids):
         """
@@ -137,6 +147,39 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         for obj in data:
             obj["is_add"] = 1 if obj["id"] in collected_templates else 0
             obj["template_labels"] = templates_labels.get(obj["id"], [])
+        return self.get_paginated_response(data) if page is not None else Response(data)
+
+    @swagger_auto_schema(
+        method="GET", operation_summary="带收藏指定的流程列表", responses={200: TopCollectionTaskTemplateSerializer}
+    )
+    @action(methods=["GET"], detail=False)
+    def list_with_top_collection(self, request, *args, **kwargs):
+        project_id = int(request.query_params["project__id"])
+        order_by = request.query_params.get("order_by")
+        orderings = ("-is_collected", order_by) if order_by else ("-is_collected",)
+
+        user_collections = Collection.objects.filter(category="flow", username=request.user.username).values()
+        # 取出用户在当前项目的收藏id
+        collection_template_ids = []
+        for user_collection in user_collections:
+            extra_info = json.loads(user_collection["extra_info"])
+            if int(extra_info["project_id"]) == project_id:
+                collection_template_ids.append(user_collection["instance_id"])
+
+        queryset = (
+            self.filter_queryset(self.get_queryset())
+            .annotate(is_collected=ExpressionWrapper(Q(id__in=collection_template_ids), output_field=BooleanField()))
+            .order_by(*orderings)
+        )
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page if page is not None else queryset, many=True)
+        # 注入权限
+        data = self.injection_auth_actions(request, serializer.data, serializer.instance)
+        template_ids = [obj["id"] for obj in data]
+        templates_labels = TemplateLabelRelation.objects.fetch_templates_labels(template_ids)
+        for obj in data:
+            obj["template_labels"] = templates_labels.get(obj["id"], [])
+            obj["is_collected"] = 1 if obj["id"] in collection_template_ids else 0
         return self.get_paginated_response(data) if page is not None else Response(data)
 
     def create(self, request, *args, **kwargs):

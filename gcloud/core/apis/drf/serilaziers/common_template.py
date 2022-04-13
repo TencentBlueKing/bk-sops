@@ -42,6 +42,10 @@ class CommonTemplateSerializer(BaseTemplateSerializer):
         fields = "__all__"
 
 
+class TopCollectionCommonTemplateSerializer(CommonTemplateSerializer):
+    is_collected = serializers.BooleanField(read_only=True, help_text="是否收藏")
+
+
 class CreateCommonTemplateSerializer(BaseTemplateSerializer):
     name = serializers.CharField(help_text="流程模板名称")
     category = serializers.ChoiceField(choices=TASK_CATEGORY, help_text="模板分类")

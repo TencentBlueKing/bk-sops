@@ -50,6 +50,10 @@ class TaskTemplateSerializer(BaseTaskTemplateSerializer):
         fields = "__all__"
 
 
+class TopCollectionTaskTemplateSerializer(TaskTemplateSerializer):
+    is_collected = serializers.BooleanField(read_only=True, help_text="是否收藏")
+
+
 class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
 
     name = serializers.CharField(help_text="流程模板名称")
