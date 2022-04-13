@@ -52,6 +52,7 @@ class TaskTemplateSerializer(BaseTaskTemplateSerializer):
 
 class TopCollectionTaskTemplateSerializer(TaskTemplateSerializer):
     is_collected = serializers.BooleanField(read_only=True, help_text="是否收藏")
+    collection_id = serializers.IntegerField(read_only=True, help_text="收藏ID")
 
 
 class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):

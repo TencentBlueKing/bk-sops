@@ -100,7 +100,10 @@ class CommonTemplateViewSet(GcloudModelViewSet):
 
         collection_template_ids = Collection.objects.filter(
             category="common_flow", username=request.user.username
-        ).values_list("instance_id", flat=True)
+        ).values_list("instance_id", "id")
+        collection_id_template_id_map = {
+            instance_id: collection_id for instance_id, collection_id in collection_template_ids
+        }
 
         queryset = (
             self.filter_queryset(self.get_queryset())
@@ -113,6 +116,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         data = self.injection_auth_actions(request, serializer.data, serializer.instance)
         for obj in data:
             obj["is_collected"] = 1 if obj["id"] in collection_template_ids else 0
+            obj["collection_id"] = collection_id_template_id_map.get(obj["id"], -1)
         return self.get_paginated_response(data) if page is not None else Response(data)
 
     def create(self, request, *args, **kwargs):
