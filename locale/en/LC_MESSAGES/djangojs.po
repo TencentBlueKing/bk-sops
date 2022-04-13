@@ -4436,6 +4436,9 @@ msgstr "Please select a set attribute to update"
 msgid "属性值范围"
 msgstr "Attribute Value Range"
 
+msgid "业务集ID"
+msgstr "Business Set ID"
+
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_filter_selector.js:55
 #: staticfiles/variables/cmdb/var_set_filter_selector.js:55
 msgid "请输入要过滤的属性值，多个以`,`分隔开"
