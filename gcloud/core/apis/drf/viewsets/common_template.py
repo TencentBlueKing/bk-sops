@@ -14,16 +14,24 @@ specific language governing permissions and limitations under the License.
 import logging
 import ujson as json
 from django.db import transaction
+from django.db.models import ExpressionWrapper, Q, BooleanField
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.decorators import action
 from rest_framework.exceptions import ErrorDetail
 from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 
 from gcloud import err_code
+from gcloud.contrib.collection.models import Collection
 from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
-from gcloud.core.apis.drf.serilaziers.common_template import CommonTemplateSerializer, CreateCommonTemplateSerializer
+from gcloud.core.apis.drf.serilaziers.common_template import (
+    CommonTemplateSerializer,
+    CreateCommonTemplateSerializer,
+    TopCollectionCommonTemplateSerializer,
+)
 from gcloud.common_template.signals import post_template_save_commit
 from gcloud.common_template.models import CommonTemplate
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
@@ -42,6 +50,7 @@ manager = TemplateManager(template_model_cls=CommonTemplate)
 class CommonTemplatePermission(IamPermission):
     actions = {
         "list": IamPermissionInfo(pass_all=True),
+        "list_with_top_collection": IamPermissionInfo(pass_all=True),
         "retrieve": IamPermissionInfo(
             IAMMeta.COMMON_FLOW_VIEW_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
         ),
@@ -80,6 +89,31 @@ class CommonTemplateViewSet(GcloudModelViewSet):
     filterset_class = CommonTemplateFilter
     permission_classes = [permissions.IsAuthenticated, CommonTemplatePermission]
     ordering = ["-id"]
+
+    @swagger_auto_schema(
+        method="GET", operation_summary="带收藏指定的流程列表", responses={200: TopCollectionCommonTemplateSerializer}
+    )
+    @action(methods=["GET"], detail=False)
+    def list_with_top_collection(self, request, *args, **kwargs):
+        order_by = request.query_params.get("order_by")
+        orderings = ("-is_collected", order_by) if order_by else ("-is_collected",)
+
+        collection_template_ids = Collection.objects.filter(
+            category="common_flow", username=request.user.username
+        ).values_list("instance_id", flat=True)
+
+        queryset = (
+            self.filter_queryset(self.get_queryset())
+            .annotate(is_collected=ExpressionWrapper(Q(id__in=collection_template_ids), output_field=BooleanField()))
+            .order_by(*orderings)
+        )
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page if page is not None else queryset, many=True)
+        # 注入权限
+        data = self.injection_auth_actions(request, serializer.data, serializer.instance)
+        for obj in data:
+            obj["is_collected"] = 1 if obj["id"] in collection_template_ids else 0
+        return self.get_paginated_response(data) if page is not None else Response(data)
 
     def create(self, request, *args, **kwargs):
         serializer = CreateCommonTemplateSerializer(data=request.data)
