@@ -15,7 +15,6 @@ import logging
 import traceback
 from functools import wraps
 
-from django.utils.decorators import available_attrs
 from gcloud.contrib.operate_record.core import Record
 from gcloud.contrib.operate_record.constants import OperateSource
 
@@ -32,7 +31,7 @@ def record_operation(record_type, action, source=OperateSource.app.name):
     """
 
     def wrapper(func):
-        @wraps(func, assigned=available_attrs(func))
+        @wraps(func)
         def decorator(*args, **kwargs):
             result = func(*args, **kwargs)
             try:

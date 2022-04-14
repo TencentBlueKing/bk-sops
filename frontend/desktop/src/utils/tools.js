@@ -148,6 +148,12 @@ const tools = {
             timeStr = '--'
         }
         return timeStr
+    },
+    escapeRegExp (str) {
+        if (typeof str !== 'string') {
+            return ''
+        }
+        return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')
     }
 }
 

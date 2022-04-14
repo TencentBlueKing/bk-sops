@@ -15,7 +15,6 @@ import logging
 from functools import wraps
 from abc import ABCMeta, abstractmethod
 
-from django.utils.decorators import available_attrs
 
 logger = logging.getLogger("root")
 
@@ -33,7 +32,7 @@ def iam_intercept(interceptor):
         raise TypeError("interceptor's class must be subclass of {}".format(base_class))
 
     def decorator(view_func):
-        @wraps(view_func, assigned=available_attrs(view_func))
+        @wraps(view_func)
         def _wrapped_view(request, *args, **kwargs):
 
             interceptor.process(request, *args, **kwargs)

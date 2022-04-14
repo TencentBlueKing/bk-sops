@@ -299,8 +299,8 @@
                         }
                     }
                     const respData = await this.loadTemplateList(params)
-                    const list = respData.objects
-                    this.totalPage = Math.floor(respData.meta.total_count / limit)
+                    const list = respData.results
+                    this.totalPage = Math.floor(respData.count / limit)
                     if (selectedTplType === 'businessProcess') {
                         this.templateList = this.templateList.concat(list)
                     } else {

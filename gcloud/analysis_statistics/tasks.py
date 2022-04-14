@@ -13,11 +13,13 @@ specific language governing permissions and limitations under the License.
 
 
 import logging
-import ujson as json
 from copy import deepcopy
-
-from celery import task
 from datetime import datetime
+
+import ujson as json
+from celery import task
+from celery.task import periodic_task
+from celery.schedules import crontab
 from bamboo_engine import api as bamboo_engine_api
 
 from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
@@ -30,11 +32,15 @@ from pipeline.engine.utils import calculate_elapsed_time
 from pipeline.eri.runtime import BambooDjangoRuntime
 
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.common_template.models import CommonTemplate
+from gcloud.analysis_statistics import variable
 from gcloud.analysis_statistics.models import (
     TaskflowStatistics,
     TemplateNodeStatistics,
     TemplateStatistics,
     TaskflowExecutedNodeStatistics,
+    TemplateVariableStatistics,
+    TemplateCustomVariableSummary,
 )
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.domains.dispatchers.task import TaskCommandDispatcher
@@ -332,3 +338,66 @@ def pipeline_archive_statistics_task(instance_id):
         )
         return False
     return True
+
+
+@task
+@periodic_task(run_every=crontab(hour="0"))
+def backfill_template_variable_statistics_task():
+    custom_variables_records = {}
+
+    # process common template
+    common_templates = CommonTemplate.objects.all()
+    common_templates_counts = CommonTemplate.objects.all().count()
+    for i, template in enumerate(common_templates, 1):
+        logger.info(
+            "[backfill_template_variable_statistics_task] process {}/{} common template".format(
+                i, common_templates_counts
+            )
+        )
+        if template.is_deleted:
+            TemplateVariableStatistics.objects.filter(project_id=-1, template_id=template.id).delete()
+        else:
+            try:
+                custom_constants_types = variable.update_statistics(
+                    project_id=-1, template_id=template.id, pipeline_tree=template.pipeline_tree
+                )
+            except Exception:
+                logger.exception(
+                    "[backfill_template_variable_statistics_task]backfill common template {} failed".format(template.id)
+                )
+            else:
+                for t in custom_constants_types:
+                    custom_variables_records.setdefault(t, {"common": 0, "project": 0})["common"] += 1
+
+    # process task template
+    task_templates = TaskTemplate.objects.all()
+    task_templates_counts = TaskTemplate.objects.all().count()
+    for i, template in enumerate(task_templates, 1):
+        logger.info(
+            "[backfill_template_variable_statistics_task] process {}/{} task template".format(i, task_templates_counts)
+        )
+        if template.is_deleted:
+            TemplateVariableStatistics.objects.filter(project_id=template.project_id, template_id=template.id).delete()
+        else:
+            try:
+                custom_constants_types = variable.update_statistics(
+                    project_id=template.project_id, template_id=template.id, pipeline_tree=template.pipeline_tree
+                )
+            except Exception:
+                logger.exception(
+                    "[backfill_template_variable_statistics_task]backfill task template {} failed".format(template.id)
+                )
+            else:
+                for t in custom_constants_types:
+                    custom_variables_records.setdefault(t, {"common": 0, "project": 0})["project"] += 1
+
+    # save summary
+    TemplateCustomVariableSummary.objects.all().delete()
+    summarys = [
+        TemplateCustomVariableSummary(
+            variable_type=t, task_template_refs=counts["project"], common_template_refs=counts["common"]
+        )
+        for t, counts in custom_variables_records.items()
+    ]
+    if summarys:
+        TemplateCustomVariableSummary.objects.bulk_create(summarys, batch_size=100)

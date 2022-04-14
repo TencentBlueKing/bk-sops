@@ -144,6 +144,9 @@ MIDDLEWARE += (
     "gcloud.core.middlewares.AppMetricsAfterMiddleware",
 )
 
+# 默认数据库AUTO字段类型
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = ()
 if env.BKAPP_CORS_ALLOW:
@@ -336,9 +339,6 @@ BK_USER_MANAGE_HOST = env.BK_USER_MANAGE_HOST
 
 # 人员选择数据来源
 BK_MEMBER_SELECTOR_DATA_HOST = env.BK_MEMBER_SELECTOR_DATA_HOST
-
-# tastypie 配置
-TASTYPIE_DEFAULT_FORMATS = ["json"]
 
 TEMPLATES[0]["OPTIONS"]["context_processors"] += ("gcloud.core.context_processors.mysetting",)
 
@@ -686,5 +686,8 @@ MAX_NODE_EXECUTE_TIMEOUT = 60 * 60 * 24
 # 蓝鲸插件开发地址
 BK_PLUGIN_DEVELOP_URL = env.BK_PLUGIN_DEVELOP_URL
 
-# 蓝鲸API网关
+# IAM APIGW 地址
 BK_IAM_APIGW_HOST = env.BK_IAM_APIGW_HOST
+
+# 节点日志持久化时间
+LOG_PERSISTENT_DAYS = env.BK_NODE_LOG_PERSISTENT_DAYS

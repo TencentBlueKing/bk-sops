@@ -10,13 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust
+from gcloud.apigw.decorators import mark_request_whether_is_trust, timezone_inject
 from gcloud.apigw.decorators import project_inject
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.apigw.views.utils import info_data_from_period_task
@@ -32,6 +30,7 @@ from packages.bkoauth.decorators import apigw_required
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
+@timezone_inject
 @iam_intercept(ProjectViewInterceptor())
 def get_periodic_task_list(request, project_id):
     project = request.project
@@ -39,7 +38,7 @@ def get_periodic_task_list(request, project_id):
     data = []
     task_id_list = []
     for task in task_list:
-        task_info = info_data_from_period_task(task, detail=False)
+        task_info = info_data_from_period_task(task, detail=False, tz=request.tz)
         task_id_list.append(task_info["id"])
         data.append(task_info)
     # 注入用户有权限的actions

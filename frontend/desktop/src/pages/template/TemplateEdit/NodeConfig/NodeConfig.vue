@@ -38,138 +38,97 @@
                         </i>
                         {{ $t('节点配置') }}
                     </span>
-                    <!-- 选择面板展开，并且标准插件或子流程不为空时，显示 -->
+                    <!-- 二级面包屑title，选择面板展开，并且标准插件或子流程不为空时显示 -->
                     <span
                         v-if="isSelectorPanelShow && (basicInfo.plugin || basicInfo.tpl)"
                         class="go-back">
                         <i class="common-icon-angle-right"></i>
                         {{ selectorTitle }}
                     </span>
-                    <div class="view-variable">
-                        <bk-popover
-                            v-if="!isSelectorPanelShow"
-                            :key="randomKey"
-                            ext-cls="variable-popover"
-                            placement="bottom-end"
-                            :tippy-options="{ hideOnClick: false }">
-                            <div style="cursor: pointer;">{{ $t('全局变量') }}</div>
-                            <div class="variable-list" slot="content">
-                                <div class="header-area">
-                                    <span>{{ $t('全局变量') }}</span>
-                                    <bk-link theme="primary" icon="bk-icon icon-plus" @click="openVariablePanel">{{ $t('新建变量') }}</bk-link>
+                    <!-- 展示选择面板是隐藏 -->
+                    <template v-if="!isSelectorPanelShow">
+                        <!-- 全局变量popover -->
+                        <div class="view-variable">
+                            <bk-popover
+                                v-if="!isSelectorPanelShow"
+                                :key="randomKey"
+                                ext-cls="variable-popover"
+                                placement="bottom-end"
+                                :tippy-options="{ hideOnClick: false }">
+                                <div style="cursor: pointer;">{{ $t('全局变量') }}</div>
+                                <div class="variable-list" slot="content">
+                                    <div class="header-area">
+                                        <span>{{ $t('全局变量') }}</span>
+                                        <bk-link theme="primary" icon="bk-icon icon-plus" @click="openVariablePanel">{{ $t('新建变量') }}</bk-link>
+                                    </div>
+                                    <bk-table :data="variableList" :outer-border="false" :max-height="400">
+                                        <bk-table-column :label="$t('名称')" prop="name" width="165" :show-overflow-tooltip="true"></bk-table-column>
+                                        <bk-table-column label="KEY" :show-overflow-tooltip="true" width="209">
+                                            <template slot-scope="props" width="165">
+                                                <div class="key">{{ props.row.key }}</div>
+                                                <i class="copy-icon common-icon-double-paper-2" @click="onCopyKey(props.row.key)"></i>
+                                            </template>
+                                        </bk-table-column>
+                                        <bk-table-column :label="$t('属性')" width="80">
+                                            <div class="icon-wrap" slot-scope="props">
+                                                <i
+                                                    :class="[props.row.source_type !== 'component_outputs' ? 'common-icon-show-left' : 'common-icon-show-right color-org']"
+                                                    v-bk-tooltips="{
+                                                        content: props.row.source_type !== 'component_outputs' ? $t('输入') : $t('输出'),
+                                                        placements: ['bottom']
+                                                    }">
+                                                </i>
+                                                <i
+                                                    :class="[props.row.show_type === 'show' ? 'common-icon-eye-show' : 'common-icon-eye-hide color-org']"
+                                                    v-bk-tooltips="{
+                                                        content: props.row.show_type === 'show' ? $t('显示') : $t('隐藏'),
+                                                        placements: ['bottom']
+                                                    }">
+                                                </i>
+                                            </div>
+                                        </bk-table-column>
+                                        <bk-table-column :label="$t('操作')" width="80">
+                                            <template slot-scope="props">
+                                                <bk-link
+                                                    :theme="props.row.source_type === 'system' ? 'default' : 'primary'"
+                                                    :disabled="props.row.source_type === 'system'"
+                                                    @click="openVariablePanel(props.row)">
+                                                    {{ $t('编辑') }}
+                                                </bk-link>
+                                            </template>
+                                        </bk-table-column>
+                                    </bk-table>
                                 </div>
-                                <bk-table :data="variableList" :outer-border="false" :max-height="400">
-                                    <bk-table-column :label="$t('名称')" prop="name" width="165" :show-overflow-tooltip="true"></bk-table-column>
-                                    <bk-table-column label="KEY" :show-overflow-tooltip="true" width="209">
-                                        <template slot-scope="props" width="165">
-                                            <div class="key">{{ props.row.key }}</div>
-                                            <i class="copy-icon common-icon-double-paper-2" @click="onCopyKey(props.row.key)"></i>
-                                        </template>
-                                    </bk-table-column>
-                                    <bk-table-column :label="$t('属性')" width="80">
-                                        <div class="icon-wrap" slot-scope="props">
-                                            <i
-                                                :class="[props.row.source_type !== 'component_outputs' ? 'common-icon-show-left' : 'common-icon-show-right color-org']"
-                                                v-bk-tooltips="{
-                                                    content: props.row.source_type !== 'component_outputs' ? $t('输入') : $t('输出'),
-                                                    placements: ['bottom']
-                                                }">
-                                            </i>
-                                            <i
-                                                :class="[props.row.show_type === 'show' ? 'common-icon-eye-show' : 'common-icon-eye-hide color-org']"
-                                                v-bk-tooltips="{
-                                                    content: props.row.show_type === 'show' ? $t('显示') : $t('隐藏'),
-                                                    placements: ['bottom']
-                                                }">
-                                            </i>
-                                        </div>
-                                    </bk-table-column>
-                                    <bk-table-column :label="$t('操作')" width="80">
-                                        <template slot-scope="props">
-                                            <bk-link
-                                                :theme="props.row.source_type === 'system' ? 'default' : 'primary'"
-                                                :disabled="props.row.source_type === 'system'"
-                                                @click="openVariablePanel(props.row)">
-                                                {{ $t('编辑') }}
-                                            </bk-link>
-                                        </template>
-                                    </bk-table-column>
-                                </bk-table>
-                            </div>
-                        </bk-popover>
-                    </div>
-                    <!-- 快捷操作按钮 -->
-                    <div class="quick-insert-btn" @click="handleQuickInsertPanel">
-                        {{ $t('模板生成器') }}
-                        <div
-                            class="quick-operate-panel"
-                            v-if="isQuickInsertPanelShow"
-                            v-bkloading="{ isLoading: isPanelLoading }"
-                            @click.stop>
-                            <div class="header-wrap">
-                                <span>{{ $t('选择操作') }}</span>
-                                <bk-select v-model="selectOperate" ext-popover-cls="operate-popover" @change="handleOperateChange">
-                                    <bk-option
-                                        v-for="(operate, index) in operationList"
-                                        :key="index"
-                                        :id="operate.name"
-                                        :name="operate.name">
-                                    </bk-option>
-                                </bk-select>
-                            </div>
-                            <div class="operate-wrap" @click="isShowErrorMsg = false">
-                                <div
-                                    class="template-item"
-                                    v-for="(template, index) in selectOperateInfo.template"
-                                    :key="index">
-                                    <template v-if="selectOperateInfo.operators[template]">
-                                        <bk-select
-                                            v-model="selectOperateInfo.operators[template].value"
-                                            ext-popover-cls="variable-field-popover"
-                                            @change="handleVarFieldChange">
-                                            <bk-option
-                                                v-for="(field, fieldIndex) in varFiledList"
-                                                :key="fieldIndex"
-                                                :id="field.key"
-                                                :name="field.key + $t('（') + field.description + $t('）')">
-                                            </bk-option>
-                                        </bk-select>
-                                    </template>
-                                    <template v-else-if="selectOperateInfo.params[template]">
-                                        <bk-input v-model="selectOperateInfo.params[template].value"></bk-input>
-                                    </template>
-                                    <template v-else>
-                                        <span>{{ template }}</span>
-                                    </template>
-                                </div>
-                            </div>
-                            <p v-if="isShowErrorMsg" class="error-msg">{{ $t('请填写完整参数') }}</p>
-                            <div class="btn-wrap">
-                                <bk-button class="mr5" theme="primary" @click="onGenerateMakoTemp">{{ $t('生成并复制代码') }}</bk-button>
-                                <bk-button @click="onResetMakoTemp">{{ $t('重置') }}</bk-button>
-                            </div>
-                            <div class="render-wrap">{{ makoTemplate }}</div>
+                            </bk-popover>
                         </div>
-                    </div>
+                        <!-- 快捷操作按钮 -->
+                        <div class="quick-insert-btn" @click="quickOperateVariableVisable = true">
+                            {{ $t('变量快捷处理') }}
+                            <quick-operate-variable
+                                v-if="quickOperateVariableVisable"
+                                :variable-list="variableList"
+                                @closePanel="quickOperateVariableVisable = false">
+                            </quick-operate-variable>
+                        </div>
+                    </template>
                 </template>
             </div>
             <template slot="content">
                 <!-- 插件/子流程选择面板 -->
-                <selector-panel
+                <select-panel
                     v-if="isSelectorPanelShow"
                     :project_id="project_id"
                     :template-labels="templateLabels"
-                    :is-subflow="isSubflow"
+                    :node-config="nodeConfig"
                     :atom-type-list="atomTypeList"
                     :basic-info="basicInfo"
                     :common="common"
                     :is-third-party="isThirdParty"
                     :plugin-loading="pluginLoading"
-                    @updatePluginList="updatePluginList"
                     @back="isSelectorPanelShow = false"
                     @viewSubflow="onViewSubflow"
                     @select="onPluginOrTplChange">
-                </selector-panel>
+                </select-panel>
                 <!-- 变量编辑面板 -->
                 <div v-else-if="isVariablePanelShow" class="variable-edit-panel">
                     <variable-edit
@@ -313,8 +272,9 @@
     import BasicInfo from './BasicInfo.vue'
     import InputParams from './InputParams.vue'
     import OutputParams from './OutputParams.vue'
-    import SelectorPanel from './SelectorPanel.vue'
+    import SelectPanel from './SelectPanel/index.vue'
     import VariableEdit from '../TemplateSetting/TabGlobalVariables/VariableEdit.vue'
+    import QuickOperateVariable from '../../common/QuickOperateVariable.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import bus from '@/utils/bus.js'
     import permission from '@/mixins/permission.js'
@@ -324,9 +284,10 @@
             BasicInfo,
             InputParams,
             OutputParams,
-            SelectorPanel,
+            SelectPanel,
             VariableEdit,
-            NoData
+            NoData,
+            QuickOperateVariable
         },
         mixins: [permission],
         props: {
@@ -362,20 +323,12 @@
                 subflowForms: {}, // 子流程输入参数
                 formsNotReferred: {}, // 未被子流程引用的全局变量
                 isSelectorPanelShow: false, // 是否显示选择插件(子流程)面板
-                isQuickInsertPanelShow: false, // 是否显示快捷插入面板
-                isPanelLoading: false,
-                selectOperate: '',
-                operationList: [],
-                selectOperateInfo: {},
-                globalVarFiled: [],
-                varFiledList: [],
-                isShowErrorMsg: false,
-                makoTemplate: '',
                 isVariablePanelShow: false, // 是否显示变量编辑面板
                 variableData: {}, // 当前编辑的变量
                 localConstants: {}, // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
                 randomKey: new Date().getTime(), // 输入、输出参数勾选状态改变时更新popover
-                isThirdParty: false // 是否为第三方插件
+                isThirdParty: false, // 是否为第三方插件
+                quickOperateVariableVisable: false
             }
         },
         computed: {
@@ -406,6 +359,10 @@
             },
             selectorTitle () {
                 return this.isSubflow ? i18n.t('选择子流程') : i18n.t('选择标准插件')
+            },
+            // 子流程节点是否为公共流程
+            isCommonTpl () {
+                return this.common || this.nodeConfig.template_source === 'common'
             }
         },
         watch: {
@@ -418,15 +375,6 @@
                     Promise.resolve(this.getNodeBasic(this.nodeConfig)).then(res => {
                         this.basicInfo = res
                     })
-                }
-            },
-            isQuickInsertPanelShow (val) {
-                if (val) {
-                    window.addEventListener('mouseup', this.handleClickOutside)
-                } else {
-                    this.selectOperate = ''
-                    this.onResetMakoTemp()
-                    window.removeEventListener('mouseup', this.handleClickOutside)
                 }
             }
         },
@@ -492,9 +440,7 @@
                 'loadPluginServiceAppDetail'
             ]),
             ...mapActions('template/', [
-                'loadTemplateData',
-                'getMakoOperations',
-                'getVariableFieldExplain'
+                'loadTemplateData'
             ]),
             ...mapActions('task', [
                 'loadSubflowConfig'
@@ -507,7 +453,7 @@
                 'setOutputs'
             ]),
             async initDefaultData () {
-                const nodeConfig = this.activities[this.nodeId]
+                const nodeConfig = tools.deepClone(this.activities[this.nodeId])
                 const isThirdParty = nodeConfig.component && nodeConfig.component.code === 'remote_plugin'
                 if (nodeConfig.type === 'ServiceActivity') {
                     await this.setThirdPartyList(nodeConfig)
@@ -624,7 +570,7 @@
              */
             async getAtomConfig (config) {
                 const { plugin, version, classify, name, isThird } = config
-                const project_id = this.common ? undefined : this.project_id
+                const project_id = this.isCommonTpl ? undefined : this.project_id
                 try {
                     // 先取标准节点缓存的数据
                     const pluginGroup = this.pluginConfigs[plugin]
@@ -688,7 +634,7 @@
                         scheme_id_list: this.basicInfo.schemeIdList,
                         version
                     }
-                    if (this.common) {
+                    if (this.isCommonTpl) {
                         params.template_source = 'common'
                     } else {
                         params.project_id = this.project_id
@@ -782,13 +728,8 @@
                         if (component.code === 'remote_plugin') {
                             const atom = this.$parent.thirdPartyList[this.nodeId]
                             code = component.data.plugin_code.value
-                            const pluginInfo = this.atomTypeList.pluginList.find(item => item.code === code)
-                            if (pluginInfo) {
-                                basicInfoName = pluginInfo.name
-                            } else {
-                                const resp = await this.loadPluginServiceAppDetail({ plugin_code: code })
-                                basicInfoName = resp.data.name
-                            }
+                            const resp = await this.loadPluginServiceAppDetail({ plugin_code: code })
+                            basicInfoName = resp.data.name
                             version = atom.version
                             desc = atom.desc
                         } else {
@@ -831,7 +772,7 @@
                         if (subflowInfo) {
                             templateName = subflowInfo.name
                         } else {
-                            const templateData = await this.loadTemplateData({ templateId: template_id, common: this.common })
+                            const templateData = await this.loadTemplateData({ templateId: template_id, common: this.common || config.template_source === 'common' })
                             templateName = templateData.name
                         }
                     }
@@ -936,9 +877,9 @@
 
             // 标准插件（子流程）选择面板切换插件（子流程）
             // isThirdParty 是否为第三方插件
-            onPluginOrTplChange (val, isThirdParty = false) {
+            onPluginOrTplChange (val) {
                 this.isSelectorPanelShow = false
-                this.isThirdParty = isThirdParty
+                this.isThirdParty = val.id === 'remote_plugin'
                 this.clearParamsSourceInfo()
                 if (this.isSubflow) {
                     this.tplChange(val)
@@ -1030,6 +971,11 @@
                     schemeIdList: []
                 }
                 this.updateBasicInfo(config)
+                if ('project' in data && typeof data.project.id === 'number') {
+                    this.$set(this.nodeConfig, 'template_source', 'business')
+                } else {
+                    this.$set(this.nodeConfig, 'template_source', 'common')
+                }
                 await this.getSubflowDetail(id, version)
                 this.inputs = await this.getSubflowInputsConfig()
                 this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms)
@@ -1156,13 +1102,10 @@
                     }
                 }
             },
-            updatePluginList (val, type) {
-                this.$emit('updatePluginList', val, type)
-            },
             // 查看子流程模板
             onViewSubflow (id) {
                 let pathData = {}
-                if (this.common) {
+                if (this.isCommonTpl) {
                     pathData = {
                         name: 'commonTemplatePanel',
                         params: {
@@ -1500,150 +1443,6 @@
             },
             onClosePanel (openVariablePanel) {
                 this.$emit('close', openVariablePanel)
-            },
-            // 初始化快捷操作面板
-            async handleQuickInsertPanel () {
-                try {
-                    this.isQuickInsertPanelShow = true
-                    this.isPanelLoading = true
-                    const [resp1, resp2] = await Promise.all([this.getMakoOperations(), this.getVariableFieldExplain()])
-                    // 处理操作
-                    const { operations } = resp1.data
-                    if (operations && operations.length) {
-                        this.operationList = operations
-                        if (!this.selectOperate) {
-                            this.selectOperate = operations[0].name
-                        }
-                    }
-                    // 处理变量
-                    const { variable_field_explain: varFiledExplain } = resp2.data
-                    if (varFiledExplain && varFiledExplain.length) {
-                        const list = varFiledExplain.reduce((acc, cur) => {
-                            this.variableList.forEach(item => {
-                                if (item.source_tag === cur.tag) {
-                                    const listData = []
-                                    cur.fields.forEach(field => {
-                                        const varKey = item.key.replace(/^\$\{([^\}]*)\}$/, ($, $1) => $1)
-                                        let description = field.description
-                                        if (item.key in this.internalVariable && item.source_type !== 'system') {
-                                            description = item.desc
-                                        }
-                                        listData.push({
-                                            key: field.key.replace('KEY', varKey),
-                                            type: field.type,
-                                            description
-                                        })
-                                    })
-                                    acc.push(...listData)
-                                }
-                            })
-                            return acc
-                        }, []) || []
-                        this.globalVarFiled = list
-                    }
-                } catch (error) {
-                    console.warn(error)
-                } finally {
-                    this.isPanelLoading = false
-                }
-            },
-            // 切换操作方式
-            handleOperateChange (val) {
-                this.makoTemplate = ''
-                let info = this.operationList.find(item => item.name === this.selectOperate)
-                let operateVarList = []
-                if (info) {
-                    // 处理操作模板
-                    info = tools.deepClone(info)
-                    let tempStr = ''
-                    info.template.forEach((item, index) => {
-                        if (/\{[^\}]*\}$/.test(item) || index === info.template.length - 1) {
-                            tempStr += item
-                        } else {
-                            tempStr += item + i18n.t('，')
-                        }
-                    })
-                    info.template = tempStr.split(/\{|\}/g)
-                    // 重新定义params和operators数据格式
-                    info.params = info.params.reduce((acc, cur) => {
-                        acc[cur.name] = {
-                            value: '',
-                            type: cur.type
-                        }
-                        return acc
-                    }, {})
-                    info.operators = info.operators.reduce((acc, cur) => {
-                        acc[cur.name] = {
-                            value: '',
-                            type: cur.type
-                        }
-                        return acc
-                    }, {})
-                    // 重置可操作的变量列表
-                    let typeList = new Set()
-                    Object.values(info.operators).forEach(operator => {
-                        typeList.add(operator.type)
-                    })
-                    typeList = [...typeList]
-                    operateVarList = this.globalVarFiled.filter(item => typeList.includes(item.type))
-                }
-                this.selectOperateInfo = info || {}
-                this.varFiledList = operateVarList || []
-                this.onResetMakoTemp()
-            },
-            // 切换需要操作的变量
-            handleVarFieldChange () {
-                const { params } = this.selectOperateInfo
-                Object.values(params).forEach(item => {
-                    item.value = ''
-                })
-                this.makoTemplate = ''
-            },
-            // 生成mako模板
-            onGenerateMakoTemp () {
-                let { params, operators, mako_template: makoTemplate } = this.selectOperateInfo
-                params = tools.deepClone(params)
-                operators = tools.deepClone(operators)
-                let isValidateFail = false
-                const replaceObj = Object.assign({}, params, operators)
-                const replaceArr = Object.keys(replaceObj).reduce((acc, key) => {
-                    const values = replaceObj[key]
-                    acc.push({
-                        name: key,
-                        value: values.value.replace(/^\$\{([^\}]*)\}$/, ($, $1) => $1)
-                    })
-                    if (!values.value) {
-                        isValidateFail = true
-                    }
-                    return acc
-                }, [])
-                if (isValidateFail) {
-                    this.isShowErrorMsg = true
-                    return
-                }
-                replaceArr.forEach(item => {
-                    makoTemplate = makoTemplate.replace(`{${item.name}}`, item.value)
-                })
-                this.makoTemplate = makoTemplate
-                this.onCopyKey(makoTemplate)
-            },
-            // 重置mako模板
-            onResetMakoTemp () {
-                Object.values(this.selectOperateInfo.operators).forEach(item => {
-                    item.value = ''
-                })
-                this.handleVarFieldChange()
-            },
-            // 操作快捷框关闭判断
-            handleClickOutside (e) {
-                const panelDom = document.querySelector('.quick-operate-panel')
-                const operateDom = document.querySelector('.operate-popover')
-                const varFieldDom = document.querySelector('.variable-field-popover')
-                if ((!panelDom || !panelDom.contains(e.target))
-                    && (!operateDom || !operateDom.contains(e.target))
-                    && (!varFieldDom || !varFieldDom.contains(e.target))) {
-                    this.isQuickInsertPanelShow = false
-                }
             }
         }
     }
@@ -1745,72 +1544,6 @@
     .variable-edit-panel {
         height: calc(100vh - 60px);
         overflow: hidden;
-    }
-}
-.quick-operate-panel {
-    position: absolute !important;
-    top: 45px;
-    right: 0px;
-    width: 506px;
-    padding: 16px;
-    background: #fff;
-    z-index: 20;
-    border: 1px solid #eaedf2;
-    box-shadow: 0px 2px 6px 0px rgba(101,101,101,0.10);
-    cursor: default;
-    .tippy-tooltip {
-        padding: 16px;
-        color: #666666;
-        font-size: 14px;
-    }
-    .header-wrap {
-        display: flex;
-        align-items: center;
-        padding-bottom: 16px;
-        border-bottom: 1px solid #dcdee5;
-        .bk-select {
-            flex: 1;
-            margin-left: 8px;
-        }
-    }
-    .operate-wrap {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        margin: 5px 0 25px;
-        .template-item {
-            display: flex;
-            align-items: center;
-            margin-top: 10px;
-            & > span {
-                flex-shrink: 0;
-            }
-            .bk-select {
-                width: 300px;
-                margin: 0 5px;
-            }
-            .bk-form-control {
-                width: 100px;
-                margin: 0 5px;
-            }
-        }
-    }
-    .error-msg {
-        margin-bottom: 8px;
-        font-size: 12px;
-        color: #ff5757;
-    }
-    .render-wrap {
-        width: 474px;
-        height: 192px;
-        padding: 9px 15px;
-        margin-top: 8px;
-        color: #979ba5;
-        background: #f0f1f5;
-        border-radius: 4px;
-        overflow-y: auto;
-        @include scrollbar;
     }
 }
 </style>

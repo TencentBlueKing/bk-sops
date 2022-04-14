@@ -28,9 +28,9 @@ from gcloud.external_plugins import exceptions
 from gcloud.external_plugins.models import source_cls_factory, CachePackageSource
 from gcloud.external_plugins.schemas import ADD_SOURCE_SCHEMA, UPDATE_SOURCE_SCHEMA
 
-from .base import GcloudCommonMixin
-from ..permission import IamPermissionInfo, IamPermission, HAS_OBJECT_PERMISSION
-from ..serilaziers import PackageSourceSerializer
+from gcloud.core.apis.drf.viewsets.base import GcloudCommonMixin
+from gcloud.core.apis.drf.permission import IamPermissionInfo, IamPermission, HAS_OBJECT_PERMISSION
+from gcloud.core.apis.drf.serilaziers import PackageSourceSerializer
 
 logger = logging.getLogger("root")
 

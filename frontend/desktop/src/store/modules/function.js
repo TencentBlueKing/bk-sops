@@ -18,7 +18,7 @@ const functionTask = {
             const querystring = Object.assign({}, data)
             return axios.get('api/v3/function_task/', {
                 params: querystring
-            }).then(response => response.data)
+            }).then(response => response.data.data)
         },
         transferFunctionTask ({ commit }, params) {
             return axios.post('function/api/function_task_claimant_transfer/', params).then(response => response.data)

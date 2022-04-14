@@ -431,9 +431,13 @@
                 this.subflowLoading = true
                 try {
                     const data = {
-                        project_id: this.project_id,
                         template_id: this.basicInfo.tpl,
                         scheme_id_list: this.basicInfo.schemeIdList
+                    }
+                    if (this.common || this.nodeConfig.template_source === 'common') {
+                        data.template_source = 'common'
+                    } else {
+                        data.project_id = this.project_id
                     }
                     const resp = await this.loadSubflowConfig(data)
                     this.version = resp.data.version
@@ -461,7 +465,7 @@
                     const data = {
                         project_id: this.projectId,
                         template_id: this.basicInfo.tpl,
-                        isCommon: this.common
+                        isCommon: this.common || this.nodeConfig.template_source === 'common'
                     }
                     this.schemeList = await this.loadTaskScheme(data)
                     this.schemeListLoading = false

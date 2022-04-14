@@ -17,3 +17,13 @@ def iam_based_object_list_filter(data, need_actions):
         filter(lambda bundle: set(need_actions).issubset(set(bundle.data["auth_actions"])), data["objects"])
     )
     return data
+
+
+def iam_based_obj_list_filter(data, need_actions):
+    if isinstance(data, dict):
+        data["results"] = list(
+            filter(lambda obj: set(need_actions).issubset(set(obj["auth_actions"])), data["results"])
+        )
+    else:
+        data = list(filter(lambda obj: set(need_actions).issubset(set(obj["auth_actions"])), data))
+    return data

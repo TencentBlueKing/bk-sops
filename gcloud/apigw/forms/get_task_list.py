@@ -18,3 +18,4 @@ class GetTaskListForm(forms.Form):
     is_started = forms.BooleanField(required=False)
     is_finished = forms.BooleanField(required=False)
     keyword = forms.CharField(required=False)
+    executor = forms.CharField(required=False)

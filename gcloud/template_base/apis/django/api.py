@@ -22,7 +22,6 @@ from functools import wraps
 import yaml
 from django.db.models import Model
 from django.http import JsonResponse, HttpResponse
-from django.utils.decorators import available_attrs
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
@@ -116,7 +115,7 @@ def base_check_before_import(request: Request, template_model_cls: object, impor
 
 def is_full_param_process(template_model_cls: object, project_related: bool):
     def decorator(view_func):
-        @wraps(view_func, assigned=available_attrs(view_func))
+        @wraps(view_func)
         def wrapped_view(request, *args, **kwargs):
             if request.data["is_full"]:
                 template_filters = {"is_deleted": False}
@@ -267,6 +266,7 @@ def import_yaml_templates(request: Request):
         "template_type(required)": "导入流程类型：project/common",
         "project_id": "项目ID(当template_type=project时必填)",
         "override_mappings": "文件中流程id和所要替换的流程id的映射关系(dict)",
+        "refer_mappings": "文件中流程id和所要引用的流程id的映射关系(dict)",
         "template_kwargs": "流程需要的其他创建参数(dict)"
     }
 
@@ -284,6 +284,7 @@ def import_yaml_templates(request: Request):
     """
     f = request.data.get("data_file")
     override_mappings = request.data.get("override_mappings") or {}
+    refer_mappings = request.data.get("refer_mappings") or {}
     template_type = request.data.get("template_type")
     project_id = request.data.get("project_id")
     template_kwargs = request.data.get("template_kwargs") or {}
@@ -318,6 +319,7 @@ def import_yaml_templates(request: Request):
                 "description": templates[template_id]["description"],
                 "pipeline_tree": templates[template_id]["tree"],
                 "override_template_id": override_mappings.get(template_id),
+                "refer_template_id": refer_mappings.get(template_id),
                 "template_kwargs": template_kwargs,
                 "id": template_id,
             }

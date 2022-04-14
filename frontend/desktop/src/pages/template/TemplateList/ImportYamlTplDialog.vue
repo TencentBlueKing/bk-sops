@@ -9,6 +9,7 @@
         :value="isShow"
         @cancel="onCloseDialog">
         <div class="import-dialog-content">
+            <!-- 上传区域 -->
             <div v-if="!file || !importData" class="upload-file-area">
                 <bk-upload
                     accept=".yaml,.yml"
@@ -43,48 +44,115 @@
                 </bk-alert>
                 <div class="table-title">
                     <span>{{ $t('文件解析流程') + $t('（') }}{{ ('file' in importData.error) ? 0 : importData.yaml_docs.length }}{{ $t('）') }}</span>
-                    <bk-pagination
-                        v-if="pagination.count > 5"
-                        small
-                        :current="pagination.current"
-                        :count="pagination.count"
-                        :limit-list="[5]"
-                        :limit="5"
-                        :show-limit="false"
-                        @change="onPageChange">
-                    </bk-pagination>
                 </div>
-                <bk-table :data="tableList" :key="Math.random()">
+                <p class="tpl-type-title">{{ $t('顶层流程（n）', { n: topFlowList.length }) }}</p>
+                <bk-table :data="topFlowTableList" :key="Math.random()">
                     <bk-table-column :label="$t('流程名称')" show-overflow-tooltip>
                         <template slot-scope="props">
                             {{ props.row.meta.name }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="$t('父流程')" show-overflow-tooltip>
+                    <bk-table-column :label="$t('是否覆盖已有流程')" :width="400">
                         <template slot-scope="props">
-                            {{ importData.relations[props.row.meta.id] ? importData.relations[props.row.meta.id].map(item => item.name).join(',') : '--' }}
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column :label="$t('是否覆盖已有流程')">
-                        <template slot-scope="props">
-                            <bk-select
-                                :placeholder="$t('请选择需要覆盖的流程')"
-                                :loading="tplLoading"
-                                :searchable="true"
-                                :value="overriders[props.row.meta.id]"
-                                @clear="onClearOverrideTpl(props.row.meta.id)"
-                                @selected="onSelectOverrideTpl(props.row.meta.id, $event)">
-                                <bk-option
-                                    v-for="item in templateList"
-                                    :key="item.id"
-                                    :id="item.id"
-                                    :name="item.name">
-                                    {{ item.name }}
-                                </bk-option>
-                            </bk-select>
+                            <div class="tpl-overrider-select">
+                                <bk-select
+                                    style="width: 180px;"
+                                    :clearable="false"
+                                    :value="(props.row.meta.id in overriders) ? 'overrider' : 'noOverrider'"
+                                    @change="handleTopFlowOverriver($event, props.row.meta.id)">
+                                    <bk-option id="noOverrider" :name="$t('不覆盖，新建流程')"></bk-option>
+                                    <bk-option id="overrider" :name="$t('覆盖已有流程')"></bk-option>
+                                </bk-select>
+                                <bk-select
+                                    v-if="props.row.meta.id in overriders"
+                                    style="width: 180px; margin-left: 8px;"
+                                    :placeholder="$t('请选择需要覆盖的流程')"
+                                    :loading="tplLoading"
+                                    :searchable="true"
+                                    :value="overriders[props.row.meta.id]"
+                                    @clear="overriders[props.row.meta.id] = ''"
+                                    @selected="overriders[props.row.meta.id] = $event">
+                                    <bk-option
+                                        v-for="item in templateList"
+                                        :key="item.id"
+                                        :id="item.id"
+                                        :name="item.name">
+                                        {{ item.name }}
+                                    </bk-option>
+                                </bk-select>
+                            </div>
                         </template>
                     </bk-table-column>
                 </bk-table>
+                <bk-pagination
+                    v-if="topFlowPagination.count > 5"
+                    small
+                    align="right"
+                    :current="topFlowPagination.current"
+                    :count="topFlowPagination.count"
+                    :limit-list="[5]"
+                    :limit="5"
+                    :show-limit="false"
+                    @change="onPageChange">
+                </bk-pagination>
+                <template v-if="subFlowList.length > 0">
+                    <p class="tpl-type-title">{{ $t('子流程（n）', { n: subFlowList.length }) }}</p>
+                    <bk-table :data="subFlowTableList" :key="Math.random()">
+                        <bk-table-column :label="$t('流程名称')" show-overflow-tooltip>
+                            <template slot-scope="props">
+                                {{ props.row.meta.name }}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('父流程')" show-overflow-tooltip>
+                            <template slot-scope="props">
+                                {{ importData.relations[props.row.meta.id] ? importData.relations[props.row.meta.id].map(item => item.name).join(',') : '--' }}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('是否导入子流程（仅适用于同环境导入）')" :width="400">
+                            <template slot-scope="props">
+                                <div class="tpl-overrider-select">
+                                    <bk-select
+                                        style="width: 180px;"
+                                        :value="getSubflowRefer(props.row.meta.id)"
+                                        :clearable="false"
+                                        @change="handleSubFlowReferChange($event, props.row.meta.id)">
+                                        <bk-option id="useExisting" :name="$t('不导入，使用已有流程')"></bk-option>
+                                        <bk-option id="noOverrider" :name="$t('不覆盖，新建流程')"></bk-option>
+                                        <bk-option id="overrider" :name="$t('覆盖已有流程')"></bk-option>
+                                    </bk-select>
+                                    <bk-select
+                                        v-if="(props.row.meta.id in overriders) || (props.row.meta.id in reference)"
+                                        style="width: 180px; margin-left: 8px;"
+                                        :placeholder="props.row.meta.id in overriders ? $t('请选择需要覆盖的流程') : $t('请选择需要使用的流程')"
+                                        :loading="tplLoading"
+                                        :searchable="true"
+                                        :value="overriders[props.row.meta.id]"
+                                        @clear="onClearRefer(props.row.meta.id)"
+                                        @selected="onSelectRefer(props.row.meta.id, $event)">
+                                        <bk-option
+                                            v-for="item in templateList"
+                                            :key="item.id"
+                                            :id="item.id"
+                                            :name="item.name">
+                                            {{ item.name }}
+                                        </bk-option>
+                                    </bk-select>
+                                </div>
+                            </template>
+                        </bk-table-column>
+                    </bk-table>
+                    <bk-pagination
+                        v-if="subFlowPagination.count > 5"
+                        small
+                        align="right"
+                        :current="subFlowPagination.current"
+                        :count="subFlowPagination.count"
+                        :limit-list="[5]"
+                        :limit="5"
+                        :show-limit="false"
+                        @change="onPageChange">
+                    </bk-pagination>
+                </template>
                 <div class="check-msg-title" id="checkMsgTitle">{{ $t('合法性检测结果') }}</div>
                 <div class="check-msg">
                     <template v-if="!errorMsg">{{ $t('合法性检查通过。') }}</template>
@@ -135,24 +203,33 @@
                 file: null,
                 importData: null,
                 checkResult: false,
+                topFlowList: [], // 顶层流程
+                subFlowList: [], // 子流程
                 templateList: [],
-                overriders: {},
+                overriders: {}, // 配置覆盖的流程
+                reference: {}, // 配置引用的流程
                 errorMsg: null,
                 checkPending: false,
                 importPending: false,
                 tplLoading: false,
-                pagination: {
+                topFlowPagination: {
+                    current: 1,
+                    count: 0
+                },
+                subFlowPagination: {
                     current: 1,
                     count: 0
                 }
             }
         },
         computed: {
-            tableList () {
-                if (this.importData && this.importData.yaml_docs && !('file' in this.importData.error)) {
-                    return this.importData.yaml_docs.slice((this.pagination.current - 1) * 5, this.pagination.current * 5)
-                }
-                return []
+            // 顶层流程
+            topFlowTableList () {
+                return this.topFlowList.slice((this.topFlowPagination.current - 1) * 5, this.topFlowPagination.current * 5)
+            },
+            // 子流程
+            subFlowTableList () {
+                return this.subFlowList.slice((this.subFlowPagination.current - 1) * 5, this.subFlowPagination.current * 5)
             }
         },
         methods: {
@@ -171,9 +248,20 @@
                     this.checkResult = res.result ? (typeof res.data.error === 'string' ? res.data.error === '' : Object.keys(res.data.error).length === 0) : false
                     if (res.result) {
                         this.importData = res.data
-                        this.pagination.current = 1
-                        this.pagination.count = ('file' in res.data.error) ? 0 : res.data.yaml_docs.length
+                        this.topFlowList = res.data.yaml_docs.filter(item => !(item.meta.id in res.data.relations))
                         this.overriders = {}
+                        this.topFlowPagination = {
+                            current: 1,
+                            count: ('file' in res.data.error) ? 0 : this.topFlowList.length
+                        }
+                        this.subFlowList = res.data.yaml_docs.filter(item => item.meta.id in res.data.relations)
+                        this.subFlowList.forEach(tpl => {
+                            this.$set(this.reference, tpl.meta.id, '')
+                        })
+                        this.subFlowPagination = {
+                            current: 1,
+                            count: ('file' in res.data.error) ? 0 : this.subFlowList.length
+                        }
                         this.errorMsg = this.handleErrorMsg(res.data)
                         this.getTemplateData()
                     } else {
@@ -200,7 +288,7 @@
                         data.project__id = this.project_id
                     }
                     const respData = await this.loadTemplateList(data)
-                    this.templateList = respData.objects
+                    this.templateList = respData.results
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -230,18 +318,60 @@
                 }
             },
             onPageChange (val) {
-                this.pagination.current = val
+                this.topFlowPagination.current = val
             },
-            onSelectOverrideTpl (tpl, id) {
-                this.$set(this.overriders, tpl, id)
+            // 切换顶层流程覆盖选项
+            handleTopFlowOverriver (val, tpl) {
+                if (val === 'overrider') {
+                    this.$set(this.overriders, tpl, '')
+                } else {
+                    this.$delete(this.overriders, tpl)
+                }
             },
-            onClearOverrideTpl (tpl) {
-                this.$delete(this.overriders, tpl)
+            getSubflowRefer (tpl) {
+                if (tpl in this.overriders) {
+                    return 'overrider'
+                }
+                if (tpl in this.reference) {
+                    return 'useExisting'
+                }
+                return 'noOverrider'
+            },
+            // 切换子流程导入规则
+            handleSubFlowReferChange (val, tpl) {
+                if (val === 'overrider') {
+                    this.$set(this.overriders, tpl, '')
+                    this.$delete(this.reference, tpl)
+                } else if (val === 'noOverrider') {
+                    this.$delete(this.overriders, tpl)
+                    this.$delete(this.reference, tpl)
+                } else {
+                    this.$set(this.reference, tpl, '')
+                    this.$delete(this.overriders, tpl)
+                }
+            },
+            onSelectRefer (tpl, id) {
+                const val = this.getSubflowRefer(tpl)
+                if (val === 'overrider') {
+                    this.overriders[tpl] = id
+                } else if (val === 'useExisting') {
+                    this.reference[tpl] = id
+                }
+            },
+            onClearRefer (tpl, id) {
+                const val = this.getSubflowRefer(tpl)
+                if (val === 'overrider') {
+                    this.overriders[tpl] = ''
+                } else if (val === 'useExisting') {
+                    this.reference[tpl] = ''
+                }
             },
             async onConfirm () {
                 const overriderKeys = Object.keys(this.overriders)
                 const overrideTpl = []
+                // 校验是否存在覆盖流程未选择或者重复选择的情况
                 if (overriderKeys.length > 0) {
+                    const tplList = this.topFlowList.concat(this.subFlowList)
                     const hasRepeat = overriderKeys.some(key => {
                         const id = this.overriders[key]
                         if (overrideTpl.includes(id)) {
@@ -256,7 +386,35 @@
                             overrideTpl.push(id)
                         }
                     })
-                    if (hasRepeat) {
+                    const hasEmpty = overriderKeys.some(key => {
+                        if (this.overriders[key] === '') {
+                            const tpl = tplList.find(item => item.meta.id === key)
+                            this.$bkMessage({
+                                message: i18n.t('请选择流程“x”需要覆盖的流程', { x: tpl.meta.name }),
+                                theme: 'error',
+                                ellipsisLine: 0
+                            })
+                            return true
+                        }
+                    })
+                    if (hasRepeat || hasEmpty) {
+                        return
+                    }
+                }
+                // 校验使用已有流程的表单是否存在未选择的情况
+                if (Object.keys(this.reference).length > 0) {
+                    const hasEmpty = Object.keys(this.reference).some(key => {
+                        if (this.reference[key] === '') {
+                            const tpl = this.subFlowList.find(item => item.meta.id === key)
+                            this.$bkMessage({
+                                message: i18n.t('请选择流程“x”需要使用的流程', { x: tpl.meta.name }),
+                                theme: 'error',
+                                ellipsisLine: 0
+                            })
+                            return true
+                        }
+                    })
+                    if (hasEmpty) {
                         return
                     }
                 }
@@ -266,6 +424,7 @@
                     const data = new FormData()
                     data.append('data_file', this.file)
                     data.append('override_mappings', JSON.stringify(this.overriders))
+                    data.append('refer_mappings', JSON.stringify(this.reference))
                     if (this.common) {
                         data.append('template_type', 'common')
                     } else {
@@ -292,10 +451,15 @@
                 this.importData = null
                 this.checkResult = false
                 this.overriders = {}
+                this.reference = {}
                 if (this.$refs.tplFile) {
                     this.$refs.tplFile.value = null
                 }
-                this.pagination = {
+                this.topFlowPagination = {
+                    current: 1,
+                    count: 0
+                }
+                this.subFlowPagination = {
                     current: 1,
                     count: 0
                 }
@@ -305,22 +469,18 @@
 </script>
 <style lang="scss" scoped>
     @import '@/scss/mixins/scrollbar.scss';
-    .import-dialog-content {
-        padding-left: 24px;
-        height: 365px;
-        overflow-y: auto;
-        @include scrollbar;
-    }
     .upload-file-area {
         width: 530px;
-        margin: 120px auto 0;
+        margin: 120px auto 100px;
         /deep/.file-wrapper {
             background: #fafbfd;
         }
     }
     .import-check-wrapper {
-        height: 100%;
-        margin-right: 25px;
+        padding: 0 24px;
+        height: 480px;
+        overflow-y: auto;
+        @include scrollbar;
     }
     .bk-button-text {
         font-size: 12px;
@@ -340,6 +500,15 @@
             color: #313237;
         }
     }
+    .tpl-type-title {
+        margin: 12px 0 8px;
+        font-size: 12px;
+        color: #313238;
+    }
+    .tpl-overrider-select {
+        display: flex;
+        align-items: center;
+    }
     .check-msg-title {
         margin-top: 26px;
         font-size: 14px;
@@ -354,7 +523,6 @@
 <style lang="scss">
     .import-yaml-dialog {
         .bk-dialog-content {
-            height: 480px;
             .bk-dialog-tool {
                 min-height: 0;
             }

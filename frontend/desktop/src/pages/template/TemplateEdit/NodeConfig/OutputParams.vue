@@ -50,6 +50,11 @@
             @confirm="onConfirm"
             @cancel="onCancel">
             <div class="variable-dialog">
+                <bk-alert
+                    style="margin-bottom: 14px;"
+                    type="warning"
+                    :title="$t('已存在相同KEY的变量，请新建变量')">
+                </bk-alert>
                 <bk-form
                     ref="form"
                     :model="formData"
@@ -124,8 +129,8 @@
                         },
                         {
                             // 合法变量key正则，eg:${fsdf_f32sd},fsdf_f32sd
-                            regex: /(^\${[a-zA-Z_]\w*}$)|(^[a-zA-Z_]\w*$)/,
-                            message: i18n.t('变量KEY由英文字母、数字、下划线组成，且不能以数字开头'),
+                            regex: /(^\${(?!_env_|_system\.)[a-zA-Z_]\w*}$)|(^(?!_env_|_system\.)[a-zA-Z_]\w*$)/,
+                            message: i18n.t('变量KEY由英文字母、数字、下划线组成，不允许使用系统变量及业务环境变量命名规则，且不能以数字开头'),
                             trigger: 'blur'
                         },
                         {
@@ -185,9 +190,34 @@
                 const index = props.$index
                 props.row.hooked = !props.row.hooked
                 if (props.row.hooked) {
-                    this.isShow = true
-                    this.formData = tools.deepClone(props.row)
-                    this.selectIndex = index
+                    // 输出选中默认新建不弹窗，直接生成变量。 如果有冲突则如下弹窗
+                    const { key, version, plugin_code } = props.row
+                    const value = /^\$\{\w+\}$/.test(key) ? key : `\${${key}}`
+                    if (value in this.constants) {
+                        this.isShow = true
+                        this.formData = tools.deepClone(props.row)
+                        this.formData.key = ''
+                        this.selectIndex = index
+                    } else {
+                        let setKey = ''
+                        if ((/^\$\{((?!\{).)*\}$/).test(key)) {
+                            props.row.key = key
+                            setKey = key
+                        } else {
+                            props.row.key = `\$\{${key}\}`
+                            setKey = `\$\{${key}\}`
+                        }
+                        const config = {
+                            name: this.formData.name,
+                            key: setKey,
+                            source_info: {
+                                [this.nodeId]: [this.params[index].key]
+                            },
+                            version,
+                            plugin_code: this.isSubflow ? plugin_code : (this.thirdPartyCode || '')
+                        }
+                        this.createVariable(config)
+                    }
                 } else {
                     const config = ({
                         type: 'delete',
@@ -294,7 +324,7 @@
         text-align: center;
         border-radius: 2px;
         .hook-icon {
-            font-size: 14px;
+            font-size: 18px;
             color: #979ba5;
             cursor: pointer;
             &.disabled {
@@ -302,7 +332,7 @@
                 cursor: not-allowed;
             }
             &.actived {
-                color: #1768ef;
+                color: #3a84ff;
             }
         }
     }

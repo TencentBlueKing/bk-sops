@@ -76,21 +76,21 @@
             type: "input",
             attrs: {
                 name: gettext("超时时间"),
-                placeholder: gettext("单位为秒，为空时使用 JOB 默认值"),
+                placeholder: gettext("单位为秒(60 - 86400)，为空时使用 JOB 默认值"),
                 hookable: true,
                 validation: [
                     {
                         type: "custom",
                         args: function (value) {
-                            var result = {
+                            let result = {
                                 result: true,
                                 error_message: ""
-                            }
-                            if (value && !Number(value)) {
+                            };
+                            if (+value < 60 || +value > 86400) {
                                 result.result = false;
-                                result.error_message = gettext("请输入数字");
+                                result.error_message = gettext("超时时间必须在 60 - 86400 范围内")
                             }
-                            return result;
+                            return result
                         }
                     }
                 ]

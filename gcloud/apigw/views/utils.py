@@ -20,7 +20,7 @@ from gcloud.utils.dates import format_datetime
 logger = logging.getLogger("root")  # noqa
 
 
-def info_data_from_period_task(task, detail=True):
+def info_data_from_period_task(task, detail=True, tz=None):
     info = {
         "id": task.id,
         "name": task.name,
@@ -29,7 +29,7 @@ def info_data_from_period_task(task, detail=True):
         "creator": task.creator,
         "cron": task.cron,
         "enabled": task.enabled,
-        "last_run_at": format_datetime(task.last_run_at),
+        "last_run_at": format_datetime(task.last_run_at, tz),
         "total_run_count": task.total_run_count,
     }
 
@@ -40,7 +40,7 @@ def info_data_from_period_task(task, detail=True):
     return info
 
 
-def format_template_data(template, project=None):
+def format_template_data(template, project=None, tz=None):
     pipeline_tree = template.pipeline_tree
     pipeline_tree.pop("line")
     pipeline_tree.pop("location")
@@ -50,9 +50,9 @@ def format_template_data(template, project=None):
         "id": template.id,
         "name": template.pipeline_template.name,
         "creator": template.pipeline_template.creator,
-        "create_time": format_datetime(template.pipeline_template.create_time),
+        "create_time": format_datetime(template.pipeline_template.create_time, tz),
         "editor": template.pipeline_template.editor,
-        "edit_time": format_datetime(template.pipeline_template.edit_time),
+        "edit_time": format_datetime(template.pipeline_template.edit_time, tz),
         "category": template.category,
         "pipeline_tree": pipeline_tree,
     }
@@ -69,7 +69,7 @@ def format_template_data(template, project=None):
     return data
 
 
-def format_template_list_data(templates, project=None, return_id_list=False):
+def format_template_list_data(templates, project=None, return_id_list=False, tz=None):
     data = []
     ids = []
     for tmpl in templates:
@@ -77,9 +77,9 @@ def format_template_list_data(templates, project=None, return_id_list=False):
             "id": tmpl.id,
             "name": tmpl.pipeline_template.name,
             "creator": tmpl.pipeline_template.creator,
-            "create_time": format_datetime(tmpl.pipeline_template.create_time),
+            "create_time": format_datetime(tmpl.pipeline_template.create_time, tz),
             "editor": tmpl.pipeline_template.editor,
-            "edit_time": format_datetime(tmpl.pipeline_template.edit_time),
+            "edit_time": format_datetime(tmpl.pipeline_template.edit_time, tz),
             "category": tmpl.category,
         }
 
@@ -102,7 +102,9 @@ def format_template_list_data(templates, project=None, return_id_list=False):
     return data, ids
 
 
-def format_task_info_data(task, project=None):
+def format_task_info_data(task, project=None, tz=None):
+    instance_start_time = task.pipeline_instance.start_time
+    instance_finish_time = task.pipeline_instance.finish_time
     item = {
         "id": task.id,
         "name": task.pipeline_instance.name,
@@ -110,8 +112,8 @@ def format_task_info_data(task, project=None):
         "create_method": task.create_method,
         "creator": task.pipeline_instance.creator,
         "executor": task.pipeline_instance.executor,
-        "start_time": task.pipeline_instance.start_time,
-        "finish_time": task.pipeline_instance.finish_time,
+        "start_time": format_datetime(instance_start_time, tz) if tz else instance_start_time,
+        "finish_time": format_datetime(instance_finish_time, tz) if tz else instance_finish_time,
         "is_started": task.pipeline_instance.is_started,
         "is_finished": task.pipeline_instance.is_finished,
         "template_source": task.template_source,
@@ -129,11 +131,11 @@ def format_task_info_data(task, project=None):
     return item
 
 
-def format_task_list_data(tasks, project=None, return_id_list=False):
+def format_task_list_data(tasks, project=None, return_id_list=False, tz=None):
     data = []
     ids = []
     for task in tasks:
-        item = format_task_info_data(task, project)
+        item = format_task_info_data(task, project, tz)
         data.append(item)
         if return_id_list:
             ids.append(item["id"])
@@ -142,23 +144,27 @@ def format_task_list_data(tasks, project=None, return_id_list=False):
     return data, ids
 
 
-def format_function_task_list_data(function_tasks, project=None):
+def format_function_task_list_data(function_tasks, project=None, tz=None):
     data = []
     for function_task in function_tasks:
+        task_create_time = function_task.create_time
+        task_claim_time = function_task.claim_time
+        task_reject_time = function_task.reject_time
+        task_transfer_time = function_task.transfer_time
         item = {
             "id": function_task.id,
             "name": function_task.task.name,
             "creator": function_task.creator,
-            "create_time": function_task.create_time,
-            "claimant": function_task.claimant,
-            "claim_time": function_task.claim_time,
             "rejecter": function_task.rejecter,
-            "reject_time": function_task.reject_time,
+            "claimant": function_task.claimant,
             "predecessor": function_task.predecessor,
-            "transfer_time": function_task.transfer_time,
+            "create_time": format_datetime(task_create_time, tz) if tz else task_create_time,
+            "claim_time": format_datetime(task_claim_time, tz) if tz else task_claim_time,
+            "reject_time": format_datetime(task_reject_time, tz) if tz else task_reject_time,
+            "transfer_time": format_datetime(task_transfer_time, tz) if tz else task_transfer_time,
             "status": function_task.status,
         }
-        task_item = format_task_info_data(function_task.task, project=project)
+        task_item = format_task_info_data(function_task.task, project=project, tz=tz)
         item["task"] = task_item
         data.append(item)
     return data

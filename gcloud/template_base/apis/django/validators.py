@@ -72,16 +72,18 @@ class YamlTemplateImportValidator(RequestValidator):
             return False, "template_type can not be empty"
         if data["template_type"] == "project" and not data.get("project_id"):
             return False, "project_id can not be empty when template_type=project"
-        if data.get("override_mappings") and isinstance(data["override_mappings"], str):
-            try:
-                request.data.update({"override_mappings": json.loads(data["override_mappings"])})
-            except Exception as e:
-                return False, e
-        if data.get("template_kwargs") and isinstance(data["template_kwargs"], str):
-            try:
-                request.data.update({"template_kwargs": json.loads(data["template_kwargs"])})
-            except Exception as e:
-                return False, e
+
+        str_to_dict_fields = ("override_mappings", "refer_mappings", "template_kwargs")
+        for field in str_to_dict_fields:
+            if data.get(field, None) and isinstance(data[field], str):
+                try:
+                    request.data.update({field: json.loads(data[field])})
+                except Exception as e:
+                    return False, e
+        if set(request.data.get("override_mappings", {}).keys()).intersection(
+            set(request.data.get("refer_mappings", {}).keys())
+        ):
+            return False, "an imported template can not override and refer another template at the same time"
         return True, ""
 
 

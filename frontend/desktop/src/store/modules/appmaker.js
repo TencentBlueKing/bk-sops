@@ -38,7 +38,9 @@ const appmaker = {
             const querystring = Object.assign({}, data)
             return axios.get('api/v3/appmaker/', {
                 params: querystring
-            }).then(response => response.data)
+            }).then(response => {
+                return { results: response.data.data }
+            })
         },
         /**
          * 加载对应轻应用详情

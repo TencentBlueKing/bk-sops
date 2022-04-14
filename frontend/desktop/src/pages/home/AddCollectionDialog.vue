@@ -275,21 +275,21 @@
                     project__id: projectId || undefined,
                     pipeline_template__name__icontains: searchStr || undefined
                 })
-                return data.objects || []
+                return data.results || []
             },
             async getAppMakerList (projectId, searchStr) {
                 const data = await this.loadAppmaker({
                     project__id: projectId,
                     q: searchStr || undefined
                 })
-                return data.objects || []
+                return data.results || []
             },
             async getPeriodicList (projectId, searchStr) {
                 const data = await this.loadPeriodicList({
                     project__id: projectId,
                     task__name__icontains: searchStr || undefined
                 })
-                return data.objects || []
+                return data.results || []
             },
             // 分组
             getGroupData (list, type) {

@@ -18,6 +18,7 @@ Get functionalization task list, support filtering with functionalization task s
 | status     | string | NO       | functionalization task status. (submitted, claimed, rejected, executed, finished) |
 | id_in      | string | NO       | functionalization task id list for filtering, separated by `,` |
 | task_id_in | string | NO       | original task id list for filtering, separated by `,`（corresponding to "Task ID" in the web page） |
+| expected_timezone | string | NO | expected timezone of time related field in response, e.g. Asia/Shanghai |
 | limit      | int    | NO       | pagination, the number of tasks in the task list in each result. default is 100 |
 | offset     | int    | NO       | pagination, the start index of task in the task list in each result. default is 0 |
 

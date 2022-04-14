@@ -15,4 +15,4 @@ from django.apps import AppConfig
 
 
 class PluginManagementConfig(AppConfig):
-    name = "plugin_management"
+    name = "pipeline_web.plugin_management"

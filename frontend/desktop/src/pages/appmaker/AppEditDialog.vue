@@ -329,7 +329,7 @@
                 this.templateLoading = true
                 try {
                     const templateListData = await this.loadTemplateList({ project__id: this.project_id })
-                    this.templateList = templateListData.objects
+                    this.templateList = templateListData.results
                 } catch (e) {
                     console.log(e)
                 } finally {

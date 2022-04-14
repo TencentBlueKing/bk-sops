@@ -358,10 +358,10 @@
                         }
                     }
                     const auditListData = await this.loadAuditTaskList(data)
-                    const list = auditListData.objects
+                    const list = auditListData.results
                     this.auditList = list
-                    this.pagination.count = auditListData.meta.total_count
-                    this.totalCount = auditListData.meta.total_count
+                    this.pagination.count = auditListData.count
+                    this.totalCount = auditListData.count
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', list)
                 } catch (e) {

@@ -203,8 +203,8 @@ const task = {
             const requestData = {
                 name,
                 description,
-                'project': `api/v3/project/${project_id}/`,
-                'template_id': templateId,
+                'project': project_id,
+                'template': templateId,
                 'creator': username,
                 'pipeline_tree': execData,
                 'create_method': view_mode === 'appmaker' ? 'app_maker' : 'app',
@@ -217,14 +217,14 @@ const task = {
                 requestData.template_source = 'common'
             }
 
-            return axios.post('api/v3/taskflow/', requestData).then(response => response.data)
+            return axios.post('api/v3/taskflow/', requestData).then(response => response.data.data)
         },
         /**
          * 获取任务实例详细数据
          * @param {String} instance_id 实例id
          */
         getTaskInstanceData ({ commit }, instance_id) {
-            return axios.get(`api/v3/taskflow/${instance_id}/`).then(response => response.data)
+            return axios.get(`api/v3/taskflow/${instance_id}/`).then(response => response.data.data)
         },
         /**
          * 职能化认领

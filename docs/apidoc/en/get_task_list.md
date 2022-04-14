@@ -5,14 +5,16 @@ Get tasks list for a business, support task name keyword searching
 #### Interface Parameters
 
 |   Field         |  Type       | Required |  Description     |
-|-----------------|-------------|----------|------------------|
-|   bk_biz_id   |   string   |   YES   |  the business ID             |
-|   scope       |   string     |   NO   | id scope, can be "cmdb_biz" or "project". if scope is "cmdb_biz" then bk_biz_id represent cmdb business ID, otherwise bk_biz_id represent proejct id. default is "cmdb_biz" |
-|   keyword     |   string     |   NO   |  keyword to filter the task list based on the task name. default is no filter |
-|   is_started  |   bool       |   NO   |  task status to filter the task list based on the start status. default is no filter |
-|   is_finished |   bool       |   NO   |  task status to filter the task list based on the finish status. default is no filter |
-|   limit       |   int        |   NO   | pagination, the number of tasks in the task list in each result. default is 100 |
-|   offset      |   int        |   NO   |  pagination, the start index of task in the task list in each result. default is 0 |
+|-----------------|-------------|----|------------------|
+|   bk_biz_id   |   string   | YES |  the business ID             |
+|   scope       |   string     | NO | id scope, can be "cmdb_biz" or "project". if scope is "cmdb_biz" then bk_biz_id represent cmdb business ID, otherwise bk_biz_id represent proejct id. default is "cmdb_biz" |
+|   keyword     |   string     | NO |  keyword to filter the task list based on the task name. default is no filter |
+|   is_started  |   bool       | NO |  task status to filter the task list based on the start status. default is no filter |
+|   is_finished |   bool       | NO |  task status to filter the task list based on the finish status. default is no filter |
+| executor    | string | NO | task executor to filter the task list. default is no filter |
+| expected_timezone | string | NO | expected timezone of time related field in response, e.g. Asia/Shanghai |
+|   limit       |   int        | NO | pagination, the number of tasks in the task list in each result. default is 100 |
+|   offset      |   int        | NO |  pagination, the start index of task in the task list in each result. default is 0 |
 
 ### Request Parameters Example
 
