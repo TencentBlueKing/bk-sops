@@ -26,6 +26,7 @@ from pipeline.core.flow.io import (
 )
 
 from gcloud.conf import settings
+from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.components.collections.sites.open.job import Jobv3Service
 from pipeline_plugins.components.utils import (
@@ -47,6 +48,8 @@ plat_reg = re.compile(r"(\d+:)")
 
 class AllBizJobExecuteJobPlanService(Jobv3Service):
     need_get_sops_var = True
+
+    biz_scope_type = JobBizScopeType.BIZ_SET.value
 
     def inputs_format(self):
         return [
@@ -154,6 +157,8 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
                 global_var_list.append({"id": _value["id"], "value": val})
 
         job_kwargs = {
+            "bk_scope_type": JobBizScopeType.BIZ_SET.value,
+            "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
             "job_plan_id": config_data.get("job_plan_id"),
             "global_var_list": global_var_list,

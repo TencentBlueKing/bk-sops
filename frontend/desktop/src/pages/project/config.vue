@@ -29,7 +29,7 @@
                         <div class="ext-info">
                             <span>ID <span class="value">{{ project.id }}</span></span>
                             <span>CC_ID <span class="value">{{ project.bk_biz_id }}</span></span>
-                            <span>时区 <span class="value">{{ project.time_zone }}</span></span>
+                            <span>{{ $t('时区') }} <span class="value">{{ project.time_zone }}</span></span>
                         </div>
                     </div>
                     <div class="desc">
@@ -184,6 +184,7 @@
                 <bk-form-item :label="$t('执行代理人')">
                     <bk-user-selector
                         v-model="editingAgent.executor_proxy"
+                        :placeholder="$t('请输入用户')"
                         :api="userApi"
                         :multiple="false">
                     </bk-user-selector>
@@ -191,6 +192,7 @@
                 <bk-form-item :label="$t('白名单用户')">
                     <bk-user-selector
                         v-model="editingAgent.executor_proxy_exempts"
+                        :placeholder="$t('请输入用户')"
                         :fixed-height="false"
                         :api="userApi">
                     </bk-user-selector>
@@ -216,6 +218,7 @@
                 <bk-form-item :label="$t('成员')">
                     <bk-user-selector
                         v-model="staffGroupDetail.members"
+                        :placeholder="$t('请输入用户')"
                         :api="userApi">
                     </bk-user-selector>
                 </bk-form-item>

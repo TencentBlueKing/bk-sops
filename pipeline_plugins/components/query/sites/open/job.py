@@ -23,6 +23,7 @@ from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
 from gcloud.conf import settings
+from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
 
 logger = logging.getLogger("root")
@@ -59,6 +60,8 @@ def _job_get_scripts_data(request, biz_cc_id=None):
         api_name = "job.get_public_script_list"
     else:
         kwargs = {
+            "bk_scope_type": JobBizScopeType.BIZ.value,
+            "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
             "is_public": False,
             "script_type": script_type or 0,
@@ -77,16 +80,6 @@ def _job_get_scripts_data(request, biz_cc_id=None):
 
 def job_get_script_name_list(request, biz_cc_id):
     script_result = _job_get_scripts_data(request, biz_cc_id)
-    if not script_result["result"]:
-        return JsonResponse(script_result)
-    script_names = []
-    for script in script_result["data"]["data"]:
-        script_names.append({"text": script["name"], "value": script["name"]})
-    return JsonResponse({"result": True, "data": script_names})
-
-
-def job_get_public_script_name_list(request):
-    script_result = _job_get_scripts_data(request)
     if not script_result["result"]:
         return JsonResponse(script_result)
     script_names = []
@@ -117,33 +110,20 @@ def job_get_script_list(request, biz_cc_id):
     return JsonResponse({"result": True, "data": version_data})
 
 
-def job_get_own_db_account_list(request, biz_cc_id):
-    """
-    查询用户有权限的DB帐号列表
-    :param biz_cc_id:
-    :param request:
-    :return:
-    """
-    client = get_client_by_user(request.user.username)
-    kwargs = {"bk_biz_id": biz_cc_id}
-    job_result = client.job.get_own_db_account_list(kwargs)
-
-    if not job_result["result"]:
-        message = handle_api_error("job", "get_own_db_account_list", kwargs, job_result)
-        logger.error(message)
-        result = {"result": False, "message": message}
-        return JsonResponse(result)
-
-    data = [{"text": item["db_alias"], "value": item["db_account_id"]} for item in job_result["data"]]
-
-    return JsonResponse({"result": True, "data": data})
-
-
 def job_get_job_tasks_by_biz(request, biz_cc_id):
     client = get_client_by_user(request.user.username)
-    job_result = client.job.get_job_list({"bk_biz_id": biz_cc_id})
+    job_result = client.job.get_job_list(
+        {
+            "bk_scope_type": JobBizScopeType.BIZ.value,
+            "bk_scope_id": str(biz_cc_id),
+            "bk_biz_id": biz_cc_id,
+        }
+    )
     if not job_result["result"]:
-        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (biz_cc_id, job_result["message"],)
+        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (
+            biz_cc_id,
+            job_result["message"],
+        )
 
         if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
             logger.warning(message)
@@ -160,10 +140,20 @@ def job_get_job_tasks_by_biz(request, biz_cc_id):
 
 def job_get_job_task_detail(request, biz_cc_id, task_id):
     client = get_client_by_user(request.user.username)
-    job_result = client.job.get_job_detail({"bk_biz_id": biz_cc_id, "bk_job_id": task_id})
+    job_result = client.job.get_job_detail(
+        {
+            "bk_scope_type": JobBizScopeType.BIZ.value,
+            "bk_scope_id": str(biz_cc_id),
+            "bk_biz_id": biz_cc_id,
+            "bk_job_id": task_id,
+        }
+    )
     if not job_result["result"]:
 
-        message = _("查询作业平台(JOB)的作业模板详情[app_id=%s]接口job.get_task_detail返回失败: %s") % (biz_cc_id, job_result["message"],)
+        message = _("查询作业平台(JOB)的作业模板详情[app_id=%s]接口job.get_task_detail返回失败: %s") % (
+            biz_cc_id,
+            job_result["message"],
+        )
 
         if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
             logger.warning(message)
@@ -225,7 +215,13 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
 
 def job_get_instance_detail(request, biz_cc_id, task_id):
     client = get_client_by_user(request.user.username)
-    log_kwargs = {"bk_biz_id": biz_cc_id, "job_instance_id": task_id}
+    bk_scope_type = request.GET.get("bk_scope_type", JobBizScopeType.BIZ.value)
+    log_kwargs = {
+        "bk_scope_type": bk_scope_type,
+        "bk_scope_id": str(biz_cc_id),
+        "bk_biz_id": biz_cc_id,
+        "job_instance_id": task_id,
+    }
     job_result = client.job.get_job_instance_log(log_kwargs)
     if not job_result["result"]:
         message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (biz_cc_id, job_result["message"])
@@ -267,9 +263,14 @@ def jobv3_get_job_template_list(request, biz_cc_id):
     @return:
     """
     client = get_client_by_user(request.user.username)
+    bk_scope_type = request.GET.get("bk_scope_type", JobBizScopeType.BIZ.value)
     template_list = batch_request(
         func=client.jobv3.get_job_template_list,
-        params={"bk_biz_id": biz_cc_id},
+        params={
+            "bk_scope_type": bk_scope_type,
+            "bk_scope_id": str(biz_cc_id),
+            "bk_biz_id": biz_cc_id,
+        },
         get_data=lambda x: x["data"]["data"],
         get_count=lambda x: x["data"]["total"],
         page_param={"cur_page_param": "start", "page_size_param": "length"},
@@ -291,9 +292,15 @@ def jobv3_get_job_plan_list(request, biz_cc_id, job_template_id):
     @return:
     """
     client = get_client_by_user(request.user.username)
+    bk_scope_type = request.GET.get("bk_scope_type", JobBizScopeType.BIZ.value)
     plan_list = batch_request(
         func=client.jobv3.get_job_plan_list,
-        params={"bk_biz_id": biz_cc_id, "job_template_id": job_template_id},
+        params={
+            "bk_scope_type": bk_scope_type,
+            "bk_scope_id": str(biz_cc_id),
+            "bk_biz_id": biz_cc_id,
+            "job_template_id": job_template_id,
+        },
         get_data=lambda x: x["data"]["data"],
         get_count=lambda x: x["data"]["total"],
         page_param={"cur_page_param": "start", "page_size_param": "length"},
@@ -315,7 +322,13 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
     @return:
     """
     client = get_client_by_user(request.user.username)
-    kwargs = {"bk_biz_id": biz_cc_id, "job_plan_id": job_plan_id}
+    bk_scope_type = request.GET.get("bk_scope_type", JobBizScopeType.BIZ.value)
+    kwargs = {
+        "bk_scope_type": bk_scope_type,
+        "bk_scope_id": str(biz_cc_id),
+        "bk_biz_id": biz_cc_id,
+        "job_plan_id": job_plan_id,
+    }
 
     jobv3_result = client.jobv3.get_job_plan_detail(kwargs)
     if not jobv3_result["result"]:
@@ -361,11 +374,14 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
     return JsonResponse({"result": True, "data": global_var})
 
 
-def job_get_instance_list(request, biz_cc_id, type, status):
+def jobv3_get_instance_list(request, biz_cc_id, type, status):
     username = request.user.username
     client = get_client_by_user(username)
+    bk_scope_type = request.GET.get("bk_scope_type", JobBizScopeType.BIZ.value)
 
     job_kwargs = {
+        "bk_scope_type": bk_scope_type,
+        "bk_scope_id": str(biz_cc_id),
         "bk_biz_id": biz_cc_id,
         "create_time_end": int(round(time.time() * 1000)) + TEN_MINUTES_MILLISECONDS * 1,
         "create_time_start": int(round(time.time() * 1000)) - TEN_MINUTES_MILLISECONDS * 1,  # 取一天前到一天后这段时间的历史
@@ -397,14 +413,15 @@ def job_get_instance_list(request, biz_cc_id, type, status):
 job_urlpatterns = [
     url(r"^job_get_script_list/(?P<biz_cc_id>\d+)/$", job_get_script_list),
     url(r"^job_get_script_name_list/(?P<biz_cc_id>\d+)/$", job_get_script_name_list),
-    url(r"^job_get_public_script_name_list/$", job_get_public_script_name_list),
-    url(r"^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$", job_get_own_db_account_list,),
     url(r"^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$", job_get_job_tasks_by_biz),
-    url(r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_job_task_detail,),
+    url(
+        r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$",
+        job_get_job_task_detail,
+    ),
     url(r"^job_get_instance_detail/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_instance_detail),
     # jobv3接口
     url(r"^jobv3_get_job_template_list/(?P<biz_cc_id>\d+)/$", jobv3_get_job_template_list),
     url(r"^jobv3_get_job_plan_list/(?P<biz_cc_id>\d+)/(?P<job_template_id>\d+)/$", jobv3_get_job_plan_list),
     url(r"^jobv3_get_job_plan_detail/(?P<biz_cc_id>\d+)/(?P<job_plan_id>\d+)/$", jobv3_get_job_plan_detail),
-    url(r"^job_get_instance_list/(?P<biz_cc_id>\d+)/(?P<type>\d+)/(?P<status>\d+)/$", job_get_instance_list),
+    url(r"^jobv3_get_instance_list/(?P<biz_cc_id>\d+)/(?P<type>\d+)/(?P<status>\d+)/$", jobv3_get_instance_list),
 ]

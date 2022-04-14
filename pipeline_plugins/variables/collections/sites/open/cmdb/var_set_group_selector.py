@@ -91,16 +91,16 @@ class VarSetGroupSelector(LazyVariable, SelfExplainVariable):
     type = "dynamic"
     tag = "var_set_group_selector.set_group_selector"
     form = "%svariables/cmdb/var_set_group_selector.js" % settings.STATIC_URL
-    desc = """
-    用于获取集群类型的动态分组的集群信息，输出字典，键为集群的属性名称，值为集群的属性值
-    引用${KEY.{集群属性编码}}，返回类型为列表，列表值为集群属性值
-    获取集群的名称列表: ${KEY.bk_set_name}
-    获取集群环境类型: ${KEY.bk_set_env}
-    引用${KEY.flat__{集群属性编码}}，返回类型为字符串，值为用英文逗号，连接的集群属性值
-    获取集群的名称值: ${KEY.flat__bk_set_name}
-    获取集群环境类型值: ${KEY.flat__bk_set_env}
-    更多集群属性请查阅 CMDB 集群模型字段页面
-    """
+    desc = _(
+        "用于获取集群类型的动态分组的集群信息，输出字典，键为集群的属性名称，值为集群的属性值"
+        "引用${KEY.{集群属性编码}}，返回类型为列表，列表值为集群属性值"
+        "获取集群的名称列表: ${KEY.bk_set_name}"
+        "获取集群环境类型: ${KEY.bk_set_env}"
+        "引用${KEY.flat__{集群属性编码}}，返回类型为字符串，值为用英文逗号，连接的集群属性值"
+        "获取集群的名称值: ${KEY.flat__bk_set_name}"
+        "获取集群环境类型值: ${KEY.flat__bk_set_env}"
+        "更多集群属性请查阅 CMDB 集群模型字段页面"
+    )
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:

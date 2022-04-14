@@ -141,7 +141,7 @@ MIDDLEWARE += (
     "gcloud.core.middlewares.ObjectDoesNotExistExceptionMiddleware",
     "iam.contrib.django.middlewares.AuthFailedExceptionMiddleware",
     "pipeline_plugins.middlewares.PluginApiRequestHandleMiddleware",
-    "django_prometheus.middleware.PrometheusAfterMiddleware",
+    "gcloud.core.middlewares.AppMetricsAfterMiddleware",
 )
 
 # 默认数据库AUTO字段类型
@@ -160,7 +160,7 @@ if env.BKAPP_PYINSTRUMENT_ENABLE:
     MIDDLEWARE += ("pyinstrument.middleware.ProfilerMiddleware",)
 
 MIDDLEWARE = (
-    "django_prometheus.middleware.PrometheusBeforeMiddleware",
+    "gcloud.core.middlewares.AppMetricsBeforeMiddleware",
     "gcloud.core.middlewares.TraceIDInjectMiddleware",
     "weixin.core.middlewares.WeixinProxyPatchMiddleware",
 ) + MIDDLEWARE
@@ -177,7 +177,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.16.6"
+STATIC_VERSION = "3.17.3"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -637,6 +637,7 @@ def monitor_report_config():
             access_token=env.BK_MONITOR_REPORT_ACCESS_TOKEN,  # 自定义上报 Token
             target=env.BK_MONITOR_REPORT_TARGET,  # 上报唯一标志符
             url=env.BK_MONITOR_REPORT_URL,  # 上报地址
+            report_interval=env.BK_MONITOR_REPORT_INTERVAL,  # 上报周期，秒
         )
 
         # 针对多进程worker需要做特殊梳理，在worker进程中进行reporter start
@@ -657,6 +658,7 @@ def monitor_report_config():
             access_token=env.BK_MONITOR_REPORT_ACCESS_TOKEN,  # 自定义上报 Token
             target=env.BK_MONITOR_REPORT_TARGET,  # 上报唯一标志符
             url=env.BK_MONITOR_REPORT_URL,  # 上报地址
+            report_interval=env.BK_MONITOR_REPORT_INTERVAL,  # 上报周期，秒
         )
         reporter.start()
 

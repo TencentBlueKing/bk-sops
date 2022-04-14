@@ -63,7 +63,16 @@ class BKRepoManager(Manager):
         return {"type": "bk_repo", "tags": {"uid": uid, "shims": shims, "name": name}}
 
     def push_files_to_ips(
-        self, esb_client, bk_biz_id, file_tags, target_path, ips, account, callback_url=None, timeout=None
+        self,
+        esb_client,
+        bk_biz_id,
+        file_tags,
+        target_path,
+        ips,
+        account,
+        callback_url=None,
+        timeout=None,
+        bk_scope_type="biz",
     ):
         try:
             file_source_id = BKJobFileSource.objects.get(bk_biz_id=env.JOB_FILE_BIZ_ID).file_source_id
@@ -84,6 +93,8 @@ class BKRepoManager(Manager):
                 return file_source_result
             file_source_id = file_source_result["data"]
         job_kwargs = {
+            "bk_scope_type": bk_scope_type,
+            "bk_scope_id": str(env.JOB_FILE_BIZ_ID),
             "bk_biz_id": env.JOB_FILE_BIZ_ID,
             "account_alias": account,
             "file_target_path": target_path,

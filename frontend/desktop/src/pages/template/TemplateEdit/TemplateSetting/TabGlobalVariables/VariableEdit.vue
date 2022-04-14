@@ -775,7 +775,7 @@
                     variable.name = variable.name.trim()
 
                     // 触发条件
-                    if (variable.is_condition_hide === 'true') {
+                    if (variable.show_type === 'show' && variable.is_condition_hide === 'true') {
                         const isTrue = this.hideConditionList.every(condition => {
                             return Object.values(condition).every(val => val)
                         })
@@ -792,17 +792,24 @@
                     // renderform表单校验
                     if (this.renderConfig.length > 0) {
                         const tagCode = this.renderConfig[0].tag_code
-                        variable.value = this.renderData[tagCode]
     
-                        // 变量为隐藏状态时，或显示状态并默认值没有改变时执行校验
                         if (this.$refs.renderForm) {
+                            // 默认值执行校验的逻辑
+                            // 1.表单设置为隐藏
+                            // 2.表单设置为显示，但是默认值编辑后的当前值与已保存的值有差异，主要处理子流程勾选的变量如果有校验，但是不想修改值情况下无法保存的场景
                             if (variable.show_type === 'hide' || !tools.isDataEqual(variable.value, this.renderData[tagCode])) {
                                 formValid = this.$refs.renderForm.validate()
                             }
                         }
+
+                        if (!formValid) {
+                            return false
+                        } else {
+                            variable.value = this.renderData[tagCode]
+                        }
                     }
 
-                    if (!result || !formValid) {
+                    if (!result) {
                         return false
                     }
 

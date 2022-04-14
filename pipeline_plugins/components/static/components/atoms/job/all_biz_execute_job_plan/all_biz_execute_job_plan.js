@@ -91,7 +91,7 @@
                                 action: function () {
                                     const cc_id = this.get_parent && this.get_parent().get_child('all_biz_cc_id')._get_value();
                                     if (cc_id !== '') {
-                                        this.remote_url = $.context.get('site_url') + 'pipeline/jobv3_get_job_template_list/' + cc_id + '/';
+                                        this.remote_url = $.context.get('site_url') + 'pipeline/jobv3_get_job_template_list/' + cc_id + '/?bk_scope_type=biz_set';
                                         this.remoteMethod();
                                     }
                                 }
@@ -111,7 +111,7 @@
                                 action: function (value) {
                                     const cc_id = this.get_parent && this.get_parent().get_child('all_biz_cc_id')._get_value();
                                     if (cc_id !== '') {
-                                        this.remote_url = $.context.get('site_url') + 'pipeline/jobv3_get_job_template_list/' + cc_id + '/';
+                                        this.remote_url = $.context.get('site_url') + 'pipeline/jobv3_get_job_template_list/' + cc_id + '/?bk_scope_type=biz_set';
                                         this.remoteMethod();
                                     }
                                 }
@@ -163,7 +163,7 @@
                                     if (!cc_id || !value) {
                                         return;
                                     } else {
-                                        this.remote_url = $.context.get('site_url') + 'pipeline/jobv3_get_job_plan_list/' + cc_id + '/' + value + '/';
+                                        this.remote_url = $.context.get('site_url') + 'pipeline/jobv3_get_job_plan_list/' + cc_id + '/' + value + '/?bk_scope_type=biz_set';
                                         this.remoteMethod();
                                     }
                                 }
@@ -179,7 +179,7 @@
                                     if (!cc_id || !value) {
                                         return;
                                     } else {
-                                        this.remote_url = $.context.get('site_url') + 'pipeline/jobv3_get_job_plan_list/' + cc_id + '/' + value + '/';
+                                        this.remote_url = $.context.get('site_url') + 'pipeline/jobv3_get_job_plan_list/' + cc_id + '/' + value + '/?bk_scope_type=biz_set';
                                         this.remoteMethod();
                                     }
                                 }
@@ -265,7 +265,7 @@
                                             this.set_loading(true);
                                             const cc_id = this.get_parent && this.get_parent().get_child('all_biz_cc_id')._get_value();
                                             $.ajax({
-                                                url: $.context.get('site_url') + 'pipeline/jobv3_get_job_plan_detail/' + cc_id + '/' + plan_id + '/',
+                                                url: $.context.get('site_url') + 'pipeline/jobv3_get_job_plan_detail/' + cc_id + '/' + plan_id + '/?bk_scope_type=biz_set',
                                                 type: 'GET',
                                                 dataType: 'json',
                                                 success: function (resp) {
@@ -311,7 +311,7 @@
                                     this.set_loading(true);
                                     const cc_id = this.get_parent && this.get_parent().get_child('all_biz_cc_id')._get_value();
                                     $.ajax({
-                                        url: $.context.get('site_url') + 'pipeline/jobv3_get_job_plan_detail/' + cc_id + '/' + value + '/',
+                                        url: $.context.get('site_url') + 'pipeline/jobv3_get_job_plan_detail/' + cc_id + '/' + value + '/?bk_scope_type=biz_set',
                                         type: 'GET',
                                         dataType: 'json',
                                         success: function (resp) {

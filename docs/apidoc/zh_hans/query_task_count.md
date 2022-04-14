@@ -4,15 +4,6 @@
 
 ### 请求参数
 
-#### 通用参数
-
-|   字段           |  类型       | 必选     |  描述             |
-|-----------------|-------------|---------|------------------|
-|   bk_app_code   |   string    |   是    |  应用ID |
-|   bk_app_secret |   string    |   是    |  安全密钥(应用 TOKEN)，可以通过 蓝鲸智云开发者中心 -> 点击应用ID -> 基本信息 获取 |
-|   bk_token      |   string    |   否    |  当前用户登录态，bk_token与bk_username必须一个有效，bk_token可以通过Cookie获取  |
-|   bk_username   |   string    |   否    |  当前用户用户名，应用免登录态验证白名单中的应用，用此字段指定当前用户              |
-
 #### 接口参数
 
 | 字段          |  类型       | 必选   |  描述             |
@@ -24,18 +15,18 @@
 
 #### conditions
 
-| 字段      | 类型      | 描述      |
-| ------------ | ---------- | ------------------------------ |
-|  template_id      |    string    |      创建任务的模板ID    |
-|  name      |    string    |      任务名称   |
-|  creator      |    string    |      创建人    |
-|  create_time__gte      |    string    |      任务创建时间起始时间   |
-|  create_time__lte      |    string    |      任务创建时间截止时间   |
-|  executor      |    string    |      执行人    |
-|  start_time__gte      |    string   |      任务执行时间起始时间  |
-|  start_time__lte      |    string   |      任务执行时间截止时间  |
-|  is_started      |    bool   |      任务是否启动  |
-|  is_finished      |    bool   |      任务是否完成  |
+| 字段      | 类型      | 必选 | 描述      |
+| ------------ | ---------- |--------| ------------------------------ |
+|  template_id      |    string    |   否   |      创建任务的模板ID    |
+|  name      |    string    |   否   |      任务名称   |
+|  creator      |    string    |   否   |      创建人    |
+|  create_time__gte      |    string    |   否   |      任务创建时间起始时间   |
+|  create_time__lte      |    string    |   否   |      任务创建时间截止时间   |
+|  executor      |    string    |   否   |      执行人    |
+|  start_time__gte      |    string   |   否   |      任务执行时间起始时间  |
+|  start_time__lte      |    string   |   否   |      任务执行时间截止时间  |
+|  is_started      |    bool   |   否   |      任务是否启动  |
+|  is_finished      |    bool   |   否   |      任务是否完成  |
 
 ### 请求参数示例
 

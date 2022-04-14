@@ -253,6 +253,8 @@ IP_EXIST_INPUTS = {
 
 # MANUAL_KWARGS
 MANUAL_KWARGS = {
+    "bk_scope_type": "biz",
+    "bk_scope_id": "1",
     "bk_biz_id": 1,
     "script_timeout": "100",
     "account": "root",
