@@ -173,26 +173,28 @@ class AllBizJobFastExecuteScriptService(JobService):
             "bk_scope_type": JobBizScopeType.BIZ_SET.value,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
-            "account": data.get_one_of_inputs("job_target_account"),
-            "ip_list": ip_list,
-            "bk_callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
+            "account_alias": data.get_one_of_inputs("job_target_account"),
+            "target_server": {
+                "ip_list": ip_list,
+            },
+            "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
 
         if script_param:
             job_kwargs.update({"script_param": base64.b64encode(script_param.encode("utf-8")).decode("utf-8")})
         if job_script_timeout:
-            job_kwargs.update({"script_timeout": int(job_script_timeout)})
+            job_kwargs.update({"timeout": int(job_script_timeout)})
 
         job_kwargs.update(
             {
-                "script_type": data.get_one_of_inputs("job_script_type"),
+                "script_language": data.get_one_of_inputs("job_script_type"),
                 "script_content": base64.b64encode(data.get_one_of_inputs("job_content").encode("utf-8")).decode(
                     "utf-8"
                 ),
             }
         )
 
-        job_result = client.job.fast_execute_script(job_kwargs)
+        job_result = client.jobv3.fast_execute_script(job_kwargs)
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:
             job_instance_id = job_result["data"]["job_instance_id"]
@@ -202,7 +204,7 @@ class AllBizJobFastExecuteScriptService(JobService):
             data.outputs.client = client
             return True
         else:
-            message = job_handle_api_error("job.fast_execute_script", job_kwargs, job_result)
+            message = job_handle_api_error("jobv3.fast_execute_script", job_kwargs, job_result)
             self.logger.error(message)
             data.outputs.ex_data = message
             return False
