@@ -22,9 +22,6 @@
             <bk-tab-panel v-bind="{ name: 'processCommon', label: $t('公共流程') }">
                 <common-tpl-list v-if="activeTab === 'processCommon'" :use-mode="true"></common-tpl-list>
             </bk-tab-panel>
-            <bk-tab-panel v-bind="{ name: 'processCollect', label: $t('我的收藏') }">
-                <project-tpl-list v-if="activeTab === 'processCollect'" :project_id="project_id" :is-my-collect="true"></project-tpl-list>
-            </bk-tab-panel>
         </bk-tab>
     </div>
 </template>

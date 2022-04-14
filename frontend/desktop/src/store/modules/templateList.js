@@ -28,6 +28,7 @@ const templateList = {
             } else {
                 url = 'api/v3/template/'
             }
+            url = data.new ? url + 'list_with_top_collection/' : url
             return axios.get(url, {
                 params: data
             }).then(response => {
