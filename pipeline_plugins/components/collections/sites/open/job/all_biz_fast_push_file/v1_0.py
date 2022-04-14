@@ -119,9 +119,15 @@ class AllBizJobFastPushFileService(JobScheduleService):
 
         file_source = [
             {
-                "files": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
-                "ip_list": [{"ip": item["ip"], "bk_cloud_id": int(item["bk_cloud_id"]) if item["bk_cloud_id"] else 0}],
-                "account": loose_strip(item["account"]),
+                "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
+                "server": {
+                    "ip_list": [
+                        {"ip": item["ip"], "bk_cloud_id": int(item["bk_cloud_id"]) if item["bk_cloud_id"] else 0}
+                    ],
+                },
+                "account": {
+                    "alias": loose_strip(item["account"]),
+                },
             }
             for item in data.get_one_of_inputs("job_source_files", [])
         ]
@@ -140,9 +146,11 @@ class AllBizJobFastPushFileService(JobScheduleService):
                     "bk_scope_type": JobBizScopeType.BIZ_SET.value,
                     "bk_scope_id": str(biz_cc_id),
                     "bk_biz_id": biz_cc_id,
-                    "file_source": [source],
-                    "ip_list": ip_list,
-                    "account": job_account,
+                    "file_source_list": [source],
+                    "target_server": {
+                        "ip_list": ip_list,
+                    },
+                    "account_alias": job_account,
                     "file_target_path": job_target_path,
                 }
                 if upload_speed_limit:
@@ -154,7 +162,7 @@ class AllBizJobFastPushFileService(JobScheduleService):
                 params_list.append(job_kwargs)
         task_count = len(params_list)
         # 并发请求接口
-        job_result_list = batch_execute_func(client.job.fast_push_file, params_list, interval_enabled=True)
+        job_result_list = batch_execute_func(client.jobv3.fast_transfer_file, params_list, interval_enabled=True)
         job_instance_id_list, job_inst_name, job_inst_url = [], [], []
         data.outputs.requests_error = ""
         for index, res in enumerate(job_result_list):
@@ -164,7 +172,7 @@ class AllBizJobFastPushFileService(JobScheduleService):
                 job_inst_name.append(job_result["data"]["job_instance_name"])
                 job_inst_url.append(get_job_instance_url(biz_cc_id, job_instance_id_list))
             else:
-                message = job_handle_api_error("job.fast_push_file", params_list[index], job_result)
+                message = job_handle_api_error("jobv3.fast_transfer_file", params_list[index], job_result)
                 self.logger.error(message)
                 data.outputs.requests_error += "{}\n".format(message)
         if data.outputs.requests_error:

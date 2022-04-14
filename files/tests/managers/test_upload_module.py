@@ -70,7 +70,7 @@ class UploadModuleManagerTestCase(TestCase):
 
             job_id = "12345"
             esb_client = MagicMock()
-            esb_client.job.fast_push_file = MagicMock(
+            esb_client.jobv3.fast_transfer_file = MagicMock(
                 return_value={"result": True, "data": {"job_instance_id": job_id}}
             )
 
@@ -88,34 +88,34 @@ class UploadModuleManagerTestCase(TestCase):
 
             UploadModuleFileTag.objects.filter.assert_called_once_with(id__in=[1, 2, 3])
 
-            esb_client.job.fast_push_file.assert_called_once_with(
-                {
-                    "bk_scope_type": "biz",
-                    "bk_scope_id": str(bk_biz_id),
-                    "bk_biz_id": bk_biz_id,
-                    "account": account,
-                    "file_target_path": target_path,
-                    "file_source": [
-                        {
-                            "files": ["path1/file_name1"],
-                            "account": "root",
-                            "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip1"}],
-                        },
-                        {
-                            "files": ["path2/file_name2"],
-                            "account": "root",
-                            "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip2"}],
-                        },
-                        {
-                            "files": ["path3/file_name3"],
-                            "account": "root",
-                            "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip3"}],
-                        },
-                    ],
-                    "ip_list": ips,
-                    "bk_callback_url": callback_url,
-                }
-            )
+            job_kwargs = {
+                "bk_scope_type": "biz",
+                "bk_scope_id": "bk_biz_id_token",
+                "bk_biz_id": "bk_biz_id_token",
+                "account_alias": "account_token",
+                "file_target_path": "/user/data",
+                "file_source_list": [
+                    {
+                        "file_list": ["path1/file_name1"],
+                        "account": {"alias": "root"},
+                        "server": {"ip_list": [{"bk_cloud_id": 0, "ip": "source_ip1"}]},
+                    },
+                    {
+                        "file_list": ["path2/file_name2"],
+                        "account": {"alias": "root"},
+                        "server": {"ip_list": [{"bk_cloud_id": 0, "ip": "source_ip2"}]},
+                    },
+                    {
+                        "file_list": ["path3/file_name3"],
+                        "account": {"alias": "root"},
+                        "server": {"ip_list": [{"bk_cloud_id": 0, "ip": "source_ip3"}]},
+                    },
+                ],
+                "target_server": {"ip_list": "ips_token"},
+                "callback_url": "callback_url_token",
+            }
+
+            esb_client.jobv3.fast_transfer_file.assert_called_once_with(job_kwargs)
 
             self.assertEqual(result, {"result": True, "data": {"job_id": job_id}})
 
@@ -148,7 +148,7 @@ class UploadModuleManagerTestCase(TestCase):
 
             job_id = "12345"
             esb_client = MagicMock()
-            esb_client.job.fast_push_file = MagicMock(
+            esb_client.jobv3.fast_transfer_file = MagicMock(
                 return_value={"result": True, "data": {"job_instance_id": job_id}}
             )
 
@@ -165,33 +165,33 @@ class UploadModuleManagerTestCase(TestCase):
 
             UploadModuleFileTag.objects.filter.assert_called_once_with(id__in=[1, 2, 3])
 
-            esb_client.job.fast_push_file.assert_called_once_with(
-                {
-                    "bk_scope_type": "biz",
-                    "bk_scope_id": str(bk_biz_id),
-                    "bk_biz_id": bk_biz_id,
-                    "account": account,
-                    "file_target_path": target_path,
-                    "file_source": [
-                        {
-                            "files": ["path1/file_name1"],
-                            "account": "root",
-                            "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip1"}],
-                        },
-                        {
-                            "files": ["path2/file_name2"],
-                            "account": "root",
-                            "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip2"}],
-                        },
-                        {
-                            "files": ["path3/file_name3"],
-                            "account": "root",
-                            "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip3"}],
-                        },
-                    ],
-                    "ip_list": ips,
-                }
-            )
+            job_kwargs = {
+                "bk_scope_type": "biz",
+                "bk_scope_id": "bk_biz_id_token",
+                "bk_biz_id": "bk_biz_id_token",
+                "account_alias": "account_token",
+                "file_target_path": "/user/data",
+                "file_source_list": [
+                    {
+                        "file_list": ["path1/file_name1"],
+                        "account": {"alias": "root"},
+                        "server": {"ip_list": [{"bk_cloud_id": 0, "ip": "source_ip1"}]},
+                    },
+                    {
+                        "file_list": ["path2/file_name2"],
+                        "account": {"alias": "root"},
+                        "server": {"ip_list": [{"bk_cloud_id": 0, "ip": "source_ip2"}]},
+                    },
+                    {
+                        "file_list": ["path3/file_name3"],
+                        "account": {"alias": "root"},
+                        "server": {"ip_list": [{"bk_cloud_id": 0, "ip": "source_ip3"}]},
+                    },
+                ],
+                "target_server": {"ip_list": "ips_token"},
+            }
+
+            esb_client.jobv3.fast_transfer_file.assert_called_once_with(job_kwargs)
 
             self.assertEqual(result, {"result": True, "data": {"job_id": job_id}})
 
@@ -248,7 +248,7 @@ class UploadModuleManagerTestCase(TestCase):
             callback_url = "callback_url_token"
 
             esb_client = MagicMock()
-            esb_client.job.fast_push_file = MagicMock(return_value={"result": False, "message": "msg token"})
+            esb_client.jobv3.fast_transfer_file = MagicMock(return_value={"result": False, "message": "msg token"})
 
             manager = UploadModuleManager()
 
@@ -266,32 +266,32 @@ class UploadModuleManagerTestCase(TestCase):
 
             job_kwargs = {
                 "bk_scope_type": "biz",
-                "bk_scope_id": str(bk_biz_id),
-                "bk_biz_id": bk_biz_id,
-                "account": account,
-                "file_target_path": target_path,
-                "file_source": [
+                "bk_scope_id": "bk_biz_id_token",
+                "bk_biz_id": "bk_biz_id_token",
+                "account_alias": "account_token",
+                "file_target_path": "/user/data",
+                "file_source_list": [
                     {
-                        "files": ["path1/file_name1"],
-                        "account": "root",
-                        "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip1"}],
+                        "file_list": ["path1/file_name1"],
+                        "account": {"alias": "root"},
+                        "server": {"ip_list": [{"bk_cloud_id": 0, "ip": "source_ip1"}]},
                     },
                     {
-                        "files": ["path2/file_name2"],
-                        "account": "root",
-                        "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip2"}],
+                        "file_list": ["path2/file_name2"],
+                        "account": {"alias": "root"},
+                        "server": {"ip_list": [{"bk_cloud_id": 0, "ip": "source_ip2"}]},
                     },
                     {
-                        "files": ["path3/file_name3"],
-                        "account": "root",
-                        "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip3"}],
+                        "file_list": ["path3/file_name3"],
+                        "account": {"alias": "root"},
+                        "server": {"ip_list": [{"bk_cloud_id": 0, "ip": "source_ip3"}]},
                     },
                 ],
-                "ip_list": ips,
-                "bk_callback_url": callback_url,
+                "target_server": {"ip_list": "ips_token"},
+                "callback_url": "callback_url_token",
             }
 
-            esb_client.job.fast_push_file.assert_called_once_with(job_kwargs)
+            esb_client.jobv3.fast_transfer_file.assert_called_once_with(job_kwargs)
 
             self.assertEqual(
                 result,
@@ -300,6 +300,6 @@ class UploadModuleManagerTestCase(TestCase):
                     "message": "msg token",
                     "kwargs": job_kwargs,
                     "response": {"result": False, "message": "msg token"},
-                    "job_api": "job.fast_push_file",
+                    "job_api": "jobv3.fast_transfer_file",
                 },
             )
