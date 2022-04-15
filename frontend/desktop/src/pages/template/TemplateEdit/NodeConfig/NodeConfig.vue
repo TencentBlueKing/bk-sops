@@ -587,6 +587,13 @@
                         if (!resp.result) return
                         // 获取参数
                         const { outputs: respsOutputs, forms } = resp.data
+                        // 获取不同版本的描述
+                        let desc = resp.data.desc || ''
+                        if (desc && desc.includes('\n')) {
+                            const descList = desc.split('\n')
+                            desc = descList.join('<br>')
+                        }
+                        this.updateBasicInfo({ desc })
                         if (!this.isSubflow) {
                             // 获取第三方插件公共输出参数
                             if (!this.pluginOutput['remote_plugin']) {
@@ -909,6 +916,8 @@
                 if (!this.isThirdParty) {
                     const atom = this.atomList.find(item => item.code === code)
                     desc = atom.list.find(item => item.version === list[list.length - 1].version).desc
+                } else {
+                    desc = ''
                 }
                 if (desc && desc.includes('\n')) {
                     const descList = desc.split('\n')
@@ -921,7 +930,7 @@
                     nodeName: name,
                     stageName: '',
                     nodeLabel: [],
-                    desc: desc,
+                    desc,
                     ignorable: false,
                     skippable: true,
                     retryable: true,
