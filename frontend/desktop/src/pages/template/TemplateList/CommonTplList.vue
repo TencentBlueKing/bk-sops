@@ -44,10 +44,21 @@
                                 <!--流程名称-->
                                 <div v-if="item.id === 'name'" class="name-column">
                                     <a
+                                        v-cursor="{ active: !hasPermission(['common_flow_view'], row.auth_actions) }"
+                                        href="javascript:void(0);"
+                                        class="common-icon-favorite icon-favorite"
+                                        :class="{
+                                            'is-active': row.is_collected,
+                                            'disable': collectingId === row.id,
+                                            'text-permission-disable': !hasPermission(['common_flow_view'], row.auth_actions)
+                                        }"
+                                        @click="onCollectTemplate(row)">
+                                    </a>
+                                    <a
                                         v-if="!hasPermission(['common_flow_view'], row.auth_actions)"
                                         v-cursor
                                         class="text-permission-disable"
-                                        @click="onTemplatePermissonCheck(['common_flow_view'], row)">
+                                        @click="onTemplatePermissionCheck(['common_flow_view'], row)">
                                         {{row.name}}
                                     </a>
                                     <a
@@ -74,17 +85,6 @@
                                             {{$t('新建任务')}}
                                         </a>
                                         <router-link class="template-operate-btn" :to="getExecuteHistoryUrl(props.row.id)">{{ $t('执行历史') }}</router-link>
-                                        <a
-                                            v-cursor="{ active: !hasPermission(['common_flow_view'], props.row.auth_actions) }"
-                                            href="javascript:void(0);"
-                                            :class="{
-                                                'template-operate-btn': true,
-                                                'disable': collectingId === props.row.id || collectListLoading,
-                                                'text-permission-disable': !hasPermission(['common_flow_view'], props.row.auth_actions)
-                                            }"
-                                            @click="onCollectTemplate(props.row, $event)">
-                                            {{ isCollected(props.row.id) ? $t('取消收藏') : $t('收藏') }}
-                                        </a>
                                     </template>
                                 </div>
                             </template>
@@ -220,8 +220,6 @@
                 templateList: [],
                 isSelectProjectShow: false,
                 templateCategoryList: [],
-                collectListLoading: false,
-                collectionList: [],
                 category: undefined,
                 editEndTime: undefined,
                 requestData: {
@@ -276,9 +274,8 @@
         },
         async created () {
             this.getFields()
-            this.getCollectList()
             this.getProjectBaseInfo()
-            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+            this.onSearchInput = toolsUtils.debounce(this.searchInputHandler, 500)
             await this.getTemplateList()
             this.firstLoading = false
         },
@@ -286,8 +283,7 @@
             ...mapActions([
                 'queryUserPermission',
                 'addToCollectList',
-                'deleteCollect',
-                'loadCollectList'
+                'deleteCollect'
             ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo'
@@ -336,7 +332,8 @@
                     pipeline_template__name__icontains: flowName || undefined,
                     pipeline_template__creator__contains: creator || undefined,
                     category: category || undefined,
-                    order_by: this.ordering || undefined
+                    order_by: this.ordering || undefined,
+                    new: true
                 }
                 if (queryTime[0] && queryTime[1]) {
                     data['pipeline_template__edit_time__gte'] = moment(queryTime[0]).format('YYYY-MM-DD')
@@ -377,17 +374,6 @@
                 }
                 this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
             },
-            async getCollectList () {
-                try {
-                    this.collectListLoading = true
-                    const res = await this.loadCollectList()
-                    this.collectionList = res.data
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.collectListLoading = false
-                }
-            },
             checkCreatePermission () {
                 if (!this.hasCreateCommonTplPerm) {
                     this.applyForPermission(['common_flow_create'])
@@ -398,7 +384,7 @@
                     })
                 }
             },
-            searchInputhandler (data) {
+            searchInputHandler (data) {
                 this.requestData.flowName = data
                 this.pagination.current = 1
                 this.getTemplateList()
@@ -467,7 +453,7 @@
              * @params {Array} required 需要的权限
              * @params {Object} template 模板数据对象
              */
-            onTemplatePermissonCheck (required, template) {
+            onTemplatePermissionCheck (required, template) {
                 const curPermission = template.auth_actions.slice(0)
                 const permissionData = {
                     common_flow: [{
@@ -506,7 +492,7 @@
             // 添加/取消收藏模板
             async onCollectTemplate (template) {
                 if (!this.hasPermission(['common_flow_view'], template.auth_actions)) {
-                    this.onTemplatePermissonCheck(['common_flow_view'], template)
+                    this.onTemplatePermissionCheck(['common_flow_view'], template)
                     return
                 }
                 if (typeof this.collectingId === 'number') {
@@ -515,7 +501,7 @@
 
                 try {
                     this.collectingId = template.id
-                    if (!this.isCollected(template.id)) { // add
+                    if (!template.is_collected) { // add
                         const res = await this.addToCollectList([{
                             extra_info: {
                                 template_id: template.template_id,
@@ -529,21 +515,18 @@
                         if (res.data.length) {
                             this.$bkMessage({ message: i18n.t('添加收藏成功！'), theme: 'success' })
                         }
+                        template.collection_id = res.data[0].id
                     } else { // cancel
-                        const delId = this.collectionList.find(m => m.extra_info.id === template.id && m.category === 'common_flow').id
-                        await this.deleteCollect(delId)
+                        await this.deleteCollect(template.collection_id)
                         this.$bkMessage({ message: i18n.t('取消收藏成功！'), theme: 'success' })
+                        template.collection_id = 0
                     }
-                    this.getCollectList()
+                    template.is_collected = template.is_collected ? 0 : 1
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.collectingId = ''
                 }
-            },
-            // 判断是否已在收藏列表
-            isCollected (id) {
-                return !!this.collectionList.find(m => m.extra_info.id === id && m.category === 'common_flow')
             },
 
             // 点击创建任务
@@ -643,6 +626,23 @@ a {
 }
 .template-table-content {
     background: #ffffff;
+    .bk-table-row.hover-row {
+        .icon-favorite {
+            display: block;
+        }
+    }
+    .icon-favorite {
+        position: absolute;
+        top: 14px;
+        left: -9px;
+        font-size: 14px;
+        color: #c4c6cc;
+        display: none;
+        &:hover, &.is-active {
+            display: block;
+            color: #ff9c01;
+        }
+    }
     a.template-name {
         color: $blueDefault;
     }
