@@ -11,11 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import datetime
 import logging
 
 from django.http import HttpResponseRedirect, HttpResponseNotFound
-from django.utils.translation import check_for_language
 from django.shortcuts import render
 from django_prometheus.exports import ExportToDjangoView
 
@@ -52,24 +50,6 @@ def home(request):
     except Exception:
         logger.exception("user_enter signal send failed.")
     return render(request, "core/base_vue.html")
-
-
-def set_language(request):
-    request_params = getattr(request, request.method)
-    next_url = request_params.get("next", None) or request.META.get("HTTP_REFERER", "/")
-    response = HttpResponseRedirect(next_url)
-
-    if request.method == "GET":
-        lang_code = request.GET.get("language", None)
-        if lang_code and check_for_language(lang_code):
-            if hasattr(request, "session"):
-                request.session["blueking_language"] = lang_code
-            max_age = 60 * 60 * 24 * 365
-            expires = datetime.datetime.strftime(
-                datetime.datetime.utcnow() + datetime.timedelta(seconds=max_age), "%a, %d-%b-%Y %H:%M:%S GMT",
-            )
-            response.set_cookie(settings.LANGUAGE_COOKIE_NAME, lang_code, max_age, expires)
-    return response
 
 
 @login_exempt
