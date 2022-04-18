@@ -65,12 +65,12 @@ class TaskTemplatePermission(IamPermission):
             IAMMeta.FLOW_VIEW_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
         ),
         "destroy": IamPermissionInfo(
-            IAMMeta.COMMON_FLOW_DELETE_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
+            IAMMeta.FLOW_DELETE_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
         ),
         "update": IamPermissionInfo(
-            IAMMeta.COMMON_FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
+            IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
         ),
-        "create": IamPermissionInfo(IAMMeta.COMMON_FLOW_CREATE_ACTION),
+        "create": IamPermissionInfo(IAMMeta.FLOW_CREATE_ACTION),
     }
 
 
