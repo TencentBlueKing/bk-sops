@@ -52,7 +52,7 @@ RSA_PUB_KEY = base64.b64decode(env.RSA_PUB_KEY).decode("utf-8") if env.RSA_PUB_K
 
 # APIGW Auth
 APIGW_APP_CODE_KEY = "bk_app_code"
-APIGW_USER_USERNAME_KEY = "username"
+APIGW_USER_USERNAME_KEY = "bk_username"
 
 # apigw-manager解析之后username和app_code的key
 APIGW_MANAGER_APP_CODE_KEY = "bk_app_code"
