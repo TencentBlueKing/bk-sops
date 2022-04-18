@@ -29,7 +29,7 @@ WHETHER_PREPARE_BIZ = getattr(settings, "WHETHER_PREPARE_BIZ_IN_API_CALL", True)
 
 
 def check_white_apps(request):
-    app_code = getattr(request.app, settings.APIGW_APP_CODE_KEY)
+    app_code = getattr(request.app, settings.APIGW_MANAGER_APP_CODE_KEY)
     return app_whitelist.has(app_code)
 
 

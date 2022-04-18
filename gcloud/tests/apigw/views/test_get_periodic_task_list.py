@@ -87,7 +87,7 @@ class GetPeriodicTaskListAPITest(APITest):
                     HTTP_BK_APP_CODE=TEST_APP_CODE,
                     HTTP_BK_USERNAME=TEST_USERNAME,
                 )
-                mock_get_actions.assert_called_once_with("", PERIODIC_TASK_ACTIONS, TEST_ID_LIST)
+                mock_get_actions.assert_called_once_with(TEST_USERNAME, PERIODIC_TASK_ACTIONS, TEST_ID_LIST)
                 data = json.loads(response.content)
 
                 self.assertTrue(data["result"], msg=data)

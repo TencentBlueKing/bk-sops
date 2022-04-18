@@ -109,7 +109,7 @@ def create_task(request, template_id, project_id):
             }
             return result
 
-    app_code = getattr(request.app, settings.APIGW_APP_CODE_KEY)
+    app_code = getattr(request.app, settings.APIGW_MANAGER_APP_CODE_KEY)
     if not app_code:
         message = "app_code cannot be empty, make sure api gateway has sent correct params"
         return {"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code}

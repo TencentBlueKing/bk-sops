@@ -144,7 +144,6 @@ MIDDLEWARE += (
     "iam.contrib.django.middlewares.AuthFailedExceptionMiddleware",
     "pipeline_plugins.middlewares.PluginApiRequestHandleMiddleware",
     "gcloud.core.middlewares.AppMetricsAfterMiddleware",
-    "django_prometheus.middleware.PrometheusAfterMiddleware",
     "apigw_manager.apigw.authentication.ApiGatewayJWTGenericMiddleware",  # JWT 认证
     "apigw_manager.apigw.authentication.ApiGatewayJWTAppMiddleware",  # JWT 透传的应用信息
     "apigw_manager.apigw.authentication.ApiGatewayJWTUserMiddleware",  # JWT 透传的用户信息
