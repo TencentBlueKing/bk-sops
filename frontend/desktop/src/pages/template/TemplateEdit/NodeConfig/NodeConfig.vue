@@ -772,7 +772,14 @@
                         if (subflowInfo) {
                             templateName = subflowInfo.name
                         } else {
-                            const templateData = await this.loadTemplateData({ templateId: template_id, common: this.common || config.template_source === 'common' })
+                            const templateData = await this.loadTemplateData({
+                                templateId: template_id,
+                                common: this.common || config.template_source === 'common',
+                                checkPermission: true })
+                                .catch(error => {
+                                    this.onClosePanel()
+                                    console.log(error)
+                                }) || {}
                             templateName = templateData.name
                         }
                     }
