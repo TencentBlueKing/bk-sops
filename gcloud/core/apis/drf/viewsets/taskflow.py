@@ -106,12 +106,18 @@ class TaskFlowInstancePermission(IamPermission):
                     template = model_cls.objects.get(id=template_id)
                 except model_cls.DoesNotExist:
                     return False
+                if template_source == "project":
+                    iam_action = IAMMeta.FLOW_CREATE_TASK_ACTION
+                    resource_func = res_factory.resources_for_flow_obj
+                else:
+                    iam_action = IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION
+                    resource_func = res_factory.resources_for_common_flow_obj
                 allow_or_raise_immediate_response(
                     iam=iam,
                     system=IAMMeta.SYSTEM_ID,
                     subject=Subject("user", request.user.username),
-                    action=Action(IAMMeta.FLOW_CREATE_TASK_ACTION),
-                    resources=res_factory.resources_for_flow_obj(template),
+                    action=Action(iam_action),
+                    resources=resource_func(template),
                 )
                 return True
         elif view.action == "list":
