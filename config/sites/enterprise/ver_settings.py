@@ -52,7 +52,7 @@ RSA_PUB_KEY = base64.b64decode(env.RSA_PUB_KEY).decode("utf-8") if env.RSA_PUB_K
 
 # APIGW Auth
 APIGW_APP_CODE_KEY = "bk_app_code"
-APIGW_USER_USERNAME_KEY = "bk_username"
+APIGW_USER_USERNAME_KEY = "username"
 
 COMPATIBLE_MODULE_MAP = {
     # 插件路径迁移兼容

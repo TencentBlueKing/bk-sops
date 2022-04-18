@@ -16,17 +16,18 @@ from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust
+from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.common_template.models import CommonTemplate
 from gcloud.apigw.views.utils import format_template_list_data
 from gcloud.iam_auth.conf import COMMON_FLOW_ACTIONS
 from gcloud.iam_auth.utils import get_common_flow_allowed_actions_for_user
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
 @require_GET
-@apigw_required
+@apigw_require
+@return_json_response
 @mark_request_whether_is_trust
 def get_common_template_list(request):
     templates = CommonTemplate.objects.select_related("pipeline_template").filter(is_deleted=False)

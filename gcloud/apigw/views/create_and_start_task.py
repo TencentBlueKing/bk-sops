@@ -34,10 +34,10 @@ from gcloud.utils.decorators import request_validate
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.contrib.operate_record.decorators import record_operation
-from gcloud.apigw.decorators import mark_request_whether_is_trust
+from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.utils.throttle import check_task_operation_throttle
 from gcloud.apigw.decorators import project_inject
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 from gcloud.iam_auth.view_interceptors.apigw import CreateTaskInterceptor
 from gcloud.apigw.validators import CreateTaskValidator
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
@@ -46,7 +46,8 @@ from gcloud.contrib.operate_record.constants import RecordType, OperateType, Ope
 @login_exempt
 @csrf_exempt
 @require_POST
-@apigw_required
+@apigw_require
+@return_json_response
 @mark_request_whether_is_trust
 @project_inject
 @request_validate(CreateTaskValidator)
@@ -96,7 +97,7 @@ def create_and_start_task(request, template_id, project_id):
             return result
 
     # 检查app_code是否存在
-    app_code = getattr(request.jwt.app, settings.APIGW_APP_CODE_KEY)
+    app_code = getattr(request.app, settings.APIGW_APP_CODE_KEY)
     if not app_code:
         message = "app_code cannot be empty, make sure api gateway has sent correct params"
         return {"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code}

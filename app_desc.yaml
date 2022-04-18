@@ -66,6 +66,8 @@ modules:
                 - bk_app_code: "bk_sops"
                 - bk_app_code: "bk_sops"
                   module_name: "callback"
+                - bk_app_code: "bk_sops"
+                  module_name: "api"
         scripts:
             pre_release_hook: bash bin/pre_release
     callback:
@@ -113,6 +115,8 @@ modules:
                 - bk_app_code: "bk_sops"
                 - bk_app_code: "bk_sops"
                   module_name: "callback"
+                - bk_app_code: "bk_sops"
+                  module_name: "api"
     pipeline:
         is_default: False
         language: Python
@@ -222,6 +226,8 @@ modules:
               - bk_app_code: "bk_sops"
               - bk_app_code: "bk_sops"
                 module_name: "callback"
+              - bk_app_code: "bk_sops"
+                module_name: "api"
     api:
         is_default: False
         language: Python
@@ -267,3 +273,5 @@ modules:
               - bk_app_code: "bk_sops"
               - bk_app_code: "bk_sops"
                 module_name: "callback"
+              - bk_app_code: "bk_sops"
+                module_name: "api"
