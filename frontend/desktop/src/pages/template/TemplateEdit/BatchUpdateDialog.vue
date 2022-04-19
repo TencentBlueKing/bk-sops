@@ -607,6 +607,7 @@
                     })
                     this.handleVariableChange()
                     this.onCloseDialog()
+                    this.$emit('templateDataChanged')
                 } else {
                     const errorEl = document.querySelector('.subflow-form-wrap .common-error-tip')
                     if (errorEl) {

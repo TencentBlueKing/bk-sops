@@ -137,6 +137,7 @@
                     v-if="isBatchUpdateDialogShow"
                     :project-id="project_id"
                     :list="subflowShouldUpdated"
+                    @templateDataChanged="templateDataChanged"
                     @globalVariableUpdate="globalVariableUpdate"
                     @close="isBatchUpdateDialogShow = false">
                 </batch-update-dialog>
