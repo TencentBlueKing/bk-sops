@@ -355,7 +355,7 @@
                 }
             },
             getPlaceholder (row) {
-                return row.meta.id in this.overriders
+                return row.refer === 'overrider'
                     ? this.$t('请选择需要覆盖的流程')
                     : (row.refer === 'useCommonExisting' || this.common)
                         ? this.$t('请选择复用的公共流程')
