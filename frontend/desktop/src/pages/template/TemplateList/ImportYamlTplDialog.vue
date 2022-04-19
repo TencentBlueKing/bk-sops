@@ -118,8 +118,8 @@
                                         @change="handleSubFlowReferChange($event, props.row.meta.id)">
                                         <bk-option id="noOverrider" :name="$t('不覆盖，新建子流程')"></bk-option>
                                         <bk-option id="overrider" :name="$t('覆盖已有子流程')"></bk-option>
-                                        <bk-option id="useExisting" :name="$t('不导入，复用项目子流程')"></bk-option>
-                                        <bk-option v-if="!common" id="useCommonExisting" :name="$t('不导入，复用公共子流程')"></bk-option>
+                                        <bk-option v-if="!common" id="useExisting" :name="$t('不导入，复用项目子流程')"></bk-option>
+                                        <bk-option id="useCommonExisting" :name="$t('不导入，复用公共子流程')"></bk-option>
                                     </bk-select>
                                     <bk-select
                                         v-if="props.row.meta.id in Object.assign({}, overriders, reference, commonReference)"
@@ -131,7 +131,7 @@
                                         @clear="onClearRefer(props.row.meta.id)"
                                         @selected="onSelectRefer(props.row.meta.id, $event)">
                                         <bk-option
-                                            v-for="item in (props.row.meta.id in commonReference ? commonTemplateList : templateList)"
+                                            v-for="item in ((!common && props.row.meta.id in commonReference) ? commonTemplateList : templateList)"
                                             :key="item.id"
                                             :id="item.id"
                                             :name="item.name">
@@ -358,7 +358,7 @@
                     this.$set(this.commonReference, tpl, '')
                     this.$delete(this.overriders, tpl)
                     this.$delete(this.reference, tpl)
-                    if (!this.commonTemplateList.length) {
+                    if (!this.common && !this.commonTemplateList.length) {
                         this.getTemplateData(true)
                     }
                 } else {
