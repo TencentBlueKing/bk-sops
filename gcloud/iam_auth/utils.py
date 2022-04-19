@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from iam import Request, MultiActionRequest, Subject, Action
 from iam.exceptions import MultiAuthFailedException, AuthFailedException
-from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
+from iam.shortcuts import allow_or_raise_auth_failed
 
 from gcloud.core.models import Project
 
@@ -48,10 +48,7 @@ def get_flow_allowed_actions_for_user(username, actions, flow_id_list):
         return {}
 
     return get_resources_allowed_actions_for_user(
-        username,
-        IAMMeta.SYSTEM_ID,
-        actions,
-        res_factory.resources_list_for_flows(flow_id_list),
+        username, IAMMeta.SYSTEM_ID, actions, res_factory.resources_list_for_flows(flow_id_list),
     )
 
 
@@ -61,12 +58,7 @@ def get_common_flow_allowed_actions_for_user(username, actions, common_flow_id_l
     if not resources_list:
         return {}
 
-    return get_resources_allowed_actions_for_user(
-        username,
-        IAMMeta.SYSTEM_ID,
-        actions,
-        resources_list,
-    )
+    return get_resources_allowed_actions_for_user(username, IAMMeta.SYSTEM_ID, actions, resources_list,)
 
 
 def get_mini_app_allowed_actions_for_user(username, actions, mini_app_id_list):
@@ -75,12 +67,7 @@ def get_mini_app_allowed_actions_for_user(username, actions, mini_app_id_list):
     if not resources_list:
         return {}
 
-    return get_resources_allowed_actions_for_user(
-        username,
-        IAMMeta.SYSTEM_ID,
-        actions,
-        resources_list,
-    )
+    return get_resources_allowed_actions_for_user(username, IAMMeta.SYSTEM_ID, actions, resources_list,)
 
 
 def get_task_allowed_actions_for_user(username, actions, task_id_list):
@@ -147,10 +134,6 @@ def check_project_or_admin_view_action_for_user(project_id, username):
     iam = get_iam_client()
     action = Action(IAMMeta.PROJECT_VIEW_ACTION) if project_id else Action(IAMMeta.ADMIN_VIEW_ACTION)
     resources = res_factory.resources_for_project(project_id) if project_id else []
-    allow_or_raise_immediate_response(
-        iam=iam,
-        system=IAMMeta.SYSTEM_ID,
-        subject=Subject("user", username),
-        action=action,
-        resources=resources,
+    allow_or_raise_auth_failed(
+        iam=iam, system=IAMMeta.SYSTEM_ID, subject=Subject("user", username), action=action, resources=resources,
     )

@@ -16,11 +16,9 @@ from rest_framework.exceptions import ErrorDetail
 from rest_framework import serializers, generics, permissions, status
 from django_filters import FilterSet
 
-from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
-from iam import Subject, Action
-
 from gcloud.constants import TASK_NAME_MAX_LENGTH
 from gcloud import err_code
+from gcloud.core.apis.drf.viewsets import IAMMixin
 from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
 from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
@@ -69,7 +67,7 @@ class TaskFlowFilterSet(FilterSet):
         }
 
 
-class TaskFlowInstancePermission(IamPermission):
+class TaskFlowInstancePermission(IamPermission, IAMMixin):
     actions = {
         "retrieve": IamPermissionInfo(
             IAMMeta.TASK_VIEW_ACTION, res_factory.resources_for_task_obj, HAS_OBJECT_PERMISSION
@@ -89,11 +87,9 @@ class TaskFlowInstancePermission(IamPermission):
                     app_maker = AppMaker.objects.get(id=app_maker_id)
                 except AppMaker.DoesNotExist:
                     return False
-                allow_or_raise_immediate_response(
-                    iam=iam,
-                    system=IAMMeta.SYSTEM_ID,
-                    subject=Subject("user", request.user.username),
-                    action=Action(IAMMeta.MINI_APP_CREATE_TASK_ACTION),
+                self.iam_auth_check(
+                    request=request,
+                    action=IAMMeta.MINI_APP_CREATE_TASK_ACTION,
                     resources=res_factory.resources_for_mini_app_obj(app_maker),
                 )
                 return True
@@ -108,16 +104,14 @@ class TaskFlowInstancePermission(IamPermission):
                     return False
                 if template_source == "project":
                     iam_action = IAMMeta.FLOW_CREATE_TASK_ACTION
-                    resource_func = res_factory.resources_for_flow_obj
+                    resources = res_factory.resources_for_flow_obj(template)
                 else:
                     iam_action = IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION
-                    resource_func = res_factory.resources_for_common_flow_obj
-                allow_or_raise_immediate_response(
-                    iam=iam,
-                    system=IAMMeta.SYSTEM_ID,
-                    subject=Subject("user", request.user.username),
-                    action=Action(iam_action),
-                    resources=resource_func(template),
+                    resources = res_factory.resources_for_common_flow_obj(template)
+                    if request.data.get("project"):
+                        resources.extend(res_factory.resources_for_project(request.data["project"]))
+                self.iam_auth_check(
+                    request=request, action=iam_action, resources=resources,
                 )
                 return True
         elif view.action == "list":
@@ -131,7 +125,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False, is_deleted=False).order_by(
         "pipeline_instance"
     )
-    iam_resource_helper = ViewSetResourceHelper(resource_func=res_factory.resources_for_task_obj, actions=TASK_ACTIONS,)
+    iam_resource_helper = ViewSetResourceHelper(resource_func=res_factory.resources_for_task_obj, actions=TASK_ACTIONS)
     filter_class = TaskFlowFilterSet
     permission_classes = [permissions.IsAuthenticated, TaskFlowInstancePermission]
     ordering_fields = ["pipeline_instance"]
