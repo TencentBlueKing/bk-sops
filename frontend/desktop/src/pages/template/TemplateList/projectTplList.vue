@@ -373,11 +373,13 @@
             min_width: 300
         },
         {
+            key: 'pipeline_template__create_time',
             id: 'create_time',
             label: i18n.t('创建时间'),
             width: 200
         },
         {
+            key: 'pipeline_template__edit_time',
             id: 'edit_time',
             label: i18n.t('更新时间'),
             width: 200
@@ -678,7 +680,6 @@
                     project__id: this.project_id,
                     new: true
                 }
-                // 我的收藏栏下order排序重新赋值
                 const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
                 if (keys.includes(this.ordering)) {
                     const symbol = /^-/.test(this.ordering) ? '-' : ''
@@ -1033,7 +1034,7 @@
                 } else if (order === 'descending') {
                     this.ordering = '-' + prop
                 } else {
-                    this.ordering = undefined
+                    this.ordering = ''
                 }
                 this.pagination.current = 1
                 this.updateUrl()
