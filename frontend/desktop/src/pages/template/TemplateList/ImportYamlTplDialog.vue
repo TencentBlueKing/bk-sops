@@ -266,7 +266,15 @@
                             count: ('file' in res.data.error) ? 0 : this.subFlowList.length
                         }
                         this.errorMsg = this.handleErrorMsg(res.data)
-                        this.getTemplateData()
+                        // 查询项目流程列表及公共流程列表
+                        const promiseArr = [this.getTemplateData({ common: 1 })]
+                        if (!this.common) {
+                            promiseArr.push(this.getTemplateData({ project__id: this.project_id }))
+                        }
+                        this.tplLoading = true
+                        Promise.all(promiseArr).then(res => {
+                            this.tplLoading = false
+                        })
                     } else {
                         this.errorMsg = res.message
                     }
@@ -281,25 +289,16 @@
                     })
                 }
             },
-            async getTemplateData (useCommon) {
-                this.tplLoading = true
+            async getTemplateData (data) {
                 try {
-                    const data = {}
-                    if (this.common || useCommon) {
-                        data.common = 1
-                    } else {
-                        data.project__id = this.project_id
-                    }
                     const respData = await this.loadTemplateList(data)
-                    if (this.common || useCommon) {
+                    if (data.common) {
                         this.commonTemplateList = respData.results
                     } else {
                         this.templateList = respData.results
                     }
                 } catch (e) {
                     console.log(e)
-                } finally {
-                    this.tplLoading = false
                 }
             },
             handleErrorMsg (data) {
@@ -349,9 +348,6 @@
                     this.$delete(this.reference, templateId)
                     this.$delete(this.overriders, templateId)
                     this.$set(this.reference, templateId, '')
-                    if (val === 'useCommonExisting' && !this.common && !this.commonTemplateList.length) {
-                        this.getTemplateData(true)
-                    }
                 }
             },
             getPlaceholder (row) {
