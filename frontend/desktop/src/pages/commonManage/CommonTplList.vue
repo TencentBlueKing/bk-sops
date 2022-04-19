@@ -96,6 +96,18 @@
                                 <!--流程名称-->
                                 <div v-if="item.id === 'name'" class="name-column">
                                     <a
+                                        data-test-id="process_table_collectBtn"
+                                        v-cursor="{ active: !hasPermission(['common_flow_view'], row.auth_actions) }"
+                                        href="javascript:void(0);"
+                                        class="common-icon-favorite icon-favorite"
+                                        :class="{
+                                            'is-active': row.is_collected,
+                                            'disable': collectingId === row.id,
+                                            'text-permission-disable': !hasPermission(['common_flow_view'], row.auth_actions)
+                                        }"
+                                        @click="onCollectTemplate(row)">
+                                    </a>
+                                    <a
                                         v-if="!hasPermission(['common_flow_view'], row.auth_actions)"
                                         v-cursor
                                         class="text-permission-disable"
@@ -153,18 +165,6 @@
                                             :tippy-options="{ boundary: 'window', duration: [0, 0] }">
                                             <i class="bk-icon icon-more drop-icon-ellipsis"></i>
                                             <ul slot="content">
-                                                <li class="opt-btn">
-                                                    <a
-                                                        v-cursor="{ active: !hasPermission(['common_flow_view'], props.row.auth_actions) }"
-                                                        href="javascript:void(0);"
-                                                        :class="{
-                                                            'disable': collectingId === props.row.id || collectListLoading,
-                                                            'text-permission-disable': !hasPermission(['common_flow_view'], props.row.auth_actions)
-                                                        }"
-                                                        @click="onCollectTemplate(props.row, $event)">
-                                                        {{ isCollected(props.row.id) ? $t('取消收藏') : $t('收藏') }}
-                                                    </a>
-                                                </li>
                                                 <li class="opt-btn">
                                                     <a
                                                         v-if="!hasPermission(['common_flow_edit'], props.row.auth_actions)"
@@ -437,8 +437,6 @@
                     delete: false // 删除
                 },
                 templateCategoryList: [],
-                collectListLoading: false,
-                collectionList: [],
                 category: undefined,
                 editEndTime: undefined,
                 templateType: this.common_template,
@@ -513,7 +511,6 @@
         },
         async created () {
             this.getFields()
-            this.getCollectList()
             this.getProjectBaseInfo()
             this.queryCreateCommonTplPerm()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
@@ -524,8 +521,7 @@
             ...mapActions([
                 'queryUserPermission',
                 'addToCollectList',
-                'deleteCollect',
-                'loadCollectList'
+                'deleteCollect'
             ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo'
@@ -587,7 +583,8 @@
                     category: category || undefined,
                     subprocess_has_update,
                     has_subprocess,
-                    order_by: this.ordering || undefined
+                    order_by: this.ordering || undefined,
+                    new: true
                 }
                 if (queryTime[0] && queryTime[1]) {
                     data['pipeline_template__edit_time__gte'] = moment(queryTime[0]).format('YYYY-MM-DD')
@@ -627,17 +624,6 @@
                     selectedFields = this.defaultSelected
                 }
                 this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
-            },
-            async getCollectList () {
-                try {
-                    this.collectListLoading = true
-                    const res = await this.loadCollectList()
-                    this.collectionList = res.data
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.collectListLoading = false
-                }
             },
             checkCreatePermission () {
                 if (!this.hasCreateCommonTplPerm) {
@@ -760,7 +746,7 @@
                 }
                 this.batchCollectPending = true
                 try {
-                    const data = this.selectedTpls.filter(tpl => !this.isCollected(tpl.id)).map(tpl => {
+                    const data = this.selectedTpls.filter(tpl => !tpl.is_collected).map(tpl => {
                         return {
                             extra_info: {
                                 template_id: tpl.id,
@@ -777,7 +763,20 @@
                         return
                     }
                     const res = await this.addToCollectList(data)
-                    this.getCollectList()
+                    res.data.forEach(item => {
+                        // 修改对应的流程（用于单个取消收藏）
+                        const tempInfo = this.templateList.find(val => val.id === item.instance_id)
+                        if (tempInfo) {
+                            tempInfo.is_collected = 1
+                            tempInfo.collection_id = item.id
+                        }
+                        // 修改对应勾选中的流程（用于批量取消收藏）
+                        const selectInfo = this.selectedTpls.find(val => val.id === item.instance_id)
+                        if (selectInfo) {
+                            selectInfo.is_collected = 1
+                            selectInfo.collection_id = item.id
+                        }
+                    })
                     if (res.data.length) {
                         this.$bkMessage({ message: i18n.t('添加收藏成功！'), theme: 'success' })
                     }
@@ -1008,7 +1007,7 @@
 
                 try {
                     this.collectingId = template.id
-                    if (!this.isCollected(template.id)) { // add
+                    if (!template.is_collected) { // add
                         const res = await this.addToCollectList([{
                             extra_info: {
                                 template_id: template.template_id,
@@ -1022,21 +1021,18 @@
                         if (res.data.length) {
                             this.$bkMessage({ message: i18n.t('添加收藏成功！'), theme: 'success' })
                         }
+                        template.collection_id = res.data[0].id
                     } else { // cancel
-                        const delId = this.collectionList.find(m => m.extra_info.id === template.id && m.category === 'common_flow').id
-                        await this.deleteCollect(delId)
+                        await this.deleteCollect(template.collection_id)
                         this.$bkMessage({ message: i18n.t('取消收藏成功！'), theme: 'success' })
+                        template.collection_id = 0
                     }
-                    this.getCollectList()
+                    template.is_collected = template.is_collected ? 0 : 1
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.collectingId = ''
                 }
-            },
-            // 判断是否已在收藏列表
-            isCollected (id) {
-                return !!this.collectionList.find(m => m.extra_info.id === id && m.category === 'common_flow')
             },
 
             // 点击创建任务
@@ -1193,6 +1189,23 @@ a {
 }
 .template-table-content {
     background: #ffffff;
+    .bk-table-row.hover-row {
+        .icon-favorite {
+            display: block;
+        }
+    }
+    .icon-favorite {
+        position: absolute;
+        top: 14px;
+        left: -9px;
+        font-size: 14px;
+        color: #c4c6cc;
+        display: none;
+        &:hover, &.is-active {
+            display: block;
+            color: #ff9c01;
+        }
+    }
     a.template-name {
         color: $blueDefault;
     }

@@ -24,10 +24,12 @@
                 </advance-search-form>
                 <div class="template-table-content" data-test-id="commonProcess_table_processList">
                     <bk-table
+                        ref="templateTable"
                         class="template-table"
                         :data="templateList"
                         :pagination="pagination"
                         :size="setting.size"
+                        :default-sort="getDefaultSortConfig"
                         v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1, zIndex: 100 }"
                         @sort-change="handleSortChange"
                         @page-change="onPageChange"
@@ -36,10 +38,12 @@
                             v-for="item in setting.selectedFields"
                             :key="item.id"
                             :label="item.label"
-                            :prop="item.id"
+                            :prop="item.key || item.id"
                             :width="item.width"
                             :min-width="item.min_width"
-                            :sortable="item.sortable">
+                            :render-header="renderTableHeader"
+                            :sort-orders="['descending', 'ascending', null]"
+                            :sortable="sortableCols.find(col => col.value === (item.key || item.id)) ? 'custom' : false">
                             <template slot-scope="{ row }">
                                 <!--流程名称-->
                                 <div v-if="item.id === 'name'" class="name-column">
@@ -80,7 +84,11 @@
                                 <div class="template-operation">
                                     <template>
                                         <a
+                                            v-cursor="{ active: !props.row.auth_actions.includes('common_flow_create_task') }"
                                             class="template-operate-btn"
+                                            :class="{
+                                                'text-permission-disable': !props.row.auth_actions.includes('common_flow_create_task')
+                                            }"
                                             @click.prevent="handleCreateTaskClick(props.row)">
                                             {{$t('新建任务')}}
                                         </a>
@@ -90,12 +98,14 @@
                             </template>
                         </bk-table-column>
                         <bk-table-column type="setting">
-                            <bk-table-setting-content
+                            <table-setting-content
                                 :fields="setting.fieldList"
                                 :selected="setting.selectedFields"
                                 :size="setting.size"
+                                :sortable-cols="sortableCols"
+                                :order="ordering"
                                 @setting-change="handleSettingChange">
-                            </bk-table-setting-content>
+                            </table-setting-content>
                         </bk-table-column>
                         <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
                     </bk-table>
@@ -111,6 +121,7 @@
     import Skeleton from '@/components/skeleton/index.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
+    import TableSettingContent from '@/components/common/TableSettingContent.vue'
     import permission from '@/mixins/permission.js'
     // moment用于时区使用
     import moment from 'moment-timezone'
@@ -154,18 +165,19 @@
             min_width: 400
         },
         {
+            key: 'pipeline_template__create_time',
             id: 'create_time',
             label: i18n.t('创建时间'),
-            sortable: 'custom',
             width: 200
         },
         {
+            key: 'pipeline_template__edit_time',
             id: 'edit_time',
             label: i18n.t('更新时间'),
-            sortable: 'custom',
             width: 200
         },
         {
+            key: 'category',
             id: 'category_name',
             label: i18n.t('分类'),
             min_width: 180
@@ -186,7 +198,8 @@
         components: {
             Skeleton,
             AdvanceSearchForm,
-            NoData
+            NoData,
+            TableSettingContent
         },
         mixins: [permission],
         project_id: [String, Number],
@@ -218,6 +231,7 @@
                 searchForm,
                 isSearchFormOpen,
                 templateList: [],
+                sortableCols: [],
                 isSelectProjectShow: false,
                 templateCategoryList: [],
                 category: undefined,
@@ -241,14 +255,16 @@
                 hasCreateTaskPerm: true,
                 selectedProject: {},
                 selectedTpl: {},
-                ordering: null, // 排序参数
+                ordering: this.$store.state.project.config.task_template_ordering, // 排序参数
                 tableFields: TABLE_FIELDS,
                 defaultSelected: ['id', 'name', 'label', 'edit_time', 'creator_name', 'editor_name'],
                 setting: {
                     fieldList: TABLE_FIELDS,
                     selectedFields: TABLE_FIELDS.slice(0),
                     size: 'small'
-                }
+                },
+                isInit: true, // 避免default-sort在初始化时去触发table的sort-change事件
+                categoryTips: i18n.t('模板分类即将下线，建议使用标签')
             }
         },
         computed: {
@@ -262,7 +278,18 @@
                 'timeZone': state => state.timezone,
                 'projectName': state => state.projectName,
                 'project_id': state => state.project_id
-            })
+            }),
+            // 获取默认排序配置
+            getDefaultSortConfig () {
+                const { ordering } = this
+                if (ordering) {
+                    if (/^-/.test(this.ordering)) {
+                        return { prop: ordering.replace(/^-/, ''), order: 'descending' }
+                    }
+                    return { prop: ordering, order: 'ascending' }
+                }
+                return {}
+            }
         },
         watch: {
             page (val, oldVal) {
@@ -276,6 +303,8 @@
             this.getFields()
             this.getProjectBaseInfo()
             this.onSearchInput = toolsUtils.debounce(this.searchInputHandler, 500)
+            const res = await this.getUserProjectConfigOptions({ id: this.project_id, params: { configs: 'task_template_ordering' } })
+            this.sortableCols = res.data.task_template_ordering
             await this.getTemplateList()
             this.firstLoading = false
         },
@@ -290,6 +319,10 @@
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList'
+            ]),
+            ...mapActions('project/', [
+                'getUserProjectConfigOptions',
+                'setUserProjectConfig'
             ]),
             ...mapMutations('template/', [
                 'setProjectBaseInfo'
@@ -321,6 +354,7 @@
                     console.log(e)
                 } finally {
                     this.listLoading = false
+                    this.isInit = false
                 }
             },
             getQueryData () {
@@ -332,8 +366,16 @@
                     pipeline_template__name__icontains: flowName || undefined,
                     pipeline_template__creator__contains: creator || undefined,
                     category: category || undefined,
-                    order_by: this.ordering || undefined,
+                    project__id: this.project_id,
                     new: true
+                }
+                const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
+                if (keys.includes(this.ordering)) {
+                    const symbol = /^-/.test(this.ordering) ? '-' : ''
+                    const orderVal = this.ordering.replace(/^-/, '')
+                    data['order_by'] = `${symbol}pipeline_template__${orderVal}`
+                } else {
+                    data['order_by'] = this.ordering
                 }
                 if (queryTime[0] && queryTime[1]) {
                     data['pipeline_template__edit_time__gte'] = moment(queryTime[0]).format('YYYY-MM-DD')
@@ -396,16 +438,38 @@
                 this.getTemplateList()
             },
             handleSortChange ({ prop, order }) {
-                const params = 'pipeline_template__' + prop
+                if (this.isInit) return
                 if (order === 'ascending') {
-                    this.ordering = params
+                    this.ordering = prop
                 } else if (order === 'descending') {
-                    this.ordering = '-' + params
+                    this.ordering = '-' + prop
                 } else {
                     this.ordering = ''
                 }
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getTemplateList()
+                if (this.ordering) {
+                    this.setUserProjectConfig({ id: this.project_id, params: { task_template_ordering: this.ordering } })
+                }
+            },
+            renderTableHeader (h, { column, $index }) {
+                if (column.property !== 'category') {
+                    return column.label
+                }
+
+                return h('span', {
+                    'class': 'category-label'
+                }, [
+                    column.label,
+                    h('i', {
+                        'class': 'common-icon-info table-header-tips',
+                        directives: [{
+                            name: 'bk-tooltips',
+                            value: this.categoryTips
+                        }]
+                    })
+                ])
             },
             onPageChange (page) {
                 this.pagination.current = page
@@ -419,7 +483,7 @@
                 this.getTemplateList()
             },
             // 表格功能选项
-            handleSettingChange ({ fields, size }) {
+            handleSettingChange ({ fields, size, order }) {
                 this.setting.size = size
                 this.setting.selectedFields = fields
                 const fieldIds = fields.map(m => m.id)
@@ -427,6 +491,12 @@
                     fieldList: fieldIds,
                     size
                 }))
+                if (order && order !== this.ordering) {
+                    this.ordering = order
+                    this.$refs.templateTable.clearSort()
+                    this.$refs.templateTable.sort(/^-/.test(order) ? order.replace(/^-/, '') : order, /^-/.test(order) ? 'descending' : 'ascending')
+                    this.setUserProjectConfig({ id: this.project_id, params: { task_template_ordering: order } })
+                }
             },
             updateUrl () {
                 const { current, limit } = this.pagination
@@ -531,6 +601,10 @@
 
             // 点击创建任务
             handleCreateTaskClick (tpl) {
+                if (!tpl.auth_actions.includes('common_flow_create_task')) {
+                    this.onTemplatePermissionCheck(['common_flow_create_task'], tpl)
+                    return
+                }
                 this.$router.push({
                     name: 'taskCreate',
                     query: { template_id: tpl.id, common: '1' },
@@ -687,6 +761,12 @@ a {
             font-size: 18px;
             color: #979ba5;
         }
+    }
+    /deep/.table-header-tips {
+        margin-left: 4px;
+        font-size: 14px;
+        color: #c4c6cc;
+        cursor: pointer;
     }
 }
 </style>
