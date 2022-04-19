@@ -73,7 +73,7 @@
                                     @clear="overriders[props.row.meta.id] = ''"
                                     @selected="overriders[props.row.meta.id] = $event">
                                     <bk-option
-                                        v-for="item in templateList"
+                                        v-for="item in (common ? commonTemplateList : templateList)"
                                         :key="item.id"
                                         :id="item.id"
                                         :name="item.name">
@@ -109,28 +109,30 @@
                             </template>
                         </bk-table-column>
                         <bk-table-column :label="$t('是否导入子流程（仅适用于同环境导入）')" :width="400">
-                            <template slot-scope="props">
+                            <template slot-scope="{ row }">
                                 <div class="tpl-overrider-select">
                                     <bk-select
                                         style="width: 180px;"
-                                        :value="getSubflowRefer(props.row.meta.id)"
+                                        :value="row.refer"
                                         :clearable="false"
-                                        @change="handleSubFlowReferChange($event, props.row.meta.id)">
-                                        <bk-option id="useExisting" :name="$t('不导入，使用已有流程')"></bk-option>
-                                        <bk-option id="noOverrider" :name="$t('不覆盖，新建流程')"></bk-option>
-                                        <bk-option id="overrider" :name="$t('覆盖已有流程')"></bk-option>
+                                        @change="handleSubFlowReferChange($event, row)">
+                                        <bk-option id="noOverrider" :name="$t('不覆盖，新建子流程')"></bk-option>
+                                        <bk-option id="overrider" :name="$t('覆盖已有子流程')"></bk-option>
+                                        <bk-option v-if="!common" id="useExisting" :name="$t('不导入，复用项目子流程')"></bk-option>
+                                        <bk-option id="useCommonExisting" :name="$t('不导入，复用公共子流程')"></bk-option>
                                     </bk-select>
                                     <bk-select
-                                        v-if="(props.row.meta.id in overriders) || (props.row.meta.id in reference)"
+                                        :key="row.refer"
+                                        v-if="row.meta.id in Object.assign({}, overriders, reference)"
                                         style="width: 180px; margin-left: 8px;"
-                                        :placeholder="props.row.meta.id in overriders ? $t('请选择需要覆盖的流程') : $t('请选择需要使用的流程')"
+                                        :placeholder="getPlaceholder(row)"
                                         :loading="tplLoading"
                                         :searchable="true"
-                                        :value="overriders[props.row.meta.id]"
-                                        @clear="onClearRefer(props.row.meta.id)"
-                                        @selected="onSelectRefer(props.row.meta.id, $event)">
+                                        :value="overriders[row.meta.id]"
+                                        @clear="onClearRefer(row)"
+                                        @selected="onSelectRefer(row, $event)">
                                         <bk-option
-                                            v-for="item in templateList"
+                                            v-for="item in ((common || row.refer === 'useCommonExisting') ? commonTemplateList : templateList)"
                                             :key="item.id"
                                             :id="item.id"
                                             :name="item.name">
@@ -206,6 +208,7 @@
                 topFlowList: [], // 顶层流程
                 subFlowList: [], // 子流程
                 templateList: [],
+                commonTemplateList: [],
                 overriders: {}, // 配置覆盖的流程
                 reference: {}, // 配置引用的流程
                 errorMsg: null,
@@ -255,15 +258,23 @@
                             count: ('file' in res.data.error) ? 0 : this.topFlowList.length
                         }
                         this.subFlowList = res.data.yaml_docs.filter(item => item.meta.id in res.data.relations)
-                        this.subFlowList.forEach(tpl => {
-                            this.$set(this.reference, tpl.meta.id, '')
+                        this.subFlowList.forEach(item => {
+                            item.refer = 'noOverrider'
                         })
                         this.subFlowPagination = {
                             current: 1,
                             count: ('file' in res.data.error) ? 0 : this.subFlowList.length
                         }
                         this.errorMsg = this.handleErrorMsg(res.data)
-                        this.getTemplateData()
+                        // 查询项目流程列表及公共流程列表
+                        const promiseArr = [this.getTemplateData({ common: 1 })]
+                        if (!this.common) {
+                            promiseArr.push(this.getTemplateData({ project__id: this.project_id }))
+                        }
+                        this.tplLoading = true
+                        Promise.all(promiseArr).then(res => {
+                            this.tplLoading = false
+                        })
                     } else {
                         this.errorMsg = res.message
                     }
@@ -278,21 +289,16 @@
                     })
                 }
             },
-            async getTemplateData () {
-                this.tplLoading = true
+            async getTemplateData (data) {
                 try {
-                    const data = {}
-                    if (this.common) {
-                        data.common = 1
-                    } else {
-                        data.project__id = this.project_id
-                    }
                     const respData = await this.loadTemplateList(data)
-                    this.templateList = respData.results
+                    if (data.common) {
+                        this.commonTemplateList = respData.results
+                    } else {
+                        this.templateList = respData.results
+                    }
                 } catch (e) {
                     console.log(e)
-                } finally {
-                    this.tplLoading = false
                 }
             },
             handleErrorMsg (data) {
@@ -328,42 +334,51 @@
                     this.$delete(this.overriders, tpl)
                 }
             },
-            getSubflowRefer (tpl) {
-                if (tpl in this.overriders) {
-                    return 'overrider'
-                }
-                if (tpl in this.reference) {
-                    return 'useExisting'
-                }
-                return 'noOverrider'
-            },
             // 切换子流程导入规则
             handleSubFlowReferChange (val, tpl) {
+                const templateId = tpl.meta.id
+                tpl.refer = val
                 if (val === 'overrider') {
-                    this.$set(this.overriders, tpl, '')
-                    this.$delete(this.reference, tpl)
+                    this.$set(this.overriders, templateId, '')
+                    this.$delete(this.reference, templateId)
                 } else if (val === 'noOverrider') {
-                    this.$delete(this.overriders, tpl)
-                    this.$delete(this.reference, tpl)
+                    this.$delete(this.overriders, templateId)
+                    this.$delete(this.reference, templateId)
                 } else {
-                    this.$set(this.reference, tpl, '')
-                    this.$delete(this.overriders, tpl)
+                    this.$delete(this.reference, templateId)
+                    this.$delete(this.overriders, templateId)
+                    this.$set(this.reference, templateId, '')
                 }
+            },
+            getPlaceholder (row) {
+                return row.refer === 'overrider'
+                    ? this.$t('请选择需要覆盖的流程')
+                    : (row.refer === 'useCommonExisting' || this.common)
+                        ? this.$t('请选择复用的公共流程')
+                        : this.$t('请选择复用的项目流程')
             },
             onSelectRefer (tpl, id) {
-                const val = this.getSubflowRefer(tpl)
-                if (val === 'overrider') {
-                    this.overriders[tpl] = id
-                } else if (val === 'useExisting') {
-                    this.reference[tpl] = id
+                const templateId = tpl.meta.id
+                if (tpl.refer === 'overrider') {
+                    this.overriders[templateId] = id
+                } else if (tpl.refer === 'useExisting') {
+                    this.reference[templateId] = {
+                        template_id: id,
+                        template_type: 'project'
+                    }
+                } else if (tpl.refer === 'useCommonExisting') {
+                    this.reference[templateId] = {
+                        template_id: id,
+                        template_type: 'common'
+                    }
                 }
             },
-            onClearRefer (tpl, id) {
-                const val = this.getSubflowRefer(tpl)
-                if (val === 'overrider') {
-                    this.overriders[tpl] = ''
-                } else if (val === 'useExisting') {
-                    this.reference[tpl] = ''
+            onClearRefer (tpl) {
+                const templateId = tpl.meta.id
+                if (tpl.refer === 'overrider') {
+                    this.overriders[templateId] = ''
+                } else if (['useExisting', 'useCommonExisting'].includes(tpl.refer)) {
+                    this.reference[templateId] = ''
                 }
             },
             async onConfirm () {
@@ -375,7 +390,8 @@
                     const hasRepeat = overriderKeys.some(key => {
                         const id = this.overriders[key]
                         if (overrideTpl.includes(id)) {
-                            const tpl = this.templateList.find(item => item.id === id)
+                            const templateList = this.common ? this.commonTemplateList : this.templateList
+                            const tpl = templateList.find(item => item.id === id)
                             this.$bkMessage({
                                 message: i18n.t('流程') + tpl.name + i18n.t('不能被重复覆盖'),
                                 theme: 'error',
