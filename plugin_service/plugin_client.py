@@ -254,6 +254,9 @@ class PluginServiceApiClient:
         """请求API接口,失败进行重试"""
         for invoke_num in range(1, env.BKAPP_INVOKE_PAAS_RETRY_NUM + 1):
             try:
+                logger.info(
+                    "[PluginServiceApiClient] request url {} with method {} and kwargs {}".format(url, method, kwargs)
+                )
                 result = getattr(requests, method)(url, **kwargs)
                 result.raise_for_status()
                 break
