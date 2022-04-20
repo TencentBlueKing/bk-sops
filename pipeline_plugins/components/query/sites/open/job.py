@@ -55,35 +55,33 @@ def _job_get_scripts_data(request, biz_cc_id=None):
     script_type = request.GET.get("script_type")
 
     if biz_cc_id is None or source_type == "public":
-        kwargs = None
-        script_result = client.job.get_public_script_list()
-        api_name = "job.get_public_script_list"
+        kwargs = {"script_language": script_type or 0}
+        func = client.jobv3.get_public_script_list
     else:
         kwargs = {
             "bk_scope_type": JobBizScopeType.BIZ.value,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
-            "is_public": False,
-            "script_type": script_type or 0,
+            "script_language": script_type or 0,
         }
-        script_result = client.job.get_script_list(kwargs)
-        api_name = "job.get_script_list"
+        func = client.jobv3.get_script_list
 
-    if not script_result["result"]:
-        message = handle_api_error("job", api_name, kwargs, script_result)
-        logger.error(message)
-        result = {"result": False, "message": message}
-        return result
+    script_list = batch_request(
+        func=func,
+        params=kwargs,
+        get_data=lambda x: x["data"]["data"],
+        get_count=lambda x: x["data"]["total"],
+        page_param={"cur_page_param": "start", "page_size_param": "length"},
+        is_page_merge=True,
+    )
 
-    return script_result
+    return script_list
 
 
 def job_get_script_name_list(request, biz_cc_id):
-    script_result = _job_get_scripts_data(request, biz_cc_id)
-    if not script_result["result"]:
-        return JsonResponse(script_result)
+    script_list = _job_get_scripts_data(request, biz_cc_id)
     script_names = []
-    for script in script_result["data"]["data"]:
+    for script in script_list:
         script_names.append({"text": script["name"], "value": script["name"]})
     return JsonResponse({"result": True, "data": script_names})
 
@@ -106,11 +104,9 @@ def job_get_script_list(request, biz_cc_id):
     :return:
     """
     # 查询脚本列表
-    script_result = _job_get_scripts_data(request, biz_cc_id)
-    if not script_result["result"]:
-        return JsonResponse(script_result)
+    script_list = _job_get_scripts_data(request, biz_cc_id)
     script_dict = {}
-    for script in script_result["data"]["data"]:
+    for script in script_list:
         script_dict.setdefault(script["name"], []).append(script["id"])
 
     version_data = []
@@ -122,11 +118,14 @@ def job_get_script_list(request, biz_cc_id):
 
 def job_get_job_tasks_by_biz(request, biz_cc_id):
     client = get_client_by_user(request.user.username)
-    job_result = client.job.get_job_list(
+    job_result = client.jobv3.get_job_plan_list(
         {"bk_scope_type": JobBizScopeType.BIZ.value, "bk_scope_id": str(biz_cc_id), "bk_biz_id": biz_cc_id}
     )
     if not job_result["result"]:
-        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (biz_cc_id, job_result["message"])
+        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口jobv3.get_job_plan_list返回失败: %s") % (
+            biz_cc_id,
+            job_result["message"],
+        )
 
         if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
             logger.warning(message)
@@ -136,24 +135,27 @@ def job_get_job_tasks_by_biz(request, biz_cc_id):
         result = {"result": False, "data": [], "message": message}
         return JsonResponse(result)
     task_list = []
-    for task in job_result["data"]:
-        task_list.append({"value": task["bk_job_id"], "text": task["name"]})
+    for task in job_result["data"]["data"]:
+        task_list.append({"value": task["id"], "text": task["name"]})
     return JsonResponse({"result": True, "data": task_list})
 
 
 def job_get_job_task_detail(request, biz_cc_id, task_id):
     client = get_client_by_user(request.user.username)
-    job_result = client.job.get_job_detail(
+    job_result = client.jobv3.get_job_plan_detail(
         {
             "bk_scope_type": JobBizScopeType.BIZ.value,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
-            "bk_job_id": task_id,
+            "job_plan_id": task_id,
         }
     )
     if not job_result["result"]:
 
-        message = _("查询作业平台(JOB)的作业模板详情[app_id=%s]接口job.get_task_detail返回失败: %s") % (biz_cc_id, job_result["message"],)
+        message = _("查询作业平台(JOB)的作业模板详情[app_id=%s]接口jobv3.get_job_plan_detail返回失败: %s") % (
+            biz_cc_id,
+            job_result["message"],
+        )
 
         if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
             logger.warning(message)
@@ -172,15 +174,16 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
 
-    for var in task_detail.get("global_vars", []):
+    global_var_list = task_detail.get("global_var_list") or []
+    for var in global_var_list:
         # 1-字符串, 2-IP, 3-索引数组, 4-关联数组
-        if var["category"] in JOB_VAR_CATEGORY_GLOBAL_VARS:
+        if var["type"] in JOB_VAR_CATEGORY_GLOBAL_VARS:
             value = var.get("value", "")
-        elif var["category"] == JOB_VAR_CATEGORY_IP:
+        elif var["type"] == JOB_VAR_CATEGORY_IP:
             value = ",".join(
                 [
                     "{plat_id}:{ip}".format(plat_id=ip_item["bk_cloud_id"], ip=ip_item["ip"])
-                    for ip_item in var.get("ip_list", [])
+                    for ip_item in var["server"].get("ip_list", [])
                 ]
             )
         else:
@@ -191,20 +194,20 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
             {
                 "id": var["id"],
                 # 全局变量类型：1:云参, 2:上下文参数，3:IPs
-                "category": var.get("category", 1),
+                "category": var.get("type", 1),
                 "name": var["name"],
                 "value": value,
                 "description": var["description"],
             }
         )
-    for info in task_detail.get("steps", []):
+    for info in task_detail.get("step_list", []):
         # 1-执行脚本, 2-传文件, 4-传SQL
         steps.append(
             {
-                "stepId": info["step_id"],
+                "stepId": info["id"],
                 "name": info["name"],
-                "scriptParams": info.get("script_param", ""),
-                "account": info.get("account", ""),
+                "scriptParams": info["script_info"].get("script_param", ""),
+                "account": info["script_info"].get("account", ""),
                 "ipList": "",
                 "type": info["type"],
                 "type_name": job_step_type_name.get(info["type"], info["type"]),
@@ -387,7 +390,7 @@ def jobv3_get_instance_list(request, biz_cc_id, type, status):
     }
     job_result = client.jobv3.get_job_instance_list(job_kwargs)
     if not job_result["result"]:
-        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_job_instance_list返回失败: %s") % (
+        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口jobv3.get_job_instance_list返回失败: %s") % (
             biz_cc_id,
             job_result["message"],
         )

@@ -105,9 +105,15 @@ class JobFastPushFileService(JobService):
             )
             file_source.append(
                 {
-                    "files": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
-                    "ip_list": [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]],
-                    "account": loose_strip(item["account"]),
+                    "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
+                    "server": {
+                        "ip_list": [
+                            {"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]
+                        ],
+                    },
+                    "account": {
+                        "alias": loose_strip(item["account"]),
+                    },
                 }
             )
 
@@ -120,16 +126,16 @@ class JobFastPushFileService(JobService):
             "bk_scope_type": JobBizScopeType.BIZ.value,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
-            "file_source": file_source,
-            "ip_list": ip_list,
-            "account": data.get_one_of_inputs("job_account"),
+            "file_source_list": file_source,
+            "target_server": {"ip_list": ip_list},
+            "account_alias": data.get_one_of_inputs("job_account"),
             "file_target_path": data.get_one_of_inputs("job_target_path"),
-            "bk_callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
+            "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
         if job_timeout:
             job_kwargs["timeout"] = int(job_timeout)
 
-        job_result = client.job.fast_push_file(job_kwargs)
+        job_result = client.jobv3.fast_transfer_file(job_kwargs)
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:
             job_instance_id = job_result["data"]["job_instance_id"]
@@ -139,7 +145,7 @@ class JobFastPushFileService(JobService):
             data.outputs.client = client
             return True
         else:
-            message = job_handle_api_error("job.fast_push_file", job_kwargs, job_result)
+            message = job_handle_api_error("jobv3.fast_transfer_file", job_kwargs, job_result)
             self.logger.error(message)
             data.outputs.ex_data = message
             return False

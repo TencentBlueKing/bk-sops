@@ -72,14 +72,16 @@ class HostNFSManager(Manager):
 
         file_source = [
             {
-                "files": [
+                "file_list": [
                     self._get_file_path(
                         self.server_location, tag["tags"]["name"], tag["tags"]["uid"], tag["tags"]["shims"]
                     )
                     for tag in file_tags
                 ],
-                "account": BKAPP_FILE_MGR_SOURCE_ACCOUNT,
-                "ip_list": [{"bk_cloud_id": 0, "ip": host_ip}],
+                "account": {"alias": BKAPP_FILE_MGR_SOURCE_ACCOUNT},
+                "server": {
+                    "ip_list": [{"bk_cloud_id": 0, "ip": host_ip}],
+                },
             }
         ]
 
@@ -87,19 +89,21 @@ class HostNFSManager(Manager):
             "bk_scope_type": bk_scope_type,
             "bk_scope_id": str(bk_biz_id),
             "bk_biz_id": bk_biz_id,
-            "account": account,
+            "account_alias": account,
             "file_target_path": target_path,
-            "file_source": file_source,
-            "ip_list": ips,
+            "file_source_list": file_source,
+            "target_server": {
+                "ip_list": ips,
+            },
         }
 
         if timeout is not None:
             job_kwargs["timeout"] = int(timeout)
 
         if callback_url:
-            job_kwargs["bk_callback_url"] = callback_url
+            job_kwargs["callback_url"] = callback_url
 
-        job_result = esb_client.job.fast_push_file(job_kwargs)
+        job_result = esb_client.jobv3.fast_transfer_file(job_kwargs)
 
         if not job_result["result"]:
             return {
@@ -107,7 +111,7 @@ class HostNFSManager(Manager):
                 "message": job_result["message"],
                 "response": job_result,
                 "kwargs": job_kwargs,
-                "job_api": "job.fast_push_file",
+                "job_api": "jobv3.fast_transfer_file",
             }
 
         return {"result": job_result["result"], "data": {"job_id": job_result["data"]["job_instance_id"]}}

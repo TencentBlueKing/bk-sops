@@ -49,10 +49,10 @@ class MockClient(object):
         get_job_instance_global_var_value_return=None,
         get_job_instance_log_return=None,
     ):
-        self.job = MagicMock()
-        self.job.push_config_file = MagicMock(return_value=push_config_file_return)
-        self.job.get_job_instance_global_var_value = MagicMock(return_value=get_job_instance_global_var_value_return)
-        self.job.get_job_instance_log = MagicMock(return_value=get_job_instance_log_return)
+        self.jobv3 = MagicMock()
+        self.jobv3.push_config_file = MagicMock(return_value=push_config_file_return)
+        self.jobv3.get_job_instance_global_var_value = MagicMock(return_value=get_job_instance_global_var_value_return)
+        self.jobv3.get_job_instance_status = MagicMock(return_value=get_job_instance_log_return)
 
 
 # mock path
@@ -94,37 +94,19 @@ EXECUTE_SUCCESS_GET_LOG_RETURN = {
     "code": 0,
     "result": True,
     "message": "success",
-    "data": [
-        {
+    "data": {
+        "finished": True,
+        "job_instance": {
+            "job_instance_id": 100,
+            "bk_biz_id": 1,
+            "name": "API Quick execution script1521089795887",
+            "create_time": 1605064271000,
             "status": 3,
-            "step_results": [
-                {
-                    "tag": "",
-                    "ip_logs": [
-                        {"ip": "1.1.1.1", "log_content": "<SOPS_VAR>key1:value1</SOPS_VAR>\ngsectl\n-rwxr-xr-x 1\n"},
-                        {"ip": "1.1.1.2", "log_content": ""},
-                    ],
-                    "ip_status": 9,
-                }
-            ],
+            "start_time": 1605064271000,
+            "end_time": 1605064272000,
+            "total_time": 1000,
         },
-        {
-            "status": 3,
-            "step_results": [
-                {
-                    "tag": "",
-                    "ip_logs": [
-                        {
-                            "ip": "1.1.1.1",
-                            "log_content": "&lt;SOPS_VAR&gt;key2:value2&lt;/SOPS_VAR&gt;\n"
-                            "dfg&lt;SOPS_VAR&gt;key3:value3&lt;/SOPS_VAR&gt;",
-                        },
-                    ],
-                    "ip_status": 9,
-                }
-            ],
-        },
-    ],
+    },
 }
 
 # mock clients
@@ -136,11 +118,7 @@ LOCAL_CONTENT_UPLOAD_FAIL_CLIENT = MockClient(
 LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT = MockClient(
     push_config_file_return=SUCCESS_RESULT,
     get_job_instance_global_var_value_return={
-        "data": {
-            "job_instance_var_values": [
-                {"step_instance_var_values": [{"category": 1, "name": "name", "value": "value"}]}
-            ]
-        },
+        "data": {"step_instance_var_list": [{"global_var_list": [{"type": 1, "name": "name", "value": "value"}]}]},
         "result": True,
     },
     get_job_instance_log_return=EXECUTE_SUCCESS_GET_LOG_RETURN,
@@ -170,15 +148,17 @@ KWARGS = {
     "bk_scope_type": "biz",
     "bk_scope_id": "1",
     "bk_biz_id": 1,
-    "account": "root",
+    "account_alias": "root",
     "file_target_path": "/tmp/bk_sops_test/",
     "file_list": [{"file_name": "1.txt", "content": "MTIzCjQ1Ngo3ODkK"}],
-    "ip_list": [],
+    "target_server": {
+        "ip_list": [],
+    },
 }
 
 # 手动输入脚本失败样例输出
 MANUAL_FAIL_OUTPUTS = {
-    "ex_data": "调用作业平台(JOB)接口job.push_config_file返回失败, params={params}, error={error}, "
+    "ex_data": "调用作业平台(JOB)接口jobv3.push_config_file返回失败, params={params}, error={error}, "
     "request_id=aac7755b09944e4296b2848d81bd9411".format(params=json.dumps(KWARGS), error=FAIL_RESULT["message"])
 }
 
@@ -208,7 +188,7 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = ComponentTestCa
         outputs=dict(list(SUCCESS_OUTPUTS.items())),
     ),
     execute_call_assertion=[
-        CallAssertion(func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.job.push_config_file, calls=[Call(KWARGS)]),
+        CallAssertion(func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.jobv3.push_config_file, calls=[Call(KWARGS)]),
     ],
     patchers=[
         Patcher(
@@ -234,7 +214,7 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_SCHEDULE_SUCCESS_CASE = ComponentTestCase(
         callback_data={"job_instance_id": 10000, "status": 3},
     ),
     execute_call_assertion=[
-        CallAssertion(func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.job.push_config_file, calls=[Call(KWARGS)]),
+        CallAssertion(func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.jobv3.push_config_file, calls=[Call(KWARGS)]),
     ],
     patchers=[
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
@@ -252,7 +232,7 @@ FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=False, outputs=MANUAL_FAIL_OUTPUTS),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=LOCAL_CONTENT_UPLOAD_FAIL_CLIENT.job.push_config_file, calls=[Call(KWARGS)]),
+        CallAssertion(func=LOCAL_CONTENT_UPLOAD_FAIL_CLIENT.jobv3.push_config_file, calls=[Call(KWARGS)]),
     ],
     patchers=[
         Patcher(
@@ -279,17 +259,19 @@ LOCAL_CONTENT_UPLOAD_ACROSS_BIZ_SUCCESS = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.job.push_config_file,
+            func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.jobv3.push_config_file,
             calls=[
                 Call(
                     {
                         "bk_scope_type": "biz",
                         "bk_scope_id": "1",
                         "bk_biz_id": 1,
-                        "account": "root",
+                        "account_alias": "root",
                         "file_target_path": "/tmp/bk_sops_test/",
                         "file_list": [{"file_name": "1.txt", "content": "MTIzCjQ1Ngo3ODkK"}],
-                        "ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": "2"}],
+                        "target_server": {
+                            "ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": "2"}],
+                        },
                     }
                 )
             ],

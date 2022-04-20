@@ -34,7 +34,10 @@ class JobFetchTaskLogService(Service):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("任务ID"), key="job_task_id", type="string", schema=StringItemSchema(description=_("任务ID")),
+                name=_("任务ID"),
+                key="job_task_id",
+                type="string",
+                schema=StringItemSchema(description=_("任务ID")),
             ),
             self.InputItem(
                 name=_("目标 IP"),
@@ -78,4 +81,4 @@ class JobFetchTaskLogComponent(Component):
     bound_service = JobFetchTaskLogService
     form = "%scomponents/atoms/job/fetch_task_log/v1_0.js" % settings.STATIC_URL
     version = "v1.0"
-    desc = "出于性能考虑，该插件仅支持获取对应任务中某一IP的任务日志。"
+    desc = _("出于性能考虑，该插件仅支持获取对应任务中某一IP的任务日志。")

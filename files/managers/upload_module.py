@@ -54,9 +54,13 @@ class UploadModuleManager(Manager):
 
         file_source = [
             {
-                "files": ["{}/{}".format(tag.file_path, tag.file_name)],
-                "account": BKAPP_FILE_MGR_SOURCE_ACCOUNT,
-                "ip_list": [{"bk_cloud_id": 0, "ip": tag.source_ip}],
+                "file_list": ["{}/{}".format(tag.file_path, tag.file_name)],
+                "account": {
+                    "alias": BKAPP_FILE_MGR_SOURCE_ACCOUNT,
+                },
+                "server": {
+                    "ip_list": [{"bk_cloud_id": 0, "ip": tag.source_ip}],
+                },
             }
             for tag in tag_models
         ]
@@ -65,19 +69,21 @@ class UploadModuleManager(Manager):
             "bk_scope_type": bk_scope_type,
             "bk_scope_id": str(bk_biz_id),
             "bk_biz_id": bk_biz_id,
-            "account": account,
+            "account_alias": account,
             "file_target_path": target_path,
-            "file_source": file_source,
-            "ip_list": ips,
+            "file_source_list": file_source,
+            "target_server": {
+                "ip_list": ips,
+            },
         }
 
         if timeout is not None:
             job_kwargs["timeout"] = int(timeout)
 
         if callback_url:
-            job_kwargs["bk_callback_url"] = callback_url
+            job_kwargs["callback_url"] = callback_url
 
-        job_result = esb_client.job.fast_push_file(job_kwargs)
+        job_result = esb_client.jobv3.fast_transfer_file(job_kwargs)
 
         if not job_result["result"]:
             return {
@@ -85,7 +91,7 @@ class UploadModuleManager(Manager):
                 "message": job_result["message"],
                 "response": job_result,
                 "kwargs": job_kwargs,
-                "job_api": "job.fast_push_file",
+                "job_api": "jobv3.fast_transfer_file",
             }
 
         return {"result": job_result["result"], "data": {"job_id": job_result["data"]["job_instance_id"]}}
