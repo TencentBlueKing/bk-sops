@@ -602,7 +602,17 @@
             // 点击创建任务
             handleCreateTaskClick (tpl) {
                 if (!tpl.auth_actions.includes('common_flow_create_task')) {
-                    this.onTemplatePermissionCheck(['common_flow_create_task'], tpl)
+                    const resourceData = {
+                        project: [{
+                            id: this.project_id,
+                            name: this.projectName
+                        }],
+                        common_flow: [{
+                            id: tpl.template_id,
+                            name: tpl.name
+                        }]
+                    }
+                    this.applyForPermission(['common_flow_create_task'], tpl.auth_actions, resourceData)
                     return
                 }
                 this.$router.push({
