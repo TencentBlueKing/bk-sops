@@ -68,22 +68,6 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
     project = serializers.IntegerField(write_only=True)
     template_id = serializers.CharField(help_text="模板ID", source="id", read_only=True)
 
-    def set_notify_type(self, obj):
-        return {"notify_type": json.dumps(obj)}
-
-    def get_notify_type(self, obj):
-        if not getattr(obj, "notify_type") or not obj.notify_type:
-            return dict()
-        return json.loads(obj.notify_type)
-
-    def set_notify_receivers(self, obj):
-        return {"notify_receivers": json.dumps(obj)}
-
-    def get_notify_receivers(self, obj):
-        if not getattr(obj, "notify_receivers") or not obj.notify_receivers:
-            return dict()
-        return json.loads(obj.notify_receivers)
-
     def validate_project(self, value):
         try:
             return Project.objects.get(id=value)

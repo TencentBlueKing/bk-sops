@@ -19,12 +19,12 @@ from gcloud.utils.drf.serializer import ReadWriteSerializerMethodField
 
 
 class BaseTemplateSerializer(serializers.ModelSerializer):
-    notify_type = ReadWriteSerializerMethodField(read_only=True, help_text="通知类型")
-    notify_receivers = ReadWriteSerializerMethodField(read_only=True, help_text="通知人列表")
+    notify_type = ReadWriteSerializerMethodField(help_text="通知类型")
+    notify_receivers = ReadWriteSerializerMethodField(help_text="通知人列表")
 
     def get_notify_type(self, obj):
         if not getattr(obj, "notify_type") or not obj.notify_type:
-            return json.loads(dict())
+            return dict()
         return json.loads(obj.notify_type)
 
     def set_notify_type(self, data):

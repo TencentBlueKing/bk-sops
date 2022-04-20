@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 import json
 from rest_framework import serializers
 
-from gcloud.utils.drf.serializer import ReadWriteSerializerMethodField
 from gcloud.constants import TASK_CATEGORY, DATETIME_FORMAT
 from gcloud.common_template.models import CommonTemplate
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
@@ -52,8 +51,6 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
     category = serializers.ChoiceField(choices=TASK_CATEGORY, help_text="模板分类")
     time_out = serializers.IntegerField(help_text="超时时间", required=False)
     description = serializers.CharField(help_text="流程模板描述", allow_blank=True, required=False)
-    notify_type = ReadWriteSerializerMethodField(help_text="通知类型")
-    notify_receivers = ReadWriteSerializerMethodField(help_text="通知人列表")
     pipeline_tree = serializers.CharField()
     id = serializers.IntegerField(help_text="公共流程ID", read_only=True)
     creator_name = serializers.CharField(read_only=True, help_text="创建者名")
