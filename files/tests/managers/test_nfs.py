@@ -26,7 +26,6 @@ class HostNFSManagerTestCase(TestCase):
         self.server_location = "/server_location_token"
 
     def test_init(self):
-
         manager = HostNFSManager(location=self.location, server_location=self.server_location)
 
         self.assertEqual(manager.location, self.location)
@@ -74,7 +73,6 @@ class HostNFSManagerTestCase(TestCase):
         self.assertEqual(tag, {"type": "host_nfs", "tags": {"uid": uid, "shims": None, "name": file_name}})
 
     def test_push_files_to_ips__success_with_callback_url(self):
-
         bk_biz_id = "bk_biz_id_token"
         file_tags = [
             {"type": "host_nfs", "tags": {"uid": "uid_1", "shims": "shims_1", "name": "file_1"}},
@@ -89,7 +87,9 @@ class HostNFSManagerTestCase(TestCase):
 
         job_id = "12345"
         esb_client = MagicMock()
-        esb_client.job.fast_push_file = MagicMock(return_value={"result": True, "data": {"job_instance_id": job_id}})
+        esb_client.jobv3.fast_transfer_file = MagicMock(
+            return_value={"result": True, "data": {"job_instance_id": job_id}}
+        )
 
         manager = HostNFSManager(location=self.location, server_location=self.server_location)
         manager._get_host_ip = MagicMock(return_value=host_ip)
@@ -104,33 +104,31 @@ class HostNFSManagerTestCase(TestCase):
             callback_url=callback_url,
         )
 
-        esb_client.job.fast_push_file.assert_called_once_with(
-            {
-                "bk_scope_type": "biz",
-                "bk_scope_id": str(bk_biz_id),
-                "bk_biz_id": bk_biz_id,
-                "account": account,
-                "file_target_path": target_path,
-                "file_source": [
-                    {
-                        "files": [
-                            os.path.join("/server_location_token", "shims_1", "uid_1", "file_1"),
-                            os.path.join("/server_location_token", "shims_2", "uid_2", "file_2"),
-                            os.path.join("/server_location_token", "shims_3", "uid_3", "file_3"),
-                        ],
-                        "account": "root",
-                        "ip_list": [{"bk_cloud_id": 0, "ip": host_ip}],
-                    }
-                ],
-                "ip_list": ips,
-                "bk_callback_url": callback_url,
-            }
-        )
+        job_kwargs = {
+            "bk_scope_type": "biz",
+            "bk_scope_id": "bk_biz_id_token",
+            "bk_biz_id": "bk_biz_id_token",
+            "account_alias": "account_token",
+            "file_target_path": "/user/data",
+            "file_source_list": [
+                {
+                    "file_list": [
+                        "/server_location_token/shims_1/uid_1/file_1",
+                        "/server_location_token/shims_2/uid_2/file_2",
+                        "/server_location_token/shims_3/uid_3/file_3",
+                    ],
+                    "account": {"alias": "root"},
+                    "server": {"ip_list": [{"bk_cloud_id": 0, "ip": "1.1.1.1"}]},
+                }
+            ],
+            "target_server": {"ip_list": "ips_token"},
+            "callback_url": "callback_url_token",
+        }
+        esb_client.jobv3.fast_transfer_file.assert_called_once_with(job_kwargs)
 
         self.assertEqual(result, {"result": True, "data": {"job_id": job_id}})
 
     def test_push_files_to_ips__success_no_callback_url(self):
-
         bk_biz_id = "bk_biz_id_token"
         file_tags = [
             {"type": "host_nfs", "tags": {"uid": "uid_1", "shims": "shims_1", "name": "file_1"}},
@@ -144,7 +142,9 @@ class HostNFSManagerTestCase(TestCase):
 
         job_id = "12345"
         esb_client = MagicMock()
-        esb_client.job.fast_push_file = MagicMock(return_value={"result": True, "data": {"job_instance_id": job_id}})
+        esb_client.jobv3.fast_transfer_file = MagicMock(
+            return_value={"result": True, "data": {"job_instance_id": job_id}}
+        )
 
         manager = HostNFSManager(location=self.location, server_location=self.server_location)
         manager._get_host_ip = MagicMock(return_value=host_ip)
@@ -157,28 +157,26 @@ class HostNFSManagerTestCase(TestCase):
             ips=ips,
             account=account,
         )
-
-        esb_client.job.fast_push_file.assert_called_once_with(
-            {
-                "bk_scope_type": "biz",
-                "bk_scope_id": str(bk_biz_id),
-                "bk_biz_id": bk_biz_id,
-                "account": account,
-                "file_target_path": target_path,
-                "file_source": [
-                    {
-                        "files": [
-                            os.path.join("/server_location_token", "shims_1", "uid_1", "file_1"),
-                            os.path.join("/server_location_token", "shims_2", "uid_2", "file_2"),
-                            os.path.join("/server_location_token", "shims_3", "uid_3", "file_3"),
-                        ],
-                        "account": "root",
-                        "ip_list": [{"bk_cloud_id": 0, "ip": host_ip}],
-                    }
-                ],
-                "ip_list": ips,
-            }
-        )
+        job_kwargs = {
+            "bk_scope_type": "biz",
+            "bk_scope_id": "bk_biz_id_token",
+            "bk_biz_id": "bk_biz_id_token",
+            "account_alias": "account_token",
+            "file_target_path": "/user/data",
+            "file_source_list": [
+                {
+                    "file_list": [
+                        "/server_location_token/shims_1/uid_1/file_1",
+                        "/server_location_token/shims_2/uid_2/file_2",
+                        "/server_location_token/shims_3/uid_3/file_3",
+                    ],
+                    "account": {"alias": "root"},
+                    "server": {"ip_list": [{"bk_cloud_id": 0, "ip": "1.1.1.1"}]},
+                }
+            ],
+            "target_server": {"ip_list": "ips_token"},
+        }
+        esb_client.jobv3.fast_transfer_file.assert_called_once_with(job_kwargs)
 
         self.assertEqual(result, {"result": True, "data": {"job_id": job_id}})
 
@@ -207,7 +205,6 @@ class HostNFSManagerTestCase(TestCase):
         )
 
     def test_push_files_to_ips__fail(self):
-
         bk_biz_id = "bk_biz_id_token"
         file_tags = [
             {"type": "host_nfs", "tags": {"uid": "uid_1", "shims": "shims_1", "name": "file_1"}},
@@ -220,7 +217,7 @@ class HostNFSManagerTestCase(TestCase):
         host_ip = "1.1.1.1"
 
         esb_client = MagicMock()
-        esb_client.job.fast_push_file = MagicMock(return_value={"result": False, "message": "msg token"})
+        esb_client.jobv3.fast_transfer_file = MagicMock(return_value={"result": False, "message": "msg token"})
 
         manager = HostNFSManager(location=self.location, server_location=self.server_location)
         manager._get_host_ip = MagicMock(return_value=host_ip)
@@ -236,25 +233,25 @@ class HostNFSManagerTestCase(TestCase):
 
         job_kwargs = {
             "bk_scope_type": "biz",
-            "bk_scope_id": str(bk_biz_id),
-            "bk_biz_id": bk_biz_id,
-            "account": account,
-            "file_target_path": target_path,
-            "file_source": [
+            "bk_scope_id": "bk_biz_id_token",
+            "bk_biz_id": "bk_biz_id_token",
+            "account_alias": "account_token",
+            "file_target_path": "/user/data",
+            "file_source_list": [
                 {
-                    "files": [
-                        os.path.join("/server_location_token", "shims_1", "uid_1", "file_1"),
-                        os.path.join("/server_location_token", "shims_2", "uid_2", "file_2"),
-                        os.path.join("/server_location_token", "shims_3", "uid_3", "file_3"),
+                    "file_list": [
+                        "/server_location_token/shims_1/uid_1/file_1",
+                        "/server_location_token/shims_2/uid_2/file_2",
+                        "/server_location_token/shims_3/uid_3/file_3",
                     ],
-                    "account": "root",
-                    "ip_list": [{"bk_cloud_id": 0, "ip": host_ip}],
+                    "account": {"alias": "root"},
+                    "server": {"ip_list": [{"bk_cloud_id": 0, "ip": "1.1.1.1"}]},
                 }
             ],
-            "ip_list": ips,
+            "target_server": {"ip_list": "ips_token"},
         }
 
-        esb_client.job.fast_push_file.assert_called_once_with(job_kwargs)
+        esb_client.jobv3.fast_transfer_file.assert_called_once_with(job_kwargs)
 
         self.assertEqual(
             result,
@@ -263,6 +260,6 @@ class HostNFSManagerTestCase(TestCase):
                 "message": "msg token",
                 "kwargs": job_kwargs,
                 "response": {"result": False, "message": "msg token"},
-                "job_api": "job.fast_push_file",
+                "job_api": "jobv3.fast_transfer_file",
             },
         )

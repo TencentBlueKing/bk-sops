@@ -15,7 +15,7 @@
             tag_code: "set_group_selector",
             type: "select",
             attrs: {
-                name: "集群分组",
+                name: gettext("集群分组"),
                 hookable: true,
                 placeholder: gettext("请选择集群分组"),
                 remote: true,

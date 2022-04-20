@@ -177,7 +177,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.17.1"
+STATIC_VERSION = "3.17.5"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -638,6 +638,7 @@ def monitor_report_config():
             target=env.BK_MONITOR_REPORT_TARGET,  # 上报唯一标志符
             url=env.BK_MONITOR_REPORT_URL,  # 上报地址
             report_interval=env.BK_MONITOR_REPORT_INTERVAL,  # 上报周期，秒
+            chunk_size=env.BK_MONITOR_REPORT_CHUNK_SIZE,  # 上报指标分块大小
         )
 
         # 针对多进程worker需要做特殊梳理，在worker进程中进行reporter start
@@ -659,6 +660,7 @@ def monitor_report_config():
             target=env.BK_MONITOR_REPORT_TARGET,  # 上报唯一标志符
             url=env.BK_MONITOR_REPORT_URL,  # 上报地址
             report_interval=env.BK_MONITOR_REPORT_INTERVAL,  # 上报周期，秒
+            chunk_size=env.BK_MONITOR_REPORT_CHUNK_SIZE,  # 上报指标分块大小
         )
         reporter.start()
 
@@ -685,6 +687,9 @@ MAX_NODE_EXECUTE_TIMEOUT = 60 * 60 * 24
 
 # 蓝鲸插件开发地址
 BK_PLUGIN_DEVELOP_URL = env.BK_PLUGIN_DEVELOP_URL
+
+# 蓝鲸插件授权过滤 APP
+PLUGIN_DISTRIBUTOR_NAME = env.PLUGIN_DISTRIBUTOR_NAME or APP_CODE
 
 # IAM APIGW 地址
 BK_IAM_APIGW_HOST = env.BK_IAM_APIGW_HOST

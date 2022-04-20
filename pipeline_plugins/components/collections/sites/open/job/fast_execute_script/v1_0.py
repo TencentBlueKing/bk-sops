@@ -46,6 +46,8 @@ from pipeline_plugins.components.utils import get_job_instance_url, get_node_cal
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
+from gcloud.exceptions import ApiRequestError
+from api.utils.request import batch_request
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -181,10 +183,12 @@ class JobFastExecuteScriptService(JobService):
             "bk_scope_type": JobBizScopeType.BIZ.value,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
-            "script_timeout": data.get_one_of_inputs("job_script_timeout"),
-            "account": data.get_one_of_inputs("job_account"),
-            "ip_list": ip_list,
-            "bk_callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
+            "timeout": data.get_one_of_inputs("job_script_timeout"),
+            "account_alias": data.get_one_of_inputs("job_account"),
+            "target_server": {
+                "ip_list": ip_list,
+            },
+            "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
         if custom_task_name.strip():
             job_kwargs.update({"task_name": custom_task_name})
@@ -196,7 +200,7 @@ class JobFastExecuteScriptService(JobService):
 
         if script_source in ["general", "public"]:
             script_name = data.get_one_of_inputs("job_script_list_{}".format(script_source))
-            kwargs = {"script_name": script_name}
+            kwargs = {"name": script_name}
             if script_source == "general":
                 kwargs.update(
                     {
@@ -205,19 +209,26 @@ class JobFastExecuteScriptService(JobService):
                         "bk_biz_id": biz_cc_id,
                     }
                 )
-                scripts = client.job.get_script_list(kwargs)
+                func = client.jobv3.get_script_list
             else:
-                scripts = client.job.get_public_script_list(kwargs)
+                func = client.jobv3.get_public_script_list
 
-            if scripts["result"] is False:
-                api_name = "job.get_script_list" if script_source == "general" else "job.get_public_script_list"
-                message = job_handle_api_error(api_name, job_kwargs, scripts)
-                self.logger.error(message)
+            try:
+                script_list = batch_request(
+                    func=func,
+                    params=kwargs,
+                    get_data=lambda x: x["data"]["data"],
+                    get_count=lambda x: x["data"]["total"],
+                    page_param={"cur_page_param": "start", "page_size_param": "length"},
+                    is_page_merge=True,
+                )
+            except ApiRequestError as e:
+                message = str(e)
+                self.logger.error(str(e))
                 data.outputs.ex_data = message
                 return False
 
-            # job V2接口使用的是模糊匹配，这里需要做一次精确匹配
-            script_list = scripts["data"]["data"]
+            # job 脚本名称是模糊匹配，这里需要做一次精确匹配
             selected_script = None
             for script in script_list:
                 if script["name"] == script_name:
@@ -225,8 +236,8 @@ class JobFastExecuteScriptService(JobService):
                     break
 
             if not selected_script:
-                api_name = "job.get_script_list" if script_source == "general" else "job.get_public_script_list"
-                message = job_handle_api_error(api_name, job_kwargs, scripts)
+                api_name = "jobv3.get_script_list" if script_source == "general" else "jobv3.get_public_script_list"
+                message = job_handle_api_error(api_name, job_kwargs, script_list)
                 message += "Data validation error: can not find a script exactly named {}".format(script_name)
                 self.logger.error(message)
                 data.outputs.ex_data = message
@@ -237,13 +248,13 @@ class JobFastExecuteScriptService(JobService):
         else:
             job_kwargs.update(
                 {
-                    "script_type": data.get_one_of_inputs("job_script_type"),
+                    "script_language": data.get_one_of_inputs("job_script_type"),
                     "script_content": base64.b64encode(data.get_one_of_inputs("job_content").encode("utf-8")).decode(
                         "utf-8"
                     ),
                 }
             )
-        job_result = client.job.fast_execute_script(job_kwargs)
+        job_result = client.jobv3.fast_execute_script(job_kwargs)
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:
             job_instance_id = job_result["data"]["job_instance_id"]
@@ -253,7 +264,7 @@ class JobFastExecuteScriptService(JobService):
             data.outputs.client = client
             return True
         else:
-            message = job_handle_api_error("job.fast_execute_script", job_kwargs, job_result)
+            message = job_handle_api_error("jobv3.fast_execute_script", job_kwargs, job_result)
             self.logger.error(message)
             data.outputs.ex_data = message
             return False
