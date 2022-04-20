@@ -241,4 +241,4 @@ class NodemanCreateTaskComponent(Component):
     bound_service = NodemanCreateTaskService
     form = "%scomponents/atoms/nodeman/create_task/v4_0.js" % settings.STATIC_URL
     version = VERSION
-    desc = _("v4.0版本支持多云区域主机新建任务 \n" "注意：节点类型PROXY仅支持非直连区域")
+    desc = _("v4.0版本 安装/重装操作新增表单项是否安装最新版本插件   \n" "卸载AGENT操作参数和重装AGENT保持一致 \n" "移除操作下线")
