@@ -53,6 +53,7 @@
                 :execute-scheme-saving="executeSchemeSaving"
                 :is-edit-process-page="isEditProcessPage"
                 :scheme-info="schemeInfo"
+                :is-view-mode="isViewMode"
                 @onEditScheme="onEditScheme"
                 @onImportTemporaryPlan="onImportTemporaryPlan"
                 @onSaveExecuteSchemeClick="onSaveExecuteSchemeClick"
@@ -140,6 +141,10 @@
             isEditProcessPage: {
                 type: Boolean,
                 default: true
+            },
+            isViewMode: {
+                type: Boolean,
+                default: false
             }
         },
         data () {

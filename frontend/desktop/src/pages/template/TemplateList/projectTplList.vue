@@ -128,7 +128,7 @@
                                             v-else
                                             class="template-name"
                                             :title="row.name"
-                                            :to="getJumpUrl('edit', row.id)">
+                                            :to="getJumpUrl('view', row.id)">
                                             {{row.name}}
                                         </router-link>
                                     </template>
@@ -200,7 +200,7 @@
                                         <bk-popover
                                             theme="light"
                                             placement="bottom-start"
-                                            ext-cls="common-dropdown-btn-popover"
+                                            ext-cls="common-dropdown-btn-popver"
                                             :z-index="2000"
                                             :distance="0"
                                             :arrow="false"
@@ -1146,6 +1146,7 @@
              */
             getJumpUrl (name, template_id) {
                 const urlMap = {
+                    'view': { name: 'templatePanel', params: { type: 'view' } },
                     'edit': { name: 'templatePanel', params: { type: 'edit' } },
                     'newTemplate': { name: 'templatePanel', params: { type: 'new' } },
                     'newTask': { name: 'taskCreate', params: { project_id: this.project_id, step: 'selectnode' } },

@@ -83,7 +83,8 @@
             },
             nodeId: String,
             constants: Object,
-            thirdPartyCode: String
+            thirdPartyCode: String,
+            isViewMode: Boolean
         },
         data () {
             return {
@@ -100,7 +101,7 @@
                     showHook: this.showHook,
                     showLabel: true,
                     showVarList: true,
-                    formEdit: this.editable
+                    formEdit: this.isViewMode ? false : this.editable
                 }
             }
         },

@@ -141,7 +141,7 @@ const routers = new VueRouter({
                     meta: { project: true }
                 },
                 {
-                    path: ':type(new|edit|clone)/:project_id/',
+                    path: ':type(new|edit|clone|view)/:project_id/',
                     component: TemplatePanel,
                     name: 'templatePanel',
                     pathToRegexpOptions: { strict: true },
@@ -453,7 +453,7 @@ const routers = new VueRouter({
                     })
                 },
                 {
-                    path: ':type(new|edit|clone)/',
+                    path: ':type(new|edit|clone|view)/',
                     name: 'commonTemplatePanel',
                     pathToRegexpOptions: { strict: true },
                     component: TemplatePanel,
