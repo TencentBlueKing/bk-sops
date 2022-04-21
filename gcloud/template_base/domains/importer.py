@@ -74,7 +74,8 @@ class TemplateImporter:
                     template_id = override_template_id or refer_template_config["template_id"]
                     try:
                         if (
-                            self.template_model_cls is apps.get_model("tasktmpl3", "TaskTemplate")
+                            refer_template_config
+                            and self.template_model_cls is apps.get_model("tasktmpl3", "TaskTemplate")
                             and refer_template_config["template_type"] == "common"
                         ):
                             template = CommonTemplate.objects.get(id=template_id)
