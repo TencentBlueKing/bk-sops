@@ -126,6 +126,10 @@ export const getFormMixins = (attrs = {}) => {
                 default () {
                     return {}
                 }
+            },
+            isViewModel: {
+                type: Boolean,
+                default: false
             }
         },
         data () {

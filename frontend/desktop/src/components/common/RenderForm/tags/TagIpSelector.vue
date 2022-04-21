@@ -22,6 +22,7 @@
                 :topo-model-list="topoModelList"
                 :dynamic-group-list="dynamicGroupList"
                 :allow-empty="allowEmpty"
+                :is-view-model="isViewModel"
                 v-model="ipValue">
             </ip-selector>
         </div>

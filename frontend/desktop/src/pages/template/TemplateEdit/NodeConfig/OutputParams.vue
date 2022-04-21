@@ -25,7 +25,7 @@
             <bk-table-column label="KEY" class-name="param-key" :width="260" show-overflow-tooltip>
                 <template slot-scope="props">
                     <span :style="{ color: props.row.hooked ? '#3a84ff' : '#63656e' }">{{ props.row.key }}</span>
-                    <span class="hook-icon-wrap">
+                    <span class="hook-icon-wrap" v-if="!isViewModel">
                         <i
                             :class="['common-icon-variable-cite hook-icon', {
                                 actived: props.row.hooked,
@@ -92,6 +92,7 @@
             constants: Object,
             thirdPartyCode: String,
             isSubflow: Boolean,
+            isViewModel: Boolean,
             nodeId: String,
             version: String // 标准插件版本或子流程版本
         },

@@ -18,6 +18,7 @@
         <TabGlobalVariables
             v-if="activeTab === 'globalVariableTab'"
             :common="common"
+            :is-view-model="isViewModel"
             @viewClick="$emit('viewClick', $event)"
             @templateDataChanged="$emit('templateDataChanged')"
             @onCitedNodeClick="$emit('onCitedNodeClick', $event)"
@@ -26,6 +27,7 @@
         <TabTemplateConfig
             v-if="activeTab === 'templateConfigTab'"
             :common="common"
+            :is-view-model="isViewModel"
             :project-info-loading="projectInfoLoading"
             :template-label-loading="templateLabelLoading"
             :template-labels="templateLabels"
@@ -42,6 +44,7 @@
         </TabTemplateSnapshoot>
         <TabPipelineTreeEdit
             v-if="activeTab === 'templateDataEditTab'"
+            :is-view-model="isViewModel"
             @modifyTemplateData="$emit('modifyTemplateData', $event)"
             @closeTab="closeTab">
         </TabPipelineTreeEdit>
@@ -64,6 +67,7 @@
             TabOperationFlow
         },
         props: {
+            isViewModel: Boolean,
             projectInfoLoading: Boolean,
             templateLabelLoading: Boolean,
             templateLabels: Array,

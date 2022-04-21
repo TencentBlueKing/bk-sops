@@ -20,14 +20,14 @@
             <div class="code-wrapper">
                 <code-editor
                     :value="template"
-                    :options="{ readOnly: !hasAdminPerm, language: 'json' }"
+                    :options="{ readOnly: (isViewModel || !hasAdminPerm), language: 'json' }"
                     @input="onDataChange">
                 </code-editor>
             </div>
             <div class="btn-wrap">
                 <template v-if="hasAdminPerm">
-                    <bk-button class="save-btn" theme="primary" @click="onConfirm">{{ $t('保存') }}</bk-button>
-                    <bk-button theme="default" @click="closeTab">{{ $t('取消') }}</bk-button>
+                    <bk-button v-if="!isViewModel" class="save-btn" theme="primary" @click="onConfirm">{{ $t('保存') }}</bk-button>
+                    <bk-button theme="default" @click="closeTab">{{ isViewModel ? $t('关闭') : $t('取消') }}</bk-button>
                 </template>
                 <bk-button v-else theme="primary" @click="closeTab">{{ $t('关闭') }}</bk-button>
             </div>
@@ -44,7 +44,7 @@
         components: {
             CodeEditor
         },
-        props: ['isShow'],
+        props: ['isShow', 'isViewModel'],
         data () {
             return {
                 template: this.transPipelineTreeStr(),

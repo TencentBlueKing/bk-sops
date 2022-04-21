@@ -31,18 +31,32 @@
         <div class="header-right-area" slot="expand">
             <div class="button-area" v-if="isEditProcessPage">
                 <div class="setting-tab-wrap">
-                    <span
-                        v-for="tab in settingTabs"
-                        :key="tab.id"
-                        :class="['setting-item', {
-                            'active': activeTab === tab.id,
-                            'update': tab.id === 'globalVariableTab' && isGlobalVariableUpdate
-                        }]"
-                        @click="$emit('onChangePanel', tab.id)">
-                        <i :class="tab.icon" v-bk-tooltips.bottom="tab.title"></i>
-                    </span>
+                    <template v-for="tab in settingTabs">
+                        <span
+                            v-if="!(type === 'view' && tab.id === 'tplSnapshootTab')"
+                            :key="tab.id"
+                            :class="['setting-item', {
+                                'active': activeTab === tab.id,
+                                'update': tab.id === 'globalVariableTab' && isGlobalVariableUpdate
+                            }]"
+                            @click="$emit('onChangePanel', tab.id)">
+                            <i :class="tab.icon" v-bk-tooltips.bottom="tab.title"></i>
+                        </span>
+                    </template>
                 </div>
                 <bk-button
+                    v-if="type === 'view'"
+                    theme="primary"
+                    :class="['task-btn', {
+                        'btn-permission-disable': !editBtnActive
+                    }]"
+                    v-cursor="{ active: !editBtnActive }"
+                    data-test-id="templateEdit_form_editCanvas"
+                    @click.stop="onEditClick">
+                    {{$t('编辑')}}
+                </bk-button>
+                <bk-button
+                    v-else
                     theme="primary"
                     :class="[
                         'save-canvas',
@@ -55,7 +69,7 @@
                     {{$t('保存')}}
                 </bk-button>
                 <bk-button
-                    theme="primary"
+                    :theme="type === 'view' ? 'default' : 'primary'"
                     :class="['task-btn', {
                         'btn-permission-disable': !createTaskBtnActive
                     }]"
@@ -136,6 +150,7 @@
             return {
                 settingTabs: SETTING_TABS.slice(0),
                 isSelectProjectShow: false, // 是否显示项目选择弹窗
+                editBtnActive: false, // 编辑按钮是否激活
                 saveBtnActive: false, // 保存按钮是否激活
                 createTaskBtnActive: false, // 新建任务按钮是否激活
                 hasCreateCommonTplPerm: false, // 创建公共流程权限
@@ -208,17 +223,34 @@
             // 新建、克隆公共流程需要查询创建公共流程权限
             if (this.common) {
                 await this.queryCreateCommonTplPerm()
-                this.setSaveBtnPerm()
-                this.setCreateTaskBtnPerm()
+            }
+            // 查看模式需查看流程编辑权限
+            if (this.type === 'view') {
+                this.setEditBtnPerm()
             } else {
                 this.setSaveBtnPerm()
-                this.setCreateTaskBtnPerm()
             }
+            this.setCreateTaskBtnPerm()
         },
         methods: {
             ...mapActions([
                 'queryUserPermission'
             ]),
+            // 编辑流程
+            onEditClick () {
+                const curPermission = [...this.authActions, ...this.tplActions]
+                const applyPermission = this.common ? ['common_flow_edit'] : ['flow_edit']
+                if (!this.hasPermission(applyPermission, curPermission)) {
+                    this.onTemplatePermissionCheck(applyPermission, curPermission)
+                    return
+                }
+                const { params, query } = this.$route
+                this.$router.push({
+                    path: `/template/edit/${this.project_id}/`,
+                    params,
+                    query
+                })
+            },
             /**
              * 保存按钮，新建/保存并新建任务按钮点击
              * @param {Boolean} saveAndCreate 是否为新建/保存并新建任务按钮
@@ -370,6 +402,11 @@
                     const actions = [...this.authActions, ...this.tplActions]
                     this.createTaskBtnActive = this.hasPermission(this.saveAndCreateRequiredPerm, actions)
                 }
+            },
+            setEditBtnPerm () {
+                const actions = [...this.authActions, ...this.tplActions]
+                const editRequirePerm = this.common ? ['common_flow_edit'] : ['flow_edit']
+                this.editBtnActive = this.hasPermission(editRequirePerm, actions)
             },
             // 查询创建公共流程权限
             async queryCreateCommonTplPerm () {

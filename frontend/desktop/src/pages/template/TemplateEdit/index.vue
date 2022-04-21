@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading , zIndex: 100 }">
+    <div :class="['template-page', { 'tpl-view-model': isViewModel }]" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading , zIndex: 100 }">
         <div v-if="!templateDataLoading" class="pipeline-canvas-wrapper">
             <TemplateHeader
                 ref="templateHeader"
@@ -51,7 +51,9 @@
                     class="template-canvas"
                     :atom-type-list="atomTypeList"
                     :name="name"
-                    :type="type"
+                    :is-view-model="isViewModel"
+                    :show-palette="!isViewModel"
+                    :editable="!isViewModel"
                     :common="common"
                     :template-labels="templateLabels"
                     :canvas-data="canvasData"
@@ -88,6 +90,7 @@
                 <node-config
                     ref="nodeConfig"
                     v-if="isNodeConfigPanelShow"
+                    :is-view-model="isViewModel"
                     :is-show="isNodeConfigPanelShow"
                     :atom-list="atomList"
                     :atom-type-list="atomTypeList"
@@ -111,6 +114,7 @@
                     @close="onCloseConfigPanel">
                 </condition-edit>
                 <template-setting
+                    :is-view-model="isViewModel"
                     :project-info-loading="projectInfoLoading"
                     :template-label-loading="templateLabelLoading"
                     :template-labels="templateLabels"
@@ -420,6 +424,9 @@
                     tip = this.$t('确定保存修改的内容？')
                 }
                 return tip
+            },
+            isViewModel () {
+                return this.type === 'view'
             }
         },
         watch: {
@@ -446,7 +453,7 @@
             }
             this.templateDataLoading = true
             this.snapshoots = this.getTplSnapshoots()
-            if (this.type === 'edit' || this.type === 'clone') {
+            if (['edit', 'clone', 'view'].includes(this.type)) {
                 this.getTemplateData()
             } else {
                 let name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
@@ -466,13 +473,13 @@
             this.openSnapshootTimer()
             window.addEventListener('beforeunload', this.handleBeforeUnload, false)
             window.addEventListener('unload', this.handleUnload.bind(this), false)
-            if (this.type === 'edit') {
+            if (this.type === 'edit' || this.type === 'view') {
                 const data = this.getTplTabData()
                 tplTabCount.setTab(data, 'add')
             }
         },
         beforeDestroy () {
-            if (this.type === 'edit') {
+            if (this.type === 'edit' || this.type === 'view') {
                 const data = this.getTplTabData()
                 tplTabCount.setTab(data, 'del')
             }
@@ -1771,6 +1778,14 @@
         position: relative;
         height: 100%;
         overflow: hidden;
+    }
+    .tpl-view-model {
+        /deep/ .jsflow .tool-panel-wrap {
+            left: 40px;
+        }
+        /deep/ .small-map {
+            left: 40px;
+        }
     }
     .update-tips {
         position: absolute;

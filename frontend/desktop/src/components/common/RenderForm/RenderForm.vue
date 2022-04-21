@@ -21,6 +21,7 @@
             :hook="hooked[atom.tag_code]"
             :render="renderConfig[atom.tag_code]"
             :constants="constants"
+            :is-view-model="isViewModel"
             @change="updateForm"
             @onHook="updateHook"
             @onRenderChange="updateRender">
@@ -101,6 +102,10 @@
                 default () {
                     return {}
                 }
+            },
+            isViewModel: {
+                type: Boolean,
+                default: false
             }
         },
         data () {

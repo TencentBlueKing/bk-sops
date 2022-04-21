@@ -21,7 +21,8 @@
                 'show-label': option.showLabel,
                 'rf-view-mode': !option.formMode,
                 'rf-col-layout': scheme.attrs.cols,
-                'rf-section-item': scheme.type === 'section'
+                'rf-section-item': scheme.type === 'section',
+                'is-view': isViewModel
             }
         ]"
         :style="{
@@ -73,13 +74,14 @@
                 :atom-methods="scheme.methods"
                 :value="formValue"
                 :parent-value="parentValue"
+                :is-view-model="isViewModel"
                 @init="$emit('init', $event)"
                 @change="updateForm"
                 @onShow="onShowForm"
                 @onHide="onHideForm">
             </component>
             <!-- 变量勾选checkbox -->
-            <div class="rf-tag-hook" v-if="showHook">
+            <div class="rf-tag-hook" v-if="!isViewModel && showHook">
                 <i
                     :class="['common-icon-variable-cite hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
                     v-bk-tooltips="{
@@ -180,6 +182,10 @@
                 default () {
                     return {}
                 }
+            },
+            isViewModel: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
@@ -486,6 +492,13 @@
     }
     &.show-label > .rf-tag-form {
         margin-left: 130px;
+    }
+    &.is-view {
+        width: 100% !important;
+        padding-right: 0;
+        .rf-tag-form {
+            margin-right: 30px !important;
+        }
     }
     .rf-tag-hook {
         position: absolute;

@@ -153,6 +153,7 @@
         }
     }
     .group-checkbox {
+        flex-shrink: 0;
         margin-right: 8px;
         /deep/ .bk-checkbox {
             border: 1px solid #dcdfe6;

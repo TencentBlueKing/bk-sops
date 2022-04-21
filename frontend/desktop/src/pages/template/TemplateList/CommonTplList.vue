@@ -69,7 +69,7 @@
                                         v-else
                                         class="template-name"
                                         :title="row.name"
-                                        @click.prevent="getJumpUrl('edit', row.id)">
+                                        @click.prevent="getJumpUrl('view', row.id)">
                                         {{row.name}}
                                     </a>
                                 </div>
@@ -540,6 +540,7 @@
              */
             getJumpUrl (name, template_id) {
                 const urlMap = {
+                    'view': { name: 'commonTemplatePanel', params: { type: 'view' } },
                     'edit': { name: 'commonTemplatePanel', params: { type: 'edit' } },
                     'newTemplate': { name: 'commonTemplatePanel', params: { type: 'new' } },
                     'newTask': { name: 'taskCreate', params: { project_id: this.project_id, step: 'selectnode' } },

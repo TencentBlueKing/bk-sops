@@ -647,7 +647,7 @@
                 const { template_id: templateId, template_source: templateSource, project } = template
                 const url = {
                     name: 'templatePanel',
-                    params: { type: 'edit', project_id: project.id },
+                    params: { type: 'view', project_id: project.id },
                     query: { template_id: templateId, common: templateSource === 'common' || undefined }
                 }
                 return url

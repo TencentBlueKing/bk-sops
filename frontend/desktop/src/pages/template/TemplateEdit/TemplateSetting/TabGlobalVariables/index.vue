@@ -22,9 +22,10 @@
                 class="manager-project-variable-btn mr5"
                 data-test-id="templateEdit_form_managerVariable"
                 @click="onManagerProjectVariable">
-                <span class="manager-item">{{ $t('管理项目变量') }}</span>
+                <span :class="['manager-item', { 'r30': isViewModel }]">{{ $t('管理项目变量') }}</span>
             </div>
             <div
+                v-if="!isViewModel"
                 class="process-project-variable-btn"
                 data-test-id="templateEdit_form_variableProcessing"
                 @click="quickOperateVariableVisable = true">
@@ -71,7 +72,7 @@
                 <div class="add-variable">
                     <bk-button
                         theme="primary"
-                        class="add-variable-btn mr5"
+                        :class="['add-variable-btn mr5', { 'scale0': isViewModel }]"
                         data-test-id="templateEdit_form_creatVariable"
                         @click="onAddVariable">
                         {{ $t('新建') }}
@@ -153,6 +154,7 @@
                             class="variable-drag"
                             handle=".col-item-drag"
                             :list="variableList"
+                            :disabled="isViewModel"
                             @end="onDragEnd($event)">
                             <variable-item
                                 v-for="constant in variableList"
@@ -162,6 +164,7 @@
                                 :variable-cited="variableCited"
                                 :variable-checked="!!(deleteVarList.find(item => item.key === constant.key))"
                                 :common="common"
+                                :is-view-model="isViewModel"
                                 @viewClick="viewClick"
                                 @onEditVariable="onEditVariable"
                                 @onDeleteVariable="onDeleteVariable"
@@ -185,6 +188,7 @@
                 ref="variableEdit"
                 :variable-data="variableData"
                 :common="common"
+                :is-view-model="isViewModel"
                 @closeEditingPanel="closeEditingPanel"
                 @onSaveEditing="onSaveEditing">
             </variable-edit>
@@ -222,7 +226,11 @@
             QuickOperateVariable
         },
         props: {
-            common: [String, Number]
+            common: [String, Number],
+            isViewModel: {
+                type: Boolean,
+                default: false
+            }
         },
         data () {
             const varAttrList = [
@@ -638,6 +646,9 @@
             color: #3a84ff;
         }
     }
+    .r30 {
+        right: 30px;
+    }
 }
 .setting-header {
     & > span.active {
@@ -681,6 +692,9 @@
         padding: 30px 30px 20px;
         .add-variable-btn {
             width: 90px;
+            &.scale0 {
+                transform: scale(0);
+            }
         }
         .toggle-system-var {
             float: right;

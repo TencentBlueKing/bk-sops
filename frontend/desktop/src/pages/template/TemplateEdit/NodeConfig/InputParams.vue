@@ -18,6 +18,7 @@
             :form-option="option"
             :form-data="formData"
             :render-config="renderConfig"
+            :is-view-model="isViewModel"
             @change="onInputsValChange"
             @onRenderChange="$emit('renderConfigChange', arguments)"
             @onHookChange="onInputHookChange">
@@ -28,6 +29,7 @@
                 <div slot="content" class="forms-wrapper" style="padding: 10px 64px 10px 0;">
                     <render-form
                         :scheme="formsNotReferredScheme"
+                        :is-view-model="isViewModel"
                         :form-option="{ showLabel: true, showHook: false, formEdit: false }"
                         :form-data="formData">
                     </render-form>
@@ -83,7 +85,8 @@
             },
             nodeId: String,
             constants: Object,
-            thirdPartyCode: String
+            thirdPartyCode: String,
+            isViewModel: Boolean
         },
         data () {
             return {
@@ -100,7 +103,7 @@
                     showHook: this.showHook,
                     showLabel: true,
                     showVarList: true,
-                    formEdit: this.editable
+                    formEdit: this.isViewModel ? false : this.editable
                 }
             }
         },
