@@ -121,7 +121,7 @@ class JobFastPushFileService(JobScheduleService):
                 return False
             file_source.append(
                 {
-                    "files": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
+                    "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
                     "server": {"ip_list": source_ip_list},
                     "account": {
                         "alias": loose_strip(item["account"]),
@@ -149,7 +149,9 @@ class JobFastPushFileService(JobScheduleService):
         for source in file_source:
             for attr in attr_list:
                 # 将[FILESRCIP]替换成源IP
-                job_target_path = attr["job_target_path"].replace("[FILESRCIP]", source["ip_list"][0]["ip"]).strip()
+                job_target_path = (
+                    attr["job_target_path"].replace("[FILESRCIP]", source["server"]["ip_list"][0]["ip"]).strip()
+                )
                 # 获取目标IP
                 original_ip_list = attr["job_ip_list"]
                 clean_result, ip_list = get_biz_ip_from_frontend(
