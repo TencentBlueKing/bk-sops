@@ -15,7 +15,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from api.collections.nodeman import BKNodeManClient
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
-from pipeline.core.flow.io import IntItemSchema
+from pipeline.core.flow.io import IntItemSchema, StringItemSchema
 
 from gcloud.utils.handlers import handle_api_error
 
@@ -70,6 +70,12 @@ class NodeManBaseService(Service):
                 schema=IntItemSchema(description=_("提交的任务的 job_id")),
             ),
             self.OutputItem(
+                name=_("任务链接"),
+                key="job_url",
+                type="string",
+                schema=StringItemSchema(description=_("任务链接")),
+            ),
+            self.OutputItem(
                 name=_("安装成功个数"),
                 key="success_num",
                 type="int",
@@ -109,7 +115,13 @@ class NodeManBaseService(Service):
             if not job_id:
                 data.outputs.ex_data = _("获取任务job_id失败，result:{}".format(result))
                 return False
+
+            job_url = result["data"].get("job_url", "")
+            # 如果接口返回job_url,以返回的为准
+            if job_url:
+                data.set_outputs("job_url", job_url)
             data.set_outputs("job_id", job_id)
+
         return True
 
     def schedule(self, data, parent_data, callback_data=None):
