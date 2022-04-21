@@ -87,11 +87,9 @@ def job_get_script_name_list(request, biz_cc_id):
 
 
 def job_get_public_script_name_list(request):
-    script_result = _job_get_scripts_data(request)
-    if not script_result["result"]:
-        return JsonResponse(script_result)
+    script_list = _job_get_scripts_data(request)
     script_names = []
-    for script in script_result["data"]["data"]:
+    for script in script_list:
         script_names.append({"text": script["name"], "value": script["name"]})
     return JsonResponse({"result": True, "data": script_names})
 
@@ -414,7 +412,10 @@ job_urlpatterns = [
     url(r"^job_get_script_name_list/(?P<biz_cc_id>\d+)/$", job_get_script_name_list),
     url(r"^job_get_public_script_name_list/$", job_get_public_script_name_list),
     url(r"^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$", job_get_job_tasks_by_biz),
-    url(r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_job_task_detail,),
+    url(
+        r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$",
+        job_get_job_task_detail,
+    ),
     url(r"^job_get_instance_detail/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_instance_detail),
     # jobv3接口
     url(r"^jobv3_get_job_template_list/(?P<biz_cc_id>\d+)/$", jobv3_get_job_template_list),
