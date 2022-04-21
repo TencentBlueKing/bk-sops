@@ -264,6 +264,7 @@
         <ImportYamlTplDialog
             :auth-actions="authActions"
             :project_id="project_id"
+            :project-ame="projectName"
             :is-show.sync="isImportYamlDialogShow"
             @confirm="onImportYamlSuccess">
         </ImportYamlTplDialog>
