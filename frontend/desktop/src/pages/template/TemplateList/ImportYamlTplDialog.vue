@@ -108,7 +108,7 @@
                                 {{ importData.relations[props.row.meta.id] ? importData.relations[props.row.meta.id].map(item => item.name).join(',') : '--' }}
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('是否导入子流程（仅适用于同环境导入）')" :width="400">
+                        <bk-table-column :label="$t('是否覆盖已有子流程（仅适用于同环境导入）')" :width="400">
                             <template slot-scope="{ row }">
                                 <div class="tpl-overrider-select">
                                     <bk-select
@@ -135,8 +135,13 @@
                                             v-for="item in ((common || row.refer === 'useCommonExisting') ? commonTemplateList : templateList)"
                                             :key="item.id"
                                             :id="item.id"
+                                            :disabled="!hasPermission(getApplyPerm(row), item.auth_actions)"
                                             :name="item.name">
-                                            {{ item.name }}
+                                            <p
+                                                v-cursor="{ active: !hasPermission(getApplyPerm(row), item.auth_actions) }"
+                                                @click="onTempSelect(row, item)">
+                                                {{ item.name }}
+                                            </p>
                                         </bk-option>
                                     </bk-select>
                                 </div>
@@ -189,16 +194,19 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions } from 'vuex'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'ImportYamlTplDialog',
+        mixins: [permission],
         props: {
             isShow: {
                 type: Boolean,
                 default: false
             },
             common: String,
-            project_id: [String, Number]
+            project_id: [String, Number],
+            projectName: String
         },
         data () {
             return {
@@ -371,6 +379,37 @@
                         template_id: id,
                         template_type: 'common'
                     }
+                }
+            },
+            getApplyPerm (row) {
+                if (this.common) {
+                    return row.refer === 'overrider' ? ['common_flow_edit'] : ['common_flow_view']
+                } else {
+                    return row.refer === 'overrider'
+                        ? ['flow_edit']
+                        : row.refer === 'useCommonExisting'
+                            ? ['common_flow_view']
+                            : ['flow_view']
+                }
+            },
+            onTempSelect (row, selectInfo) {
+                const required = this.getApplyPerm(row)
+                if (!this.hasPermission(required, selectInfo.auth_actions)) {
+                    const permissionData = {
+                        project: [{
+                            id: this.project_id,
+                            name: this.projectName
+                        }]
+                    }
+                    if (this.common || row.refer === 'useCommonExisting') {
+                        permissionData['common_flow'] = [{
+                            id: selectInfo.id,
+                            name: selectInfo.name
+                        }]
+                    } else {
+                        permissionData['flow'] = [selectInfo]
+                    }
+                    this.applyForPermission(required, selectInfo.auth_actions, permissionData)
                 }
             },
             onClearRefer (tpl) {
