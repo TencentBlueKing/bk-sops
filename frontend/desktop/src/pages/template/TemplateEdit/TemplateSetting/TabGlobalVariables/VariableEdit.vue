@@ -11,7 +11,7 @@
                             name="variableName"
                             v-model="theEditingData.name"
                             v-validate="variableNameRule"
-                            :readonly="isViewModel || isInternalVal">
+                            :readonly="isViewMode || isInternalVal">
                         </bk-input>
                         <span v-show="veeErrors.has('variableName')" class="common-error-tip error-msg">{{ veeErrors.first('variableName') }}</span>
                     </div>
@@ -24,7 +24,7 @@
                             name="variableKey"
                             v-model="theEditingData.key"
                             v-validate="variableKeyRule"
-                            :readonly="isViewModel || isInternalVal"
+                            :readonly="isViewMode || isInternalVal"
                             :disabled="isHookedVar && variableData.key !== ''">
                         </bk-input>
                         <span v-show="veeErrors.has('variableKey')" class="common-error-tip error-msg">{{ veeErrors.first('variableKey') }}</span>
@@ -36,7 +36,7 @@
                     <div class="form-content">
                         <bk-select
                             v-model="currentValType"
-                            :disabled="isViewModel || isHookedVar"
+                            :disabled="isViewMode || isHookedVar"
                             :clearable="false"
                             @change="onValTypeChange">
                             <template v-if="isHookedVar">
@@ -73,7 +73,7 @@
                             name="valueValidation"
                             v-model="theEditingData.validation"
                             v-validate="validationRule"
-                            :readonly="isViewModel"
+                            :readonly="isViewMode"
                             @blur="onBlurValidation">
                         </bk-input>
                         <span v-show="veeErrors.has('valueValidation')" class="common-error-tip error-msg">{{veeErrors.first('valueValidation')}}</span>
@@ -85,7 +85,7 @@
                     <div class="form-content">
                         <bk-select
                             v-model="theEditingData.show_type"
-                            :disabled="isViewModel || theEditingData.source_type === 'component_outputs'"
+                            :disabled="isViewMode || theEditingData.source_type === 'component_outputs'"
                             :clearable="false"
                             @change="onToggleShowType">
                             <bk-option
@@ -107,7 +107,7 @@
                     <div class="form-content">
                         <bk-select
                             v-model="theEditingData.is_condition_hide"
-                            :disabled="isViewModel || theEditingData.source_type === 'component_outputs'"
+                            :disabled="isViewMode || theEditingData.source_type === 'component_outputs'"
                             :clearable="false"
                             @change="onToggleHideCond">
                             <bk-option id="true" :name="$t('是')"></bk-option>
@@ -129,7 +129,7 @@
                             <bk-select
                                 ext-cls="select-variable"
                                 v-model="item.constant_key"
-                                :disabled="isViewModel">
+                                :disabled="isViewMode">
                                 <bk-option
                                     v-for="variable in variableList"
                                     :key="variable.key"
@@ -140,14 +140,14 @@
                             <bk-select
                                 ext-cls="select-operator"
                                 v-model="item.operator"
-                                :disabled="isViewModel">
+                                :disabled="isViewMode">
                                 <bk-option id="=" name="="></bk-option>
                                 <bk-option id="!=" name="!="></bk-option>
                             </bk-select>
                             <bk-input
                                 ext-cls="variable-value"
                                 v-model="item.value"
-                                :readonly="isViewModel">
+                                :readonly="isViewMode">
                             </bk-input>
                             <div class="icon-operat">
                                 <i class="bk-icon icon-plus-circle-shape" @click="addHideCondition"></i>
@@ -169,7 +169,7 @@
                         <bk-select
                             :value="String(theEditingData.pre_render_mako)"
                             :clearable="false"
-                            :disabled="isViewModel"
+                            :disabled="isViewMode"
                             @selected="onSelectPreRenderMako">
                             <bk-option
                                 v-for="(option, index) in preRenderList"
@@ -188,7 +188,7 @@
                             type="textarea"
                             v-model="theEditingData.desc"
                             :placeholder="isInternalVal ? ' ' : $t('请输入')"
-                            :readonly="isViewModel || isInternalVal">
+                            :readonly="isViewMode || isInternalVal">
                         </bk-input>
                     </div>
                 </div>
@@ -212,7 +212,7 @@
         </div>
         <div class="btn-wrap">
             <template v-if="!isInternalVal">
-                <bk-button v-if="!isViewModel" theme="primary" :disabled="atomConfigLoading || varTypeListLoading" @click="onSaveVariable">{{ $t('保存') }}</bk-button>
+                <bk-button v-if="!isViewMode" theme="primary" :disabled="atomConfigLoading || varTypeListLoading" @click="onSaveVariable">{{ $t('保存') }}</bk-button>
                 <bk-button @click="$emit('closeEditingPanel')">{{ $t('取消') }}</bk-button>
             </template>
             <bk-button v-else theme="primary" @click="$emit('closeEditingPanel')">{{ $t('返回') }}</bk-button>
@@ -253,7 +253,7 @@
         props: {
             variableData: Object,
             common: [String, Number],
-            isViewModel: Boolean
+            isViewMode: Boolean
         },
         data () {
             const theEditingData = tools.deepClone(this.variableData)
@@ -290,7 +290,7 @@
                     showLabel: true,
                     showVarList: true,
                     validateSet: ['custom', 'regex'],
-                    formEdit: !this.isViewModel
+                    formEdit: !this.isViewMode
                 },
                 varTypeListLoading: false,
                 varTypeList: [], // 变量类型，input、textarea、datetime 等

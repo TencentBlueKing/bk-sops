@@ -21,7 +21,7 @@
                                 v-if="col.type"
                                 size="small"
                                 theme="primary"
-                                :disabled="isViewModel"
+                                :disabled="isViewMode"
                                 :value="props.row.includes(col.type)"
                                 @change="onSelectNotifyType(props.$index, col.type, $event)">
                             </bk-switcher>
@@ -39,7 +39,7 @@
                     <bk-checkbox
                         v-for="item in notifyGroup"
                         :key="item.id"
-                        :disabled="isViewModel"
+                        :disabled="isViewMode"
                         :value="item.id">
                         {{item.name}}
                     </bk-checkbox>
@@ -91,7 +91,7 @@
                 type: Boolean,
                 default: false
             },
-            isViewModel: {
+            isViewMode: {
                 type: Boolean,
                 default: false
             }

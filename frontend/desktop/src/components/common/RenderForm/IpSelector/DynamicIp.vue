@@ -19,7 +19,7 @@
                     :editable="editable"
                     @search="onTopoSearch">
                 </ip-search-input>
-                <div :class="['tree-wrap', { 'is-view': isViewModel }]">
+                <div :class="['tree-wrap', { 'is-view': !editable }]">
                     <bk-big-tree
                         v-if="topoList.length"
                         ref="topoTree"
@@ -47,7 +47,7 @@
                         v-bk-overflow-tips
                         :key="item.key">
                         {{ item.namePath }}
-                        <i v-if="!isViewModel" class="common-icon-dark-circle-close" @click="onDeleteSelected(item.key)"></i>
+                        <i v-if="editable" class="common-icon-dark-circle-close" @click="onDeleteSelected(item.key)"></i>
                     </div>
                 </div>
             </div>
@@ -73,7 +73,7 @@
         components: {
             IpSearchInput
         },
-        props: ['editable', 'dynamicIpList', 'dynamicIps', 'isViewModel'],
+        props: ['editable', 'dynamicIpList', 'dynamicIps'],
         data () {
             return {
                 lastSelectedNodes: [],

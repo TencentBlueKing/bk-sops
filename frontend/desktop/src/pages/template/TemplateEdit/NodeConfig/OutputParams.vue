@@ -25,11 +25,11 @@
             <bk-table-column label="KEY" class-name="param-key" :width="260" show-overflow-tooltip>
                 <template slot-scope="props">
                     <span :style="{ color: props.row.hooked ? '#3a84ff' : '#63656e' }">{{ props.row.key }}</span>
-                    <span class="hook-icon-wrap" v-if="!isViewModel">
+                    <span class="hook-icon-wrap">
                         <i
                             :class="['common-icon-variable-cite hook-icon', {
                                 actived: props.row.hooked,
-                                disabled: !hook
+                                disabled: isViewMode || !hook
                             }]"
                             v-bk-tooltips="{
                                 content: props.row.hooked ? $t('取消勾选') : $t('勾选参数作为全局变量'),
@@ -92,7 +92,7 @@
             constants: Object,
             thirdPartyCode: String,
             isSubflow: Boolean,
-            isViewModel: Boolean,
+            isViewMode: Boolean,
             nodeId: String,
             version: String // 标准插件版本或子流程版本
         },
@@ -193,6 +193,7 @@
              * 输出参数勾选切换
              */
             onHookChange (props) {
+                if (this.isViewMode) return
                 const index = props.$index
                 props.row.hooked = !props.row.hooked
                 if (props.row.hooked) {

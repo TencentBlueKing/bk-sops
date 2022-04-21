@@ -246,7 +246,7 @@
                 }
                 const { params, query } = this.$route
                 this.$router.push({
-                    path: `/template/edit/${this.project_id}/`,
+                    path: `/${this.common ? 'common' : 'template'}/edit/${this.project_id}/`,
                     params,
                     query
                 })

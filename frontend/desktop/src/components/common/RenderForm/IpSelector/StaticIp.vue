@@ -12,7 +12,7 @@
 <template>
     <div class="static-ip">
         <div v-show="!isIpAddingPanelShow" class="ip-list-panel">
-            <div :class="['operation-area', { 'is-view': isViewModel }]">
+            <div :class="['operation-area', { 'is-view': !editable }]">
                 <bk-dropdown-menu
                     trigger="click"
                     :disabled="!editable"
@@ -63,7 +63,7 @@
                                 </span>
                             </th>
                             <th width="160">Agent {{i18n.status}}</th>
-                            <th width="50" v-if="!isViewModel">{{i18n.operation}}</th>
+                            <th width="50" v-if="editable">{{i18n.operation}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -82,7 +82,7 @@
                                     :title="item.agent ? 'Agent' + i18n.normal : 'Agent' + i18n.error">
                                     {{item.agent ? 'Agent' + i18n.normal : 'Agent' + i18n.error}}
                                 </td>
-                                <td v-if="!isViewModel">
+                                <td v-if="!editable">
                                     <a
                                         :class="['remove-ip-btn', { 'disabled': !editable }]"
                                         @click.stop="onRemoveIpClick(item.bk_host_id)">
@@ -183,8 +183,7 @@
             allowUnfoldInput: Boolean,
             editable: Boolean,
             staticIpList: Array,
-            staticIps: Array,
-            isViewModel: Boolean
+            staticIps: Array
         },
         data () {
             const listCountPerPage = 5

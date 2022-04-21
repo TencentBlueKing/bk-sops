@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div :class="['template-page', { 'tpl-view-model': isViewModel }]" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading , zIndex: 100 }">
+    <div :class="['template-page', { 'tpl-view-model': isViewMode }]" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading , zIndex: 100 }">
         <div v-if="!templateDataLoading" class="pipeline-canvas-wrapper">
             <TemplateHeader
                 ref="templateHeader"
@@ -51,9 +51,9 @@
                     class="template-canvas"
                     :atom-type-list="atomTypeList"
                     :name="name"
-                    :is-view-model="isViewModel"
-                    :show-palette="!isViewModel"
-                    :editable="!isViewModel"
+                    :is-view-mode="isViewMode"
+                    :show-palette="!isViewMode"
+                    :editable="!isViewMode"
                     :common="common"
                     :template-labels="templateLabels"
                     :canvas-data="canvasData"
@@ -81,6 +81,7 @@
                 :exclude-node="excludeNode"
                 :is-edit-process-page="isEditProcessPage"
                 :execute-scheme-saving="executeSchemeSaving"
+                :is-view-mode="isViewMode"
                 @onSaveExecuteSchemeClick="onSaveExecuteSchemeClick"
                 @updateTaskSchemeList="updateTaskSchemeList"
                 @togglePreviewMode="togglePreviewMode"
@@ -90,7 +91,7 @@
                 <node-config
                     ref="nodeConfig"
                     v-if="isNodeConfigPanelShow"
-                    :is-view-model="isViewModel"
+                    :is-view-mode="isViewMode"
                     :is-show="isNodeConfigPanelShow"
                     :atom-list="atomList"
                     :atom-type-list="atomTypeList"
@@ -114,7 +115,7 @@
                     @close="onCloseConfigPanel">
                 </condition-edit>
                 <template-setting
-                    :is-view-model="isViewModel"
+                    :is-view-mode="isViewMode"
                     :project-info-loading="projectInfoLoading"
                     :template-label-loading="templateLabelLoading"
                     :template-labels="templateLabels"
@@ -425,7 +426,7 @@
                 }
                 return tip
             },
-            isViewModel () {
+            isViewMode () {
                 return this.type === 'view'
             }
         },

@@ -42,7 +42,6 @@
                 :editable="editable"
                 :static-ip-list="staticIpList"
                 :static-ips="staticIps"
-                :is-view-model="isViewModel"
                 @change="onStaticIpChange">
             </static-ip>
             <dynamic-ip
@@ -51,7 +50,6 @@
                 :editable="editable"
                 :dynamic-ip-list="dynamicIpList"
                 :dynamic-ips="dynamicIps"
-                :is-view-model="isViewModel"
                 @change="onDynamicIpChange">
             </dynamic-ip>
             <dynamic-group
@@ -96,8 +94,7 @@
             staticIps: Array,
             dynamicIps: Array,
             dynamicGroups: Array,
-            manualInput: Object,
-            isViewModel: Boolean
+            manualInput: Object
         },
         data () {
             return {

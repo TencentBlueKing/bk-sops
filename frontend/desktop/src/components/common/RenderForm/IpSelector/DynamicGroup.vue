@@ -45,7 +45,7 @@
                         v-for="item in selectedGroups"
                         :key="item.id">
                         {{ item.name }}
-                        <i class="common-icon-dark-circle-close" @click="onGroupSelectChange(item)"></i>
+                        <i v-if="editable" class="common-icon-dark-circle-close" @click="onGroupSelectChange(item)"></i>
                     </div>
                 </div>
             </div>

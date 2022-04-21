@@ -23,7 +23,6 @@
                     :fields-list="conditionFields"
                     :index="index"
                     :editable="editable"
-                    :is-view-model="isViewModel"
                     @changeCondition="changeCondition"
                     @addCondition="addCondition(index)"
                     @deleteCondition="deleteCondition(index)">
@@ -68,10 +67,6 @@
                 default () {
                     return []
                 }
-            },
-            isViewModel: {
-                type: Boolean,
-                default: false
             }
         },
         data () {

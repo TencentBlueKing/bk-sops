@@ -62,7 +62,7 @@
         background: #f0f1f5;
         border: 1px solid #dcdee5;
         border-radius: 2px;
-        min-height: 49.5px;
+        min-height: 50px;
 
         &:after {
             content: '';

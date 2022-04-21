@@ -11,9 +11,9 @@
 */
 <template>
     <div class="variable-item">
-        <div :class="['variable-content', { 'view-model': isViewModel }]" @click="onEditVariable(variableData.key, variableData.index)">
+        <div :class="['variable-content', { 'view-model': isViewMode }]" @click="onEditVariable(variableData.key, variableData.index)">
             <i v-if="!isSystemVar && !isProjectVar && !showCitedList" class="col-item-drag common-icon-drawable f16"></i>
-            <span v-if="!isViewModel && !isSystemVar && !isProjectVar" @click.stop class="col-item-checkbox">
+            <span v-if="!isViewMode && !isSystemVar && !isProjectVar" @click.stop class="col-item-checkbox">
                 <bk-checkbox :value="variableChecked" @change="onChooseVariable"></bk-checkbox>
             </span>
             <i v-if="isSystemVar" class="variable-icon common-icon-lock-disable"></i>
@@ -69,7 +69,7 @@
                 <bk-switcher
                     size="small"
                     theme="primary"
-                    :disabled="isViewModel || variableData.isSysVar || variableData.source_type === 'component_outputs'"
+                    :disabled="isViewMode || variableData.isSysVar || variableData.source_type === 'component_outputs'"
                     :value="variableData.show_type === 'show'"
                     @change="onChangeVariableShow(variableData.key, $event)">
                 </bk-switcher>
@@ -80,21 +80,21 @@
                         size="small"
                         theme="primary"
                         :value="outputed"
-                        :disabled="isViewModel"
+                        :disabled="isViewMode"
                         @change="onChangeVariableOutput(variableData.key, $event)">
                     </bk-switcher>
                 </div>
             </span>
             <span class="col-item col-operation">
                 <span
-                    v-if="isViewModel || isInternalVal"
+                    v-if="isViewMode || isInternalVal"
                     class="col-operation-item"
                     @click.stop="onEditVariable(variableData.key, variableData.index)">
                     {{ $t('查看') }}
                 </span>
                 <span v-else class="col-operation-item">{{ $t('编辑') }}</span>
             </span>
-            <span class="col-item col-more" v-if="!isViewModel && !isInternalVal">
+            <span class="col-item col-more" v-if="!isViewMode && !isInternalVal">
                 <bk-popover placement="bottom" theme="light" :distance="0" :arrow="false" ext-cls="var-operate-popover">
                     <i class="bk-icon icon-more"></i>
                     <template slot="content">
@@ -142,7 +142,7 @@
             common: [String, Number],
             variableCited: Object,
             variableChecked: Boolean,
-            isViewModel: Boolean
+            isViewMode: Boolean
         },
         data () {
             return {

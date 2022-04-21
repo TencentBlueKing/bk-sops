@@ -25,7 +25,6 @@
                 :dynamic-ips="topo"
                 :dynamic-groups="group"
                 :manual-input="manual_input"
-                :is-view-model="isViewModel"
                 @change="updateValue">
             </multiple-ip-selector>
             <single-ip-selector
@@ -42,7 +41,6 @@
                 :dynamic-ips="topo"
                 :dynamic-groups="group"
                 :manual-input="manual_input"
-                :is-view-model="isViewModel"
                 @change="updateValue">
             </single-ip-selector>
         </div>
@@ -53,7 +51,6 @@
                 :editable="editable"
                 :condition-fields="conditionFields"
                 :conditions="conditions"
-                :is-view-model="isViewModel"
                 @change="updateValue('conditions', $event)">
             </select-condition>
             <div class="cloud-area-form">
@@ -164,11 +161,6 @@
                 default () {
                     return []
                 }
-            },
-            // 查看模式
-            isViewModel: {
-                type: Boolean,
-                default: false
             }
         },
         data () {

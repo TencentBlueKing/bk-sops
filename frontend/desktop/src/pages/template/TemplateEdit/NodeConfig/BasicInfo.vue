@@ -21,7 +21,7 @@
                 <bk-input :value="formData.name" readonly>
                     <template slot="append">
                         <div
-                            :class="['operate-btn', { 'is-disabled': isViewModel }]"
+                            :class="['operate-btn', { 'is-disabled': isViewMode }]"
                             @click="openSelectorPanel">
                             {{ formData.plugin ? $t('重选') : $t('选择') }}
                         </div>
@@ -33,7 +33,7 @@
                 <bk-select
                     v-model="formData.version"
                     :clearable="false"
-                    :disabled="isViewModel"
+                    :disabled="isViewMode"
                     @selected="$emit('versionChange', $event)">
                     <bk-option
                         v-for="item in versionList"
@@ -44,15 +44,15 @@
                 </bk-select>
             </bk-form-item>
             <bk-form-item :label="$t('节点名称')" data-test-id="templateEdit_form_nodeName" :required="true" property="nodeName">
-                <bk-input :readonly="isViewModel" v-model="formData.nodeName" @change="updateData"></bk-input>
+                <bk-input :readonly="isViewMode" v-model="formData.nodeName" @change="updateData"></bk-input>
             </bk-form-item>
             <bk-form-item :label="$t('步骤名称')" data-test-id="templateEdit_form_stageName" property="stageName">
-                <bk-input :readonly="isViewModel" v-model="formData.stageName" @change="updateData"></bk-input>
+                <bk-input :readonly="isViewMode" v-model="formData.stageName" @change="updateData"></bk-input>
             </bk-form-item>
             <bk-form-item :label="$t('节点标签')" data-test-id="templateEdit_form_nodeLabel" property="label">
                 <bk-search-select
                     primary-key="code"
-                    :ext-cls="isViewModel ? 'disabled-search' : ''"
+                    :ext-cls="isViewMode ? 'disabled-search' : ''"
                     :clearable="true"
                     :popover-zindex="2300"
                     :data="labelList"
@@ -67,28 +67,28 @@
                 <div class="error-handle">
                     <bk-checkbox
                         :value="formData.ignorable"
-                        :disabled="isViewModel || formData.autoRetry.enable || formData.timeoutConfig.enable"
+                        :disabled="isViewMode || formData.autoRetry.enable || formData.timeoutConfig.enable"
                         @change="onErrorHandlerChange($event, 'ignorable')">
                         <span class="error-handle-icon"><span class="text">AS</span></span>
                         {{ $t('自动跳过') }}
                     </bk-checkbox>
                     <bk-checkbox
                         :value="formData.skippable"
-                        :disabled="isViewModel || formData.ignorable"
+                        :disabled="isViewMode || formData.ignorable"
                         @change="onErrorHandlerChange($event, 'skippable')">
                         <span class="error-handle-icon"><span class="text">MS</span></span>
                         {{ $t('手动跳过') }}
                     </bk-checkbox>
                     <bk-checkbox
                         :value="formData.retryable"
-                        :disabled="isViewModel || formData.ignorable || formData.autoRetry.enable"
+                        :disabled="isViewMode || formData.ignorable || formData.autoRetry.enable"
                         @change="onErrorHandlerChange($event, 'retryable')">
                         <span class="error-handle-icon"><span class="text">MR</span></span>
                         {{ $t('手动重试') }}
                     </bk-checkbox>
                     <bk-checkbox
                         :value="formData.autoRetry.enable"
-                        :disabled="isViewModel || formData.ignorable || formData.timeoutConfig.enable"
+                        :disabled="isViewMode || formData.ignorable || formData.timeoutConfig.enable"
                         @change="onErrorHandlerChange($event, 'autoRetry')">
                         <span class="error-handle-icon"><span class="text">AR</span></span>
                     </bk-checkbox>
@@ -100,7 +100,7 @@
                                 type="number"
                                 style="width: 68px;"
                                 :placeholder="' '"
-                                :disabled="isViewModel || !formData.autoRetry.enable"
+                                :disabled="isViewMode || !formData.autoRetry.enable"
                                 :max="10"
                                 :min="0"
                                 :precision="0"
@@ -115,7 +115,7 @@
                                 type="number"
                                 style="width: 68px;"
                                 :placeholder="' '"
-                                :disabled="isViewModel || !formData.autoRetry.enable"
+                                :disabled="isViewMode || !formData.autoRetry.enable"
                                 :max="10"
                                 :min="1"
                                 :precision="0"
@@ -145,7 +145,7 @@
                         size="small"
                         style="margin-right: 8px;"
                         :value="formData.timeoutConfig.enable"
-                        :disabled="isViewModel || formData.ignorable || formData.autoRetry.enable"
+                        :disabled="isViewMode || formData.ignorable || formData.autoRetry.enable"
                         @change="onTimeoutChange">
                     </bk-switcher>
                     <template v-if="formData.timeoutConfig.enable">
@@ -159,7 +159,7 @@
                                 :min="10"
                                 :max="maxNodeExecuteTimeout"
                                 :precision="0"
-                                :readonly="isViewModel"
+                                :readonly="isViewMode"
                                 @change="updateData">
                             </bk-input>
                             <span class="unit">{{ $tc('秒', 0) }}</span>
@@ -168,7 +168,7 @@
                         <bk-select
                             style="width: 160px; margin-left: 4px;"
                             v-model="formData.timeoutConfig.action"
-                            :disabled="isViewModel"
+                            :disabled="isViewMode"
                             :clearable="false" @change="updateData">
                             <bk-option id="forced_fail" :name="$t('强制失败')"></bk-option>
                             <bk-option id="forced_fail_and_skip" :name="$t('强制失败后跳过')"></bk-option>
@@ -184,7 +184,7 @@
                     theme="primary"
                     size="small"
                     :value="formData.selectable"
-                    :disabled="isViewModel"
+                    :disabled="isViewMode"
                     @change="onSelectableChange">
                 </bk-switcher>
             </bk-form-item>
@@ -205,7 +205,7 @@
                             @click="$emit('viewSubflow', basicInfo.tpl)">
                             <i class="bk-icon common-icon-box-top-right-corner"></i>
                         </div>
-                        <div :class="['operate-btn', { 'is-disabled': isViewModel }]" @click="openSelectorPanel">
+                        <div :class="['operate-btn', { 'is-disabled': isViewMode }]" @click="openSelectorPanel">
                             {{ formData.tpl ? $t('重选') : $t('选择') }}
                         </div>
                     </template>
@@ -217,10 +217,10 @@
                 </p>
             </bk-form-item>
             <bk-form-item :label="$t('节点名称')" :required="true" property="nodeName">
-                <bk-input :readonly="isViewModel" v-model="formData.nodeName" @change="updateData"></bk-input>
+                <bk-input :readonly="isViewMode" v-model="formData.nodeName" @change="updateData"></bk-input>
             </bk-form-item>
             <bk-form-item :label="$t('步骤名称')" property="stageName">
-                <bk-input :readonly="isViewModel" v-model="formData.stageName" @change="updateData"></bk-input>
+                <bk-input :readonly="isViewMode" v-model="formData.stageName" @change="updateData"></bk-input>
             </bk-form-item>
             <bk-form-item :label="$t('执行方案')">
                 <bk-select
@@ -228,7 +228,7 @@
                     :clearable="false"
                     :multiple="true"
                     :loading="schemeListLoading"
-                    :disabled="isViewModel"
+                    :disabled="isViewMode"
                     @selected="onSelectTaskScheme">
                     <bk-option v-for="item in schemeList" :key="item.id" :id="item.id" :name="item.name"></bk-option>
                 </bk-select>
@@ -245,7 +245,7 @@
                 <bk-switcher
                     theme="primary"
                     size="small"
-                    :disabled="isViewModel"
+                    :disabled="isViewMode"
                     :value="formData.selectable"
                     @change="onSelectableChange">
                 </bk-switcher>
@@ -254,7 +254,7 @@
                 <bk-switcher
                     theme="primary"
                     size="small"
-                    :disabled="isViewModel"
+                    :disabled="isViewMode"
                     :value="formData.alwaysUseLatest"
                     @change="onAlwaysUseLatestChange">
                 </bk-switcher>
@@ -287,7 +287,7 @@
             inputLoading: Boolean,
             subflowUpdated: Boolean,
             common: [String, Number],
-            isViewModel: Boolean
+            isViewMode: Boolean
         },
         data () {
             return {
@@ -529,7 +529,7 @@
                 return data
             },
             openSelectorPanel () {
-                if (this.isViewModel) return
+                if (this.isViewMode) return
                 this.$emit('openSelectorPanel')
             },
             onLabelChange (list) {

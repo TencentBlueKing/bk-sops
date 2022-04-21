@@ -22,10 +22,10 @@
                 class="manager-project-variable-btn mr5"
                 data-test-id="templateEdit_form_managerVariable"
                 @click="onManagerProjectVariable">
-                <span :class="['manager-item', { 'r30': isViewModel }]">{{ $t('管理项目变量') }}</span>
+                <span :class="['manager-item', { 'r30': isViewMode }]">{{ $t('管理项目变量') }}</span>
             </div>
             <div
-                v-if="!isViewModel"
+                v-if="!isViewMode"
                 class="process-project-variable-btn"
                 data-test-id="templateEdit_form_variableProcessing"
                 @click="quickOperateVariableVisable = true">
@@ -72,7 +72,7 @@
                 <div class="add-variable">
                     <bk-button
                         theme="primary"
-                        :class="['add-variable-btn mr5', { 'scale0': isViewModel }]"
+                        :class="['add-variable-btn mr5', { 'scale0': isViewMode }]"
                         data-test-id="templateEdit_form_creatVariable"
                         @click="onAddVariable">
                         {{ $t('新建') }}
@@ -104,7 +104,7 @@
                 </div>
                 <div class="global-variable-content" data-test-id="templateEdit_table_variableList">
                     <div class="variable-header clearfix">
-                        <bk-checkbox v-if="editVarList.length" :value="editVarList.length === deleteVarListLen" class="variable-checkbox" @change="onSelectAll">
+                        <bk-checkbox v-if="!isViewMode && editVarList.length" :value="editVarList.length === deleteVarListLen" class="variable-checkbox" @change="onSelectAll">
                         </bk-checkbox>
                         <span class="col-name t-head">{{ $t('名称') }}</span>
                         <span class="col-key t-head">KEY</span>
@@ -154,7 +154,7 @@
                             class="variable-drag"
                             handle=".col-item-drag"
                             :list="variableList"
-                            :disabled="isViewModel"
+                            :disabled="isViewMode"
                             @end="onDragEnd($event)">
                             <variable-item
                                 v-for="constant in variableList"
@@ -164,7 +164,7 @@
                                 :variable-cited="variableCited"
                                 :variable-checked="!!(deleteVarList.find(item => item.key === constant.key))"
                                 :common="common"
-                                :is-view-model="isViewModel"
+                                :is-view-mode="isViewMode"
                                 @viewClick="viewClick"
                                 @onEditVariable="onEditVariable"
                                 @onDeleteVariable="onDeleteVariable"
@@ -188,7 +188,7 @@
                 ref="variableEdit"
                 :variable-data="variableData"
                 :common="common"
-                :is-view-model="isViewModel"
+                :is-view-mode="isViewMode"
                 @closeEditingPanel="closeEditingPanel"
                 @onSaveEditing="onSaveEditing">
             </variable-edit>
@@ -227,7 +227,7 @@
         },
         props: {
             common: [String, Number],
-            isViewModel: {
+            isViewMode: {
                 type: Boolean,
                 default: false
             }

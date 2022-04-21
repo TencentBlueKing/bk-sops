@@ -48,7 +48,7 @@
                     <!-- 展示选择面板是隐藏 -->
                     <template v-if="!isSelectorPanelShow">
                         <!-- 全局变量popover -->
-                        <div :class="['view-variable', { 'r30': isViewModel }]">
+                        <div :class="['view-variable', { 'r30': isViewMode }]">
                             <bk-popover
                                 v-if="!isSelectorPanelShow"
                                 :key="randomKey"
@@ -59,7 +59,7 @@
                                 <div class="variable-list" slot="content">
                                     <div class="header-area">
                                         <span>{{ $t('全局变量') }}</span>
-                                        <bk-link v-if="!isViewModel" theme="primary" icon="bk-icon icon-plus" @click="openVariablePanel">{{ $t('新建变量') }}</bk-link>
+                                        <bk-link v-if="!isViewMode" theme="primary" icon="bk-icon icon-plus" @click="openVariablePanel">{{ $t('新建变量') }}</bk-link>
                                     </div>
                                     <bk-table :data="variableList" :outer-border="false" :max-height="400">
                                         <bk-table-column :label="$t('名称')" prop="name" width="165" :show-overflow-tooltip="true"></bk-table-column>
@@ -91,7 +91,7 @@
                                             <template slot-scope="props">
                                                 <bk-link
                                                     :theme="props.row.source_type === 'system' ? 'default' : 'primary'"
-                                                    :disabled="isViewModel || props.row.source_type === 'system'"
+                                                    :disabled="isViewMode || props.row.source_type === 'system'"
                                                     @click="openVariablePanel(props.row)">
                                                     {{ $t('编辑') }}
                                                 </bk-link>
@@ -102,7 +102,7 @@
                             </bk-popover>
                         </div>
                         <!-- 快捷操作按钮 -->
-                        <div v-if="!isViewModel" class="quick-insert-btn" @click="quickOperateVariableVisable = true">
+                        <div v-if="!isViewMode" class="quick-insert-btn" @click="quickOperateVariableVisable = true">
                             {{ $t('变量快捷处理') }}
                             <quick-operate-variable
                                 v-if="quickOperateVariableVisable"
@@ -159,7 +159,7 @@
                                                 :project-id="project_id"
                                                 :common="common"
                                                 :subflow-updated="subflowUpdated"
-                                                :is-view-model="isViewModel"
+                                                :is-view-mode="isViewMode"
                                                 @openSelectorPanel="isSelectorPanelShow = true"
                                                 @versionChange="versionChange"
                                                 @selectScheme="onSelectSubflowScheme"
@@ -198,7 +198,7 @@
                                                 :value="inputsParamValue"
                                                 :render-config="inputsRenderConfig"
                                                 :is-subflow="isSubflow"
-                                                :is-view-model="isViewModel"
+                                                :is-view-mode="isViewMode"
                                                 :constants="localConstants"
                                                 :third-party-code="isThirdParty ? basicInfo.plugin : ''"
                                                 @hookChange="onHookChange"
@@ -221,7 +221,7 @@
                                                 :version="basicInfo.version"
                                                 :node-id="nodeId"
                                                 :is-third-party="isThirdParty"
-                                                :is-view-model="isViewModel"
+                                                :is-view-mode="isViewMode"
                                                 @hookChange="onHookChange">
                                             </output-params>
                                             <no-data v-else></no-data>
@@ -231,7 +231,7 @@
                             </div>
                             <div class="btn-footer">
                                 <bk-button
-                                    v-if="!isViewModel"
+                                    v-if="!isViewMode"
                                     theme="primary"
                                     :disabled="inputLoading || (isSubflow && subflowListLoading)"
                                     data-test-id="templateEdit_form_saveNodeConfig"
@@ -307,7 +307,7 @@
             subflowListLoading: Boolean,
             backToVariablePanel: Boolean,
             pluginLoading: Boolean,
-            isViewModel: Boolean
+            isViewMode: Boolean
         },
         data () {
             return {
@@ -1398,7 +1398,7 @@
                 this.isVariablePanelShow = true
             },
             beforeClose () {
-                if (this.isViewModel) {
+                if (this.isViewMode) {
                     this.onClosePanel()
                 }
                 if (this.isSelectorPanelShow) { // 当前为插件/子流程选择面板，但没有选择时，支持自动关闭

@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="rf-form-group" :class="[{ 'rf-has-hook': option.showHook, 'is-view': isViewModel }, scheme.status || '']" v-show="showForm">
+    <div class="rf-form-group" :class="[{ 'rf-has-hook': option.showHook }, scheme.status || '']" v-show="showForm">
         <!-- 分组名称和描述 -->
         <div v-if="showFormTitle" class="rf-group-name">
             <span class="name">{{scheme.name || scheme.attrs.name}} ({{ scheme.tag_code }})</span>
@@ -45,12 +45,11 @@
             :option="groupOption"
             :value="value[form.tag_code]"
             :parent-value="value"
-            :is-view-model="isViewModel"
             @init="$emit('init', $event)"
             @change="updateForm">
         </component>
         <!-- 变量勾选checkbox -->
-        <div class="rf-tag-hook" v-if="!isViewModel && showHook">
+        <div class="rf-tag-hook" v-if="showHook">
             <i
                 :class="['common-icon-variable-cite hook-icon', { actived: hook, disabled: !option.formEdit || !render }]"
                 v-bk-tooltips="{
@@ -114,10 +113,6 @@
                 default () {
                     return {}
                 }
-            },
-            isViewModel: {
-                type: Boolean,
-                default: false
             }
         },
         data () {
@@ -322,12 +317,6 @@
         }
         .hook-icon {
             font-size: 19px;
-        }
-    }
-    &.is-view {
-        width: 100% !important;
-        .rf-tag-form {
-            margin-right: 30px !important;
         }
     }
 }

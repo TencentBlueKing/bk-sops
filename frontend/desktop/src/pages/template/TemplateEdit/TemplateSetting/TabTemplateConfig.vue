@@ -26,7 +26,7 @@
                 <section class="form-section">
                     <h4>{{ $t('基础') }}</h4>
                     <bk-form-item :property="'name'" :label="$t('流程名称')" :required="true" data-test-id="tabTemplateConfig_form_name">
-                        <bk-input :readonly="isViewModel" ref="nameInput" v-model.trim="formData.name" :placeholder="$t('请输入流程模板名称')"></bk-input>
+                        <bk-input :readonly="isViewMode" ref="nameInput" v-model.trim="formData.name" :placeholder="$t('请输入流程模板名称')"></bk-input>
                     </bk-form-item>
                     <bk-form-item v-if="!common" :label="$t('标签')" data-test-id="tabTemplateConfig_form_label">
                         <bk-select
@@ -34,7 +34,7 @@
                             ext-popover-cls="label-select"
                             :display-tag="true"
                             :multiple="true"
-                            :disabled="isViewModel"
+                            :disabled="isViewMode"
                             @toggle="onSelectLabel">
                             <bk-option
                                 v-for="(item, index) in templateLabels"
@@ -61,7 +61,7 @@
                             v-model="formData.category"
                             class="category-select"
                             :clearable="false"
-                            :disabled="isViewModel"
+                            :disabled="isViewMode"
                             @toggle="onSelectCategory">
                             <bk-option
                                 v-for="(item, index) in taskCategories"
@@ -91,7 +91,7 @@
                         :notify-type-list="[{ text: $t('任务状态') }]"
                         :receiver-group="formData.receiverGroup"
                         :common="common"
-                        :is-view-model="isViewModel"
+                        :is-view-mode="isViewMode"
                         @change="onSelectNotifyConfig">
                     </NotifyTypeConfig>
                 </section>
@@ -100,7 +100,7 @@
                     <bk-form-item v-if="!common" :label="$t('执行代理人')" data-test-id="tabTemplateConfig_form_executorProxy">
                         <member-select
                             :multiple="false"
-                            :disabled="isViewModel"
+                            :disabled="isViewMode"
                             :value="formData.executorProxy"
                             @change="formData.executorProxy = $event">
                         </member-select>
@@ -108,7 +108,7 @@
                             <div>
                                 {{ $t('仅支持本流程的执行代理，可在项目配置中') }}
                                 <span
-                                    :class="{ 'project-management': authActions && authActions.length, 'disabled': isViewModel }"
+                                    :class="{ 'project-management': authActions && authActions.length, 'disabled': isViewMode }"
                                     @click="jumpProjectManagement">
                                     {{ $t('设置项目执行代理人') }}
                                 </span>。
@@ -117,10 +117,10 @@
                         </div>
                     </bk-form-item>
                     <bk-form-item property="notifyType" :label="$t('备注')" data-test-id="tabTemplateConfig_form_notifyType">
-                        <bk-input type="textarea" :readonly="isViewModel" v-model.trim="formData.description" :rows="5" :placeholder="$t('请输入流程模板备注信息')"></bk-input>
+                        <bk-input type="textarea" :readonly="isViewMode" v-model.trim="formData.description" :rows="5" :placeholder="$t('请输入流程模板备注信息')"></bk-input>
                     </bk-form-item>
                     <bk-form-item property="defaultFlowType" :label="$t('任务类型偏好')" data-test-id="tabTemplateConfig_form_defaultFlowType">
-                        <bk-select v-model="formData.defaultFlowType" :clearable="false" :disabled="isViewModel">
+                        <bk-select v-model="formData.defaultFlowType" :clearable="false" :disabled="isViewMode">
                             <bk-option id="common" :name="$t('默认任务')"></bk-option>
                             <bk-option id="common_func" :name="$t('职能化任务')"></bk-option>
                         </bk-select>
@@ -128,8 +128,8 @@
                 </section>
             </bk-form>
             <div class="btn-wrap">
-                <bk-button v-if="!isViewModel" class="save-btn" theme="primary" data-test-id="tabTemplateConfig_form_saveBtn" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
-                <bk-button theme="default" data-test-id="tabTemplateConfig_form_cancelBtn" @click="closeTab">{{ isViewModel ? $t('关闭') : $t('取消') }}</bk-button>
+                <bk-button v-if="!isViewMode" class="save-btn" theme="primary" data-test-id="tabTemplateConfig_form_saveBtn" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
+                <bk-button theme="default" data-test-id="tabTemplateConfig_form_cancelBtn" @click="closeTab">{{ isViewMode ? $t('关闭') : $t('取消') }}</bk-button>
             </div>
             <bk-dialog
                 width="400"
@@ -172,7 +172,7 @@
             templateLabels: Array,
             isShow: Boolean,
             common: [String, Number],
-            isViewModel: Boolean
+            isViewMode: Boolean
         },
         data () {
             const {
@@ -265,7 +265,7 @@
                 }
             },
             jumpProjectManagement () {
-                if (this.isViewModel) return
+                if (this.isViewMode) return
                 if (this.authActions.includes('project_edit')) {
                     this.$router.push({ name: 'projectConfig', params: { id: this.$route.params.project_id } })
                 }
