@@ -70,7 +70,7 @@ class TaskTemplatePermission(IamPermission):
         "update": IamPermissionInfo(
             IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
         ),
-        "create": IamPermissionInfo(IAMMeta.FLOW_CREATE_ACTION),
+        "create": IamPermissionInfo(IAMMeta.FLOW_CREATE_ACTION, res_factory.resources_for_project, id_field="project"),
     }
 
 
@@ -155,8 +155,8 @@ class TaskTemplateViewSet(GcloudModelViewSet):
     @action(methods=["GET"], detail=False)
     def list_with_top_collection(self, request, *args, **kwargs):
         project_id = int(request.query_params["project__id"])
-        order_by = request.query_params.get("order_by")
-        orderings = ("-is_collected", order_by) if order_by else ("-is_collected",)
+        order_by = request.query_params.get("order_by") or "-id"
+        orderings = ("-is_collected", order_by)
 
         user_collections = Collection.objects.filter(category="flow", username=request.user.username).values()
         # 取出用户在当前项目的收藏id

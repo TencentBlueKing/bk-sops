@@ -97,8 +97,8 @@ class CommonTemplateViewSet(GcloudModelViewSet):
     )
     @action(methods=["GET"], detail=False)
     def list_with_top_collection(self, request, *args, **kwargs):
-        order_by = request.query_params.get("order_by")
-        orderings = ("-is_collected", order_by) if order_by else ("-is_collected",)
+        order_by = request.query_params.get("order_by") or "-id"
+        orderings = ("-is_collected", order_by)
 
         collection_templates = Collection.objects.filter(
             category="common_flow", username=request.user.username
