@@ -387,20 +387,17 @@
             onTempSelect (row, selectInfo) {
                 const required = this.getApplyPerm(row)
                 if (!this.hasPermission(required, selectInfo.auth_actions)) {
-                    let permissionData = [
-                        {
+                    const permissionData = {
+                        project: [{
                             id: this.project_id,
                             name: this.projectName
-                        }
-                    ]
+                        }]
+                    }
                     if (this.common || row.refer === 'useCommonExisting') {
-                        permissionData = {
-                            project: permissionData,
-                            common_flow: [{
-                                id: selectInfo.id,
-                                name: selectInfo.name
-                            }]
-                        }
+                        permissionData['common_flow'] = [{
+                            id: selectInfo.id,
+                            name: selectInfo.name
+                        }]
                     }
                     this.applyForPermission(required, selectInfo.auth_actions, permissionData)
                 }
