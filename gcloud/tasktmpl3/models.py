@@ -113,10 +113,17 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                 is_remote=is_remote,
             )
         else:
-            template_node_template_data = TemplateNodeStatistics.objects.filter(task_template_id__in=tasktmpl_id_list,)
+            template_node_template_data = TemplateNodeStatistics.objects.filter(
+                task_template_id__in=tasktmpl_id_list,
+            )
         total = template_node_template_data.count()
         atom_template_data = template_node_template_data.values(
-            "template_id", "task_template_id", "project_id", "category", "template_create_time", "template_creator",
+            "template_id",
+            "task_template_id",
+            "project_id",
+            "category",
+            "template_create_time",
+            "template_creator",
         )[(page - 1) * limit : page * limit]
         groups = []
         # 在template_node_tempalte_data中注入project_name和template_name
@@ -159,7 +166,11 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         template_node_template_list = TemplateNodeStatistics.objects.filter(component_code=component_code)
         total = template_node_template_list.count()
         atom_template_data = template_node_template_list.values(
-            "template_id", "project_id", "category", "template_edit_time", "template_creator",
+            "template_id",
+            "project_id",
+            "category",
+            "template_edit_time",
+            "template_creator",
         )[(page - 1) * limit : page * limit]
         # 获取project_name、template_name数据
         project_id_list = template_node_template_list.values_list("project_id", flat=True)
@@ -255,7 +266,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         for data in template_in_statistics_data:
             groups.append(
                 {
-                    "template_id": data.template_id,
+                    "template_id": data.task_template_id,
                     "project_id": data.project_id,
                     "project_name": project_dict.get(data.project_id, ""),
                     "template_name": template_dict.get(int(data.template_id), ""),
