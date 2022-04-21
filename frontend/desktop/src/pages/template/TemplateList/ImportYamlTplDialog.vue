@@ -382,7 +382,15 @@
                 }
             },
             getApplyPerm (row) {
-                return (this.common || row.refer === 'useCommonExisting') ? ['common_flow_view'] : ['flow_view']
+                if (this.common) {
+                    return row.refer === 'overrider' ? ['common_flow_edit'] : ['common_flow_view']
+                } else {
+                    return row.refer === 'overrider'
+                        ? ['flow_edit']
+                        : row.refer === 'useCommonExisting'
+                            ? ['common_flow_view']
+                            : ['flow_view']
+                }
             },
             onTempSelect (row, selectInfo) {
                 const required = this.getApplyPerm(row)
@@ -398,6 +406,8 @@
                             id: selectInfo.id,
                             name: selectInfo.name
                         }]
+                    } else {
+                        permissionData['flow'] = [selectInfo]
                     }
                     this.applyForPermission(required, selectInfo.auth_actions, permissionData)
                 }
