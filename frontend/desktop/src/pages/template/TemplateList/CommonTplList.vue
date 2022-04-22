@@ -21,6 +21,14 @@
                     :search-config="{ placeholder: $t('请输入流程名称') }"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
+                    <template v-slot:search-extend>
+                        <bk-button
+                            class="my-create-btn"
+                            data-test-id="commonProcess_form_myCreateProcess"
+                            @click="handleMyCreateFilter">
+                            {{$t('我创建的')}}
+                        </bk-button>
+                    </template>
                 </advance-search-form>
                 <div class="template-table-content" data-test-id="commonProcess_table_processList">
                     <bk-table
@@ -438,6 +446,14 @@
                 this.updateUrl()
                 this.getTemplateList()
             },
+            // 我创建的公共流程
+            handleMyCreateFilter () {
+                const username = this.$store.state.username
+                const searchComp = this.$refs.advanceSearch
+                searchComp.onAdvanceOpen(true)
+                searchComp.onChangeFormItem(username, 'creator')
+                searchComp.submit()
+            },
             handleSortChange ({ prop, order }) {
                 if (this.isInit) return
                 if (order === 'ascending') {
@@ -710,6 +726,10 @@ a {
         font-size: 12px;
         line-height: 1;
     }
+}
+.my-create-btn {
+    padding: 0 10px;
+    margin: 0 -15px 0 10px;
 }
 .template-table-content {
     background: #ffffff;
