@@ -84,7 +84,10 @@
                     </bk-form-item>
                 </section>
                 <section class="form-section">
-                    <h4>{{ $t('通知') }}</h4>
+                    <h4>
+                        <span>{{ $t('通知') }}</span>
+                        <span class="tip-desc">{{ $t('选择通知方式后，将默认通知到任务执行人；可选择同时通知其他分组人员') }}</span>
+                    </h4>
                     <NotifyTypeConfig
                         :label-width="140"
                         :notify-type="formData.notifyType"
@@ -341,6 +344,12 @@
             font-weight: bold;
             font-size: 14px;
             border-bottom: 1px solid #cacedb;
+        }
+        .tip-desc {
+            font-size: 12px;
+            font-weight: normal;
+            margin-left: 20px;
+            color: #979ba5;
         }
     }
     .btn-wrap {

@@ -1331,7 +1331,8 @@ const en = {
     '请选择复用的项目流程': 'Select the subflow process you want to use',
     '公共流程管理': 'Public process Management',
     '请选择流程“x”需要覆盖的流程': 'Select the process to be overridden by process {x}',
-    '请选择流程“x”需要使用的流程': 'Select the process that process {x} needs to use'
+    '请选择流程“x”需要使用的流程': 'Select the process that process {x} needs to use',
+    '选择通知方式后，将默认通知到任务执行人；可选择同时通知其他分组人员': 'After selecting the notify method, the task executor will be notified by default; you can choose to notify other group personnel at the same time'
 }
 
 export default en

@@ -1105,7 +1105,8 @@
                     id: this.project_id,
                     name: this.projectName
                 }
-                this.applyForPermission(required, this.authActions, { flow: [template], project: [project] })
+                const authActions = [...this.authActions, ...template.auth_actions]
+                this.applyForPermission(required, authActions, { flow: [template], project: [project] })
             },
             async onDeleteConfirm () {
                 if (this.pending.delete) return

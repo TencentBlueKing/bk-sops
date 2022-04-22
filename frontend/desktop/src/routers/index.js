@@ -463,6 +463,18 @@ const routers = new VueRouter({
                         common: '1'
                     }),
                     meta: { project: false }
+                },
+                {
+                    path: ':type(new|edit|clone|view)/',
+                    name: 'projectCommonTemplatePanel',
+                    pathToRegexpOptions: { strict: true },
+                    component: TemplatePanel,
+                    props: route => ({
+                        template_id: route.query.template_id,
+                        type: route.params.type,
+                        common: '1'
+                    }),
+                    meta: { project: false }
                 }
             ]
         },

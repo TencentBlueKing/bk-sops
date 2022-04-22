@@ -24,9 +24,9 @@
             </p>
             <div class="scheme-active-wrapper" v-else>
                 <div>
-                    <bk-button :disabled="isViewMode" data-test-id="templateEdit_form_addScheme" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
-                    <bk-button :disabled="isViewMode" data-test-id="templateEdit_form_importTemporaryPlan" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
-                    <bk-button :disabled="isViewMode" data-test-id="templateEdit_form_setDeafultScheme" @click="onSetDefaultPlan">{{ $t('设置默认方案') }}</bk-button>
+                    <bk-button data-test-id="templateEdit_form_addScheme" icon="plus-line" @click="onCreateScheme">{{ $t('新增') }}</bk-button>
+                    <bk-button data-test-id="templateEdit_form_importTemporaryPlan" @click="onImportTemporaryPlan">{{ $t('导入临时方案') }}</bk-button>
+                    <bk-button data-test-id="templateEdit_form_setDeafultScheme" @click="onSetDefaultPlan">{{ $t('设置默认方案') }}</bk-button>
                 </div>
                 <bk-button
                     data-test-id="templateEdit_form_previewNode"
@@ -43,7 +43,7 @@
                         :value="isAllChecked"
                         :indeterminate="indeterminate"
                         v-bk-tooltips="{ content: $t('请先保存方案再执行其他操作'), boundary: 'window', disabled: !nameEditing }"
-                        :disabled="isViewMode || !schemeList.length || nameEditing"
+                        :disabled="!schemeList.length || nameEditing"
                         @change="onAllCheckChange">
                     </bk-checkbox>
                     <span class="scheme-name">{{ $t('方案名称') }}</span>
@@ -89,7 +89,7 @@
                         <span class="scheme-name" :title="item.name">{{item.name}}</span>
                         <span v-if="item.isDefault" class="default-label">{{$t('默认')}}</span>
                         <span v-if="item.quote_count > 0" class="quoted-count">{{ $tc('被个子流程引用', item.quote_count, { n: item.quote_count }) }}</span>
-                        <p class="icon-btn-wrapper" v-if="!isViewMode && !isDefaultSchemeIng">
+                        <p class="icon-btn-wrapper" v-if="!isDefaultSchemeIng">
                             <i
                                 v-bk-tooltips="{ content: $t('编辑'), boundary: 'window' }"
                                 class="bk-icon icon-edit-line"
@@ -113,7 +113,6 @@
             </section>
             <section class="scheme-footer">
                 <bk-button
-                    v-if="!isViewMode"
                     data-test-id="templateEdit_form_saveScheme"
                     theme="primary"
                     :loading="executeSchemeSaving || isSaveDefaultLoading"
@@ -197,10 +196,6 @@
             schemeInfo: {
                 type: Object,
                 default: () => {}
-            },
-            isViewMode: {
-                type: Boolean,
-                default: false
             }
         },
         data () {
