@@ -1400,6 +1400,7 @@
             beforeClose () {
                 if (this.isViewMode) {
                     this.onClosePanel()
+                    return true
                 }
                 if (this.isSelectorPanelShow) { // 当前为插件/子流程选择面板，但没有选择时，支持自动关闭
                     if (!(this.isSubflow ? this.basicInfo.tpl : this.basicInfo.plugin)) {

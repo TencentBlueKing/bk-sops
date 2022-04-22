@@ -295,6 +295,10 @@
                 this.onSaveConfig()
             },
             beforeClose () {
+                if (this.isViewMode) {
+                    this.closeTab()
+                    return true
+                }
                 const { name, category, description, template_labels, executor_proxy, notify_receivers, notify_type, default_flow_type } = this.$store.state.template
                 const originData = {
                     name,
