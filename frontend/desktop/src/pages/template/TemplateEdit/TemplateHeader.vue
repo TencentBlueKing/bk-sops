@@ -19,10 +19,10 @@
                 <bk-input ref="schemeInput" class="template-name execution-scheme-input" v-model="schemeInfo.name"></bk-input>
                 <p class="execution-scheme-tip">{{ $t('执行') + schemeInfo.data.length + $t('个节点') }}</p>
             </template>
-            <span v-if="isEditProcessPage" class="common-icon-edit" @click="$emit('onChangePanel', 'templateConfigTab')"></span>
+            <span v-if="!isViewMode && isEditProcessPage" class="common-icon-edit" @click="$emit('onChangePanel', 'templateConfigTab')"></span>
             <!-- 执行方案图标 -->
             <span
-                v-if="isEditProcessPage"
+                v-if="!isViewMode && isEditProcessPage"
                 class="common-icon-file-setting execute-scheme-icon"
                 v-bk-tooltips.bottom="$t('执行方案')"
                 @click="onOpenExecuteScheme">
@@ -33,7 +33,7 @@
                 <div class="setting-tab-wrap">
                     <template v-for="tab in settingTabs">
                         <span
-                            v-if="!(type === 'view' && tab.id === 'tplSnapshootTab')"
+                            v-if="!(isViewMode && tab.id === 'tplSnapshootTab')"
                             :key="tab.id"
                             :class="['setting-item', {
                                 'active': activeTab === tab.id,
@@ -45,7 +45,7 @@
                     </template>
                 </div>
                 <bk-button
-                    v-if="type === 'view'"
+                    v-if="isViewMode"
                     theme="primary"
                     :class="['task-btn', {
                         'btn-permission-disable': !editBtnActive
@@ -69,7 +69,7 @@
                     {{$t('保存')}}
                 </bk-button>
                 <bk-button
-                    :theme="type === 'view' ? 'default' : 'primary'"
+                    :theme="isViewMode ? 'default' : 'primary'"
                     :class="['task-btn', {
                         'btn-permission-disable': !createTaskBtnActive
                     }]"
@@ -171,7 +171,7 @@
                 'projectName': state => state.projectName
             }),
             title () {
-                return this.$route.query.template_id === undefined ? i18n.t('新建流程') : i18n.t('编辑流程')
+                return this.isViewMode ? i18n.t('查看流程') : this.$route.query.template_id === undefined ? i18n.t('新建流程') : i18n.t('编辑流程')
             },
             isSaveAndCreateTaskType () {
                 return this.isTemplateDataChanged === true || this.type === 'new' || this.type === 'clone'
@@ -196,6 +196,9 @@
                         return this.common ? [] : ['flow_create_task']
                     }
                 }
+            },
+            isViewMode () {
+                return this.type === 'view'
             }
         },
         watch: {
@@ -225,11 +228,10 @@
                 await this.queryCreateCommonTplPerm()
             }
             // 查看模式需查看流程编辑权限
-            if (this.type === 'view') {
+            if (this.isViewMode) {
                 this.setEditBtnPerm()
-            } else {
-                this.setSaveBtnPerm()
             }
+            this.setSaveBtnPerm()
             this.setCreateTaskBtnPerm()
         },
         methods: {
@@ -244,10 +246,10 @@
                     this.onTemplatePermissionCheck(applyPermission, curPermission)
                     return
                 }
-                const { params, query } = this.$route
+                const { params, query, name } = this.$route
                 this.$router.push({
-                    path: `/${this.common ? 'common' : 'template'}/edit/${this.project_id}/`,
-                    params,
+                    name,
+                    params: { ...params, type: 'edit' },
                     query
                 })
             },
@@ -355,7 +357,8 @@
                     query: {
                         template_id: this.template_id,
                         common: this.common || undefined,
-                        entrance: 'templateEdit'
+                        entrance: this.isViewMode ? 'templateView' : 'templateEdit',
+                        fromName: this.$route.name
                     }
                 })
             },

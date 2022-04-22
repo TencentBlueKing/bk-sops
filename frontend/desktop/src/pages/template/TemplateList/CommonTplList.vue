@@ -276,6 +276,7 @@
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone,
+                'authActions': state => state.authActions,
                 'projectName': state => state.projectName,
                 'project_id': state => state.project_id
             }),
@@ -540,11 +541,11 @@
              */
             getJumpUrl (name, template_id) {
                 const urlMap = {
-                    'view': { name: 'commonTemplatePanel', params: { type: 'view' } },
-                    'edit': { name: 'commonTemplatePanel', params: { type: 'edit' } },
-                    'newTemplate': { name: 'commonTemplatePanel', params: { type: 'new' } },
+                    'view': { name: 'projectCommonTemplatePanel', params: { type: 'view' } },
+                    'edit': { name: 'projectCommonTemplatePanel', params: { type: 'edit' } },
+                    'newTemplate': { name: 'projectCommonTemplatePanel', params: { type: 'new' } },
                     'newTask': { name: 'taskCreate', params: { project_id: this.project_id, step: 'selectnode' } },
-                    'clone': { name: 'commonTemplatePanel', params: { type: 'clone' } }
+                    'clone': { name: 'projectCommonTemplatePanel', params: { type: 'clone' } }
                 }
                 const url = urlMap[name]
                 url.query = {
@@ -613,7 +614,8 @@
                             name: tpl.name
                         }]
                     }
-                    this.applyForPermission(['common_flow_create_task'], tpl.auth_actions, resourceData)
+                    const authActions = [...this.authActions, ...tpl.auth_actions]
+                    this.applyForPermission(['common_flow_create_task'], authActions, resourceData)
                     return
                 }
                 this.$router.push({

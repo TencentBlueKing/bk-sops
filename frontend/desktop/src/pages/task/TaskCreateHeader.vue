@@ -72,6 +72,7 @@
              * 目的：返回到【节点选择】上一个页面
              */
             onBackClick () {
+                const { fromName } = this.$route.query
                 const backObj = {
                     'business': {
                         name: 'processHome',
@@ -90,6 +91,11 @@
                         name: 'templatePanel',
                         params: { type: 'edit', project_id: this.project_id },
                         query: { template_id: this.template_id }
+                    },
+                    'templateView': {
+                        name: fromName,
+                        params: { type: 'view', project_id: this.common ? undefined : this.project_id },
+                        query: { template_id: this.template_id, common: this.common ? '1' : undefined }
                     },
                     'commonTplEdit': {
                         name: 'commonTemplatePanel',
@@ -118,8 +124,9 @@
                              * 1、periodicTask - 周期任务新建
                              * 2、taskflow - 任务记录新建
                              * 3、templateEdit - 模版编辑
+                             * 4、templateView - 模版查看
                              */
-                            if (entrance === 'periodicTask' || entrance === 'taskflow' || entrance === 'templateEdit') {
+                            if (['periodicTask', 'taskflow', 'templateEdit', 'templateView'].includes(entrance)) {
                                 url = (this.common && entrance === 'templateEdit') ? backObj['commonTplEdit'] : backObj[entrance]
                                 break
                             }

@@ -47,11 +47,11 @@
                     @foldClick="clearDotAnimation">
                 </SubflowUpdateTips>
                 <TemplateCanvas
+                    :key="isViewMode"
                     ref="templateCanvas"
                     class="template-canvas"
                     :atom-type-list="atomTypeList"
                     :name="name"
-                    :is-view-mode="isViewMode"
                     :show-palette="!isViewMode"
                     :editable="!isViewMode"
                     :common="common"
@@ -81,7 +81,6 @@
                 :exclude-node="excludeNode"
                 :is-edit-process-page="isEditProcessPage"
                 :execute-scheme-saving="executeSchemeSaving"
-                :is-view-mode="isViewMode"
                 @onSaveExecuteSchemeClick="onSaveExecuteSchemeClick"
                 @updateTaskSchemeList="updateTaskSchemeList"
                 @togglePreviewMode="togglePreviewMode"
