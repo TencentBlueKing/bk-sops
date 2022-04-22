@@ -227,6 +227,12 @@
             color: $greyDefault;
             font-size: 12px;
         }
+        &.is-disabled /deep/.bk-checkbox-text {
+            color: #c4c6cc;
+        }
+        &.is-checked /deep/.bk-checkbox-text  {
+            color: #606266;
+        }
     }
     /deep/ .bk-checkbox-text {
         display: inline-flex;

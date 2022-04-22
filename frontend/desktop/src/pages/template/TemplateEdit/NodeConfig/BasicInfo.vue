@@ -669,6 +669,9 @@
             &.is-disabled .bk-checkbox-text {
                 color: #c4c6cc;
             }
+            &.is-checked .bk-checkbox-text {
+                color: #606266;
+            }
         }
         .error-handle-icon {
             display: inline-block;
