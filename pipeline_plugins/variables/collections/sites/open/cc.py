@@ -363,13 +363,13 @@ class CmdbIpFilterDetail(object):
         self.gse_agent_offline_ip = ""
 
     def set_value(self, value: list):
-        self._value = "\n".join(value)
+        self._value = ",".join(value)
 
     def set_gse_agent_online_ip(self, value: list):
-        self.gse_agent_online_ip = "\n".join(value)
+        self.gse_agent_online_ip = ",".join(value)
 
     def set_gse_agent_offline_ip(self, value: list):
-        self.gse_agent_offline_ip = "\n".join(value)
+        self.gse_agent_offline_ip = ",".join(value)
 
     def __repr__(self):
         return self._value
@@ -382,9 +382,9 @@ class VarCmdbIpFilter(LazyVariable, SelfExplainVariable):
     tag = "var_cmdb_ip_filter.ip_filter"
     form = "%svariables/cmdb/var_cmdb_ip_filter.js" % settings.STATIC_URL
     desc = _(
-        "引用${KEY}，返回的是符合所有过滤条件的【云区域:IP】，多个IP之间使用换行分隔 \n"
-        "引用${KEY.gse_agent_online_ip}，返回的是gse agent在线的【云区域:IP】，多个IP之间使用换行分隔 \n"
-        "引用${KEY.gse_agent_offline_ip}，返回的是gse agent不在线的【云区域:IP】，多个IP之间使用换行分隔 \n"
+        "引用${KEY}，返回的是符合所有过滤条件的【云区域:IP】，多个IP之间使用`,`分隔 \n"
+        "引用${KEY.gse_agent_online_ip}，返回的是gse agent在线的【云区域:IP】，多个IP之间使用`,`分隔 \n"
+        "引用${KEY.gse_agent_offline_ip}，返回的是gse agent不在线的【云区域:IP】，多个IP之间使用`,`分隔 \n"
     )
 
     @classmethod

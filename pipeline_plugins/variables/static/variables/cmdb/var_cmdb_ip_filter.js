@@ -42,7 +42,7 @@
                                 {text: "不在线", value: 0},
                                 {text: "不过滤", value: 2}
                             ],
-                            default: 0,
+                            default: 1,
                             hookable: true,
                             validation: []
                         }
