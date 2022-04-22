@@ -352,49 +352,18 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
         return hosts
 
 
-class CmdbIpFilterDetail(object):
-    """
-    IP过滤器返回值对象
-    """
-
-    def __init__(self):
-        self._value = ""
-        self.gse_agent_online_ip = ""
-        self.gse_agent_offline_ip = ""
-
-    def set_value(self, value: list):
-        self._value = ",".join(value)
-
-    def set_gse_agent_online_ip(self, value: list):
-        self.gse_agent_online_ip = ",".join(value)
-
-    def set_gse_agent_offline_ip(self, value: list):
-        self.gse_agent_offline_ip = ",".join(value)
-
-    def __repr__(self):
-        return self._value
-
-
 class VarCmdbIpFilter(LazyVariable, SelfExplainVariable):
     code = "ip_filter"
     name = _("IP过滤器")
     type = "dynamic"
     tag = "var_cmdb_ip_filter.ip_filter"
     form = "%svariables/cmdb/var_cmdb_ip_filter.js" % settings.STATIC_URL
-    desc = _(
-        "引用${KEY}，返回的是符合所有过滤条件的【云区域:IP】，多个IP之间使用`,`分隔 \n"
-        "引用${KEY.gse_agent_online_ip}，返回的是gse agent在线的【云区域:IP】，多个IP之间使用`,`分隔 \n"
-        "引用${KEY.gse_agent_offline_ip}，返回的是gse agent不在线的【云区域:IP】，多个IP之间使用`,`分隔 \n"
-    )
+    desc = _("引用${KEY}，返回符合过滤条件的IP, IP格式为下面表单指定的格式")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
         fields = [
-            FieldExplain(key="${KEY}", type=Type.STRING, description="符合过滤条件的【云区域ID:IP】，多个IP之间使用换行分隔"),
-            FieldExplain(key="${KEY.gse_agent_online_ip}", type=Type.STRING, description="GSE AGENt在线的IP,多个IP之间使用换行分隔"),
-            FieldExplain(
-                key="${KEY.gse_agent_offline_ip}", type=Type.STRING, description="GSE AGENt不在线的IP,多个IP之间使用换行分隔"
-            ),
+            FieldExplain(key="${KEY}", type=Type.STRING, description="返回符合过滤条件的【云区域:IP】"),
         ]
         return fields
 
@@ -404,49 +373,49 @@ class VarCmdbIpFilter(LazyVariable, SelfExplainVariable):
 
         origin_ips = self.value.get("origin_ips", "")
         gse_agent_status = self.value.get("gse_agent_status", "")
+        ip_cloud = self.value.get("ip_cloud", True)
+        ip_separator = self.value.get("ip_separator", ",")
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)
         bk_biz_id = project.bk_biz_id if project.from_cmdb else ""
         bk_supplier_account = supplier_account_for_project(project_id)
         ip_list = get_plat_ip_by_regex(origin_ips)
-        ip_filter_detail = CmdbIpFilterDetail()
 
         if not ip_list:
-            return ip_filter_detail
-
-        # 没有过滤条件的返回的IP字符串
-        no_filter_ip_list = ["{}:{}".format(host["bk_cloud_id"], host["ip"]) for host in ip_list]
+            return ""
 
         # 进行gse agent状态过滤
-        gse_filter_result_ip_list = no_filter_ip_list
-        client = get_client_by_user(username)
-        agent_kwargs = {
-            "bk_biz_id": bk_biz_id,
-            "bk_supplier_id": bk_supplier_account,
-            "hosts": ip_list,
-        }
-        agent_result = client.gse.get_agent_status(agent_kwargs)
-        if not agent_result["result"]:
-            message = handle_api_error(_("管控平台(GSE)"), "gse.get_agent_status", agent_kwargs, agent_result)
-            return "error:{}".format(message)
+        gse_filter_result_ip_list = ip_list
+        if gse_agent_status in [GseAgentStatus.ONlINE.value, GseAgentStatus.OFFLINE.value]:
+            client = get_client_by_user(username)
+            agent_kwargs = {
+                "bk_biz_id": bk_biz_id,
+                "bk_supplier_id": bk_supplier_account,
+                "hosts": ip_list,
+            }
+            agent_result = client.gse.get_agent_status(agent_kwargs)
+            if not agent_result["result"]:
+                message = handle_api_error(_("管控平台(GSE)"), "gse.get_agent_status", agent_kwargs, agent_result)
+                return "error:{}".format(message)
 
-        agent_data = agent_result["data"]
-        agent_online_ip_list = []
-        agent_offline_ip_list = []
-        for plat_ip, info in agent_data.items():
-            if info["bk_agent_alive"] == GseAgentStatus.ONlINE.value:
-                agent_online_ip_list.append(plat_ip)
-            if info["bk_agent_alive"] == GseAgentStatus.OFFLINE.value:
-                agent_offline_ip_list.append(plat_ip)
+            agent_data = agent_result["data"]
+            agent_online_ip_list = []
+            agent_offline_ip_list = []
+            for plat_ip, info in agent_data.items():
+                if info["bk_agent_alive"] == GseAgentStatus.ONlINE.value:
+                    agent_online_ip_list.append({"bk_cloud_id": info["bk_cloud_id"], "ip": info["ip"]})
+                if info["bk_agent_alive"] == GseAgentStatus.OFFLINE.value:
+                    agent_offline_ip_list.append({"bk_cloud_id": info["bk_cloud_id"], "ip": info["ip"]})
 
-        ip_filter_detail.set_gse_agent_online_ip(agent_online_ip_list)
-        ip_filter_detail.set_gse_agent_offline_ip(agent_offline_ip_list)
+            if gse_agent_status == GseAgentStatus.ONlINE.value:
+                gse_filter_result_ip_list = agent_online_ip_list
+            if gse_agent_status == GseAgentStatus.OFFLINE.value:
+                gse_filter_result_ip_list = agent_offline_ip_list
 
-        if gse_agent_status == GseAgentStatus.ONlINE.value:
-            gse_filter_result_ip_list = agent_online_ip_list
-        if gse_agent_status == GseAgentStatus.OFFLINE.value:
-            gse_filter_result_ip_list = agent_offline_ip_list
+        match_result_ip = gse_filter_result_ip_list
 
-        ip_filter_detail.set_value(gse_filter_result_ip_list)
-        return ip_filter_detail
+        if not ip_cloud:
+            return ip_separator.join(["{}".format(host["ip"]) for host in match_result_ip])
+
+        return ip_separator.join(["{}:{}".format(host["bk_cloud_id"], host["ip"]) for host in match_result_ip])

@@ -46,6 +46,36 @@
                             hookable: true,
                             validation: []
                         }
+                    },
+                    {
+                        tag_code: "ip_cloud",
+                        type: "radio",
+                        attrs: {
+                            name: gettext("返回IP是否带云区域"),
+                            items: [
+                                {name: "是", value: true},
+                                {name: "否", value: false},
+                            ],
+                            default: true,
+                            hookable: true,
+                            validation: []
+                        }
+                    },
+                    {
+                        tag_code: "ip_separator",
+                        type: "radio",
+                        attrs: {
+                            name: gettext("多个IP分隔符"),
+                            items: [
+                                {name: "逗号", value: ","},
+                                {name: "分号", value: ";"},
+                                {name: "竖线", value: "|"},
+                                {name: "换行符", value: "\n"}
+                            ],
+                            default: ",",
+                            hookable: true,
+                            validation: []
+                        }
                     }
                 ],
             }

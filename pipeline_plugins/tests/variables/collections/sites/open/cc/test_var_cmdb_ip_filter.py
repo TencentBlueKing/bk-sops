@@ -65,10 +65,8 @@ class VarCmdbIpSelectorTestCase(TestCase):
 
     def test_get_value_with_gse_agent_online(self):
         ip_filters = VarCmdbIpFilter(self.name, self.value, self.context, self.pipeline_data)
-        ip_detail = ip_filters.get_value()
-        self.assertEqual(repr(ip_detail), "0:1.1.1.1,1:3.3.3.3")
-        self.assertEqual(ip_detail.gse_agent_offline_ip, "0:2.2.2.2,2:4.4.4.4")
-        self.assertEqual(ip_detail.gse_agent_online_ip, "0:1.1.1.1,1:3.3.3.3")
+        match_ip = ip_filters.get_value()
+        self.assertEqual(match_ip, "0:1.1.1.1,1:3.3.3.3")
 
     def test_get_value_gse_agent_offline(self):
         self.value = {
@@ -76,10 +74,8 @@ class VarCmdbIpSelectorTestCase(TestCase):
             "gse_agent_status": 0,
         }
         ip_filters = VarCmdbIpFilter(self.name, self.value, self.context, self.pipeline_data)
-        ip_detail = ip_filters.get_value()
-        self.assertEqual(repr(ip_detail), "0:2.2.2.2,2:4.4.4.4")
-        self.assertEqual(ip_detail.gse_agent_offline_ip, "0:2.2.2.2,2:4.4.4.4")
-        self.assertEqual(ip_detail.gse_agent_online_ip, "0:1.1.1.1,1:3.3.3.3")
+        match_ip = ip_filters.get_value()
+        self.assertEqual(match_ip, "0:2.2.2.2,2:4.4.4.4")
 
     def test_get_value_without_filter(self):
         self.value = {
@@ -87,7 +83,5 @@ class VarCmdbIpSelectorTestCase(TestCase):
             "gse_agent_status": 2,
         }
         ip_filters = VarCmdbIpFilter(self.name, self.value, self.context, self.pipeline_data)
-        ip_detail = ip_filters.get_value()
-        self.assertEqual(repr(ip_detail), "1:3.3.3.3,2:4.4.4.4,0:1.1.1.1,0:2.2.2.2")
-        self.assertEqual(ip_detail.gse_agent_offline_ip, "0:2.2.2.2,2:4.4.4.4")
-        self.assertEqual(ip_detail.gse_agent_online_ip, "0:1.1.1.1,1:3.3.3.3")
+        match_ip = ip_filters.get_value()
+        self.assertEqual(match_ip, "1:3.3.3.3,2:4.4.4.4,0:1.1.1.1,0:2.2.2.2")
