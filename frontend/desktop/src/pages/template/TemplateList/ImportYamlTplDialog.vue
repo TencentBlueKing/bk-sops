@@ -53,31 +53,36 @@
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="$t('是否覆盖已有流程')" :width="400">
-                        <template slot-scope="props">
+                        <template slot-scope="{ row }">
                             <div class="tpl-overrider-select">
                                 <bk-select
                                     style="width: 180px;"
                                     :clearable="false"
-                                    :value="(props.row.meta.id in overriders) ? 'overrider' : 'noOverrider'"
-                                    @change="handleTopFlowOverriver($event, props.row.meta.id)">
+                                    :value="row.refer"
+                                    @change="handleTopFlowOverriver($event, row)">
                                     <bk-option id="noOverrider" :name="$t('不覆盖，新建流程')"></bk-option>
                                     <bk-option id="overrider" :name="$t('覆盖已有流程')"></bk-option>
                                 </bk-select>
                                 <bk-select
-                                    v-if="props.row.meta.id in overriders"
+                                    v-if="row.meta.id in overriders"
                                     style="width: 180px; margin-left: 8px;"
                                     :placeholder="$t('请选择需要覆盖的流程')"
                                     :loading="tplLoading"
                                     :searchable="true"
-                                    :value="overriders[props.row.meta.id]"
-                                    @clear="overriders[props.row.meta.id] = ''"
-                                    @selected="overriders[props.row.meta.id] = $event">
+                                    :value="overriders[row.meta.id]"
+                                    @clear="overriders[row.meta.id] = ''"
+                                    @selected="overriders[row.meta.id] = $event">
                                     <bk-option
                                         v-for="item in (common ? commonTemplateList : templateList)"
                                         :key="item.id"
                                         :id="item.id"
+                                        :disabled="!hasPermission(getApplyPerm(row), item.auth_actions)"
                                         :name="item.name">
-                                        {{ item.name }}
+                                        <p
+                                            v-cursor="{ active: !hasPermission(getApplyPerm(row), item.auth_actions) }"
+                                            @click="onTempSelect(row, item)">
+                                            {{ item.name }}
+                                        </p>
                                     </bk-option>
                                 </bk-select>
                             </div>
@@ -260,6 +265,9 @@
                     if (res.result) {
                         this.importData = res.data
                         this.topFlowList = res.data.yaml_docs.filter(item => !(item.meta.id in res.data.relations))
+                        this.topFlowList.forEach(item => {
+                            item.refer = 'noOverrider'
+                        })
                         this.overriders = {}
                         this.topFlowPagination = {
                             current: 1,
@@ -336,10 +344,12 @@
             },
             // 切换顶层流程覆盖选项
             handleTopFlowOverriver (val, tpl) {
+                const templateId = tpl.meta.id
+                tpl.refer = val
                 if (val === 'overrider') {
-                    this.$set(this.overriders, tpl, '')
+                    this.$set(this.overriders, templateId, '')
                 } else {
-                    this.$delete(this.overriders, tpl)
+                    this.$delete(this.overriders, templateId)
                 }
             },
             // 切换子流程导入规则

@@ -45,7 +45,7 @@
                     </template>
                 </div>
                 <bk-button
-                    v-if="isViewMode"
+                    v-if="isViewMode && !isProjectCommonTemp"
                     theme="primary"
                     :class="['task-btn', {
                         'btn-permission-disable': !editBtnActive
@@ -56,7 +56,7 @@
                     {{$t('编辑')}}
                 </bk-button>
                 <bk-button
-                    v-else
+                    v-else-if="!isProjectCommonTemp"
                     theme="primary"
                     :class="[
                         'save-canvas',
@@ -199,6 +199,10 @@
             },
             isViewMode () {
                 return this.type === 'view'
+            },
+            isProjectCommonTemp () {
+                const { name } = this.$route
+                return name === 'projectCommonTemplatePanel'
             }
         },
         watch: {
@@ -243,7 +247,17 @@
                 const curPermission = [...this.authActions, ...this.tplActions]
                 const applyPermission = this.common ? ['common_flow_edit'] : ['flow_edit']
                 if (!this.hasPermission(applyPermission, curPermission)) {
-                    this.onTemplatePermissionCheck(applyPermission, curPermission)
+                    const permissionData = {
+                        project: [{
+                            id: this.project_id,
+                            name: this.projectName
+                        }]
+                    }
+                    permissionData[this.common ? 'common_flow' : 'flow'] = [{
+                        id: this.template_id,
+                        name: this.name
+                    }]
+                    this.applyForPermission(applyPermission, curPermission, permissionData)
                     return
                 }
                 const { params, query, name } = this.$route
