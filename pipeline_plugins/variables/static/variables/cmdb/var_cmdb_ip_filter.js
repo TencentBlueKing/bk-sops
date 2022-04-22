@@ -39,8 +39,7 @@
                             name: gettext("GSE AGENT状态"),
                             items: [
                                 {text: "在线", value: 1},
-                                {text: "不在线", value: 0},
-                                {text: "不过滤", value: 2}
+                                {text: "不在线", value: 0}
                             ],
                             default: 1,
                             hookable: true,
@@ -51,7 +50,7 @@
                         tag_code: "ip_cloud",
                         type: "radio",
                         attrs: {
-                            name: gettext("返回IP是否带云区域"),
+                            name: gettext("输出带云区域"),
                             items: [
                                 {name: "是", value: true},
                                 {name: "否", value: false},
@@ -65,7 +64,7 @@
                         tag_code: "ip_separator",
                         type: "radio",
                         attrs: {
-                            name: gettext("多个IP分隔符"),
+                            name: gettext("输出分隔符"),
                             items: [
                                 {name: "逗号", value: ","},
                                 {name: "分号", value: ";"},

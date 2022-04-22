@@ -76,12 +76,3 @@ class VarCmdbIpSelectorTestCase(TestCase):
         ip_filters = VarCmdbIpFilter(self.name, self.value, self.context, self.pipeline_data)
         match_ip = ip_filters.get_value()
         self.assertEqual(match_ip, "0:2.2.2.2,2:4.4.4.4")
-
-    def test_get_value_without_filter(self):
-        self.value = {
-            "origin_ips": "1.1.1.1,2.2.2.2,1:3.3.3.3,2:4.4.4.4",
-            "gse_agent_status": 2,
-        }
-        ip_filters = VarCmdbIpFilter(self.name, self.value, self.context, self.pipeline_data)
-        match_ip = ip_filters.get_value()
-        self.assertEqual(match_ip, "1:3.3.3.3,2:4.4.4.4,0:1.1.1.1,0:2.2.2.2")
