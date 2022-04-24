@@ -42,6 +42,7 @@
                     class="update-tips"
                     :list="subflowShouldUpdated"
                     :locations="locations"
+                    :is-view-mode="isViewMode"
                     @viewClick="viewUpdatedNode"
                     @batchUpdate="isBatchUpdateDialogShow = true"
                     @foldClick="clearDotAnimation">
