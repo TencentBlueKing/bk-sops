@@ -73,6 +73,14 @@
                             <bk-link theme="primary" @click="selectedTpls = []">{{ $t('清空') }}</bk-link>
                         </div>
                     </template>
+                    <template v-slot:search-extend>
+                        <bk-button
+                            class="my-create-btn"
+                            data-test-id="commonProcess_form_myCreateProcess"
+                            @click="handleMyCreateFilter">
+                            {{$t('我创建的')}}
+                        </bk-button>
+                    </template>
                 </advance-search-form>
                 <div class="template-table-content" data-test-id="process_table_processList">
                     <bk-table
@@ -772,6 +780,14 @@
                     })
                 }
             },
+            // 我创建的公共流程
+            handleMyCreateFilter () {
+                const username = this.$store.state.username
+                const searchComp = this.$refs.advanceSearch
+                searchComp.onAdvanceOpen(true)
+                searchComp.onChangeFormItem(username, 'creator')
+                searchComp.submit()
+            },
             onSearchFormSubmit (data) {
                 this.requestData = Object.assign({}, this.requestData, data)
                 this.pagination.current = 1
@@ -1370,6 +1386,10 @@
 .dialog-content {
     padding: 30px;
     word-break: break-all;
+}
+.my-create-btn {
+    padding: 0 10px;
+    margin: 0 -15px 0 10px;
 }
 .template-table-content {
     background: #ffffff;
