@@ -354,11 +354,11 @@
                 this.schemeInfo = null
             },
             goBackTplList () {
-                if (window.history.length > 1) {
-                    this.$router.back() // 由模板页跳转进入需要保留分页参数
-                } else {
+                if (this.type === 'view' || window.history.length <= 1) {
                     const url = this.common ? { name: 'commonProcessList' } : { name: 'processHome', params: { project_id: this.project_id } }
                     this.$router.push(url)
+                } else {
+                    this.$router.back() // 由模板页跳转进入需要保留分页参数
                 }
             },
             goBackToTplEdit () {

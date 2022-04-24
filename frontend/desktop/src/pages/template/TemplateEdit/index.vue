@@ -760,8 +760,10 @@
                 try {
                     const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
                     if (this.type === 'new') {
-                        this.type = 'edit'
-                        this.template_id = data.template_id
+                        this.$router.push({
+                            params: { type: 'edit' },
+                            query: { template_id: data.template_id }
+                        })
                     }
                     this.tplActions = data.auth_actions
                     this.$bkMessage({
@@ -812,6 +814,11 @@
 
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
+                    } else {
+                        this.$router.push({
+                            params: { type: 'view' },
+                            query: { template_id: data.template_id }
+                        })
                     }
                 } catch (e) {
                     console.log(e)
