@@ -469,6 +469,11 @@ CELERY_QUEUES.extend(eri_queues.QueueResolver(PERIODIC_TASK_QUEUE_NAME_V2).queue
 CELERY_QUEUES.extend(PrepareAndStartTaskQueueResolver(API_TASK_QUEUE_NAME_V2).queues())
 CELERY_QUEUES.extend(taskflow3_celery_settings.CELERY_QUEUES)
 
+from blueapps.core.celery import celery_app  # noqa
+from otel.celery import MetricsServerStep  # noqa
+
+celery_app.steps["worker"].add(MetricsServerStep)
+
 # CELERY与RabbitMQ增加60秒心跳设置项
 BROKER_HEARTBEAT = 60
 BROKER_POOL_LIMIT = env.CELERY_BROKER_POOL_LIMIT
