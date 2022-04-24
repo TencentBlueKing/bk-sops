@@ -68,6 +68,7 @@ GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman
 BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.base.BKNodeManClient"
 
 HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.nodeman.base.handle_api_error"
+GET_BUSINESS_HOST = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v4_0.get_business_host"
 GET_HOST_ID_BY_INNER_IP = (
     "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v4_0.get_host_id_by_inner_ip"
 )
@@ -389,7 +390,14 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
-        Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1, "2.2.2.2": 2, "3.3.3.3": 3}),
+        Patcher(
+            target=GET_BUSINESS_HOST,
+            return_value=[
+                {"bk_host_innerip": "1.1.1.1", "bk_host_id": 1},
+                {"bk_host_innerip": "2.2.2.2", "bk_host_id": 2},
+                {"bk_host_innerip": "3.3.3.3", "bk_host_id": 3},
+            ],
+        ),
         Patcher(target=ENCRYPT_AUTH_KEY, return_value="encrypt_auth_key"),
     ],
 )
@@ -478,7 +486,7 @@ INSTALL_FAIL_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=DETAILS_FAIL_CLIENT),
         Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=DETAILS_FAIL_CLIENT),
-        Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1}),
+        Patcher(target=GET_BUSINESS_HOST, return_value=[{"bk_host_innerip": "1.1.1.1", "bk_host_id": 1}]),
         Patcher(target=HANDLE_API_ERROR, return_value="failed"),
         Patcher(target=ENCRYPT_AUTH_KEY, return_value="encrypt_auth_key"),
     ],
@@ -519,6 +527,7 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1}),
+        Patcher(target=GET_BUSINESS_HOST, return_value=[{"bk_host_innerip": "1.1.1.1", "bk_host_id": 1}]),
     ],
 )
 
@@ -546,6 +555,7 @@ OPERATE_FAIL_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=CASE_FAIL_CLIENT),
         Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=CASE_FAIL_CLIENT),
         Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1}),
+        Patcher(target=GET_BUSINESS_HOST, return_value=[{"bk_host_innerip": "1.1.1.1", "bk_host_id": 1}]),
         Patcher(target=HANDLE_API_ERROR, return_value="failed"),
     ],
 )
@@ -693,8 +703,13 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(
-            target=GET_HOST_ID_BY_INNER_IP,
-            return_value={"1.1.1.1": 1, "2.2.2.2": 1, "127.0.0.1": 1, "127.0.0.2": 1},
+            target=GET_BUSINESS_HOST,
+            return_value=[
+                {"bk_host_innerip": "1.1.1.1", "bk_host_id": 1},
+                {"bk_host_innerip": "2.2.2.2", "bk_host_id": 1},
+                {"bk_host_innerip": "127.0.0.1", "bk_host_id": 1},
+                {"bk_host_innerip": "127.0.0.2", "bk_host_id": 1},
+            ],
         ),
         Patcher(target=ENCRYPT_AUTH_KEY, return_value="encrypt_auth_key"),
     ],
@@ -818,6 +833,13 @@ MULTI_CLOUD_ID_OPERATE_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=GET_HOST_ID_BY_INNER_IP, side_effect=[{"1.1.1.1": 1}, {"2.2.2.2": 2}]),
+        Patcher(
+            target=GET_BUSINESS_HOST,
+            side_effect=[
+                {"bk_host_innerip": "1.1.1.1", "bk_host_id": "1"},
+                {"bk_host_innerip": "2.2.2.2", "bk_host_id": "1"},
+            ],
+        ),
     ],
 )
 

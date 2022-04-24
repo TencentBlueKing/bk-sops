@@ -24,6 +24,8 @@ from pipeline.core.flow.io import (
 from gcloud.conf import settings
 from gcloud.utils.ip import get_ip_by_regex
 from gcloud.utils.crypto import encrypt_auth_key, decrypt_auth_key
+from gcloud.utils.cmdb import get_business_host
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.nodeman.base import (
     NodeManBaseService,
     get_host_id_by_inner_ip,
@@ -133,9 +135,12 @@ class NodemanCreateTaskService(NodeManBaseService):
 
                     # 重装必须要bk_host_id
                     if job_name in ["REINSTALL_PROXY", "REINSTALL_AGENT", "UNINSTALL_AGENT"]:
-                        bk_host_id_dict = get_host_id_by_inner_ip(
-                            executor, self.logger, bk_cloud_id, bk_biz_id, inner_ip_list
+                        supplier_account = supplier_account_for_business(bk_biz_id)
+                        host_fields = ["bk_host_id", "bk_host_innerip"]
+                        host_list = get_business_host(
+                            executor, bk_biz_id, supplier_account, host_fields, inner_ip_list, bk_cloud_id
                         )
+                        bk_host_id_dict = {host["bk_host_innerip"]: host["bk_host_id"] for host in host_list}
                         try:
                             one["bk_host_id"] = bk_host_id_dict[inner_ip]
                         except KeyError:
