@@ -54,6 +54,8 @@ class TaskFlowFilterSet(FilterSet):
         model = TaskFlowInstance
         fields = {
             "id": ["exact"],
+            "template_id": ["exact"],
+            "template_source": ["exact"],
             "category": ["exact"],
             "project__id": ["exact"],
             "pipeline_instance__creator": ["contains"],
@@ -63,6 +65,7 @@ class TaskFlowFilterSet(FilterSet):
             "pipeline_instance__is_finished": ["exact"],
             "pipeline_instance__is_revoked": ["exact"],
             "create_method": ["exact"],
+            "create_info": ["exact"],
             "pipeline_instance__start_time": ["gte", "lte"],
         }
 
