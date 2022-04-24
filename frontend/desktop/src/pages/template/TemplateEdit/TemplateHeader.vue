@@ -151,7 +151,8 @@
                 settingTabs: SETTING_TABS.slice(0),
                 isSelectProjectShow: false, // 是否显示项目选择弹窗
                 editBtnActive: false, // 编辑按钮是否激活
-                saveBtnActive: false, // 保存按钮是否激活
+                saveBtnActive: false, // 保存按钮是否激活.
+                saveAndCreate: true, // 是否为保存并新建
                 createTaskBtnActive: false, // 新建任务按钮是否激活
                 hasCreateCommonTplPerm: false, // 创建公共流程权限
                 hasCommonTplCreateTaskPerm: false, // 公共流程在项目下创建任务权限
@@ -275,6 +276,7 @@
                 if (this.createCommonTplPermLoading || this.commonTplCreateTaskPermLoading) {
                     return
                 }
+                this.saveAndCreate = saveAndCreate
 
                 if (saveAndCreate) {
                     if (this.createTaskBtnActive) {
@@ -354,8 +356,13 @@
                 this.schemeInfo = null
             },
             goBackTplList () {
-                if (this.type === 'view' || window.history.length <= 1) {
-                    const url = this.common ? { name: 'commonProcessList' } : { name: 'processHome', params: { project_id: this.project_id } }
+                if (window.history.length <= 1 || (this.type === 'view' && !this.saveAndCreate)) {
+                    const { name } = this.$route
+                    const url = name === 'projectCommonTemplatePanel'
+                        ? { name: 'processCommon', params: { project_id: this.project_id } }
+                        : this.common
+                            ? { name: 'commonProcessList' }
+                            : { name: 'processHome', params: { project_id: this.project_id } }
                     this.$router.push(url)
                 } else {
                     this.$router.back() // 由模板页跳转进入需要保留分页参数
