@@ -1327,7 +1327,11 @@ const en = {
     '请选择需要使用的流程': 'Select the process you want to use',
     '公共流程管理': 'Public process Management',
     '请选择流程“x”需要覆盖的流程': 'Select the process to be overridden by process {x}',
-    '请选择流程“x”需要使用的流程': 'Select the process that process {x} needs to use'
+    '请选择流程“x”需要使用的流程': 'Select the process that process {x} needs to use',
+    '取消引用全局变量': 'Dereference global variable',
+    '取消后，该全局变量的引用数为 0 ': 'After cancellation, the reference count of this global variable is 0',
+    '不再使用的变量，建议在全局变量面板中及时删除': 'Variables that are not used, recommended to delete them in the global variable panel',
+    '我知道了': 'I know'
 }
 
 export default en
