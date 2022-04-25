@@ -1327,7 +1327,14 @@ const en = {
     '请选择需要使用的流程': 'Select the process you want to use',
     '公共流程管理': 'Public process Management',
     '请选择流程“x”需要覆盖的流程': 'Select the process to be overridden by process {x}',
-    '请选择流程“x”需要使用的流程': 'Select the process that process {x} needs to use'
+    '请选择流程“x”需要使用的流程': 'Select the process that process {x} needs to use',
+    '跨流程克隆': 'Cloning across processes',
+    '选择变量': 'Variables',
+    '变量信息': 'Variable info',
+    '全选所有变量': 'Select All variables',
+    '已选择 x 个变量': 'Selected {num} variables',
+    '变量克隆成功！': 'Variable clone successfully!',
+    '该模板暂未配置模板变量': 'Template variables are not configured for this template'
 }
 
 export default en

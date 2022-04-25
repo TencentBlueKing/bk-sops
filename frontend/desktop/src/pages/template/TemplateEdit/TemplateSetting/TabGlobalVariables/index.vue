@@ -76,6 +76,13 @@
                         @click="onAddVariable">
                         {{ $t('新建') }}
                     </bk-button>
+                    <bk-button
+                        theme="default"
+                        class="clone-variable-btn mr5"
+                        data-test-id="templateEdit_form_cloneVariable"
+                        @click="isVarCloneDialogShow = true">
+                        {{ $t('跨流程克隆') }}
+                    </bk-button>
                     <template v-if="deleteVarListLen">
                         <bk-button
                             theme="default"
@@ -162,6 +169,8 @@
                                 :variable-cited="variableCited"
                                 :variable-checked="!!(deleteVarList.find(item => item.key === constant.key))"
                                 :common="common"
+                                :clone-keys="cloneKeys"
+                                @onCancelCloneKey="onCancelCloneKey"
                                 @viewClick="viewClick"
                                 @onEditVariable="onEditVariable"
                                 @onDeleteVariable="onDeleteVariable"
@@ -197,6 +206,12 @@
                 <span v-if="deleteVarListLen === 1">{{ $t('确认删除') }} “{{deleteVarList[0].name}} / {{deleteVarList[0].key}}” ?</span>
                 <span v-else-if="deleteVarListLen">{{ $t('确认删除所选的x个变量？', { num: deleteVarListLen }) }}</span>
             </bk-dialog>
+            <variable-clone
+                :is-var-clone-dialog-show="isVarCloneDialogShow"
+                :var-type-list="varTypeList"
+                @onCloneVarConfirm="onCloneVarConfirm"
+                @onCloneVarCancel="isVarCloneDialogShow = false">
+            </variable-clone>
         </div>
     </bk-sideslider>
 </template>
@@ -207,6 +222,7 @@
     import tools from '@/utils/tools.js'
     import VariableEdit from './VariableEdit.vue'
     import VariableItem from './VariableItem.vue'
+    import VariableClone from './VariableClone.vue'
     import TheadPopover from './TheadPopover.vue'
     import QuickOperateVariable from '../../../common/QuickOperateVariable.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -216,6 +232,7 @@
         components: {
             VariableEdit,
             VariableItem,
+            VariableClone,
             TheadPopover,
             draggable,
             NoData,
@@ -272,7 +289,9 @@
                 variableCited: {}, // 全局变量被任务节点、网关节点以及其他全局变量引用情况
                 deleteVarList: [], // 批量删除变量
                 deleteVarListVisible: false,
-                quickOperateVariableVisable: false
+                quickOperateVariableVisable: false,
+                isVarCloneDialogShow: false,
+                cloneKeys: [] // 跨流程克隆的变量key值
             }
         },
         computed: {
@@ -311,7 +330,8 @@
             ...mapMutations('template/', [
                 'editVariable',
                 'deleteVariable',
-                'setOutputs'
+                'setOutputs',
+                'addVariable'
             ]),
             async getVariableCitedData () {
                 try {
@@ -598,12 +618,24 @@
             },
             // 全选删除变量
             onSelectAll (isChecked) {
-                console.log(isChecked, 'selectAll')
                 if (isChecked) {
                     this.deleteVarList = tools.deepClone(this.editVarList)
                 } else {
                     this.deleteVarList = []
                 }
+            },
+            // 垮流程克隆变量
+            onCloneVarConfirm (constants = []) {
+                this.cloneKeys = []
+                constants.forEach(item => {
+                    this.cloneKeys.push(item.key)
+                    this.addVariable(item)
+                })
+                this.isVarCloneDialogShow = false
+            },
+            onCancelCloneKey (key) {
+                const index = this.cloneKeys.findIndex(item => item === key)
+                this.cloneKeys.splice(index, 1)
             }
         }
     }

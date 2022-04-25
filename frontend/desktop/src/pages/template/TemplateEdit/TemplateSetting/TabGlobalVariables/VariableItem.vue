@@ -19,7 +19,14 @@
             <i v-if="isSystemVar" class="variable-icon common-icon-lock-disable"></i>
             <i v-if="isProjectVar" class="variable-icon common-icon-paper"></i>
             <span class="col-item col-name" v-bk-overflow-tips="{ distance: 0 }">
-                {{ variableData.name }}
+                <span>
+                    {{ variableData.name }}
+                    <i
+                        v-if="cloneKeys.includes(variableData.key)"
+                        class="cross-process-clone-icon"
+                        @click.stop="$emit('onCancelCloneKey', variableData.key)">
+                    </i>
+                </span>
             </span>
             <span class="col-item col-key" v-bk-overflow-tips="{ distance: 0 }">
                 {{ variableData.key }}
@@ -140,7 +147,8 @@
             variableData: Object,
             common: [String, Number],
             variableCited: Object,
-            variableChecked: Boolean
+            variableChecked: Boolean,
+            cloneKeys: Array
         },
         data () {
             return {
@@ -356,6 +364,20 @@ $localBorderColor: #d8e2e7;
     .col-name {
         width: 170px;
         padding-right: 10px;
+        > span {
+            position: relative;
+            .cross-process-clone-icon {
+                position: absolute;
+                top: 1px;
+                right: -2px;
+                display: inline-block;
+                width: 6px;
+                height: 6px;
+                background: #ff5656;
+                border: 1px solid #fff;
+                border-radius: 50%;
+            }
+        }
     }
     .col-key {
         position: relative;
