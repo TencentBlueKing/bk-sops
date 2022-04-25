@@ -77,7 +77,7 @@ fakeredis==1.4.5
 gevent==1.2.2
 
 # apigw
-apigw-manager[cryptography]==1.0.4
+apigw-manager[cryptography]==1.0.7
 
 # rsa
 pyCryptodome==3.9.7
