@@ -199,13 +199,14 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
             }
         )
     for info in task_detail.get("step_list", []):
+        script_info = info["script_info"] or {}
         # 1-执行脚本, 2-传文件, 4-传SQL
         steps.append(
             {
                 "stepId": info["id"],
                 "name": info["name"],
-                "scriptParams": info["script_info"].get("script_param", ""),
-                "account": info["script_info"].get("account", ""),
+                "scriptParams": script_info.get("script_param", ""),
+                "account": script_info.get("account", {}).get("id", ""),
                 "ipList": "",
                 "type": info["type"],
                 "type_name": job_step_type_name.get(info["type"], info["type"]),
