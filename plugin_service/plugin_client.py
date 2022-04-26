@@ -46,8 +46,10 @@ class PluginServiceApiClient:
         return requests.post(url, data=json.dumps(data), headers=headers)
 
     @json_response_decoder
-    def dispatch_plugin_api_request(self, request_params, inject_headers=None):
-        url, headers = self._prepare_apigw_api_request(path_params=["plugin_api_dispatch"])
+    def dispatch_plugin_api_request(self, request_params, inject_headers=None, inject_authorization={}):
+        url, headers = self._prepare_apigw_api_request(
+            path_params=["plugin_api_dispatch"], inject_authorization=inject_authorization
+        )
         if inject_headers:
             headers.update(inject_headers)
         # 上传文件的情况
@@ -223,17 +225,23 @@ class PluginServiceApiClient:
 
         return PluginServiceApiClient._request_api_and_error_retry(url, method="get", params=params)
 
-    def _prepare_apigw_api_request(self, path_params: list):
+    def _prepare_apigw_api_request(self, path_params: list, inject_authorization: dict = {}):
         """插件服务APIGW接口请求信息准备"""
         url = os.path.join(
             f"{env.APIGW_NETWORK_PROTOCAL}://{self.plugin_apigw_name}.{env.APIGW_URL_SUFFIX}",
             env.APIGW_ENVIRONMENT,
             *path_params,
         )
+        authorization_info = {
+            "bk_app_code": env.PLUGIN_SERVICE_APIGW_APP_CODE,
+            "bk_app_secret": env.PLUGIN_SERVICE_APIGW_APP_SECRET,
+        }
+
+        if inject_authorization:
+            authorization_info.update(inject_authorization)
+
         headers = {
-            "X-Bkapi-Authorization": json.dumps(
-                {"bk_app_code": env.PLUGIN_SERVICE_APIGW_APP_CODE, "bk_app_secret": env.PLUGIN_SERVICE_APIGW_APP_SECRET}
-            ),
+            "X-Bkapi-Authorization": json.dumps(authorization_info),
             "Content-Type": "application/json",
         }
         return url, headers
