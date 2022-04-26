@@ -73,7 +73,7 @@
                             <div class="tpl-name name-content">
                                 <div class="name" v-if="item.highlightName" v-html="item.highlightName"></div>
                                 <div class="name" v-else>{{ item.name }}</div>
-                                <span class="view-tpl" @click.stop="onViewTpl(item.id)">
+                                <span class="view-tpl" @click.stop="onViewTpl(item)">
                                     <i class="common-icon-box-top-right-corner"></i>
                                 </span>
                             </div>
@@ -272,29 +272,26 @@
                 }
             },
             // 查看流程
-            onViewTpl (id) {
-                let pathData = {}
-                if (this.commonTpl) {
-                    pathData = {
-                        name: 'commonTemplatePanel',
-                        params: {
-                            type: 'edit'
-                        },
-                        query: {
-                            template_id: id,
-                            common: '1'
-                        }
-                    }
-                } else {
-                    pathData = {
-                        name: 'templatePanel',
-                        params: {
-                            type: 'edit',
-                            project_id: this.$route.params.project_id
-                        },
-                        query: {
-                            template_id: id
-                        }
+            onViewTpl (tpl) {
+                if (!tpl.hasPermission) {
+                    this.onApplyPermission(tpl)
+                    return
+                }
+                const { name } = this.$route
+                const routerName = name === 'commonTemplatePanel'
+                    ? 'commonTemplatePanel'
+                    : this.commonTpl
+                        ? 'projectCommonTemplatePanel'
+                        : 'templatePanel'
+                const pathData = {
+                    name: routerName,
+                    params: {
+                        type: 'view',
+                        project_id: name === 'commonTemplatePanel' ? undefined : this.$route.params.project_id
+                    },
+                    query: {
+                        template_id: tpl.id,
+                        common: name === 'templatePanel' ? undefined : '1'
                     }
                 }
                 const { href } = this.$router.resolve(pathData)
