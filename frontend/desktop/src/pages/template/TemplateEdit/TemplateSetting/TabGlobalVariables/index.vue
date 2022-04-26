@@ -19,6 +19,7 @@
             <span :class="[variableData ? 'active' : '']" @click="onBackToList">{{ $t('全局变量') }}</span>
             <span v-if="variableData"> > {{ variableData.source_type !== 'system' && variableData.source_type !== 'project' ? (variableData.key ? $t('编辑') : $t('新建')) : $t('查看') }}</span>
             <div
+                v-if="!common"
                 class="manager-project-variable-btn mr5"
                 data-test-id="templateEdit_form_managerVariable"
                 @click="onManagerProjectVariable">
@@ -594,7 +595,7 @@
             },
             // 关闭全局变量侧滑
             closeTab () {
-                if (!this.variableData) {
+                if (this.isViewMode || !this.variableData) {
                     this.$emit('closeTab')
                 } else {
                     if (this.variableData.source_type === 'system') {
