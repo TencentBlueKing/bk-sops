@@ -835,6 +835,7 @@
                                 this.atomFormConfig[this.atomTypeKey][variable.version]
                             )
                         }
+                        this.$emit('setNewCloneKeys', variable.key)
                         this.addVariable(tools.deepClone(variable))
                     } else { // 编辑变量
                         this.editVariable({ key: this.variableData.key, variable })

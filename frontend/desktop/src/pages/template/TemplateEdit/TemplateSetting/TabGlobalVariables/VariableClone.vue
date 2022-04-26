@@ -323,7 +323,8 @@
                         }
                     }
                     const respData = await this.loadTemplateList(params)
-                    const list = respData.results
+                    const { template_id } = this.$route.query
+                    const list = respData.results.filter(item => item.id !== Number(template_id))
                     this.totalPage = Math.floor(respData.count / limit)
                     this.templateList = this.templateList.concat(list)
                 } catch (e) {
@@ -372,6 +373,8 @@
                             this.templateListDom = templateListDom
                         })
                     }
+                } else {
+                    this.onCancel()
                 }
             },
             onSelectTpl (template) {
@@ -431,17 +434,16 @@
                     const templateData = await this.loadTemplateData(data)
                     const pipelineData = JSON.parse(templateData.pipeline_tree)
                     const constants = pipelineData.constants
-                    this.variableList = Object.values(constants).map(item => {
-                        const result = this.varTypeList.find(value => item.code === value.custom_type && item.tag === value.source_tag)
+                    this.variableList = Object.values(constants).reduce((acc, cur) => {
+                        const result = this.varTypeList.find(value => cur.code === value.custom_type && cur.tag === value.source_tag)
                         const checkTypeList = ['component_inputs', 'component_outputs']
-                        if (result && !checkTypeList.includes(item.source_type)) {
-                            item.type = result.name
-                        } else {
-                            item.type = i18n.t('组件')
+                        if (result && !checkTypeList.includes(cur.source_type)) {
+                            cur.type = result.name
+                            cur.checked = false
+                            acc.push(cur)
                         }
-                        item.checked = false
-                        return item
-                    })
+                        return acc
+                    }, [])
                 } catch (e) {
                     console.warn(e)
                 } finally {
@@ -460,8 +462,11 @@
             },
             // 取消变量克隆
             onCancel () {
+                this.curStep = 1
                 this.selectedTplType = 'businessProcess'
                 this.selectedTplCategory = 'all'
+                this.selectedTplLabel = []
+                this.searchWord = ''
                 this.clearSearch()
                 this.$emit('onCloneVarCancel')
             },
@@ -570,12 +575,6 @@
         }
         .search-list {
             padding-top: 40px;
-        }
-        .task-name {
-            margin: 0 0 16px;
-            font-size: 12px;
-            font-weight: 400;
-            color: #313238;
         }
         .filtrate-wrapper {
             display: flex;

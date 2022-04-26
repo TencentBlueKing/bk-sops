@@ -169,7 +169,7 @@
                                 :variable-cited="variableCited"
                                 :variable-checked="!!(deleteVarList.find(item => item.key === constant.key))"
                                 :common="common"
-                                :clone-keys="cloneKeys"
+                                :new-clone-keys="newCloneKeys"
                                 @onCancelCloneKey="onCancelCloneKey"
                                 @viewClick="viewClick"
                                 @onEditVariable="onEditVariable"
@@ -194,6 +194,7 @@
                 ref="variableEdit"
                 :variable-data="variableData"
                 :common="common"
+                @setNewCloneKeys="setNewCloneKeys"
                 @closeEditingPanel="closeEditingPanel"
                 @onSaveEditing="onSaveEditing">
             </variable-edit>
@@ -291,7 +292,7 @@
                 deleteVarListVisible: false,
                 quickOperateVariableVisable: false,
                 isVarCloneDialogShow: false,
-                cloneKeys: [] // 跨流程克隆的变量key值
+                newCloneKeys: [] // 新增/跨流程克隆的变量key值
             }
         },
         computed: {
@@ -351,11 +352,23 @@
             async setVariableList () {
                 try {
                     this.varListLoading = true
-                    const userVars = Object.keys(this.constants)
+                    let userVars = Object.keys(this.constants)
                         .map(key => tools.deepClone(this.constants[key]))
                         .sort((a, b) => a.index - b.index)
+                    const newCloneVars = []
+                    // 新建/克隆的变量置顶显示
+                    if (this.newCloneKeys.length) {
+                        userVars = userVars.reduce((acc, cur) => {
+                            if (this.newCloneKeys.includes(cur.key)) {
+                                newCloneVars.push(cur)
+                            } else {
+                                acc.push(cur)
+                            }
+                            return acc
+                        }, [])
+                    }
                     if (this.isHideSystemVar) {
-                        this.variableList = userVars
+                        this.variableList = [...newCloneVars, ...userVars]
                     } else {
                         const sysVars = Object.keys(this.internalVariable)
                             .map(key => {
@@ -363,7 +376,7 @@
                                 values.isSysVar = true
                                 return values
                             }).sort((a, b) => b.index - a.index)
-                        this.variableList = [...sysVars, ...userVars]
+                        this.variableList = [...newCloneVars, ...sysVars, ...userVars]
                     }
                     // 获取变量类型
                     await this.getVarTypeList()
@@ -626,16 +639,30 @@
             },
             // 垮流程克隆变量
             onCloneVarConfirm (constants = []) {
-                this.cloneKeys = []
+                const variableKeys = this.variableList.map(item => item.key)
                 constants.forEach(item => {
-                    this.cloneKeys.push(item.key)
+                    item.key = this.setCloneKey(item.key, variableKeys)
+                    this.newCloneKeys.unshift(item.key)
                     this.addVariable(item)
                 })
                 this.isVarCloneDialogShow = false
             },
+            setCloneKey (key, variableKeys) {
+                let newKey = ''
+                if (variableKeys.includes(key)) {
+                    newKey = key.slice(0, -1) + '_clone}'
+                }
+                if (variableKeys.includes(newKey)) {
+                    newKey = this.setCloneKey(newKey, variableKeys)
+                }
+                return newKey
+            },
+            setNewCloneKeys (key) {
+                this.newCloneKeys.unshift(key)
+            },
             onCancelCloneKey (key) {
-                const index = this.cloneKeys.findIndex(item => item === key)
-                this.cloneKeys.splice(index, 1)
+                const index = this.newCloneKeys.findIndex(item => item === key)
+                this.newCloneKeys.splice(index, 1)
             }
         }
     }

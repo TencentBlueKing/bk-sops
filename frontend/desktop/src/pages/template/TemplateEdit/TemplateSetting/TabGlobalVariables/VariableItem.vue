@@ -22,7 +22,7 @@
                 <span>
                     {{ variableData.name }}
                     <i
-                        v-if="cloneKeys.includes(variableData.key)"
+                        v-if="newCloneKeys.includes(variableData.key)"
                         class="cross-process-clone-icon"
                         @click.stop="$emit('onCancelCloneKey', variableData.key)">
                     </i>
@@ -148,7 +148,7 @@
             common: [String, Number],
             variableCited: Object,
             variableChecked: Boolean,
-            cloneKeys: Array
+            newCloneKeys: Array
         },
         data () {
             return {
