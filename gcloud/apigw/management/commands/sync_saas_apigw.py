@@ -21,9 +21,7 @@ import env
 
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
-        if not env.IS_OPEN_V3:
-            print("[bk-sops]call fetch_esb_public_key")
-            call_command("fetch_esb_public_key")
+        if not env.IS_PAAS_V3:
             print("[bk-sops]current version is not open v3,skip sync_saas_apigw")
             return
 
@@ -45,5 +43,8 @@ class Command(BaseCommand):
         print("[bk-sops]call fetch_apigw_public_key")
         call_command("fetch_apigw_public_key")
 
-        print("[bk-sops]call fetch_esb_public_key")
-        call_command("fetch_esb_public_key")
+        try:
+            print("[bk-sops]call fetch_esb_public_key")
+            call_command("fetch_esb_public_key")
+        except Exception:
+            print("[bk-sops]this env has not bk-sops esb api,skip fetch_esb_public_key ")
