@@ -215,6 +215,9 @@
                         }
                     })
                 }
+                if (val === 'view') {
+                    this.setEditBtnPerm()
+                }
             }
         },
         async mounted () {
@@ -232,10 +235,7 @@
             if (this.common) {
                 await this.queryCreateCommonTplPerm()
             }
-            // 查看模式需查看流程编辑权限
-            if (this.isViewMode) {
-                this.setEditBtnPerm()
-            }
+            this.setEditBtnPerm()
             this.setSaveBtnPerm()
             this.setCreateTaskBtnPerm()
         },
