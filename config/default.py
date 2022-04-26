@@ -151,7 +151,7 @@ MIDDLEWARE += (
 
 AUTHENTICATION_BACKENDS += ("apigw_manager.apigw.authentication.UserModelBackend",)
 
-if env.IS_OPEN_V3:
+if env.IS_PAAS_V3:
     BK_APIGW_NAME = "bk-sops"
     BK_APP_CODE = os.getenv("BKPAAS_APP_ID")
     BK_APP_SECRET = os.getenv("BKPAAS_APP_SECRET")
