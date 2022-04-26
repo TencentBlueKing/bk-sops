@@ -23,6 +23,35 @@ if IS_OPEN_V3:
 else:
     from env_v2 import *  # noqa
 
+if not IS_OPEN_V3 and IS_PAAS_V3:
+    BKPAAS_SERVICE_ADDRESSES_BKSAAS = os.getenv("BKPAAS_SERVICE_ADDRESSES_BKSAAS")
+    SOPS_CALLBACK_MODULE_NAME = "callback"
+    SOPS_API_SERVER_MODULE_NAME = "api"
+    BK_SAAS_HOSTS_DICT = (
+        json.loads(base64.b64decode(BKPAAS_SERVICE_ADDRESSES_BKSAAS).decode("utf-8"))
+        if BKPAAS_SERVICE_ADDRESSES_BKSAAS
+        else {}
+    )
+    BK_SAAS_HOSTS = {}
+    for item in BK_SAAS_HOSTS_DICT:
+        BK_SAAS_HOSTS.setdefault(item["key"]["bk_app_code"], {})
+        BK_SAAS_HOSTS[item["key"]["bk_app_code"]][item["key"]["module_name"] or BKSAAS_DEFAULT_MODULE_NAME] = item[
+            "value"
+        ][os.getenv("BKPAAS_ENVIRONMENT", "prod")]
+
+    # CALLBACK 回调地址
+    BKAPP_INNER_CALLBACK_HOST = os.getenv(
+        "BKAPP_INNER_CALLBACK_HOST", BK_SAAS_HOSTS[APP_CODE][SOPS_CALLBACK_MODULE_NAME] or BK_PAAS_INNER_HOST + SITE_URL
+    )
+    # API SERVER服务地址
+    BKAPP_INNER_API_SERVER_HOST = os.getenv(
+        "BKAPP_INNER_API_SERVER_HOST",
+        BK_SAAS_HOSTS[APP_CODE][SOPS_API_SERVER_MODULE_NAME] or BK_PAAS_INNER_HOST + SITE_URL,
+    )
+
+    # APIGW 访问地址
+    BK_APIGW_URL_TMPL = os.getenv("BK_API_URL_TMPL")
+
 # 蓝鲸监控自定义上报配置
 BK_MONITOR_REPORT_ENABLE = int(os.getenv("MONITOR_REPORT_ENABLE", 0)) == 1
 BK_MONITOR_REPORT_URL = os.getenv("MONITOR_REPORT_URL")
