@@ -26,7 +26,7 @@ class ApiConfig(AppConfig):
     label = "gcloud_apigw"
 
     def ready(self):
-        if not env.IS_OPEN_V3:
+        if not env.IS_PAAS_V3:
             logger.info("[API]get esb public key")
             get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
             client = get_client_by_user(settings.SYSTEM_USE_API_ACCOUNT)
