@@ -241,7 +241,7 @@ class PluginServiceApiClient:
             authorization_info.update(inject_authorization)
 
         headers = {
-            "X-Bkapi-Authorization": json.dumps(authorization_info),
+            "X-Bkapi-Authorization": json.dumps(inject_authorization),
             "Content-Type": "application/json",
         }
         return url, headers
