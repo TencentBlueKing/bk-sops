@@ -242,6 +242,7 @@
             handleSearchPaste (value, event) {
                 const paste = (event.clipboardData || window.clipboardData).getData('text')
                 this.searchStr = value + paste
+                this.crtPage = 1
                 this.tplList = []
                 this.getTplList()
             },
