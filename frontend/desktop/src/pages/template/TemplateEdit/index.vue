@@ -182,11 +182,14 @@
                 :theme="'primary'"
                 :mask-close="false"
                 :show-footer="false"
-                :value="isExectueSchemeDialog"
+                :value="isExecuteSchemeDialog"
                 data-test-id="templateEdit_form_tempEditDialog"
-                @cancel="isExectueSchemeDialog = false">
+                @cancel="isExecuteSchemeDialog = false">
                 <div class="template-edit-dialog-content">
                     <div class="save-tpl-tips">{{ tplEditDialogTip }}</div>
+                    <p v-if="isMultipleTabCount > 1" class="multiple-tab-dialog-tip">
+                        <i class="bk-icon icon-exclamation-circle">{{ $t('当前流程模板在浏览器多个标签页打开') }}</i>
+                    </p>
                     <div class="action-wrapper">
                         <bk-button theme="primary" :loading="templateSaving || executeSchemeSaving" @click="onConfirmSave">{{ $t('确定') }}</bk-button>
                         <bk-button theme="default" :disabled="templateSaving || executeSchemeSaving" @click="onCancelSave">{{ $t('取消') }}</bk-button>
@@ -260,7 +263,7 @@
                 executeSchemeSaving: false,
                 taskSchemeList: [],
                 isPreviewMode: false,
-                isExectueSchemeDialog: false,
+                isExecuteSchemeDialog: false,
                 isExecuteScheme: false, // 是否为执行方案
                 isEditProcessPage: true,
                 excludeNode: [],
@@ -428,6 +431,9 @@
             },
             isViewMode () {
                 return this.type === 'view'
+            },
+            isMultipleTabCount () {
+                return tplTabCount.getCount(this.getTplTabData())
             }
         },
         watch: {
@@ -1364,7 +1370,7 @@
                         message: i18n.t('方案保存成功'),
                         theme: 'success'
                     })
-                    this.isExectueSchemeDialog = false
+                    this.isExecuteSchemeDialog = false
                     this.allowLeave = true
                     this.isTemplateDataChanged = false
                     this.isSchemaListChange = false
@@ -1384,7 +1390,7 @@
                 if (isEqual) {
                     this.isEditProcessPage = true
                 } else {
-                    this.isExectueSchemeDialog = true
+                    this.isExecuteSchemeDialog = true
                 }
             },
             updateTaskSchemeList (val, isChange) {
@@ -1425,9 +1431,11 @@
                 }
                 this.saveAndCreate = saveAndCreate
                 this.pid = pid
-                if (this.type === 'edit' && tplTabCount.getCount(this.getTplTabData()) > 1) {
+                if (this.type === 'edit' && this.isMultipleTabCount > 1) {
                     if (!this.isExecuteScheme) {
                         this.multipleTabDialogShow = true
+                    } else {
+                        this.isExecuteSchemeDialog = true
                     }
                 } else {
                     this.checkNodeAndSaveTemplate()
@@ -1478,7 +1486,7 @@
                     } else {
                         if (this.isExecuteScheme) {
                             if (this.type === 'clone' || this.isTemplateDataChanged) {
-                                this.isExectueSchemeDialog = true
+                                this.isExecuteSchemeDialog = true
                             } else {
                                 this.isEditProcessPage = false
                             }
@@ -1758,7 +1766,7 @@
             async onConfirmSave () {
                 if (this.isEditProcessPage) {
                     await this.saveTemplate()
-                    this.isExectueSchemeDialog = false
+                    this.isExecuteSchemeDialog = false
                     this.isEditProcessPage = false
                 } else {
                     const { isDefaultSchemeIng, judgeDataEqual } = this.$refs.taskSelectNode
@@ -1768,7 +1776,7 @@
             },
             // 编辑执行方案弹框 取消事件
             onCancelSave () {
-                this.isExectueSchemeDialog = false
+                this.isExecuteSchemeDialog = false
                 this.isEditProcessPage = true
             }
         },
@@ -1873,11 +1881,16 @@
             text-align: center;
             .save-tpl-tips {
                 font-size: 24px;
-                margin-bottom: 30px;
+                margin-bottom: 20px;
                 padding: 0 10px;
             }
+            .multiple-tab-dialog-tip {
+                margin-bottom: 10px;
+                font-size: 14px;
+                color: #ff9c01;
+            }
             .action-wrapper .bk-button {
-                margin-right: 6px;
+                margin: 10px 6px 0 0;
             }
         }
     }
