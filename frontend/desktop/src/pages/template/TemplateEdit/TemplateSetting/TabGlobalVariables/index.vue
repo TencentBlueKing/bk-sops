@@ -580,6 +580,7 @@
                 this.deleteVarList.forEach(variableData => {
                     this.deleteVariable(variableData.key)
                 })
+                this.deleteVarList = []
                 this.$emit('templateDataChanged')
                 this.getVariableCitedData() // 删除变量后更新引用数据
             },
