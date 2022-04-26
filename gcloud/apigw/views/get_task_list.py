@@ -15,7 +15,7 @@ from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust
+from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.apigw.views.utils import format_task_list_data, paginate_list_data
@@ -24,12 +24,13 @@ from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 from gcloud.iam_auth.utils import get_task_allowed_actions_for_user
 from gcloud.iam_auth.conf import TASK_ACTIONS
 from gcloud.apigw.forms import GetTaskListForm
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
 @require_GET
-@apigw_required
+@apigw_require
+@return_json_response
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(ProjectViewInterceptor())

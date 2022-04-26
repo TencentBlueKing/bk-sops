@@ -77,7 +77,7 @@ class GetCommontemplateListAPITest(APITest):
                     HTTP_BK_USERNAME=TEST_USERNAME,
                 )
                 mock_get_actions.assert_called_once_with(
-                    "",
+                    TEST_USERNAME,
                     COMMON_FLOW_ACTIONS,
                     TEST_ID_LIST,
                 )

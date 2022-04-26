@@ -177,7 +177,6 @@ TEMPLATE_BASE_MODELS_TEMPLATE_CURRENT_VERSION = "gcloud.template_base.models.Tem
 TEMPLATE_BASE_MODELS_TEMPLATE_RELATIONSHIP = "gcloud.template_base.models.TemplateRelationship"
 TEMPLATE_BASE_MODELS_TEMPLATE_CURRENT_VERSION = "gcloud.template_base.models.TemplateCurrentVersion"
 
-
 TEMPLATEINPIPELINE_FILTER = "pipeline.contrib.statistics.models.TemplateInPipeline.objects.filter"
 INSTANCEINPIPELINE_FILTER = "pipeline.contrib.statistics.models.InstanceInPipeline.objects.filter"
 COMPONENTINTEMPLATE_FILTER = "pipeline.contrib.statistics.models.ComponentInTemplate.objects.filter"
