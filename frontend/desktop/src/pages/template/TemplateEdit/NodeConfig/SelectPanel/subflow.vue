@@ -18,6 +18,7 @@
                 placeholder="请输入流程名称"
                 :clearable="true"
                 right-icon="bk-icon icon-search"
+                @paste="handleSearchPaste"
                 @change="handleSearchEmpty"
                 @clear="handleSearch"
                 @enter="handleSearch">
@@ -237,6 +238,12 @@
                     return ''
                 }
                 return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')
+            },
+            handleSearchPaste (value, event) {
+                const paste = (event.clipboardData || window.clipboardData).getData('text')
+                this.searchStr = value + paste
+                this.tplList = []
+                this.getTplList()
             },
             // 搜索框清空后触发搜索
             handleSearchEmpty (val) {
