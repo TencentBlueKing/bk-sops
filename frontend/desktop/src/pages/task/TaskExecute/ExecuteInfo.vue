@@ -628,7 +628,12 @@
                 return this.selectedFlowPath.slice(-1)[0].id
             },
             location () {
-                return this.pipelineData.location.find(item => item.id === this.nodeDetailConfig.node_id)
+                const { node_id, subprocess_stack } = this.nodeDetailConfig
+                return this.pipelineData.location.find(item => {
+                    if (item.id === node_id || subprocess_stack.includes(item.id)) {
+                        return true
+                    }
+                })
             },
             isThirdPartyNode () {
                 const compCode = this.nodeDetailConfig.component_code
