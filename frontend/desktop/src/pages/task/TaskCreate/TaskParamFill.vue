@@ -622,7 +622,8 @@
                             'templateSource': this.common ? 'common' : undefined
                         }
                         try {
-                            await this.createPeriodic(data)
+                            const response = await this.createPeriodic(data)
+                            if (!response.result) return
                             this.$bkMessage({
                                 'message': i18n.t('创建周期任务成功'),
                                 'theme': 'success'
