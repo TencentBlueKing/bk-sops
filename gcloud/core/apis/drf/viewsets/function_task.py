@@ -32,7 +32,7 @@ class FunctionTaskViewSet(GcloudListViewSet):
     queryset = FunctionTask.objects.filter(task__is_deleted=False)
     serializer_class = FunctionTaskSerializer
     iam_resource_helper = ViewSetResourceHelper(
-        resource_func=res_factory.resources_for_function_task_obj, actions=TASK_ACTIONS
+        resource_func=res_factory.resources_for_function_task_obj, actions=TASK_ACTIONS, id_field="task.id"
     )
     permission_classes = [permissions.IsAuthenticated, FunctionTaskPermission]
     filter_fields = {
