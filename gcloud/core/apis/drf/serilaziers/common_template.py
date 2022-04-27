@@ -30,6 +30,7 @@ class CommonTemplateSerializer(BaseTemplateSerializer):
     pipeline_template = serializers.IntegerField(help_text="pipeline模板ID", source="pipeline_template.id")
     subprocess_has_update = serializers.BooleanField(help_text="子流程是否更新")
     template_id = serializers.IntegerField(help_text="流程ID")
+    subprocess_info = serializers.DictField(read_only=True, help_text="子流程信息")
     version = serializers.CharField(help_text="流程版本")
     pipeline_tree = serializers.SerializerMethodField(read_only=True, help_text="pipeline_tree")
 
