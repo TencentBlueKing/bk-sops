@@ -103,13 +103,14 @@ class TemplateImporter:
                     if operate_result["result"]:
                         pipeline_id_map[td["id"]] = operate_result["data"].id
                 elif refer_template_config:
-                    for key, constant in template.pipeline_tree["constants"].items():
+                    pipeline_tree = template.pipeline_tree
+                    for key, constant in pipeline_tree["constants"].items():
                         source_info_map.setdefault(td["id"], {}).update({key: constant.get("source_info", {})})
                     if (
                         self.template_model_cls is apps.get_model("tasktmpl3", "TaskTemplate")
                         and refer_template_config["template_type"] == "common"
                     ):
-                        common_child_templates[td["id"]] = {"constants": template.pipeline_tree["constants"]}
+                        common_child_templates[td["id"]] = {"constants": pipeline_tree["constants"]}
                     pipeline_id_map[td["id"]] = refer_template_config["template_id"]
                     operate_result = {"result": True, "data": None, "message": "success", "verbose_message": "success"}
                 else:

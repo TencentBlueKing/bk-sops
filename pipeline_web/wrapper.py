@@ -126,7 +126,7 @@ class PipelineTemplateWebWrapper(object):
 
                         subproc_data["constants"].update(subproc_constants)
 
-                    replace_template_id(template_model, subproc_data)
+                    replace_template_id(subprocess_template_model, subproc_data)
 
                     # 需要将父流程中修改的 constants 传到子流程的 act constants 中
                     # 根据执行方案创建子流程实例
@@ -138,7 +138,7 @@ class PipelineTemplateWebWrapper(object):
                         subproc_data, exclude_task_nodes_id, False
                     )
 
-                    _unfold_subprocess(subproc_data, template_model)
+                    _unfold_subprocess(subproc_data, subprocess_template_model)
 
                     subproc_data["id"] = act_id
                     act["pipeline"] = subproc_data
