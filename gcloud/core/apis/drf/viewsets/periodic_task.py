@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-import traceback
 
 from rest_framework import mixins, status, permissions
 from rest_framework.response import Response
@@ -91,7 +90,6 @@ class PeriodicTaskViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins
         template_id = serializer.validated_data["template_id"]
         project = serializer.validated_data["project"]
         pipeline_tree = serializer.validated_data["pipeline_tree"]
-        cron = serializer.validated_data["cron"]
         name = serializer.validated_data["name"]
         if template_source == PROJECT:
             model_cls = TaskTemplate
@@ -125,24 +123,12 @@ class PeriodicTaskViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins
             message = str(e)
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
-        kwargs["template_id"] = template_id
-        kwargs["template_source"] = template_source
-        try:
-            kwargs["task"] = PeriodicTask.objects.create_pipeline_task(
-                project=project,
-                template=template,
-                name=name,
-                cron=cron,
-                pipeline_tree=pipeline_tree,
-                creator=creator,
-                template_source=template_source,
-            )
-        except Exception as e:
-            logger.warning(traceback.format_exc())
-            message = str(e)
-            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
         serializer.validated_data["template"] = template
         serializer.validated_data["creator"] = creator
+        serializer.validated_data["name"] = name
+        serializer.validated_data["project"] = project
+        serializer.validated_data["template_source"] = template_source
+
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
