@@ -14,10 +14,12 @@ specific language governing permissions and limitations under the License.
 from functools import wraps
 
 import ujson as json
+from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.utils.decorators import available_attrs
 
 from gcloud import err_code
+from gcloud.apigw.exceptions import InvalidUserError
 from gcloud.conf import settings
 from gcloud.core.models import Project
 from gcloud.apigw.utils import get_project_with
@@ -33,10 +35,32 @@ def check_white_apps(request):
     return app_whitelist.has(app_code)
 
 
+def inject_user(request):
+    user_model = get_user_model()
+
+    if isinstance(request.user, user_model):
+        return
+
+    username = getattr(request.user, settings.APIGW_MANAGER_USER_USERNAME_KEY)
+    if not username:
+        raise InvalidUserError(
+            "username cannot be empty, make sure api gateway has sent correct params: {}".format(username)
+        )
+
+    user, _ = user_model.objects.get_or_create(username=username)
+
+    setattr(request, "user", user)
+
+
 def mark_request_whether_is_trust(view_func):
     @wraps(view_func, assigned=available_attrs(view_func))
     def wrapper(request, *args, **kwargs):
         setattr(request, "is_trust", check_white_apps(request))
+
+        try:
+            inject_user(request)
+        except InvalidUserError as e:
+            return JsonResponse({"result": False, "message": str(e), "code": err_code.REQUEST_PARAM_INVALID.code})
 
         return view_func(request, *args, **kwargs)
 
