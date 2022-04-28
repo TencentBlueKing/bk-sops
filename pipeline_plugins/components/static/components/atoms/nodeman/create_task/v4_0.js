@@ -519,10 +519,10 @@
                                     attrs: {
                                         name: gettext("BT节点探测"),
                                         items: [
-                                            {value: true, name: gettext("是")},
-                                            {value: false, name: gettext("否")}
+                                            {value: 1, name: gettext("是")},
+                                            {value: 0, name: gettext("否")}
                                         ],
-                                        default: true,
+                                        default: 1,
                                         validation: [
                                             {
                                                 type: "required"

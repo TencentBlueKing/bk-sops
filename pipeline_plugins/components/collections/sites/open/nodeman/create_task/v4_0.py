@@ -122,7 +122,7 @@ class NodemanCreateTaskService(NodeManBaseService):
                     "auth_type": auth_type,
                     "ap_id": ap_id,
                     "is_manual": False,
-                    "peer_exchange_switch_for_agent": host.get("peer_exchange_switch_for_agent", True),
+                    "peer_exchange_switch_for_agent": host.get("peer_exchange_switch_for_agent", 1),
                 }
                 speed_limit = host.get("speed_limit")
                 if speed_limit:
