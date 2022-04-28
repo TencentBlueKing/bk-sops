@@ -401,6 +401,7 @@
         watch: {
             basicInfo (val, oldVal) {
                 this.formData = tools.deepClone(val)
+                this.version = val.version
                 if (val.tpl !== oldVal.tpl) {
                     this.getSubflowSchemeList()
                 }
@@ -431,9 +432,10 @@
                 this.subflowLoading = true
                 try {
                     const data = {
-                        project_id: this.project_id,
+                        project_id: this.projectId,
                         template_id: this.basicInfo.tpl,
-                        scheme_id_list: this.basicInfo.schemeIdList
+                        scheme_id_list: this.basicInfo.schemeIdList,
+                        version: this.version
                     }
                     const resp = await this.loadSubflowConfig(data)
                     this.version = resp.data.version
