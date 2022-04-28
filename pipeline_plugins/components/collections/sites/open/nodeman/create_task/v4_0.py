@@ -61,7 +61,7 @@ class NodemanCreateTaskService(NodeManBaseService):
                 pass
 
         nodeman_op_info = data.inputs.nodeman_op_info
-        node_type = nodeman_op_info.get("nodeman_node_type", "AGENT")
+        node_type = nodeman_op_info.get("nodeman_node_type")
         op_type = nodeman_op_info.get("nodeman_op_type", "")
         nodeman_hosts = nodeman_op_info.get("nodeman_hosts", [])
         nodeman_other_hosts = nodeman_op_info.get("nodeman_other_hosts", [])
@@ -121,9 +121,12 @@ class NodemanCreateTaskService(NodeManBaseService):
                     "account": host["account"],
                     "auth_type": auth_type,
                     "ap_id": ap_id,
-                    "is_manual": False,  # 不手动操作
-                    "peer_exchange_switch_for_agent": 0,  # 不加速
+                    "is_manual": False,
+                    "peer_exchange_switch_for_agent": host.get("peer_exchange_switch_for_agent", True),
                 }
+                speed_limit = host.get("speed_limit")
+                if speed_limit:
+                    base_params.update({"bt_speed_limit": int(speed_limit)})
 
                 # 支持表格中一行多ip操作, 拼装表格内的inner_ip参数
                 for index, inner_ip in enumerate(inner_ip_list):
@@ -165,7 +168,11 @@ class NodemanCreateTaskService(NodeManBaseService):
             kwargs = {"job_type": job_name, "hosts": all_hosts, "action": "job_install"}
 
             if job_name in ["INSTALL_PROXY", "INSTALL_AGENT", "REINSTALL_PROXY", "REINSTALL_AGENT"]:
-                kwargs.update({"is_install_latest_plugins": nodeman_install_latest_plugins})
+                kwargs.update(
+                    {
+                        "is_install_latest_plugins": nodeman_install_latest_plugins,
+                    }
+                )
 
             if nodeman_tjj_ticket:
                 kwargs.update({"tcoa_ticket": nodeman_tjj_ticket})

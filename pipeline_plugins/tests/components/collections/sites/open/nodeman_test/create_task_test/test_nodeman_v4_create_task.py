@@ -194,9 +194,9 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
     name="nodeman v4.0 install task success case",
     inputs={
         "bk_biz_id": "1",
-        "nodeman_node_type": "AGENT",
         "nodeman_op_info": {
             "nodeman_op_type": "INSTALL",
+            "nodeman_node_type": "AGENT",
             "nodeman_other_hosts": [],
             "nodeman_hosts": [
                 {
@@ -243,7 +243,7 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
                                 "auth_type": "PASSWORD",
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
-                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "peer_exchange_switch_for_agent": 1,  # 不加速
                                 "password": "encrypt_auth_key",
                                 "outer_ip": "1.1.1.1",
                                 "login_ip": "1.1.1.1",
@@ -272,9 +272,9 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
     name="nodeman v4.0 reinstall task success case",
     inputs={
         "bk_biz_id": "1",
-        "nodeman_node_type": "AGENT",
         "nodeman_op_info": {
             "nodeman_op_type": "REINSTALL",
+            "nodeman_node_type": "AGENT",
             "nodeman_hosts": [
                 {
                     "bk_biz_id": "1",
@@ -334,7 +334,7 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
                                 "auth_type": "PASSWORD",
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
-                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "peer_exchange_switch_for_agent": 1,  # 不加速
                                 "password": "encrypt_auth_key",
                                 "outer_ip": "1.1.1.1",
                                 "login_ip": "1.1.1.1",
@@ -351,7 +351,7 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
                                 "auth_type": "PASSWORD",
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
-                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "peer_exchange_switch_for_agent": 1,  # 不加速
                                 "password": "encrypt_auth_key",
                                 "outer_ip": "4.4.4.4",
                                 "login_ip": "6.6.6.6",
@@ -368,7 +368,7 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
                                 "auth_type": "PASSWORD",
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
-                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "peer_exchange_switch_for_agent": 1,  # 不加速
                                 "password": "encrypt_auth_key",
                                 "outer_ip": "5.5.5.5",
                                 "login_ip": "7.7.7.7",
@@ -406,9 +406,9 @@ INSTALL_FAIL_CASE = ComponentTestCase(
     name="nodeman v4.0 install task failed case",
     inputs={
         "bk_biz_id": "1",
-        "nodeman_node_type": "AGENT",
         "nodeman_op_info": {
             "nodeman_op_type": "REINSTALL",
+            "nodeman_node_type": "AGENT",
             "nodeman_ip_str": "",
             "nodeman_hosts": [
                 {
@@ -449,7 +449,7 @@ INSTALL_FAIL_CASE = ComponentTestCase(
                                 "auth_type": "PASSWORD",
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
-                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "peer_exchange_switch_for_agent": 1,  # 不加速
                                 "password": "encrypt_auth_key",
                                 "outer_ip": "1.1.1.1",
                                 "login_ip": "1.1.1.1",
@@ -496,8 +496,8 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
     name="nodeman v4.0 operate task success case",
     inputs={
         "bk_biz_id": "1",
-        "nodeman_node_type": "AGENT",
         "nodeman_op_info": {
+            "nodeman_node_type": "AGENT",
             "nodeman_op_type": "UPGRADE",
             "nodeman_other_hosts": [{"nodeman_bk_cloud_id": "1", "nodeman_ip_str": "1.1.1.1"}],
             "nodeman_hosts": [],
@@ -538,6 +538,7 @@ OPERATE_FAIL_CASE = ComponentTestCase(
         "nodeman_node_type": "AGENT",
         "nodeman_op_info": {
             "nodeman_op_type": "UPGRADE",
+            "nodeman_node_type": "AGENT",
             "nodeman_other_hosts": [{"nodeman_bk_cloud_id": "1", "nodeman_ip_str": "1.1.1.1"}],
             "nodeman_hosts": [],
         },
@@ -567,6 +568,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
         "nodeman_node_type": "AGENT",
         "nodeman_op_info": {
             "nodeman_op_type": "REINSTALL",
+            "nodeman_node_type": "AGENT",
             "nodeman_other_hosts": [],
             "nodeman_hosts": [
                 {
@@ -635,7 +637,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
                                 "auth_type": "PASSWORD",
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
-                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "peer_exchange_switch_for_agent": 1,  # 不加速
                                 "password": "encrypt_auth_key",
                                 "outer_ip": "3.3.3.3",
                                 "login_ip": "5.5.5.5",
@@ -652,7 +654,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
                                 "auth_type": "PASSWORD",
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
-                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "peer_exchange_switch_for_agent": 1,  # 不加速
                                 "password": "encrypt_auth_key",
                                 "outer_ip": "4.4.4.4",
                                 "login_ip": "6.6.6.6",
@@ -669,7 +671,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
                                 "auth_type": "PASSWORD",
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
-                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "peer_exchange_switch_for_agent": 1,  # 不加速
                                 "password": "encrypt_auth_key",
                                 "outer_ip": "3.3.3.3",
                                 "login_ip": "5.5.5.5",
@@ -686,7 +688,7 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
                                 "auth_type": "PASSWORD",
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
-                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "peer_exchange_switch_for_agent": 1,  # 不加速
                                 "password": "encrypt_auth_key",
                                 "data_ip": "7.7.7.7",
                                 "bk_host_id": 1,
@@ -723,6 +725,7 @@ INSTALL_SUCCESS_CASE_WITH_TTJ = ComponentTestCase(
         "nodeman_ticket": {"nodeman_tjj_ticket": "xxxxx"},
         "nodeman_op_info": {
             "nodeman_op_type": "INSTALL",
+            "nodeman_node_type": "AGENT",
             "nodeman_ip_str": "",
             "nodeman_hosts": [
                 {
@@ -769,7 +772,7 @@ INSTALL_SUCCESS_CASE_WITH_TTJ = ComponentTestCase(
                                 "auth_type": "PASSWORD",
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
-                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "peer_exchange_switch_for_agent": 1,  # 不加速
                                 "password": "encrypt_auth_key",
                                 "outer_ip": "1.1.1.1",
                                 "login_ip": "1.1.1.1",
@@ -799,9 +802,9 @@ MULTI_CLOUD_ID_OPERATE_CASE = ComponentTestCase(
     name="nodeman v4.0 multi cloud_id operate task success case",
     inputs={
         "bk_biz_id": "1",
-        "nodeman_node_type": "AGENT",
         "nodeman_op_info": {
             "nodeman_op_type": "UPGRADE",
+            "nodeman_node_type": "AGENT",
             "nodeman_other_hosts": [
                 {"nodeman_bk_cloud_id": "1", "nodeman_ip_str": "1.1.1.1"},
                 {"nodeman_bk_cloud_id": "2", "nodeman_ip_str": "2.2.2.2"},
@@ -850,6 +853,7 @@ MULTI_CLOUD_ID_INSTALL_CASE = ComponentTestCase(
         "nodeman_node_type": "AGENT",
         "nodeman_op_info": {
             "nodeman_op_type": "INSTALL",
+            "nodeman_node_type": "AGENT",
             "nodeman_other_hosts": [],
             "nodeman_hosts": [
                 {
@@ -908,7 +912,7 @@ MULTI_CLOUD_ID_INSTALL_CASE = ComponentTestCase(
                                 "auth_type": "PASSWORD",
                                 "ap_id": "1",
                                 "is_manual": False,  # 不手动操作
-                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "peer_exchange_switch_for_agent": 1,  # 不加速
                                 "password": "encrypt_auth_key",
                                 "outer_ip": "1.1.1.1",
                                 "login_ip": "1.1.1.1",
@@ -924,7 +928,7 @@ MULTI_CLOUD_ID_INSTALL_CASE = ComponentTestCase(
                                 "auth_type": "PASSWORD",
                                 "ap_id": "2",
                                 "is_manual": False,  # 不手动操作
-                                "peer_exchange_switch_for_agent": 0,  # 不加速
+                                "peer_exchange_switch_for_agent": 1,  # 不加速
                                 "password": "encrypt_auth_key",
                                 "outer_ip": "2.2.2.2",
                                 "login_ip": "2.2.2.2",
