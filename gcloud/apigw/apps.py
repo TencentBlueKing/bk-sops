@@ -33,9 +33,12 @@ class ApiConfig(AppConfig):
             esb_result = client.esb.get_api_public_key()
             if esb_result["result"]:
                 esb_public_key = esb_result["data"]["public_key"]
-                from apigw_manager.apigw.helper import PublicKeyManager
+                try:
+                    from apigw_manager.apigw.helper import PublicKeyManager
 
-                PublicKeyManager().set("bk-esb", esb_public_key)
-                PublicKeyManager().set("apigw", esb_public_key)
+                    PublicKeyManager().set("bk-esb", esb_public_key)
+                    PublicKeyManager().set("apigw", esb_public_key)
+                except Exception:
+                    logger.exception("[API] apigw_manager_context table is not migrated")
             else:
                 logger.warning("[API] get esb public key error: %s" % esb_result["message"])
