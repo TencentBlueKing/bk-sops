@@ -40,6 +40,10 @@ def dummy_wrapper(func):
     return wrapper
 
 
+def mock_inject_user(request):
+    return
+
+
 def mock_check_white_apps(request):
     request.user = MockJwtClientAttr(
         {
@@ -55,6 +59,7 @@ def mock_check_white_apps(request):
 class APITest(TestCase, metaclass=abc.ABCMeta):
     def setUp(self):
         self.white_list_patcher = patch(APIGW_DECORATOR_CHECK_WHITE_LIST, mock_check_white_apps)
+        self.inject_user = patch(APIGW_DECORATOR_INJECT_USER, mock_inject_user)
         self.dummy_user = MagicMock()
         self.dummy_user.username = ""
         self.user_cls = MagicMock()
@@ -67,6 +72,7 @@ class APITest(TestCase, metaclass=abc.ABCMeta):
 
         self.white_list_patcher.start()
         self.project_filter_patcher.start()
+        self.inject_user.start()
 
         settings.BK_APIGW_REQUIRE_EXEMPT = True
 
@@ -75,6 +81,7 @@ class APITest(TestCase, metaclass=abc.ABCMeta):
     def tearDown(self):
         self.white_list_patcher.stop()
         self.project_filter_patcher.stop()
+        self.inject_user.stop()
 
         settings.BK_APIGW_REQUIRE_EXEMPT = False
 
