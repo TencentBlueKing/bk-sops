@@ -53,6 +53,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
+    import bus from '@/utils/bus.js'
     import { mapState, mapActions } from 'vuex'
     import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -72,7 +73,8 @@
                 constants: [],
                 cntLoading: true, // 全局变量加载
                 configLoading: true, // 变量配置项加载
-                pending: false // 提交修改中
+                pending: false, // 提交修改中
+                remoteData: '' // 文本值下拉框变量远程数据源
             }
         },
         computed: {
@@ -91,6 +93,9 @@
             }
         },
         created () {
+            bus.$on('tagRemoteLoaded', data => {
+                this.remoteData = data
+            })
             this.getTaskData()
         },
         methods: {
@@ -144,6 +149,7 @@
                 }
                 const paramEditComp = this.$refs.TaskParamEdit
                 const formData = {}
+                let metaConstants = null
                 let formValid = true
                 if (paramEditComp) {
                     formValid = paramEditComp.validate()
@@ -152,10 +158,19 @@
                     for (const key in variables) {
                         formData[key] = variables[key].value
                     }
+                    // 远程数据源模式下，需要传meta_constants在text_value_select变量的meta.value
+                    if (this.remoteData) {
+                        const selectVar = Object.values(variables).find(item => item.code === 'text_value_select')
+                        if (selectVar && selectVar.meta) {
+                            const metaValue = selectVar.meta.value
+                            metaConstants = metaValue
+                        }
+                    }
                 }
                 const data = {
                     instance_id: this.instance_id,
-                    constants: formData
+                    constants: formData,
+                    meta_constants: metaConstants || undefined
                 }
                 try {
                     this.pending = true
