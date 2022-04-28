@@ -243,7 +243,7 @@
                 }
                 ret = Math.round(ret)
                 // 转成RGB 16进制字符串
-                ret = ret.toString(16).padStart(6, '0')
+                ret = ret.toString(16).padEnd(6, 'f')
                 return '#' + ret
             }
         }
