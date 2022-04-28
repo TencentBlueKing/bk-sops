@@ -229,7 +229,7 @@
             randomColor (seed = 0) {
                 const totalColors = 1000 // 最大支持颜色种类数
                 // 计算对应下标
-                const idx = seed % totalColors
+                const idx = (seed + 1) % totalColors
                 // 默认返回红色
                 let ret = 0xFF0000
                 // RGB的最大值
