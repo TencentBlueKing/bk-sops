@@ -43,6 +43,7 @@
                     right-icon="bk-icon icon-search"
                     :placeholder="$t('请输入流程名称')"
                     :clearable="true"
+                    @paste="handleTestSearchPaste"
                     @change="handleTextSearchClear"
                     @clear="handleTextSearchClear"
                     @enter="handleSearch">
@@ -141,8 +142,8 @@
                     }
                     const resp = await this.$store.dispatch('templateList/loadTemplateList', data)
                     const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
-                    const result = []
-                    resp.results.forEach(tpl => {
+                    const { template_id } = this.$route.query
+                    const result = resp.results.reduce((acc, tpl) => {
                         tpl.hasPermission = this.hasPermission(reqPermission, tpl.auth_actions)
                         tpl.tplSource = this.common ? 'common' : 'business'
                         const tplCopy = { ...tpl }
@@ -153,8 +154,11 @@
                                 tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff5757;">${searchStr}</span>`)
                             }
                         }
-                        result.push(tplCopy)
-                    })
+                        if (tpl.id !== Number(template_id)) {
+                            acc.push(tplCopy)
+                        }
+                        return acc
+                    }, [])
                     this.tplList.push(...result)
                     this.isCompleteLoading = resp.count === this.tplList.length
                 } catch (e) {
@@ -185,6 +189,12 @@
                     this.labels = []
                     this.handleSearch()
                 }
+            },
+            handleTestSearchPaste (value, event) {
+                const paste = (event.clipboardData || window.clipboardData).getData('text')
+                this.searchStr = value + paste
+                this.tplList = []
+                this.handleSearch()
             },
             // 清除文本搜索
             handleTextSearchClear (val) {

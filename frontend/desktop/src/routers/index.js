@@ -465,7 +465,7 @@ const routers = new VueRouter({
                     meta: { project: false }
                 },
                 {
-                    path: ':type(new|edit|clone|view)/',
+                    path: ':type(edit|clone|view)/:project_id/',
                     name: 'projectCommonTemplatePanel',
                     pathToRegexpOptions: { strict: true },
                     component: TemplatePanel,
@@ -474,7 +474,7 @@ const routers = new VueRouter({
                         type: route.params.type,
                         common: '1'
                     }),
-                    meta: { project: false }
+                    meta: { project: true }
                 }
             ]
         },

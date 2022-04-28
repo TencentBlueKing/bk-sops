@@ -1125,28 +1125,21 @@
             },
             // 查看子流程模板
             onViewSubflow (id) {
-                let pathData = {}
-                if (this.isCommonTpl) {
-                    pathData = {
-                        name: 'commonTemplatePanel',
-                        params: {
-                            type: 'edit'
-                        },
-                        query: {
-                            template_id: id,
-                            common: '1'
-                        }
-                    }
-                } else {
-                    pathData = {
-                        name: 'templatePanel',
-                        params: {
-                            type: 'edit',
-                            project_id: this.project_id
-                        },
-                        query: {
-                            template_id: id
-                        }
+                const { name } = this.$route
+                const routerName = name === 'commonTemplatePanel'
+                    ? 'commonTemplatePanel'
+                    : this.isCommonTpl
+                        ? 'projectCommonTemplatePanel'
+                        : 'templatePanel'
+                const pathData = {
+                    name: routerName,
+                    params: {
+                        type: 'view',
+                        project_id: name === 'commonTemplatePanel' ? undefined : this.project_id
+                    },
+                    query: {
+                        template_id: id,
+                        common: name === 'templatePanel' ? undefined : '1'
                     }
                 }
                 const { href } = this.$router.resolve(pathData)

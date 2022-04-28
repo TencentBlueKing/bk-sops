@@ -208,12 +208,15 @@
         },
         watch: {
             type (val, oldVal) {
-                if (['new', 'clone'].includes(oldVal) && val === 'edit' && this.common && this.isSelectProjectShow) {
+                if (['new', 'clone'].includes(oldVal) && val === 'view' && this.common && this.isSelectProjectShow) {
                     this.queryCommonTplCreateTaskPerm().then(() => {
                         if (this.hasCommonTplCreateTaskPerm) {
                             this.saveTemplate(true)
                         }
                     })
+                }
+                if (val === 'view') {
+                    this.setEditBtnPerm()
                 }
             }
         },
@@ -232,10 +235,7 @@
             if (this.common) {
                 await this.queryCreateCommonTplPerm()
             }
-            // 查看模式需查看流程编辑权限
-            if (this.isViewMode) {
-                this.setEditBtnPerm()
-            }
+            this.setEditBtnPerm()
             this.setSaveBtnPerm()
             this.setCreateTaskBtnPerm()
         },

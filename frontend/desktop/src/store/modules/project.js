@@ -107,7 +107,7 @@ const project = {
                 time_zone,
                 desc,
                 is_disable
-            }).then(response => response.data)
+            }).then(response => response.data.data)
         },
         getProjectConfig ({ commit }, id) {
             return axios.get(`api/v3/project_config/${id}/`).then(response => response.data)

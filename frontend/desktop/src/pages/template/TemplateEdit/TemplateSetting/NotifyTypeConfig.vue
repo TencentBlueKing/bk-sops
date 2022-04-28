@@ -87,10 +87,7 @@
                 type: Object,
                 default: () => ({})
             },
-            common: {
-                type: Boolean,
-                default: false
-            },
+            common: [String, Number],
             isViewMode: {
                 type: Boolean,
                 default: false

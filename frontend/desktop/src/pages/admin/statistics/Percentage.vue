@@ -148,8 +148,8 @@
                         total
                     }
                     this.tableColumn[0].label = name || i18n.t('名称')
-                    const statsList = info.map(item => {
-                        item.color = this.randomColor()
+                    const statsList = info.map((item, index) => {
+                        item.color = this.randomColor(index)
                         item.amount = item.value
                         item.percentage = total ? (Math.round(item.value / total * 10000) / 100.00 + '%') : '0%'
                         return item
@@ -226,12 +226,25 @@
                 datasets.data = data
                 this.chart.update()
             },
-            randomColor () {
-                let color = ''
-                for (let i = 0; i < 6; i++) {
-                    color += '0123456789abcdef'[Math.floor(Math.random() * 16)]
+            randomColor (seed = 0) {
+                const totalColors = 1000 // 最大支持颜色种类数
+                // 计算对应下标
+                const idx = (seed + 1) % totalColors
+                // 默认返回红色
+                let ret = 0xFF0000
+                // RGB的最大值
+                const full = 0xFFFFFF
+                // 总共需要支持多少种颜色，若传0则取255
+                const total = totalColors || 0xFF
+                // 将所有颜色平均分成x份
+                const perVal = full / total
+                if (idx >= 0 && idx <= total) {
+                    ret = perVal * idx
                 }
-                return '#' + color
+                ret = Math.round(ret)
+                // 转成RGB 16进制字符串
+                ret = ret.toString(16).padEnd(6, 'f')
+                return '#' + ret
             }
         }
     }
