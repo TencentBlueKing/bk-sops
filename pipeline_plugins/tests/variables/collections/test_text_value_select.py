@@ -54,8 +54,13 @@ class TextValueSelectTestCase(TestCase):
         outputs = TextValueSelect_ins.get_value()
         self.assertEqual(outputs, normal_outputs)
 
-    def test_process_meta_avalue(self):
-        meta_data = {"value": {"items_text": r'[{"text": "t1", "value": "v1"},{"text": "t2", "value": "v2"}]'}}
+    def test_process_meta_value(self):
+        meta_data = {
+            "value": {
+                "items_text": r'[{"text": "t1", "value": "v1"},{"text": "t2", "value": "v2"}]',
+                "data_source": "0",
+            }
+        }
         info_value = "v1"
         TextValueSelect_ins = TextValueSelect(
             name=self.name, value="", context=self.context, pipeline_data=self.pipeline_data
@@ -64,5 +69,22 @@ class TextValueSelectTestCase(TestCase):
             "meta_data": r'[{"text": "t1", "value": "v1"},{"text": "t2", "value": "v2"}]',
             "info_value": "v1",
         }
-        outputs = TextValueSelect_ins.process_meta_avalue(meta_data, info_value)
+        outputs = TextValueSelect_ins.process_meta_value(meta_data, info_value)
+        self.assertEqual(outputs, normal_outputs)
+
+        meta_data = {
+            "value": {
+                "remote_data": r'[{"text": "t1", "value": "v1"},{"text": "t2", "value": "v2"}]',
+                "data_source": "1",
+            }
+        }
+        info_value = "v1"
+        TextValueSelect_ins = TextValueSelect(
+            name=self.name, value="", context=self.context, pipeline_data=self.pipeline_data
+        )
+        normal_outputs = {
+            "meta_data": r'[{"text": "t1", "value": "v1"},{"text": "t2", "value": "v2"}]',
+            "info_value": "v1",
+        }
+        outputs = TextValueSelect_ins.process_meta_value(meta_data, info_value)
         self.assertEqual(outputs, normal_outputs)
