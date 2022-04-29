@@ -149,7 +149,7 @@
                 }
                 const paramEditComp = this.$refs.TaskParamEdit
                 const formData = {}
-                let metaConstants = null
+                const metaConstants = {}
                 let formValid = true
                 if (paramEditComp) {
                     formValid = paramEditComp.validate()
@@ -163,7 +163,7 @@
                         Object.values(variables).forEach(item => {
                             if (item.custom_type === 'text_value_select' && this.remoteData[item.key]) {
                                 const metaValue = item.meta.value
-                                metaConstants = metaValue
+                                metaConstants[item.key] = metaValue
                             }
                         })
                     }
@@ -171,7 +171,7 @@
                 const data = {
                     instance_id: this.instance_id,
                     constants: formData,
-                    meta_constants: metaConstants || undefined
+                    meta_constants: Object.keys(metaConstants).length ? metaConstants : undefined
                 }
                 try {
                     this.pending = true
