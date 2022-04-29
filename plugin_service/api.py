@@ -231,8 +231,8 @@ def get_plugin_api_data(request: Request, plugin_code: str, data_api_path: str):
     if request.query_params:
         params["url"] = params["url"].rstrip("/") + "/?" + request.query_params.urlencode()
 
-    bk_ticket = request.COOKIES.get("bk_ticket")
-    inject_authorization = {"bk_ticket": bk_ticket} if bk_ticket else {}
+    token = request.COOKIES.get(env.APIGW_USER_AUTH_KEY_NAME)
+    inject_authorization = {env.APIGW_USER_AUTH_KEY_NAME: token} if token else {}
     result = client.dispatch_plugin_api_request(
         params, inject_headers=http_headers, inject_authorization=inject_authorization
     )
