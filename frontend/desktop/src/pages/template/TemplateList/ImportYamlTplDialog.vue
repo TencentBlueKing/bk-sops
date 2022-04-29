@@ -113,7 +113,7 @@
                                 {{ importData.relations[props.row.meta.id] ? importData.relations[props.row.meta.id].map(item => item.name).join(',') : '--' }}
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t(common ? '是否覆盖已有子流程' : '是否覆盖已有子流程（仅适用于同环境导入）')" :width="400">
+                        <bk-table-column :label="$t('是否覆盖已有子流程（实验功能，请谨慎使用并选择正确的流程）')" :width="400">
                             <template slot-scope="{ row }">
                                 <div class="tpl-overrider-select">
                                     <bk-select
