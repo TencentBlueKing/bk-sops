@@ -48,6 +48,7 @@ class TemplateImporter:
         manager = TemplateManager(template_model_cls=self.template_model_cls)
         import_result = []
         pipeline_id_map = {}
+        pipeline_version_map = {}
         source_info_map = {}
         common_child_templates = {}
         with transaction.atomic():
@@ -65,7 +66,9 @@ class TemplateImporter:
                 if not override_template_id and not refer_template_config:
                     self._inject_common_child_templates_info(pipeline_tree, common_child_templates)
 
-                replace_result = self._replace_subprocess_template_id(pipeline_tree, pipeline_id_map, source_info_map)
+                replace_result = self._replace_subprocess_template_info(
+                    pipeline_tree, pipeline_id_map, source_info_map, pipeline_version_map
+                )
                 if not replace_result["result"]:
                     import_result.append(replace_result)
                     continue
@@ -102,15 +105,18 @@ class TemplateImporter:
                     )
                     if operate_result["result"]:
                         pipeline_id_map[td["id"]] = operate_result["data"].id
+                        pipeline_version_map[td["id"]] = operate_result["data"].version
                 elif refer_template_config:
-                    for key, constant in template.pipeline_tree["constants"].items():
+                    pipeline_tree = template.pipeline_tree
+                    for key, constant in pipeline_tree["constants"].items():
                         source_info_map.setdefault(td["id"], {}).update({key: constant.get("source_info", {})})
                     if (
                         self.template_model_cls is apps.get_model("tasktmpl3", "TaskTemplate")
                         and refer_template_config["template_type"] == "common"
                     ):
-                        common_child_templates[td["id"]] = {"constants": template.pipeline_tree["constants"]}
+                        common_child_templates[td["id"]] = {"constants": pipeline_tree["constants"]}
                     pipeline_id_map[td["id"]] = refer_template_config["template_id"]
+                    pipeline_version_map[td["id"]] = template.version
                     operate_result = {"result": True, "data": None, "message": "success", "verbose_message": "success"}
                 else:
                     operate_result = manager.create(
@@ -122,14 +128,17 @@ class TemplateImporter:
                     )
                     if operate_result["result"]:
                         pipeline_id_map[td["id"]] = operate_result["data"].id
+                        pipeline_version_map[td["id"]] = operate_result["data"].version
                 import_result.append(operate_result)
 
         return {"result": True, "data": import_result, "message": "success", "verbose_message": "success"}
 
     @staticmethod
-    def _replace_subprocess_template_id(pipeline_tree: dict, pipeline_id_map: dict, source_map_info: dict) -> dict:
+    def _replace_subprocess_template_info(
+        pipeline_tree: dict, pipeline_id_map: dict, source_map_info: dict, pipeline_version_map: dict
+    ) -> dict:
         """
-        将模板数据中临时的模板 ID 替换成数据库中模型的主键 ID
+        将模板数据中临时的模板信息 替换成数据库中模型的对应信息
 
         :param pipeline_tree: pipeline tree 模板数据
         :type pipeline_tree: dict
@@ -137,6 +146,8 @@ class TemplateImporter:
         :type pipeline_id_map: dict
         :param source_map_info: Subprocess 节点变量的的source_info替换成对应子流程一样的值
         :type source_map_info: dict
+        :param pipeline_version_map: SubProcess 节点中临时 ID 到对应已导入流程 version的映射
+        :type pipeline_version_map: dict
         """
         if not pipeline_id_map:
             return {
@@ -158,6 +169,7 @@ class TemplateImporter:
                     }
                 imported_template_id = act["template_id"]
                 act["template_id"] = pipeline_id_map[imported_template_id]
+                act["version"] = pipeline_version_map[imported_template_id]
                 if imported_template_id in source_map_info:
                     for key, constant in act["constants"].items():
                         constant["source_info"] = source_map_info[imported_template_id].get(key, {})

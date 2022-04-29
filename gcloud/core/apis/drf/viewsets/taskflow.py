@@ -220,7 +220,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         serializer.validated_data["pipeline_instance"] = pipeline_instance
         serializer.validated_data["category"] = template.category
         serializer.validated_data["current_flow"] = (
-            "func_clain" if serializer.validated_data["flow_type"] == "common_func" else "execute_task"
+            "func_claim" if serializer.validated_data["flow_type"] == "common_func" else "execute_task"
         )
         serializer.validated_data["template_id"] = template.id
         # create taskflow

@@ -12,10 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 
 import json
+import logging
 
 from rest_framework import serializers
 
 from gcloud.utils.drf.serializer import ReadWriteSerializerMethodField
+
+logger = logging.getLogger("root")
 
 
 class BaseTemplateSerializer(serializers.ModelSerializer):
@@ -23,9 +26,14 @@ class BaseTemplateSerializer(serializers.ModelSerializer):
     notify_receivers = ReadWriteSerializerMethodField(help_text="通知人列表")
 
     def get_notify_type(self, obj):
-        if not getattr(obj, "notify_type") or not obj.notify_type:
-            return dict()
-        return json.loads(obj.notify_type)
+        default_notify_type = {"success": [], "fail": []}
+        try:
+            notify_type = json.loads(obj.notify_type)
+            # 对于旧数据中解析出来为[]的情况，统一返回默认值
+            return notify_type if notify_type else default_notify_type
+        except Exception as e:
+            logger.exception(f"[get_notify_type] error: {e}")
+            return default_notify_type
 
     def set_notify_type(self, data):
         return {"notify_type": json.dumps(data)}
