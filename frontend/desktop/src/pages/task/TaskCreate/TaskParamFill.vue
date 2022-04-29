@@ -157,6 +157,7 @@
     import { mapState, mapActions, mapMutations } from 'vuex'
     import { NAME_REG, PERIODIC_REG, STRING_LENGTH } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
+    import bus from '@/utils/bus.js'
     import permission from '@/mixins/permission.js'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
     import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
@@ -227,7 +228,8 @@
                     }
                 },
                 notifyType: [[]],
-                receiverGroup: []
+                receiverGroup: [],
+                remoteData: '' // 文本值下拉框变量远程数据源
             }
         },
         computed: {
@@ -284,6 +286,9 @@
             if (this.common) {
                 this.queryCommonTplCreateTaskPerm()
             }
+            bus.$on('tagRemoteLoaded', data => {
+                this.remoteData = { ...data }
+            })
             this.loadData()
         },
         methods: {
@@ -523,6 +528,15 @@
                         const formData = await paramEditComp.getVariableData()
                         pipelineData.constants = formData
                         formValid = paramEditComp.validate()
+                    }
+                    // 远程数据源模式下，在text_value_select变量的meta.value下添加remoteData
+                    if (Object.keys(this.remoteData).length) {
+                        Object.values(pipelineData.constants).forEach(item => {
+                            if (item.custom_type === 'text_value_select' && this.remoteData[item.key]) {
+                                const metaValue = item.meta.value
+                                metaValue.remote_data = metaValue
+                            }
+                        })
                     }
 
                     if (!result) {

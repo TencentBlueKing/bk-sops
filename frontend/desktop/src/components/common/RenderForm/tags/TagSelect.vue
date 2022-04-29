@@ -63,6 +63,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import bus from '@/utils/bus.js'
     import { getFormMixins } from '../formMixins.js'
 
     export const attrs = {
@@ -305,6 +306,9 @@
 
                         self.items = data
                         self.loading = false
+                        // 远程数据源模式下，下拉框变量需携带json数据
+                        const remoteData = JSON.stringify(this.options)
+                        bus.$emit('tagRemoteLoaded', { [this.tagCode]: remoteData })
                     },
                     error: function (resp) {
                         self.placeholder = gettext('请求数据失败')
