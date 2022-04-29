@@ -58,7 +58,7 @@ class TextValueSelectTestCase(TestCase):
         meta_data = {
             "value": {
                 "items_text": r'[{"text": "t1", "value": "v1"},{"text": "t2", "value": "v2"}]',
-                "data_source": "0",
+                "datasource": "0",
             }
         }
         info_value = "v1"
@@ -75,7 +75,7 @@ class TextValueSelectTestCase(TestCase):
         meta_data = {
             "value": {
                 "remote_data": r'[{"text": "t1", "value": "v1"},{"text": "t2", "value": "v2"}]',
-                "data_source": "1",
+                "datasource": "1",
             }
         }
         info_value = "v1"
