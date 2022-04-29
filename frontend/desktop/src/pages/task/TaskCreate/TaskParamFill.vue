@@ -287,7 +287,7 @@
                 this.queryCommonTplCreateTaskPerm()
             }
             bus.$on('tagRemoteLoaded', data => {
-                this.remoteData = data
+                this.remoteData = { ...data }
             })
             this.loadData()
         },
@@ -530,12 +530,13 @@
                         formValid = paramEditComp.validate()
                     }
                     // 远程数据源模式下，在text_value_select变量的meta.value下添加remoteData
-                    if (this.remoteData) {
-                        const selectVar = Object.values(pipelineData.constants).find(item => item.code === 'text_value_select')
-                        if (selectVar && selectVar.meta) {
-                            const metaValue = selectVar.meta.value
-                            metaValue.remote_data = this.remoteData
-                        }
+                    if (Object.keys(this.remoteData).length) {
+                        Object.values(pipelineData.constants).forEach(item => {
+                            if (item.custom_type === 'text_value_select' && this.remoteData[item.key]) {
+                                const metaValue = item.meta.value
+                                metaValue.remote_data = metaValue
+                            }
+                        })
                     }
 
                     if (!result) {

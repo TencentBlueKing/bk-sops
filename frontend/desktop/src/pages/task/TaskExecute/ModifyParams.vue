@@ -94,7 +94,7 @@
         },
         created () {
             bus.$on('tagRemoteLoaded', data => {
-                this.remoteData = data
+                this.remoteData = { ...data }
             })
             this.getTaskData()
         },
@@ -159,12 +159,13 @@
                         formData[key] = variables[key].value
                     }
                     // 远程数据源模式下，需要传meta_constants在text_value_select变量的meta.value
-                    if (this.remoteData) {
-                        const selectVar = Object.values(variables).find(item => item.code === 'text_value_select')
-                        if (selectVar && selectVar.meta) {
-                            const metaValue = selectVar.meta.value
-                            metaConstants = metaValue
-                        }
+                    if (Object.keys(this.remoteData).length) {
+                        Object.values(variables).forEach(item => {
+                            if (item.custom_type === 'text_value_select' && this.remoteData[item.key]) {
+                                const metaValue = item.meta.value
+                                metaConstants = metaValue
+                            }
+                        })
                     }
                 }
                 const data = {
