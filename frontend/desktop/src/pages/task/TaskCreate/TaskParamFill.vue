@@ -534,7 +534,7 @@
                         Object.values(pipelineData.constants).forEach(item => {
                             if (item.custom_type === 'text_value_select' && this.remoteData[item.key]) {
                                 const metaValue = item.meta.value
-                                metaValue.remote_data = metaValue
+                                metaValue.remote_data = this.remoteData[item.key]
                             }
                         })
                     }
