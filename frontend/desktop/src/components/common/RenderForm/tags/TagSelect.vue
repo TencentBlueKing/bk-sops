@@ -220,7 +220,8 @@
             return {
                 options: this.$attrs.items ? this.$attrs.items.slice(0) : [],
                 loading: false,
-                loading_text: gettext('加载中')
+                loading_text: gettext('加载中'),
+                selectInputDom: null
             }
         },
         computed: {
@@ -265,6 +266,30 @@
         },
         mounted () {
             this.remoteMethod()
+            if (this.multiple) {
+                this.selectInputDom = document.querySelector('.el-select .el-select__input')
+                if (!this.selectInputDom) return
+                this.selectInputDom.addEventListener('keydown', (e) => {
+                    if (e.code === 'Enter' || e.code === 'NumpadEnter') {
+                        let value = e.target.value
+                        value = value.split(',')
+                        const matchVal = []
+                        this.items.forEach(item => {
+                            if (value.includes(item.text)) {
+                                matchVal.push(item.value)
+                            }
+                        })
+                        const setArr = [...this.value, ...matchVal]
+                        this.updateForm([...new Set(setArr)])
+                        this.$refs.selectComp.blur()
+                    }
+                })
+            }
+        },
+        beforeDestroy () {
+            if (this.selectInputDom) {
+                this.selectInputDom.removeEventListener('keydown')
+            }
         },
         methods: {
             filterLabel (val) {
