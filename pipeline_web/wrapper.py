@@ -110,13 +110,21 @@ class PipelineTemplateWebWrapper(object):
                         pipeline_template__template_id=act["template_id"]
                     ).get_pipeline_tree_by_version(version)
 
-                    if "constants" in pipeline_data:
+                    if "constants" in subproc_data:
                         subproc_inputs = act.pop("constants")
                         # replace show constants with inputs
                         subproc_constants = {}
                         for key, info in subproc_inputs.items():
+                            # ignore expired parent constants data
+                            if always_use_latest and key not in subproc_data["constants"]:
+                                continue
                             if "form" in info:
                                 info.pop("form")
+
+                            # keep source_info consist with subprocess latest version
+                            if always_use_latest:
+                                info["source_info"] = subproc_data["constants"][key]["source_info"]
+
                             subproc_constants[key] = info
 
                         subproc_data["constants"].update(subproc_constants)
