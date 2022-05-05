@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 
 import copy
-import ujson as json
 import jsonschema
 
 from pipeline.exceptions import PipelineException
@@ -86,7 +85,7 @@ class CreateTaskAPITest(APITest):
 
                 TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
                     tmpl,
-                    {"name": "name", "creator": "", "description": ""},
+                    {"name": "name", "creator": TEST_USERNAME, "description": ""},
                     {},
                     ["ne584c1e69f53d109f0d99eacc3bd670"],
                     [],
@@ -144,7 +143,7 @@ class CreateTaskAPITest(APITest):
 
                 TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
                     tmpl,
-                    {"name": "name", "creator": "", "description": ""},
+                    {"name": "name", "creator": TEST_USERNAME, "description": ""},
                     {},
                     ["ne584c1e69f53d109f0d99eacc3bd670"],
                     [],
@@ -216,7 +215,7 @@ class CreateTaskAPITest(APITest):
                 TaskFlowInstance.objects.create_pipeline_instance.assert_called_once_with(
                     template=tmpl,
                     name="name",
-                    creator="",
+                    creator=TEST_USERNAME,
                     description="",
                     pipeline_tree={"constants": {"key1": {"value": "value1"}}},
                 )
@@ -613,7 +612,7 @@ class CreateTaskAPITest(APITest):
             TaskFlowInstance.objects.create_pipeline_instance.assert_called_once_with(
                 template=tmpl,
                 name="name",
-                creator="",
+                creator=TEST_USERNAME,
                 description="",
                 pipeline_tree=TEST_PIPELINE_TREE,
             )
@@ -651,7 +650,7 @@ class CreateTaskAPITest(APITest):
             TaskFlowInstance.objects.create_pipeline_instance.assert_called_once_with(
                 template=tmpl,
                 name="name",
-                creator="",
+                creator=TEST_USERNAME,
                 description="",
                 pipeline_tree=TEST_PIPELINE_TREE,
             )
@@ -707,7 +706,7 @@ class CreateTaskAPITest(APITest):
             TaskFlowInstance.objects.create_pipeline_instance.assert_called_once_with(
                 template=tmpl,
                 name="name",
-                creator="",
+                creator=TEST_USERNAME,
                 description="",
                 pipeline_tree=TEST_PIPELINE_TREE,
             )
@@ -746,7 +745,7 @@ class CreateTaskAPITest(APITest):
             TaskFlowInstance.objects.create_pipeline_instance.assert_called_once_with(
                 template=tmpl,
                 name="name",
-                creator="",
+                creator=TEST_USERNAME,
                 description="",
                 pipeline_tree=TEST_PIPELINE_TREE,
             )

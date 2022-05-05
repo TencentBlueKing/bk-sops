@@ -69,7 +69,7 @@ class GetTaskListAPITest(APITest):
                 )
 
                 mocked_format_task_list_data.assert_called_once()
-                mocked_get_task_allowed_data.assert_called_once_with("", TASK_ACTIONS, TEST_TASK_ID_LIST)
+                mocked_get_task_allowed_data.assert_called_once_with(TEST_USERNAME, TASK_ACTIONS, TEST_TASK_ID_LIST)
 
                 assert_data = [
                     {"id": "1", "auth_actions": ["TEST_ACTION"]},

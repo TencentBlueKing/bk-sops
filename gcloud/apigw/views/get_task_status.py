@@ -17,7 +17,7 @@ from blueapps.account.decorators import login_exempt
 from gcloud.apigw.utils import bucket_cached, BucketTTLCache, api_bucket_and_key
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust
+from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
@@ -25,7 +25,7 @@ from gcloud.taskflow3.utils import add_node_name_to_status_tree
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 
 def cache_decisioner(key, value):
@@ -40,7 +40,8 @@ def cache_decisioner(key, value):
 
 @login_exempt
 @require_GET
-@apigw_required
+@apigw_require
+@return_json_response
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(TaskViewInterceptor())

@@ -18,7 +18,7 @@ from django.views.decorators.http import require_POST
 import env
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust
+from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.celery.tasks import prepare_and_start_task
@@ -28,13 +28,14 @@ from gcloud.iam_auth.view_interceptors.apigw import TaskOperateInterceptor
 from gcloud.utils.throttle import check_task_operation_throttle
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
 @csrf_exempt
 @require_POST
-@apigw_required
+@apigw_require
+@return_json_response
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(TaskOperateInterceptor())

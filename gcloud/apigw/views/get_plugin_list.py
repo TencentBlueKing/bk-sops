@@ -15,18 +15,19 @@ from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust
+from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.decorators import project_inject
 from gcloud.apigw.utils import api_hash_key
 from gcloud.core.models import ProjectBasedComponent
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
 @require_GET
-@apigw_required
+@apigw_require
+@return_json_response
 @mark_request_whether_is_trust
 @project_inject
 @cached(cache=TTLCache(maxsize=1024, ttl=60), key=api_hash_key)
