@@ -46,12 +46,15 @@ class VarCmdbIpSelectorTestCase(TestCase):
         client.gse.get_agent_status = MagicMock(return_value=get_agent_status_result)
 
         self.supplier_account_for_project_patcher = patch(
-            "pipeline_plugins.variables.collections.sites.open.cc.supplier_account_for_project",
+            "pipeline_plugins.variables.collections.sites.open.ip_filter_base.supplier_account_for_project",
             MagicMock(return_value=self.supplier_account),
         )
-        self.project_patcher = patch("pipeline_plugins.variables.collections.sites.open.cc.Project", mock_project)
+        self.project_patcher = patch(
+            "pipeline_plugins.variables.collections.sites.open.ip_filter_base.Project", mock_project
+        )
         self.client = patch(
-            "pipeline_plugins.variables.collections.sites.open.cc.get_client_by_user", MagicMock(return_value=client)
+            "pipeline_plugins.variables.collections.sites.open.ip_filter_base.get_client_by_user",
+            MagicMock(return_value=client),
         )
 
         self.supplier_account_for_project_patcher.start()

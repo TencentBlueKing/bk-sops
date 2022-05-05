@@ -22,10 +22,10 @@ from django.utils.translation import ugettext_lazy as _
 from gcloud.constants import Type
 from gcloud.core.models import Project
 from gcloud.utils.cmdb import get_business_host
-from gcloud.utils.handlers import handle_api_error
+
 from gcloud.utils.ip import get_ip_by_regex, get_plat_ip_by_regex
-from gcloud.constants import GseAgentStatus
 from gcloud.conf import settings as gcloud_settings
+from pipeline_plugins.variables.collections.sites.open.ip_filter_base import GseAgentStatusIpFilter
 from pipeline.core.data.var import LazyVariable
 from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
 from pipeline_plugins.base.utils.inject import supplier_account_for_project
@@ -372,48 +372,16 @@ class VarCmdbIpFilter(LazyVariable, SelfExplainVariable):
             return "ERROR: executor and project_id of pipeline is needed"
 
         origin_ips = self.value.get("origin_ips", "")
-        gse_agent_status = self.value.get("gse_agent_status", "")
         ip_cloud = self.value.get("ip_cloud", True)
         ip_separator = self.value.get("ip_separator", ",")
-        username = self.pipeline_data["executor"]
-        project_id = self.pipeline_data["project_id"]
-        project = Project.objects.get(id=project_id)
-        bk_biz_id = project.bk_biz_id if project.from_cmdb else ""
-        bk_supplier_account = supplier_account_for_project(project_id)
-        ip_list = get_plat_ip_by_regex(origin_ips)
 
-        if not ip_list:
-            return ""
+        origin_ip_list = get_plat_ip_by_regex(origin_ips)
+        filter_data = {**self.value, **self.pipeline_data}
 
         # 进行gse agent状态过滤
-        gse_filter_result_ip_list = ip_list
-        if gse_agent_status in [GseAgentStatus.ONlINE.value, GseAgentStatus.OFFLINE.value]:
-            client = get_client_by_user(username)
-            agent_kwargs = {
-                "bk_biz_id": bk_biz_id,
-                "bk_supplier_id": bk_supplier_account,
-                "hosts": ip_list,
-            }
-            agent_result = client.gse.get_agent_status(agent_kwargs)
-            if not agent_result["result"]:
-                message = handle_api_error(_("管控平台(GSE)"), "gse.get_agent_status", agent_kwargs, agent_result)
-                return "error:{}".format(message)
+        gse_agent_status_filter = GseAgentStatusIpFilter(origin_ip_list, filter_data)
 
-            agent_data = agent_result["data"]
-            agent_online_ip_list = []
-            agent_offline_ip_list = []
-            for plat_ip, info in agent_data.items():
-                if info["bk_agent_alive"] == GseAgentStatus.ONlINE.value:
-                    agent_online_ip_list.append({"bk_cloud_id": info["bk_cloud_id"], "ip": info["ip"]})
-                if info["bk_agent_alive"] == GseAgentStatus.OFFLINE.value:
-                    agent_offline_ip_list.append({"bk_cloud_id": info["bk_cloud_id"], "ip": info["ip"]})
-
-            if gse_agent_status == GseAgentStatus.ONlINE.value:
-                gse_filter_result_ip_list = agent_online_ip_list
-            if gse_agent_status == GseAgentStatus.OFFLINE.value:
-                gse_filter_result_ip_list = agent_offline_ip_list
-
-        match_result_ip = gse_filter_result_ip_list
+        match_result_ip = gse_agent_status_filter.get_match_ip()
 
         if not ip_cloud:
             return ip_separator.join(["{}".format(host["ip"]) for host in match_result_ip])
