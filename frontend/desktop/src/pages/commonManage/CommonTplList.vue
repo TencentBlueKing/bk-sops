@@ -162,7 +162,7 @@
                                             @click.prevent="getJumpUrl('clone', props.row.id)">
                                             {{$t('克隆')}}
                                         </a>
-                                        <router-link class="template-operate-btn" :to="getExecuteHistoryUrl(props.row.id)">{{ $t('执行历史') }}</router-link>
+                                        <!-- <router-link class="template-operate-btn" :to="getExecuteHistoryUrl(props.row.id)">{{ $t('执行历史') }}</router-link> -->
                                         <bk-popover
                                             theme="light"
                                             placement="bottom-start"
