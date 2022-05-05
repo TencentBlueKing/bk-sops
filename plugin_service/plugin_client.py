@@ -46,7 +46,7 @@ class PluginServiceApiClient:
         return requests.post(url, data=json.dumps(data), headers=headers)
 
     @json_response_decoder
-    def dispatch_plugin_api_request(self, request_params, inject_headers=None, inject_authorization={}):
+    def dispatch_plugin_api_request(self, request_params, inject_headers=None, inject_authorization: dict = None):
         url, headers = self._prepare_apigw_api_request(
             path_params=["plugin_api_dispatch"], inject_authorization=inject_authorization
         )
@@ -225,7 +225,7 @@ class PluginServiceApiClient:
 
         return PluginServiceApiClient._request_api_and_error_retry(url, method="get", params=params)
 
-    def _prepare_apigw_api_request(self, path_params: list, inject_authorization: dict = {}):
+    def _prepare_apigw_api_request(self, path_params: list, inject_authorization: dict = None):
         """插件服务APIGW接口请求信息准备"""
         url = os.path.join(
             f"{env.APIGW_NETWORK_PROTOCAL}://{self.plugin_apigw_name}.{env.APIGW_URL_SUFFIX}",
