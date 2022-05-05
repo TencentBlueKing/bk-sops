@@ -512,7 +512,85 @@
                                         showPassword: true
                                     },
                                     events: []
-                                }
+                                },
+                                {
+                                    tag_code: "peer_exchange_switch_for_agent",
+                                    type: "radio",
+                                    attrs: {
+                                        name: gettext("BT节点探测"),
+                                        items: [
+                                            {value: 1, name: gettext("是")},
+                                            {value: 0, name: gettext("否")}
+                                        ],
+                                        default: 1,
+                                        validation: [
+                                            {
+                                                type: "required"
+                                            },
+                                        ]
+                                    },
+                                    events: [
+                                        {
+                                            source: "nodeman_op_type",
+                                            type: "init",
+                                            action: function (value) {
+                                                let op_type = ["INSTALL", "REINSTALL"]
+                                                is_display_tag(this, op_type, value)
+                                            }
+                                        },
+                                        {
+                                            source: "nodeman_op_type",
+                                            type: "change",
+                                            action: function (value) {
+                                                let op_type = ["INSTALL", "REINSTALL"]
+                                                is_display_tag(this, op_type, value)
+                                            }
+                                        },
+                                    ]
+                                },
+                                {
+                                    tag_code: "speed_limit",
+                                    type: "input",
+                                    attrs: {
+                                        name: gettext("传输限速 M/s"),
+                                        width: "100px",
+                                        placeholder: gettext("请输入"),
+                                        validation: [
+                                            {
+                                                type: "custom",
+                                                args: function (value) {
+                                                    var result = {
+                                                        result: true,
+                                                        error_message: ""
+                                                    }
+                                                    if (value && !Number(value)) {
+                                                        result.result = false;
+                                                        result.error_message = gettext("请输入数字");
+                                                    }
+                                                    return result;
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    events: [
+                                        {
+                                            source: "nodeman_op_type",
+                                            type: "init",
+                                            action: function (value) {
+                                                let op_type = ["INSTALL", "REINSTALL"]
+                                                is_display_tag(this, op_type, value)
+                                            }
+                                        },
+                                        {
+                                            source: "nodeman_op_type",
+                                            type: "change",
+                                            action: function (value) {
+                                                let op_type = ["INSTALL", "REINSTALL"]
+                                                is_display_tag(this, op_type, value)
+                                            }
+                                        },
+                                    ]
+                                },
                             ],
                             hookable: true,
                             validation: [
