@@ -122,11 +122,6 @@ def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_lis
     """
     kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
 
-    if ip_list:
-        kwargs["host_property_filter"] = {
-            "condition": "AND",
-            "rules": [{"field": "bk_host_innerip", "operator": "in", "value": ip_list}],
-        }
     # 带云区域的主机数据查询
     if ip_list and bk_cloud_id:
         kwargs["host_property_filter"] = {
@@ -135,6 +130,11 @@ def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_lis
                 {"field": "bk_host_innerip", "operator": "in", "value": ip_list},
                 {"field": "bk_cloud_id", "operator": "equal", "value": bk_cloud_id},
             ],
+        }
+    elif ip_list:
+        kwargs["host_property_filter"] = {
+            "condition": "AND",
+            "rules": [{"field": "bk_host_innerip", "operator": "in", "value": ip_list}],
         }
 
     client = get_client_by_user(username)
