@@ -39,8 +39,9 @@ def json_response_decoder(func):
     def wrapper(*args, **kwargs):
         response = func(*args, **kwargs)
         if response.status_code != 200:
-            for auth_item in kwargs.get("inject_authorization", {}):
-                kwargs["inject_authorization"][auth_item] = "******"
+            inject_authorization = kwargs.get("inject_authorization") or {}
+            for auth_item in inject_authorization:
+                inject_authorization[auth_item] = "******"
 
             message = (
                 f"{func.__name__} gets error status code [{response.status_code}], "
