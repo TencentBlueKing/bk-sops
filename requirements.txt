@@ -57,7 +57,7 @@ django-timezone-field==4.1.0
 importlib-metadata==3.7.3
 
 # blueapps
-blueapps==4.1.2
+blueapps==4.3.0
 whitenoise==5.2.0
 raven==6.5.0
 python-json-logger==2.0.1
