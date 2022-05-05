@@ -230,7 +230,12 @@ def get_plugin_api_data(request: Request, plugin_code: str, data_api_path: str):
     # 对于get请求带参数的情况，直接将参数拼接到url中
     if request.query_params:
         params["url"] = params["url"].rstrip("/") + "/?" + request.query_params.urlencode()
-    result = client.dispatch_plugin_api_request(params, inject_headers=http_headers)
+
+    token = request.COOKIES.get(env.APIGW_USER_AUTH_KEY_NAME)
+    inject_authorization = {env.APIGW_USER_AUTH_KEY_NAME: token} if token else {}
+    result = client.dispatch_plugin_api_request(
+        params, inject_headers=http_headers, inject_authorization=inject_authorization
+    )
     # 如果请求成功，只返回接口原始data数据
     result = result["data"] if result.get("result") else result
     return Response(result)

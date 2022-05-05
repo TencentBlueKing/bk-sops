@@ -22,8 +22,10 @@ from django.utils.translation import ugettext_lazy as _
 from gcloud.constants import Type
 from gcloud.core.models import Project
 from gcloud.utils.cmdb import get_business_host
-from gcloud.utils.ip import get_ip_by_regex
+
+from gcloud.utils.ip import get_ip_by_regex, get_plat_ip_by_regex
 from gcloud.conf import settings as gcloud_settings
+from pipeline_plugins.variables.collections.sites.open.ip_filter_base import GseAgentStatusIpFilter
 from pipeline.core.data.var import LazyVariable
 from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
 from pipeline_plugins.base.utils.inject import supplier_account_for_project
@@ -348,3 +350,40 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
                 host.pop("bk_cloud_id")
             hosts[ip] = host
         return hosts
+
+
+class VarCmdbIpFilter(LazyVariable, SelfExplainVariable):
+    code = "ip_filter"
+    name = _("IP过滤器")
+    type = "dynamic"
+    tag = "var_cmdb_ip_filter.ip_filter"
+    form = "%svariables/cmdb/var_cmdb_ip_filter.js" % settings.STATIC_URL
+    desc = _("引用${KEY}，返回符合过滤条件的IP, IP格式为下面表单指定的格式")
+
+    @classmethod
+    def _self_explain(cls, **kwargs) -> List[FieldExplain]:
+        fields = [
+            FieldExplain(key="${KEY}", type=Type.STRING, description="返回符合过滤条件的【云区域:IP】"),
+        ]
+        return fields
+
+    def get_value(self):
+        if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
+            return "ERROR: executor and project_id of pipeline is needed"
+
+        origin_ips = self.value.get("origin_ips", "")
+        ip_cloud = self.value.get("ip_cloud", True)
+        ip_separator = self.value.get("ip_separator", ",")
+
+        origin_ip_list = get_plat_ip_by_regex(origin_ips)
+        filter_data = {**self.value, **self.pipeline_data}
+
+        # 进行gse agent状态过滤
+        gse_agent_status_filter = GseAgentStatusIpFilter(origin_ip_list, filter_data)
+
+        match_result_ip = gse_agent_status_filter.get_match_ip()
+
+        if not ip_cloud:
+            return ip_separator.join(["{}".format(host["ip"]) for host in match_result_ip])
+
+        return ip_separator.join(["{}:{}".format(host["bk_cloud_id"], host["ip"]) for host in match_result_ip])
