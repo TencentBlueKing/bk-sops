@@ -12,11 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 import json
 import logging
+from urllib.parse import urlencode
 from abc import ABCMeta, abstractmethod
 
 import requests
 from django.conf import settings
 
+import env
 
 logger = logging.getLogger("root")
 
@@ -41,11 +43,19 @@ class PaaS3NodeLogDataSource(BaseNodeLogDataSource):
             ),
             "Content-Type": "application/json",
         }
+        self.private_token = env.PAASV3_APIGW_API_TOKEN
 
     def fetch_node_logs(self, node_id, version_id, *args, **kwargs):
         page, page_size = kwargs.get("page", 1), kwargs.get("page_size", 30)
-        url = self.url.rstrip("/") + f"/?page={page}&page_size={page_size}&log_type=STRUCTURED&time_range=7d"
-        payload = {"query": {"query_string": f"json.node_id: {node_id} AND json.version: {version_id}"}}
+        url_params = {
+            "page": page,
+            "page_size": page_size,
+            "log_type": "STRUCTURED",
+            "time_range": "7d",
+            "private_token": self.private_token,
+        }
+        url = self.url.rstrip("/") + f"/?{urlencode(url_params)}"
+        payload = {"query": {"query_string": f"json.node_id:{node_id} AND json.version:{version_id}"}}
         response = requests.get(url, headers=self.headers, data=json.dumps(payload))
         logger.info(
             f"[PaaS3NodeLogDataSource fetch_node_logs] request {url} with payload {payload} and "
