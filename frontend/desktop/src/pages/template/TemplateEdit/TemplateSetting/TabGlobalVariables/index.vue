@@ -76,6 +76,13 @@
                         @click="onAddVariable">
                         {{ $t('新建') }}
                     </bk-button>
+                    <bk-button
+                        theme="default"
+                        class="clone-variable-btn mr5"
+                        data-test-id="templateEdit_form_cloneVariable"
+                        @click="isVarCloneDialogShow = true">
+                        {{ $t('跨流程克隆') }}
+                    </bk-button>
                     <template v-if="deleteVarListLen">
                         <bk-button
                             theme="default"
@@ -162,6 +169,8 @@
                                 :variable-cited="variableCited"
                                 :variable-checked="!!(deleteVarList.find(item => item.key === constant.key))"
                                 :common="common"
+                                :new-clone-keys="newCloneKeys"
+                                @onCancelCloneKey="onCancelCloneKey"
                                 @viewClick="viewClick"
                                 @onEditVariable="onEditVariable"
                                 @onDeleteVariable="onDeleteVariable"
@@ -185,6 +194,7 @@
                 ref="variableEdit"
                 :variable-data="variableData"
                 :common="common"
+                @setNewCloneKeys="setNewCloneKeys"
                 @closeEditingPanel="closeEditingPanel"
                 @onSaveEditing="onSaveEditing">
             </variable-edit>
@@ -197,6 +207,12 @@
                 <span v-if="deleteVarListLen === 1">{{ $t('确认删除') }} “{{deleteVarList[0].name}} / {{deleteVarList[0].key}}” ?</span>
                 <span v-else-if="deleteVarListLen">{{ $t('确认删除所选的x个变量？', { num: deleteVarListLen }) }}</span>
             </bk-dialog>
+            <variable-clone
+                :is-var-clone-dialog-show="isVarCloneDialogShow"
+                :var-type-list="varTypeList"
+                @onCloneVarConfirm="onCloneVarConfirm"
+                @onCloneVarCancel="isVarCloneDialogShow = false">
+            </variable-clone>
         </div>
     </bk-sideslider>
 </template>
@@ -207,6 +223,7 @@
     import tools from '@/utils/tools.js'
     import VariableEdit from './VariableEdit.vue'
     import VariableItem from './VariableItem.vue'
+    import VariableClone from './VariableClone.vue'
     import TheadPopover from './TheadPopover.vue'
     import QuickOperateVariable from '../../../common/QuickOperateVariable.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -216,6 +233,7 @@
         components: {
             VariableEdit,
             VariableItem,
+            VariableClone,
             TheadPopover,
             draggable,
             NoData,
@@ -272,7 +290,9 @@
                 variableCited: {}, // 全局变量被任务节点、网关节点以及其他全局变量引用情况
                 deleteVarList: [], // 批量删除变量
                 deleteVarListVisible: false,
-                quickOperateVariableVisable: false
+                quickOperateVariableVisable: false,
+                isVarCloneDialogShow: false,
+                newCloneKeys: [] // 新增/跨流程克隆的变量key值
             }
         },
         computed: {
@@ -311,7 +331,8 @@
             ...mapMutations('template/', [
                 'editVariable',
                 'deleteVariable',
-                'setOutputs'
+                'setOutputs',
+                'addVariable'
             ]),
             async getVariableCitedData () {
                 try {
@@ -331,11 +352,23 @@
             async setVariableList () {
                 try {
                     this.varListLoading = true
-                    const userVars = Object.keys(this.constants)
+                    let userVars = Object.keys(this.constants)
                         .map(key => tools.deepClone(this.constants[key]))
                         .sort((a, b) => a.index - b.index)
+                    const newCloneVars = []
+                    // 新建/克隆的变量置顶显示
+                    if (this.newCloneKeys.length) {
+                        userVars = userVars.reduce((acc, cur) => {
+                            if (this.newCloneKeys.includes(cur.key)) {
+                                newCloneVars.push(cur)
+                            } else {
+                                acc.push(cur)
+                            }
+                            return acc
+                        }, [])
+                    }
                     if (this.isHideSystemVar) {
-                        this.variableList = userVars
+                        this.variableList = [...newCloneVars, ...userVars]
                     } else {
                         const sysVars = Object.keys(this.internalVariable)
                             .map(key => {
@@ -343,7 +376,7 @@
                                 values.isSysVar = true
                                 return values
                             }).sort((a, b) => b.index - a.index)
-                        this.variableList = [...sysVars, ...userVars]
+                        this.variableList = [...newCloneVars, ...sysVars, ...userVars]
                     }
                     // 获取变量类型
                     await this.getVarTypeList()
@@ -598,12 +631,38 @@
             },
             // 全选删除变量
             onSelectAll (isChecked) {
-                console.log(isChecked, 'selectAll')
                 if (isChecked) {
                     this.deleteVarList = tools.deepClone(this.editVarList)
                 } else {
                     this.deleteVarList = []
                 }
+            },
+            // 垮流程克隆变量
+            onCloneVarConfirm (constants = []) {
+                const variableKeys = this.variableList.map(item => item.key)
+                constants.forEach(item => {
+                    item.key = this.setCloneKey(item.key, variableKeys)
+                    this.newCloneKeys.unshift(item.key)
+                    this.addVariable(item)
+                })
+                this.isVarCloneDialogShow = false
+            },
+            setCloneKey (key, variableKeys) {
+                let newKey = ''
+                if (variableKeys.includes(key)) {
+                    newKey = key.slice(0, -1) + '_clone}'
+                }
+                if (variableKeys.includes(newKey)) {
+                    newKey = this.setCloneKey(newKey, variableKeys)
+                }
+                return newKey
+            },
+            setNewCloneKeys (key) {
+                this.newCloneKeys.unshift(key)
+            },
+            onCancelCloneKey (key) {
+                const index = this.newCloneKeys.findIndex(item => item === key)
+                this.newCloneKeys.splice(index, 1)
             }
         }
     }
