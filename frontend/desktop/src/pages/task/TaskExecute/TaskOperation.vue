@@ -481,6 +481,12 @@
         mounted () {
             this.loadTaskStatus()
             this.getSingleAtomList()
+            const { is_now } = this.$route.params
+            if (is_now) {
+                this.$nextTick(() => {
+                    this.onOperationClick('execute')
+                })
+            }
         },
         beforeDestroy () {
             if (source) {
