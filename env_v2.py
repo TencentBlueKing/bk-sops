@@ -15,7 +15,6 @@ specific language governing permissions and limitations under the License.
 import json
 from blueapps.conf.default_settings import *  # noqa
 
-
 OPEN_VER = os.getenv("OPEN_VER", "community")
 
 BK_PAAS_HOST = os.getenv("BK_PAAS_HOST", BK_URL)
@@ -160,3 +159,10 @@ except Exception:
 
 # celery broker 连接池数量配置
 CELERY_BROKER_POOL_LIMIT = int(os.getenv("BKAPP_CELERY_BROKER_POOL_LIMIT", 10))
+
+# APIGW CALLBACK 回调地址
+BKAPP_INNER_CALLBACK_HOST = os.getenv("BKAPP_APIGW_CALLBACK_HOST", "")
+# APIGW API SERVER服务地址
+BKAPP_INNER_API_SERVER_HOST = os.getenv("BKAPP_APIGW_API_HOST", "")
+# APIGW 访问地址
+BK_APIGW_URL_TMPL = os.getenv("BK_API_URL_TMPL")

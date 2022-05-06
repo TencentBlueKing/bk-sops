@@ -15,7 +15,8 @@ import os
 
 RUN_VER = os.getenv("RUN_VER", "open")
 
-IS_OPEN_V3 = int(os.getenv("BKPAAS_MAJOR_VERSION", False)) == 3 and RUN_VER == "open"
+IS_PAAS_V3 = int(os.getenv("BKPAAS_MAJOR_VERSION", False)) == 3
+IS_OPEN_V3 = IS_PAAS_V3 and RUN_VER == "open"
 
 if IS_OPEN_V3:
     from env_v3 import *  # noqa
@@ -51,3 +52,6 @@ BK_NODE_LOG_PERSISTENT_DAYS = int(os.getenv("BKAPP_NODE_LOG_PERSISTENT_DAYS", 30
 
 # CALLBACK 回调入口，处理走网关回调的场景
 BKAPP_INNER_CALLBACK_ENTRY = os.getenv("BKAPP_INNER_CALLBACK_ENTRY", "")
+
+# 网关管理员
+BK_APIGW_MANAGER_MAINTAINERS = os.getenv("BK_APIGW_MANAGER_MAINTAINERS", "admin").split(",")

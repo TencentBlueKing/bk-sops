@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import sys
 import importlib
+from urllib.parse import urlparse
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -106,6 +107,7 @@ INSTALLED_APPS += (
     "plugin_service",
     "django_dbconn_retry",
     "blueapps.opentelemetry.instrument_app",
+    "apigw_manager.apigw",
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -141,7 +143,29 @@ MIDDLEWARE += (
     "gcloud.core.middlewares.ObjectDoesNotExistExceptionMiddleware",
     "iam.contrib.django.middlewares.AuthFailedExceptionMiddleware",
     "pipeline_plugins.middlewares.PluginApiRequestHandleMiddleware",
+    "apigw_manager.apigw.authentication.ApiGatewayJWTGenericMiddleware",  # JWT 认证
+    "apigw_manager.apigw.authentication.ApiGatewayJWTAppMiddleware",  # JWT 透传的应用信息
+    "apigw_manager.apigw.authentication.ApiGatewayJWTUserMiddleware",  # JWT 透传的用户信息
 )
+
+AUTHENTICATION_BACKENDS += ("apigw_manager.apigw.authentication.UserModelBackend",)
+
+if env.IS_PAAS_V3:
+    BK_APIGW_NAME = "bk-sops"
+    BK_APP_CODE = os.getenv("BKPAAS_APP_ID")
+    BK_APP_SECRET = os.getenv("BKPAAS_APP_SECRET")
+    BK_API_URL_TMPL = env.BK_APIGW_URL_TMPL
+    BK_APIGW_MANAGER_MAINTAINERS = env.BK_APIGW_MANAGER_MAINTAINERS
+
+    api_host = urlparse(env.BKAPP_INNER_API_SERVER_HOST)
+    BK_APIGW_API_SERVER_HOST = api_host.netloc
+    BK_APIGW_API_SERVER_SUB_PATH = api_host.path.lstrip("/")
+
+    callback_host = urlparse(env.BKAPP_INNER_CALLBACK_HOST)
+    BK_APIGW_CALLBACK_SERVER_HOST = callback_host.netloc
+    BK_APIGW_CALLBACK_SERVER_SUB_PATH = callback_host.path.lstrip("/")
+
+    BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE = os.path.join(BASE_DIR, "gcloud", "apigw", "docs", "apigw-docs.tgz")
 
 # 默认数据库AUTO字段类型
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
@@ -175,7 +199,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.18.1"
+STATIC_VERSION = "3.19.1"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -201,7 +225,6 @@ if IS_USE_CELERY:
 
 TEMPLATE_DATA_SALT = "821a11587ea434eb85c2f5327a90ae54"
 OLD_COMMUNITY_TEMPLATE_DATA_SALT = "e5483c1ccde63392bd439775bba6a7ae"
-
 
 LOGGING["loggers"]["pipeline"] = {
     "handlers": ["root"],
@@ -506,7 +529,6 @@ VARIABLE_SPECIFIC_EXCEPTIONS = (ApiRequestError,)
 
 # SaaS统一日志配置
 def logging_addition_settings(logging_dict: dict, environment="prod"):
-
     # formatters
     logging_dict["formatters"]["light"] = {"format": "%(message)s"}
 
