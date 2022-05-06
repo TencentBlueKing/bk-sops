@@ -287,6 +287,7 @@
                 },
                 varTypeListLoading: false,
                 varTypeList: [], // 变量类型，input、textarea、datetime 等
+                varTypeData: {},
                 atomConfigLoading: false,
                 atomTypeKey: '',
                 isSaveConfirmDialogShow: false,
@@ -649,6 +650,8 @@
             },
             // 变量类型切换
             onValTypeChange (val) {
+                // 将上一个类型的填写的数据存起来
+                Object.assign(this.varTypeData, tools.deepClone(this.renderData))
                 let data
                 this.varTypeList.some(group => {
                     const option = group.children.find(item => item.code === val)
@@ -657,7 +660,12 @@
                         return true
                     }
                 })
-                this.renderData = {}
+                if (val in this.varTypeData) {
+                    const value = this.varTypeData[val]
+                    this.renderData = { [val]: value }
+                } else {
+                    this.renderData = {}
+                }
                 // input textarea类型需要正则校验
                 if (['input', 'textarea'].includes(val)) {
                     this.theEditingData.validation = '^.+$'

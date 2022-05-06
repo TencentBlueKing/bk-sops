@@ -60,6 +60,7 @@
                                     {{ $t('默认任务流程') }}
                                 </bk-button>
                                 <bk-button
+                                    v-if="viewMode !== 'appmaker' || !isCustomizeType"
                                     :theme="isSelectFunctionalType ? 'primary' : 'default'"
                                     @click="onSwitchTaskType(true)">
                                     {{ $t('职能化任务流程') }}
@@ -145,7 +146,7 @@
                 v-cursor="{ active: common ? !hasCommonTplCreateTaskPerm : !hasPermission(nextStepPerm, actions) }"
                 data-test-id="createTask_form_createTask"
                 @click="onCreateTask">
-                {{$t('下一步')}}
+                {{ (viewMode === 'appmaker' && isCustomizeType) ? $t('执行') : $t('下一步') }}
             </bk-button>
         </div>
     </div>
@@ -273,6 +274,9 @@
             // 不显示【执行计划】的情况
             isExecuteSchemeHide () {
                 return this.common || this.viewMode === 'appmaker' || (['periodicTask', 'clockedTask', 'taskflow', 'function'].indexOf(this.entrance) > -1)
+            },
+            isCustomizeType () {
+                return this.$route.query.type === 'customize'
             }
         },
         created () {
@@ -426,6 +430,9 @@
                     url.name = 'appmakerTaskCreate'
                     url.params.app_id = this.app_id
                 }
+                if (this.isCustomizeType) {
+                    url.query.type = 'customize'
+                }
                 this.$router.push(url)
             },
             onPickerChange (date) {
@@ -578,6 +585,9 @@
                                         params: { app_id: this.app_id, project_id: this.project_id },
                                         query: { instance_id: taskData.id, template_id }
                                     }
+                                }
+                                if (this.isCustomizeType) {
+                                    url.params.is_now = true
                                 }
                             } else if (this.$route.name === 'functionTemplateStep' && this.entrance === 'function') { // 职能化创建任务
                                 url = {

@@ -330,6 +330,10 @@
                 if (this.viewMode === 'appmaker') {
                     url.name = 'appmakerTaskCreate'
                 }
+                const { type } = this.$route.query
+                if (type) {
+                    url.query.type = type
+                }
                 this.$router.push(url)
             },
             /**

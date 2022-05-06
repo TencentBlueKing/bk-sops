@@ -145,7 +145,8 @@
                             trigger: 'blur'
                         }
                     ]
-                }
+                },
+                unhookingVarIndex: 0 // 正被取消勾选的表单下标
             }
         },
         watch: {
@@ -188,8 +189,9 @@
              */
             onHookChange (props) {
                 const index = props.$index
-                props.row.hooked = !props.row.hooked
-                if (props.row.hooked) {
+                this.unhookingVarIndex = index
+                if (!props.row.hooked) {
+                    props.row.hooked = true
                     // 输出选中默认新建不弹窗，直接生成变量。 如果有冲突则如下弹窗
                     const { key, version, plugin_code } = props.row
                     const value = /^\$\{\w+\}$/.test(key) ? key : `\${${key}}`
@@ -223,12 +225,17 @@
                         type: 'delete',
                         id: this.nodeId,
                         key: props.row.key,
-                        tagCode: props.row.key
+                        tagCode: props.row.key,
+                        source: 'output'
                     })
                     this.$emit('hookChange', 'delete', config)
-                    this.list[index].key = this.params[index].key
-                    this.list[index].name = this.params[index].name
                 }
+            },
+            setFromData () {
+                const index = this.unhookingVarIndex
+                this.list[index].key = this.params[index].key
+                this.list[index].name = this.params[index].name
+                this.list[index].hooked = false
             },
             onConfirm ($event) {
                 this.$refs.form.validate().then(result => {

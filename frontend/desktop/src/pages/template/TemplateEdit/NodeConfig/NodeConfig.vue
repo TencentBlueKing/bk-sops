@@ -214,6 +214,7 @@
                                         <template v-if="!outputLoading">
                                             <output-params
                                                 v-if="outputs.length"
+                                                ref="outputParams"
                                                 :constants="localConstants"
                                                 :params="outputs"
                                                 :version="basicInfo.version"
@@ -261,6 +262,20 @@
                     <bk-button theme="default" @click="onClosePanel()">{{ $t('不保存') }}</bk-button>
                 </div>
             </div>
+        </bk-dialog>
+        <bk-dialog
+            width="480"
+            ext-cls="cancel-global-variable-dialog"
+            header-position="left"
+            :mask-close="false"
+            :value="isCancelGloVarDialogShow"
+            :title="$t('取消引用全局变量')"
+            @cancel="isCancelGloVarDialogShow = false">
+            <p>{{ $t('取消后，该全局变量的引用数为 0 ') }}</p>
+            <p>{{ $t('不再使用的变量，建议在全局变量面板中及时删除') }}</p>
+            <template slot="footer">
+                <bk-button theme="primary" @click="onCancelVarConfirmClick">{{ $t('我知道了') }}</bk-button>
+            </template>
         </bk-dialog>
     </div>
 </template>
@@ -312,6 +327,7 @@
                 constantsLoading: false, // 子流程输入参数配置项加载
                 subflowVersionUpdating: false, // 子流程更新
                 isConfirmDialogShow: false, // 确认是否保存编辑数据
+                isCancelGloVarDialogShow: false, // 取消勾选全局变量
                 nodeConfig: {}, // 任务节点的完整 activity 配置参数
                 isBaseInfoLoading: true, // 基础信息loading
                 basicInfo: {}, // 基础信息模块
@@ -328,12 +344,15 @@
                 localConstants: {}, // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
                 randomKey: new Date().getTime(), // 输入、输出参数勾选状态改变时更新popover
                 isThirdParty: false, // 是否为第三方插件
-                quickOperateVariableVisable: false
+                quickOperateVariableVisable: false,
+                variableCited: {}, // 全局变量被任务节点、网关节点以及其他全局变量引用情况
+                unhookingVarForm: {} // 正被取消勾选的表单配置
             }
         },
         computed: {
             ...mapState({
                 'activities': state => state.template.activities,
+                'gateways': state => state.template.gateways,
                 'constants': state => state.template.constants,
                 'internalVariable': state => state.template.internalVariable,
                 'locations': state => state.template.location,
@@ -440,7 +459,8 @@
                 'loadPluginServiceAppDetail'
             ]),
             ...mapActions('template/', [
-                'loadTemplateData'
+                'loadTemplateData',
+                'getVariableCite'
             ]),
             ...mapActions('task', [
                 'loadSubflowConfig'
@@ -1164,8 +1184,8 @@
                 this.randomKey = new Date().getTime()
             },
             // 更新全局变量的 source_info
-            setVariableSourceInfo (data) {
-                const { type, id, key, tagCode } = data
+            async setVariableSourceInfo (data) {
+                const { type, id, key, tagCode, source } = data
                 const constant = this.localConstants[key]
                 if (!constant) return
                 const sourceInfo = constant.source_info
@@ -1176,22 +1196,55 @@
                         this.$set(sourceInfo, id, [tagCode])
                     }
                 } else if (type === 'delete') {
-                    if (sourceInfo[id].length <= 1) {
-                        this.$delete(sourceInfo, id)
+                    this.unhookingVarForm = data
+                    this.variableCited = await this.getVariableCitedData() || {}
+                    const { activities, conditions, constants } = this.variableCited[key]
+                    const citedNum = activities.length + conditions.length + constants.length
+                    if (citedNum <= 1) {
+                        this.isCancelGloVarDialogShow = true
                     } else {
-                        let atomIndex
-                        sourceInfo[id].some((item, index) => {
-                            if (item === tagCode) {
-                                atomIndex = index
-                                return true
-                            }
-                        })
-                        sourceInfo[id].splice(atomIndex, 1)
-                    }
-                    if (!Object.keys(sourceInfo).length) {
-                        this.deleteVariable(key)
+                        if (sourceInfo[id].length <= 1) {
+                            this.$delete(sourceInfo, id)
+                        } else {
+                            let atomIndex
+                            sourceInfo[id].some((item, index) => {
+                                if (item === tagCode) {
+                                    atomIndex = index
+                                    return true
+                                }
+                            })
+                            sourceInfo[id].splice(atomIndex, 1)
+                        }
+                        const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
+                        refDom && refDom.setFromData()
                     }
                 }
+            },
+            async getVariableCitedData () {
+                try {
+                    const config = this.getNodeFullConfig()
+                    const activities = Object.assign({}, this.activities, { [this.nodeId]: config })
+                    const data = {
+                        activities,
+                        gateways: this.gateways,
+                        constants: { ...this.internalVariable, ...this.localConstants }
+                    }
+                    const resp = await this.getVariableCite(data)
+                    if (resp.result) {
+                        return resp.data.defined
+                    }
+                } catch (e) {
+                    console.log(e)
+                }
+            },
+            onCancelVarConfirmClick () {
+                const { key, source } = this.unhookingVarForm
+                const constant = this.localConstants[key]
+                constant.source_info = {}
+                const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
+                refDom && refDom.setFromData()
+                this.deleteVariable(key)
+                this.isCancelGloVarDialogShow = false
             },
             // 删除全局变量
             deleteVariable (key) {
@@ -1621,6 +1674,17 @@
         }
         .action-wrapper .bk-button {
             margin-right: 6px;
+        }
+    }
+    .cancel-global-variable-dialog {
+        .bk-dialog-header {
+            padding-bottom: 18px;
+            .bk-dialog-header-inner {
+                font-size: 20px;
+            }
+        }
+        .bk-dialog-body {
+            line-height: 24px;
         }
     }
 </style>

@@ -90,6 +90,7 @@
                 formData: tools.deepClone(this.value),
                 hooked: {},
                 hookingVarForm: '', // 正被勾选的表单项
+                unhookingVarForm: '', // 正被取消勾选的表单项
                 isKeyExist: false, // 勾选的表单生成的 key 是否在全局变量列表中存在
                 newVarKeyName: { key: '', name: '' }, // 变量配置弹窗自动创建使用
                 isReuseDialogShow: false,
@@ -231,6 +232,7 @@
              * 取消勾选后全局变量的值需要同步当前表单项
              */
             unhookForm (form) {
+                this.unhookingVarForm = form
                 const variableKey = this.formData[form]
                 const constant = this.constants[variableKey]
                 if (constant) { // 标准插件里(如：job_execute_task)可能会修改表单的勾选状态，需要做一个兼容处理
@@ -238,13 +240,19 @@
                         type: 'delete',
                         id: this.nodeId,
                         key: variableKey,
-                        tagCode: form
+                        tagCode: form,
+                        source: 'input'
                     })
-                    this.formData[form] = tools.deepClone(constant.value)
-                    this.hooked[form] = false
-                    this.$emit('update', tools.deepClone(this.formData))
                     this.$emit('hookChange', 'delete', config)
                 }
+            },
+            setFromData () {
+                const form = this.unhookingVarForm
+                const variableKey = this.formData[form]
+                const constant = this.constants[variableKey]
+                this.formData[form] = tools.deepClone(constant.value)
+                this.hooked[form] = false
+                this.$emit('update', tools.deepClone(this.formData))
             },
             getNewVarConfig (name, key) {
                 const variableKey = varKeyReg.test(key) ? key : `\${${key}}`
