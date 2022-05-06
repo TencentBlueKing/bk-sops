@@ -809,9 +809,9 @@
 
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
-                    } else { // 保存后需要切到查看模式
+                    } else { // 保存后需要切到查看模式(查看执行方案除时为查看模式)
                         this.$router.push({
-                            params: { type: 'view' },
+                            params: { type: this.isExecuteScheme ? 'edit' : 'view' },
                             query: { template_id: data.template_id }
                         })
                     }
@@ -1767,6 +1767,8 @@
             onCancelSave () {
                 this.isExecuteSchemeDialog = false
                 this.isEditProcessPage = true
+                this.isTemplateDataChanged = false
+                this.isExecuteScheme = false
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
