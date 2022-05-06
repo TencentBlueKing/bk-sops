@@ -158,11 +158,11 @@ if env.IS_PAAS_V3:
     BK_API_URL_TMPL = env.BK_APIGW_URL_TMPL
     BK_APIGW_MANAGER_MAINTAINERS = env.BK_APIGW_MANAGER_MAINTAINERS
 
-    api_host = urlparse(env.BKAPP_INNER_API_SERVER_HOST)
+    api_host = urlparse(env.BKAPP_APIGW_API_HOST)
     BK_APIGW_API_SERVER_HOST = api_host.netloc
     BK_APIGW_API_SERVER_SUB_PATH = api_host.path.lstrip("/")
 
-    callback_host = urlparse(env.BKAPP_INNER_CALLBACK_HOST)
+    callback_host = urlparse(env.BKAPP_APIGW_CALLBACK_HOST)
     BK_APIGW_CALLBACK_SERVER_HOST = callback_host.netloc
     BK_APIGW_CALLBACK_SERVER_SUB_PATH = callback_host.path.lstrip("/")
 
