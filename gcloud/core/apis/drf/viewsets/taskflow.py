@@ -163,7 +163,9 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             if instance["template_id"] and instance["template_source"] == "common"
         ]
         common_templates_allowed_actions = get_common_flow_allowed_actions_for_user(
-            request.user.username, [IAMMeta.COMMON_FLOW_VIEW_ACTION], common_template_ids,
+            request.user.username,
+            [IAMMeta.COMMON_FLOW_VIEW_ACTION, IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION],
+            common_template_ids,
         )
         common_template_info = CommonTemplate.objects.filter(id__in=common_template_ids).values(
             "id", "pipeline_template__name", "is_deleted"
