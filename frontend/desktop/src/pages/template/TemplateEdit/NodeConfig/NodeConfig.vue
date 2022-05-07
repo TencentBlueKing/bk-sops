@@ -1243,7 +1243,6 @@
                 constant.source_info = {}
                 const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
                 refDom && refDom.setFromData()
-                this.deleteVariable(key)
                 this.isCancelGloVarDialogShow = false
             },
             // 删除全局变量
