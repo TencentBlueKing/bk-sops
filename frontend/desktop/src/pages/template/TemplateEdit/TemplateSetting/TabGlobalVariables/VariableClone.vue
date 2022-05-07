@@ -435,7 +435,7 @@
                     const pipelineData = JSON.parse(templateData.pipeline_tree)
                     const constants = pipelineData.constants
                     this.variableList = Object.values(constants).reduce((acc, cur) => {
-                        const result = this.varTypeList.find(value => cur.code === value.custom_type && cur.tag === value.source_tag)
+                        const result = this.varTypeList.find(value => value.code === cur.custom_type && value.tag === cur.source_tag)
                         const checkTypeList = ['component_inputs', 'component_outputs']
                         if (result && !checkTypeList.includes(cur.source_type)) {
                             cur.type = result.name
@@ -733,7 +733,7 @@
             width: 300px;
         }
         .col-type {
-            width: 150px;
+            flex: 1;
         }
         .ellipsis {
             overflow: hidden;
