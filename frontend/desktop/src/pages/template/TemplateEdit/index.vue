@@ -30,6 +30,7 @@
                 :exclude-node="excludeNode"
                 :execute-scheme-saving="executeSchemeSaving"
                 @onDownloadCanvas="onDownloadCanvas"
+                @goBackViewMode="goBackViewMode"
                 @goBackToTplEdit="goBackToTplEdit"
                 @onClosePreview="onClosePreview"
                 @onOpenExecuteScheme="onOpenExecuteScheme"
@@ -264,6 +265,7 @@
                 taskSchemeList: [],
                 isPreviewMode: false,
                 isExecuteSchemeDialog: false,
+                isBackViewMode: false,
                 isExecuteScheme: false, // 是否为执行方案
                 isEditProcessPage: true,
                 excludeNode: [],
@@ -424,7 +426,7 @@
                 let tip = this.$t('确定保存流程并去设置执行方案？')
                 if (this.type === 'clone') {
                     tip = this.$t('确定保存克隆流程并去设置执行方案？')
-                } else if (!this.isEditProcessPage) {
+                } else if (this.isBackViewMode || !this.isEditProcessPage) {
                     tip = this.$t('确定保存修改的内容？')
                 }
                 return tip
@@ -809,6 +811,8 @@
 
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
+                    } else if (this.isBackViewMode) {
+                        this.$router.back()
                     } else { // 保存后需要切到查看模式(查看执行方案除时为查看模式)
                         this.$router.push({
                             params: { type: this.isExecuteScheme ? 'edit' : 'view' },
@@ -1373,6 +1377,10 @@
                     this.executeSchemeSaving = false
                 }
             },
+            goBackViewMode () {
+                this.isBackViewMode = true
+                this.isExecuteSchemeDialog = true
+            },
             goBackToTplEdit () {
                 const { isDefaultSchemeIng, judgeDataEqual } = this.$refs.taskSelectNode
                 const isEqual = isDefaultSchemeIng ? judgeDataEqual() : !this.isSchemaListChange
@@ -1756,7 +1764,11 @@
                 if (this.isEditProcessPage) {
                     await this.saveTemplate()
                     this.isExecuteSchemeDialog = false
-                    this.isEditProcessPage = false
+                    if (this.isBackViewMode) {
+                        this.isBackViewMode = false
+                    } else {
+                        this.isEditProcessPage = false
+                    }
                 } else {
                     const { isDefaultSchemeIng, judgeDataEqual } = this.$refs.taskSelectNode
                     const isEqual = isDefaultSchemeIng ? !judgeDataEqual() : false
