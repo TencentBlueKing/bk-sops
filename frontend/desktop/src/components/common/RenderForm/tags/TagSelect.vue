@@ -63,7 +63,8 @@
                 <bk-button
                     class="ml10"
                     :disabled="!editable || disabled || !seletedValue.length"
-                    text title="primary"
+                    text
+                    title="primary"
                     @click="onClear">
                     {{ $t('清除') }}
                 </bk-button>
@@ -361,7 +362,6 @@
             },
             onClear () {
                 this.updateForm([])
-                this.validateInfo.valid = true
             }
         }
     }
