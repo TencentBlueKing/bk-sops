@@ -1338,7 +1338,8 @@ const en = {
     '取消引用全局变量': 'Dereference global variable',
     '取消后，该全局变量的引用数为 0 ': 'After cancellation, the reference count of this global variable is 0',
     '不再使用的变量，建议在全局变量面板中及时删除': 'Variables that are not used, recommended to delete them in the global variable panel',
-    '我知道了': 'I know'
+    '我知道了': 'I know',
+    '已选择(n)个选项': '{n} options selected'
 }
 
 export default en
