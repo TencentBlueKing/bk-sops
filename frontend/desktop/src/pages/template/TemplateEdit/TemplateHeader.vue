@@ -356,7 +356,9 @@
                 this.schemeInfo = null
             },
             goBackTplList () {
-                if (window.history.length <= 1 || (this.type === 'view' && !this.saveAndCreate)) {
+                if (this.isTemplateDataChanged && this.type === 'edit') {
+                    this.$emit('goBackViewMode') // 编辑态下返回上一个路由时先保存再back
+                } else if (window.history.length <= 1 || (this.type === 'view' && !this.saveAndCreate)) {
                     const { name } = this.$route
                     const url = name === 'projectCommonTemplatePanel'
                         ? { name: 'processCommon', params: { project_id: this.project_id } }

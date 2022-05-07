@@ -52,7 +52,7 @@
         </div>
         <div class="tpl-list-wrap" v-bkloading="{ isLoading: listLoading }">
             <div class="tpl-list">
-                <template v-for="tpl in tplList">
+                <template v-for="tpl in tableList">
                     <node-item
                         v-if="tpl.hasPermission"
                         class="node-item"
@@ -69,7 +69,7 @@
                         </div>
                     </div>
                 </template>
-                <bk-exception v-if="tplList.length === 0" class="exception-part" type="empty" scene="part"></bk-exception>
+                <bk-exception v-if="tableList.length === 0" class="exception-part" type="empty" scene="part"></bk-exception>
             </div>
         </div>
     </div>
@@ -100,6 +100,17 @@
                 limit: 20,
                 crtPage: 1,
                 isCompleteLoading: false
+            }
+        },
+        computed: {
+            tableList () {
+                // 除流程克隆的情况，流程列表中需要过滤掉url中template_id对应的流程
+                if (this.$route.params.type === 'clone') {
+                    return this.tplList
+                }
+                return this.tplList.filter(tpl => {
+                    return tpl.id !== Number(this.$route.query.template_id)
+                })
             }
         },
         watch: {
@@ -142,8 +153,8 @@
                     }
                     const resp = await this.$store.dispatch('templateList/loadTemplateList', data)
                     const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
-                    const { template_id } = this.$route.query
-                    const result = resp.results.reduce((acc, tpl) => {
+                    const results = []
+                    resp.results.forEach(tpl => {
                         tpl.hasPermission = this.hasPermission(reqPermission, tpl.auth_actions)
                         tpl.tplSource = this.common ? 'common' : 'business'
                         const tplCopy = { ...tpl }
@@ -154,12 +165,9 @@
                                 tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff5757;">${searchStr}</span>`)
                             }
                         }
-                        if (tpl.id !== Number(template_id)) {
-                            acc.push(tplCopy)
-                        }
-                        return acc
-                    }, [])
-                    this.tplList.push(...result)
+                        results.push(tplCopy)
+                    })
+                    this.tplList.push(...results)
                     this.isCompleteLoading = resp.count === this.tplList.length
                 } catch (e) {
                     console.log(e)
