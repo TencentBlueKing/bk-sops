@@ -1311,7 +1311,10 @@ const en = {
     '自动创建': 'auto create',
     '请输入用户': 'Please enter user',
     '批量更新子流程': 'Batch update subprocess',
-    '子流程更新时，如果新旧版本存在相同表单，表单数据会默认取原表单数据': 'When the sub-process is updated, if the same form exists in the old and new versions, the form data will default to the original form data'
+    '子流程更新时，如果新旧版本存在相同表单，表单数据会默认取原表单数据': 'When the sub-process is updated, if the same form exists in the old and new versions, the form data will default to the original form data',
+    '自定义变量中存在系统变量/项目变量的key，需要清除后才能保存，是否一键清除？(可通过【模版数据-constants】进行确认)': 'The key of the system variable/project variable exists in the custom variable, which needs to be cleared before saving. Is it clear with one click? (It can be confirmed through [Template Data-constants])',
+    '问题变量有：': 'The problem variables are:',
+    '清除': 'Clear'
 }
 
 export default en
