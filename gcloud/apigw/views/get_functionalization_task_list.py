@@ -61,7 +61,7 @@ def get_functionalization_task_list(request):
         function_tasks, count = paginate_list_data(request, function_tasks)
     except Exception as e:
         return {"result": False, "data": "", "message": e, "code": err_code.INVALID_OPERATION.code}
-    data = format_function_task_list_data(function_tasks, request.tz)
+    data = format_function_task_list_data(function_tasks, tz=request.tz)
 
     response = {"result": True, "data": data, "count": count, "code": err_code.SUCCESS.code}
     return response
