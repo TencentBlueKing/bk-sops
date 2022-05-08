@@ -60,6 +60,7 @@ class PeriodicTaskSerializer(serializers.ModelSerializer):
 
     task = PipelinePeriodicTaskSerializer()
     project = ProjectSerializer()
+    last_run_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S %z", read_only=True)
 
     class Meta:
         model = PeriodicTask
