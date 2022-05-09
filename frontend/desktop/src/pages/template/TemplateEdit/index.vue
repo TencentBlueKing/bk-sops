@@ -215,19 +215,6 @@
                     </div>
                 </div>
             </bk-dialog>
-            <bk-dialog
-                :value="isVarKeysDialogShow"
-                theme="primary"
-                width="500"
-                :mask-close="false"
-                @cancel="handleDialogCancel">
-                <p>{{ $t('自定义变量中存在系统变量/项目变量的key，需要清除后才能保存，是否一键清除？(可通过【模版数据-constants】进行确认)') }}</p>
-                <p class="mt10">{{ $t('问题变量有：') + illegalKeys.join(',') }}</p>
-                <template slot="footer">
-                    <bk-button theme="primary" :loading="isSaveLoading" @click="handleDialogConfirm">{{ $t('清除') }}</bk-button>
-                    <bk-button @click="handleDialogCancel">{{ $t('取消') }}</bk-button>
-                </template>
-            </bk-dialog>
         </div>
     </div>
 </template>
@@ -361,9 +348,7 @@
                 envVariableData: {},
                 validateConnectFailList: [], // 节点校验失败列表
                 isPerspective: false, // 流程是否透视
-                nodeVariableInfo: {}, // 节点输入输出变量
-                isVarKeysDialogShow: false,
-                illegalKeys: [] // 不合法的变量key值
+                nodeVariableInfo: {} // 节点输入输出变量
             }
         },
         computed: {
@@ -781,18 +766,38 @@
                     this.templateLabelLoading = false
                 }
             },
+            checkDirtyData () {
+                const ins = new DealVarDirtyData(this.constants)
+                const illegalKeys = ins.checkKeys()
+                if (illegalKeys.length) {
+                    const h = this.$createElement
+                    this.$bkInfo({
+                        title: '',
+                        okText: i18n.t('清除'),
+                        subTitle: h('p',
+                                    { style: {} },
+                                    [
+                                        i18n.t('自定义变量中存在系统变量/项目变量的key，需要清除后才能保存，是否一键清除？(可通过【模版数据-constants】进行确认)'),
+                                        h('p',
+                                          { style: { marginTop: '10px' } },
+                                          [i18n.t('问题变量有：'), illegalKeys.join(',')]
+                                        )
+                                    ]),
+                        confirmFn: () => {
+                            const constants = ins.handleIllegalKeys()
+                            this.setConstants(constants)
+                            this.saveTemplate()
+                        }
+                    })
+                    return false
+                }
+            },
             /**
              * 保存流程模板
              */
             async saveTemplate () {
                 // 检查全局变量是否存在脏数据
-                const instance = new DealVarDirtyData(this.constants)
-                const illegalKeys = instance.checkKeys()
-                if (illegalKeys.length) {
-                    this.illegalKeys = illegalKeys
-                    this.isVarKeysDialogShow = true
-                    return
-                }
+                this.checkDirtyData()
 
                 const template_id = this.type === 'edit' ? this.template_id : undefined
                 if (this.saveAndCreate) {
@@ -1831,20 +1836,6 @@
             onCancelSave () {
                 this.isExectueSchemeDialog = false
                 this.isEditProcessPage = true
-            },
-            async handleDialogConfirm () {
-                try {
-                    const instance = new DealVarDirtyData(this.constants, this.illegalKeys)
-                    const constants = instance.handleIllegalKeys()
-                    this.setConstants(constants)
-                    await this.saveTemplate()
-                    this.isVarKeysDialogShow = false
-                } catch (error) {
-                    console.warn(error)
-                }
-            },
-            handleDialogCancel () {
-                this.isVarKeysDialogShow = false
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
