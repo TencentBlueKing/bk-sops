@@ -14,8 +14,11 @@ specific language governing permissions and limitations under the License.
 import ujson as json
 import logging
 
+from drf_yasg.utils import swagger_auto_schema
+
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view
 
 from iam import Subject, Action, Resource, Request, MultiActionRequest
 from iam.exceptions import AuthInvalidRequest, AuthAPIError
@@ -24,6 +27,7 @@ from gcloud.iam_auth import conf
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth import get_iam_client, get_iam_api_client
 from gcloud.shortcuts.http import standard_response
+from gcloud.openapi.schema import AnnotationAutoSchema
 
 logger = logging.getLogger("root")
 
@@ -75,7 +79,21 @@ def is_allow(request):
     return standard_response(True, "success", {"is_allow": is_allow})
 
 
+@swagger_auto_schema(methods=["GET"], auto_schema=AnnotationAutoSchema)
+@api_view(["GET"])
 def is_allow_common_flow_management(request):
+    """
+    判断当前用户是否有公共流程管理页面权限
+
+    return: dict 根据 result 字段判断是否请求成功
+    {
+        "result": "是否请求成功(boolean)",
+        "data": {
+            "is_allow": "当前用户是否有公共流程管理页面权限(boolean)"
+        },
+        "message": "错误时提示(string)"
+    }
+    """
 
     subject = Subject("user", request.user.username)
 
