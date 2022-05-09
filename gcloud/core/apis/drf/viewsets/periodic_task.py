@@ -135,6 +135,7 @@ class PeriodicTaskViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins
         serializer.validated_data["project"] = project
         serializer.validated_data["template_source"] = template_source
 
-        self.perform_create(serializer)
+        instance = serializer.save()
+        instance.set_enabled(True)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
