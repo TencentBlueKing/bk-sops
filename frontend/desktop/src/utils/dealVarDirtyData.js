@@ -1,8 +1,7 @@
-import tools from '@/utils/tools.js'
 export default class DealVarDirtyData {
-    constructor (constants) {
+    constructor (constants = {}, illegalKeys = []) {
         this.constants = Object.assign({}, constants)
-        this.illegalKeys = []
+        this.illegalKeys = illegalKeys
     }
     checkKeys () {
         const variableKeys = Object.keys(this.constants)
@@ -12,20 +11,15 @@ export default class DealVarDirtyData {
                 illegalKeys.push(key)
             }
         })
-        this.illegalKeys = illegalKeys
         return illegalKeys
     }
     handleIllegalKeys () {
-        const constants = tools.deepClone(this.constants)
-        this.illegalKeys.forEach(key => {
-            this.$delete(constants, key)
-        })
-        return constants
-    }
-    static getInstance (constants) { // 共享实例
-        if (!this.instance) {
-            this.instance = new DealVarDirtyData(constants)
+        const constants = []
+        for (const [key, value] of Object.entries(this.constants)) {
+            if (!this.illegalKeys.includes(key)) {
+                constants.push({ [key]: value })
+            }
         }
-        return this.instance
+        return constants
     }
 }

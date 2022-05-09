@@ -786,7 +786,8 @@
              */
             async saveTemplate () {
                 // 检查全局变量是否存在脏数据
-                const illegalKeys = DealVarDirtyData.getInstance(this.constants).checkKeys()
+                const instance = new DealVarDirtyData(this.constants)
+                const illegalKeys = instance.checkKeys()
                 if (illegalKeys.length) {
                     this.illegalKeys = illegalKeys
                     this.isVarKeysDialogShow = true
@@ -1833,7 +1834,8 @@
             },
             async handleDialogConfirm () {
                 try {
-                    const constants = DealVarDirtyData.getInstance(this.constants).handleIllegalKeys()
+                    const instance = new DealVarDirtyData(this.constants, this.illegalKeys)
+                    const constants = instance.handleIllegalKeys()
                     this.setConstants(constants)
                     await this.saveTemplate()
                     this.isVarKeysDialogShow = false
