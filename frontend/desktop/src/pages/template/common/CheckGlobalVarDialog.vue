@@ -15,57 +15,24 @@
 </template>
 
 <script>
-    import tools from '@/utils/tools.js'
-    import { mapState, mapMutations } from 'vuex'
+    import varDirtyData from '@/mixins/varDirtyData.js'
     export default {
         name: 'CheckGlobalVarDialog',
+        mixins: [varDirtyData],
         data () {
             return {
-                isVarKeysDialogShow: false,
-                illegalKeys: [] // 不合规的变量key值
+                isVarKeysDialogShow: false
             }
         },
-        computed: {
-            ...mapState({
-                'constants': state => state.template.constants
-            })
-        },
         methods: {
-            ...mapMutations('template/', [
-                'setConstants'
-            ]),
-            checkGlobalVar () {
-                const variableKeys = Object.keys(this.constants)
-                const illegalKeys = []
-                variableKeys.forEach(key => {
-                    if (/(^\${(_env_|_system\.))|(^(_env_|_system\.))/.test(key)) {
-                        illegalKeys.push(key)
-                    }
-                })
-                if (illegalKeys.length) {
-                    this.illegalKeys = illegalKeys
-                    this.isVarKeysDialogShow = true
-                    return true
-                }
-                return false
-            },
             handleDialogConfirm () {
-                const constants = tools.deepClone(this.constants)
-                this.illegalKeys.forEach(key => {
-                    this.$delete(constants, key)
-                })
-                this.setConstants(constants)
+                this.clearVarDirtyData()
                 this.isVarKeysDialogShow = false
                 this.$parent.saveTemplate()
             },
             handleDialogCancel () {
-                this.illegalKeys = []
                 this.isVarKeysDialogShow = false
             }
         }
     }
 </script>
-
-<style>
-
-</style>

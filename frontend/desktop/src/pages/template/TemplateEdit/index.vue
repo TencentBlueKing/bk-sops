@@ -772,9 +772,9 @@
              */
             async saveTemplate () {
                 // 检查全局变量是否存在脏数据
-                const dom = this.$refs.checkVarDialog
-                const results = dom && dom.checkGlobalVar()
-                if (results) return
+                const varCheckDom = this.$refs.checkVarDialog
+                const hasDirtyData = varCheckDom.checkVarDirtyData()
+                if (hasDirtyData) return
 
                 const template_id = this.type === 'edit' ? this.template_id : undefined
                 if (this.saveAndCreate) {
