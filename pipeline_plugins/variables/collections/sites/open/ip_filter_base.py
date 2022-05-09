@@ -19,7 +19,7 @@ from gcloud.constants import GseAgentStatus
 from gcloud.conf import settings as gcloud_settings
 from gcloud.core.models import Project
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.base.utils.inject import supplier_account_for_project
+from pipeline_plugins.base.utils.inject import supplier_id_for_project
 
 logger = logging.getLogger("root")
 get_client_by_user = gcloud_settings.ESB_GET_CLIENT_BY_USER
@@ -44,7 +44,7 @@ class GseAgentStatusIpFilter(IpFilterBase):
         project_id = self.data["project_id"]
         project = Project.objects.get(id=project_id)
         bk_biz_id = project.bk_biz_id if project.from_cmdb else ""
-        bk_supplier_account = supplier_account_for_project(project_id)
+        bk_supplier_id = supplier_id_for_project(project_id)
         if not origin_ip_list:
             return []
 
@@ -53,7 +53,7 @@ class GseAgentStatusIpFilter(IpFilterBase):
             client = get_client_by_user(username)
             agent_kwargs = {
                 "bk_biz_id": bk_biz_id,
-                "bk_supplier_id": bk_supplier_account,
+                "bk_supplier_id": bk_supplier_id,
                 "hosts": origin_ip_list,
             }
             agent_result = client.gse.get_agent_status(agent_kwargs)
