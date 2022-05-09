@@ -1,7 +1,7 @@
 export default class DealVarDirtyData {
-    constructor (constants = {}, illegalKeys = []) {
+    constructor (constants = {}) {
         this.constants = Object.assign({}, constants)
-        this.illegalKeys = illegalKeys
+        this.illegalKeys = []
     }
     checkKeys () {
         const variableKeys = Object.keys(this.constants)
@@ -11,13 +11,14 @@ export default class DealVarDirtyData {
                 illegalKeys.push(key)
             }
         })
+        this.illegalKeys = illegalKeys
         return illegalKeys
     }
     handleIllegalKeys () {
-        const constants = []
+        const constants = {}
         for (const [key, value] of Object.entries(this.constants)) {
             if (!this.illegalKeys.includes(key)) {
-                constants.push({ [key]: value })
+                constants[key] = value
             }
         }
         return constants
