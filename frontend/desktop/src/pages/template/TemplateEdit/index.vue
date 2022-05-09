@@ -215,7 +215,19 @@
                     </div>
                 </div>
             </bk-dialog>
-            <CheckGlobalVarDialog ref="checkVarDialog"></CheckGlobalVarDialog>
+            <bk-dialog
+                :value="isVarKeysDialogShow"
+                theme="primary"
+                width="500"
+                :mask-close="false"
+                @cancel="handleDialogCancel">
+                <p>{{ $t('自定义变量中存在系统变量/项目变量的key，需要清除后才能保存，是否一键清除？(可通过【模版数据-constants】进行确认)') }}</p>
+                <p class="mt10">{{ $t('问题变量有：') + illegalKeys.join(',') }}</p>
+                <template slot="footer">
+                    <bk-button theme="primary" :loading="isSaveLoading" @click="handleDialogConfirm">{{ $t('清除') }}</bk-button>
+                    <bk-button @click="handleDialogCancel">{{ $t('取消') }}</bk-button>
+                </template>
+            </bk-dialog>
         </div>
     </div>
 </template>
@@ -243,7 +255,7 @@
     import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
     import TaskSelectNode from '../../task/TaskCreate/TaskSelectNode.vue'
     import BatchUpdateDialog from './BatchUpdateDialog.vue'
-    import CheckGlobalVarDialog from '../common/CheckGlobalVarDialog.vue'
+    import DealVarDirtyData from '@/utils/dealVarDirtyData.js'
 
     export default {
         name: 'TemplateEdit',
@@ -255,8 +267,7 @@
             ConditionEdit,
             TemplateSetting,
             SubflowUpdateTips,
-            BatchUpdateDialog,
-            CheckGlobalVarDialog
+            BatchUpdateDialog
         },
         mixins: [permission],
         props: ['template_id', 'type', 'common', 'entrance'],
@@ -350,7 +361,9 @@
                 envVariableData: {},
                 validateConnectFailList: [], // 节点校验失败列表
                 isPerspective: false, // 流程是否透视
-                nodeVariableInfo: {} // 节点输入输出变量
+                nodeVariableInfo: {}, // 节点输入输出变量
+                isVarKeysDialogShow: false,
+                illegalKeys: [] // 不合法的变量key值
             }
         },
         computed: {
@@ -537,7 +550,8 @@
                 'replaceTemplate',
                 'replaceLineAndLocation',
                 'setPipelineTree',
-                'setInternalVariable'
+                'setInternalVariable',
+                'setConstants'
             ]),
             ...mapMutations('atomForm/', [
                 'clearAtomForm'
@@ -772,9 +786,12 @@
              */
             async saveTemplate () {
                 // 检查全局变量是否存在脏数据
-                const varCheckDom = this.$refs.checkVarDialog
-                const hasDirtyData = varCheckDom.checkVarDirtyData()
-                if (hasDirtyData) return
+                const illegalKeys = DealVarDirtyData.getInstance(this.constants).checkKeys()
+                if (illegalKeys.length) {
+                    this.illegalKeys = illegalKeys
+                    this.isVarKeysDialogShow = true
+                    return
+                }
 
                 const template_id = this.type === 'edit' ? this.template_id : undefined
                 if (this.saveAndCreate) {
@@ -1813,6 +1830,19 @@
             onCancelSave () {
                 this.isExectueSchemeDialog = false
                 this.isEditProcessPage = true
+            },
+            async handleDialogConfirm () {
+                try {
+                    const constants = DealVarDirtyData.getInstance(this.constants).handleIllegalKeys()
+                    this.setConstants(constants)
+                    await this.saveTemplate()
+                    this.isVarKeysDialogShow = false
+                } catch (error) {
+                    console.warn(error)
+                }
+            },
+            handleDialogCancel () {
+                this.isVarKeysDialogShow = false
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
