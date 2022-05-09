@@ -160,6 +160,9 @@
                                 result: true,
                                 error_message: ""
                             };
+                            if (!value) {
+                                return result
+                            }
                             if (+value < 60 || +value > 86400) {
                                 result.result = false;
                                 result.error_message = gettext("超时时间必须在 60 - 86400 范围内")
