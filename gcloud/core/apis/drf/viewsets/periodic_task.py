@@ -39,6 +39,7 @@ from gcloud.core.apis.drf.permission import (
     IamPermission,
     IamPermissionInfo,
     IamUserTypeBasedValidator,
+    HAS_PERMISSION,
 )
 
 logger = logging.getLogger("root")
@@ -49,7 +50,12 @@ class PeriodicTaskPermission(IamPermission):
         "retrieve": IamPermissionInfo(
             IAMMeta.PERIODIC_TASK_VIEW_ACTION, res_factory.resources_for_periodic_task_obj, HAS_OBJECT_PERMISSION
         ),
-        "create": IamPermissionInfo(IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION),
+        "create": IamPermissionInfo(
+            IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION,
+            res_factory.resources_for_flow,
+            HAS_PERMISSION,
+            id_field="template_id",
+        ),
         "destroy": IamPermissionInfo(
             IAMMeta.PERIODIC_TASK_DELETE_ACTION, res_factory.resources_for_periodic_task_obj, HAS_OBJECT_PERMISSION
         ),
