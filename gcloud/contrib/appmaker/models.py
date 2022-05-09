@@ -265,11 +265,11 @@ class AppMaker(models.Model):
 
     objects = AppMakerManager()
 
-    def delete(self, real_delete=False):
-        if real_delete:
-            return super().delete()
-        setattr(self, "is_deleted", True)
-        self.save()
+    def delete(self, *args, **kwargs):
+        fake = True if settings.IS_LOCAL else False
+        result, data = AppMaker.objects.del_app_maker(self.project.id, self.id, fake)
+        if not result:
+            raise Exception(data)
 
     @property
     def creator_name(self):
