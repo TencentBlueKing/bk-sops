@@ -518,7 +518,6 @@ VARIABLE_KEY_BLACKLIST = env.VARIABLE_KEY_BLACKLIST.strip().strip(",").split(","
 AUTO_UPDATE_VARIABLE_MODELS = os.getenv("BKAPP_AUTO_UPDATE_VARIABLE_MODELS", "1") == "1"
 AUTO_UPDATE_COMPONENT_MODELS = os.getenv("BKAPP_AUTO_UPDATE_COMPONENT_MODELS", "1") == "1"
 
-CELERY_SEND_EVENTS = True
 PAGE_NOT_FOUND_URL_KEY = "page_not_found"
 BLUEAPPS_SPECIFIC_REDIRECT_KEY = "page_not_found"
 
@@ -690,6 +689,7 @@ def monitor_report_config():
 
 # 自定义上报监控配置
 if env.BK_MONITOR_REPORT_ENABLE:
+    CELERY_SEND_EVENTS = True
     monitor_report_config()
 
 ENABLE_OTEL_TRACE = env.ENABLE_OTEL_TRACE
