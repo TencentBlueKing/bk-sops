@@ -39,7 +39,6 @@ from gcloud.core.apis.drf.permission import (
     IamPermission,
     IamPermissionInfo,
     IamUserTypeBasedValidator,
-    HAS_PERMISSION,
 )
 
 logger = logging.getLogger("root")
@@ -50,12 +49,6 @@ class PeriodicTaskPermission(IamPermission):
         "retrieve": IamPermissionInfo(
             IAMMeta.PERIODIC_TASK_VIEW_ACTION, res_factory.resources_for_periodic_task_obj, HAS_OBJECT_PERMISSION
         ),
-        "create": IamPermissionInfo(
-            IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION,
-            res_factory.resources_for_flow,
-            HAS_PERMISSION,
-            id_field="template_id",
-        ),
         "destroy": IamPermissionInfo(
             IAMMeta.PERIODIC_TASK_DELETE_ACTION, res_factory.resources_for_periodic_task_obj, HAS_OBJECT_PERMISSION
         ),
@@ -65,6 +58,21 @@ class PeriodicTaskPermission(IamPermission):
         if view.action == "list":
             user_type_validator = IamUserTypeBasedValidator()
             return user_type_validator.validate(request)
+        elif view.action == "create":
+            template_source = request.data.get("template_source", PROJECT)
+            template_id = request.data.get("template_id")
+            if template_source == PROJECT:
+                iam_action = IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION
+                resources = res_factory.resources_for_flow(template_id)
+            else:
+                iam_action = IAMMeta.COMMON_FLOW_CREATE_PERIODIC_TASK_ACTION
+                resources = res_factory.resources_for_common_flow(template_id)
+                if request.data.get("project"):
+                    resources.extend(res_factory.resources_for_project(request.data["project"]))
+            self.iam_auth_check(
+                request=request, action=iam_action, resources=resources,
+            )
+            return True
         return super().has_permission(request, view)
 
 
