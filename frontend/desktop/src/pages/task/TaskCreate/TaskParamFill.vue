@@ -93,6 +93,7 @@
                                     @open-change="onPickerOpenChange"
                                     @change="onPickerChange">
                                 </bk-date-picker>
+                                <span class="time-zone">{{ locTimeZone }}</span>
                                 <span v-if="isDateError" class="common-error-tip error-msg">
                                     {{ !timeRange ? $t('启动时间不能为空') : $t('启动时间不能小于当前时间') }}
                                 </span>
@@ -229,7 +230,8 @@
                 },
                 notifyType: [[]],
                 receiverGroup: [],
-                remoteData: '' // 文本值下拉框变量远程数据源
+                remoteData: '', // 文本值下拉框变量远程数据源
+                locTimeZone: '' // 本地时区后缀
             }
         },
         computed: {
@@ -282,6 +284,7 @@
                 this.isStartNow = 'periodic'
             } else if (this.entrance === 'clockedTask') {
                 this.isStartNow = 'clocked'
+                this.locTimeZone = new Date().toTimeString().slice(12, 17)
             }
             if (this.common) {
                 this.queryCommonTplCreateTaskPerm()
@@ -671,7 +674,7 @@
                                 success: [],
                                 fail: this.notifyType[0]
                             },
-                            plan_start_time: this.timeRange
+                            plan_start_time: this.timeRange + this.locTimeZone
                         }
                         try {
                             await this.createClocked(data)
@@ -705,6 +708,8 @@
                     this.timeRange = ''
                     this.notifyType = [[]]
                     this.receiverGroup = []
+                } else {
+                    this.locTimeZone = new Date().toTimeString().slice(12, 17)
                 }
             },
             paramsLoadingChange (val) {
@@ -747,6 +752,12 @@
         }
         .bk-date-picker {
             width: 500px;
+        }
+        .time-zone {
+            position: relative;
+            font-size: 12px;
+            margin: 0 8px 0 -50px;
+            color: #979ba5;
         }
     }
 }
