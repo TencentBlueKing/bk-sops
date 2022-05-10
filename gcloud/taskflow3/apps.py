@@ -23,6 +23,8 @@ class Taskflow3Config(AppConfig):
         from gcloud.taskflow3.signals.handlers import pipeline_finish_handler  # noqa
         from gcloud.taskflow3.signals.handlers import pipeline_revoke_handler  # noqa
         from gcloud.taskflow3.signals.handlers import pipeline_fail_handler  # noqa
+        from gcloud.taskflow3.signals.handlers import pre_service_execute_handler  # noqa
+        from gcloud.taskflow3.signals.handlers import pre_service_schedule_handler  # noqa
 
         # bamboo-pipeline 流程实例 unpickle 路径兼容
         from gcloud.taskflow3.domains import context

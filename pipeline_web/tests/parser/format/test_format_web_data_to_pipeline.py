@@ -850,7 +850,8 @@ web_tree = json.loads(
                 "stage_name": "",
                 "type": "ServiceActivity",
                 "retryable": true,
-                "skippable": true
+                "skippable": true,
+                "executor_proxy": "tester"
             },
             "n465cfafc9723b14abfd93c20c15f101": {
                 "component": {
@@ -2086,6 +2087,12 @@ pipeline_tree = json.loads(
                             "value": true,
                             "is_param": false,
                             "need_render": true
+                        }
+                        "__executor_proxy": {
+                            "type": "plain",
+                            "value": "tester",
+                            "is_param": false,
+                            "need_render": false
                         }
                     },
                     "global_outputs": {

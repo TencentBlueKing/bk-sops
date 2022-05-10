@@ -61,6 +61,15 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
                     "timeout_config can not be enabled with error_ignorable or auto_retry at the same time"
                 )
 
+            # 节点执行代理人配置
+            if act.get("executor_proxy"):
+                act["component"]["inputs"]["__executor_proxy"] = {
+                    "type": "plain",
+                    "value": act.get("executor_proxy"),
+                    "is_param": False,
+                    "need_render": False,
+                }
+
         elif act["type"] == "SubProcess":
             parent_params = {}
             for key, info in list(act["pipeline"]["constants"].items()):
