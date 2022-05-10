@@ -17,16 +17,12 @@ from abc import ABCMeta, abstractmethod
 
 import requests
 from django.conf import settings
-
-import env
+from pipeline.eri.runtime import BambooDjangoRuntime
 
 logger = logging.getLogger("root")
 
 
 class BaseNodeLogDataSource(metaclass=ABCMeta):
-    def __init__(self):
-        self.url = settings.NODE_LOG_PULL_DATA_SOURCE_URL
-
     @abstractmethod
     def fetch_node_logs(self, request, node_id, version_id, *args, **kwargs):
         raise NotImplementedError()
@@ -34,16 +30,15 @@ class BaseNodeLogDataSource(metaclass=ABCMeta):
 
 class PaaS3NodeLogDataSource(BaseNodeLogDataSource):
     def __init__(self):
-        super().__init__()
-        module_name = settings.NODE_LOG_PULL_DATA_SOURCE_PARAMS.get("module_name", "pipeline")
-        self.url = self.url.format(module_name=module_name, code=settings.APP_CODE)
+        module_name = settings.NODE_LOG_DATA_SOURCE_CONFIG.get("module_name", "pipeline")
+        self.url = settings.NODE_LOG_DATA_SOURCE_CONFIG["url"].format(module_name=module_name, code=settings.APP_CODE)
         self.headers = {
             "X-Bkapi-Authorization": json.dumps(
                 {"bk_app_code": settings.APP_CODE, "bk_app_secret": settings.SECRET_KEY}
             ),
             "Content-Type": "application/json",
         }
-        self.private_token = env.PAASV3_APIGW_API_TOKEN
+        self.private_token = settings.PAASV3_APIGW_API_TOKEN
 
     def fetch_node_logs(self, node_id, version_id, *args, **kwargs):
         page, page_size = kwargs.get("page", 1), kwargs.get("page_size", 30)
@@ -71,3 +66,22 @@ class PaaS3NodeLogDataSource(BaseNodeLogDataSource):
             "\n".join([f'{log["ts"]}: {log["message"]}' for log in res_data["data"]["logs"]]),
         )
         return {"result": True, "data": {"logs": logs, "page_info": page_info}, "message": ""}
+
+
+class DatabaseNodeLogDataSource(BaseNodeLogDataSource):
+    def fetch_node_logs(self, node_id, version_id, *args, **kwargs):
+        runtime = BambooDjangoRuntime()
+        logs = runtime.get_plain_log_for_node(node_id=node_id, version=version_id)
+        return {"result": True, "data": {"logs": logs, "page_info": {}}, "message": ""}
+
+
+class NodeLogDataSourceFactory:
+    DATASOURCE_MAPPINGS = {
+        "DATABASE": DatabaseNodeLogDataSource,
+        "PaaS3": PaaS3NodeLogDataSource,
+    }
+    DEFAULT_DATASOURCE = DatabaseNodeLogDataSource
+
+    def __init__(self, datasource):
+        data_source_cls = self.DATASOURCE_MAPPINGS.get(datasource, self.DEFAULT_DATASOURCE)
+        self.data_source = data_source_cls()

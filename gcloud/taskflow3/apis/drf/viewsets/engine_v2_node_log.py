@@ -19,10 +19,9 @@ from rest_framework import permissions
 from iam import Subject, Action
 from iam.shortcuts import allow_or_raise_auth_failed
 from drf_yasg.utils import swagger_auto_schema
-from pipeline.eri.runtime import BambooDjangoRuntime
 
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
-from gcloud.taskflow3.domains.node_log import PaaS3NodeLogDataSource
+from gcloud.taskflow3.domains.node_log import NodeLogDataSourceFactory
 from gcloud.utils.handlers import handle_plain_log
 
 iam = get_iam_client()
@@ -60,18 +59,13 @@ class EngineV2NodeLogView(APIView):
     )
     @action(methods=["GET"], detail=True)
     def get(self, request, project_id, task_id, node_id, version):
-        page_info = None
-        if settings.ENABLE_NODE_LOG_PULL:
-            page = request.query_params.get("page", self.DEFAULT_PAGE)
-            page_size = request.query_params.get("page_size", self.DEFAULT_PAGE_SIZE)
-            data_source = PaaS3NodeLogDataSource()
-            result = data_source.fetch_node_logs(node_id, version, page=page, page_size=page_size)
-            if not result["result"]:
-                return Response({"result": False, "message": result["message"], "data": None})
-            logs, page_info = result["data"]["logs"], result["data"]["page_info"]
-        else:
-            runtime = BambooDjangoRuntime()
-            logs = runtime.get_plain_log_for_node(node_id=node_id, version=version)
+        page = request.query_params.get("page", self.DEFAULT_PAGE)
+        page_size = request.query_params.get("page_size", self.DEFAULT_PAGE_SIZE)
+        data_source = NodeLogDataSourceFactory(settings.NODE_LOG_DATA_SOURCE).data_source
+        result = data_source.fetch_node_logs(node_id, version, page=page, page_size=page_size)
+        if not result["result"]:
+            return Response({"result": False, "message": result["message"], "data": None})
+        logs, page_info = result["data"]["logs"], result["data"]["page_info"]
 
         return Response(
             {
