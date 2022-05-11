@@ -448,7 +448,7 @@
                     if (this.common || this.nodeConfig.template_source === 'common') {
                         data.template_source = 'common'
                     } else {
-                        data.project_id = this.project_id
+                        data.project_id = this.projectId
                     }
                     const resp = await this.loadSubflowConfig(data)
                     this.version = resp.data.version
