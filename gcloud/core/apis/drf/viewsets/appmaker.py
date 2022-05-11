@@ -28,6 +28,9 @@ class AppmakerPermission(IamPermission):
         "list": IamPermissionInfo(
             IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project__id"
         ),
+        "retrieve": IamPermissionInfo(
+            IAMMeta.MINI_APP_VIEW_ACTION, res_factory.resources_for_mini_app_obj, check_hook=HAS_OBJECT_PERMISSION
+        ),
         "destroy": IamPermissionInfo(
             IAMMeta.MINI_APP_DELETE_ACTION, res_factory.resources_for_mini_app_obj, HAS_OBJECT_PERMISSION
         ),
