@@ -12,7 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework import mixins
+from rest_framework import mixins, permissions
 
 from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
 from gcloud.contrib.appmaker.models import AppMaker
@@ -46,5 +46,6 @@ class AppmakerListViewSet(GcloudReadOnlyViewSet, mixins.DestroyModelMixin):
             IAMMeta.MINI_APP_VIEW_ACTION,
         ],
     )
+    permission_classes = [permissions.IsAuthenticated, AppmakerPermission]
     filter_fields = {"editor": ["exact"], "project__id": ["exact"], "edit_time": ["gte", "lte"]}
     pagination_class = LimitOffsetPagination
