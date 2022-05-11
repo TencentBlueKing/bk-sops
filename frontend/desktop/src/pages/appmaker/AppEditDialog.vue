@@ -41,6 +41,7 @@
                             :id="option.id"
                             :name="option.name">
                             <p
+                                :title="option.name"
                                 v-cursor="{ active: !hasPermission(['flow_view'], option.auth_actions) }"
                                 @click="onTempSelect(['flow_view'], option)">
                                 {{ option.name }}
