@@ -20,21 +20,8 @@ from gcloud.core.models import Project
 from gcloud.core.apis.drf.filtersets import ALL_LOOKUP, AllLookupSupportFilterSet
 from gcloud.core.apis.drf.serilaziers import ProjectSerializer
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
-from gcloud.core.apis.drf.permission import IamPermissionInfo, IamPermission, HAS_OBJECT_PERMISSION
 
 from .base import GcloudListViewSet
-
-
-class UserProjectPermission(IamPermission):
-    resource_func = res_factory.resources_for_project_obj
-    actions = {
-        "list": IamPermissionInfo(pass_all=True),
-        "update": IamPermissionInfo(IAMMeta.PROJECT_EDIT_ACTION, resource_func, check_hook=HAS_OBJECT_PERMISSION),
-        "retrieve": IamPermissionInfo(IAMMeta.PROJECT_VIEW_ACTION, resource_func, HAS_OBJECT_PERMISSION),
-        "partial_update": IamPermissionInfo(
-            IAMMeta.PROJECT_EDIT_ACTION, resource_func, check_hook=HAS_OBJECT_PERMISSION
-        ),
-    }
 
 
 class UserProjectFilter(AllLookupSupportFilterSet):
@@ -48,7 +35,7 @@ class UserProjectFilter(AllLookupSupportFilterSet):
 class UserProjectSetViewSet(GcloudListViewSet):
     queryset = Project.objects.all().order_by("-id")
     serializer_class = ProjectSerializer
-    permission_classes = [permissions.IsAuthenticated, UserProjectPermission]
+    permission_classes = [permissions.IsAuthenticated]
     filterset_class = UserProjectFilter
     pagination_class = LimitOffsetPagination
     search_fields = ["id", "name", "desc", "creator"]

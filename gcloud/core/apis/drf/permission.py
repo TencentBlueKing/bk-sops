@@ -14,7 +14,7 @@ from rest_framework import permissions
 from rest_framework.exceptions import PermissionDenied
 
 from gcloud.core.api_adapter import user_role
-from gcloud.core.apis.drf.viewsets import IAMMixin
+from gcloud.core.apis.drf.viewsets.utils import IAMMixin
 from gcloud.iam_auth import IAMMeta, res_factory
 
 HAS_PERMISSION = "has_permission"
