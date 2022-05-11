@@ -352,23 +352,11 @@
             async setVariableList () {
                 try {
                     this.varListLoading = true
-                    let userVars = Object.keys(this.constants)
+                    const userVars = Object.keys(this.constants)
                         .map(key => tools.deepClone(this.constants[key]))
                         .sort((a, b) => a.index - b.index)
-                    const newCloneVars = []
-                    // 新建/克隆的变量置顶显示
-                    if (this.newCloneKeys.length) {
-                        userVars = userVars.reduce((acc, cur) => {
-                            if (this.newCloneKeys.includes(cur.key)) {
-                                newCloneVars.push(cur)
-                            } else {
-                                acc.push(cur)
-                            }
-                            return acc
-                        }, [])
-                    }
                     if (this.isHideSystemVar) {
-                        this.variableList = [...newCloneVars, ...userVars]
+                        this.variableList = [...userVars]
                     } else {
                         const sysVars = Object.keys(this.internalVariable)
                             .map(key => {
@@ -376,7 +364,7 @@
                                 values.isSysVar = true
                                 return values
                             }).sort((a, b) => b.index - a.index)
-                        this.variableList = [...newCloneVars, ...sysVars, ...userVars]
+                        this.variableList = [...sysVars, ...userVars]
                     }
                     // 获取变量类型
                     await this.getVarTypeList()
@@ -642,13 +630,13 @@
                 const variableKeys = this.variableList.map(item => item.key)
                 constants.forEach(item => {
                     item.key = this.setCloneKey(item.key, variableKeys)
-                    this.newCloneKeys.unshift(item.key)
+                    this.newCloneKeys.push(item.key)
                     this.addVariable(item)
                 })
                 this.isVarCloneDialogShow = false
             },
             setCloneKey (key, variableKeys) {
-                let newKey = ''
+                let newKey = key
                 if (variableKeys.includes(key)) {
                     newKey = key.slice(0, -1) + '_clone}'
                 }
@@ -658,7 +646,7 @@
                 return newKey
             },
             setNewCloneKeys (key) {
-                this.newCloneKeys.unshift(key)
+                this.newCloneKeys.push(key)
             },
             onCancelCloneKey (key) {
                 const index = this.newCloneKeys.findIndex(item => item === key)
