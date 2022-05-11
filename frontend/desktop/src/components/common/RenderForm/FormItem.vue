@@ -43,7 +43,7 @@
                         v-bk-tooltips="{
                             content: scheme.attrs.desc,
                             placements: ['right'],
-                            zIndex: 2002
+                            zIndex: 2006
                         }"
                         class="common-icon-info">
                     </i>
