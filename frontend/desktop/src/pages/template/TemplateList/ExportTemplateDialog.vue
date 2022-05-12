@@ -213,12 +213,12 @@
                         data.project__id = this.project_id
                     }
                     const respData = await this.loadTemplateList(data)
-                    this.totalCount = respData.meta.total_count
-                    this.totalPage = Math.ceil(respData.meta.total_count / this.pageSize)
+                    this.totalCount = respData.count
+                    this.totalPage = Math.ceil(respData.count / this.pageSize)
                     this.isPageOver = this.currentPage === this.totalPage
 
                     const idList = this.selected.map(item => item.id) || []
-                    const templateList = respData.objects.map(item => {
+                    const templateList = respData.results.map(item => {
                         const isChecked = this.isTplInPanelAllSelected ? true : idList.includes(item.id)
                         this.$set(item, 'isChecked', isChecked)
                         return item
@@ -327,10 +327,10 @@
                             data.project__id = this.project_id
                         }
                         const respData = await this.loadTemplateList(data)
-                        this.totalCount = respData.meta.total_count
-                        this.totalPage = Math.ceil(respData.meta.total_count / this.pageSize)
+                        this.totalCount = respData.count
+                        this.totalPage = Math.ceil(respData.count / this.pageSize)
                         this.isPageOver = true
-                        templateList.push(...respData.objects)
+                        templateList.push(...respData.results)
                     }
                     this.selectIdList = []
                     this.templateList.forEach(template => {

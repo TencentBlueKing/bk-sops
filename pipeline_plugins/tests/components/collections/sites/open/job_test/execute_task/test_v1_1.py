@@ -58,11 +58,10 @@ class MockClient(object):
         get_job_instance_status=None,
     ):
         self.set_bk_api_ver = MagicMock()
-        self.job = MagicMock()
         self.jobv3 = MagicMock()
-        self.job.execute_job = MagicMock(return_value=execute_job_return)
-        self.job.get_job_instance_global_var_value = MagicMock(return_value=get_global_var_return)
-        self.job.get_job_instance_log = MagicMock(return_value=get_job_instance_log_return)
+        self.jobv3.execute_job_plan = MagicMock(return_value=execute_job_return)
+        self.jobv3.get_job_instance_global_var_value = MagicMock(return_value=get_global_var_return)
+        self.jobv3.get_job_instance_log = MagicMock(return_value=get_job_instance_log_return)
         self.jobv3.get_job_instance_ip_log = MagicMock(return_value=get_job_instance_ip_log_return)
         self.jobv3.get_job_instance_status = MagicMock(return_value=get_job_instance_status)
 
@@ -176,11 +175,11 @@ EXECUTE_SUCCESS_CLIENT = MockClient(
     get_global_var_return={
         "result": True,
         "data": {
-            "job_instance_var_values": [
+            "step_instance_var_list": [
                 {
-                    "step_instance_var_values": [
-                        {"category": 1, "name": "key_1", "value": "new_value_1"},
-                        {"category": 1, "name": "key_2", "value": "new_value_2"},
+                    "global_var_list": [
+                        {"type": 1, "name": "key_1", "value": "new_value_1"},
+                        {"type": 1, "name": "key_2", "value": "new_value_2"},
                     ]
                 }
             ]
@@ -195,11 +194,11 @@ GET_VAR_ERROR_SUCCESS_CLIENT = MockClient(
     get_global_var_return={
         "result": True,
         "data": {
-            "job_instance_var_values": [
+            "step_instance_var_list": [
                 {
-                    "step_instance_var_values": [
-                        {"category": 1, "name": "key_1", "value": "new_value_1"},
-                        {"category": 1, "name": "key_2", "value": "new_value_2"},
+                    "global_var_list": [
+                        {"type": 1, "name": "key_1", "value": "new_value_1"},
+                        {"type": 1, "name": "key_2", "value": "new_value_2"},
                     ]
                 }
             ]
@@ -226,22 +225,27 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
-            "ex_data": ("调用作业平台(JOB)接口job.execute_job返回失败, params={params}, " "error=message token").format(
+            "ex_data": ("调用作业平台(JOB)接口jobv3.execute_job_plan返回失败, params={params}, " "error=message token").format(
                 params=json.dumps(
                     {
                         "bk_scope_type": "biz",
                         "bk_scope_id": "1",
                         "bk_biz_id": 1,
-                        "bk_job_id": 12345,
-                        "global_vars": [
+                        "job_plan_id": 12345,
+                        "global_var_list": [
                             {"name": "key_1", "value": "value_1"},
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 1}, {"ip": "2.2.2.2", "bk_cloud_id": 1}],
+                                "server": {
+                                    "ip_list": [
+                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
+                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
+                                    ],
+                                },
                             },
                         ],
-                        "bk_callback_url": "url_token",
+                        "callback_url": "url_token",
                     }
                 )
             )
@@ -254,23 +258,28 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
             calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
         ),
         CallAssertion(
-            func=EXECUTE_JOB_CALL_FAIL_CLIENT.job.execute_job,
+            func=EXECUTE_JOB_CALL_FAIL_CLIENT.jobv3.execute_job_plan,
             calls=[
                 Call(
                     {
                         "bk_scope_type": "biz",
                         "bk_scope_id": "1",
                         "bk_biz_id": 1,
-                        "bk_job_id": 12345,
-                        "global_vars": [
+                        "job_plan_id": 12345,
+                        "global_var_list": [
                             {"name": "key_1", "value": "value_1"},
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 1}, {"ip": "2.2.2.2", "bk_cloud_id": 1}],
+                                "server": {
+                                    "ip_list": [
+                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
+                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
+                                    ],
+                                },
                             },
                         ],
-                        "bk_callback_url": "url_token",
+                        "callback_url": "url_token",
                     }
                 )
             ],
@@ -324,23 +333,28 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
             calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
         ),
         CallAssertion(
-            func=INVALID_CALLBACK_DATA_CLIENT.job.execute_job,
+            func=INVALID_CALLBACK_DATA_CLIENT.jobv3.execute_job_plan,
             calls=[
                 Call(
                     {
                         "bk_scope_type": "biz",
                         "bk_scope_id": "1",
                         "bk_biz_id": 1,
-                        "bk_job_id": 12345,
-                        "global_vars": [
+                        "job_plan_id": 12345,
+                        "global_var_list": [
                             {"name": "key_1", "value": "value_1"},
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 1}, {"ip": "2.2.2.2", "bk_cloud_id": 1}],
+                                "server": {
+                                    "ip_list": [
+                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
+                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
+                                    ],
+                                },
                             },
                         ],
-                        "bk_callback_url": "url_token",
+                        "callback_url": "url_token",
                     }
                 )
             ],
@@ -399,23 +413,28 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
             calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
         ),
         CallAssertion(
-            func=JOB_EXECUTE_NOT_SUCCESS_CLIENT.job.execute_job,
+            func=JOB_EXECUTE_NOT_SUCCESS_CLIENT.jobv3.execute_job_plan,
             calls=[
                 Call(
                     {
                         "bk_scope_type": "biz",
                         "bk_scope_id": "1",
                         "bk_biz_id": 1,
-                        "bk_job_id": 12345,
-                        "global_vars": [
+                        "job_plan_id": 12345,
+                        "global_var_list": [
                             {"name": "key_1", "value": "value_1"},
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 1}, {"ip": "2.2.2.2", "bk_cloud_id": 1}],
+                                "server": {
+                                    "ip_list": [
+                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
+                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
+                                    ],
+                                },
                             },
                         ],
-                        "bk_callback_url": "url_token",
+                        "callback_url": "url_token",
                     }
                 )
             ],
@@ -463,7 +482,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             "client": GET_GLOBAL_VAR_CALL_FAIL_CLIENT,
             "job_tagged_ip_dict": {},
             "ex_data": (
-                "调用作业平台(JOB)接口job.get_job_instance_global_var_value"
+                "调用作业平台(JOB)接口jobv3.get_job_instance_global_var_value"
                 "返回失败, params={params}, error=global var message token"
             ).format(
                 params=json.dumps(
@@ -479,23 +498,28 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
         ),
         CallAssertion(
-            func=GET_GLOBAL_VAR_CALL_FAIL_CLIENT.job.execute_job,
+            func=GET_GLOBAL_VAR_CALL_FAIL_CLIENT.jobv3.execute_job_plan,
             calls=[
                 Call(
                     {
                         "bk_scope_type": "biz",
                         "bk_scope_id": "1",
                         "bk_biz_id": 1,
-                        "bk_job_id": 12345,
-                        "global_vars": [
+                        "job_plan_id": 12345,
+                        "global_var_list": [
                             {"name": "key_1", "value": "value_1"},
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 1}, {"ip": "2.2.2.2", "bk_cloud_id": 1}],
+                                "server": {
+                                    "ip_list": [
+                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
+                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
+                                    ],
+                                },
                             },
                         ],
-                        "bk_callback_url": "url_token",
+                        "callback_url": "url_token",
                     }
                 )
             ],
@@ -503,7 +527,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=GET_GLOBAL_VAR_CALL_FAIL_CLIENT.job.get_job_instance_global_var_value,
+            func=GET_GLOBAL_VAR_CALL_FAIL_CLIENT.jobv3.get_job_instance_global_var_value,
             calls=[Call({"bk_scope_type": "biz", "bk_scope_id": "1", "bk_biz_id": 1, "job_instance_id": 56789})],
         )
     ],
@@ -574,30 +598,37 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
         ),
         CallAssertion(
-            func=EXECUTE_SUCCESS_CLIENT.job.execute_job,
+            func=EXECUTE_SUCCESS_CLIENT.jobv3.execute_job_plan,
             calls=[
                 Call(
                     {
                         "bk_scope_type": "biz",
                         "bk_scope_id": "1",
                         "bk_biz_id": 1,
-                        "bk_job_id": 12345,
-                        "global_vars": [
+                        "job_plan_id": 12345,
+                        "global_var_list": [
                             {"name": "key_1", "value": "value_1"},
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 1}, {"ip": "2.2.2.2", "bk_cloud_id": 1}],
+                                "server": {
+                                    "ip_list": [
+                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
+                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
+                                    ],
+                                },
                             },
                             {
                                 "name": "key_3",
-                                "ip_list": [
-                                    {"ip": "4.4.4.4", "bk_cloud_id": "0"},
-                                    {"ip": "3.3.3.3", "bk_cloud_id": "0"},
-                                ],
+                                "server": {
+                                    "ip_list": [
+                                        {"ip": "4.4.4.4", "bk_cloud_id": "0"},
+                                        {"ip": "3.3.3.3", "bk_cloud_id": "0"},
+                                    ],
+                                },
                             },
                         ],
-                        "bk_callback_url": "url_token",
+                        "callback_url": "url_token",
                     }
                 )
             ],
@@ -605,7 +636,7 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=EXECUTE_SUCCESS_CLIENT.job.get_job_instance_global_var_value,
+            func=EXECUTE_SUCCESS_CLIENT.jobv3.get_job_instance_global_var_value,
             calls=[Call({"bk_scope_type": "biz", "bk_scope_id": "1", "bk_biz_id": 1, "job_instance_id": 56789})],
         )
     ],
@@ -674,23 +705,28 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
             calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
         ),
         CallAssertion(
-            func=GET_VAR_ERROR_SUCCESS_CLIENT.job.execute_job,
+            func=GET_VAR_ERROR_SUCCESS_CLIENT.jobv3.execute_job_plan,
             calls=[
                 Call(
                     {
                         "bk_scope_type": "biz",
                         "bk_scope_id": "1",
                         "bk_biz_id": 1,
-                        "bk_job_id": 12345,
-                        "global_vars": [
+                        "job_plan_id": 12345,
+                        "global_var_list": [
                             {"name": "key_1", "value": "value_1"},
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 1}, {"ip": "2.2.2.2", "bk_cloud_id": 1}],
+                                "server": {
+                                    "ip_list": [
+                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
+                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
+                                    ],
+                                },
                             },
                         ],
-                        "bk_callback_url": "url_token",
+                        "callback_url": "url_token",
                     }
                 )
             ],
@@ -698,7 +734,7 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=GET_VAR_ERROR_SUCCESS_CLIENT.job.get_job_instance_global_var_value,
+            func=GET_VAR_ERROR_SUCCESS_CLIENT.jobv3.get_job_instance_global_var_value,
             calls=[Call({"bk_scope_type": "biz", "bk_scope_id": "1", "bk_biz_id": 1, "job_instance_id": 56789})],
         )
     ],

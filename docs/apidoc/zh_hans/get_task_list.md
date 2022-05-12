@@ -4,15 +4,17 @@
 
 #### 接口参数
 
-| 字段          |  类型       | 必选   |  描述             |
-|-----------------|-------------|---------|------------------|
-|   bk_biz_id   |   string     |   是   |  项目唯一 ID，项目 ID 或 CMDB 业务 ID |
-|   scope       |   string     |   否   |  唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务 ID，反之代表项目 ID，不传时默认为 cmdb_biz |
-|   keyword     |   string     |   否   |  根据任务名关键词过滤任务列表，默认不过滤 |
-|   is_started  |   bool       |   否   |  根据任务是否已开始过滤任务列表，默认不过滤 |
-|   is_finished |   bool       |   否   |  根据任务是否已结束过滤任务列表，默认不过滤 |
-|   limit       |   int        |   否   |  分页，返回任务列表任务数，默认为100 |
-|   offset      |   int        |   否   |  分页，返回任务列表起始任务下标，默认为0 |
+| 字段          | 类型 | 必选   |  描述             |
+|-------------|--|---------|------------------|
+| bk_biz_id   | string |   是   |  项目唯一 ID，项目 ID 或 CMDB 业务 ID |
+| scope       | string |   否   |  唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务 ID，反之代表项目 ID，不传时默认为 cmdb_biz |
+| keyword     | string |   否   |  根据任务名关键词过滤任务列表，默认不过滤 |
+| is_started  | bool |   否   |  根据任务是否已开始过滤任务列表，默认不过滤 |
+| is_finished | bool |   否   |  根据任务是否已结束过滤任务列表，默认不过滤 |
+| executor    | string |   否   |  根据任务执行人过滤任务列表，默认不过滤 |
+| expected_timezone | string |   否   |  任务时间相关字段期望返回的时区，形如Asia/Shanghai |
+| limit       | int |   否   |  分页，返回任务列表任务数，默认为100 |
+| offset      | int |   否   |  分页，返回任务列表起始任务下标，默认为0 |
 
 ### 请求参数示例
 

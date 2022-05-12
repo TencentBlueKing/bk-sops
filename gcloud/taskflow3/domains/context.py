@@ -55,8 +55,7 @@ class TaskContext(object):
         self.task_start_time = datetime.datetime.now(tz=project_tz).strftime("%Y-%m-%d %H:%M:%S")
         # 任务URL
         self.task_url = (
-            settings.BK_SOPS_HOST.rstrip("/")
-            + f"/taskflow/execute/{self.project_id}/?instance_id={self.task_id}"
+            settings.BK_SOPS_HOST.rstrip("/") + f"/taskflow/execute/{self.project_id}/?instance_id={self.task_id}"
         )
 
     def task_executor(self, taskflow, operator):
@@ -114,13 +113,13 @@ class TaskContext(object):
             },
             cls.to_flat_key("operator"): {
                 "key": cls.to_flat_key("operator"),
-                "name": _("任务的操作员（点击开始执行的人员）"),
+                "name": _("任务的执行人（点击开始执行的人员）"),
                 "index": -4,
                 "desc": "",
             },
             cls.to_flat_key("executor"): {
                 "key": cls.to_flat_key("executor"),
-                "name": _("任务的执行者（调用API网关接口的人员）"),
+                "name": _("任务的执行代理人"),
                 "index": -3,
                 "desc": "",
             },

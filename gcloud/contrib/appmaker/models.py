@@ -265,6 +265,12 @@ class AppMaker(models.Model):
 
     objects = AppMakerManager()
 
+    def delete(self, *args, **kwargs):
+        fake = True if settings.IS_LOCAL else False
+        result, data = AppMaker.objects.del_app_maker(self.project.id, self.id, fake)
+        if not result:
+            raise Exception(data)
+
     @property
     def creator_name(self):
         return convert_readable_username(self.creator)

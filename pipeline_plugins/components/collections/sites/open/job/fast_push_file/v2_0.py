@@ -121,9 +121,11 @@ class JobFastPushFileService(JobScheduleService):
                 return False
             file_source.append(
                 {
-                    "files": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
-                    "ip_list": source_ip_list,
-                    "account": loose_strip(item["account"]),
+                    "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
+                    "server": {"ip_list": source_ip_list},
+                    "account": {
+                        "alias": loose_strip(item["account"]),
+                    },
                 }
             )
 
@@ -147,7 +149,9 @@ class JobFastPushFileService(JobScheduleService):
         for source in file_source:
             for attr in attr_list:
                 # 将[FILESRCIP]替换成源IP
-                job_target_path = attr["job_target_path"].replace("[FILESRCIP]", source["ip_list"][0]["ip"]).strip()
+                job_target_path = (
+                    attr["job_target_path"].replace("[FILESRCIP]", source["server"]["ip_list"][0]["ip"]).strip()
+                )
                 # 获取目标IP
                 original_ip_list = attr["job_ip_list"]
                 clean_result, ip_list = get_biz_ip_from_frontend(
@@ -159,9 +163,9 @@ class JobFastPushFileService(JobScheduleService):
                     "bk_scope_type": JobBizScopeType.BIZ.value,
                     "bk_scope_id": str(biz_cc_id),
                     "bk_biz_id": biz_cc_id,
-                    "file_source": [source],
-                    "ip_list": ip_list,
-                    "account": attr["job_account"],
+                    "file_source_list": [source],
+                    "target_server": {"ip_list": ip_list},
+                    "account_alias": attr["job_account"],
                     "file_target_path": job_target_path,
                 }
                 if upload_speed_limit:
@@ -173,7 +177,7 @@ class JobFastPushFileService(JobScheduleService):
                 params_list.append(job_kwargs)
         task_count = len(params_list)
         # 并发请求接口
-        job_result_list = batch_execute_func(client.job.fast_push_file, params_list, interval_enabled=True)
+        job_result_list = batch_execute_func(client.jobv3.fast_transfer_file, params_list, interval_enabled=True)
         job_instance_id_list, job_inst_name, job_inst_url = [], [], []
         data.outputs.requests_error = ""
         for index, res in enumerate(job_result_list):
@@ -183,7 +187,7 @@ class JobFastPushFileService(JobScheduleService):
                 job_inst_name.append(job_result["data"]["job_instance_name"])
                 job_inst_url.append(get_job_instance_url(biz_cc_id, job_instance_id_list))
             else:
-                message = job_handle_api_error("job.fast_push_file", params_list[index], job_result)
+                message = job_handle_api_error("jobv3.fast_transfer_file", params_list[index], job_result)
                 self.logger.error(message)
                 data.outputs.requests_error += "{}\n".format(message)
         if data.outputs.requests_error:

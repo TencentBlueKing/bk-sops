@@ -146,8 +146,8 @@
                         },
                         {
                             // 合法变量key正则，eg:${fsdf_f32sd},fsdf_f32sd
-                            regex: /(^\${[a-zA-Z_]\w*}$)|(^[a-zA-Z_]\w*$)/,
-                            message: i18n.t('变量KEY由英文字母、数字、下划线组成，且不能以数字开头'),
+                            regex: /(^\${(?!_env_|_system\.)[a-zA-Z_]\w*}$)|(^(?!_env_|_system\.)[a-zA-Z_]\w*$)/,
+                            message: i18n.t('变量KEY由英文字母、数字、下划线组成，不允许使用系统变量及业务环境变量命名规则，且不能以数字开头'),
                             trigger: 'blur'
                         },
                         {

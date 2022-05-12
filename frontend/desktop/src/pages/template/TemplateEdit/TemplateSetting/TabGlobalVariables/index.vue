@@ -18,16 +18,26 @@
         <div class="setting-header" slot="header">
             <span :class="[variableData ? 'active' : '']" @click="onBackToList">{{ $t('全局变量') }}</span>
             <span v-if="variableData"> > {{ variableData.source_type !== 'system' && variableData.source_type !== 'project' ? (variableData.key ? $t('编辑') : $t('新建')) : $t('查看') }}</span>
-            <i
-                class="common-icon-info"
-                v-bk-tooltips="{
-                    allowHtml: true,
-                    content: '#var-desc',
-                    placement: 'bottom-end',
-                    duration: 0,
-                    width: 400
-                }">
-            </i>
+            <div
+                v-if="!common"
+                class="manager-project-variable-btn mr5"
+                data-test-id="templateEdit_form_managerVariable"
+                @click="onManagerProjectVariable">
+                <span :class="['manager-item', { 'r30': isViewMode }]">{{ $t('管理项目变量') }}</span>
+            </div>
+            <div
+                v-if="!isViewMode"
+                class="process-project-variable-btn"
+                data-test-id="templateEdit_form_variableProcessing"
+                @click="quickOperateVariableVisable = true">
+                <div class="manager-item">{{ $t('变量快捷处理') }}
+                    <quick-operate-variable
+                        v-if="quickOperateVariableVisable"
+                        :variable-list="variableList"
+                        @closePanel="quickOperateVariableVisable = false">
+                    </quick-operate-variable>
+                </div>
+            </div>
             <div id="var-desc">
                 <div class="tips-item">
                     <h4>{{ $t('属性：') }}</h4>
@@ -63,24 +73,40 @@
                 <div class="add-variable">
                     <bk-button
                         theme="primary"
-                        class="add-variable-btn"
+                        :class="['add-variable-btn mr5', { 'scale0': isViewMode }]"
                         data-test-id="templateEdit_form_creatVariable"
                         @click="onAddVariable">
                         {{ $t('新建') }}
                     </bk-button>
-                    <bk-button
-                        v-if="!common" theme="default"
-                        class="manager-project-variable-btn"
-                        data-test-id="templateEdit_form_managerVariable"
-                        @click="onManagerProjectVariable">
-                        {{ $t('管理项目变量') }}
-                    </bk-button>
+                    <template v-if="deleteVarListLen">
+                        <bk-button
+                            theme="default"
+                            class="delete-variable-btn"
+                            data-test-id="templateEdit_form_deleteVariable"
+                            @click="deleteVarListVisible = true">
+                            {{ $t('删除') }}
+                        </bk-button>
+                        <span class="delete-variable-txt">{{ $t('已选择x项', { num: deleteVarListLen }) }}</span>
+                        <bk-button :text="true" class="f12" @click="deleteVarList = []">{{ $t('清空' )}}</bk-button>
+                    </template>
                     <div class="toggle-system-var">
                         <bk-checkbox :value="isHideSystemVar" @change="onToggleSystemVar">{{ $t('隐藏系统变量') }}</bk-checkbox>
                     </div>
+                    <i
+                        class="common-icon-info"
+                        v-bk-tooltips="{
+                            allowHtml: true,
+                            content: '#var-desc',
+                            placement: 'bottom-end',
+                            duration: 0,
+                            width: 400
+                        }">
+                    </i>
                 </div>
                 <div class="global-variable-content" data-test-id="templateEdit_table_variableList">
                     <div class="variable-header clearfix">
+                        <bk-checkbox v-if="!isViewMode && editVarList.length" :value="editVarList.length === deleteVarListLen" class="variable-checkbox" @change="onSelectAll">
+                        </bk-checkbox>
                         <span class="col-name t-head">{{ $t('名称') }}</span>
                         <span class="col-key t-head">KEY</span>
                         <span class="col-cited t-head">
@@ -105,7 +131,7 @@
                             </thead-popover>
                         </span>
                         <span class="col-attributes t-head">
-                            {{ $t('属性') }}
+                            {{ $t('来源') }}
                             <thead-popover
                                 :content-list="varAttrList"
                                 type="attributes"
@@ -124,32 +150,39 @@
                         <span class="col-operation t-head">{{ $t('操作') }}</span>
                         <span class="col-more t-head"></span>
                     </div>
-                    <div class="variable-list" v-bkloading="{ isLoading: varListLoading, zIndex: 10 }">
-                        <draggable
-                            class="variable-drag"
-                            handle=".col-item-drag"
-                            :list="variableList"
-                            @end="onDragEnd($event)">
-                            <variable-item
-                                v-for="constant in variableList"
-                                :key="constant.key"
-                                :outputed="outputs.indexOf(constant.key) > -1"
-                                :variable-data="constant"
-                                :variable-cited="variableCited"
-                                :common="common"
-                                @viewClick="viewClick"
-                                @onEditVariable="onEditVariable"
-                                @onDeleteVariable="onDeleteVariable"
-                                @onCloneVariable="onCloneVariable"
-                                @onChangeVariableShow="onChangeVariableShow"
-                                @onChangeVariableOutput="onChangeVariableOutput"
-                                @onCitedNodeClick="onCitedNodeClick">
-                            </variable-item>
-                        </draggable>
-                        <div v-if="variableList.length === 0" class="empty-variable-tips">
-                            <NoData>
-                                <p>{{$t('无数据，请手动新增变量或者勾选标准插件参数自动生成')}}</p>
-                            </NoData>
+                    <!-- 加一层div用来放bkLoading -->
+                    <div v-bkloading="{ isLoading: varListLoading, zIndex: 10 }">
+                        <div class="variable-list">
+                            <draggable
+                                class="variable-drag"
+                                handle=".col-item-drag"
+                                :list="variableList"
+                                :disabled="isViewMode"
+                                @end="onDragEnd($event)">
+                                <variable-item
+                                    v-for="constant in variableList"
+                                    :key="constant.key"
+                                    :outputed="outputs.indexOf(constant.key) > -1"
+                                    :variable-data="constant"
+                                    :variable-cited="variableCited"
+                                    :variable-checked="!!(deleteVarList.find(item => item.key === constant.key))"
+                                    :common="common"
+                                    :is-view-mode="isViewMode"
+                                    @viewClick="viewClick"
+                                    @onEditVariable="onEditVariable"
+                                    @onDeleteVariable="onDeleteVariable"
+                                    @onCloneVariable="onCloneVariable"
+                                    @onChooseVariable="onChooseVariable"
+                                    @onChangeVariableShow="onChangeVariableShow"
+                                    @onChangeVariableOutput="onChangeVariableOutput"
+                                    @onCitedNodeClick="onCitedNodeClick">
+                                </variable-item>
+                            </draggable>
+                            <div v-if="variableList.length === 0" class="empty-variable-tips">
+                                <NoData>
+                                    <p>{{$t('无数据，请手动新增变量或者勾选标准插件参数自动生成')}}</p>
+                                </NoData>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -159,9 +192,19 @@
                 ref="variableEdit"
                 :variable-data="variableData"
                 :common="common"
+                :is-view-mode="isViewMode"
                 @closeEditingPanel="closeEditingPanel"
                 @onSaveEditing="onSaveEditing">
             </variable-edit>
+            <bk-dialog v-model="deleteVarListVisible"
+                theme="primary"
+                header-position="left"
+                :mask-close="false"
+                :title="$t('删除')"
+                @confirm="onDeleteVarList">
+                <span v-if="deleteVarListLen === 1">{{ $t('确认删除') }} “{{deleteVarList[0].name}} / {{deleteVarList[0].key}}” ?</span>
+                <span v-else-if="deleteVarListLen">{{ $t('确认删除所选的x个变量？', { num: deleteVarListLen }) }}</span>
+            </bk-dialog>
         </div>
     </bk-sideslider>
 </template>
@@ -173,6 +216,7 @@
     import VariableEdit from './VariableEdit.vue'
     import VariableItem from './VariableItem.vue'
     import TheadPopover from './TheadPopover.vue'
+    import QuickOperateVariable from '../../../common/QuickOperateVariable.vue'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
@@ -182,10 +226,15 @@
             VariableItem,
             TheadPopover,
             draggable,
-            NoData
+            NoData,
+            QuickOperateVariable
         },
         props: {
-            common: [String, Number]
+            common: [String, Number],
+            isViewMode: {
+                type: Boolean,
+                default: false
+            }
         },
         data () {
             const varAttrList = [
@@ -232,7 +281,10 @@
                 checkedShowList: [],
                 variableData: null, // 编辑中的变量
                 deleteVarKey: '',
-                variableCited: {} // 全局变量被任务节点、网关节点以及其他全局变量引用情况
+                variableCited: {}, // 全局变量被任务节点、网关节点以及其他全局变量引用情况
+                deleteVarList: [], // 批量删除变量
+                deleteVarListVisible: false,
+                quickOperateVariableVisable: false
             }
         },
         computed: {
@@ -242,7 +294,13 @@
                 'outputs': state => state.template.outputs,
                 'constants': state => state.template.constants,
                 'internalVariable': state => state.template.internalVariable
-            })
+            }),
+            deleteVarListLen () {
+                return this.deleteVarList.length
+            },
+            editVarList () {
+                return this.variableList.filter(item => item.source_type !== 'system' && item.source_type !== 'project')
+            }
         },
         watch: {
             constants () {
@@ -322,7 +380,7 @@
                     const listData = this.variableList.reduce((acc, cur) => {
                         if (cur.key in this.internalVariable) {
                             const varInfo = this.internalVariable[cur.key]
-                            this.$set(cur, 'type', varInfo.source_type === 'system' ? i18n.t('系统变量') : i18n.t('业务变量'))
+                            this.$set(cur, 'type', varInfo.source_type === 'system' ? i18n.t('系统变量') : i18n.t('项目变量'))
                         } else {
                             const result = varTypeList.find(item => item.code === cur.custom_type && item.tag === cur.source_tag)
                             const checkTypeList = ['component_inputs', 'component_outputs']
@@ -343,7 +401,7 @@
                     if (!this.isHideSystemVar) {
                         const internalVar = [
                             { checked: this.checkedTypeList.includes('system'), name: i18n.t('系统变量'), code: 'system' },
-                            { checked: this.checkedTypeList.includes('project'), name: i18n.t('业务变量'), code: 'project' }
+                            { checked: this.checkedTypeList.includes('project'), name: i18n.t('项目变量'), code: 'project' }
                         ]
                         listData.unshift(...internalVar)
                     }
@@ -511,6 +569,24 @@
                 variableData.index = Object.keys(this.constants).length + 1
                 this.variableData = variableData
             },
+            onChooseVariable (variable, isChecked) {
+                if (isChecked) {
+                    this.deleteVarList.push(variable)
+                } else {
+                    const index = this.deleteVarList.findIndex(item => item.key === variable.key)
+                    if (index > -1) {
+                        this.deleteVarList.splice(index, 1)
+                    }
+                }
+            },
+            onDeleteVarList () {
+                this.deleteVarList.forEach(variableData => {
+                    this.deleteVariable(variableData.key)
+                })
+                this.deleteVarList = []
+                this.$emit('templateDataChanged')
+                this.getVariableCitedData() // 删除变量后更新引用数据
+            },
             // 编辑变量后点击保存
             onSaveEditing () {
                 this.closeEditingPanel()
@@ -523,7 +599,7 @@
             },
             // 关闭全局变量侧滑
             closeTab () {
-                if (!this.variableData) {
+                if (this.isViewMode || !this.variableData) {
                     this.$emit('closeTab')
                 } else {
                     if (this.variableData.source_type === 'system') {
@@ -532,6 +608,15 @@
                     }
                     this.$refs.variableEdit.handleMaskClick()
                 }
+            },
+            // 全选删除变量
+            onSelectAll (isChecked) {
+                console.log(isChecked, 'selectAll')
+                if (isChecked) {
+                    this.deleteVarList = tools.deepClone(this.editVarList)
+                } else {
+                    this.deleteVarList = []
+                }
             }
         }
     }
@@ -539,6 +624,37 @@
 
 <style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
+.process-project-variable-btn {
+    .manager-item {
+        position: absolute;
+        top: 14px;
+        right: 30px;
+        font-weight: normal;
+        line-height: 19px;
+        font-size: 14px;
+        padding: 6px 13px;
+        background: #f0f1f5;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+}
+.manager-project-variable-btn {
+    .manager-item {
+        position: absolute;
+        top: 20px;
+        right: 160px;
+        font-size: 14px;
+        line-height: 19px;
+        font-weight: normal;
+        cursor: pointer;
+        &:hover {
+            color: #3a84ff;
+        }
+    }
+    .r30 {
+        right: 30px;
+    }
+}
 .setting-header {
     & > span.active {
         color: #3a84ff;
@@ -570,17 +686,35 @@
     .is-hidden {
         transform: scale(0)
     }
+    .delete-variable-btn {
+        width: 90px;
+    }
+    .delete-variable-txt {
+        font-size: 12px;
+        padding: 0 10px;
+    }
     .add-variable {
         padding: 30px 30px 20px;
         .add-variable-btn {
             width: 90px;
-        }
-        .manager-project-variable-btn {
-            padding: 0 20px;
+            &.scale0 {
+                transform: scale(0);
+            }
         }
         .toggle-system-var {
             float: right;
             margin-top: 4px;
+            margin-right: 35px;
+        }
+        .common-icon-info {
+            position: absolute;
+            top: 39px;
+            right: 30px;
+            font-size: 16px;
+            color: #c4c6cc;
+            &:hover {
+                color: #f4aa1a;
+            }
         }
     }
     .global-variable-tootip {
@@ -603,8 +737,13 @@
     .variable-header, .variable-list {
         position: relative;
         font-size: 12px;
+        .variable-checkbox {
+            position: absolute;
+            top: 11px;
+            left: 27px;
+        }
         .col-name {
-            margin-left: 50px;
+            margin-left: 55px;
             width: 170px;
         }
         .col-key {

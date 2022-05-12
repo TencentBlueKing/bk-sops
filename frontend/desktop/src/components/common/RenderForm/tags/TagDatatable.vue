@@ -16,6 +16,7 @@
                 v-if="add_btn"
                 class="add-column button-item"
                 size="small"
+                :disabled="!formEdit"
                 @click="add_row">
                 {{ i18n.add_text }}
             </bk-button>
@@ -26,6 +27,7 @@
                     type="default"
                     size="small"
                     :key="btn.type"
+                    :disabled="!formEdit"
                     @click.stop="onBtnClick(btn.callback)">
                     {{ btn.text}}
                 </bk-button>
@@ -37,10 +39,12 @@
                     :key="btn.type"
                     :show-file-list="false"
                     :on-change="importExcel"
+                    :disabled="!formEdit"
                     :auto-upload="false">
                     <bk-button
                         slot="trigger"
                         size="small"
+                        :disabled="!formEdit"
                         type="default">
                         {{ btn.text }}
                     </bk-button>

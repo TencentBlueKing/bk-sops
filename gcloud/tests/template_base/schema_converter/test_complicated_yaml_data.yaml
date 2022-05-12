@@ -1,0 +1,189 @@
+schema_version: v1
+meta:
+  name: yaml导出样例父流程
+  id: template1
+spec:
+  nodes:
+  - id: t1_node1
+    type: EmptyStartEvent
+  - id: t1_node2
+    type: ServiceActivity
+    name: 定时
+    component:
+      code: sleep_timer
+      data:
+        bk_timing:
+          value: ${parent_test}
+        force_check:
+          value: true
+      version: legacy
+    output:
+      _result:
+        name: 执行结果
+        key: ${_result}
+        hide: true
+  - id: t1_node3
+    type: SubProcess
+    name: yaml导出样例子流程
+    template_id: template3
+    data:
+      ${test}:
+        name: test
+        value: '3'
+        key: ${test}
+        type: input
+        validation: ^.+$
+  - id: t1_node4
+    type: EmptyEndEvent
+---
+schema_version: v1
+meta:
+  name: 循环样例
+  id: template2
+spec:
+  nodes:
+  - id: t2_node1
+    type: EmptyStartEvent
+    next:
+    - t2_node2
+  - id: t2_node2
+    type: ServiceActivity
+    name: 循环前置节点
+    component:
+      code: sleep_timer
+      data:
+        bk_timing:
+          name: 定时时间
+          value: '1'
+          key: ${bk_timing}
+        force_check:
+          value: true
+      version: legacy
+    output:
+      _loop:
+        name: 循环次数
+        key: ${_loop}
+        hide: true
+  - id: t2_node3
+    type: ServiceActivity
+    name: 定时
+    component:
+      code: sleep_timer
+      data:
+        bk_timing:
+          value: ${time_list.split(",")[_loop-1]}
+        force_check:
+          value: true
+      version: legacy
+  - id: t2_node4
+    type: ExclusiveGateway
+    conditions:
+      t2_node5:
+        evaluate: ${_loop} == ${len(time_list.split(","))}
+        name: 循环结束
+      t2_node2:
+        evaluate: ${_loop} < ${len(time_list.split(","))}
+        name: 循环未结束
+    next:
+    - t2_node5
+    - t2_node2
+  - id: t2_node5
+    type: EmptyEndEvent
+  constants:
+    ${time_list}:
+      name: time_list
+      value: 1,2,3,4
+      type: textarea
+---
+schema_version: v1
+meta:
+  name: yaml导出样例子流程
+  id: template3
+spec:
+  nodes:
+  - id: t3_node1
+    type: EmptyStartEvent
+  - id: t3_node2
+    type: ExclusiveGateway
+    conditions:
+      t3_node4:
+        evaluate: 1 == 0
+        name: 1 ==0
+      t3_node3:
+        evaluate: 1 == 1
+        name: 1 ==1
+    next:
+    - t3_node4
+    - t3_node3
+  - id: t3_node3
+    type: ServiceActivity
+    name: 暂停
+    component:
+      code: pause_node
+      data:
+        description:
+          name: 描述
+          value: ''
+          key: ${description}
+      version: legacy
+    next:
+    - t3_node5
+  - id: t3_node4
+    type: ServiceActivity
+    name: 定时
+    component:
+      code: sleep_timer
+      data:
+        bk_timing:
+          value: ${test}
+        force_check:
+          value: true
+      version: legacy
+    output:
+      _result:
+        name: 执行结果
+        key: ${_result}
+        hide: true
+    next:
+    - t3_node5
+  - id: t3_node5
+    type: ParallelGateway
+    converge_gateway_id: t3_node8
+    next:
+    - t3_node7
+    - t3_node6
+  - id: t3_node6
+    type: ServiceActivity
+    name: 暂停
+    component:
+      code: pause_node
+      data:
+        description:
+          value: ''
+      version: legacy
+    next:
+    - t3_node8
+  - id: t3_node7
+    type: ServiceActivity
+    name: 暂停
+    component:
+      code: pause_node
+      data:
+        description:
+          value: ''
+      version: legacy
+    next:
+    - t3_node8
+  - id: t3_node8
+    type: ConvergeGateway
+  - id: t3_node9
+    type: EmptyEndEvent
+  constants:
+    ${test}:
+      name: test
+      value: '3'
+      type: input
+      validation: ^.+$
+  outputs:
+  - ${_result}
+  - ${test}

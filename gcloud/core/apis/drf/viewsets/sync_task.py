@@ -16,11 +16,11 @@ from rest_framework.exceptions import NotAcceptable
 from gcloud.iam_auth import IAMMeta
 from gcloud.external_plugins.models import CachePackageSource, SyncTask, RUNNING
 
-from .base import GcloudModelViewSet
-from ..filter import ALL_LOOKUP, AllLookupSupportFilterSet
-from ..serilaziers import SyncTaskSerializer
-from ..permission import IamPermissionInfo, IamPermission, HAS_OBJECT_PERMISSION
-from ..viewsets.package_source import get_all_source_objects
+from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
+from gcloud.core.apis.drf.filtersets import ALL_LOOKUP, AllLookupSupportFilterSet
+from gcloud.core.apis.drf.serilaziers import SyncTaskSerializer
+from gcloud.core.apis.drf.permission import IamPermissionInfo, IamPermission, HAS_OBJECT_PERMISSION
+from gcloud.core.apis.drf.viewsets.package_source import get_all_source_objects
 
 
 class SyncTaskPermission(IamPermission):
@@ -30,7 +30,7 @@ class SyncTaskPermission(IamPermission):
         "partial_update": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, check_hook=HAS_OBJECT_PERMISSION),
         "update": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, check_hook=HAS_OBJECT_PERMISSION),
         "create": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION),
-        "destroy": IamPermissionInfo(pass_all=True),
+        "destroy": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, check_hook=HAS_OBJECT_PERMISSION),
     }
 
 

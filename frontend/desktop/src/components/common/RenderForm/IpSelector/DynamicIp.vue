@@ -19,7 +19,7 @@
                     :editable="editable"
                     @search="onTopoSearch">
                 </ip-search-input>
-                <div class="tree-wrap">
+                <div :class="['tree-wrap', { 'is-view': !editable }]">
                     <bk-big-tree
                         v-if="topoList.length"
                         ref="topoTree"
@@ -47,7 +47,7 @@
                         v-bk-overflow-tips
                         :key="item.key">
                         {{ item.namePath }}
-                        <i class="common-icon-dark-circle-close" @click="onDeleteSelected(item.key)"></i>
+                        <i v-if="editable" class="common-icon-dark-circle-close" @click="onDeleteSelected(item.key)"></i>
                     </div>
                 </div>
             </div>
@@ -385,6 +385,25 @@
             border-radius: 20px;
             background: #a5a5a5;
             box-shadow: inset 0 0 6px hsla(0,0%,80%,.3);
+        }
+    }
+}
+.is-view {
+    /deep/ .bk-big-tree {
+        .bk-scroll-item {
+            .node-checkbox {
+                border-color: #dcdee5;
+            }
+            &::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                z-index: 3;
+                height: 100%;
+                width: 100%;
+                cursor: not-allowed;
+            }
         }
     }
 }

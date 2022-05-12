@@ -20,7 +20,13 @@ const periodic = {
         loadPeriodicList ({ commit }, data) {
             return axios.get('api/v3/periodic_task/', {
                 params: { ...data }
-            }).then(response => response.data)
+            }).then(response => {
+                if (!('limit' in data)) {
+                    return { results: response.data.data }
+                } else {
+                    return response.data.data
+                }
+            })
         },
         /**
          * 创建定时任务
@@ -31,7 +37,7 @@ const periodic = {
             const { name, cron, templateId, execData, templateSource } = data
 
             return axios.post('api/v3/periodic_task/', {
-                project: `api/v3/project/${project_id}/`,
+                project: project_id,
                 cron,
                 name,
                 template_id: templateId,
@@ -65,7 +71,7 @@ const periodic = {
             const querystring = Object.assign({}, { project_id })
             return axios.get(`api/v3/periodic_task/${taskId}/`, {
                 params: querystring
-            }).then(response => response.data)
+            }).then(response => response.data.data)
         },
         // 修改周期任务参数信息
         modifyPeriodicConstants ({ commit }, data) {
