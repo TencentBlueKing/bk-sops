@@ -24,7 +24,7 @@ logger = logging.getLogger("root")
 
 class BaseNodeLogDataSource(metaclass=ABCMeta):
     @abstractmethod
-    def fetch_node_logs(self, request, node_id, version_id, *args, **kwargs):
+    def fetch_node_logs(self, node_id, version_id, *args, **kwargs):
         raise NotImplementedError()
 
 
