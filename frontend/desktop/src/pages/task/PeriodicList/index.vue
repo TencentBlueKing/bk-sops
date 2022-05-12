@@ -61,6 +61,7 @@
                                         <router-link
                                             v-else
                                             class="periodic-name"
+                                            target="_blank"
                                             :title="row.task_template_name"
                                             :to="templateNameUrl(row)">
                                             {{row.task_template_name}}
@@ -137,7 +138,7 @@
                                         :z-index="2000"
                                         :distance="0"
                                         :arrow="false"
-                                        :tippy-options="{ boundary: 'window', duration: [0, 0] }">
+                                        :tippy-options="{ boundary: 'window', duration: [0, 0], hideOnClick: false }">
                                         <i class="bk-icon icon-more drop-icon-ellipsis"></i>
                                         <ul slot="content">
                                             <li class="opt-btn" data-test-id="periodicList_table_collectBtn">
@@ -412,9 +413,9 @@
                     }
 
                     const periodicListData = await this.loadPeriodicList(data)
-                    const list = periodicListData.objects
+                    const list = periodicListData.results
                     this.periodicList = list
-                    this.pagination.count = periodicListData.meta.total_count
+                    this.pagination.count = periodicListData.count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
                         this.totalPage = 1
@@ -646,7 +647,7 @@
                 const { template_id: templateId, template_source: templateSource, project } = template
                 const url = {
                     name: 'templatePanel',
-                    params: { type: 'edit', project_id: project.id },
+                    params: { type: 'view', project_id: project.id },
                     query: { template_id: templateId, common: templateSource === 'common' || undefined }
                 }
                 return url

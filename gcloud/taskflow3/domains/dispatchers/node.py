@@ -175,7 +175,10 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
     @ensure_return_is_dict
     def forced_fail_v2(self, operator: str, **kwargs) -> dict:
         return bamboo_engine_api.forced_fail_activity(
-            runtime=BambooDjangoRuntime(), node_id=self.node_id, ex_data="forced fail by {}".format(operator)
+            runtime=BambooDjangoRuntime(),
+            node_id=self.node_id,
+            ex_data="forced fail by {}".format(operator),
+            send_post_set_state_signal=kwargs.get("send_post_set_state_signal", True),
         )
 
     def retry_subprocess_v1(self, operator: str, **kwargs) -> dict:
@@ -284,12 +287,12 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
     ) -> (bool, str, list):
         outputs_table = []
         if component_code:
-            version = (
-                self._get_node_info(self.node_id, pipeline_instance.execution_data, subprocess_stack)
-                .get("component", {})
-                .get("version", None)
-            )
             try:
+                version = (
+                    self._get_node_info(self.node_id, pipeline_instance.execution_data, subprocess_stack)
+                    .get("component", {})
+                    .get("version", None)
+                )
                 component = ComponentLibrary.get_component_class(component_code=component_code, version=version)
                 outputs_format = component.outputs_format()
             except Exception:

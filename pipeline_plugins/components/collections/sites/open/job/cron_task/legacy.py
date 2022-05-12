@@ -88,9 +88,9 @@ class JobCronTaskService(Service):
             "bk_scope_type": JobBizScopeType.BIZ.value,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
-            "bk_job_id": job_cron_job_id,
-            "cron_name": job_cron_name,
-            "cron_expression": job_cron_expression,
+            "job_plan_id": job_cron_job_id,
+            "name": job_cron_name,
+            "expression": job_cron_expression,
         }
         client = get_client_by_user(executor)
 
@@ -99,15 +99,15 @@ class JobCronTaskService(Service):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         # 新建作业
-        job_save_result = client.job.save_cron(job_kwargs)
+        job_save_result = client.jobv3.save_cron(job_kwargs)
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_save_result, kwargs=job_kwargs))
         if not job_save_result["result"]:
-            message = job_handle_api_error("job.save_cron", job_kwargs, job_save_result)
+            message = job_handle_api_error("jobv3.save_cron", job_kwargs, job_save_result)
             self.logger.error(message)
             data.outputs.ex_data = message
             return False
 
-        data.outputs.cron_id = job_save_result["data"]["cron_id"]
+        data.outputs.cron_id = job_save_result["data"]["id"]
         data.outputs.status = _("暂停")
         # 更新作业状态
         job_cron_status = data.get_one_of_inputs("job_cron_status")
@@ -116,16 +116,16 @@ class JobCronTaskService(Service):
                 "bk_scope_type": JobBizScopeType.BIZ.value,
                 "bk_scope_id": str(biz_cc_id),
                 "bk_biz_id": biz_cc_id,
-                "cron_status": 1,
-                "cron_id": job_save_result["data"]["cron_id"],
+                "status": 1,
+                "id": job_save_result["data"]["id"],
             }
-            job_update_result = client.job.update_cron_status(job_update_cron_kwargs)
+            job_update_result = client.jobv3.update_cron_status(job_update_cron_kwargs)
             if job_update_result["result"]:
                 data.outputs.status = _("启动")
             else:
                 message = _("新建定时任务成功但是启动失败：{error}").format(
                     error=job_handle_api_error(
-                        "job.update_cron_status",
+                        "jobv3.update_cron_status",
                         job_update_cron_kwargs,
                         job_update_result,
                     )

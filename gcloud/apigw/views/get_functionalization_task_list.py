@@ -10,13 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
+from gcloud.apigw.decorators import mark_request_whether_is_trust, timezone_inject, return_json_response
 from gcloud.contrib.function.models import FunctionTask
 from gcloud.apigw.views.utils import logger, format_function_task_list_data, paginate_list_data
 from gcloud.iam_auth.intercept import iam_intercept
@@ -29,6 +27,7 @@ from apigw_manager.apigw.decorators import apigw_require
 @apigw_require
 @return_json_response
 @mark_request_whether_is_trust
+@timezone_inject
 @iam_intercept(FunctionViewInterceptor())
 def get_functionalization_task_list(request):
     id_in = request.GET.get("id_in")
@@ -62,7 +61,7 @@ def get_functionalization_task_list(request):
         function_tasks, count = paginate_list_data(request, function_tasks)
     except Exception as e:
         return {"result": False, "data": "", "message": e, "code": err_code.INVALID_OPERATION.code}
-    data = format_function_task_list_data(function_tasks)
+    data = format_function_task_list_data(function_tasks, tz=request.tz)
 
     response = {"result": True, "data": data, "count": count, "code": err_code.SUCCESS.code}
     return response

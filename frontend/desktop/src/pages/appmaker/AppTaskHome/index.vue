@@ -303,9 +303,9 @@
                     }
                     
                     const appmakerListData = await this.loadTaskList(data)
-                    const list = appmakerListData.objects
+                    const list = appmakerListData.results
                     this.appmakerList = list
-                    this.pagination.count = appmakerListData.meta.total_count
+                    this.pagination.count = appmakerListData.count
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', list)
                 } catch (e) {

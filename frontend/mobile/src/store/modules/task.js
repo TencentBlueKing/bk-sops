@@ -13,7 +13,7 @@ export default {
     mutations: {},
     actions: {
         getTask ({ commit } = {}, params) {
-            return http.get(`api/v3/weixin_taskflow/${params.id}/`).then(response => response)
+            return http.get(`api/v3/weixin_taskflow/${params.id}/`).then(response => response.data)
         },
 
         getTaskStatus ({ commit, rootState }, params) {

@@ -49,11 +49,10 @@ class MockClient(object):
         get_job_instance_ip_log_return=None,
         get_job_instance_status=None,
     ):
-        self.job = MagicMock()
         self.jobv3 = MagicMock()
-        self.job.fast_execute_script = MagicMock(return_value=fast_execute_script_return)
-        self.job.get_job_instance_global_var_value = MagicMock(return_value=get_job_instance_global_var_value_return)
-        self.job.get_job_instance_log = MagicMock(return_value=get_job_instance_log_return)
+        self.jobv3.fast_execute_script = MagicMock(return_value=fast_execute_script_return)
+        self.jobv3.get_job_instance_global_var_value = MagicMock(return_value=get_job_instance_global_var_value_return)
+        self.jobv3.get_job_instance_log = MagicMock(return_value=get_job_instance_log_return)
         self.jobv3.get_job_instance_ip_log = MagicMock(return_value=get_job_instance_ip_log_return)
         self.jobv3.get_job_instance_status = MagicMock(return_value=get_job_instance_status)
 
@@ -236,25 +235,27 @@ MANUAL_KWARGS = {
     "bk_scope_type": "biz_set",
     "bk_scope_id": "123456",
     "bk_biz_id": 123456,
-    "account": "root",
-    "ip_list": [
-        {"ip": "127.0.0.1", "bk_cloud_id": 0},
-        {"ip": "127.0.0.2", "bk_cloud_id": 0},
-        {"ip": "127.0.0.3", "bk_cloud_id": 0},
-        {"ip": "200.0.0.1", "bk_cloud_id": 1},
-        {"ip": "200.0.0.2", "bk_cloud_id": 1},
-        {"ip": "200.0.0.3", "bk_cloud_id": 1},
-    ],
-    "bk_callback_url": "callback_url",
+    "account_alias": "root",
+    "target_server": {
+        "ip_list": [
+            {"ip": "127.0.0.1", "bk_cloud_id": 0},
+            {"ip": "127.0.0.2", "bk_cloud_id": 0},
+            {"ip": "127.0.0.3", "bk_cloud_id": 0},
+            {"ip": "200.0.0.1", "bk_cloud_id": 1},
+            {"ip": "200.0.0.2", "bk_cloud_id": 1},
+            {"ip": "200.0.0.3", "bk_cloud_id": 1},
+        ],
+    },
+    "callback_url": "callback_url",
     "script_param": "IGJiYg==",
-    "script_timeout": 80,
-    "script_type": "1",
+    "timeout": 80,
+    "script_language": "1",
     "script_content": "Y2QgL2Fh",
 }
 
 # 脚本失败样例输出
 MANUAL_FAIL_OUTPUTS = {
-    "ex_data": "调用作业平台(JOB)接口job.fast_execute_script返回失败, params={params}, error={error}, "
+    "ex_data": "调用作业平台(JOB)接口jobv3.fast_execute_script返回失败, params={params}, error={error}, "
     "request_id=aac7755b09944e4296b2848d81bd9411".format(params=json.dumps(MANUAL_KWARGS), error=FAIL_RESULT["message"])
 }
 
@@ -281,7 +282,7 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = Component
         callback_data={},
     ),
     execute_call_assertion=[
-        CallAssertion(func=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT.job.fast_execute_script, calls=[Call(MANUAL_KWARGS)]),
+        CallAssertion(func=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT.jobv3.fast_execute_script, calls=[Call(MANUAL_KWARGS)]),
     ],
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
@@ -298,7 +299,7 @@ FAST_EXECUTE_SCRIPT_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=False, outputs=MANUAL_FAIL_OUTPUTS),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=FAST_EXECUTE_SCRIPT_FAIL_CLIENT.job.fast_execute_script, calls=[Call(MANUAL_KWARGS)]),
+        CallAssertion(func=FAST_EXECUTE_SCRIPT_FAIL_CLIENT.jobv3.fast_execute_script, calls=[Call(MANUAL_KWARGS)]),
     ],
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),

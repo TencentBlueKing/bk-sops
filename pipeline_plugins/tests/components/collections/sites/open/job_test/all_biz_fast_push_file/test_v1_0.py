@@ -40,9 +40,8 @@ class AllBizJobFastPushFilesComponentTest(TestCase, ComponentTestMixin):
 
 class MockClient(object):
     def __init__(self, fast_push_file_return=None, get_job_instance_status_return=None):
-        self.job = MagicMock()
-        self.job.fast_push_file = MagicMock(side_effect=fast_push_file_return)
         self.jobv3 = MagicMock()
+        self.jobv3.fast_transfer_file = MagicMock(side_effect=fast_push_file_return)
         self.jobv3.get_job_instance_status = MagicMock(side_effect=get_job_instance_status_return)
 
 
@@ -127,19 +126,25 @@ CLL_INFO = MagicMock(
             "bk_scope_type": "biz_set",
             "bk_scope_id": "321456",
             "bk_biz_id": 321456,
-            "file_source": [
+            "file_source_list": [
                 {
-                    "files": ["/tmp/aa", "/tmp/bb"],
-                    "ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}],
-                    "account": "root",
+                    "file_list": ["/tmp/aa", "/tmp/bb"],
+                    "server": {
+                        "ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}],
+                    },
+                    "account": {
+                        "alias": "root",
+                    },
                 }
             ],
-            "ip_list": [
-                {"ip": "127.0.0.3", "bk_cloud_id": 0},
-                {"ip": "127.0.0.4", "bk_cloud_id": 0},
-                {"ip": "127.0.0.5", "bk_cloud_id": 0},
-            ],
-            "account": "root",
+            "target_server": {
+                "ip_list": [
+                    {"ip": "127.0.0.3", "bk_cloud_id": 0},
+                    {"ip": "127.0.0.4", "bk_cloud_id": 0},
+                    {"ip": "127.0.0.5", "bk_cloud_id": 0},
+                ],
+            },
+            "account_alias": "root",
             "file_target_path": "/tmp/ee/",
             "upload_speed_limit": 100,
             "download_speed_limit": 100,
@@ -149,19 +154,25 @@ CLL_INFO = MagicMock(
             "bk_scope_type": "biz_set",
             "bk_scope_id": "321456",
             "bk_biz_id": 321456,
-            "file_source": [
+            "file_source_list": [
                 {
-                    "files": ["/tmp/aa", "/tmp/bb"],
-                    "ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}],
-                    "account": "root",
+                    "file_list": ["/tmp/aa", "/tmp/bb"],
+                    "server": {
+                        "ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}],
+                    },
+                    "account": {
+                        "alias": "root",
+                    },
                 }
             ],
-            "ip_list": [
-                {"ip": "200.0.0.1", "bk_cloud_id": 1},
-                {"ip": "200.0.0.2", "bk_cloud_id": 1},
-                {"ip": "200.0.0.3", "bk_cloud_id": 1},
-            ],
-            "account": "user01",
+            "target_server": {
+                "ip_list": [
+                    {"ip": "200.0.0.1", "bk_cloud_id": 1},
+                    {"ip": "200.0.0.2", "bk_cloud_id": 1},
+                    {"ip": "200.0.0.3", "bk_cloud_id": 1},
+                ],
+            },
+            "account_alias": "user01",
             "file_target_path": "/tmp/200/",
             "upload_speed_limit": 100,
             "download_speed_limit": 100,
@@ -171,19 +182,25 @@ CLL_INFO = MagicMock(
             "bk_scope_type": "biz_set",
             "bk_scope_id": "321456",
             "bk_biz_id": 321456,
-            "file_source": [
+            "file_source_list": [
                 {
-                    "files": ["/tmp/cc", "/tmp/dd"],
-                    "ip_list": [{"ip": "127.0.02", "bk_cloud_id": 1}],
-                    "account": "user00",
+                    "file_list": ["/tmp/cc", "/tmp/dd"],
+                    "server": {
+                        "ip_list": [{"ip": "127.0.02", "bk_cloud_id": 1}],
+                    },
+                    "account": {
+                        "alias": "user00",
+                    },
                 }
             ],
-            "ip_list": [
-                {"ip": "127.0.0.3", "bk_cloud_id": 0},
-                {"ip": "127.0.0.4", "bk_cloud_id": 0},
-                {"ip": "127.0.0.5", "bk_cloud_id": 0},
-            ],
-            "account": "root",
+            "target_server": {
+                "ip_list": [
+                    {"ip": "127.0.0.3", "bk_cloud_id": 0},
+                    {"ip": "127.0.0.4", "bk_cloud_id": 0},
+                    {"ip": "127.0.0.5", "bk_cloud_id": 0},
+                ],
+            },
+            "account_alias": "root",
             "file_target_path": "/tmp/ee/",
             "upload_speed_limit": 100,
             "download_speed_limit": 100,
@@ -193,19 +210,25 @@ CLL_INFO = MagicMock(
             "bk_scope_type": "biz_set",
             "bk_scope_id": "321456",
             "bk_biz_id": 321456,
-            "file_source": [
+            "file_source_list": [
                 {
-                    "files": ["/tmp/cc", "/tmp/dd"],
-                    "ip_list": [{"ip": "127.0.02", "bk_cloud_id": 1}],
-                    "account": "user00",
+                    "file_list": ["/tmp/cc", "/tmp/dd"],
+                    "server": {
+                        "ip_list": [{"ip": "127.0.02", "bk_cloud_id": 1}],
+                    },
+                    "account": {
+                        "alias": "user00",
+                    },
                 }
             ],
-            "ip_list": [
-                {"ip": "200.0.0.1", "bk_cloud_id": 1},
-                {"ip": "200.0.0.2", "bk_cloud_id": 1},
-                {"ip": "200.0.0.3", "bk_cloud_id": 1},
-            ],
-            "account": "user01",
+            "target_server": {
+                "ip_list": [
+                    {"ip": "200.0.0.1", "bk_cloud_id": 1},
+                    {"ip": "200.0.0.2", "bk_cloud_id": 1},
+                    {"ip": "200.0.0.3", "bk_cloud_id": 1},
+                ],
+            },
+            "account_alias": "user01",
             "file_target_path": "/tmp/200/",
             "upload_speed_limit": 100,
             "download_speed_limit": 100,
@@ -235,7 +258,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
         ),
         execute_call_assertion=[
             CallAssertion(
-                func=FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT.job.fast_push_file,
+                func=FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT.jobv3.fast_transfer_file,
                 calls=[Call(**CLL_INFO()), Call(**CLL_INFO()), Call(**CLL_INFO()), Call(**CLL_INFO())],
             ),
         ],

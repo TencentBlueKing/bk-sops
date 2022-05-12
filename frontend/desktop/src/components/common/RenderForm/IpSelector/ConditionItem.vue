@@ -40,7 +40,7 @@
             </bk-select>
             <span v-show="filedError" class="common-error-tip error-info">{{i18n.notEmpty}}</span>
         </div>
-        <div class="condition-text-wrap">
+        <div :class="['condition-text-wrap', { 'is-view': !editable }]">
             <pre class="textarea-mirror"><span>{{condition.value}}</span><br><br></pre>
             <textarea
                 :placeholder="i18n.desc"
@@ -51,7 +51,7 @@
             </textarea>
             <span v-show="valueError" class="common-error-tip value-error">{{i18n.notEmpty}}</span>
         </div>
-        <div class="operation-wrap">
+        <div class="operation-wrap" v-if="editable">
             <i :class="['operation-btn', 'add-condition', { 'disabled': !editable }]" @click.stop="onAddCondition"></i>
             <i :class="['operation-btn', 'delete-condition', { 'disabled': !editable }]" @click.stop="onDeleteCondition"></i>
         </div>
@@ -184,6 +184,9 @@
     position: relative;
     margin: 0 10px;
     width: calc(100% - 270px);
+    &.is-view {
+        width: calc(100% - 220px);
+    }
     .textarea-mirror, textarea {
         padding: 9px 10px 0;
         line-height: 1.2;

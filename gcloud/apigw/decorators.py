@@ -13,10 +13,10 @@ specific language governing permissions and limitations under the License.
 
 from functools import wraps
 
+import pytz
 import ujson as json
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
-from django.utils.decorators import available_attrs
 
 from gcloud import err_code
 from gcloud.apigw.exceptions import InvalidUserError
@@ -53,7 +53,7 @@ def inject_user(request):
 
 
 def mark_request_whether_is_trust(view_func):
-    @wraps(view_func, assigned=available_attrs(view_func))
+    @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         setattr(request, "is_trust", check_white_apps(request))
 
@@ -84,7 +84,7 @@ def return_json_response(view_func):
     @return:
     """
 
-    @wraps(view_func, assigned=available_attrs(view_func))
+    @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         result = view_func(request, *args, **kwargs)
 
@@ -99,7 +99,7 @@ def return_json_response(view_func):
 
 
 def project_inject(view_func):
-    @wraps(view_func, assigned=available_attrs(view_func))
+    @wraps(view_func)
     def wrapper(request, *args, **kwargs):
 
         obj_id = kwargs.get("project_id")
@@ -122,6 +122,27 @@ def project_inject(view_func):
             )
 
         setattr(request, "project", project)
+        return view_func(request, *args, **kwargs)
+
+    return wrapper
+
+
+def timezone_inject(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        expected_timezone = request.GET.get("expected_timezone", None)
+        try:
+            tz = pytz.timezone(expected_timezone) if expected_timezone else None
+        except pytz.UnknownTimeZoneError:
+            return JsonResponse(
+                {
+                    "result": False,
+                    "data": "",
+                    "message": f"expected_timezone {expected_timezone} is unknown.",
+                    "code": err_code.VALIDATION_ERROR.code,
+                }
+            )
+        setattr(request, "tz", tz)
         return view_func(request, *args, **kwargs)
 
     return wrapper

@@ -168,11 +168,7 @@ class NodemanCreateTaskService(NodeManBaseService):
             kwargs = {"job_type": job_name, "hosts": all_hosts, "action": "job_install"}
 
             if job_name in ["INSTALL_PROXY", "INSTALL_AGENT", "REINSTALL_PROXY", "REINSTALL_AGENT"]:
-                kwargs.update(
-                    {
-                        "is_install_latest_plugins": nodeman_install_latest_plugins,
-                    }
-                )
+                kwargs.update({"is_install_latest_plugins": nodeman_install_latest_plugins})
 
             if nodeman_tjj_ticket:
                 kwargs.update({"tcoa_ticket": nodeman_tjj_ticket})
@@ -188,10 +184,7 @@ class NodemanCreateTaskService(NodeManBaseService):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"),
-                key="bk_biz_id",
-                type="int",
-                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"), key="bk_biz_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("节点类型"),

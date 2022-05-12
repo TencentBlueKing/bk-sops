@@ -23,3 +23,10 @@ from .label import *  # noqa
 from .package_source import *  # noqa
 from .sync_task import *  # noqa
 from .collection import *  # noqa
+from .function_task import *  # noqa
+from .variable import *  # noqa
+from .task_template import *  # noqa
+from .appmaker import *  # noqa
+from .periodic_task import *  # noqa
+from .common_template import *  # noqa
+from .taskflow import *  # noqa

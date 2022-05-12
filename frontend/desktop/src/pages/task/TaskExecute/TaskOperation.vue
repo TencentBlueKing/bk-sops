@@ -87,6 +87,7 @@
                     ref="retryNode"
                     v-if="nodeInfoType === 'retryNode'"
                     :node-detail-config="nodeDetailConfig"
+                    :engine-ver="engineVer"
                     @retrySuccess="onRetrySuccess"
                     @retryCancel="onRetryCancel">
                 </RetryNode>
@@ -928,9 +929,10 @@
                 this.$refs.templateCanvas && this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
             async setNodeDetailConfig (id, rootNode) {
-                let code, version
+                let code, version, componentData
                 const node = this.pipelineData.activities[id]
                 if (node) {
+                    componentData = node.type === 'ServiceActivity' ? node.component.data : {}
                     code = node.type === 'ServiceActivity' ? node.component.code : ''
                     version = (node.type === 'ServiceActivity' ? node.component.version : node.version) || 'legacy'
                 }
@@ -944,7 +946,8 @@
                     node_id: id,
                     instance_id: this.instance_id,
                     root_node: rootNode,
-                    subprocess_stack: JSON.stringify(subprocessStack)
+                    subprocess_stack: JSON.stringify(subprocessStack),
+                    componentData
                 }
             },
             onRetryClick (id) {
@@ -1071,7 +1074,7 @@
                     name: this.$t('开始节点'),
                     expanded: false
                 })]
-                this.retrieveLines(data, fstLine, orderedData, true)
+                this.retrieveLines(data, fstLine, orderedData, level)
                 orderedData.sort((a, b) => a.level - b.level)
                 const endEventIndex = orderedData.findIndex(item => item.type === 'EmptyEndEvent')
                 const endEvent = orderedData.splice(endEventIndex, 1)

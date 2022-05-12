@@ -26,7 +26,7 @@ from pipeline.models import PipelineInstance, TemplateRelationship, PipelineTemp
 
 from gcloud import err_code
 from gcloud.constants import TASK_FLOW_TYPE, TASK_CATEGORY
-from gcloud.constants import TEMPLATE_EXPORTER_SOURCE_PROJECT, AE
+from gcloud.constants import AE
 from gcloud.template_base.models import BaseTemplate, BaseTemplateManager
 from gcloud.core.models import Project
 from gcloud.template_base.utils import replace_biz_id_value
@@ -405,9 +405,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
     def export_templates(self, template_id_list, project_id):
         if self.filter(id__in=template_id_list, project_id=project_id).count() != len(template_id_list):
             raise self.model.DoesNotExist("{}(id={}) does not exist.".format(self.model.__name__, template_id_list))
-        data = super(TaskTemplateManager, self).export_templates(template_id_list)
-        data["template_source"] = TEMPLATE_EXPORTER_SOURCE_PROJECT
-        return data
+        return super(TaskTemplateManager, self).export_templates(template_id_list)
 
     def import_operation_check(self, template_data, project_id):
         data = super(TaskTemplateManager, self).import_operation_check(template_data)

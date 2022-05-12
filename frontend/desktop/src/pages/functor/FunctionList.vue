@@ -527,10 +527,10 @@
                         }
                     }
                     const functorListData = await this.loadFunctionTaskList(data)
-                    const list = functorListData.objects
-                    const taskList = functorListData.objects.map(m => m.task)
+                    const list = functorListData.results
+                    const taskList = functorListData.results.map(m => m.task)
                     this.functorList = list
-                    this.pagination.count = functorListData.meta.total_count
+                    this.pagination.count = functorListData.count
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', taskList)
                 } catch (e) {
@@ -672,8 +672,11 @@
                         this.loadTemplateList({ project__id: this.business.id }),
                         this.loadTemplateList({ common: 1 })
                     ]).then(value => {
-                        this.template.list[0].children = value[0].objects
-                        this.template.list[1].children = value[1].objects
+                        this.template.list[0].children = value[0].results
+                        this.template.list[1].children = value[1].results.map(item => {
+                            item.isCommon = true
+                            return item
+                        })
                         this.clearAtomForm()
                     })
                 } catch (e) {
@@ -697,7 +700,7 @@
             },
             onSelectedTemplate (id) {
                 const templateList = this.template.list
-                let resource_uri = ''
+                let isCommon = ''
                 let name, project, tplAction
 
                 if (id === undefined) {
@@ -707,7 +710,7 @@
                 templateList.some(group => {
                     return group.children.some(item => {
                         if (item.id === id) {
-                            resource_uri = item.resource_uri
+                            isCommon = item.isCommon
                             name = item.name
                             project = item.project
                             tplAction = item.auth_actions
@@ -717,10 +720,8 @@
                 })
 
                 this.isCommonTemplate = false
-                // 通过resource_uri查找是否是公共流程
-                if (resource_uri.search('common_template') !== -1) {
-                    this.isCommonTemplate = true
-                }
+                // 通过isCommon查找是否是公共流程
+                this.isCommonTemplate = isCommon
                 this.template.id = id
                 this.template.name = name
                 this.template.project = project

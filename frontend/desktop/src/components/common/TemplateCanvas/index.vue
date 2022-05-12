@@ -16,7 +16,7 @@
         <bk-flow
             ref="jsFlow"
             selector="entry-item"
-            :class="['canvas-wrapper', { 'tool-wrapper-telescopic': showNodeMenu }]"
+            class="canvas-wrapper"
             :data="flowData"
             :show-palette="showPalette"
             :show-tool="showTool"
@@ -44,12 +44,7 @@
                     :atom-type-list="atomTypeList"
                     :template-labels="templateLabels"
                     :is-disable-start-point="isDisableStartPoint"
-                    :is-disable-end-point="isDisableEndPoint"
-                    :subflow-list-loading="subflowListLoading"
-                    :plugin-loading="pluginLoading"
-                    @updatePluginList="updatePluginList"
-                    @updateNodeMenuState="updateNodeMenuState"
-                    @getAtomList="getAtomList">
+                    :is-disable-end-point="isDisableEndPoint">
                 </palette-panel>
             </template>
             <template v-slot:toolPanel>
@@ -97,8 +92,7 @@
                     @onTaskNodeResumeClick="$emit('onTaskNodeResumeClick', $event)"
                     @onApprovalClick="$emit('onApprovalClick', $event)"
                     @addNodesToDragSelection="addNodeToSelectedList"
-                    @onSubflowPauseResumeClick="onSubflowPauseResumeClick"
-                    @getAtomList="getAtomList">
+                    @onSubflowPauseResumeClick="onSubflowPauseResumeClick">
                 </node-template>
             </template>
         </bk-flow>
@@ -205,10 +199,6 @@
                 type: [String, Number],
                 default: ''
             },
-            subflowListLoading: {
-                type: Boolean,
-                default: true
-            },
             templateLabels: {
                 type: Array,
                 default: () => ([])
@@ -223,10 +213,6 @@
                 }
             },
             isCanvasImg: {
-                type: Boolean,
-                default: false
-            },
-            pluginLoading: {
                 type: Boolean,
                 default: false
             },
@@ -263,7 +249,6 @@
                 canvasWidth: 0, // 生成画布的宽
                 canvasHeight: 0, // 生成画布的高
                 canvasImgDownloading: false,
-                showNodeMenu: false,
                 isDisableStartPoint: false,
                 isDisableEndPoint: false,
                 isSelectionOpen: false,
@@ -343,9 +328,6 @@
             window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
-            getAtomList (val) {
-                this.$emit('getAtomList', val)
-            },
             handlerWindowResize () {
                 this.windowWidth = document.documentElement.offsetWidth - 60
                 this.windowHeight = document.documentElement.offsetHeight - 60 - 50
@@ -545,13 +527,6 @@
             onToggleAllNode (val) {
                 this.$emit('onToggleAllNode', val)
                 this.showSmallMap = false
-            },
-            updatePluginList (val, type) {
-                this.$emit('updatePluginList', val, type)
-            },
-            updateNodeMenuState (val) {
-                this.showNodeMenu = val
-                this.$emit('update:nodeMemuOpen', val)
             },
             updateCanvas () {
                 const { locations: nodes, lines } = this.canvasData
@@ -1764,19 +1739,6 @@
             .jtk-endpoint circle{
                 fill: transparent;
                 stroke: transparent;
-            }
-        }
-        &.tool-wrapper-telescopic {
-            .tool-panel-wrap {
-                top: 20px;
-                left: 380px;
-                z-index: 5;
-            }
-            & + .help-info-wrap {
-                .hot-key-panel {
-                    left: 380px;
-                    z-index: 5;
-                }
             }
         }
         .jsflow-node.actived,

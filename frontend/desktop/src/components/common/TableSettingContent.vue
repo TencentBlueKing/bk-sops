@@ -121,7 +121,7 @@
         data () {
             return {
                 localSelected: [],
-                localOrder: this.order,
+                localOrder: this.order || '-id',
                 currentSize: 'small'
             }
         },
@@ -179,7 +179,7 @@
                 }
             },
             order (val) {
-                this.localOrder = val
+                this.localOrder = val || '-id'
             },
             popoverInstance () {
                 this.initCallback()

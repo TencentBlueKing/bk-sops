@@ -14,8 +14,6 @@ specific language governing permissions and limitations under the License.
 import re
 import logging
 
-from django.utils import six
-
 from gcloud.constants import TEMPLATE_NODE_NAME_MAX_LENGTH, AE
 
 logger = logging.getLogger("root")
@@ -49,7 +47,7 @@ def camel_case_to_underscore_naming(source):
     :param source:
     :return:
     """
-    if not isinstance(source, six.string_types):
+    if not isinstance(source, str):
         return source
     result = ""
     for i, s in enumerate(source):
@@ -94,7 +92,7 @@ def check_and_rename_params(conditions, group_by, group_by_check=AE.group_list):
 
 
 def string_to_boolean(value):
-    if isinstance(value, six.string_types) and value.lower() in ("false", "0"):
+    if isinstance(value, str) and value.lower() in ("false", "0"):
         value = False
     else:
         value = bool(value)

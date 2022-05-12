@@ -21,10 +21,10 @@ from gcloud.template_base.domains.converter_handler import YamlSchemaConverterHa
 
 class YamlSchemaConverterTestCase(TestCase):
     def setUp(self):
-        dir_path = os.path.dirname(os.path.abspath(__file__))
-        with open("{}/test_original_data.json".format(dir_path)) as infile:
+        self.dir_path = os.path.dirname(os.path.abspath(__file__))
+        with open("{}/test_complicated_data.json".format(self.dir_path)) as infile:
             self.original_data = json.load(infile)
-        with open("{}/test_yaml_data.yaml".format(dir_path)) as infile:
+        with open("{}/test_complicated_yaml_data.yaml".format(self.dir_path)) as infile:
             self.yaml_docs = list(yaml.load_all(infile, Loader=yaml.FullLoader))
 
         self.convert_handler = YamlSchemaConverterHandler(version="v1")
@@ -89,7 +89,11 @@ class YamlSchemaConverterTestCase(TestCase):
         self.assertIn(ordered_node_ids, [[1, 2, 3, 4, 5, 6], [1, 4, 5, 2, 3, 6]])
 
     def test_converter_convert_constants(self):
-        yaml_constants = self.yaml_docs[0]["spec"]["constants"]
+        with open("{}/test_yaml_data.yaml".format(self.dir_path)) as infile:
+            yaml_docs = list(yaml.load_all(infile, Loader=yaml.FullLoader))
+        with open("{}/test_original_data.json".format(self.dir_path)) as infile:
+            original_data = json.load(infile)
+        yaml_constants = yaml_docs[0]["spec"]["constants"]
         yaml_param_constants = {
             "component_inputs": {},
             "component_outputs": {
@@ -97,7 +101,7 @@ class YamlSchemaConverterTestCase(TestCase):
             },
         }
         template_id = "n2125aebb4c8334f8ba4d575315a8d94"
-        constants = self.original_data["pipeline_template_data"]["template"][template_id]["tree"]["constants"]
+        constants = original_data["pipeline_template_data"]["template"][template_id]["tree"]["constants"]
         converted_constants, param_constants = self.convert_handler.converter._convert_constants(constants)
         self.assertEqual(converted_constants, yaml_constants)
         self.assertEqual(param_constants, yaml_param_constants)

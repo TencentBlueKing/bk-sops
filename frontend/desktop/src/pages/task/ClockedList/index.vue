@@ -50,6 +50,7 @@
                                     <router-link
                                         v-else
                                         class="template-name"
+                                        target="_blank"
                                         :title="row.template_name"
                                         :to="templateNameUrl(row)">
                                         {{ row.template_name }}
@@ -69,6 +70,7 @@
                                         <router-link
                                             v-else
                                             class="task-name"
+                                            target="_blank"
                                             :title="row.task_name"
                                             :to="{
                                                 name: 'taskExecute',
@@ -426,7 +428,7 @@
                 const { template_id, project_id } = row
                 const url = {
                     name: 'templatePanel',
-                    params: { type: 'edit', project_id },
+                    params: { type: 'view', project_id },
                     query: { template_id, common: undefined }
                 }
                 return url

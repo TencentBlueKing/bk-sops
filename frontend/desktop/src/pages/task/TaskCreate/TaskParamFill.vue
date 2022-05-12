@@ -93,6 +93,7 @@
                                     @open-change="onPickerOpenChange"
                                     @change="onPickerChange">
                                 </bk-date-picker>
+                                <span class="time-zone">{{ locTimeZone }}</span>
                                 <span v-if="isDateError" class="common-error-tip error-msg">
                                     {{ !timeRange ? $t('启动时间不能为空') : $t('启动时间不能小于当前时间') }}
                                 </span>
@@ -229,7 +230,8 @@
                 },
                 notifyType: [[]],
                 receiverGroup: [],
-                remoteData: '' // 文本值下拉框变量远程数据源
+                remoteData: '', // 文本值下拉框变量远程数据源
+                locTimeZone: '' // 本地时区后缀
             }
         },
         computed: {
@@ -282,6 +284,7 @@
                 this.isStartNow = 'periodic'
             } else if (this.entrance === 'clockedTask') {
                 this.isStartNow = 'clocked'
+                this.locTimeZone = new Date().toTimeString().slice(12, 17)
             }
             if (this.common) {
                 this.queryCommonTplCreateTaskPerm()
@@ -406,13 +409,7 @@
                 }
             },
             getDefaultTaskName () {
-                let nowTime = ''
-                if (this.common) {
-                    // 无时区的公共流程使用本地的时间
-                    nowTime = moment().format('YYYYMMDDHHmmss')
-                } else {
-                    nowTime = moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
-                }
+                const nowTime = moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
                 if (this.viewMode === 'appmaker') {
                     return this.appmakerTaskName + '_' + nowTime
                 }
@@ -596,14 +593,14 @@
                                     url = {
                                         name: 'appmakerTaskExecute',
                                         params: { app_id: this.app_id, project_id: this.project_id },
-                                        query: { instance_id: taskData.instance_id, template_id }
+                                        query: { instance_id: taskData.id, template_id }
                                     }
                                 }
                             } else if (this.$route.name === 'functionTemplateStep' && this.entrance === 'function') { // 职能化创建任务
                                 url = {
                                     name: 'functionTaskExecute',
                                     params: { project_id: this.project_id },
-                                    query: { instance_id: taskData.instance_id, common: this.common }
+                                    query: { instance_id: taskData.id, common: this.common }
                                 }
                             } else if (this.isSelectFunctionalType) { // 手动选择职能化流程
                                 url = {
@@ -615,7 +612,7 @@
                                 url = {
                                     name: 'taskExecute',
                                     params: { project_id: this.project_id },
-                                    query: { instance_id: taskData.instance_id, common: this.common } // 公共流程创建职能化任务
+                                    query: { instance_id: taskData.id, common: this.common } // 公共流程创建职能化任务
                                 }
                             }
                             this.$router.push(url)
@@ -642,7 +639,8 @@
                             'templateSource': this.common ? 'common' : undefined
                         }
                         try {
-                            await this.createPeriodic(data)
+                            const response = await this.createPeriodic(data)
+                            if (!response.result) return
                             this.$bkMessage({
                                 'message': i18n.t('创建周期任务成功'),
                                 'theme': 'success'
@@ -676,7 +674,7 @@
                                 success: [],
                                 fail: this.notifyType[0]
                             },
-                            plan_start_time: this.timeRange
+                            plan_start_time: this.timeRange + this.locTimeZone
                         }
                         try {
                             await this.createClocked(data)
@@ -710,6 +708,8 @@
                     this.timeRange = ''
                     this.notifyType = [[]]
                     this.receiverGroup = []
+                } else {
+                    this.locTimeZone = new Date().toTimeString().slice(12, 17)
                 }
             },
             paramsLoadingChange (val) {
@@ -752,6 +752,12 @@
         }
         .bk-date-picker {
             width: 500px;
+        }
+        .time-zone {
+            position: relative;
+            font-size: 12px;
+            margin: 0 8px 0 -50px;
+            color: #979ba5;
         }
     }
 }

@@ -136,8 +136,8 @@
                         limit: this.pageSize,
                         offset: this.currentPage * this.pageSize
                     })
-                    this.totalPage = Math.floor(resp.meta.total_count / this.pageSize)
-                    this.recordData.push(...resp.objects)
+                    this.totalPage = Math.floor(resp.count / this.pageSize)
+                    this.recordData.push(...resp.results)
                 } catch (e) {
                     console.log(e)
                 } finally {

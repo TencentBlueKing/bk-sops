@@ -17,6 +17,7 @@ import copy
 import logging
 
 import ujson as json
+from django.apps import apps
 from django.db.models import Q
 
 from pipeline.utils.uniqid import uniqid
@@ -105,8 +106,12 @@ class PipelineTemplateWebWrapper(object):
                         version = None
                     else:
                         version = act.get("version")
-
-                    subproc_data = template_model.objects.get(
+                    subprocess_template_model = (
+                        apps.get_model("template", "CommonTemplate")
+                        if act.get("template_source") == "common"
+                        else template_model
+                    )
+                    subproc_data = subprocess_template_model.objects.get(
                         pipeline_template__template_id=act["template_id"]
                     ).get_pipeline_tree_by_version(version)
 
@@ -129,7 +134,7 @@ class PipelineTemplateWebWrapper(object):
 
                         subproc_data["constants"].update(subproc_constants)
 
-                    replace_template_id(template_model, subproc_data)
+                    replace_template_id(subprocess_template_model, subproc_data)
 
                     # 需要将父流程中修改的 constants 传到子流程的 act constants 中
                     # 根据执行方案创建子流程实例
@@ -141,7 +146,7 @@ class PipelineTemplateWebWrapper(object):
                         subproc_data, exclude_task_nodes_id, False
                     )
 
-                    _unfold_subprocess(subproc_data, template_model)
+                    _unfold_subprocess(subproc_data, subprocess_template_model)
 
                     subproc_data["id"] = act_id
                     act["pipeline"] = subproc_data
@@ -180,6 +185,9 @@ class PipelineTemplateWebWrapper(object):
                 # record referencer id
                 # referenced template -> referencer -> reference act
                 refs.setdefault(act["template_id"], {}).setdefault(template["template_id"], set()).add(act_id)
+                # 因为只会导入同一业务下，所以导出时抹去原环境子流程的类型信息
+                if "template_source" in act:
+                    act.pop("template_source")
                 subprocess_obj = PipelineTemplate.objects.get(template_id=act["template_id"])
                 cls._export_template(subprocess_obj, subprocess, refs, template_versions, False)
 

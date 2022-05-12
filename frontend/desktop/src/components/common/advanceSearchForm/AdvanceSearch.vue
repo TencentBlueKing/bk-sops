@@ -111,11 +111,4 @@
             }
         }
     }
-
-.common-icon-search {
-    position: absolute;
-    right: 15px;
-    top: 8px;
-    color: #63656e;
-}
 </style>

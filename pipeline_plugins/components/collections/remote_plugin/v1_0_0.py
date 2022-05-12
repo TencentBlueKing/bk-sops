@@ -19,7 +19,6 @@ from plugin_service.conf import PLUGIN_LOGGER
 from plugin_service.exceptions import PluginServiceException
 from plugin_service.plugin_client import PluginServiceApiClient
 
-
 logger = logging.getLogger(PLUGIN_LOGGER)
 
 
@@ -29,6 +28,9 @@ class State:
     CALLBACK = 3
     SUCCESS = 4
     FAIL = 5
+
+
+UNFINISHED_STATES = {State.POLL, State.CALLBACK}
 
 
 class RemotePluginService(Service):
@@ -68,7 +70,6 @@ class RemotePluginService(Service):
             ]
         )
         ok, result_data = plugin_client.invoke(plugin_version, {"inputs": data.inputs, "context": plugin_context})
-
         if not ok:
             message = (
                 f"[remote plugin service invoke] error: {result_data['message']}, "
@@ -85,7 +86,7 @@ class RemotePluginService(Service):
         if state == State.FAIL:
             data.set_outputs("ex_data", result_data["err"])
             return False
-        if state == State.POLL:
+        if state in UNFINISHED_STATES:
             setattr(self, "__need_schedule__", True)
         return True
 
@@ -120,7 +121,7 @@ class RemotePluginService(Service):
             logger.error(f"[remote plugin service state failed]: {result_data}")
             data.set_outputs("ex_data", result_data["outputs"].get("ex_data") or default_message)
             return False
-        if state == State.POLL:
+        if state in UNFINISHED_STATES:
             setattr(self, "__need_schedule__", True)
         if state == State.SUCCESS:
             self.finish_schedule()

@@ -20,3 +20,8 @@ from .common_use_project import *  # noqa
 from .label import *  # noqa
 from .package_source import *  # noqa
 from .sync_task import *  # noqa
+from .function_task import *  # noqa
+from .taskflow import *  # noqa
+from .variable import *  # noqa
+from .task_template import *  # noqa
+from .taskflow_instance import *  # noqa
