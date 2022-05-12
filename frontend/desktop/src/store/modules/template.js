@@ -679,7 +679,8 @@ const template = {
                             version: location.atomVersion,
                             type: 'SubProcess',
                             always_use_latest: false,
-                            scheme_id_list: []
+                            scheme_id_list: [],
+                            template_source: location.tplSource || 'business'
                         }
                     }
                     Vue.set(state.activities, location.id, activity)
@@ -839,17 +840,25 @@ const template = {
             return axios.get('core/api/get_basic_info/').then(response => response.data)
         },
         loadTemplateData ({ commit }, data) {
-            const { templateId, common } = data
+            const { templateId, common, checkPermission = false } = data
             let prefixUrl = ''
             if (common) {
                 prefixUrl = 'api/v3/common_template/'
             } else {
                 prefixUrl = 'api/v3/template/'
             }
-            return axios.get(`${prefixUrl}${templateId}/`).then(response => response.data)
+            return axios({
+                method: 'get',
+                url: `${prefixUrl}${templateId}/`,
+                headers: {
+                    'Tpl-Node-Permission-Check': checkPermission
+                }
+            }).then(response => response.data.data)
         },
         loadCustomVarCollection () {
-            return axios.get('api/v3/variable/').then(response => response.data.objects)
+            return axios.get('api/v3/variable/').then(response => {
+                return response.data.data
+            })
         },
         /**
          * 保存模板数据
@@ -898,7 +907,7 @@ const template = {
             const notifyReceivers = JSON.stringify(notify_receivers)
             const timeout = time_out
             const headers = {}
-            const project = SITE_URL + 'api/v3/project/' + projectId + '/'
+            const project = projectId || undefined
             let url = ''
             if (common) {
                 url = 'api/v3/common_template/'
@@ -911,7 +920,8 @@ const template = {
                 headers['X-HTTP-Method-Override'] = 'PATCH'
             }
 
-            return axios.post(url, {
+            // 新增用post, 编辑用put
+            return axios[templateId === undefined ? 'post' : 'put'](url, {
                 name,
                 project,
                 category,
@@ -925,7 +935,7 @@ const template = {
                 notify_receivers: notifyReceivers
             }, {
                 headers
-            }).then(response => response.data)
+            }).then(response => response.data.data)
         },
         // 自动排版
         getLayoutedPipeline ({ commit }, data) {
@@ -958,7 +968,10 @@ const template = {
         },
         getBatchForms ({ commit }, data) {
             const { projectId, tpls } = data
-            return axios.post(`template/api/batch_form/${projectId}/`, { templates: tpls }).then(response => response.data)
+            return axios.post(`template/api/batch_form_with_schemes/`, {
+                project_id: projectId,
+                template_list: tpls
+            }).then(response => response.data)
         },
         // 获取所有mako模板操作
         getMakoOperations ({ commit }) {

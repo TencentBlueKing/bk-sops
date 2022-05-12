@@ -61,6 +61,7 @@ axios.interceptors.response.use(
         if (response.data.responseText) {
             response.data.msg = response.data.responseText
         }
+        const applyPermission = response.config.headers['Tpl-Node-Permission-Check']
 
         switch (response.status) {
             case 400:
@@ -85,6 +86,8 @@ axios.interceptors.response.use(
                 if (permissions.actions.find(item => item.id === 'project_view')) {
                     viewType = 'project'
                     isViewApply = true
+                } else if (applyPermission) {
+                    isViewApply = false
                 } else {
                     isViewApply = permissions.actions.some(item => {
                         return ['flow_view', 'common_flow_view', 'mini_app_view', 'task_view'].includes(item.id)

@@ -10,10 +10,10 @@ const COMMON_ROUTE_LIST = [
         },
         {
             id: 'process',
-            name: i18n.t('项目流程'),
+            name: i18n.t('流程'),
             icon: 'icon-sitemap-shape',
             hasProjectId: true,
-            subRoutes: ['templatePanel'],
+            subRoutes: ['processHome', 'processCommon', 'processCollect', 'templatePanel', 'projectCommonTemplatePanel'],
             url: '/template/home/'
         },
         {
@@ -21,6 +21,7 @@ const COMMON_ROUTE_LIST = [
             name: i18n.t('任务记录'),
             icon: 'common-icon-task-record',
             hasProjectId: true,
+            subRoutes: ['taskExecute'],
             url: '/taskflow/home/list/'
         },
         {
@@ -47,18 +48,18 @@ const COMMON_ROUTE_LIST = [
     ],
     [
         {
-            id: 'commonProcessList',
-            name: i18n.t('公共流程'),
-            icon: 'icon-execute',
-            subRoutes: ['commonTemplatePanel'],
-            url: '/common/home/'
-        },
-        {
             id: 'functionHome',
             name: i18n.t('职能化'),
             icon: 'icon-project',
             subRoutes: ['functionTemplateStep', 'functionTaskExecute'],
             url: '/function/home/'
+        },
+        {
+            id: 'projectHome',
+            name: i18n.t('项目管理'),
+            icon: 'icon-work-manage',
+            subRoutes: ['projectConfig'],
+            url: '/project/home/'
         },
         {
             id: 'auditHome',
@@ -67,11 +68,11 @@ const COMMON_ROUTE_LIST = [
             url: '/audit/home/'
         },
         {
-            id: 'projectHome',
-            name: i18n.t('项目管理'),
-            icon: 'icon-work-manage',
-            subRoutes: ['projectConfig'],
-            url: '/project/home/'
+            id: 'commonProcessList',
+            name: i18n.t('公共流程管理'),
+            icon: 'icon-execute',
+            subRoutes: ['commonTemplatePanel'],
+            url: '/common/home/'
         }
     ]
 ]

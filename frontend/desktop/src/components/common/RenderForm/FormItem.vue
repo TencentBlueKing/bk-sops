@@ -510,8 +510,11 @@
                 cursor: not-allowed;
             }
             &.actived {
-                color: #1768ef;
+                color: #3a84ff;
             }
+        }
+        .hook-icon {
+            font-size: 19px;
         }
     }
     .rf-view-value {

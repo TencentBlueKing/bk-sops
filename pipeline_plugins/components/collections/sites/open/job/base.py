@@ -332,12 +332,12 @@ class JobService(Service):
                     "bk_biz_id": bk_biz_id,
                     "job_instance_id": job_instance_id,
                 }
-                global_var_result = client.job.get_job_instance_global_var_value(get_var_kwargs)
+                global_var_result = client.jobv3.get_job_instance_global_var_value(get_var_kwargs)
                 self.logger.info("get_job_instance_global_var_value return: {}".format(global_var_result))
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "job.get_job_instance_global_var_value",
+                        "jobv3.get_job_instance_global_var_value",
                         get_var_kwargs,
                         global_var_result,
                     )
@@ -346,10 +346,10 @@ class JobService(Service):
                     self.finish_schedule()
                     return False
 
-                global_var_list = global_var_result["data"].get("job_instance_var_values", [])
+                global_var_list = global_var_result["data"].get("step_instance_var_list", [])
                 if global_var_list:
-                    for global_var in global_var_list[-1]["step_instance_var_values"] or []:
-                        if global_var["category"] != JOB_VAR_TYPE_IP:
+                    for global_var in global_var_list[-1]["global_var_list"] or []:
+                        if global_var["type"] != JOB_VAR_TYPE_IP:
                             data.set_outputs(global_var["name"], global_var["value"])
 
             # 无需提取全局变量的Service直接返回

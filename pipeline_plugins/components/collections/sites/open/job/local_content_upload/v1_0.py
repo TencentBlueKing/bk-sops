@@ -136,7 +136,7 @@ class JobLocalContentUploadService(Service):
             "bk_scope_type": JobBizScopeType.BIZ.value,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
-            "account": data.get_one_of_inputs("file_account"),
+            "account_alias": data.get_one_of_inputs("file_account"),
             "file_target_path": data.get_one_of_inputs("file_path"),
             "file_list": [
                 {
@@ -146,10 +146,12 @@ class JobLocalContentUploadService(Service):
                     ),
                 }
             ],
-            "ip_list": ip_list,
+            "target_server": {
+                "ip_list": ip_list,
+            },
         }
 
-        job_result = client.job.push_config_file(job_kwargs)
+        job_result = client.jobv3.push_config_file(job_kwargs)
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
 
         if job_result["result"]:
@@ -159,7 +161,7 @@ class JobLocalContentUploadService(Service):
             data.outputs.job_inst_url = get_job_instance_url(biz_cc_id, job_instance_id)
             return True
         else:
-            message = job_handle_api_error("job.push_config_file", job_kwargs, job_result)
+            message = job_handle_api_error("jobv3.push_config_file", job_kwargs, job_result)
             self.logger.error(message)
             data.outputs.ex_data = message
             return False
@@ -173,21 +175,21 @@ class JobLocalContentUploadService(Service):
             "bk_biz_id": biz_cc_id,
             "job_instance_id": data.outputs.job_inst_id,
         }
-        get_job_instance_log_return = client.job.get_job_instance_log(get_job_instance_log_kwargs)
+        get_job_instance_log_return = client.jobv3.get_job_instance_status(get_job_instance_log_kwargs)
         if not get_job_instance_log_return["result"]:
             err_message = handle_api_error(
-                "JOB", "job.get_job_instance_log", get_job_instance_log_kwargs, get_job_instance_log_return
+                "JOB", "jobv3.get_job_instance_status", get_job_instance_log_kwargs, get_job_instance_log_return
             )
             data.set_outputs("ex_data", err_message)
             return False
         else:
-            job_status = get_job_instance_log_return["data"][0]["status"]
+            job_status = get_job_instance_log_return["data"]["job_instance"]["status"]
             if job_status == 3:
                 self.finish_schedule()
                 return True
             elif job_status > 3:
                 err_message = handle_api_error(
-                    "JOB", "job.get_job_instance_log", get_job_instance_log_kwargs, get_job_instance_log_return
+                    "JOB", "jobv3.get_job_instance_status", get_job_instance_log_kwargs, get_job_instance_log_return
                 )
                 data.set_outputs("ex_data", err_message)
                 return False

@@ -256,10 +256,7 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
-        ),
+        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
@@ -382,10 +379,7 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
-        ),
+        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
@@ -474,10 +468,7 @@ INSTALL_FAIL_CASE = ComponentTestCase(
         },
     ),
     schedule_call_assertion=[
-        CallAssertion(
-            func=DETAILS_FAIL_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
-        ),
+        CallAssertion(func=DETAILS_FAIL_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
         CallAssertion(
             func=DETAILS_FAIL_CLIENT.get_job_log,
             calls=[Call(**{"job_id": "1", "instance_id": "host|instance|host|1.1.1.1-0-0"})],
@@ -518,10 +509,7 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
-        ),
+        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
@@ -786,10 +774,7 @@ INSTALL_SUCCESS_CASE_WITH_TTJ = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
-        ),
+        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
@@ -827,10 +812,7 @@ MULTI_CLOUD_ID_OPERATE_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
-        ),
+        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
@@ -941,10 +923,7 @@ MULTI_CLOUD_ID_INSTALL_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
-        ),
+        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),

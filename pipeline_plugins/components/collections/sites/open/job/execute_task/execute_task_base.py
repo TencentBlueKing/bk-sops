@@ -163,7 +163,7 @@ class JobExecuteTaskServiceBase(JobService):
                         return False
 
                 if ip_list:
-                    global_vars.append({"name": _value["name"], "ip_list": ip_list})
+                    global_vars.append({"name": _value["name"], "server": {"ip_list": ip_list}})
             else:
                 global_vars.append({"name": _value["name"], "value": val})
 
@@ -171,12 +171,12 @@ class JobExecuteTaskServiceBase(JobService):
             "bk_scope_type": self.biz_scope_type,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
-            "bk_job_id": data.get_one_of_inputs("job_task_id"),
-            "global_vars": global_vars,
-            "bk_callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
+            "job_plan_id": data.get_one_of_inputs("job_task_id"),
+            "global_var_list": global_vars,
+            "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
 
-        job_result = client.job.execute_job(job_kwargs)
+        job_result = client.jobv3.execute_job_plan(job_kwargs)
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:
             job_instance_id = job_result["data"]["job_instance_id"]
@@ -186,7 +186,7 @@ class JobExecuteTaskServiceBase(JobService):
             data.outputs.client = client
             return True
         else:
-            message = job_handle_api_error("job.execute_job", job_kwargs, job_result)
+            message = job_handle_api_error("jobv3.execute_job_plan", job_kwargs, job_result)
             self.logger.error(message)
             data.outputs.ex_data = message
             return False

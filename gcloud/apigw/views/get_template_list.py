@@ -10,13 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
+from gcloud.apigw.decorators import mark_request_whether_is_trust, timezone_inject, return_json_response
 from gcloud.apigw.decorators import project_inject
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import PROJECT
@@ -36,6 +34,7 @@ from apigw_manager.apigw.decorators import apigw_require
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
+@timezone_inject
 @iam_intercept(ProjectViewInterceptor())
 def get_template_list(request, project_id):
     template_source = request.GET.get("template_source", PROJECT)
@@ -62,7 +61,7 @@ def get_template_list(request, project_id):
     else:
         templates = CommonTemplate.objects.select_related("pipeline_template").filter(**filter_kwargs)
 
-    template_list, template_id_list = format_template_list_data(templates, project, return_id_list=True)
+    template_list, template_id_list = format_template_list_data(templates, project, return_id_list=True, tz=request.tz)
 
     # 注入用户有权限的actions
     flow_allowed_actions = get_flow_allowed_actions_for_user(request.user.username, FLOW_ACTIONS, template_id_list)

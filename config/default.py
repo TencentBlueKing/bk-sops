@@ -143,7 +143,6 @@ MIDDLEWARE += (
     "gcloud.core.middlewares.ObjectDoesNotExistExceptionMiddleware",
     "iam.contrib.django.middlewares.AuthFailedExceptionMiddleware",
     "pipeline_plugins.middlewares.PluginApiRequestHandleMiddleware",
-    "gcloud.core.middlewares.AppMetricsAfterMiddleware",
     "apigw_manager.apigw.authentication.ApiGatewayJWTGenericMiddleware",  # JWT 认证
     "apigw_manager.apigw.authentication.ApiGatewayJWTAppMiddleware",  # JWT 透传的应用信息
     "apigw_manager.apigw.authentication.ApiGatewayJWTUserMiddleware",  # JWT 透传的用户信息
@@ -168,6 +167,9 @@ if env.IS_PAAS_V3:
 
     BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE = os.path.join(BASE_DIR, "gcloud", "apigw", "docs", "apigw-docs.tgz")
 
+# 默认数据库AUTO字段类型
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = ()
 if env.BKAPP_CORS_ALLOW:
@@ -181,7 +183,6 @@ if env.BKAPP_PYINSTRUMENT_ENABLE:
     MIDDLEWARE += ("pyinstrument.middleware.ProfilerMiddleware",)
 
 MIDDLEWARE = (
-    "gcloud.core.middlewares.AppMetricsBeforeMiddleware",
     "gcloud.core.middlewares.TraceIDInjectMiddleware",
     "weixin.core.middlewares.WeixinProxyPatchMiddleware",
 ) + MIDDLEWARE
@@ -198,7 +199,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.19.2"
+STATIC_VERSION = "3.20.2"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -360,9 +361,6 @@ BK_USER_MANAGE_HOST = env.BK_USER_MANAGE_HOST
 # 人员选择数据来源
 BK_MEMBER_SELECTOR_DATA_HOST = env.BK_MEMBER_SELECTOR_DATA_HOST
 
-# tastypie 配置
-TASTYPIE_DEFAULT_FORMATS = ["json"]
-
 TEMPLATES[0]["OPTIONS"]["context_processors"] += ("gcloud.core.context_processors.mysetting",)
 
 STATIC_VER = {"DEVELOP": "dev", "PRODUCT": "prod", "STAGING": "stag"}
@@ -520,7 +518,6 @@ VARIABLE_KEY_BLACKLIST = env.VARIABLE_KEY_BLACKLIST.strip().strip(",").split(","
 AUTO_UPDATE_VARIABLE_MODELS = os.getenv("BKAPP_AUTO_UPDATE_VARIABLE_MODELS", "1") == "1"
 AUTO_UPDATE_COMPONENT_MODELS = os.getenv("BKAPP_AUTO_UPDATE_COMPONENT_MODELS", "1") == "1"
 
-CELERY_SEND_EVENTS = True
 PAGE_NOT_FOUND_URL_KEY = "page_not_found"
 BLUEAPPS_SPECIFIC_REDIRECT_KEY = "page_not_found"
 
@@ -692,6 +689,7 @@ def monitor_report_config():
 
 # 自定义上报监控配置
 if env.BK_MONITOR_REPORT_ENABLE:
+    CELERY_SEND_EVENTS = True
     monitor_report_config()
 
 ENABLE_OTEL_TRACE = env.ENABLE_OTEL_TRACE
@@ -713,5 +711,8 @@ BK_PLUGIN_DEVELOP_URL = env.BK_PLUGIN_DEVELOP_URL
 # 蓝鲸插件授权过滤 APP
 PLUGIN_DISTRIBUTOR_NAME = env.PLUGIN_DISTRIBUTOR_NAME or APP_CODE
 
-# 蓝鲸API网关
+# IAM APIGW 地址
 BK_IAM_APIGW_HOST = env.BK_IAM_APIGW_HOST
+
+# 节点日志持久化时间
+LOG_PERSISTENT_DAYS = env.BK_NODE_LOG_PERSISTENT_DAYS

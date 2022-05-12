@@ -14,15 +14,16 @@ specific language governing permissions and limitations under the License.
 from functools import wraps
 
 from django.http import HttpResponseForbidden
-from django.utils.decorators import available_attrs
 
 
 def check_is_superuser():
     def decorator(view_func):
-        @wraps(view_func, assigned=available_attrs(view_func))
+        @wraps(view_func)
         def _wrapped_view(request, *args, **kwargs):
             if not request.user.is_superuser:
                 return HttpResponseForbidden()
             return view_func(request, *args, **kwargs)
+
         return _wrapped_view
+
     return decorator

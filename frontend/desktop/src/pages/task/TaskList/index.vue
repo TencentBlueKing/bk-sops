@@ -493,9 +493,9 @@
                         }
                     }
                     const taskListData = await this.loadTaskList(data)
-                    const list = taskListData.objects
-                    this.pagination.count = taskListData.meta.total_count
-                    this.totalCount = taskListData.meta.total_count
+                    const list = taskListData.results
+                    this.pagination.count = taskListData.count
+                    this.totalCount = taskListData.count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
                         this.totalPage = 1

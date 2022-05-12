@@ -34,7 +34,7 @@ from pipeline_plugins.cmdb_ip_picker.query import (
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from gcloud.exceptions import APIError
+from gcloud.exceptions import APIError, ApiRequestError
 from gcloud.core.utils import get_user_business_list
 from pipeline_plugins.components.utils import batch_execute_func
 
@@ -226,13 +226,11 @@ def cc_list_service_template(request, biz_cc_id, supplier_account):
     """
     client = get_client_by_user(request.user.username)
     kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
-    list_service_template_return = client.cc.list_service_template(kwargs)
-    if not list_service_template_return["result"]:
-        message = handle_api_error("cc", "cc.list_service_template", kwargs, list_service_template_return)
-        logger.error(message)
-        return JsonResponse({"result": False, "data": [], "message": message})
     service_templates = []
-    service_templates_untreated = list_service_template_return["data"]["info"]
+    try:
+        service_templates_untreated = batch_request(client.cc.list_service_template, kwargs)
+    except ApiRequestError as e:
+        return JsonResponse({"result": False, "data": [], "message": e})
     for template_untreated in service_templates_untreated:
         template = {
             "value": "{name}_{id}".format(name=template_untreated["name"], id=template_untreated["id"]),

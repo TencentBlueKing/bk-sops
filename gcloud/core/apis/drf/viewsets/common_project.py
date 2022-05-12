@@ -15,9 +15,9 @@ from rest_framework import permissions
 from gcloud.core.models import ProjectCounter
 from gcloud.iam_auth.utils import get_user_projects
 
-from ..filter import ALL_LOOKUP, AllLookupSupportFilterSet
-from ..serilaziers import CommonProjectSerializer
-from .base import GcloudReadOnlyViewSet
+from gcloud.core.apis.drf.filtersets import ALL_LOOKUP, AllLookupSupportFilterSet
+from gcloud.core.apis.drf.serilaziers import CommonProjectSerializer
+from gcloud.core.apis.drf.viewsets.base import GcloudListViewSet
 
 
 class CommonProjectFilter(AllLookupSupportFilterSet):
@@ -30,7 +30,7 @@ class CommonProjectFilter(AllLookupSupportFilterSet):
         }
 
 
-class CommonProjectViewSet(GcloudReadOnlyViewSet):
+class CommonProjectViewSet(GcloudListViewSet):
     queryset = ProjectCounter.objects.all().order_by("-count")
     search_fields = ["id", "username", "count", "project__name"]
     serializer_class = CommonProjectSerializer

@@ -13,16 +13,14 @@
             <slot></slot>
         </section>
         <section class="chart-wrapper">
-            <div class="canvas-content">
-                <template v-if="hasAmountBizTotal">
-                    <canvas :class="`${canvasId}-canvas`" style="height: 240px; width: 240px"></canvas>
-                    <div class="center-circle">
-                        <span class="total">{{ statsInfo.total }}</span>
-                        <span class="desc">{{ statsInfo.name + $t('总数') }}</span>
-                    </div>
-                </template>
-                <no-data v-else></no-data>
+            <div class="canvas-content" v-if="hasAmountBizTotal">
+                <canvas :class="`${canvasId}-canvas`" style="height: 240px; width: 240px"></canvas>
+                <div class="center-circle">
+                    <span class="total">{{ statsInfo.total }}</span>
+                    <span class="desc">{{ statsInfo.name + $t('总数') }}</span>
+                </div>
             </div>
+            <no-data class="canvas-content" v-else></no-data>
             <div class="percent-table">
                 <bk-table
                     :data="statsList"
@@ -150,16 +148,16 @@
                         total
                     }
                     this.tableColumn[0].label = name || i18n.t('名称')
-                    const statsList = info.map(item => {
-                        item.color = this.randomColor()
+                    const statsList = info.map((item, index) => {
+                        item.color = this.randomColor(index)
                         item.amount = item.value
-                        item.percentage = Math.round(item.value / total * 10000) / 100.00 + '%'
+                        item.percentage = total ? (Math.round(item.value / total * 10000) / 100.00 + '%') : '0%'
                         return item
                     })
                     statsList.push({
                         name: i18n.t('总计'),
                         amount: total,
-                        percentage: '100%'
+                        percentage: total ? '100%' : '0%'
                     })
                     this.statsList = statsList
                     this.statsObj[this.dimensionId] = {
@@ -192,6 +190,7 @@
             },
             initChart (labels, backgroundColor, data, counts) {
                 const context = document.querySelector(`.${this.canvasId}-canvas`)
+                if (!context) return
                 this.chart = new BKChart(context, {
                     type: 'doughnut',
                     data: {
@@ -227,12 +226,25 @@
                 datasets.data = data
                 this.chart.update()
             },
-            randomColor () {
-                let color = ''
-                for (let i = 0; i < 6; i++) {
-                    color += '0123456789abcdef'[Math.floor(Math.random() * 16)]
+            randomColor (seed = 0) {
+                const totalColors = 1000 // 最大支持颜色种类数
+                // 计算对应下标
+                const idx = (seed + 1) % totalColors
+                // 默认返回红色
+                let ret = 0xFF0000
+                // RGB的最大值
+                const full = 0xFFFFFF
+                // 总共需要支持多少种颜色，若传0则取255
+                const total = totalColors || 0xFF
+                // 将所有颜色平均分成x份
+                const perVal = full / total
+                if (idx >= 0 && idx <= total) {
+                    ret = perVal * idx
                 }
-                return '#' + color
+                ret = Math.round(ret)
+                // 转成RGB 16进制字符串
+                ret = ret.toString(16).padEnd(6, 'f')
+                return '#' + ret
             }
         }
     }

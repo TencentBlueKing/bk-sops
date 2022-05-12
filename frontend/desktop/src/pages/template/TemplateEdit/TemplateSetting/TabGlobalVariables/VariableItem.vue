@@ -11,8 +11,11 @@
 */
 <template>
     <div class="variable-item">
-        <div class="variable-content" @click="onEditVariable(variableData.key, variableData.index)">
-            <i v-if="!isSystemVar && !isProjectVar && !showCitedList" class="col-item-drag bk-icon icon-sort"></i>
+        <div :class="['variable-content', { 'view-model': isViewMode }]" @click="onEditVariable(variableData.key, variableData.index)">
+            <i v-if="!isSystemVar && !isProjectVar && !showCitedList" class="col-item-drag common-icon-drawable f16"></i>
+            <span v-if="!isViewMode && !isSystemVar && !isProjectVar" @click.stop class="col-item-checkbox">
+                <bk-checkbox :value="variableChecked" @change="onChooseVariable"></bk-checkbox>
+            </span>
             <i v-if="isSystemVar" class="variable-icon common-icon-lock-disable"></i>
             <i v-if="isProjectVar" class="variable-icon common-icon-paper"></i>
             <span class="col-item col-name" v-bk-overflow-tips="{ distance: 0 }">
@@ -66,7 +69,7 @@
                 <bk-switcher
                     size="small"
                     theme="primary"
-                    :disabled="variableData.isSysVar || variableData.source_type === 'component_outputs'"
+                    :disabled="isViewMode || variableData.isSysVar || variableData.source_type === 'component_outputs'"
                     :value="variableData.show_type === 'show'"
                     @change="onChangeVariableShow(variableData.key, $event)">
                 </bk-switcher>
@@ -77,25 +80,26 @@
                         size="small"
                         theme="primary"
                         :value="outputed"
+                        :disabled="isViewMode"
                         @change="onChangeVariableOutput(variableData.key, $event)">
                     </bk-switcher>
                 </div>
             </span>
             <span class="col-item col-operation">
                 <span
-                    v-if="isInternalVal"
+                    v-if="isViewMode || isInternalVal"
                     class="col-operation-item"
                     @click.stop="onEditVariable(variableData.key, variableData.index)">
                     {{ $t('查看') }}
                 </span>
                 <span v-else class="col-operation-item">{{ $t('编辑') }}</span>
             </span>
-            <span class="col-item col-more" v-if="!isInternalVal">
+            <span class="col-item col-more" v-if="!isViewMode && !isInternalVal">
                 <bk-popover placement="bottom" theme="light" :distance="0" :arrow="false" ext-cls="var-operate-popover">
                     <i class="bk-icon icon-more"></i>
                     <template slot="content">
                         <p class="operate-item" @click.stop="onCloneVariable()">{{ $t('克隆') }}</p>
-                        <p class="operate-item" @click.stop="onDeleteVariable(variableData.key)">{{ $t('删除') }}</p>
+                        <p class="operate-item" @click.stop="deleteVarVisible = true">{{ $t('删除') }}</p>
                     </template>
                 </bk-popover>
             </span>
@@ -110,6 +114,14 @@
             :keyid="variableData.key"
             :params="previewParams">
         </VariablePreviewValue>
+        <bk-dialog v-model="deleteVarVisible"
+            theme="primary"
+            header-position="left"
+            :mask-close="false"
+            :title="$t('删除')"
+            @confirm="onDeleteVariable">
+            <span>{{ $t('确认删除') }} “{{variableData.name}} / {{variableData.key}}” ?</span>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -128,14 +140,17 @@
             outputed: Boolean,
             variableData: Object,
             common: [String, Number],
-            variableCited: Object
+            variableCited: Object,
+            variableChecked: Boolean,
+            isViewMode: Boolean
         },
         data () {
             return {
                 showCitedList: false,
                 showPreviewValue: false,
                 copyText: '',
-                previewParams: {}
+                previewParams: {},
+                deleteVarVisible: false
             }
         },
         computed: {
@@ -269,20 +284,17 @@
                     this.showPreviewValue = true
                 }
             },
-            onDeleteVariable (key) {
-                this.$bkInfo({
-                    title: i18n.t('确认删除该变量？'),
-                    confirmLoading: true,
-                    confirmFn: () => {
-                        this.$emit('onDeleteVariable', key)
-                    }
-                })
+            onDeleteVariable () {
+                this.$emit('onDeleteVariable', this.variableData.key)
             },
             onEditVariable (key, index) {
                 this.$emit('onEditVariable', key, index)
             },
             onCloneVariable () {
                 this.$emit('onCloneVariable', this.variableData)
+            },
+            onChooseVariable (value) {
+                this.$emit('onChooseVariable', this.variableData, value)
             }
         }
     }
@@ -328,7 +340,7 @@ $localBorderColor: #d8e2e7;
     }
     .variable-content {
         position: relative;
-        padding-left: 50px;
+        padding-left: 55px;
         display: flex;
         height: 42px;
         line-height: 42px;
@@ -340,6 +352,11 @@ $localBorderColor: #d8e2e7;
             }
             .copy-icon {
                 display: inline-block;
+            }
+        }
+        &.view-model {
+            .col-item-drag {
+                display: none;
             }
         }
     }
@@ -404,14 +421,20 @@ $localBorderColor: #d8e2e7;
 .col-item-drag {
     display: none;
     position: absolute;
+    margin-top: 2px;
     top: 50%;
-    left: 20px;
+    left: 5px;
     transform: translate(0, -50%);
     color: #979ba5;
     cursor: move;
     &:hover {
         color: #348aff;
     }
+}
+.col-item-checkbox {
+    display: inline-block;
+    position: absolute;
+    left: 28px;
 }
 .col-name {
     overflow: hidden;
@@ -464,7 +487,8 @@ $localBorderColor: #d8e2e7;
 .variable-icon {
     position: absolute;
     top: 50%;
-    left: 20px;
+    left: 28px;
+    font-size: 16px;
     transform: translate(0, -50%);
     color: #979ba5;
 }

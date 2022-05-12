@@ -363,7 +363,7 @@
             async isTemplateCollected () {
                 try {
                     const response = await this.getCollectedTemplate()
-                    this.collectedList = response.objects
+                    this.collectedList = response.results
                     this.collected = this.collectedList.some(template => {
                         return template.category === 'flow' && template.extra_info.id === Number(this.templateId)
                     })

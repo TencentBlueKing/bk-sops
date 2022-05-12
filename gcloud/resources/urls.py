@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.conf.urls import include, url
-from tastypie.api import Api
 from rest_framework.routers import DefaultRouter
 
 from gcloud.clocked_task.viewset import ClockedTaskViewSet
@@ -30,34 +29,25 @@ from gcloud.core.apis.drf.viewsets import (
     PackageSourceViewSet,
     SyncTaskViewSet,
     CollectionViewSet,
+    FunctionTaskViewSet,
+    VariableViewSet,
+    TaskTemplateViewSet,
+    AppmakerListViewSet,
+    PeriodicTaskViewSet,
+    CommonTemplateViewSet as V3CommonTemplateViewSet,
+    TaskFlowInstanceViewSet,
 )
 
 from gcloud.template_base.apis.drf.viewsets import TemplateSchemeViewSet
 from gcloud.contrib.operate_record.apis.drf.viewsets import TaskOperateRecordSetViewSet, TemplateOperateRecordSetViewSet
-from gcloud.core.resources import VariableModelResource
-from gcloud.common_template.apis.tastypie.resources import CommonTemplateResource, CommonTemplateSchemeResource
 from gcloud.label.viewsets import NewLabelViewSet
 from gcloud.project_constants.apis.drf.viewsets import ProjectConstantsViewSet
 
-from gcloud.tasktmpl3.apis.tastypie.resources import TaskTemplateResource
-from gcloud.taskflow3.apis.tastypie.resources import TaskFlowInstanceResource
-from gcloud.contrib.appmaker.resources import AppMakerResource
-from gcloud.contrib.function.resources import FunctionTaskResource
-from gcloud.periodictask.resources import PeriodicTaskResource
 
 from gcloud.template_base.apis.drf.viewsets.template import ProjectTemplateViewSet, CommonTemplateViewSet
 from gcloud.user_custom_config.viewsets.user_custom_config import UserCustomConfViewset
 from gcloud.user_custom_config.viewsets.user_custom_config_options import UserCustomConfigOptions
 
-v3_api = Api(api_name="v3")
-v3_api.register(TaskTemplateResource())
-v3_api.register(VariableModelResource())
-v3_api.register(TaskFlowInstanceResource())
-v3_api.register(AppMakerResource())
-v3_api.register(FunctionTaskResource())
-v3_api.register(PeriodicTaskResource())
-v3_api.register(CommonTemplateResource())
-v3_api.register(CommonTemplateSchemeResource())
 
 drf_router = DefaultRouter()
 drf_router.register(r"project_config", ProjectConfigViewSet)
@@ -78,6 +68,13 @@ drf_router.register(r"label", LabelViewSet)
 drf_router.register(r"package_source", PackageSourceViewSet, basename="package_source")
 drf_router.register(r"sync_task", SyncTaskViewSet)
 drf_router.register(r"collection", CollectionViewSet)
+drf_router.register(r"function_task", FunctionTaskViewSet)
+drf_router.register(r"variable", VariableViewSet)
+drf_router.register(r"template", TaskTemplateViewSet)
+drf_router.register(r"appmaker", AppmakerListViewSet, basename="appmaker")
+drf_router.register(r"periodic_task", PeriodicTaskViewSet)
+drf_router.register(r"common_template", V3CommonTemplateViewSet)
+drf_router.register(r"taskflow", TaskFlowInstanceViewSet)
 
 
 v4_drf_router = DefaultRouter()
@@ -91,7 +88,6 @@ v4_drf_router.register(
 
 # Standard bits...
 urlpatterns = [
-    url(r"^api/", include(v3_api.urls)),
     url(r"^api/v3/", include(drf_router.urls)),
     url(r"^api/v4/", include(v4_drf_router.urls)),
     url(r"^api/auto_test/", include("gcloud.auto_test.urls")),

@@ -33,13 +33,13 @@
                 <div :class="`node-type-icon common-icon-node-endpoint-${langSuffix}`"></div>
             </div>
             <div
-                :class="['palette-item', 'entry-item', 'palette-with-menu', { actived: activeNodeListType === 'tasknode' }]"
+                :class="['palette-item', 'entry-item', 'palette-with-menu', { actived: menuType === 'plugin' }]"
                 data-type="tasknode"
-                @mousedown="onNodeMouseDown('tasknode', $event)">
+                @mousedown="onNodeMouseDown('plugin', $event)">
                 <div class="node-type-icon common-icon-node-tasknode"></div>
             </div>
             <div
-                :class="['palette-item','entry-item', 'palette-with-menu', { actived: activeNodeListType === 'subflow' }]"
+                :class="['palette-item','entry-item', 'palette-with-menu', { actived: menuType === 'subflow' }]"
                 data-type="subflow"
                 @mousedown="onNodeMouseDown('subflow', $event)">
                 <div class="node-type-icon common-icon-node-subflow"></div>
@@ -57,35 +57,29 @@
                 <div class="node-type-icon common-icon-node-conditionalparallelgateway"></div>
             </div>
         </div>
-        <node-menu
-            ref="node_menu"
-            :show-node-menu="showNodeMenu"
-            :is-fixed-node-menu="isFixedNodeMenu"
-            :active-node-list-type="activeNodeListType"
-            :template-labels="templateLabels"
-            :loading="activeNodeListType === 'subflow' && listLoading"
-            :nodes="nodes"
-            :common="common"
-            :plugin-list="atomTypeList.pluginList"
-            :plugin-loading="pluginLoading"
-            @updatePluginList="updatePluginList"
-            @onCloseNodeMenu="onCloseNodeMenu"
-            @onToggleNodeMenuFixed="onToggleNodeMenuFixed">
-        </node-menu>
+        <transition name="slideLeft">
+            <node-menu
+                v-if="menuType !== ''"
+                :menu-type="menuType"
+                :template-labels="templateLabels"
+                :built-in-plugins="atomTypeList.tasknode"
+                :common="common"
+                @change="menuType = $event === 'tasknode' ? 'plugin' : 'subflow'"
+                @close="menuType = ''">
+            </node-menu>
+        </transition>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import NodeMenu from './NodeMenu.vue'
+    import NodeMenu from './NodeMenu/NodeMenu.vue'
     import Guide from '@/utils/guide.js'
-    import { mapState, mapActions } from 'vuex'
-    import permission from '@/mixins/permission.js'
+
     export default {
         name: 'PalattePanel',
         components: {
             NodeMenu
         },
-        mixins: [permission],
         props: {
             templateLabels: Array,
             atomTypeList: {
@@ -102,10 +96,7 @@
                 type: Boolean,
                 default: false
             },
-            common: {
-                type: [String, Number],
-                default: false
-            },
+            common: [String, Number],
             pluginLoading: {
                 type: Boolean,
                 default: false
@@ -113,10 +104,7 @@
         },
         data () {
             return {
-                activeNodeListType: '',
-                showNodeMenu: false,
-                isFixedNodeMenu: false,
-                isMenuTypeChange: false,
+                menuType: '',
                 nodeMouse: {
                     type: '',
                     startX: null,
@@ -125,44 +113,12 @@
                 moveFlag: {
                     x: 0,
                     y: 0
-                },
-                listLoading: true, // 列表加载loading
-                currentPage: 0,
-                limit: Math.ceil(((window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight) - 200) / 40) + 5,
-                pollingTimer: null,
-                isPageOver: false,
-                isThrottled: false // 滚动节流 是否进入cd
+                }
             }
         },
         computed: {
-            ...mapState({
-                lang: state => state.lang
-            }),
             langSuffix () {
-                return this.lang === 'en' ? 'en' : 'zh'
-            },
-            nodes () {
-                if (!this.activeNodeListType) {
-                    return []
-                }
-                if (this.activeNodeListType === 'tasknode') {
-                    return this.atomTypeList.tasknode
-                } else {
-                    return this.atomTypeList.subflow
-                }
-            }
-        },
-        watch: {
-            showNodeMenu (val) {
-                this.$emit('updateNodeMenuState', val)
-            },
-            activeNodeListType (val) {
-                if (val === 'subflow') {
-                    this.getSubflowList()
-                } else {
-                    this.currentPage = 0
-                    this.atomTypeList.subflow.length = 0
-                }
+                return this.$store.state.lang === 'en' ? 'en' : 'zh'
             }
         },
         mounted () {
@@ -170,63 +126,6 @@
             this.renderGuide()
         },
         methods: {
-            ...mapActions('templateList', [
-                'loadTemplateList'
-            ]),
-            async getSubflowList () {
-                this.listLoading = true
-                try {
-                    const { params } = this.$route
-                    const data = {
-                        project__id: params.project_id,
-                        limit: this.limit,
-                        offset: this.currentPage * this.limit
-                    }
-                    if (this.common) {
-                        data.common = 1
-                    }
-                    const resp = await this.loadTemplateList(data)
-                    this.handleSubflowList(resp)
-                    if (!this.listNode) {
-                        this.$nextTick(() => {
-                            this.listNode = document.querySelector('.subflow-node-list')
-                            this.listNode.addEventListener('scroll', this.handleTableScroll)
-                        })
-                    }
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.listLoading = false
-                }
-            },
-            handleTableScroll () {
-                if (!this.isPageOver && !this.isThrottled) {
-                    this.isThrottled = true
-                    this.pollingTimer = setTimeout(() => {
-                        this.isThrottled = false
-                        const el = this.listNode
-                        if (el.scrollHeight - el.offsetHeight - el.scrollTop < 10) {
-                            this.currentPage += 1
-                            this.isPageOver = this.currentPage === this.totalPage
-                            clearTimeout(this.pollingTimer)
-                            this.getSubflowList()
-                        }
-                    }, 500)
-                }
-            },
-            handleSubflowList (data) {
-                const list = []
-                const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
-                const { params, query } = this.$route
-                data.objects.forEach(item => {
-                    // 克隆模板可以引用被克隆的模板，模板不可以引用自己
-                    if (params.type === 'clone' || item.id !== Number(query.template_id)) {
-                        item.hasPermission = this.hasPermission(reqPermission, item.auth_actions)
-                        list.push(item)
-                    }
-                })
-                this.atomTypeList.subflow.push(...list)
-            },
             onMouseDown (e) {
                 this.moveFlag = {
                     x: e.pageX,
@@ -234,18 +133,7 @@
                 }
             },
             onOpenNodeMenu () {
-                this.showNodeMenu = true
-                this.activeNodeListType = this.nodeMouse.type
-            },
-            updatePluginList (val, type) {
-                this.$emit('updatePluginList', val, type)
-            },
-            onCloseNodeMenu () {
-                this.showNodeMenu = false
-                this.activeNodeListType = ''
-            },
-            onToggleNodeMenuFixed (val) {
-                this.isFixedNodeMenu = val
+                this.menuType = this.nodeMouse.type
             },
             /**
              * 节点点击，区分是 展开菜单 还是 拖拽
@@ -255,7 +143,6 @@
             onNodeMouseDown (type, e) {
                 this.nodeMouse.startX = e.pageX
                 this.nodeMouse.startY = e.pageY
-                this.isMenuTypeChange = this.nodeMouse.type !== type
                 this.nodeMouse.type = type
                 document.addEventListener('mouseup', this.mouseUpHandler)
             },
@@ -265,7 +152,7 @@
                 const max = Math.max(endX - this.nodeMouse.startX, endY - this.nodeMouse.startY)
                 // 移动距离小于 3 像素，认为是点击事件
                 if (max < 3) {
-                    this.showNodeMenu && !this.isMenuTypeChange ? this.onCloseNodeMenu() : this.onOpenNodeMenu()
+                    this.menuType = this.nodeMouse.type
                 }
                 document.removeEventListener('mouseup', this.mouseUpHandler)
             },

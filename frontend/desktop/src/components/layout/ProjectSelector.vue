@@ -118,7 +118,7 @@
                 this.crtProject = id
                 const redirectMap = {
                     '/template': {
-                        name: 'process',
+                        name: 'processHome',
                         params: { project_id: id }
                     },
                     '/taskflow': {

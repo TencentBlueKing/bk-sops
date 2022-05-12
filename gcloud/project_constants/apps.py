@@ -16,4 +16,4 @@ from django.apps import AppConfig
 
 
 class ProjectConstantsConfig(AppConfig):
-    name = "project_constants"
+    name = "gcloud.project_constants"

@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+from urllib.parse import quote
 
 from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import render
@@ -33,9 +34,8 @@ def page_not_found(request, exception):
 
     # 未登录重定向到首页，跳到登录页面
     if not user:
-        return HttpResponseRedirect(
-            settings.SITE_URL + "?{}={}".format(settings.PAGE_NOT_FOUND_URL_KEY, request.build_absolute_uri())
-        )
+        refer_url = quote(request.build_absolute_uri())
+        return HttpResponseRedirect(settings.SITE_URL + "?{}={}".format(settings.PAGE_NOT_FOUND_URL_KEY, refer_url))
     request.user = user
     # not home url enter
     user_enter.send(username=user.username, sender=user.username)

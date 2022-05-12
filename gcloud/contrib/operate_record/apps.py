@@ -15,3 +15,6 @@ from django.apps import AppConfig
 
 class OperateRecordConfig(AppConfig):
     name = "gcloud.contrib.operate_record"
+
+    def ready(self):
+        from gcloud.contrib.operate_record.signal import operate_record_signal  # noqa

@@ -88,13 +88,13 @@
                     {
                         type: "custom",
                         args: function (value) {
-                            var self = this
+                            var self = this;
                             var result = {
                                 result: true,
                                 error_message: ""
                             }
                             if (!self.get_parent) {
-                                return result
+                                return result;
                             } else if (self.get_parent().get_child('job_script_source')) {
                                 if (self.get_parent().get_child('job_script_source').value === "manual" && !value) {
                                     result.result = false;
@@ -104,7 +104,7 @@
                                 result.result = false;
                                 result.error_message = gettext("请选择脚本类型");
                             }
-                            return result
+                            return result;
                         }
                     }
                 ]
@@ -116,9 +116,9 @@
                     action: function (value) {
                         var self = this;
                         if (value === "manual") {
-                            self.show()
+                            self.show();
                         } else {
-                            self.hide()
+                            self.hide();
                         }
                     }
                 }
@@ -138,13 +138,13 @@
                     {
                         type: "custom",
                         args: function (value) {
-                            var self = this
+                            var self = this;
                             var result = {
                                 result: true,
                                 error_message: ""
                             }
                             if (!self.get_parent) {
-                                return result
+                                return result;
                             } else if (self.get_parent().get_child('job_script_source')) {
                                 if (self.get_parent().get_child('job_script_source').value === "manual" && !value) {
                                     result.result = false;
@@ -154,7 +154,7 @@
                                 result.result = false;
                                 result.error_message = gettext("请输入脚本内容");
                             }
-                            return result
+                            return result;
                         }
                     }
                 ]
@@ -166,9 +166,9 @@
                     action: function (value) {
                         var self = this;
                         if (value === "manual") {
-                            self.show()
+                            self.show();
                         } else {
-                            self.hide()
+                            self.hide();
                         }
                     }
                 }
@@ -182,8 +182,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + $.context.getBkBizId() + '/?type=public';
-                    return url;
+                    return $.context.get('site_url') + 'pipeline/job_get_public_script_name_list/';
                 },
                 remote_data_init: function (resp) {
                     if (resp.result === false) {
@@ -201,7 +200,7 @@
                                 error_message: ""
                             };
                             if (!self.get_parent) {
-                                return result
+                                return result;
                             } else if (self.get_parent().get_child('job_script_source')) {
                                 if (self.get_parent().get_child('job_script_source').value === "public" && !value) {
                                     result.result = false;
@@ -211,34 +210,12 @@
                                 result.result = false;
                                 result.error_message = gettext("请选择脚本");
                             }
-                            return result
+                            return result;
                         }
                     }
                 ],
             },
             events: [
-                {
-                    source: "biz_cc_id",
-                    type: "init",
-                    action: function () {
-                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
-                        if (cc_id !== '' && $.context.canSelectBiz()) {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + cc_id + '/?type=public';
-                            this.remoteMethod();
-                        }
-                    }
-                },
-                {
-                    source: "biz_cc_id",
-                    type: "change",
-                    action: function (value) {
-                        if (value === '' || !$.context.canSelectBiz()) {
-                            return;
-                        }
-                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + value + '/?type=public';
-                        this.remoteMethod();
-                    }
-                },
                 {
                     source: "job_script_source",
                     type: "change",
@@ -350,21 +327,24 @@
             type: "input",
             attrs: {
                 name: gettext("超时时间"),
-                placeholder: gettext("单位为秒，为空时使用 JOB 默认值"),
+                placeholder: gettext("单位为秒(60 - 86400)，为空时使用 JOB 默认值"),
                 hookable: true,
                 validation: [
                     {
                         type: "custom",
                         args: function (value) {
-                            var result = {
+                            let result = {
                                 result: true,
                                 error_message: ""
+                            };
+                            if (!value) {
+                                return result
                             }
-                            if (value && !Number(value)) {
+                            if (+value < 60 || +value > 86400) {
                                 result.result = false;
-                                result.error_message = gettext("请输入数字");
+                                result.error_message = gettext("超时时间必须在 60 - 86400 范围内")
                             }
-                            return result;
+                            return result
                         }
                     }
                 ]
