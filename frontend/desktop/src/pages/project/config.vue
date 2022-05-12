@@ -145,7 +145,7 @@
                         </bk-table>
                     </section>
                 </bk-tab-panel>
-                <bk-tab-panel :label="$t('环境变量')" name="variable">
+                <bk-tab-panel :label="$t('项目变量')" name="variable">
                     <section class="mandate-section">
                         <div class="variable-list">
                             <p class="variable-list-tip">{{ $t('项目级别的变量建立后') }},{{ $t('可以在模板中通过') }}${_env_key}{{ $t('方式引用') }}</p>

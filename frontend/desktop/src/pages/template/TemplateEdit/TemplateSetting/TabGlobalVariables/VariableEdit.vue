@@ -288,7 +288,7 @@
                 varTypeListLoading: false,
                 varTypeList: [], // 变量类型，input、textarea、datetime 等
                 varTypeData: {},
-                regexpData: {}, // input，textarea类型正则
+                inputRegexp: '', // input，textarea类型正则
                 atomConfigLoading: false,
                 atomTypeKey: '',
                 isSaveConfirmDialogShow: false,
@@ -655,7 +655,7 @@
                 Object.assign(this.varTypeData, tools.deepClone(this.renderData))
                 // 将input textarea类型正则存起来
                 if (['input', 'textarea'].includes(oldValue)) {
-                    this.regexpData[oldValue] = this.theEditingData.validation
+                    this.inputRegexp = this.theEditingData.validation
                 }
                 let data
                 this.varTypeList.some(group => {
@@ -673,7 +673,7 @@
                 }
                 // input textarea类型需要正则校验
                 if (['input', 'textarea'].includes(val)) {
-                    this.theEditingData.validation = this.regexpData[val] || '^.+$'
+                    this.theEditingData.validation = this.inputRegexp || '^.+$'
                 } else {
                     this.theEditingData.validation = ''
                 }

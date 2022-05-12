@@ -150,7 +150,7 @@
                 </ul>
                 <div v-else class="empty-variable-tips">
                     <NoData>
-                        <p>{{ $t('该模板暂未配置模板变量') }}</p>
+                        <p>{{ $t('该流程暂无自定义全局变量') }}</p>
                     </NoData>
                 </div>
             </div>
