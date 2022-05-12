@@ -357,7 +357,7 @@ def task_modify_inputs(request, project_id):
 
     constants = data["constants"]
 
-    return JsonResponse(task.set_task_context(constants))
+    return JsonResponse(task.set_task_constants(constants))
 
 
 @require_POST

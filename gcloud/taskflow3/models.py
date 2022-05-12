@@ -954,7 +954,7 @@ class TaskFlowInstance(models.Model):
         with transaction.atomic():
             if name:
                 self.pipeline_instance.name = name
-            self.set_task_context(constants)
+            self.set_task_constants(constants)
             result = self.function_task.get(task=self).claim_task(username)
             if result["result"]:
                 self.current_flow = "execute_task"
@@ -1026,14 +1026,14 @@ class TaskFlowInstance(models.Model):
         self.save()
         return self
 
-    def set_task_context(self, constants):
+    def set_task_constants(self, constants):
         dispatcher = TaskCommandDispatcher(
             engine_ver=self.engine_ver,
             taskflow_id=self.id,
             pipeline_instance=self.pipeline_instance,
             project_id=self.project_id,
         )
-        return dispatcher.set_task_context(
+        return dispatcher.set_task_constants(
             task_is_started=self.pipeline_instance.is_started,
             task_is_finished=self.pipeline_instance.is_finished,
             context=constants,

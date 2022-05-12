@@ -17,9 +17,11 @@ import traceback
 from typing import Optional
 
 from django.utils import timezone
+from django.db import transaction
 from bamboo_engine import api as bamboo_engine_api
 from bamboo_engine import states as bamboo_engine_states
 from bamboo_engine.context import Context
+from bamboo_engine.eri import ContextValue
 from bamboo_engine import exceptions as bamboo_engine_exceptions
 from pipeline.eri.runtime import BambooDjangoRuntime
 from pipeline.service import task_service
@@ -28,7 +30,8 @@ from pipeline.parser.context import get_pipeline_context
 from pipeline.engine import api as pipeline_api
 from pipeline.engine.models import PipelineModel
 from pipeline.core.data.var import Variable
-from pipeline_web.parser.format import format_web_data_to_pipeline
+from pipeline.eri.utils import CONTEXT_VALUE_TYPE_MAP
+from pipeline_web.parser.format import format_web_data_to_pipeline, classify_constants
 from pipeline.engine import exceptions as pipeline_exceptions
 from pipeline.exceptions import (
     ConvergeMatchError,
@@ -187,7 +190,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         except Exception as e:
             logger.exception("run pipeline failed")
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
-                start_time=None, is_started=False, executor="",
+                start_time=None,
+                is_started=False,
+                executor="",
             )
             return {
                 "result": False,
@@ -197,7 +202,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         if not result.result:
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
-                start_time=None, is_started=False, executor="",
+                start_time=None,
+                is_started=False,
+                executor="",
             )
             logger.error("run_pipeline fail: {}, exception: {}".format(result.message, result.exc_trace))
         else:
@@ -241,19 +248,11 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             runtime=BambooDjangoRuntime(), pipeline_id=self.pipeline_instance.instance_id
         )
 
-    def set_task_context(self, task_is_started: bool, task_is_finished: bool, context: dict) -> dict:
+    def set_task_constants(self, task_is_started: bool, task_is_finished: bool, constants: dict) -> dict:
         if self.engine_ver not in self.VALID_ENGINE_VER:
             return self._unsupported_engine_ver_result()
 
-        if task_is_started:
-            return {
-                "result": False,
-                "message": "task is started",
-                "data": None,
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
-
-        elif task_is_finished:
+        if task_is_finished:
             return {
                 "result": False,
                 "message": "task is finished",
@@ -261,16 +260,29 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
 
+        context_values = []
+        if task_is_started:
+            # parse web tree constants to bamboo tree data
+            data_inputs = classify_constants(constants=constants, is_subprocess=False)["data_inputs"]
+            for key, data in data_inputs.items():
+                context_values.append(
+                    ContextValue(
+                        key=key,
+                        type=CONTEXT_VALUE_TYPE_MAP[data["type"]],
+                        value=data["value"],
+                        code=data.get("custom_type", ""),
+                    )
+                )
+
         exec_data = self.pipeline_instance.execution_data
         try:
-            for key, value in list(context.items()):
+            for key, value in list(constants.items()):
                 if key in exec_data["constants"]:
                     exec_data["constants"][key]["value"] = value
-            self.pipeline_instance.set_execution_data(exec_data)
         except Exception:
             logger.exception(
-                "TaskFlow set_task_context error:id=%s, constants=%s, error=%s"
-                % (self.taskflow_id, json.dumps(context), traceback.format_exc())
+                "TaskFlow set_task_constants error:id=%s, constants=%s, error=%s"
+                % (self.taskflow_id, json.dumps(constants), traceback.format_exc())
             )
             return {
                 "result": False,
@@ -278,6 +290,22 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 "data": None,
                 "code": err_code.UNKNOWN_ERROR.code,
             }
+
+        with transaction.atomic():
+            self.pipeline_instance.set_execution_data(exec_data)
+            if task_is_started:
+                update_res = bamboo_engine_api.update_context_values(
+                    runtime=BambooDjangoRuntime(), pipeline_id=self.pipeline_instance.id, context_values=context_values
+                )
+                if not update_res.result:
+                    logger.error("update context values failed: %s" % update_res.exc_trace)
+                    transaction.rollback()
+                    return {
+                        "result": False,
+                        "data": "",
+                        "message": "update pipeline context value failed: %s" % update_res.message,
+                        "code": err_code.UNKNOWN_ERROR.code,
+                    }
 
         return {
             "result": True,
