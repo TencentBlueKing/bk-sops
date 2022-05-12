@@ -241,6 +241,7 @@
     import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
     import TaskSelectNode from '../../task/TaskCreate/TaskSelectNode.vue'
     import BatchUpdateDialog from './BatchUpdateDialog.vue'
+    import DealVarDirtyData from '@/utils/dealVarDirtyData.js'
 
     export default {
         name: 'TemplateEdit',
@@ -537,7 +538,8 @@
                 'replaceTemplate',
                 'replaceLineAndLocation',
                 'setPipelineTree',
-                'setInternalVariable'
+                'setInternalVariable',
+                'setConstants'
             ]),
             ...mapMutations('atomForm/', [
                 'clearAtomForm'
@@ -754,10 +756,43 @@
                     this.templateLabelLoading = false
                 }
             },
+            checkDirtyData () {
+                const ins = new DealVarDirtyData(this.constants)
+                const illegalKeys = ins.checkKeys()
+                if (illegalKeys.length) {
+                    const h = this.$createElement
+                    this.$bkInfo({
+                        extCls: 'var-dirty-data-dialog',
+                        width: 500,
+                        okText: this.$t('清除'),
+                        subHeader: h('p',
+                                     { style: {} },
+                                     [
+                                         this.$t('自定义变量中存在系统变量/项目变量的key，需要清除后才能保存，是否一键清除？(可通过【模版数据-constants】进行确认)'),
+                                         h('p',
+                                           { style: { marginTop: '10px' } },
+                                           [this.$t('问题变量有：'), illegalKeys.join(',')]
+                                         )
+                                     ]
+                        ),
+                        confirmFn: () => {
+                            const constants = ins.handleIllegalKeys()
+                            this.setConstants(constants)
+                            this.saveTemplate()
+                        }
+                    })
+                    return true
+                }
+                return false
+            },
             /**
              * 保存流程模板
              */
             async saveTemplate () {
+                // 检查全局变量是否存在脏数据
+                const hasDirtyData = this.checkDirtyData()
+                if (hasDirtyData) return
+
                 const template_id = this.type === 'edit' ? this.template_id : undefined
                 if (this.saveAndCreate) {
                     this.createTaskSaving = true
@@ -766,6 +801,7 @@
                 }
 
                 try {
+                    console.log('1111', this.constants)
                     const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
                     this.tplActions = data.auth_actions
                     this.$bkMessage({
@@ -1895,6 +1931,18 @@
             .action-wrapper .bk-button {
                 margin: 10px 6px 0 0;
             }
+        }
+    }
+    .var-dirty-data-dialog {
+        .bk-dialog-sub-header {
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 5px 25px 15px;
+            color: #63656e;
+        }
+        .bk-info-box .bk-dialog-footer {
+            text-align: right;
+            padding: 0 25px 15px;
         }
     }
 
