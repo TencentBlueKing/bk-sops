@@ -16,7 +16,7 @@
                 <advance-search-form
                     :open="isSearchFormOpen"
                     :search-form="searchForm"
-                    :search-config="{ placeholder: $t('请输入轻应用名称'), value: requestData.taskName }"
+                    :search-config="{ placeholder: $t('请输入轻应用名称'), value: requestData.flowName }"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
                     <template v-slot:operation>
