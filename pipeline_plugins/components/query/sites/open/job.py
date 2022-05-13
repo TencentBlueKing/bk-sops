@@ -116,24 +116,20 @@ def job_get_script_list(request, biz_cc_id):
 
 def job_get_job_tasks_by_biz(request, biz_cc_id):
     client = get_client_by_user(request.user.username)
-    job_result = client.jobv3.get_job_plan_list(
-        {"bk_scope_type": JobBizScopeType.BIZ.value, "bk_scope_id": str(biz_cc_id), "bk_biz_id": biz_cc_id}
+    plan_list = batch_request(
+        func=client.jobv3.get_job_plan_list,
+        params={
+            "bk_scope_type": JobBizScopeType.BIZ.value,
+            "bk_scope_id": str(biz_cc_id),
+            "bk_biz_id": biz_cc_id,
+        },
+        get_data=lambda x: x["data"]["data"],
+        get_count=lambda x: x["data"]["total"],
+        page_param={"cur_page_param": "start", "page_size_param": "length"},
+        is_page_merge=True,
     )
-    if not job_result["result"]:
-        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口jobv3.get_job_plan_list返回失败: %s") % (
-            biz_cc_id,
-            job_result["message"],
-        )
-
-        if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
-            logger.warning(message)
-            raise RawAuthFailedException(permissions=job_result.get("permission", {}))
-
-        logger.error(message)
-        result = {"result": False, "data": [], "message": message}
-        return JsonResponse(result)
     task_list = []
-    for task in job_result["data"]["data"]:
+    for task in plan_list:
         task_list.append({"value": task["id"], "text": task["name"]})
     return JsonResponse({"result": True, "data": task_list})
 
@@ -181,7 +177,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
             value = ",".join(
                 [
                     "{plat_id}:{ip}".format(plat_id=ip_item["bk_cloud_id"], ip=ip_item["ip"])
-                    for ip_item in var["server"].get("ip_list", [])
+                    for ip_item in var.get("server", {}).get("ip_list") or []
                 ]
             )
         else:
