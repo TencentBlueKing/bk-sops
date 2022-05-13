@@ -26,7 +26,7 @@
                     <advance-search-form
                         id="taskList"
                         :open="isSearchFormOpen"
-                        :search-config="{ placeholder: $t('请输入任务名称') }"
+                        :search-config="{ placeholder: $t('请输入任务名称'), value: requestData.taskName }"
                         :search-form="searchForm"
                         @onSearchInput="onSearchInput"
                         @submit="onSearchFormSubmit">
@@ -556,6 +556,7 @@
             searchInputhandler (data) {
                 this.requestData.taskName = data
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getTaskList()
             },
             hasCreateTaskPerm (task) {

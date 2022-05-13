@@ -466,6 +466,7 @@
             searchInputhandler (data) {
                 this.requestData.taskName = data
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getPeriodicList()
             },
             /**
