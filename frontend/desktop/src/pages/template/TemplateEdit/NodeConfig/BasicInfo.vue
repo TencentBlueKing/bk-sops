@@ -183,6 +183,14 @@
                     @change="onSelectableChange">
                 </bk-switcher>
             </bk-form-item>
+            <bk-form-item v-if="common" :label="$t('执行代理人')" data-test-id="templateEdit_form_executor_proxy">
+                <bk-user-selector
+                    v-model="formData.executor_proxy"
+                    :placeholder="$t('请输入用户')"
+                    :api="userApi"
+                    :multiple="false">
+                </bk-user-selector>
+            </bk-form-item>
         </bk-form>
         <!-- 子流程 -->
         <bk-form
@@ -265,11 +273,15 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import tools from '@/utils/tools.js'
+    import BkUserSelector from '@blueking/user-selector'
     import { mapState, mapActions, mapMutations } from 'vuex'
     import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
 
     export default {
         name: 'BasicInfo',
+        components: {
+            BkUserSelector
+        },
         props: {
             projectId: [String, Number],
             nodeConfig: Object,
@@ -368,7 +380,8 @@
                     width: 400,
                     content: '#html-error-ingored-tootip',
                     placement: 'top'
-                }
+                },
+                userApi: `${window.MEMBER_SELECTOR_DATA_HOST}/api/c/compapi/v2/usermanage/fs_list_users/`
             }
         },
         computed: {
@@ -762,6 +775,9 @@
             .bk-button-text {
                 font-size: 12px;
             }
+        }
+        .user-selector {
+            width: 100%;
         }
     }
     .bk-option-content {
