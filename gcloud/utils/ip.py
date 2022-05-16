@@ -15,6 +15,7 @@ import re
 import logging
 
 ip_pattern = re.compile(r"(?<!\d)((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(?!\d)")
+plat_ip_reg = re.compile(r"\d+:((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(?!\d)")
 
 logger = logging.getLogger("root")
 
@@ -31,6 +32,36 @@ def get_ip_by_regex(ip_str):
     for match in ip_pattern.finditer(ip_str):
         ret.append(match.group())
     return ret
+
+
+def get_plat_ip_by_regex(ip_str):
+    """
+    从给定文本匹配【云区域ID:IP】并返回,【IP】格式云区域默认为0
+    @param ip_str:
+    @return: [
+        {
+            "bk_cloud_id":0,
+            "ip":"x.x.x.x"
+        },
+        {
+            "bk_cloud_id":0,
+            "ip":"x.x.x.x"
+        },
+    ]
+    """
+
+    ip_list = []
+    for match in plat_ip_reg.finditer(ip_str):
+        plat_ip = match.group()
+        ip_str = ip_str.replace(plat_ip, "")
+        info = plat_ip.split(":")
+        ip_list.append({"bk_cloud_id": int(info[0]), "ip": info[1]})
+
+    for match in ip_pattern.finditer(ip_str):
+        ip = match.group()
+        ip_list.append({"bk_cloud_id": 0, "ip": ip})
+
+    return ip_list
 
 
 def format_sundry_ip(ip):

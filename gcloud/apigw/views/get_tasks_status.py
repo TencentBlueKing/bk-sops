@@ -21,20 +21,21 @@ from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.utils import api_hash_key
 from gcloud.utils.dates import format_datetime
-from gcloud.apigw.decorators import mark_request_whether_is_trust
+from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
 from gcloud.taskflow3.utils import add_node_name_to_status_tree
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 
 @csrf_exempt
 @login_exempt
 @require_POST
-@apigw_required
+@apigw_require
+@return_json_response
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(ProjectViewInterceptor())
@@ -57,7 +58,7 @@ def get_tasks_status(request, project_id):
         return {
             "result": False,
             "message": "task_id_list is too long, maximum length is 50",
-            "code": err_code.REQUEST_PARAM_INVALID.code
+            "code": err_code.REQUEST_PARAM_INVALID.code,
         }
 
     include_children_status = params.get("include_children_status", False)

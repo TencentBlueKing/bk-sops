@@ -50,15 +50,15 @@ SAVE_CRON_CALL_FAIL_CLIENT = MockClient(
     save_cron_return={"result": False, "message": "save_cron fail"}, update_cron_status_return=None
 )
 SAVE_CRON_CALL_SUCCESS_CLIENT = MockClient(
-    save_cron_return={"result": True, "message": "save_cron success", "data": 1},
+    save_cron_return={"result": True, "message": "save_cron success", "data": {"id": 1}},
     update_cron_status_return=None,
 )
 UPDATE_CRON_STATUS_CALL_FAIL_CLIENT = MockClient(
-    save_cron_return={"result": True, "message": "save_cron success", "data": 1},
+    save_cron_return={"result": True, "message": "save_cron success", "data": {"id": 1}},
     update_cron_status_return={"result": False, "message": "update_cron_status fail"},
 )
 JOB_CRON_SUCCESS_CLIENT = MockClient(
-    save_cron_return={"result": True, "message": "save_cron success", "data": 1},
+    save_cron_return={"result": True, "message": "save_cron success", "data": {"id": 1}},
     update_cron_status_return={"result": True},
 )
 # test case

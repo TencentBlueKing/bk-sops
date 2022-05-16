@@ -332,11 +332,29 @@ class BaseTemplate(models.Model):
         if not pipeline_template_referencer:
             return []
 
-        result = self.__class__.objects.filter(
+        task_template_cls = apps.get_model("tasktmpl3", "TaskTemplate")
+        task_template_qs = task_template_cls.objects.filter(
             pipeline_template_id__in=pipeline_template_referencer, is_deleted=False
         ).values("id", "pipeline_template__name")
-        for item in result:
-            item["name"] = item.pop("pipeline_template__name")
+        result = [
+            {"template_type": PROJECT, "id": template_info["id"], "name": template_info["pipeline_template__name"]}
+            for template_info in task_template_qs
+        ]
+
+        if self.__class__.__name__ == "CommonTemplate":
+            common_template_qs = self.__class__.objects.filter(
+                pipeline_template_id__in=pipeline_template_referencer, is_deleted=False
+            ).values("id", "pipeline_template__name")
+            result.extend(
+                [
+                    {
+                        "template_type": COMMON,
+                        "id": template_info["id"],
+                        "name": template_info["pipeline_template__name"],
+                    }
+                    for template_info in common_template_qs
+                ]
+            )
         return result
 
     def referencer_appmaker(self):

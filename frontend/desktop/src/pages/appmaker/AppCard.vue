@@ -151,7 +151,7 @@
              * @params {Array} required 需要的权限
              * @params {Object} app 模板数据对象
              */
-            onAppMakerPermissonCheck (required) {
+            onAppMakerPermissionCheck (required) {
                 const resourceData = {
                     mini_app: [{
                         id: this.appData.id,
@@ -172,7 +172,7 @@
             },
             onCardEdit () {
                 if (!this.hasPermission(['mini_app_edit'], this.appData.auth_actions)) {
-                    this.onAppMakerPermissonCheck(['mini_app_edit'])
+                    this.onAppMakerPermissionCheck(['mini_app_edit'])
                     return
                 }
                 this.$emit('onCardEdit', this.appData)
@@ -195,14 +195,14 @@
             },
             onCardDelete () {
                 if (!this.hasPermission(['mini_app_delete'], this.appData.auth_actions)) {
-                    this.onAppMakerPermissonCheck(['mini_app_delete'])
+                    this.onAppMakerPermissionCheck(['mini_app_delete'])
                     return
                 }
                 this.$emit('onCardDelete', this.appData)
             },
             onGotoAppMaker () {
                 if (!this.hasPermission(['mini_app_view'], this.appData.auth_actions)) {
-                    this.onAppMakerPermissonCheck(['mini_app_view'])
+                    this.onAppMakerPermissionCheck(['mini_app_view'])
                     return
                 }
                 openOtherApp(this.appData.code, this.appData.link)
@@ -218,7 +218,7 @@
             // 添加/取消收藏模板
             async onCollectAppMaker (data) {
                 if (!this.hasPermission(['mini_app_view'], this.appData.auth_actions)) {
-                    this.onAppMakerPermissonCheck(['mini_app_view'])
+                    this.onAppMakerPermissionCheck(['mini_app_view'])
                     return
                 }
                 if (typeof this.collectingId === 'number') {

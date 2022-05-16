@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from rest_framework.fields import SerializerMethodField
 
 import env
 import ujson as json
@@ -34,7 +35,7 @@ class CeleryTaskSerializer(serializers.ModelSerializer):
 
 class PipelinePeriodicTaskSerializer(serializers.ModelSerializer):
     celery_task = CeleryTaskSerializer()
-    extra_info = ReadWriteSerializerMethodField(read_only=True)
+    extra_info = SerializerMethodField()
 
     def get_extra_info(self, obj):
         return obj.extra_info
@@ -59,6 +60,7 @@ class PeriodicTaskSerializer(serializers.ModelSerializer):
 
     task = PipelinePeriodicTaskSerializer()
     project = ProjectSerializer()
+    last_run_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S %z", read_only=True)
 
     class Meta:
         model = PeriodicTask

@@ -17,6 +17,8 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class UserConfManager(models.Manager):
+    DEFAULT_TEMPLATE_ORDERING = "-pipeline_template__edit_time"
+
     def set_userconf(self, **kwargs):
         username = kwargs.pop("username") if "username" in kwargs.keys() else None
         project_id = kwargs.pop("project_id") if "project_id" in kwargs.keys() else None
@@ -29,7 +31,12 @@ class UserConfManager(models.Manager):
     def get_conf(self, **kwargs):
         username = kwargs.get("username")
         project_id = kwargs.get("project_id")
-        user_conf = self.get_or_create(username=username, project_id=project_id)[0]
+        try:
+            user_conf = self.get(username=username, project_id=project_id)
+        except self.model.DoesNotExist:
+            user_conf = self.model(
+                username=username, project_id=project_id, task_template_ordering=self.DEFAULT_TEMPLATE_ORDERING
+            )
         return user_conf
 
 

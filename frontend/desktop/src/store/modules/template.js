@@ -840,14 +840,20 @@ const template = {
             return axios.get('core/api/get_basic_info/').then(response => response.data)
         },
         loadTemplateData ({ commit }, data) {
-            const { templateId, common } = data
+            const { templateId, common, checkPermission = false } = data
             let prefixUrl = ''
             if (common) {
                 prefixUrl = 'api/v3/common_template/'
             } else {
                 prefixUrl = 'api/v3/template/'
             }
-            return axios.get(`${prefixUrl}${templateId}/`).then(response => response.data.data)
+            return axios({
+                method: 'get',
+                url: `${prefixUrl}${templateId}/`,
+                headers: {
+                    'Tpl-Node-Permission-Check': checkPermission
+                }
+            }).then(response => response.data.data)
         },
         loadCustomVarCollection () {
             return axios.get('api/v3/variable/').then(response => {
@@ -962,7 +968,10 @@ const template = {
         },
         getBatchForms ({ commit }, data) {
             const { projectId, tpls } = data
-            return axios.post(`template/api/batch_form/${projectId}/`, { templates: tpls }).then(response => response.data)
+            return axios.post(`template/api/batch_form_with_schemes/`, {
+                project_id: projectId,
+                template_list: tpls
+            }).then(response => response.data)
         },
         // 获取所有mako模板操作
         getMakoOperations ({ commit }) {

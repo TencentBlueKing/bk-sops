@@ -10,11 +10,12 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific lan
 """
-
+from django.apps import apps
 from django.db import transaction
 
 from .template_manager import TemplateManager
 from ..utils import replace_biz_id_value
+from ...common_template.models import CommonTemplate
 
 
 class TemplateImporter:
@@ -30,7 +31,7 @@ class TemplateImporter:
         :param template_data: [
             {
                 "override_template_id": "要覆盖的模板的主键ID",
-                "refer_template_id": "要引用的模版的主键ID",
+                "refer_template_config": "dict[template_id, template_type], 要引用的模版的配置",
                 "name": "模板名",
                 "pipeline_tree": "dict, 模板 pipeline tree",
                 "description": "模板描述"，
@@ -47,26 +48,42 @@ class TemplateImporter:
         manager = TemplateManager(template_model_cls=self.template_model_cls)
         import_result = []
         pipeline_id_map = {}
+        pipeline_version_map = {}
         source_info_map = {}
+        common_child_templates = {}
         with transaction.atomic():
             for td in template_data:
                 override_template_id = td["override_template_id"]
-                refer_template_id = td["refer_template_id"]
+                refer_template_config = td["refer_template_config"]
                 name = td["name"]
                 pipeline_tree = td["pipeline_tree"]
                 description = td["description"]
 
                 if bk_biz_id:
                     replace_biz_id_value(pipeline_tree, bk_biz_id)
-                replace_result = self._replace_subprocess_template_id(pipeline_tree, pipeline_id_map, source_info_map)
+
+                # 如果引用了公共子流程，则先进行公共子流程的替换再替换子流程节点 ID
+                if not override_template_id and not refer_template_config:
+                    self._inject_common_child_templates_info(pipeline_tree, common_child_templates)
+
+                replace_result = self._replace_subprocess_template_info(
+                    pipeline_tree, pipeline_id_map, source_info_map, pipeline_version_map
+                )
                 if not replace_result["result"]:
                     import_result.append(replace_result)
                     continue
 
-                if override_template_id or refer_template_id:
-                    template_id = override_template_id or refer_template_id
+                if override_template_id or refer_template_config:
+                    template_id = override_template_id or refer_template_config["template_id"]
                     try:
-                        template = self.template_model_cls.objects.get(id=template_id)
+                        if (
+                            refer_template_config
+                            and self.template_model_cls is apps.get_model("tasktmpl3", "TaskTemplate")
+                            and refer_template_config["template_type"] == "common"
+                        ):
+                            template = CommonTemplate.objects.get(id=template_id)
+                        else:
+                            template = self.template_model_cls.objects.get(id=template_id)
                     except self.template_model_cls.DoesNotExist as e:
                         import_result.append(
                             {
@@ -88,10 +105,18 @@ class TemplateImporter:
                     )
                     if operate_result["result"]:
                         pipeline_id_map[td["id"]] = operate_result["data"].id
-                elif refer_template_id:
-                    for key, constant in template.pipeline_tree["constants"].items():
+                        pipeline_version_map[td["id"]] = operate_result["data"].version
+                elif refer_template_config:
+                    pipeline_tree = template.pipeline_tree
+                    for key, constant in pipeline_tree["constants"].items():
                         source_info_map.setdefault(td["id"], {}).update({key: constant.get("source_info", {})})
-                    pipeline_id_map[td["id"]] = refer_template_id
+                    if (
+                        self.template_model_cls is apps.get_model("tasktmpl3", "TaskTemplate")
+                        and refer_template_config["template_type"] == "common"
+                    ):
+                        common_child_templates[td["id"]] = {"constants": pipeline_tree["constants"]}
+                    pipeline_id_map[td["id"]] = refer_template_config["template_id"]
+                    pipeline_version_map[td["id"]] = template.version
                     operate_result = {"result": True, "data": None, "message": "success", "verbose_message": "success"}
                 else:
                     operate_result = manager.create(
@@ -103,14 +128,17 @@ class TemplateImporter:
                     )
                     if operate_result["result"]:
                         pipeline_id_map[td["id"]] = operate_result["data"].id
+                        pipeline_version_map[td["id"]] = operate_result["data"].version
                 import_result.append(operate_result)
 
         return {"result": True, "data": import_result, "message": "success", "verbose_message": "success"}
 
     @staticmethod
-    def _replace_subprocess_template_id(pipeline_tree: dict, pipeline_id_map: dict, source_map_info: dict) -> dict:
+    def _replace_subprocess_template_info(
+        pipeline_tree: dict, pipeline_id_map: dict, source_map_info: dict, pipeline_version_map: dict
+    ) -> dict:
         """
-        将模板数据中临时的模板 ID 替换成数据库中模型的主键 ID
+        将模板数据中临时的模板信息 替换成数据库中模型的对应信息
 
         :param pipeline_tree: pipeline tree 模板数据
         :type pipeline_tree: dict
@@ -118,6 +146,8 @@ class TemplateImporter:
         :type pipeline_id_map: dict
         :param source_map_info: Subprocess 节点变量的的source_info替换成对应子流程一样的值
         :type source_map_info: dict
+        :param pipeline_version_map: SubProcess 节点中临时 ID 到对应已导入流程 version的映射
+        :type pipeline_version_map: dict
         """
         if not pipeline_id_map:
             return {
@@ -139,6 +169,7 @@ class TemplateImporter:
                     }
                 imported_template_id = act["template_id"]
                 act["template_id"] = pipeline_id_map[imported_template_id]
+                act["version"] = pipeline_version_map[imported_template_id]
                 if imported_template_id in source_map_info:
                     for key, constant in act["constants"].items():
                         constant["source_info"] = source_map_info[imported_template_id].get(key, {})
@@ -148,3 +179,19 @@ class TemplateImporter:
             "message": "success",
             "verbose_message": "success",
         }
+
+    @staticmethod
+    def _inject_common_child_templates_info(pipeline_tree: dict, common_child_templates: dict):
+        """pipeline_tree中注入公共子流程信息"""
+        if not common_child_templates:
+            return
+
+        activities = pipeline_tree["activities"]
+        for activity in activities.values():
+            if activity["type"] == "SubProcess" and activity["template_id"] in common_child_templates:
+                activity.update(
+                    {
+                        "template_source": "common",
+                        "constants": common_child_templates[activity["template_id"]]["constants"],
+                    }
+                )

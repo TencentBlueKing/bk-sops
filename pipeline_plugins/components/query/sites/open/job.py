@@ -54,7 +54,7 @@ def _job_get_scripts_data(request, biz_cc_id=None):
     source_type = request.GET.get("type")
     script_type = request.GET.get("script_type")
 
-    if source_type == "public":
+    if biz_cc_id is None or source_type == "public":
         kwargs = {"script_language": script_type or 0}
         func = client.jobv3.get_public_script_list
     else:
@@ -86,6 +86,14 @@ def job_get_script_name_list(request, biz_cc_id):
     return JsonResponse({"result": True, "data": script_names})
 
 
+def job_get_public_script_name_list(request):
+    script_list = _job_get_scripts_data(request)
+    script_names = []
+    for script in script_list:
+        script_names.append({"text": script["name"], "value": script["name"]})
+    return JsonResponse({"result": True, "data": script_names})
+
+
 def job_get_script_list(request, biz_cc_id):
     """
     查询业务脚本列表
@@ -108,28 +116,20 @@ def job_get_script_list(request, biz_cc_id):
 
 def job_get_job_tasks_by_biz(request, biz_cc_id):
     client = get_client_by_user(request.user.username)
-    job_result = client.jobv3.get_job_plan_list(
-        {
+    plan_list = batch_request(
+        func=client.jobv3.get_job_plan_list,
+        params={
             "bk_scope_type": JobBizScopeType.BIZ.value,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
-        }
+        },
+        get_data=lambda x: x["data"]["data"],
+        get_count=lambda x: x["data"]["total"],
+        page_param={"cur_page_param": "start", "page_size_param": "length"},
+        is_page_merge=True,
     )
-    if not job_result["result"]:
-        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口jobv3.get_job_plan_list返回失败: %s") % (
-            biz_cc_id,
-            job_result["message"],
-        )
-
-        if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
-            logger.warning(message)
-            raise RawAuthFailedException(permissions=job_result.get("permission", {}))
-
-        logger.error(message)
-        result = {"result": False, "data": [], "message": message}
-        return JsonResponse(result)
     task_list = []
-    for task in job_result["data"]["data"]:
+    for task in plan_list:
         task_list.append({"value": task["id"], "text": task["name"]})
     return JsonResponse({"result": True, "data": task_list})
 
@@ -177,7 +177,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
             value = ",".join(
                 [
                     "{plat_id}:{ip}".format(plat_id=ip_item["bk_cloud_id"], ip=ip_item["ip"])
-                    for ip_item in var["server"].get("ip_list", [])
+                    for ip_item in var.get("server", {}).get("ip_list") or []
                 ]
             )
         else:
@@ -195,13 +195,14 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
             }
         )
     for info in task_detail.get("step_list", []):
+        script_info = info["script_info"] or {}
         # 1-执行脚本, 2-传文件, 4-传SQL
         steps.append(
             {
                 "stepId": info["id"],
                 "name": info["name"],
-                "scriptParams": info["script_info"].get("script_param", ""),
-                "account": info["script_info"].get("account", ""),
+                "scriptParams": script_info.get("script_param", ""),
+                "account": script_info.get("account", {}).get("id", ""),
                 "ipList": "",
                 "type": info["type"],
                 "type_name": job_step_type_name.get(info["type"], info["type"]),
@@ -263,11 +264,7 @@ def jobv3_get_job_template_list(request, biz_cc_id):
     bk_scope_type = request.GET.get("bk_scope_type", JobBizScopeType.BIZ.value)
     template_list = batch_request(
         func=client.jobv3.get_job_template_list,
-        params={
-            "bk_scope_type": bk_scope_type,
-            "bk_scope_id": str(biz_cc_id),
-            "bk_biz_id": biz_cc_id,
-        },
+        params={"bk_scope_type": bk_scope_type, "bk_scope_id": str(biz_cc_id), "bk_biz_id": biz_cc_id},
         get_data=lambda x: x["data"]["data"],
         get_count=lambda x: x["data"]["total"],
         page_param={"cur_page_param": "start", "page_size_param": "length"},
@@ -410,6 +407,7 @@ def jobv3_get_instance_list(request, biz_cc_id, type, status):
 job_urlpatterns = [
     url(r"^job_get_script_list/(?P<biz_cc_id>\d+)/$", job_get_script_list),
     url(r"^job_get_script_name_list/(?P<biz_cc_id>\d+)/$", job_get_script_name_list),
+    url(r"^job_get_public_script_name_list/$", job_get_public_script_name_list),
     url(r"^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$", job_get_job_tasks_by_biz),
     url(
         r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$",

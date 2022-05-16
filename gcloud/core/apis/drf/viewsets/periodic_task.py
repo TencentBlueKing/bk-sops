@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-import traceback
 
 from rest_framework import mixins, status, permissions
 from rest_framework.response import Response
@@ -35,25 +34,46 @@ from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta
 from gcloud.core.apis.drf.filtersets import AllLookupSupportFilterSet
-from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
-
+from gcloud.core.apis.drf.permission import (
+    HAS_OBJECT_PERMISSION,
+    IamPermission,
+    IamPermissionInfo,
+    IamUserTypeBasedValidator,
+)
 
 logger = logging.getLogger("root")
 
 
 class PeriodicTaskPermission(IamPermission):
     actions = {
-        "list": IamPermissionInfo(
-            IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project__id"
-        ),
         "retrieve": IamPermissionInfo(
             IAMMeta.PERIODIC_TASK_VIEW_ACTION, res_factory.resources_for_periodic_task_obj, HAS_OBJECT_PERMISSION
         ),
-        "create": IamPermissionInfo(IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION),
         "destroy": IamPermissionInfo(
             IAMMeta.PERIODIC_TASK_DELETE_ACTION, res_factory.resources_for_periodic_task_obj, HAS_OBJECT_PERMISSION
         ),
     }
+
+    def has_permission(self, request, view):
+        if view.action == "list":
+            user_type_validator = IamUserTypeBasedValidator()
+            return user_type_validator.validate(request)
+        elif view.action == "create":
+            template_source = request.data.get("template_source", PROJECT)
+            template_id = request.data.get("template_id")
+            if template_source == PROJECT:
+                iam_action = IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION
+                resources = res_factory.resources_for_flow(template_id)
+            else:
+                iam_action = IAMMeta.COMMON_FLOW_CREATE_PERIODIC_TASK_ACTION
+                resources = res_factory.resources_for_common_flow(template_id)
+                if request.data.get("project"):
+                    resources.extend(res_factory.resources_for_project(request.data["project"]))
+            self.iam_auth_check(
+                request=request, action=iam_action, resources=resources,
+            )
+            return True
+        return super().has_permission(request, view)
 
 
 class PeriodicTaskFilter(AllLookupSupportFilterSet):
@@ -84,7 +104,6 @@ class PeriodicTaskViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins
         template_id = serializer.validated_data["template_id"]
         project = serializer.validated_data["project"]
         pipeline_tree = serializer.validated_data["pipeline_tree"]
-        cron = serializer.validated_data["cron"]
         name = serializer.validated_data["name"]
         if template_source == PROJECT:
             model_cls = TaskTemplate
@@ -118,24 +137,13 @@ class PeriodicTaskViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins
             message = str(e)
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
-        kwargs["template_id"] = template_id
-        kwargs["template_source"] = template_source
-        try:
-            kwargs["task"] = PeriodicTask.objects.create_pipeline_task(
-                project=project,
-                template=template,
-                name=name,
-                cron=cron,
-                pipeline_tree=pipeline_tree,
-                creator=creator,
-                template_source=template_source,
-            )
-        except Exception as e:
-            logger.warning(traceback.format_exc())
-            message = str(e)
-            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
         serializer.validated_data["template"] = template
         serializer.validated_data["creator"] = creator
-        self.perform_create(serializer)
+        serializer.validated_data["name"] = name
+        serializer.validated_data["project"] = project
+        serializer.validated_data["template_source"] = template_source
+
+        instance = serializer.save()
+        instance.set_enabled(True)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

@@ -11,7 +11,8 @@
 */
 <template>
     <div class="variable-preview-value" v-bkloading="{ isLoading: loading, zIndex: 100 }">
-        <div class="content">{{ valueStr }}</div>
+        <div class="content" v-if="valueStr">{{ valueStr }}</div>
+        <bk-alert v-else-if="!loading" type="warning" :title="$t('暂无数据')"></bk-alert>
     </div>
 </template>
 <script>
@@ -61,6 +62,7 @@
         background: #f0f1f5;
         border: 1px solid #dcdee5;
         border-radius: 2px;
+        min-height: 50px;
 
         &:after {
             content: '';
@@ -81,6 +83,9 @@
             max-height: 200px;
             word-break: break-all;
             overflow: auto;
+        }
+        .bk-alert-warning {
+            margin: 8px;
         }
     }
 </style>

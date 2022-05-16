@@ -14,9 +14,22 @@ from django.http import QueryDict
 from rest_framework import mixins, permissions, viewsets
 from rest_framework.response import Response
 
+from gcloud.core.apis.drf.permission import IamPermission, IamPermissionInfo
 from gcloud.core.models import ResourceConfig
 from gcloud.core.apis.drf.serilaziers import ResourceConfigSerializer
 from gcloud.core.apis.drf.viewsets.utils import ApiMixin
+from gcloud.iam_auth import res_factory, IAMMeta
+
+
+class ResourceConfigPermission(IamPermission):
+    resource_func = res_factory.resources_for_project
+    actions = {
+        "list": IamPermissionInfo(IAMMeta.PROJECT_VIEW_ACTION, resource_func, id_field="project_id"),
+        "create": IamPermissionInfo(IAMMeta.PROJECT_VIEW_ACTION, resource_func, id_field="project_id"),
+        "update": IamPermissionInfo(IAMMeta.PROJECT_VIEW_ACTION, resource_func, id_field="project_id"),
+        "retrieve": IamPermissionInfo(IAMMeta.PROJECT_VIEW_ACTION, resource_func, id_field="project_id"),
+        "partial_update": IamPermissionInfo(IAMMeta.PROJECT_VIEW_ACTION, resource_func, id_field="project_id"),
+    }
 
 
 class ResourceConfigViewSet(
@@ -29,7 +42,7 @@ class ResourceConfigViewSet(
 ):
     queryset = ResourceConfig.objects.all().order_by("-id")
     serializer_class = ResourceConfigSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, ResourceConfigPermission]
 
     def list(self, request, *args, **kwargs):
         project_id = request.query_params.get("project_id")

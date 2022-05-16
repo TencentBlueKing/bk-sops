@@ -25,6 +25,7 @@ from gcloud.iam_auth import IAMMeta, get_iam_client
 
 iam = get_iam_client()
 iam_logger = logging.getLogger("iam")
+logger = logging.getLogger("root")
 
 
 class ApiMixin(GenericViewSet):
@@ -36,6 +37,10 @@ class ApiMixin(GenericViewSet):
             if response.exception is True:
                 error = response.data.get(
                     "detail", ErrorDetail("Error from API exception", err_code.UNKNOWN_ERROR.code)
+                )
+                logger.error(
+                    f"[ApiMixin response exception] request: {request.path}, "
+                    f"params: {request.query_params or request.data}, response: {response.data}"
                 )
                 response.data = {"result": False, "data": response.data, "code": error.code, "message": str(error)}
             elif response.status_code not in self.EXEMPT_STATUS_CODES:
