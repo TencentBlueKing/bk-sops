@@ -16,7 +16,7 @@ from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust
+from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.decorators import project_inject
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import PROJECT
@@ -25,12 +25,13 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.apigw.views.utils import format_template_data
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import GetTemplateInfoInterceptor
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
 @require_GET
-@apigw_required
+@apigw_require
+@return_json_response
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(GetTemplateInfoInterceptor())
@@ -46,7 +47,11 @@ def get_template_info(request, template_id, project_id):
             result = {
                 "result": False,
                 "message": "template[id={template_id}] of project[project_id={project_id}, biz_id={biz_id}] "
-                "does not exist".format(template_id=template_id, project_id=project.id, biz_id=project.bk_biz_id,),
+                "does not exist".format(
+                    template_id=template_id,
+                    project_id=project.id,
+                    biz_id=project.bk_biz_id,
+                ),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return result

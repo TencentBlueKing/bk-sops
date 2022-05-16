@@ -182,8 +182,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + $.context.getBkBizId() + '/?type=public';
-                    return url;
+                    return $.context.get('site_url') + 'pipeline/job_get_public_script_name_list/';
                 },
                 remote_data_init: function (resp) {
                     if (resp.result === false) {
@@ -218,36 +217,14 @@
             },
             events: [
                 {
-                    source: "biz_cc_id",
-                    type: "init",
-                    action: function () {
-                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
-                        if (cc_id !== '' && $.context.canSelectBiz()) {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + cc_id + '/?type=public';
-                            this.remoteMethod();
-                        }
-                    }
-                },
-                {
-                    source: "biz_cc_id",
-                    type: "change",
-                    action: function (value) {
-                        if (!$.context.canSelectBiz() || value === '') {
-                            return;
-                        }
-                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_name_list/' + value + '/?type=public';
-                        this.remoteMethod();
-                    }
-                },
-                {
                     source: "job_script_source",
                     type: "change",
                     action: function (value) {
-                        var self = this
+                        var self = this;
                         if (value === "public") {
-                            self.show()
+                            self.show();
                         } else {
-                            self.hide()
+                            self.hide();
                         }
                     }
                 }
@@ -360,6 +337,9 @@
                                 result: true,
                                 error_message: ""
                             };
+                            if (!value) {
+                                return result
+                            }
                             if (+value < 60 || +value > 86400) {
                                 result.result = false;
                                 result.error_message = gettext("超时时间必须在 60 - 86400 范围内")

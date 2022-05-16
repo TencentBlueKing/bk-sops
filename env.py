@@ -15,7 +15,8 @@ import os
 
 RUN_VER = os.getenv("RUN_VER", "open")
 
-IS_OPEN_V3 = int(os.getenv("BKPAAS_MAJOR_VERSION", False)) == 3 and RUN_VER == "open"
+IS_PAAS_V3 = int(os.getenv("BKPAAS_MAJOR_VERSION", False)) == 3
+IS_OPEN_V3 = IS_PAAS_V3 and RUN_VER == "open"
 
 if IS_OPEN_V3:
     from env_v3 import *  # noqa
@@ -29,6 +30,7 @@ BK_MONITOR_REPORT_DATA_ID = int(os.getenv("MONITOR_REPORT_DATA_ID", -1))
 BK_MONITOR_REPORT_ACCESS_TOKEN = os.getenv("MONITOR_REPORT_ACCESS_TOKEN")
 BK_MONITOR_REPORT_TARGET = os.getenv("MONITOR_REPORT_TARGET")
 BK_MONITOR_REPORT_INTERVAL = int(os.getenv("MONITOR_REPORT_INTERVAL", 10))
+BK_MONITOR_REPORT_CHUNK_SIZE = int(os.getenv("MONITOR_REPORT_CHUNK_SIZE", 200))
 
 ENABLE_OTEL_TRACE = os.getenv("BKAPP_ENABLE_OTEL_TRACE", False)
 
@@ -39,6 +41,9 @@ NODE_CALLBACK_RETRY_TIMES = int(os.getenv("NODE_CALLBACK_RETRY_TIMES", 3))
 # 蓝鲸插件开发地址
 BK_PLUGIN_DEVELOP_URL = os.getenv("BK_PLUGIN_DEVELOP_URL", "")
 
+# 蓝鲸插件授权过滤 APP
+PLUGIN_DISTRIBUTOR_NAME = os.getenv("PLUGIN_DISTRIBUTOR_NAME", None)
+
 # IAM APIGW 地址
 BK_IAM_APIGW_HOST = os.getenv("BK_IAM_APIGW_HOST")
 
@@ -47,3 +52,9 @@ BK_NODE_LOG_PERSISTENT_DAYS = int(os.getenv("BKAPP_NODE_LOG_PERSISTENT_DAYS", 30
 
 # CALLBACK 回调入口，处理走网关回调的场景
 BKAPP_INNER_CALLBACK_ENTRY = os.getenv("BKAPP_INNER_CALLBACK_ENTRY", "")
+
+# 网关管理员
+BK_APIGW_MANAGER_MAINTAINERS = os.getenv("BK_APIGW_MANAGER_MAINTAINERS", "admin").split(",")
+
+# APIGW 访问地址
+BK_APIGW_URL_TMPL = os.getenv("BK_API_URL_TMPL")

@@ -30,7 +30,7 @@ class SyncTaskPermission(IamPermission):
         "partial_update": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, check_hook=HAS_OBJECT_PERMISSION),
         "update": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, check_hook=HAS_OBJECT_PERMISSION),
         "create": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION),
-        "destroy": IamPermissionInfo(pass_all=True),
+        "destroy": IamPermissionInfo(IAMMeta.ADMIN_EDIT_ACTION, check_hook=HAS_OBJECT_PERMISSION),
     }
 
 

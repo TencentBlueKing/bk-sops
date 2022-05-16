@@ -19,8 +19,6 @@ from django.conf import settings
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
-BKOAUTH_DECORATOR_JWT_CLIENT = "packages.bkoauth.decorators.JWTClient"
-
 TEST_APP_CODE = "app_code"
 TEST_USERNAME = "tester"
 
@@ -42,41 +40,50 @@ def dummy_wrapper(func):
     return wrapper
 
 
+def mock_inject_user(request):
+    return
+
+
+def mock_check_white_apps(request):
+    request.user = MockJwtClientAttr(
+        {
+            settings.APIGW_MANAGER_USER_USERNAME_KEY: request.META.get("HTTP_BK_USERNAME", ""),
+        }
+    )
+    request.app = MockJwtClientAttr(
+        {settings.APIGW_MANAGER_APP_CODE_KEY: request.META.get("HTTP_BK_APP_CODE", TEST_APP_CODE)}
+    )
+    return True
+
+
 class APITest(TestCase, metaclass=abc.ABCMeta):
     def setUp(self):
-        self.white_list_patcher = patch(APIGW_DECORATOR_CHECK_WHITE_LIST, MagicMock(return_value=True))
-
+        self.white_list_patcher = patch(APIGW_DECORATOR_CHECK_WHITE_LIST, mock_check_white_apps)
+        self.inject_user = patch(APIGW_DECORATOR_INJECT_USER, mock_inject_user)
         self.dummy_user = MagicMock()
         self.dummy_user.username = ""
         self.user_cls = MagicMock()
         self.user_cls.objects = MagicMock()
         self.user_cls.objects.get_or_create = MagicMock(return_value=(self.dummy_user, False))
 
-        self.get_user_model_patcher = patch(APIGW_DECORATOR_GET_USER_MODEL, MagicMock(return_value=self.user_cls))
         exist_return_true_qs = MagicMock()
         exist_return_true_qs.exist = MagicMock(return_value=True)
         self.project_filter_patcher = patch(PROJECT_FILTER, MagicMock(return_value=exist_return_true_qs))
-        self.bkoauth_decorator_jwt_client = patch(
-            BKOAUTH_DECORATOR_JWT_CLIENT,
-            MagicMock(
-                return_value=MockJwtClient(
-                    {settings.APIGW_APP_CODE_KEY: TEST_APP_CODE, settings.APIGW_USER_USERNAME_KEY: TEST_USERNAME}
-                )
-            ),
-        )
 
         self.white_list_patcher.start()
-        self.get_user_model_patcher.start()
         self.project_filter_patcher.start()
-        self.bkoauth_decorator_jwt_client.start()
+        self.inject_user.start()
+
+        settings.BK_APIGW_REQUIRE_EXEMPT = True
 
         self.client = Client()
 
     def tearDown(self):
         self.white_list_patcher.stop()
-        self.get_user_model_patcher.stop()
         self.project_filter_patcher.stop()
-        self.bkoauth_decorator_jwt_client.stop()
+        self.inject_user.stop()
+
+        settings.BK_APIGW_REQUIRE_EXEMPT = False
 
     @abc.abstractmethod
     def url(self):

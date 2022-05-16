@@ -21,6 +21,7 @@
                                 v-if="col.type"
                                 size="small"
                                 theme="primary"
+                                :disabled="isViewMode"
                                 :value="props.row.includes(col.type)"
                                 @change="onSelectNotifyType(props.$index, col.type, $event)">
                             </bk-switcher>
@@ -38,6 +39,7 @@
                     <bk-checkbox
                         v-for="item in notifyGroup"
                         :key="item.id"
+                        :disabled="isViewMode"
                         :value="item.id">
                         {{item.name}}
                     </bk-checkbox>
@@ -85,7 +87,8 @@
                 type: Object,
                 default: () => ({})
             },
-            common: {
+            common: [String, Number],
+            isViewMode: {
                 type: Boolean,
                 default: false
             }
@@ -220,6 +223,12 @@
         /deep/ .bk-checkbox-text {
             color: $greyDefault;
             font-size: 12px;
+        }
+        &.is-disabled /deep/.bk-checkbox-text {
+            color: #c4c6cc;
+        }
+        &.is-checked /deep/.bk-checkbox-text  {
+            color: #606266;
         }
     }
     /deep/ .bk-checkbox-text {

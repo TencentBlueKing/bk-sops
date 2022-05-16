@@ -14,17 +14,18 @@ from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, timezone_inject
+from gcloud.apigw.decorators import mark_request_whether_is_trust, timezone_inject, return_json_response
 from gcloud.contrib.function.models import FunctionTask
 from gcloud.apigw.views.utils import logger, format_function_task_list_data, paginate_list_data
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import FunctionViewInterceptor
-from packages.bkoauth.decorators import apigw_required
+from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
 @require_GET
-@apigw_required
+@apigw_require
+@return_json_response
 @mark_request_whether_is_trust
 @timezone_inject
 @iam_intercept(FunctionViewInterceptor())
@@ -60,7 +61,7 @@ def get_functionalization_task_list(request):
         function_tasks, count = paginate_list_data(request, function_tasks)
     except Exception as e:
         return {"result": False, "data": "", "message": e, "code": err_code.INVALID_OPERATION.code}
-    data = format_function_task_list_data(function_tasks, request.tz)
+    data = format_function_task_list_data(function_tasks, tz=request.tz)
 
     response = {"result": True, "data": data, "count": count, "code": err_code.SUCCESS.code}
     return response

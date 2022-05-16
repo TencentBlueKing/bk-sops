@@ -30,7 +30,7 @@
                 :before-upload="handleBeforeUpload.bind(this)"
                 :before-remove="handleBeforeRemove.bind(this)"
                 :file-list="fileValue">
-                <bk-button size="small" theme="primary">{{ uploadText }}</bk-button>
+                <bk-button :disabled="!editable || disabled" size="small" theme="primary">{{ uploadText }}</bk-button>
                 <div slot="tip" class="el-upload__tip">{{ placeholder }}</div>
             </el-upload>
             <bk-button v-if="!auto_upload" size="small" type="success" @click="onSubmit">{{ i18n.submit }}</bk-button>

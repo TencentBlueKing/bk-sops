@@ -93,7 +93,7 @@ def get_business_host_topo(username, bk_biz_id, supplier_account, host_fields, i
     return host_info_list
 
 
-def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_list=None):
+def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_list=None, bk_cloud_id=None):
     """根据主机内网 IP 过滤业务下的主机
     :param username: 请求用户名
     :type username: str
@@ -105,6 +105,8 @@ def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_lis
     :type host_fields: list
     :param ip_list: 主机内网 IP 列表
     :type ip_list: list
+    :param bk_cloud_id: IP列表对应的云区域
+    :type bk_cloud_id: int
     :return:
     [
         {
@@ -120,7 +122,16 @@ def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_lis
     """
     kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": supplier_account, "fields": list(host_fields or [])}
 
-    if ip_list:
+    # 带云区域的主机数据查询
+    if ip_list and bk_cloud_id:
+        kwargs["host_property_filter"] = {
+            "condition": "AND",
+            "rules": [
+                {"field": "bk_host_innerip", "operator": "in", "value": ip_list},
+                {"field": "bk_cloud_id", "operator": "equal", "value": bk_cloud_id},
+            ],
+        }
+    elif ip_list:
         kwargs["host_property_filter"] = {
             "condition": "AND",
             "rules": [{"field": "bk_host_innerip", "operator": "in", "value": ip_list}],

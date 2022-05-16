@@ -174,8 +174,12 @@ class TextValueSelect(LazyVariable, SelfExplainVariable):
         }
 
     @classmethod
-    def process_meta_avalue(self, meta_data, info_value):
-        meta_value = meta_data["value"]["items_text"]
+    def process_meta_value(self, meta_data, info_value):
+        if meta_data["value"]["datasource"] == "1":
+            # 远程数据源模式下需要记录拉取的数据而不是 URL
+            meta_value = meta_data["value"]["remote_data"]
+        else:
+            meta_value = meta_data["value"]["items_text"]
         return {"meta_data": meta_value, "info_value": info_value}
 
 

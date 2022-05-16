@@ -10,21 +10,31 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from rest_framework import permissions, viewsets
+from rest_framework import permissions
 from rest_framework.response import Response
 
-from gcloud.core.apis.drf.viewsets.utils import ApiMixin
+from gcloud.core.apis.drf.permission import IamPermission, IamPermissionInfo
+from gcloud.core.apis.drf.viewsets import GcloudListViewSet
 from gcloud.contrib.operate_record.models import TaskOperateRecord, TemplateOperateRecord
 from gcloud.contrib.operate_record.apis.drf.serilaziers.operate_record import (
     TemplateOperateRecordSetSerializer,
     TaskOperateRecordSetSerializer,
 )
+from gcloud.iam_auth import IAMMeta, res_factory
 
 
-class TaskOperateRecordSetViewSet(ApiMixin, viewsets.ReadOnlyModelViewSet):
+class OperateRecordSetPermission(IamPermission):
+    actions = {
+        "list": IamPermissionInfo(
+            IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project_id"
+        ),
+    }
+
+
+class TaskOperateRecordSetViewSet(GcloudListViewSet):
     queryset = TaskOperateRecord.objects.all().order_by("-operate_date")
     serializer_class = TaskOperateRecordSetSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, OperateRecordSetPermission]
 
     def get_serializer_data(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -46,10 +56,10 @@ class TaskOperateRecordSetViewSet(ApiMixin, viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
 
-class TemplateOperateRecordSetViewSet(ApiMixin, viewsets.ReadOnlyModelViewSet):
+class TemplateOperateRecordSetViewSet(GcloudListViewSet):
     queryset = TemplateOperateRecord.objects.all().order_by("-operate_date")
     serializer_class = TemplateOperateRecordSetSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, OperateRecordSetPermission]
 
     def get_serializer_data(self, request):
         serializer = self.serializer_class(data=request.data)

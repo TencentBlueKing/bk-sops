@@ -37,8 +37,15 @@
                         <bk-option
                             v-for="(option, index) in templateList"
                             :key="index"
+                            :disabled="!hasPermission(['flow_view'], option.auth_actions)"
                             :id="option.id"
                             :name="option.name">
+                            <p
+                                :title="option.name"
+                                v-cursor="{ active: !hasPermission(['flow_view'], option.auth_actions) }"
+                                @click="onTempSelect(['flow_view'], option)">
+                                {{ option.name }}
+                            </p>
                         </bk-option>
                     </bk-select>
                     <span v-show="appTemplateEmpty" class="common-error-tip error-msg">{{$t('流程模板不能为空')}}</span>
@@ -379,6 +386,18 @@
                 this.appData.appScheme = ''
                 this.appData.appActions = template.auth_actions
                 this.getTemplateScheme()
+            },
+            onTempSelect (applyPerm = [], selectInfo) {
+                if (!this.hasPermission(applyPerm, selectInfo.auth_actions)) {
+                    const permissionData = {
+                        project: [{
+                            id: this.project_id,
+                            name: this.projectName
+                        }],
+                        flow: [selectInfo]
+                    }
+                    this.applyForPermission(applyPerm, selectInfo.auth_actions, permissionData)
+                }
             },
             onSelectScheme (id) {
                 this.appData.appScheme = Number(id)

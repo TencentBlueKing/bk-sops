@@ -14,10 +14,10 @@ specific language governing permissions and limitations under the License.
 from rest_framework import serializers
 
 from pipeline.variable_framework.models import VariableModel
+from rest_framework.fields import SerializerMethodField
+
 from pipeline_web.plugin_management.utils import DeprecatedPlugin
 from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
-
-from gcloud.utils.drf.serializer import ReadWriteSerializerMethodField
 
 
 class VariableSerializer(serializers.ModelSerializer):
@@ -27,8 +27,8 @@ class VariableSerializer(serializers.ModelSerializer):
     type = serializers.CharField(help_text="变量类型", read_only=True)
     tag = serializers.CharField(help_text="变量tag", read_only=True)
     meta_tag = serializers.CharField(help_text="变量meta_tag", read_only=True, allow_null=True)
-    description = ReadWriteSerializerMethodField(read_only=True, help_text="变量描述")
-    phase = ReadWriteSerializerMethodField(read_only=True, help_text="phase")
+    description = SerializerMethodField(help_text="变量描述")
+    phase = SerializerMethodField(help_text="phase")
 
     def get_description(self, obj):
         return getattr(obj.get_class(), "desc", "")

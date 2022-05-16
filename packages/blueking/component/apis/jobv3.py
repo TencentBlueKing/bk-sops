@@ -161,7 +161,7 @@ class CollectionsJOBV3(object):
         self.update_cron_status = ComponentAPI(
             client=self.client,
             method="POST",
-            path="/api/c/compapi{bk_api_ver}/job/update_cron_status/",
+            path="/api/c/compapi{bk_api_ver}/jobv3/update_cron_status/",
             description="更新定时作业状态，如启动或暂停",
         )
         self.create_credential = ComponentAPI(
@@ -181,4 +181,10 @@ class CollectionsJOBV3(object):
             method="POST",
             path="/api/c/compapi{bk_api_ver}/jobv3/generate_local_file_upload_url/",
             description="获取本地文件上传url",
+        )
+        self.push_config_file = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/jobv3/push_config_file/",
+            description=u"分发配置文件",
         )
