@@ -530,6 +530,7 @@ VARIABLE_SPECIFIC_EXCEPTIONS = (ApiRequestError,)
 def logging_addition_settings(logging_dict: dict, environment="prod"):
     # formatters
     logging_dict["formatters"]["light"] = {"format": "%(message)s"}
+    logging_dict["formatters"]["engine"] = {"format": "[%(asctime)s][%(levelname)s] %(message)s"}
 
     # handlers
     logging_dict["handlers"]["pipeline_engine_context"] = {
@@ -539,7 +540,7 @@ def logging_addition_settings(logging_dict: dict, environment="prod"):
 
     logging_dict["handlers"]["bamboo_engine_context"] = {
         "class": "pipeline.eri.log.EngineContextLogHandler",
-        "formatter": "light",
+        "formatter": "engine",
     }
 
     logging_dict["handlers"]["engine"] = {
@@ -549,7 +550,7 @@ def logging_addition_settings(logging_dict: dict, environment="prod"):
 
     logging_dict["handlers"]["pipeline_eri"] = {
         "class": "pipeline.eri.log.ERINodeLogHandler",
-        "formatter": "light",
+        "formatter": "engine",
     }
 
     # loggers
