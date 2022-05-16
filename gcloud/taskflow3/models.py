@@ -1026,7 +1026,7 @@ class TaskFlowInstance(models.Model):
         self.save()
         return self
 
-    def set_task_context(self, constants, meta_constants=None):
+    def set_task_constants(self, constants, meta_constants=None):
         dispatcher = TaskCommandDispatcher(
             engine_ver=self.engine_ver,
             taskflow_id=self.id,
@@ -1036,7 +1036,7 @@ class TaskFlowInstance(models.Model):
         return dispatcher.set_task_constants(
             task_is_started=self.pipeline_instance.is_started,
             task_is_finished=self.pipeline_instance.is_finished,
-            context=constants,
+            constants=constants,
             meta_constants=meta_constants or {},
         )
 

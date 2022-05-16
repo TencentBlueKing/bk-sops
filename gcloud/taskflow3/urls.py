@@ -27,7 +27,6 @@ urlpatterns = [
     url(r"^api/clone/(?P<project_id>\d+)/$", api.task_clone),
     url(r"^api/action/(?P<action>\w+)/(?P<project_id>\d+)/$", api.task_action),
     url(r"^api/flow/claim/(?P<project_id>\d+)/$", api.task_func_claim),
-    url(r"^api/inputs/modify/(?P<project_id>\d+)/$", api.task_modify_inputs),
     url(r"^api/nodes/action/(?P<action>\w+)/(?P<project_id>\d+)/$", api.nodes_action),
     url(r"^api/nodes/data/(?P<project_id>\d+)/$", api.data),
     url(r"^api/nodes/detail/(?P<project_id>\d+)/$", api.detail),
@@ -45,5 +44,5 @@ urlpatterns = [
         EngineV2NodeLogView.as_view(),
     ),
     path(r"api/preview_task_tree_with_schemes/", PreviewTaskTreeWithSchemesView.as_view()),
-    path(r"api/update_task_constants_view/<int:task_id>/", UpdateTaskConstantsView.as_view()),
+    path(r"api/update_task_constants/<int:task_id>/", UpdateTaskConstantsView.as_view()),
 ]

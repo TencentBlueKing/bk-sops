@@ -19,9 +19,11 @@ from rest_framework.decorators import action
 from iam import Subject, Action
 from iam.shortcuts import allow_or_raise_auth_failed
 from drf_yasg.utils import swagger_auto_schema
+from gcloud.contrib.operate_record.constants import OperateType, OperateSource
 
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.contrib.operate_record.models import TaskOperateRecord
 
 iam = get_iam_client()
 
@@ -44,33 +46,7 @@ class RenderCurrentConstantsPermission(permissions.BasePermission):
 
 class UpdateTaskConstantsViewSerializer(serializers.Serializer):
     constants = serializers.DictField(help_text="需要修改的全局变量", required=True)
-
-    def validate_constants(self, constants):
-        if not constants:
-            raise serializers.ValidationError("需要修改的全局变量不能为空")
-
-        pre_render_constants = []
-        hide_constants = []
-        component_outputs = []
-        for key, c in constants:
-            if c.get("pre_render_mako", False):
-                pre_render_constants.append(key)
-            if c.get("show_type", "hide") != "show":
-                hide_constants.append(key)
-            if c.get("source_type") == "component_outputs":
-                component_outputs.append(key)
-
-        if pre_render_constants or hide_constants:
-            raise serializers.ValidationError(
-                """不支持修改以下变量
-                预渲染变量: %s
-                隐藏变量: %s
-                组件输出: %s
-                """
-                % (pre_render_constants, hide_constants, component_outputs)
-            )
-
-        return constants
+    meta_constants = serializers.DictField(help_text="需要修改的全局中的元变量元信息", required=False, default={})
 
 
 class UpdateTaskConstantsResponseSerializer(serializers.Serializer):
@@ -82,7 +58,8 @@ class UpdateTaskConstantsResponseSerializer(serializers.Serializer):
 class UpdateTaskConstantsView(APIView):
     @swagger_auto_schema(
         method="POST",
-        operation_summary="修改未完成任务的全局变量值",
+        operation_summary="修改任务的全局变量值",
+        request_body=UpdateTaskConstantsViewSerializer,
         responses={200: UpdateTaskConstantsResponseSerializer},
     )
     @action(methods=["POST"], detail=True)
@@ -91,6 +68,15 @@ class UpdateTaskConstantsView(APIView):
         serializers.is_valid(raise_exception=True)
 
         task = TaskFlowInstance.objects.filter(id=task_id).only("project_id", "engine_ver", "pipeline_instance")[0]
-        set_result = task.set_task_constants(serializers.data["constants"])
+        set_result = task.set_task_constants(serializers.data["constants"], serializers.data["meta_constants"])
+
+        if set_result["result"]:
+            TaskOperateRecord.objects.create(
+                operator=request.user.username,
+                operate_type=OperateType.update.name,
+                operate_source=OperateSource.app.name,
+                instance_id=task_id,
+                project_id=task.project_id,
+            )
 
         return Response(set_result)
