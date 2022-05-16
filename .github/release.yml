@@ -16,7 +16,10 @@ changelog:
         - type/bug
     - title: Optimizations 🦾
       labels:
-        - type/optimization 
+        - type/optimization
+    - title: Base-Dependencies 🚧
+      labels:
+        - type/base-dependencies 
     - title: Other Changes
       labels:
         - "*"

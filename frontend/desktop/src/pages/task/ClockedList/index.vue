@@ -428,7 +428,7 @@
                 const { template_id, project_id } = row
                 const url = {
                     name: 'templatePanel',
-                    params: { type: 'edit', project_id },
+                    params: { type: 'view', project_id },
                     query: { template_id, common: undefined }
                 }
                 return url

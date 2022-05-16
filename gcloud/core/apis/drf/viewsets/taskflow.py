@@ -16,11 +16,9 @@ from rest_framework.exceptions import ErrorDetail
 from rest_framework import serializers, generics, permissions, status
 from django_filters import FilterSet
 
-from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
-from iam import Subject, Action
-
 from gcloud.constants import TASK_NAME_MAX_LENGTH
 from gcloud import err_code
+from gcloud.core.apis.drf.viewsets import IAMMixin
 from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
 from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
@@ -36,7 +34,12 @@ from gcloud.iam_auth.conf import TASK_ACTIONS
 from pipeline.exceptions import PipelineException
 from gcloud.core.models import EngineConfig
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
-from gcloud.core.apis.drf.permission import IamPermission, IamPermissionInfo, HAS_OBJECT_PERMISSION
+from gcloud.core.apis.drf.permission import (
+    IamPermission,
+    IamPermissionInfo,
+    HAS_OBJECT_PERMISSION,
+    IamUserTypeBasedValidator,
+)
 from gcloud.iam_auth import IAMMeta, res_factory, get_iam_client
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.operate_record.signal import operate_record_signal
@@ -51,6 +54,8 @@ class TaskFlowFilterSet(FilterSet):
         model = TaskFlowInstance
         fields = {
             "id": ["exact"],
+            "template_id": ["exact"],
+            "template_source": ["exact"],
             "category": ["exact"],
             "project__id": ["exact"],
             "pipeline_instance__creator": ["contains"],
@@ -60,13 +65,13 @@ class TaskFlowFilterSet(FilterSet):
             "pipeline_instance__is_finished": ["exact"],
             "pipeline_instance__is_revoked": ["exact"],
             "create_method": ["exact"],
+            "create_info": ["exact"],
             "pipeline_instance__start_time": ["gte", "lte"],
         }
 
 
-class TaskFlowInstancePermission(IamPermission):
+class TaskFlowInstancePermission(IamPermission, IAMMixin):
     actions = {
-        "list": IamPermissionInfo(IAMMeta.TASK_VIEW_ACTION),
         "retrieve": IamPermissionInfo(
             IAMMeta.TASK_VIEW_ACTION, res_factory.resources_for_task_obj, HAS_OBJECT_PERMISSION
         ),
@@ -85,11 +90,9 @@ class TaskFlowInstancePermission(IamPermission):
                     app_maker = AppMaker.objects.get(id=app_maker_id)
                 except AppMaker.DoesNotExist:
                     return False
-                allow_or_raise_immediate_response(
-                    iam=iam,
-                    system=IAMMeta.SYSTEM_ID,
-                    subject=Subject("user", request.user.username),
-                    action=Action(IAMMeta.MINI_APP_CREATE_TASK_ACTION),
+                self.iam_auth_check(
+                    request=request,
+                    action=IAMMeta.MINI_APP_CREATE_TASK_ACTION,
                     resources=res_factory.resources_for_mini_app_obj(app_maker),
                 )
                 return True
@@ -102,14 +105,21 @@ class TaskFlowInstancePermission(IamPermission):
                     template = model_cls.objects.get(id=template_id)
                 except model_cls.DoesNotExist:
                     return False
-                allow_or_raise_immediate_response(
-                    iam=iam,
-                    system=IAMMeta.SYSTEM_ID,
-                    subject=Subject("user", request.user.username),
-                    action=Action(IAMMeta.FLOW_CREATE_TASK_ACTION),
-                    resources=res_factory.resources_for_flow_obj(template),
+                if template_source == "project":
+                    iam_action = IAMMeta.FLOW_CREATE_TASK_ACTION
+                    resources = res_factory.resources_for_flow_obj(template)
+                else:
+                    iam_action = IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION
+                    resources = res_factory.resources_for_common_flow_obj(template)
+                    if request.data.get("project"):
+                        resources.extend(res_factory.resources_for_project(request.data["project"]))
+                self.iam_auth_check(
+                    request=request, action=iam_action, resources=resources,
                 )
                 return True
+        elif view.action == "list":
+            user_type_validator = IamUserTypeBasedValidator()
+            return user_type_validator.validate(request)
         return super().has_permission(request, view)
 
 
@@ -118,10 +128,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False, is_deleted=False).order_by(
         "pipeline_instance"
     )
-    iam_resource_helper = ViewSetResourceHelper(
-        resource_func=res_factory.resources_for_task_obj,
-        actions=TASK_ACTIONS,
-    )
+    iam_resource_helper = ViewSetResourceHelper(resource_func=res_factory.resources_for_task_obj, actions=TASK_ACTIONS)
     filter_class = TaskFlowFilterSet
     permission_classes = [permissions.IsAuthenticated, TaskFlowInstancePermission]
     ordering_fields = ["pipeline_instance"]
@@ -157,7 +164,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         ]
         common_templates_allowed_actions = get_common_flow_allowed_actions_for_user(
             request.user.username,
-            [IAMMeta.COMMON_FLOW_VIEW_ACTION],
+            [IAMMeta.COMMON_FLOW_VIEW_ACTION, IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION],
             common_template_ids,
         )
         common_template_info = CommonTemplate.objects.filter(id__in=common_template_ids).values(
@@ -215,7 +222,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         serializer.validated_data["pipeline_instance"] = pipeline_instance
         serializer.validated_data["category"] = template.category
         serializer.validated_data["current_flow"] = (
-            "func_clain" if serializer.validated_data["flow_type"] == "common_func" else "execute_task"
+            "func_claim" if serializer.validated_data["flow_type"] == "common_func" else "execute_task"
         )
         serializer.validated_data["template_id"] = template.id
         # create taskflow

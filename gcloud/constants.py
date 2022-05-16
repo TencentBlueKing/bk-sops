@@ -204,6 +204,10 @@ class Type(Enum):
     OBJECT = "object"
 
 
+# DateTime格式化
+DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S %z"
+
+
 class JobBizScopeType(Enum):
     BIZ = "biz"
     BIZ_SET = "biz_set"
@@ -211,3 +215,9 @@ class JobBizScopeType(Enum):
 
 # DateTime格式化
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S %z"
+
+
+# GSE AGENT 状态
+class GseAgentStatus(Enum):
+    OFFLINE = 0
+    ONlINE = 1

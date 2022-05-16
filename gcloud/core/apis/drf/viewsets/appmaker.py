@@ -12,9 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework import mixins
+from rest_framework import mixins, permissions
 
-from gcloud.core.apis.drf.viewsets.base import GcloudListViewSet
+from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.core.apis.drf.serilaziers.appmaker import AppmakerSerializer
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
@@ -28,13 +28,16 @@ class AppmakerPermission(IamPermission):
         "list": IamPermissionInfo(
             IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project__id"
         ),
+        "retrieve": IamPermissionInfo(
+            IAMMeta.MINI_APP_VIEW_ACTION, res_factory.resources_for_mini_app_obj, check_hook=HAS_OBJECT_PERMISSION
+        ),
         "destroy": IamPermissionInfo(
             IAMMeta.MINI_APP_DELETE_ACTION, res_factory.resources_for_mini_app_obj, HAS_OBJECT_PERMISSION
         ),
     }
 
 
-class AppmakerListViewSet(GcloudListViewSet, mixins.DestroyModelMixin):
+class AppmakerListViewSet(GcloudReadOnlyViewSet, mixins.DestroyModelMixin):
     queryset = AppMaker.objects.filter(is_deleted=False)
     serializer_class = AppmakerSerializer
     iam_resource_helper = ViewSetResourceHelper(
@@ -46,5 +49,6 @@ class AppmakerListViewSet(GcloudListViewSet, mixins.DestroyModelMixin):
             IAMMeta.MINI_APP_VIEW_ACTION,
         ],
     )
+    permission_classes = [permissions.IsAuthenticated, AppmakerPermission]
     filter_fields = {"editor": ["exact"], "project__id": ["exact"], "edit_time": ["gte", "lte"]}
     pagination_class = LimitOffsetPagination

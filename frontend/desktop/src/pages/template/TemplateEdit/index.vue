@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="template-page" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading , zIndex: 100 }">
+    <div :class="['template-page', { 'tpl-view-model': isViewMode }]" v-bkloading="{ isLoading: templateDataLoading || singleAtomListLoading , zIndex: 100 }">
         <div v-if="!templateDataLoading" class="pipeline-canvas-wrapper">
             <TemplateHeader
                 ref="templateHeader"
@@ -30,6 +30,7 @@
                 :exclude-node="excludeNode"
                 :execute-scheme-saving="executeSchemeSaving"
                 @onDownloadCanvas="onDownloadCanvas"
+                @goBackViewMode="goBackViewMode"
                 @goBackToTplEdit="goBackToTplEdit"
                 @onClosePreview="onClosePreview"
                 @onOpenExecuteScheme="onOpenExecuteScheme"
@@ -42,16 +43,19 @@
                     class="update-tips"
                     :list="subflowShouldUpdated"
                     :locations="locations"
+                    :is-view-mode="isViewMode"
                     @viewClick="viewUpdatedNode"
                     @batchUpdate="isBatchUpdateDialogShow = true"
                     @foldClick="clearDotAnimation">
                 </SubflowUpdateTips>
                 <TemplateCanvas
+                    :key="isViewMode"
                     ref="templateCanvas"
                     class="template-canvas"
                     :atom-type-list="atomTypeList"
                     :name="name"
-                    :type="type"
+                    :show-palette="!isViewMode"
+                    :editable="!isViewMode"
                     :common="common"
                     :template-labels="templateLabels"
                     :canvas-data="canvasData"
@@ -88,6 +92,7 @@
                 <node-config
                     ref="nodeConfig"
                     v-if="isNodeConfigPanelShow"
+                    :is-view-mode="isViewMode"
                     :is-show="isNodeConfigPanelShow"
                     :atom-list="atomList"
                     :atom-type-list="atomTypeList"
@@ -111,6 +116,7 @@
                     @close="onCloseConfigPanel">
                 </condition-edit>
                 <template-setting
+                    :is-view-mode="isViewMode"
                     :project-info-loading="projectInfoLoading"
                     :template-label-loading="templateLabelLoading"
                     :template-labels="templateLabels"
@@ -177,11 +183,14 @@
                 :theme="'primary'"
                 :mask-close="false"
                 :show-footer="false"
-                :value="isExectueSchemeDialog"
+                :value="isExecuteSchemeDialog"
                 data-test-id="templateEdit_form_tempEditDialog"
-                @cancel="isExectueSchemeDialog = false">
+                @cancel="isExecuteSchemeDialog = false">
                 <div class="template-edit-dialog-content">
                     <div class="save-tpl-tips">{{ tplEditDialogTip }}</div>
+                    <p v-if="isMultipleTabCount > 1" class="multiple-tab-dialog-tip">
+                        <i class="bk-icon icon-exclamation-circle">{{ $t('当前流程模板在浏览器多个标签页打开') }}</i>
+                    </p>
                     <div class="action-wrapper">
                         <bk-button theme="primary" :loading="templateSaving || executeSchemeSaving" @click="onConfirmSave">{{ $t('确定') }}</bk-button>
                         <bk-button theme="default" :disabled="templateSaving || executeSchemeSaving" @click="onCancelSave">{{ $t('取消') }}</bk-button>
@@ -232,6 +241,7 @@
     import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
     import TaskSelectNode from '../../task/TaskCreate/TaskSelectNode.vue'
     import BatchUpdateDialog from './BatchUpdateDialog.vue'
+    import DealVarDirtyData from '@/utils/dealVarDirtyData.js'
 
     export default {
         name: 'TemplateEdit',
@@ -255,7 +265,8 @@
                 executeSchemeSaving: false,
                 taskSchemeList: [],
                 isPreviewMode: false,
-                isExectueSchemeDialog: false,
+                isExecuteSchemeDialog: false,
+                isBackViewMode: false,
                 isExecuteScheme: false, // 是否为执行方案
                 isEditProcessPage: true,
                 excludeNode: [],
@@ -399,7 +410,16 @@
             },
             subflowShouldUpdated () {
                 if (this.subprocess_info) {
-                    return this.subprocess_info.details
+                    return this.subprocess_info.details.reduce((acc, cur) => {
+                        const nodeId = cur.subprocess_node_id
+                        const { scheme_id_list = [], template_source } = this.activities[nodeId]
+                        acc.push({
+                            ...cur,
+                            scheme_id_list,
+                            template_source: template_source === 'common' ? 'common' : 'project'
+                        })
+                        return acc
+                    }, [])
                 }
                 return []
             },
@@ -407,10 +427,16 @@
                 let tip = this.$t('确定保存流程并去设置执行方案？')
                 if (this.type === 'clone') {
                     tip = this.$t('确定保存克隆流程并去设置执行方案？')
-                } else if (!this.isEditProcessPage) {
+                } else if (this.isBackViewMode || !this.isEditProcessPage) {
                     tip = this.$t('确定保存修改的内容？')
                 }
                 return tip
+            },
+            isViewMode () {
+                return this.type === 'view'
+            },
+            isMultipleTabCount () {
+                return tplTabCount.getCount(this.getTplTabData())
             }
         },
         watch: {
@@ -437,7 +463,7 @@
             }
             this.templateDataLoading = true
             this.snapshoots = this.getTplSnapshoots()
-            if (this.type === 'edit' || this.type === 'clone') {
+            if (['edit', 'clone', 'view'].includes(this.type)) {
                 this.getTemplateData()
             } else {
                 let name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
@@ -457,13 +483,13 @@
             this.openSnapshootTimer()
             window.addEventListener('beforeunload', this.handleBeforeUnload, false)
             window.addEventListener('unload', this.handleUnload.bind(this), false)
-            if (this.type === 'edit') {
+            if (this.type === 'edit' || this.type === 'view') {
                 const data = this.getTplTabData()
                 tplTabCount.setTab(data, 'add')
             }
         },
         beforeDestroy () {
-            if (this.type === 'edit') {
+            if (this.type === 'edit' || this.type === 'view') {
                 const data = this.getTplTabData()
                 tplTabCount.setTab(data, 'del')
             }
@@ -512,7 +538,8 @@
                 'replaceTemplate',
                 'replaceLineAndLocation',
                 'setPipelineTree',
-                'setInternalVariable'
+                'setInternalVariable',
+                'setConstants'
             ]),
             ...mapMutations('atomForm/', [
                 'clearAtomForm'
@@ -729,10 +756,43 @@
                     this.templateLabelLoading = false
                 }
             },
+            checkDirtyData () {
+                const ins = new DealVarDirtyData(this.constants)
+                const illegalKeys = ins.checkKeys()
+                if (illegalKeys.length) {
+                    const h = this.$createElement
+                    this.$bkInfo({
+                        extCls: 'var-dirty-data-dialog',
+                        width: 500,
+                        okText: this.$t('清除'),
+                        subHeader: h('p',
+                                     { style: {} },
+                                     [
+                                         this.$t('自定义变量中存在系统变量/项目变量的key，需要清除后才能保存，是否一键清除？(可通过【模版数据-constants】进行确认)'),
+                                         h('p',
+                                           { style: { marginTop: '10px' } },
+                                           [this.$t('问题变量有：'), illegalKeys.join(',')]
+                                         )
+                                     ]
+                        ),
+                        confirmFn: () => {
+                            const constants = ins.handleIllegalKeys()
+                            this.setConstants(constants)
+                            this.saveTemplate()
+                        }
+                    })
+                    return true
+                }
+                return false
+            },
             /**
              * 保存流程模板
              */
             async saveTemplate () {
+                // 检查全局变量是否存在脏数据
+                const hasDirtyData = this.checkDirtyData()
+                if (hasDirtyData) return
+
                 const template_id = this.type === 'edit' ? this.template_id : undefined
                 if (this.saveAndCreate) {
                     this.createTaskSaving = true
@@ -741,11 +801,8 @@
                 }
 
                 try {
+                    console.log('1111', this.constants)
                     const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
-                    if (this.type === 'new') {
-                        this.type = 'edit'
-                        this.template_id = data.template_id
-                    }
                     this.tplActions = data.auth_actions
                     this.$bkMessage({
                         message: i18n.t('保存成功'),
@@ -778,11 +835,6 @@
                     if (this.type !== 'edit') {
                         this.saveTempSnapshoot(data.template_id)
                         this.allowLeave = true
-                        const url = { name: 'templatePanel', params: { type: 'edit' }, query: { 'template_id': data.template_id, 'common': this.common } }
-                        if (this.common) {
-                            url.name = 'commonTemplatePanel'
-                        }
-                        this.$router.push(url)
 
                         // 新创建的流程模板需要增加本地浏览器计数信息
                         const tabQuerydata = {
@@ -795,6 +847,13 @@
 
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
+                    } else if (this.isBackViewMode) {
+                        this.$router.back()
+                    } else { // 保存后需要切到查看模式(查看执行方案除时为查看模式)
+                        this.$router.push({
+                            params: { type: this.isExecuteScheme ? 'edit' : 'view' },
+                            query: { template_id: data.template_id }
+                        })
                     }
                 } catch (e) {
                     console.log(e)
@@ -1340,7 +1399,7 @@
                         message: i18n.t('方案保存成功'),
                         theme: 'success'
                     })
-                    this.isExectueSchemeDialog = false
+                    this.isExecuteSchemeDialog = false
                     this.allowLeave = true
                     this.isTemplateDataChanged = false
                     this.isSchemaListChange = false
@@ -1354,13 +1413,17 @@
                     this.executeSchemeSaving = false
                 }
             },
+            goBackViewMode () {
+                this.isBackViewMode = true
+                this.isExecuteSchemeDialog = true
+            },
             goBackToTplEdit () {
                 const { isDefaultSchemeIng, judgeDataEqual } = this.$refs.taskSelectNode
                 const isEqual = isDefaultSchemeIng ? judgeDataEqual() : !this.isSchemaListChange
                 if (isEqual) {
                     this.isEditProcessPage = true
                 } else {
-                    this.isExectueSchemeDialog = true
+                    this.isExecuteSchemeDialog = true
                 }
             },
             updateTaskSchemeList (val, isChange) {
@@ -1401,9 +1464,11 @@
                 }
                 this.saveAndCreate = saveAndCreate
                 this.pid = pid
-                if (this.type === 'edit' && tplTabCount.getCount(this.getTplTabData()) > 1) {
+                if (this.type === 'edit' && this.isMultipleTabCount > 1) {
                     if (!this.isExecuteScheme) {
                         this.multipleTabDialogShow = true
+                    } else {
+                        this.isExecuteSchemeDialog = true
                     }
                 } else {
                     this.checkNodeAndSaveTemplate()
@@ -1454,7 +1519,7 @@
                     } else {
                         if (this.isExecuteScheme) {
                             if (this.type === 'clone' || this.isTemplateDataChanged) {
-                                this.isExectueSchemeDialog = true
+                                this.isExecuteSchemeDialog = true
                             } else {
                                 this.isEditProcessPage = false
                             }
@@ -1734,8 +1799,12 @@
             async onConfirmSave () {
                 if (this.isEditProcessPage) {
                     await this.saveTemplate()
-                    this.isExectueSchemeDialog = false
-                    this.isEditProcessPage = false
+                    this.isExecuteSchemeDialog = false
+                    if (this.isBackViewMode) {
+                        this.isBackViewMode = false
+                    } else {
+                        this.isEditProcessPage = false
+                    }
                 } else {
                     const { isDefaultSchemeIng, judgeDataEqual } = this.$refs.taskSelectNode
                     const isEqual = isDefaultSchemeIng ? !judgeDataEqual() : false
@@ -1744,8 +1813,10 @@
             },
             // 编辑执行方案弹框 取消事件
             onCancelSave () {
-                this.isExectueSchemeDialog = false
+                this.isExecuteSchemeDialog = false
                 this.isEditProcessPage = true
+                this.isTemplateDataChanged = false
+                this.isExecuteScheme = false
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
@@ -1768,6 +1839,14 @@
         position: relative;
         height: 100%;
         overflow: hidden;
+    }
+    .tpl-view-model {
+        /deep/ .jsflow .tool-panel-wrap {
+            left: 40px;
+        }
+        /deep/ .small-map {
+            left: 40px;
+        }
     }
     .update-tips {
         position: absolute;
@@ -1841,12 +1920,29 @@
             text-align: center;
             .save-tpl-tips {
                 font-size: 24px;
-                margin-bottom: 30px;
+                margin-bottom: 20px;
                 padding: 0 10px;
             }
-            .action-wrapper .bk-button {
-                margin-right: 6px;
+            .multiple-tab-dialog-tip {
+                margin-bottom: 10px;
+                font-size: 14px;
+                color: #ff9c01;
             }
+            .action-wrapper .bk-button {
+                margin: 10px 6px 0 0;
+            }
+        }
+    }
+    .var-dirty-data-dialog {
+        .bk-dialog-sub-header {
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 5px 25px 15px;
+            color: #63656e;
+        }
+        .bk-info-box .bk-dialog-footer {
+            text-align: right;
+            padding: 0 25px 15px;
         }
     }
 

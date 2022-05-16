@@ -248,7 +248,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             runtime=BambooDjangoRuntime(), pipeline_id=self.pipeline_instance.instance_id
         )
 
-    def set_task_constants(self, task_is_started: bool, task_is_finished: bool, constants: dict) -> dict:
+    def set_task_context(
+        self, task_is_started: bool, task_is_finished: bool, constants: dict, meta_constants: dict
+    ) -> dict:
         if self.engine_ver not in self.VALID_ENGINE_VER:
             return self._unsupported_engine_ver_result()
 
@@ -276,9 +278,17 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         exec_data = self.pipeline_instance.execution_data
         try:
-            for key, value in list(constants.items()):
+            # set constants
+            for key, value in constants.items():
                 if key in exec_data["constants"]:
                     exec_data["constants"][key]["value"] = value
+
+            # set meta constants
+            for key, value in meta_constants.items():
+                if key in exec_data["constants"] and "meta" in exec_data["constants"][key]:
+                    exec_data["constants"][key]["meta"]["value"] = value
+
+            self.pipeline_instance.set_execution_data(exec_data)
         except Exception:
             logger.exception(
                 "TaskFlow set_task_constants error:id=%s, constants=%s, error=%s"

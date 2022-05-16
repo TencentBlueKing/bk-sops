@@ -67,7 +67,7 @@ def get_constant_values(constants, extra_data):
     ]
     context = Context(runtime, context_values, extra_data)
     hydrated_context = context.hydrate()
-    return hydrated_context
+    return {**constant_values, **hydrated_context}
 
 
 def _system_constants_to_mako_str(value):

@@ -21,9 +21,9 @@ const Home = () => import('@/pages/home/index.vue')
 const Template = () => import('@/pages/template/index.vue')
 const TemplateList = () => import('@/pages/template/TemplateList/index.vue')
 
-const CommonTemplate = () => import('@/pages/template/common/index.vue')
+const CommonTemplate = () => import('@/pages/commonManage/index.vue')
+const CommonTemplateList = () => import('@/pages/commonManage/CommonTplList.vue')
 const TemplatePanel = () => import('@/pages/template/TemplateEdit/index.vue')
-const CommonTemplateList = () => import('@/pages/template/common/CommonTemplateList.vue')
 
 const Task = () => import('@/pages/task/index.vue')
 const TaskManage = () => import('@/pages/task/TaskManage.vue')
@@ -141,7 +141,7 @@ const routers = new VueRouter({
                     meta: { project: true }
                 },
                 {
-                    path: ':type(new|edit|clone)/:project_id/',
+                    path: ':type(new|edit|clone|view)/:project_id/',
                     component: TemplatePanel,
                     name: 'templatePanel',
                     pathToRegexpOptions: { strict: true },
@@ -453,7 +453,7 @@ const routers = new VueRouter({
                     })
                 },
                 {
-                    path: ':type(new|edit|clone)/',
+                    path: ':type(new|edit|clone|view)/',
                     name: 'commonTemplatePanel',
                     pathToRegexpOptions: { strict: true },
                     component: TemplatePanel,
@@ -463,6 +463,18 @@ const routers = new VueRouter({
                         common: '1'
                     }),
                     meta: { project: false }
+                },
+                {
+                    path: ':type(edit|clone|view)/:project_id/',
+                    name: 'projectCommonTemplatePanel',
+                    pathToRegexpOptions: { strict: true },
+                    component: TemplatePanel,
+                    props: route => ({
+                        template_id: route.query.template_id,
+                        type: route.params.type,
+                        common: '1'
+                    }),
+                    meta: { project: true }
                 }
             ]
         },

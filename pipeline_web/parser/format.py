@@ -72,10 +72,10 @@ def format_web_data_to_pipeline(web_pipeline: dict, is_subprocess: bool = False)
                     if var_cls and issubclass(var_cls, var.LazyVariable):
                         if (
                             var_cls.type == "meta"
-                            and hasattr(var_cls, "process_meta_avalue")
-                            and callable(var_cls.process_meta_avalue)
+                            and hasattr(var_cls, "process_meta_value")
+                            and callable(var_cls.process_meta_value)
                         ):
-                            value = var_cls.process_meta_avalue(info["meta"], info["value"])
+                            value = var_cls.process_meta_value(info["meta"], info["value"])
                         else:
                             value = info["value"]
 
@@ -177,10 +177,10 @@ def classify_constants(constants: dict, is_subprocess: bool):
         elif info["custom_type"] and var_cls and issubclass(var_cls, var.LazyVariable):
             if (
                 var_cls.type == "meta"
-                and hasattr(var_cls, "process_meta_avalue")
-                and callable(var_cls.process_meta_avalue)
+                and hasattr(var_cls, "process_meta_value")
+                and callable(var_cls.process_meta_value)
             ):
-                value = var_cls.process_meta_avalue(info["meta"], info["value"])
+                value = var_cls.process_meta_value(info["meta"], info["value"])
             else:
                 value = info["value"]
             data_inputs[key] = {

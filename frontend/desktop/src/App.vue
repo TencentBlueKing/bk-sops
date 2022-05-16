@@ -197,7 +197,7 @@
                     this.setProjectActions(auth_actions)
                     this.setProjectConfig(projectConfig.data)
                     this.clearAtomForm() // notice: 清除标准插件配置项里的全局变量缓存
-                    this.setTimeZone(projectDetail.timeZone)
+                    this.setTimeZone(projectDetail.time_zone)
                     if (this.$route.name === 'templateEdit' && this.$route.query.common) {
                         setConfigContext(this.site_url)
                     } else {

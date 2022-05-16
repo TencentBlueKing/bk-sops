@@ -19,12 +19,14 @@
             <span :class="[variableData ? 'active' : '']" @click="onBackToList">{{ $t('全局变量') }}</span>
             <span v-if="variableData"> > {{ variableData.source_type !== 'system' && variableData.source_type !== 'project' ? (variableData.key ? $t('编辑') : $t('新建')) : $t('查看') }}</span>
             <div
+                v-if="!common"
                 class="manager-project-variable-btn mr5"
                 data-test-id="templateEdit_form_managerVariable"
                 @click="onManagerProjectVariable">
-                <span class="manager-item">{{ $t('管理项目变量') }}</span>
+                <span :class="['manager-item', { 'r30': isViewMode }]">{{ $t('管理项目变量') }}</span>
             </div>
             <div
+                v-if="!isViewMode"
                 class="process-project-variable-btn"
                 data-test-id="templateEdit_form_variableProcessing"
                 @click="quickOperateVariableVisable = true">
@@ -71,7 +73,7 @@
                 <div class="add-variable">
                     <bk-button
                         theme="primary"
-                        class="add-variable-btn mr5"
+                        :class="['add-variable-btn mr5', { 'scale0': isViewMode }]"
                         data-test-id="templateEdit_form_creatVariable"
                         @click="onAddVariable">
                         {{ $t('新建') }}
@@ -110,7 +112,7 @@
                 </div>
                 <div class="global-variable-content" data-test-id="templateEdit_table_variableList">
                     <div class="variable-header clearfix">
-                        <bk-checkbox :value="editVarList.length === deleteVarListLen" class="variable-checkbox" @change="onSelectAll">
+                        <bk-checkbox v-if="!isViewMode && editVarList.length" :value="editVarList.length === deleteVarListLen" class="variable-checkbox" @change="onSelectAll">
                         </bk-checkbox>
                         <span class="col-name t-head">{{ $t('名称') }}</span>
                         <span class="col-key t-head">KEY</span>
@@ -136,7 +138,7 @@
                             </thead-popover>
                         </span>
                         <span class="col-attributes t-head">
-                            {{ $t('属性') }}
+                            {{ $t('来源') }}
                             <thead-popover
                                 :content-list="varAttrList"
                                 type="attributes"
@@ -155,36 +157,41 @@
                         <span class="col-operation t-head">{{ $t('操作') }}</span>
                         <span class="col-more t-head"></span>
                     </div>
-                    <div class="variable-list" v-bkloading="{ isLoading: varListLoading, zIndex: 10 }">
-                        <draggable
-                            class="variable-drag"
-                            handle=".col-item-drag"
-                            :list="variableList"
-                            @end="onDragEnd($event)">
-                            <variable-item
-                                v-for="constant in variableList"
-                                :key="constant.key"
-                                :outputed="outputs.indexOf(constant.key) > -1"
-                                :variable-data="constant"
-                                :variable-cited="variableCited"
-                                :variable-checked="!!(deleteVarList.find(item => item.key === constant.key))"
-                                :common="common"
-                                :new-clone-keys="newCloneKeys"
-                                @onCancelCloneKey="onCancelCloneKey"
-                                @viewClick="viewClick"
-                                @onEditVariable="onEditVariable"
-                                @onDeleteVariable="onDeleteVariable"
-                                @onCloneVariable="onCloneVariable"
-                                @onChooseVariable="onChooseVariable"
-                                @onChangeVariableShow="onChangeVariableShow"
-                                @onChangeVariableOutput="onChangeVariableOutput"
-                                @onCitedNodeClick="onCitedNodeClick">
-                            </variable-item>
-                        </draggable>
-                        <div v-if="variableList.length === 0" class="empty-variable-tips">
-                            <NoData>
-                                <p>{{$t('无数据，请手动新增变量或者勾选标准插件参数自动生成')}}</p>
-                            </NoData>
+                    <!-- 加一层div用来放bkLoading -->
+                    <div v-bkloading="{ isLoading: varListLoading, zIndex: 10 }">
+                        <div class="variable-list">
+                            <draggable
+                                class="variable-drag"
+                                handle=".col-item-drag"
+                                :list="variableList"
+                                :disabled="isViewMode"
+                                @end="onDragEnd($event)">
+                                <variable-item
+                                    v-for="constant in variableList"
+                                    :key="constant.key"
+                                    :outputed="outputs.indexOf(constant.key) > -1"
+                                    :variable-data="constant"
+                                    :variable-cited="variableCited"
+                                    :variable-checked="!!(deleteVarList.find(item => item.key === constant.key))"
+                                    :common="common"
+                                    :is-view-mode="isViewMode"
+                                    :new-clone-keys="newCloneKeys"
+                                    @onCancelCloneKey="onCancelCloneKey"
+                                    @viewClick="viewClick"
+                                    @onEditVariable="onEditVariable"
+                                    @onDeleteVariable="onDeleteVariable"
+                                    @onCloneVariable="onCloneVariable"
+                                    @onChooseVariable="onChooseVariable"
+                                    @onChangeVariableShow="onChangeVariableShow"
+                                    @onChangeVariableOutput="onChangeVariableOutput"
+                                    @onCitedNodeClick="onCitedNodeClick">
+                                </variable-item>
+                            </draggable>
+                            <div v-if="variableList.length === 0" class="empty-variable-tips">
+                                <NoData>
+                                    <p>{{$t('无数据，请手动新增变量或者勾选标准插件参数自动生成')}}</p>
+                                </NoData>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -194,6 +201,7 @@
                 ref="variableEdit"
                 :variable-data="variableData"
                 :common="common"
+                :is-view-mode="isViewMode"
                 @setNewCloneKeys="setNewCloneKeys"
                 @closeEditingPanel="closeEditingPanel"
                 @onSaveEditing="onSaveEditing">
@@ -240,7 +248,11 @@
             QuickOperateVariable
         },
         props: {
-            common: [String, Number]
+            common: [String, Number],
+            isViewMode: {
+                type: Boolean,
+                default: false
+            }
         },
         data () {
             const varAttrList = [
@@ -389,7 +401,7 @@
                     const listData = this.variableList.reduce((acc, cur) => {
                         if (cur.key in this.internalVariable) {
                             const varInfo = this.internalVariable[cur.key]
-                            this.$set(cur, 'type', varInfo.source_type === 'system' ? i18n.t('系统变量') : i18n.t('业务变量'))
+                            this.$set(cur, 'type', varInfo.source_type === 'system' ? i18n.t('系统变量') : i18n.t('项目变量'))
                         } else {
                             const result = varTypeList.find(item => item.code === cur.custom_type && item.tag === cur.source_tag)
                             const checkTypeList = ['component_inputs', 'component_outputs']
@@ -410,7 +422,7 @@
                     if (!this.isHideSystemVar) {
                         const internalVar = [
                             { checked: this.checkedTypeList.includes('system'), name: i18n.t('系统变量'), code: 'system' },
-                            { checked: this.checkedTypeList.includes('project'), name: i18n.t('业务变量'), code: 'project' }
+                            { checked: this.checkedTypeList.includes('project'), name: i18n.t('项目变量'), code: 'project' }
                         ]
                         listData.unshift(...internalVar)
                     }
@@ -592,6 +604,7 @@
                 this.deleteVarList.forEach(variableData => {
                     this.deleteVariable(variableData.key)
                 })
+                this.deleteVarList = []
                 this.$emit('templateDataChanged')
                 this.getVariableCitedData() // 删除变量后更新引用数据
             },
@@ -607,7 +620,7 @@
             },
             // 关闭全局变量侧滑
             closeTab () {
-                if (!this.variableData) {
+                if (this.isViewMode || !this.variableData) {
                     this.$emit('closeTab')
                 } else {
                     if (this.variableData.source_type === 'system') {
@@ -685,6 +698,9 @@
             color: #3a84ff;
         }
     }
+    .r30 {
+        right: 30px;
+    }
 }
 .setting-header {
     & > span.active {
@@ -728,6 +744,9 @@
         padding: 30px 30px 20px;
         .add-variable-btn {
             width: 90px;
+            &.scale0 {
+                transform: scale(0);
+            }
         }
         .toggle-system-var {
             float: right;

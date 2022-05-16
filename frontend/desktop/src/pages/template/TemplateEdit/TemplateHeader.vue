@@ -19,10 +19,10 @@
                 <bk-input ref="schemeInput" class="template-name execution-scheme-input" v-model="schemeInfo.name"></bk-input>
                 <p class="execution-scheme-tip">{{ $t('执行') + schemeInfo.data.length + $t('个节点') }}</p>
             </template>
-            <span v-if="isEditProcessPage" class="common-icon-edit" @click="$emit('onChangePanel', 'templateConfigTab')"></span>
+            <span v-if="!isViewMode && isEditProcessPage" class="common-icon-edit" @click="$emit('onChangePanel', 'templateConfigTab')"></span>
             <!-- 执行方案图标 -->
             <span
-                v-if="isEditProcessPage"
+                v-if="!isViewMode && isEditProcessPage"
                 class="common-icon-file-setting execute-scheme-icon"
                 v-bk-tooltips.bottom="$t('执行方案')"
                 @click="onOpenExecuteScheme">
@@ -31,18 +31,32 @@
         <div class="header-right-area" slot="expand">
             <div class="button-area" v-if="isEditProcessPage">
                 <div class="setting-tab-wrap">
-                    <span
-                        v-for="tab in settingTabs"
-                        :key="tab.id"
-                        :class="['setting-item', {
-                            'active': activeTab === tab.id,
-                            'update': tab.id === 'globalVariableTab' && isGlobalVariableUpdate
-                        }]"
-                        @click="$emit('onChangePanel', tab.id)">
-                        <i :class="tab.icon" v-bk-tooltips.bottom="tab.title"></i>
-                    </span>
+                    <template v-for="tab in settingTabs">
+                        <span
+                            v-if="!(isViewMode && tab.id === 'tplSnapshootTab')"
+                            :key="tab.id"
+                            :class="['setting-item', {
+                                'active': activeTab === tab.id,
+                                'update': tab.id === 'globalVariableTab' && isGlobalVariableUpdate
+                            }]"
+                            @click="$emit('onChangePanel', tab.id)">
+                            <i :class="tab.icon" v-bk-tooltips.bottom="tab.title"></i>
+                        </span>
+                    </template>
                 </div>
                 <bk-button
+                    v-if="isViewMode && !isProjectCommonTemp"
+                    theme="primary"
+                    :class="['task-btn', {
+                        'btn-permission-disable': !editBtnActive
+                    }]"
+                    v-cursor="{ active: !editBtnActive }"
+                    data-test-id="templateEdit_form_editCanvas"
+                    @click.stop="onEditClick">
+                    {{$t('编辑')}}
+                </bk-button>
+                <bk-button
+                    v-else-if="!isProjectCommonTemp"
                     theme="primary"
                     :class="[
                         'save-canvas',
@@ -55,7 +69,7 @@
                     {{$t('保存')}}
                 </bk-button>
                 <bk-button
-                    theme="primary"
+                    :theme="isViewMode ? 'default' : 'primary'"
                     :class="['task-btn', {
                         'btn-permission-disable': !createTaskBtnActive
                     }]"
@@ -136,7 +150,9 @@
             return {
                 settingTabs: SETTING_TABS.slice(0),
                 isSelectProjectShow: false, // 是否显示项目选择弹窗
-                saveBtnActive: false, // 保存按钮是否激活
+                editBtnActive: false, // 编辑按钮是否激活
+                saveBtnActive: false, // 保存按钮是否激活.
+                saveAndCreate: true, // 是否为保存并新建
                 createTaskBtnActive: false, // 新建任务按钮是否激活
                 hasCreateCommonTplPerm: false, // 创建公共流程权限
                 hasCommonTplCreateTaskPerm: false, // 公共流程在项目下创建任务权限
@@ -156,7 +172,7 @@
                 'projectName': state => state.projectName
             }),
             title () {
-                return this.$route.query.template_id === undefined ? i18n.t('新建流程') : i18n.t('编辑流程')
+                return this.isViewMode ? i18n.t('查看流程') : this.$route.query.template_id === undefined ? i18n.t('新建流程') : i18n.t('编辑流程')
             },
             isSaveAndCreateTaskType () {
                 return this.isTemplateDataChanged === true || this.type === 'new' || this.type === 'clone'
@@ -181,16 +197,26 @@
                         return this.common ? [] : ['flow_create_task']
                     }
                 }
+            },
+            isViewMode () {
+                return this.type === 'view'
+            },
+            isProjectCommonTemp () {
+                const { name } = this.$route
+                return name === 'projectCommonTemplatePanel'
             }
         },
         watch: {
             type (val, oldVal) {
-                if (['new', 'clone'].includes(oldVal) && val === 'edit' && this.common && this.isSelectProjectShow) {
+                if (['new', 'clone'].includes(oldVal) && val === 'view' && this.common && this.isSelectProjectShow) {
                     this.queryCommonTplCreateTaskPerm().then(() => {
                         if (this.hasCommonTplCreateTaskPerm) {
                             this.saveTemplate(true)
                         }
                     })
+                }
+                if (val === 'view') {
+                    this.setEditBtnPerm()
                 }
             }
         },
@@ -208,17 +234,40 @@
             // 新建、克隆公共流程需要查询创建公共流程权限
             if (this.common) {
                 await this.queryCreateCommonTplPerm()
-                this.setSaveBtnPerm()
-                this.setCreateTaskBtnPerm()
-            } else {
-                this.setSaveBtnPerm()
-                this.setCreateTaskBtnPerm()
             }
+            this.setEditBtnPerm()
+            this.setSaveBtnPerm()
+            this.setCreateTaskBtnPerm()
         },
         methods: {
             ...mapActions([
                 'queryUserPermission'
             ]),
+            // 编辑流程
+            onEditClick () {
+                const curPermission = [...this.authActions, ...this.tplActions]
+                const applyPermission = this.common ? ['common_flow_edit'] : ['flow_edit']
+                if (!this.hasPermission(applyPermission, curPermission)) {
+                    const permissionData = {
+                        project: [{
+                            id: this.project_id,
+                            name: this.projectName
+                        }]
+                    }
+                    permissionData[this.common ? 'common_flow' : 'flow'] = [{
+                        id: this.template_id,
+                        name: this.name
+                    }]
+                    this.applyForPermission(applyPermission, curPermission, permissionData)
+                    return
+                }
+                const { params, query, name } = this.$route
+                this.$router.push({
+                    name,
+                    params: { ...params, type: 'edit' },
+                    query
+                })
+            },
             /**
              * 保存按钮，新建/保存并新建任务按钮点击
              * @param {Boolean} saveAndCreate 是否为新建/保存并新建任务按钮
@@ -227,6 +276,7 @@
                 if (this.createCommonTplPermLoading || this.commonTplCreateTaskPermLoading) {
                     return
                 }
+                this.saveAndCreate = saveAndCreate
 
                 if (saveAndCreate) {
                     if (this.createTaskBtnActive) {
@@ -306,11 +356,18 @@
                 this.schemeInfo = null
             },
             goBackTplList () {
-                if (window.history.length > 1) {
-                    this.$router.back() // 由模板页跳转进入需要保留分页参数
-                } else {
-                    const url = this.common ? { name: 'commonProcessList' } : { name: 'processHome', params: { project_id: this.project_id } }
+                if (this.isTemplateDataChanged && this.type === 'edit') {
+                    this.$emit('goBackViewMode') // 编辑态下返回上一个路由时先保存再back
+                } else if (window.history.length <= 1 || (this.type === 'view' && !this.saveAndCreate)) {
+                    const { name } = this.$route
+                    const url = name === 'projectCommonTemplatePanel'
+                        ? { name: 'processCommon', params: { project_id: this.project_id } }
+                        : this.common
+                            ? { name: 'commonProcessList' }
+                            : { name: 'processHome', params: { project_id: this.project_id } }
                     this.$router.push(url)
+                } else {
+                    this.$router.back() // 由模板页跳转进入需要保留分页参数
                 }
             },
             goBackToTplEdit () {
@@ -323,7 +380,8 @@
                     query: {
                         template_id: this.template_id,
                         common: this.common || undefined,
-                        entrance: 'templateEdit'
+                        entrance: this.isViewMode ? 'templateView' : 'templateEdit',
+                        fromName: this.$route.name
                     }
                 })
             },
@@ -370,6 +428,11 @@
                     const actions = [...this.authActions, ...this.tplActions]
                     this.createTaskBtnActive = this.hasPermission(this.saveAndCreateRequiredPerm, actions)
                 }
+            },
+            setEditBtnPerm () {
+                const actions = [...this.authActions, ...this.tplActions]
+                const editRequirePerm = this.common ? ['common_flow_edit'] : ['flow_edit']
+                this.editBtnActive = this.hasPermission(editRequirePerm, actions)
             },
             // 查询创建公共流程权限
             async queryCreateCommonTplPerm () {
