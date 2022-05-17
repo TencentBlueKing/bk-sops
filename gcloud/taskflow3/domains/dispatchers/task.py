@@ -104,7 +104,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
     def start_v1(self, executor: str) -> dict:
         try:
-            result = self.pipeline_instance.start(executor=executor, queue=self.queue)
+            result = self.pipeline_instance.start(executor=executor, queue=self.queue, check_workers=False)
             if result.result:
                 taskflow_started.send(sender=self.__class__, task_id=self.taskflow_id)
 
