@@ -239,7 +239,7 @@
                         const modules = this.localConfig.module_detail.slice(0)
                         if (Array.isArray(this.value) && this.value.length > 0) { // 编辑
                             this.value[0].__module.forEach(m => {
-                                if (!modules.find(i => i.name === m.key)) {
+                                if (!modules.find(i => i.name === m.key)) { // 同步最新的模块数据
                                     modules.push({
                                         name: m.key
                                     })
@@ -248,6 +248,7 @@
                             Object.keys(this.value[0]).forEach(key => {
                                 if (key !== '__module') {
                                     const col = this.crtCols.find(i => i.tag_code === key)
+                                    // 找到保存数据中在最新的cmdb拉取中存在的列
                                     if (col) {
                                         this.originalCols.push(col)
                                     } else {
@@ -257,7 +258,7 @@
                             })
                             if (!this.hasColsChanged) {
                                 this.crtCols.some(c => {
-                                    if (!this.value[0][c.tag_code]) {
+                                    if (!(c.tag_code in this.value[0])) {
                                         this.hasColsChanged = true
                                         return true
                                     }
@@ -472,9 +473,10 @@
                 const val = tools.deepClone(this.localValue)
                 if (this.deletedMds.length > 0) {
                     this.deletedMds.forEach(key => {
-                        this.localValue.forEach(item => {
+                        val.forEach(item => {
                             delete item[key]
                         })
+                        this.localConfig.module_detail = this.localConfig.module_detail.filter(item => item.name !== key)
                     })
                 }
                 if (this.hasColsChanged) {

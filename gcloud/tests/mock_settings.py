@@ -99,6 +99,7 @@ APIGW_PREVIEW_COMMON_TASK_TREE_PREVIEW_TEMPLATE_TREE = (
 )
 APIGW_DECORATOR_CHECK_WHITE_LIST = "gcloud.apigw.decorators.check_white_apps"
 APIGW_DECORATOR_GET_USER_MODEL = "gcloud.apigw.decorators.get_user_model"
+APIGW_DECORATOR_INJECT_USER = "gcloud.apigw.decorators.inject_user"
 APIGW_DECORATOR_BUSINESS_EXIST = "gcloud.apigw.decorators.business_exist"
 APIGW_START_TASK_TASKFLOW_INSTANCE = "gcloud.apigw.views.start_task.TaskFlowInstance"
 APIGW_START_TASK_PREPARE_AND_START_TASK = "gcloud.apigw.views.start_task.prepare_and_start_task"
@@ -176,7 +177,6 @@ TEMPLATE_BASE_MODELS_TEMPLATE_RELATIONSHIP = "gcloud.template_base.models.Templa
 TEMPLATE_BASE_MODELS_TEMPLATE_CURRENT_VERSION = "gcloud.template_base.models.TemplateCurrentVersion"
 TEMPLATE_BASE_MODELS_TEMPLATE_RELATIONSHIP = "gcloud.template_base.models.TemplateRelationship"
 TEMPLATE_BASE_MODELS_TEMPLATE_CURRENT_VERSION = "gcloud.template_base.models.TemplateCurrentVersion"
-
 
 TEMPLATEINPIPELINE_FILTER = "pipeline.contrib.statistics.models.TemplateInPipeline.objects.filter"
 INSTANCEINPIPELINE_FILTER = "pipeline.contrib.statistics.models.InstanceInPipeline.objects.filter"

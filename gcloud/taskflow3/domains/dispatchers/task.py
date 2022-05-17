@@ -187,7 +187,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         except Exception as e:
             logger.exception("run pipeline failed")
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
-                start_time=None, is_started=False, executor="",
+                start_time=None,
+                is_started=False,
+                executor="",
             )
             return {
                 "result": False,
@@ -197,7 +199,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         if not result.result:
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
-                start_time=None, is_started=False, executor="",
+                start_time=None,
+                is_started=False,
+                executor="",
             )
             logger.error("run_pipeline fail: {}, exception: {}".format(result.message, result.exc_trace))
         else:
@@ -241,7 +245,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             runtime=BambooDjangoRuntime(), pipeline_id=self.pipeline_instance.instance_id
         )
 
-    def set_task_context(self, task_is_started: bool, task_is_finished: bool, context: dict) -> dict:
+    def set_task_context(
+        self, task_is_started: bool, task_is_finished: bool, context: dict, meta_constants: dict
+    ) -> dict:
         if self.engine_ver not in self.VALID_ENGINE_VER:
             return self._unsupported_engine_ver_result()
 
@@ -263,9 +269,16 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         exec_data = self.pipeline_instance.execution_data
         try:
-            for key, value in list(context.items()):
+            # set constants
+            for key, value in context.items():
                 if key in exec_data["constants"]:
                     exec_data["constants"][key]["value"] = value
+
+            # set meta constants
+            for key, value in meta_constants.items():
+                if key in exec_data["constants"] and "meta" in exec_data["constants"][key]:
+                    exec_data["constants"][key]["meta"]["value"] = value
+
             self.pipeline_instance.set_execution_data(exec_data)
         except Exception:
             logger.exception(

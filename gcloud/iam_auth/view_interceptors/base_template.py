@@ -19,7 +19,8 @@ class YamlImportInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
         data = request.data
         template_type = data["template_type"]
-        template_ids = list(data.get("override_mappings", {}).values())
+        override_template_ids = list(data.get("override_mappings", {}).values())
+        refer_templates = list(data.get("refer_mappings", {}).values())
         username = request.user.username
 
         if template_type == "project":
@@ -36,8 +37,33 @@ class YamlImportInterceptor(ViewInterceptor):
             template_get_resource_func = "resources_list_for_common_flows"
 
         iam_resource_auth_or_raise(username, project_action, project_resource_id, project_get_resource_func)
-        if template_ids:
-            iam_multi_resource_auth_or_raise(username, template_action, template_ids, template_get_resource_func)
+        if override_template_ids:
+            iam_multi_resource_auth_or_raise(
+                username, template_action, override_template_ids, template_get_resource_func
+            )
+
+        if refer_templates:
+            common_refer_template_ids = [
+                refer_template["template_id"]
+                for refer_template in refer_templates
+                if refer_template["template_type"] == "common"
+            ]
+            project_refer_template_ids = [
+                refer_template["template_id"]
+                for refer_template in refer_templates
+                if refer_template["template_type"] == "project"
+            ]
+            if common_refer_template_ids:
+                iam_multi_resource_auth_or_raise(
+                    username,
+                    IAMMeta.COMMON_FLOW_VIEW_ACTION,
+                    common_refer_template_ids,
+                    "resources_list_for_common_flows",
+                )
+            if project_refer_template_ids:
+                iam_multi_resource_auth_or_raise(
+                    username, IAMMeta.FLOW_VIEW_ACTION, project_refer_template_ids, "resources_list_for_flows"
+                )
 
 
 class YamlExportInterceptor(ViewInterceptor):

@@ -115,18 +115,26 @@ class PipelineTemplateWebWrapper(object):
                         pipeline_template__template_id=act["template_id"]
                     ).get_pipeline_tree_by_version(version)
 
-                    if "constants" in pipeline_data:
+                    if "constants" in subproc_data:
                         subproc_inputs = act.pop("constants")
                         # replace show constants with inputs
                         subproc_constants = {}
                         for key, info in subproc_inputs.items():
+                            # ignore expired parent constants data
+                            if always_use_latest and key not in subproc_data["constants"]:
+                                continue
                             if "form" in info:
                                 info.pop("form")
+
+                            # keep source_info consist with subprocess latest version
+                            if always_use_latest:
+                                info["source_info"] = subproc_data["constants"][key]["source_info"]
+
                             subproc_constants[key] = info
 
                         subproc_data["constants"].update(subproc_constants)
 
-                    replace_template_id(template_model, subproc_data)
+                    replace_template_id(subprocess_template_model, subproc_data)
 
                     # 需要将父流程中修改的 constants 传到子流程的 act constants 中
                     # 根据执行方案创建子流程实例
@@ -138,7 +146,7 @@ class PipelineTemplateWebWrapper(object):
                         subproc_data, exclude_task_nodes_id, False
                     )
 
-                    _unfold_subprocess(subproc_data, template_model)
+                    _unfold_subprocess(subproc_data, subprocess_template_model)
 
                     subproc_data["id"] = act_id
                     act["pipeline"] = subproc_data

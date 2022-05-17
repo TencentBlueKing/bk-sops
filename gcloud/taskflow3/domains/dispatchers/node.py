@@ -287,12 +287,12 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
     ) -> (bool, str, list):
         outputs_table = []
         if component_code:
-            version = (
-                self._get_node_info(self.node_id, pipeline_instance.execution_data, subprocess_stack)
-                .get("component", {})
-                .get("version", None)
-            )
             try:
+                version = (
+                    self._get_node_info(self.node_id, pipeline_instance.execution_data, subprocess_stack)
+                    .get("component", {})
+                    .get("version", None)
+                )
                 component = ComponentLibrary.get_component_class(component_code=component_code, version=version)
                 outputs_format = component.outputs_format()
             except Exception:

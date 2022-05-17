@@ -19,7 +19,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from plugin_service import env
-from plugin_service.conf import PLUGIN_LOGGER
+from plugin_service.conf import PLUGIN_LOGGER, PLUGIN_DISTRIBUTOR_NAME
 from plugin_service.api_decorators import inject_plugin_client, validate_params
 from plugin_service.exceptions import PluginServiceException
 from plugin_service.plugin_client import PluginServiceApiClient
@@ -53,7 +53,9 @@ def get_plugin_list(request: Request):
     search_term = request.validated_data.get("search_term")
     limit = request.validated_data.get("limit")
     offset = request.validated_data.get("offset")
-    result = PluginServiceApiClient.get_plugin_list(search_term=search_term, limit=limit, offset=offset)
+    result = PluginServiceApiClient.get_plugin_list(
+        search_term=search_term, limit=limit, offset=offset, distributor_code_name=PLUGIN_DISTRIBUTOR_NAME
+    )
     return JsonResponse(result)
 
 
@@ -79,7 +81,12 @@ def get_plugin_detail_list(request: Request):
         cur_limit = limit * 2
         while True:
             result = PluginServiceApiClient.get_plugin_detail_list(
-                search_term=search_term, limit=cur_limit, offset=cur_offset, order_by="name", include_addresses=0
+                search_term=search_term,
+                limit=cur_limit,
+                offset=cur_offset,
+                order_by="name",
+                include_addresses=0,
+                distributor_code_name=PLUGIN_DISTRIBUTOR_NAME,
             )
             if not result["result"]:
                 return JsonResponse(result)
@@ -107,7 +114,12 @@ def get_plugin_detail_list(request: Request):
         }
     else:
         result = PluginServiceApiClient.get_plugin_detail_list(
-            search_term=search_term, limit=limit, offset=offset, order_by="name", include_addresses=0
+            search_term=search_term,
+            limit=limit,
+            offset=offset,
+            order_by="name",
+            include_addresses=0,
+            distributor_code_name=PLUGIN_DISTRIBUTOR_NAME,
         )
         if not result["result"]:
             return JsonResponse(result)
@@ -218,7 +230,12 @@ def get_plugin_api_data(request: Request, plugin_code: str, data_api_path: str):
     # 对于get请求带参数的情况，直接将参数拼接到url中
     if request.query_params:
         params["url"] = params["url"].rstrip("/") + "/?" + request.query_params.urlencode()
-    result = client.dispatch_plugin_api_request(params, inject_headers=http_headers)
+
+    token = request.COOKIES.get(env.APIGW_USER_AUTH_KEY_NAME)
+    inject_authorization = {env.APIGW_USER_AUTH_KEY_NAME: token} if token else {}
+    result = client.dispatch_plugin_api_request(
+        params, inject_headers=http_headers, inject_authorization=inject_authorization
+    )
     # 如果请求成功，只返回接口原始data数据
     result = result["data"] if result.get("result") else result
     return Response(result)

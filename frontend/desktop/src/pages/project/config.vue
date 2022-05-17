@@ -598,7 +598,7 @@
                         }
                         this.pending.desc = true
                         try {
-                            const { id, name, timeZone: time_zone } = this.project
+                            const { id, name, time_zone } = this.project
                             const data = {
                                 id,
                                 name,

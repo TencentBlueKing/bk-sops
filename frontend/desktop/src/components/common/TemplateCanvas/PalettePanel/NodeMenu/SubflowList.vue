@@ -43,6 +43,7 @@
                     right-icon="bk-icon icon-search"
                     :placeholder="$t('请输入流程名称')"
                     :clearable="true"
+                    @paste="handleTestSearchPaste"
                     @change="handleTextSearchClear"
                     @clear="handleTextSearchClear"
                     @enter="handleSearch">
@@ -51,7 +52,7 @@
         </div>
         <div class="tpl-list-wrap" v-bkloading="{ isLoading: listLoading }">
             <div class="tpl-list">
-                <template v-for="tpl in tplList">
+                <template v-for="tpl in tableList">
                     <node-item
                         v-if="tpl.hasPermission"
                         class="node-item"
@@ -68,7 +69,7 @@
                         </div>
                     </div>
                 </template>
-                <bk-exception v-if="tplList.length === 0" class="exception-part" type="empty" scene="part"></bk-exception>
+                <bk-exception v-if="tableList.length === 0" class="exception-part" type="empty" scene="part"></bk-exception>
             </div>
         </div>
     </div>
@@ -86,6 +87,7 @@
         mixins: [permission],
         props: {
             common: Boolean, // 是否为公共流程列表
+            isShow: Boolean,
             templateLabels: Array
         },
         data () {
@@ -100,19 +102,30 @@
                 isCompleteLoading: false
             }
         },
-        mounted () {
-            // 设置滚动加载
-            const listWrapEl = this.$refs.subflowListPanel.querySelector('.tpl-list')
-            listWrapEl.addEventListener('scroll', this.handleScroll, false)
-            const height = listWrapEl.getBoundingClientRect().height
-
-            // 计算出每页加载的条数
-            // 规则为容器高度除以每条的高度，考虑到后续可能需要触发容器滚动事件，在实际可容纳的条数上再增加1条
-            // @notice: 每个流程条目的高度需要固定，目前取的css定义的高度40px
-            if (height > 0) {
-                this.limit = Math.ceil(height / 40) + 1
+        computed: {
+            tableList () {
+                // 除流程克隆的情况，流程列表中需要过滤掉url中template_id对应的流程
+                if (this.$route.params.type === 'clone') {
+                    return this.tplList
+                }
+                return this.tplList.filter(tpl => {
+                    return tpl.id !== Number(this.$route.query.template_id)
+                })
             }
-            this.getTplList()
+        },
+        watch: {
+            isShow (val) {
+                if (val) {
+                    if (this.crtPage === 1 && this.tplList.length === 0) {
+                        this.setScrollLoading()
+                    }
+                }
+            }
+        },
+        mounted () {
+            if (this.isShow) {
+                this.setScrollLoading()
+            }
         },
         beforeDestroy () {
             const listWrapEl = this.$refs.subflowListPanel.querySelector('.tpl-list')
@@ -140,7 +153,7 @@
                     }
                     const resp = await this.$store.dispatch('templateList/loadTemplateList', data)
                     const reqPermission = this.common ? ['common_flow_view'] : ['flow_view']
-                    const result = []
+                    const results = []
                     resp.results.forEach(tpl => {
                         tpl.hasPermission = this.hasPermission(reqPermission, tpl.auth_actions)
                         tpl.tplSource = this.common ? 'common' : 'business'
@@ -152,15 +165,29 @@
                                 tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff5757;">${searchStr}</span>`)
                             }
                         }
-                        result.push(tplCopy)
+                        results.push(tplCopy)
                     })
-                    this.tplList.push(...result)
+                    this.tplList.push(...results)
                     this.isCompleteLoading = resp.count === this.tplList.length
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.listLoading = false
                 }
+            },
+            setScrollLoading () {
+                // 设置滚动加载
+                const listWrapEl = this.$refs.subflowListPanel.querySelector('.tpl-list')
+                listWrapEl.addEventListener('scroll', this.handleScroll, false)
+                const height = listWrapEl.getBoundingClientRect().height
+
+                // 计算出每页加载的条数
+                // 规则为容器高度除以每条的高度，考虑到后续可能需要触发容器滚动事件，在实际可容纳的条数上再增加1条
+                // @notice: 每个流程条目的高度需要固定，目前取的css定义的高度40px
+                if (height > 0) {
+                    this.limit = Math.ceil(height / 40) + 1
+                }
+                this.getTplList()
             },
             // 切换搜索模式，按标签过滤和文本过滤
             handleChangeSearchMode (type) {
@@ -170,6 +197,12 @@
                     this.labels = []
                     this.handleSearch()
                 }
+            },
+            handleTestSearchPaste (value, event) {
+                const paste = (event.clipboardData || window.clipboardData).getData('text')
+                this.searchStr = value + paste
+                this.tplList = []
+                this.handleSearch()
             },
             // 清除文本搜索
             handleTextSearchClear (val) {

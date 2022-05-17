@@ -18,7 +18,7 @@ const project = {
         bizId: '',
         projectName: '',
         userProjectList: [], // 用户有权限的项目列表
-        timeZone: window.TIMEZONE,
+        timezone: window.TIMEZONE,
         config: {}, // 用户在项目下的配置
         authActions: []
     },
@@ -37,7 +37,7 @@ const project = {
             state.bizId = id
         },
         setTimeZone (state, data) {
-            state.timeZone = data
+            state.timezone = data
         },
         setProjectName (state, data) {
             state.projectName = data
@@ -107,7 +107,7 @@ const project = {
                 time_zone,
                 desc,
                 is_disable
-            }).then(response => response.data)
+            }).then(response => response.data.data)
         },
         getProjectConfig ({ commit }, id) {
             return axios.get(`api/v3/project_config/${id}/`).then(response => response.data)

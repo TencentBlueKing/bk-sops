@@ -87,16 +87,6 @@ class NodemanPluginOperateService(NodeManBaseService):
 
     def outputs_format(self):
         outputs_format = super(NodemanPluginOperateService, self).outputs_format()
-        outputs_format.extend(
-            [
-                self.OutputItem(
-                    name=_("任务链接"),
-                    key="job_url",
-                    type="string",
-                    schema=StringItemSchema(description=_("任务链接")),
-                ),
-            ]
-        )
         return outputs_format
 
     def execute(self, data, parent_data):
