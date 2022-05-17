@@ -191,6 +191,12 @@ const store = new Vuex.Store({
             return axios.post('iam/api/is_allow/', data).then(response => response.data)
         },
         /**
+         * 查询用户是否有公共流程管理页面权限
+         */
+        queryUserCommonPermission ({ commit }, data) {
+            return axios.post('iam/api/v1/policy/query_by_actions', data).then(response => response.data)
+        },
+        /**
          * 获取权限中心跳转链接
          */
         getIamUrl ({ commit }, data) {
