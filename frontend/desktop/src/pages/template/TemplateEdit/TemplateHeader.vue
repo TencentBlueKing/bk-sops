@@ -500,7 +500,7 @@
                 let curPermission = [...this.authActions]
                 const resourceData = {}
                 if (this.common) {
-                    if (this.type === 'edit') { // 公共流程编辑权限
+                    if (['view', 'edit'].includes(this.type)) { // 公共流程编辑权限
                         curPermission = [...this.tplActions]
                         resourceData.common_flow = [{
                             id: this.template_id,
@@ -512,7 +512,7 @@
                         id: this.project_id,
                         name: this.projectName
                     }]
-                    if (this.type === 'edit') { // 普通流程编辑权限
+                    if (['view', 'edit'].includes(this.type)) { // 普通流程编辑权限
                         curPermission = [...this.tplActions]
                         resourceData.flow = [{
                             id: this.template_id,
