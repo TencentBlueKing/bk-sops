@@ -300,7 +300,7 @@ class UnfoldSubprocessTestCase(TestCase):
     def test_always_use_latest(self):
         layer_1_t1_tree = {
             "activities": {},
-            "constants": {"${param}": {"value": ""}, "${c1}": {"value": "constant_value"}},
+            "constants": {"${param}": {"value": "", "source_info": "new"}, "${c1}": {"value": "constant_value"}},
         }
 
         # prepare pipeline data
@@ -311,7 +311,7 @@ class UnfoldSubprocessTestCase(TestCase):
                     "template_id": "layer_1_t1",
                     "version": "v1",
                     "always_use_latest": True,
-                    "constants": {"${param}": {"value": "${parent_param}"}},
+                    "constants": {"${param}": {"value": "${parent_param}", "source_info": "old"}},
                 }
             },
             "constants": {"${parent_param}": "${another_constants}"},
@@ -327,6 +327,9 @@ class UnfoldSubprocessTestCase(TestCase):
 
         template_model.objects.get.assert_called_once_with(pipeline_template__template_id="layer_1_t1")
         get_return.get_pipeline_tree_by_version.assert_called_once_with(None)
+        self.assertEqual(
+            pipeline_data["activities"]["subproc_1"]["pipeline"]["constants"]["${param}"]["source_info"], "new"
+        )
 
     @patch("pipeline_web.wrapper.replace_template_id", MagicMock())
     @patch("pipeline_web.wrapper.PipelineTemplateWebPreviewer", MockPipelineTemplateWebPreviewer)

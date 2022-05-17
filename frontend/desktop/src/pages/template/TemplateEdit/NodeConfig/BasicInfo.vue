@@ -21,8 +21,8 @@
                 <bk-input :value="formData.name" readonly>
                     <template slot="append">
                         <div
-                            class="operate-btn"
-                            @click="$emit('openSelectorPanel')">
+                            :class="['operate-btn', { 'is-disabled': isViewMode }]"
+                            @click="openSelectorPanel">
                             {{ formData.plugin ? $t('重选') : $t('选择') }}
                         </div>
                     </template>
@@ -33,6 +33,7 @@
                 <bk-select
                     v-model="formData.version"
                     :clearable="false"
+                    :disabled="isViewMode"
                     @selected="$emit('versionChange', $event)">
                     <bk-option
                         v-for="item in versionList"
@@ -43,14 +44,15 @@
                 </bk-select>
             </bk-form-item>
             <bk-form-item :label="$t('节点名称')" data-test-id="templateEdit_form_nodeName" :required="true" property="nodeName">
-                <bk-input v-model="formData.nodeName" @change="updateData"></bk-input>
+                <bk-input :readonly="isViewMode" v-model="formData.nodeName" @change="updateData"></bk-input>
             </bk-form-item>
             <bk-form-item :label="$t('步骤名称')" data-test-id="templateEdit_form_stageName" property="stageName">
-                <bk-input v-model="formData.stageName" @change="updateData"></bk-input>
+                <bk-input :readonly="isViewMode" v-model="formData.stageName" @change="updateData"></bk-input>
             </bk-form-item>
             <bk-form-item :label="$t('节点标签')" data-test-id="templateEdit_form_nodeLabel" property="label">
                 <bk-search-select
                     primary-key="code"
+                    :ext-cls="isViewMode ? 'disabled-search' : ''"
                     :clearable="true"
                     :popover-zindex="2300"
                     :data="labelList"
@@ -65,28 +67,28 @@
                 <div class="error-handle">
                     <bk-checkbox
                         :value="formData.ignorable"
-                        :disabled="formData.autoRetry.enable || formData.timeoutConfig.enable"
+                        :disabled="isViewMode || formData.autoRetry.enable || formData.timeoutConfig.enable"
                         @change="onErrorHandlerChange($event, 'ignorable')">
                         <span class="error-handle-icon"><span class="text">AS</span></span>
                         {{ $t('自动跳过') }}
                     </bk-checkbox>
                     <bk-checkbox
                         :value="formData.skippable"
-                        :disabled="formData.ignorable"
+                        :disabled="isViewMode || formData.ignorable"
                         @change="onErrorHandlerChange($event, 'skippable')">
                         <span class="error-handle-icon"><span class="text">MS</span></span>
                         {{ $t('手动跳过') }}
                     </bk-checkbox>
                     <bk-checkbox
                         :value="formData.retryable"
-                        :disabled="formData.ignorable || formData.autoRetry.enable"
+                        :disabled="isViewMode || formData.ignorable || formData.autoRetry.enable"
                         @change="onErrorHandlerChange($event, 'retryable')">
                         <span class="error-handle-icon"><span class="text">MR</span></span>
                         {{ $t('手动重试') }}
                     </bk-checkbox>
                     <bk-checkbox
                         :value="formData.autoRetry.enable"
-                        :disabled="formData.ignorable || formData.timeoutConfig.enable"
+                        :disabled="isViewMode || formData.ignorable || formData.timeoutConfig.enable"
                         @change="onErrorHandlerChange($event, 'autoRetry')">
                         <span class="error-handle-icon"><span class="text">AR</span></span>
                     </bk-checkbox>
@@ -98,7 +100,7 @@
                                 type="number"
                                 style="width: 68px;"
                                 :placeholder="' '"
-                                :disabled="!formData.autoRetry.enable"
+                                :disabled="isViewMode || !formData.autoRetry.enable"
                                 :max="10"
                                 :min="0"
                                 :precision="0"
@@ -113,7 +115,7 @@
                                 type="number"
                                 style="width: 68px;"
                                 :placeholder="' '"
-                                :disabled="!formData.autoRetry.enable"
+                                :disabled="isViewMode || !formData.autoRetry.enable"
                                 :max="10"
                                 :min="1"
                                 :precision="0"
@@ -143,7 +145,7 @@
                         size="small"
                         style="margin-right: 8px;"
                         :value="formData.timeoutConfig.enable"
-                        :disabled="formData.ignorable || formData.autoRetry.enable"
+                        :disabled="isViewMode || formData.ignorable || formData.autoRetry.enable"
                         @change="onTimeoutChange">
                     </bk-switcher>
                     <template v-if="formData.timeoutConfig.enable">
@@ -157,6 +159,7 @@
                                 :min="10"
                                 :max="maxNodeExecuteTimeout"
                                 :precision="0"
+                                :readonly="isViewMode"
                                 @change="updateData">
                             </bk-input>
                             <span class="unit">{{ $tc('秒', 0) }}</span>
@@ -165,6 +168,7 @@
                         <bk-select
                             style="width: 160px; margin-left: 4px;"
                             v-model="formData.timeoutConfig.action"
+                            :disabled="isViewMode"
                             :clearable="false" @change="updateData">
                             <bk-option id="forced_fail" :name="$t('强制失败')"></bk-option>
                             <bk-option id="forced_fail_and_skip" :name="$t('强制失败后跳过')"></bk-option>
@@ -180,8 +184,17 @@
                     theme="primary"
                     size="small"
                     :value="formData.selectable"
+                    :disabled="isViewMode"
                     @change="onSelectableChange">
                 </bk-switcher>
+            </bk-form-item>
+            <bk-form-item v-if="common" :label="$t('执行代理人')" data-test-id="templateEdit_form_executor_proxy">
+                <bk-user-selector
+                    v-model="formData.executor_proxy"
+                    :placeholder="$t('请输入用户')"
+                    :api="userApi"
+                    :multiple="false">
+                </bk-user-selector>
             </bk-form-item>
         </bk-form>
         <!-- 子流程 -->
@@ -200,7 +213,7 @@
                             @click="$emit('viewSubflow', basicInfo.tpl)">
                             <i class="bk-icon common-icon-box-top-right-corner"></i>
                         </div>
-                        <div class="operate-btn" @click="$emit('openSelectorPanel')">
+                        <div :class="['operate-btn', { 'is-disabled': isViewMode }]" @click="openSelectorPanel">
                             {{ formData.tpl ? $t('重选') : $t('选择') }}
                         </div>
                     </template>
@@ -208,14 +221,14 @@
                 <!-- 子流程版本更新 -->
                 <p class="update-tooltip" v-if="!inputLoading && subflowHasUpdate && !subflowUpdated">
                     {{ $t('子流程有更新，更新时若存在相同表单数据则获取原表单的值。') }}
-                    <bk-button :text="true" title="primary" @click="onUpdateSubflowVersion">{{ $t('更新子流程') }}</bk-button>
+                    <bk-button :text="true" title="primary" :disabled="isViewMode" @click="onUpdateSubflowVersion">{{ $t('更新子流程') }}</bk-button>
                 </p>
             </bk-form-item>
             <bk-form-item :label="$t('节点名称')" :required="true" property="nodeName">
-                <bk-input v-model="formData.nodeName" @change="updateData"></bk-input>
+                <bk-input :readonly="isViewMode" v-model="formData.nodeName" @change="updateData"></bk-input>
             </bk-form-item>
             <bk-form-item :label="$t('步骤名称')" property="stageName">
-                <bk-input v-model="formData.stageName" @change="updateData"></bk-input>
+                <bk-input :readonly="isViewMode" v-model="formData.stageName" @change="updateData"></bk-input>
             </bk-form-item>
             <bk-form-item :label="$t('执行方案')">
                 <bk-select
@@ -223,6 +236,7 @@
                     :clearable="false"
                     :multiple="true"
                     :loading="schemeListLoading"
+                    :disabled="isViewMode"
                     @selected="onSelectTaskScheme">
                     <bk-option v-for="item in schemeList" :key="item.id" :id="item.id" :name="item.name"></bk-option>
                 </bk-select>
@@ -239,6 +253,7 @@
                 <bk-switcher
                     theme="primary"
                     size="small"
+                    :disabled="isViewMode"
                     :value="formData.selectable"
                     @change="onSelectableChange">
                 </bk-switcher>
@@ -247,6 +262,7 @@
                 <bk-switcher
                     theme="primary"
                     size="small"
+                    :disabled="isViewMode"
                     :value="formData.alwaysUseLatest"
                     @change="onAlwaysUseLatestChange">
                 </bk-switcher>
@@ -265,11 +281,15 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import tools from '@/utils/tools.js'
+    import BkUserSelector from '@blueking/user-selector'
     import { mapState, mapActions, mapMutations } from 'vuex'
     import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
 
     export default {
         name: 'BasicInfo',
+        components: {
+            BkUserSelector
+        },
         props: {
             projectId: [String, Number],
             nodeConfig: Object,
@@ -278,7 +298,8 @@
             isSubflow: Boolean,
             inputLoading: Boolean,
             subflowUpdated: Boolean,
-            common: [String, Number]
+            common: [String, Number],
+            isViewMode: Boolean
         },
         data () {
             return {
@@ -368,7 +389,8 @@
                     width: 400,
                     content: '#html-error-ingored-tootip',
                     placement: 'top'
-                }
+                },
+                userApi: `${window.MEMBER_SELECTOR_DATA_HOST}/api/c/compapi/v2/usermanage/fs_list_users/`
             }
         },
         computed: {
@@ -431,13 +453,15 @@
                 this.subflowLoading = true
                 try {
                     const data = {
+                        project_id: this.projectId,
                         template_id: this.basicInfo.tpl,
-                        scheme_id_list: this.basicInfo.schemeIdList
+                        scheme_id_list: this.basicInfo.schemeIdList,
+                        version: ''
                     }
                     if (this.common || this.nodeConfig.template_source === 'common') {
                         data.template_source = 'common'
                     } else {
-                        data.project_id = this.project_id
+                        data.project_id = this.projectId
                     }
                     const resp = await this.loadSubflowConfig(data)
                     this.version = resp.data.version
@@ -518,6 +542,10 @@
                     })
                 })
                 return data
+            },
+            openSelectorPanel () {
+                if (this.isViewMode) return
+                this.$emit('openSelectorPanel')
             },
             onLabelChange (list) {
                 const val = []
@@ -628,6 +656,22 @@
     .basic-info {
         padding-right: 30px;
     }
+    .disabled-search {
+        position: relative;
+        cursor: not-allowed;
+        /deep/ .bk-search-select {
+            border-color: #dcdee5 !important;
+            background-color: #fafbfd !important;
+        }
+        &::after {
+            content: '';
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    }
     .error-handle {
         display: flex;
         align-items: center;
@@ -639,6 +683,9 @@
             }
             &.is-disabled .bk-checkbox-text {
                 color: #c4c6cc;
+            }
+            &.is-checked .bk-checkbox-text {
+                color: #606266;
             }
         }
         .error-handle-icon {
@@ -659,7 +706,7 @@
             margin-left: 4px;
             height: 32px;
             font-size: 12px;
-            color: #999999;
+            color: #606266;
         }
     }
     .error-handle-tips {
@@ -741,6 +788,11 @@
             text-align: center;
             border: 1px solid #3a84ff;
             cursor: pointer;
+            &.is-disabled {
+                border-color: #c4c6cc;
+                color: #c4c6cc;
+                cursor: not-allowed;
+            }
         }
         .choose-plugin-input {
             .bk-form-input[readonly] {
@@ -762,6 +814,9 @@
             .bk-button-text {
                 font-size: 12px;
             }
+        }
+        .user-selector {
+            width: 100%;
         }
     }
     .bk-option-content {

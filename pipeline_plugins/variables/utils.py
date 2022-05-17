@@ -104,12 +104,7 @@ def get_service_template_list(username, bk_biz_id, bk_supplier_account):
     """
     client = get_client_by_user(username)
     kwargs = {"bk_biz_id": int(bk_biz_id), "bk_supplier_account": bk_supplier_account}
-    list_service_template_return = client.cc.list_service_template(kwargs)
-    if not list_service_template_return["result"]:
-        message = handle_api_error("cc", "cc.list_service_template", kwargs, list_service_template_return)
-        logger.error(message)
-        raise ApiRequestError(message)
-    return list_service_template_return["data"]["info"]
+    return batch_request(client.cc.list_service_template, kwargs)
 
 
 def find_module_with_relation(bk_biz_id, username, set_ids, service_template_ids, fields):

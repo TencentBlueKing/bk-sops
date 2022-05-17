@@ -29,3 +29,5 @@ BK_IAM_RESOURCE_API_HOST = env.BK_IAM_RESOURCE_API_HOST
 CSRF_COOKIE_NAME = APP_CODE + "_csrftoken"
 
 default.logging_addition_settings(LOGGING, environment="prod")
+
+BK_APIGW_STAGE_NAME = "prod"

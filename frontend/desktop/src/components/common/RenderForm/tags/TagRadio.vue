@@ -97,9 +97,12 @@
             padding-right: 10px;
             min-width: 80px;
         }
-        .el-radio {
+        /deep/ .el-radio {
             height: 32px;
             line-height: 32px;
+            &.is-checked .el-radio__label {
+                color: #606266;
+            }
         }
     }
 </style>

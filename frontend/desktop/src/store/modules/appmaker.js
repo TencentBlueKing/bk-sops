@@ -49,7 +49,7 @@ const appmaker = {
         loadAppmakerDetail ({ commit }, id) {
             return axios.get(`api/v3/appmaker/${id}/`, {
                 params: { appmaker_id: id }
-            }).then(response => response.data)
+            }).then(response => response.data.data)
         },
         appmakerEdit ({ commit }, data) {
             const { project_id } = store.state.project

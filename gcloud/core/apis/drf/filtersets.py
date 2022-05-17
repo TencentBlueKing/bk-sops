@@ -163,12 +163,12 @@ class PropertyFilterSet(FilterSet):
                 self._build_property_filter(property_filter_cls, property_name, lookup)
 
     def property_filter_queryset(self, queryset):
-        pk_list = queryset.values_list("pk", flat=True)
+        if not self.property_filters:
+            return queryset
+        pk_list = set(queryset.values_list("pk", flat=True))
         initial_queryset = queryset
         for name, value in self.property_filters:
-            filter = self.filters[name]
-            # do qs filter
-            pk_list = filter.qs_filter(queryset, name, value)
+            pk_list = pk_list.intersection(self.filters[name].qs_filter(queryset, name, value))
         # get new queryset by pk_list
         return initial_queryset.filter(pk__in=pk_list)
 
@@ -177,16 +177,13 @@ class PropertyFilterSet(FilterSet):
         for name, value in self.form.cleaned_data.items():
             if isinstance(self.filters[name], BasePropertyFilter):
                 # PropertyFilter need another process function
-                if value:
+                if value is not None:
                     self.property_filters.add((name, value))
                 continue
             queryset = self.filters[name].filter(queryset, value)
-            assert isinstance(
-                queryset, models.QuerySet
-            ), "Expected '%s.%s' to return a QuerySet, but got a %s instead." % (
-                type(self).__name__,
-                name,
-                type(queryset).__name__,
+            assert isinstance(queryset, models.QuerySet), (
+                "Expected '%s.%s' to return a QuerySet, but got a %s instead."
+                % (type(self).__name__, name, type(queryset).__name__,)
             )
         # property filter
         if self.__class__.Meta.__dict__.get(self._PROPERTY_FIELDS_META_KEY, None):

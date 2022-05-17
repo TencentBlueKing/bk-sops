@@ -12,24 +12,33 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+
 import ujson as json
 from django.db import transaction
+from django.db.models import ExpressionWrapper, Q, BooleanField
+from drf_yasg.utils import swagger_auto_schema
+from iam import Request, Subject, Action, Resource
+from rest_framework.decorators import action
 from rest_framework.exceptions import ErrorDetail
 from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 
 from gcloud import err_code
+from gcloud.contrib.collection.models import Collection
 from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
-from gcloud.core.apis.drf.serilaziers.common_template import CommonTemplateSerializer, CreateCommonTemplateSerializer
+from gcloud.core.apis.drf.serilaziers.common_template import (
+    CommonTemplateSerializer,
+    CreateCommonTemplateSerializer,
+    TopCollectionCommonTemplateSerializer,
+)
 from gcloud.common_template.signals import post_template_save_commit
 from gcloud.common_template.models import CommonTemplate
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.template_base.domains.template_manager import TemplateManager
-from gcloud.iam_auth import res_factory
-from gcloud.iam_auth.conf import COMMON_FLOW_ACTIONS
+from gcloud.iam_auth import res_factory, get_iam_client
 from gcloud.iam_auth import IAMMeta
 from gcloud.core.apis.drf.filtersets import PropertyFilterSet
 from gcloud.core.apis.drf.filters import BooleanPropertyFilter
@@ -41,7 +50,8 @@ manager = TemplateManager(template_model_cls=CommonTemplate)
 
 class CommonTemplatePermission(IamPermission):
     actions = {
-        "list": IamPermissionInfo(IAMMeta.COMMON_FLOW_VIEW_ACTION),
+        "list": IamPermissionInfo(pass_all=True),
+        "list_with_top_collection": IamPermissionInfo(pass_all=True),
         "retrieve": IamPermissionInfo(
             IAMMeta.COMMON_FLOW_VIEW_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
         ),
@@ -75,11 +85,80 @@ class CommonTemplateViewSet(GcloudModelViewSet):
     pagination_class = LimitOffsetPagination
     serializer_class = CommonTemplateSerializer
     iam_resource_helper = ViewSetResourceHelper(
-        resource_func=res_factory.resources_for_common_flow_obj, actions=COMMON_FLOW_ACTIONS
+        resource_func=res_factory.resources_for_common_flow_obj,
+        actions=[IAMMeta.COMMON_FLOW_VIEW_ACTION, IAMMeta.COMMON_FLOW_EDIT_ACTION, IAMMeta.COMMON_FLOW_DELETE_ACTION],
     )
     filterset_class = CommonTemplateFilter
     permission_classes = [permissions.IsAuthenticated, CommonTemplatePermission]
     ordering = ["-id"]
+
+    @swagger_auto_schema(
+        method="GET", operation_summary="带收藏指定的流程列表", responses={200: TopCollectionCommonTemplateSerializer}
+    )
+    @action(methods=["GET"], detail=False)
+    def list_with_top_collection(self, request, *args, **kwargs):
+        order_by = request.query_params.get("order_by") or "-id"
+        orderings = ("-is_collected", order_by)
+
+        collection_templates = Collection.objects.filter(
+            category="common_flow", username=request.user.username
+        ).values_list("instance_id", "id")
+        collection_template_ids = [instance_id for instance_id, _ in collection_templates]
+        collection_id_template_id_map = {
+            instance_id: collection_id for instance_id, collection_id in collection_templates
+        }
+
+        queryset = (
+            self.filter_queryset(self.get_queryset())
+            .annotate(is_collected=ExpressionWrapper(Q(id__in=collection_template_ids), output_field=BooleanField()))
+            .order_by(*orderings)
+        )
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page if page is not None else queryset, many=True)
+        # 注入权限
+        data = self.injection_auth_actions(request, serializer.data, serializer.instance)
+
+        # 注入公共流程新建任务权限
+        templates = self._inject_project_based_task_create_action(request, [template["id"] for template in data])
+
+        for obj in data:
+            obj["is_collected"] = 1 if obj["id"] in collection_template_ids else 0
+            obj["collection_id"] = collection_id_template_id_map.get(obj["id"], -1)
+            if obj["id"] in templates:
+                obj["auth_actions"].append(IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION)
+        return self.get_paginated_response(data) if page is not None else Response(data)
+
+    @staticmethod
+    def _inject_project_based_task_create_action(request, common_template_ids):
+        project_id = request.query_params.get("project__id")
+        if not project_id:
+            return []
+        iam = get_iam_client()
+        system = IAMMeta.SYSTEM_ID
+
+        allowed_template_ids = []
+        for template_id in common_template_ids:
+            resource = [
+                Resource(system, IAMMeta.COMMON_FLOW_RESOURCE, str(template_id), {}),
+                Resource(system, IAMMeta.PROJECT_RESOURCE, str(project_id), {}),
+            ]
+            try:
+                is_allow = iam.is_allowed(
+                    Request(
+                        system=system,
+                        subject=Subject("user", request.user.username),
+                        action=Action(IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION),
+                        resources=resource,
+                        environment=None,
+                    )
+                )
+            except Exception as e:
+                logger.exception(f"[iam_is_allowed]: {e}")
+                is_allow = False
+            if is_allow:
+                allowed_template_ids.append(template_id)
+
+        return allowed_template_ids
 
     def create(self, request, *args, **kwargs):
         serializer = CreateCommonTemplateSerializer(data=request.data)

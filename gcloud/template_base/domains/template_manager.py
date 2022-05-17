@@ -29,13 +29,7 @@ class TemplateManager:
     def __init__(self, template_model_cls):
         self.template_model_cls = template_model_cls
 
-    def create_pipeline(
-        self,
-        name: str,
-        creator: str,
-        pipeline_tree: dict,
-        description: str = "",
-    ) -> dict:
+    def create_pipeline(self, name: str, creator: str, pipeline_tree: dict, description: str = "",) -> dict:
         """
         创建 pipeline 层模板
 
@@ -88,12 +82,7 @@ class TemplateManager:
         return {"result": True, "data": pipeline_template, "message": "success", "verbose_message": "success"}
 
     def create(
-        self,
-        name: str,
-        creator: str,
-        pipeline_tree: dict,
-        template_kwargs: dict,
-        description: str = "",
+        self, name: str, creator: str, pipeline_tree: dict, template_kwargs: dict, description: str = "",
     ) -> dict:
         """
         创建 template 层模板
@@ -209,12 +198,7 @@ class TemplateManager:
         return {"result": True, "data": pipeline_template, "message": "success", "verbose_message": "success"}
 
     def update(
-        self,
-        template: object,
-        editor: str,
-        name: str = "",
-        pipeline_tree: str = None,
-        description: str = "",
+        self, template: object, editor: str, name: str = "", pipeline_tree: str = None, description: str = "",
     ) -> dict:
         """
         更新 template 层模板
@@ -261,7 +245,7 @@ class TemplateManager:
             return (
                 False,
                 "flow template are referenced by other templates[{}], please delete them first".format(
-                    ",".join(["%s:%s" % (item["id"], item["name"]) for item in referencer])
+                    ",".join([f'{item["template_type"]}:{item["id"]}:{item["name"]}' for item in referencer])
                 ),
             )
 

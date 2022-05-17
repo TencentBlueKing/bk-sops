@@ -210,8 +210,7 @@ const task = {
                 'create_method': view_mode === 'appmaker' ? 'app_maker' : 'app',
                 'create_info': app_id,
                 'flow_type': flowType,
-                'template_source': 'project',
-                test: 1
+                'template_source': 'project'
             }
             if (common) {
                 requestData.template_source = 'common'
