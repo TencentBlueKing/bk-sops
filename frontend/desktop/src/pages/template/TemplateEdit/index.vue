@@ -412,6 +412,9 @@
                 if (this.subprocess_info) {
                     return this.subprocess_info.details.reduce((acc, cur) => {
                         const nodeId = cur.subprocess_node_id
+                        if (!this.activities[nodeId]) {
+                            return acc
+                        }
                         const { scheme_id_list = [], template_source } = this.activities[nodeId]
                         acc.push({
                             ...cur,
@@ -801,7 +804,6 @@
                 }
 
                 try {
-                    console.log('1111', this.constants)
                     const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
                     this.tplActions = data.auth_actions
                     this.$bkMessage({
