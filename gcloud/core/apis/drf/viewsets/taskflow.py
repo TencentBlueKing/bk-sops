@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework.exceptions import ErrorDetail
 from rest_framework import serializers, generics, permissions, status
@@ -135,6 +135,14 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
+
+        # [我的动态] 接口过滤
+        if "creator_or_executor" in request.query_params:
+            queryset = queryset.filter(
+                Q(pipeline_instance__executor=request.user.username)
+                | Q(pipeline_instance__creator=request.user.username)
+            )
+
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page, many=True)
         # 注入权限
