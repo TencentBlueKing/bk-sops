@@ -107,7 +107,7 @@
                                     class="table-link"
                                     target="_blank"
                                     :title="props.row.template_name"
-                                    :href="`${site_url}template/edit/${props.row.project_id}/?template_id=${props.row.template_id}`">
+                                    :href="`${site_url}template/view/${props.row.project_id}/?template_id=${props.row.template_id}`">
                                     {{props.row.template_name}}
                                 </a>
                                 <a
