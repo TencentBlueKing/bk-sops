@@ -60,4 +60,4 @@ BK_APIGW_MANAGER_MAINTAINERS = os.getenv("BK_APIGW_MANAGER_MAINTAINERS", "admin"
 BK_APIGW_URL_TMPL = os.getenv("BK_API_URL_TMPL")
 
 # 是否允许 celery worker 发送监控事件
-CELERY_SEND_EVENTS = os.getenv("CELERY_SEND_EVENTS", False)
+CELERY_SEND_EVENTS = bool(os.getenv("CELERY_SEND_EVENTS", False))
