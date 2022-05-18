@@ -117,9 +117,9 @@
             },
             // 这里统一直接用后端提供的 host 跳转
             jumpToOther (name) {
-                const code = name === 'bk_iam' ? window.BK_IAM_APPLY_URL : name
+                const code = name === 'bk_iam' ? window.BK_IAM_APP_CODE : name
                 const HOST_MAP = {
-                    'bk_iam': window.BK_IAM_SAAS_HOST,
+                    'bk_iam': window.BK_IAM_APPLY_URL,
                     'bk_cmdb': window.BK_CC_HOST
                 }
                 openOtherApp(code, HOST_MAP[name])
