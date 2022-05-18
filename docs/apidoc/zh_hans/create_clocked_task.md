@@ -13,22 +13,7 @@
 | task_name        | string | 是   | 要创建的计划任务名称                                                                                               |
 | plan_start_time  | string | 是   | 计划任务开始时间，推荐带上时区信息，格式如 `2022-05-16 20:26:40+0800`                                                         |
 | task_parameters  | dict   | 否   | 任务参数, 详见下面说明                                                                                             |
-| notify_type      | dict   | 否   | 计划任务创建失败时通知类型, 详见下面说明                                                                                    |
-| notify_receivers | dict   | 否   | 计划任务创建失败时通知接收者, 详见下面说明                                                                                   |
 | scope            | string | 否   | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目 |
-
-#### notify_type
-
-| 参数名称          | 参数类型  | 必须 |     参数说明     |
-|---------------|-------|--| ---------------- |
-| fail | list | 是 |  计划任务创建失败时通知类型，默认为 `[]`，可选值为: weixin、mail、sms、voice |
-
-#### notify_receivers
-
-| 参数名称          | 参数类型  | 必须 |     参数说明     |
-|---------------|-------|--| ---------------- |
-| receiver_group | list | 是 |  计划任务创建失败时通知分组，默认为 `[]` |
-| more_receiver | list | 是 |  计划任务创建失败时通知人，默认为 `[]` |
 
 #### task_parameters
 
@@ -62,9 +47,6 @@
         "constants": {},
         "exclude_task_nodes_id": []
     },
-    "notify_type": {
-        "fail": ["weixin"]
-    }
 }
 ```
 
@@ -81,15 +63,6 @@
         },
         "creator": "",
         "plan_start_time": "2022-05-16 20:26:40+0800",
-        "notify_type": {
-            "fail": [
-                "weixin"
-            ]
-        },
-        "notify_receivers": {
-            "receiver_group": [],
-            "more_receiver": []
-        },
         "project_id": 1,
         "task_id": null,
         "task_name": "test_clocked_task",
@@ -124,8 +97,6 @@
 | task_parameters  | dict   | 任务参数               |
 | creator          | string | 创建者                |
 | plan_start_time  | string | 计划任务开始时间           |
-| notify_type      | dict   | 通知类型               |
-| notify_receivers | dict   | 通知人                |
 | project_id       | int    | 项目 ID              |
  | template_id      | int    | 模板 ID              |
 | template_name    | string | 模板名称               |

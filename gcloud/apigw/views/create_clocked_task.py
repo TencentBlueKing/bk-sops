@@ -71,8 +71,6 @@ def create_clocked_task(request, template_id, project_id):
             "template_name": template.name,
             "template_source": PROJECT,
             "task_parameters": {"constants": {}, "exclude_task_nodes_id": []},
-            "notify_receivers": {"receiver_group": [], "more_receiver": []},
-            "notify_type": {"fail": [], "success": []},
         }
         params.update(request_params)
 

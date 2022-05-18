@@ -13,22 +13,7 @@ Create a clocked task
 | task_name         | string | YES      | name of task |
 | plan_start_time   | string | YES      | time to start task, recommended to bringing timezone, such as `2022-05-16 20:26:40+0800` |
 | task_parameters | dict   | NO        | parameters of task, details are described below |
-| notify_type | dict  | NO        | notification type when the clocked task starts failed, details are described below |
-| notify_receivers | dict   | NO        | notification receivers when the clocked task starts failed, details are described below |
 | scope | string | NO       | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project' |
-
-#### notify_type
-
-| Field          |  Type       | Required | Description                                               |
-|---------------|-------|--| ---------------- |
-| fail | list | YES | notification type when the clocked task starts failed, default value is `[]`, choices are weixin,mail,sms,voice |
-
-#### notify_receivers
-
-| Field          |  Type       | Required | Description                                               |
-|---------------|-------|--| ---------------- |
-| receiver_group | list | YES |  group to receive notification when the clocked task starts failed, default value is `[]` |
-| more_receiver | list | YES |  more receivers to receive notification when the clocked task starts failed, default value is `[]` |
 
 #### task_parameters
 
@@ -62,9 +47,6 @@ constant value
         "constants": {},
         "exclude_task_nodes_id": []
     },
-    "notify_type": {
-        "fail": ["weixin"]
-    }
 }
 ```
 
@@ -81,15 +63,6 @@ constant value
         },
         "creator": "",
         "plan_start_time": "2022-05-16 20:26:40+0800",
-        "notify_type": {
-            "fail": [
-                "weixin"
-            ]
-        },
-        "notify_receivers": {
-            "receiver_group": [],
-            "more_receiver": []
-        },
         "project_id": 1,
         "task_id": null,
         "task_name": "test_clocked_task",
@@ -124,8 +97,6 @@ constant value
 | task_parameters  | dict   | parameters of task                                  |
 | creator          | string | creator                                             |
 | plan_start_time  | string | start time of clocked task                          |
-| notify_type      | dict   | notification type                                   |
-| notify_receivers | dict   | notification receivers                              |
 | project_id       | int    | project ID                                          |
  | template_id      | int    | template ID                                         |
 | template_name    | string | template name                                       |
