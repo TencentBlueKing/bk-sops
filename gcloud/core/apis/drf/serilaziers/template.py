@@ -23,7 +23,6 @@ logger = logging.getLogger("root")
 
 class BaseTemplateSerializer(serializers.ModelSerializer):
     notify_type = ReadWriteSerializerMethodField(help_text="通知类型")
-    notify_receivers = ReadWriteSerializerMethodField(help_text="通知人列表")
 
     def get_notify_type(self, obj):
         default_notify_type = {"success": [], "fail": []}
@@ -37,11 +36,3 @@ class BaseTemplateSerializer(serializers.ModelSerializer):
 
     def set_notify_type(self, data):
         return {"notify_type": json.dumps(data)}
-
-    def get_notify_receivers(self, obj):
-        if not getattr(obj, "notify_receivers") or not obj.notify_receivers:
-            return json.dumps(dict())
-        return json.dumps(obj.notify_receivers)
-
-    def set_notify_receivers(self, data):
-        return {"notify_receivers": json.dumps(data)}
