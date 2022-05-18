@@ -117,7 +117,7 @@ def is_allow_common_flow_management(request):
         ok, message, data = iam_api.policy_query_by_actions(
             MultiActionRequest(
                 conf.SYSTEM_ID, subject, [Action("common_flow_edit"), Action("common_flow_delete")], [], None
-            )
+            ).to_dict()
         )
     except (AuthInvalidRequest, AuthAPIError) as e:
         logger.exception("policy query raise error")
