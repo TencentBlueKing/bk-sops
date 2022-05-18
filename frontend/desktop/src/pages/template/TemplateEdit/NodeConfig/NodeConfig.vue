@@ -717,6 +717,14 @@
                             error_message: i18n.t('默认值不符合正则规则：') + variable.validation
                         })
                     }
+                    // 参数填写时为保证每个表单 tag_code 唯一，原表单 tag_code 会被替换为变量 key，导致事件监听不生效
+                    if (formItemConfig.hasOwnProperty('events')) {
+                        formItemConfig.events.forEach(e => {
+                            if (e.source === tagCode) {
+                                e.source = '${' + e.source + '}'
+                            }
+                        })
+                    }
                     inputs.push(formItemConfig)
                 }))
                 this.constantsLoading = false
