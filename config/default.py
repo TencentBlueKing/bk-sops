@@ -690,8 +690,9 @@ def monitor_report_config():
 
 # 自定义上报监控配置
 if env.BK_MONITOR_REPORT_ENABLE:
-    CELERY_SEND_EVENTS = True
     monitor_report_config()
+
+CELERY_SEND_EVENTS = env.CELERY_SEND_EVENTS
 
 ENABLE_OTEL_TRACE = env.ENABLE_OTEL_TRACE
 
