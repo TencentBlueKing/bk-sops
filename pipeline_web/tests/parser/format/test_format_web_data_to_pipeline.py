@@ -2087,7 +2087,7 @@ pipeline_tree = json.loads(
                             "value": true,
                             "is_param": false,
                             "need_render": true
-                        }
+                        },
                         "__executor_proxy": {
                             "type": "plain",
                             "value": "tester",
