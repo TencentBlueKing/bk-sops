@@ -2111,7 +2111,8 @@ pipeline_tree = json.loads(
                 "stage_name": "",
                 "type": "ServiceActivity",
                 "retryable": true,
-                "skippable": true
+                "skippable": true,
+                "executor_proxy": "tester"
             },
             "n465cfafc9723b14abfd93c20c15f101": {
                 "component": {
