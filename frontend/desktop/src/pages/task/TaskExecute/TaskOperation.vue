@@ -1080,7 +1080,7 @@
                     name: this.$t('开始节点'),
                     expanded: false
                 })]
-                this.retrieveLines(data, fstLine, orderedData, true)
+                this.retrieveLines(data, fstLine, orderedData, level)
                 orderedData.sort((a, b) => a.level - b.level)
                 const endEventIndex = orderedData.findIndex(item => item.type === 'EmptyEndEvent')
                 const endEvent = orderedData.splice(endEventIndex, 1)

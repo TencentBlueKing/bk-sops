@@ -43,7 +43,7 @@
                         v-bk-tooltips="{
                             content: scheme.attrs.desc,
                             placements: ['right'],
-                            zIndex: 2002
+                            zIndex: 2006
                         }"
                         class="common-icon-info">
                     </i>
@@ -205,8 +205,8 @@
                 showHook,
                 formValue,
                 i18n: {
-                    hooked: gettext('取消勾选'),
-                    cancelHook: gettext('勾选参数作为全局变量')
+                    hooked: gettext('取消引用全局变量'),
+                    cancelHook: gettext('引用全局变量')
                 }
             }
         },

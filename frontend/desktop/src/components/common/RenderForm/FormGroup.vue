@@ -19,7 +19,7 @@
                     v-bk-tooltips="{
                         content: scheme.attrs.desc,
                         placements: ['right'],
-                        zIndex: 2002
+                        zIndex: 2006
                     }"
                     class="common-icon-info">
                 </i>
@@ -139,8 +139,8 @@
                 showForm, // combine 类型 Tag 组是否显示
                 showHook, // combine 类型 Tag 组是否可勾选
                 i18n: {
-                    hooked: gettext('取消勾选'),
-                    cancelHook: gettext('勾选参数作为全局变量')
+                    hooked: gettext('取消引用全局变量'),
+                    cancelHook: gettext('引用全局变量')
                 }
             }
         },

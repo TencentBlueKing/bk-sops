@@ -291,6 +291,11 @@
             width: 120
         },
         {
+            id: 'executor_proxy',
+            label: i18n.t('执行代理人'),
+            width: 120
+        },
+        {
             id: 'create_method',
             label: i18n.t('创建方式'),
             width: 100

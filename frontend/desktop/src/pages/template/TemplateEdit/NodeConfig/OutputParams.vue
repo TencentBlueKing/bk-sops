@@ -29,8 +29,13 @@
                         <i
                             :class="['common-icon-variable-cite hook-icon', {
                                 actived: props.row.hooked,
-                                disabled: !hook
+                                disabled: isViewMode || !hook
                             }]"
+                            v-bk-tooltips="{
+                                content: props.row.hooked ? $t('取消勾选') : $t('勾选参数作为全局变量'),
+                                placement: 'bottom',
+                                zIndex: 3000
+                            }"
                             @click="onHookChange(props)">
                         </i>
                     </span>
@@ -87,6 +92,7 @@
             constants: Object,
             thirdPartyCode: String,
             isSubflow: Boolean,
+            isViewMode: Boolean,
             nodeId: String,
             version: String // 标准插件版本或子流程版本
         },
@@ -188,6 +194,7 @@
              * 输出参数勾选切换
              */
             onHookChange (props) {
+                if (this.isViewMode) return
                 const index = props.$index
                 this.unhookingVarIndex = index
                 if (!props.row.hooked) {
@@ -210,7 +217,7 @@
                             setKey = `\$\{${key}\}`
                         }
                         const config = {
-                            name: this.formData.name,
+                            name: props.row.name,
                             key: setKey,
                             source_info: {
                                 [this.nodeId]: [this.params[index].key]

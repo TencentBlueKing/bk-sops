@@ -13,7 +13,7 @@ const COMMON_ROUTE_LIST = [
             name: i18n.t('流程'),
             icon: 'icon-sitemap-shape',
             hasProjectId: true,
-            subRoutes: ['processHome', 'processCommon', 'processCollect', 'templatePanel'],
+            subRoutes: ['processHome', 'processCommon', 'processCollect', 'templatePanel', 'projectCommonTemplatePanel'],
             url: '/template/home/'
         },
         {
@@ -55,6 +55,13 @@ const COMMON_ROUTE_LIST = [
             url: '/function/home/'
         },
         {
+            id: 'projectHome',
+            name: i18n.t('项目管理'),
+            icon: 'icon-work-manage',
+            subRoutes: ['projectConfig'],
+            url: '/project/home/'
+        },
+        {
             id: 'auditHome',
             name: i18n.t('审计中心'),
             icon: 'icon-order-shape',
@@ -66,13 +73,6 @@ const COMMON_ROUTE_LIST = [
             icon: 'icon-execute',
             subRoutes: ['commonTemplatePanel'],
             url: '/common/home/'
-        },
-        {
-            id: 'projectHome',
-            name: i18n.t('项目管理'),
-            icon: 'icon-work-manage',
-            subRoutes: ['projectConfig'],
-            url: '/project/home/'
         }
     ]
 ]

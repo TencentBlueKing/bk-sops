@@ -355,9 +355,10 @@ def task_modify_inputs(request, project_id):
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
 
-    constants = data["constants"]
+    constants = data.get("constants", {})
+    meta_constants = data.get("meta_constants", {})
 
-    return JsonResponse(task.set_task_context(constants))
+    return JsonResponse(task.set_task_context(constants, meta_constants))
 
 
 @require_POST

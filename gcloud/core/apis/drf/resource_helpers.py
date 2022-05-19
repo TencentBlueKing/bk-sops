@@ -29,4 +29,7 @@ class ViewSetResourceHelper(SimpleSubjectEnvHelperMixin, IAMResourceHelper):
         return self.resource_func(obj)
 
     def get_resources_id(self, obj):
-        return getattr(obj, self.id_field)
+        resource = obj
+        for field in self.id_field.split("."):
+            resource = getattr(resource, field)
+        return resource

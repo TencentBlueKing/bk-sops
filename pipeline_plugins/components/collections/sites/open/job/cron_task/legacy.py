@@ -107,7 +107,7 @@ class JobCronTaskService(Service):
             data.outputs.ex_data = message
             return False
 
-        data.outputs.cron_id = job_save_result["data"]
+        data.outputs.cron_id = job_save_result["data"]["id"]
         data.outputs.status = _("暂停")
         # 更新作业状态
         job_cron_status = data.get_one_of_inputs("job_cron_status")
@@ -117,7 +117,7 @@ class JobCronTaskService(Service):
                 "bk_scope_id": str(biz_cc_id),
                 "bk_biz_id": biz_cc_id,
                 "status": 1,
-                "id": job_save_result["data"],
+                "id": job_save_result["data"]["id"],
             }
             job_update_result = client.jobv3.update_cron_status(job_update_cron_kwargs)
             if job_update_result["result"]:

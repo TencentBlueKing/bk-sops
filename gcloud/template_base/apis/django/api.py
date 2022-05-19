@@ -266,7 +266,7 @@ def import_yaml_templates(request: Request):
         "template_type(required)": "导入流程类型：project/common",
         "project_id": "项目ID(当template_type=project时必填)",
         "override_mappings": "文件中流程id和所要替换的流程id的映射关系(dict)",
-        "refer_mappings": "文件中流程id和所要引用的流程id的映射关系(dict)",
+        "refer_mappings": "文件中流程id和所要引用的流程配置的映射关系(dict)",
         "template_kwargs": "流程需要的其他创建参数(dict)"
     }
 
@@ -319,7 +319,7 @@ def import_yaml_templates(request: Request):
                 "description": templates[template_id]["description"],
                 "pipeline_tree": templates[template_id]["tree"],
                 "override_template_id": override_mappings.get(template_id),
-                "refer_template_id": refer_mappings.get(template_id),
+                "refer_template_config": refer_mappings.get(template_id),
                 "template_kwargs": template_kwargs,
                 "id": template_id,
             }

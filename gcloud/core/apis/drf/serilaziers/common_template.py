@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 import json
 from rest_framework import serializers
 
-from gcloud.utils.drf.serializer import ReadWriteSerializerMethodField
 from gcloud.constants import TASK_CATEGORY, DATETIME_FORMAT
 from gcloud.common_template.models import CommonTemplate
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
@@ -31,6 +30,7 @@ class CommonTemplateSerializer(BaseTemplateSerializer):
     pipeline_template = serializers.IntegerField(help_text="pipeline模板ID", source="pipeline_template.id")
     subprocess_has_update = serializers.BooleanField(help_text="子流程是否更新")
     template_id = serializers.IntegerField(help_text="流程ID")
+    subprocess_info = serializers.DictField(read_only=True, help_text="子流程信息")
     version = serializers.CharField(help_text="流程版本")
     pipeline_tree = serializers.SerializerMethodField(read_only=True, help_text="pipeline_tree")
 
@@ -42,13 +42,16 @@ class CommonTemplateSerializer(BaseTemplateSerializer):
         fields = "__all__"
 
 
+class TopCollectionCommonTemplateSerializer(CommonTemplateSerializer):
+    is_collected = serializers.BooleanField(read_only=True, help_text="是否收藏")
+    collection_id = serializers.IntegerField(read_only=True, help_text="收藏ID")
+
+
 class CreateCommonTemplateSerializer(BaseTemplateSerializer):
     name = serializers.CharField(help_text="流程模板名称")
     category = serializers.ChoiceField(choices=TASK_CATEGORY, help_text="模板分类")
     time_out = serializers.IntegerField(help_text="超时时间", required=False)
     description = serializers.CharField(help_text="流程模板描述", allow_blank=True, required=False)
-    notify_type = ReadWriteSerializerMethodField(help_text="通知类型")
-    notify_receivers = ReadWriteSerializerMethodField(help_text="通知人列表")
     pipeline_tree = serializers.CharField()
     id = serializers.IntegerField(help_text="公共流程ID", read_only=True)
     creator_name = serializers.CharField(read_only=True, help_text="创建者名")

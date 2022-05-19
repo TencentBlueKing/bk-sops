@@ -56,6 +56,19 @@
                     </el-option-group>
                 </template>
             </el-select>
+            <p v-if="multiple" class="selected-tip">
+                {{ $t('已选') }}
+                <span class="count">{{ seletedValue.length }}</span>
+                {{ $t('项') }}
+                <bk-button
+                    class="ml10"
+                    :disabled="!editable || disabled || !seletedValue.length"
+                    text
+                    title="primary"
+                    @click="onClear">
+                    {{ $t('清除') }}
+                </bk-button>
+            </p>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
         <span v-else class="rf-view-value">{{viewValue}}</span>
@@ -63,6 +76,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import bus from '@/utils/bus.js'
     import { getFormMixins } from '../formMixins.js'
 
     export const attrs = {
@@ -269,26 +283,28 @@
             if (this.multiple) {
                 this.selectInputDom = document.querySelector('.el-select .el-select__input')
                 if (!this.selectInputDom) return
-                this.selectInputDom.addEventListener('keydown', (e) => {
-                    if (e.code === 'Enter' || e.code === 'NumpadEnter') {
-                        let value = e.target.value
-                        value = value.split(',')
-                        const matchVal = []
-                        this.items.forEach(item => {
-                            if (value.includes(item.text)) {
-                                matchVal.push(item.value)
-                            }
-                        })
-                        const setArr = [...this.value, ...matchVal]
-                        this.updateForm([...new Set(setArr)])
-                        this.$refs.selectComp.blur()
-                    }
+                this.selectInputDom.addEventListener('paste', (event) => {
+                    event.preventDefault()
+                    let paste = (event.clipboardData || window.clipboardData).getData('text')
+                    paste = paste.replace(/\\(t|s)/g, ' ')
+                    const selection = window.getSelection()
+                    if (!selection.rangeCount) return false
+                    paste = paste.split(/,|;|\s+/).filter(item => item)
+                    const matchVal = []
+                    this.items.forEach(item => {
+                        if (paste.includes(item.text)) {
+                            matchVal.push(item.value)
+                        }
+                    })
+                    const setArr = [...this.value, ...matchVal]
+                    this.updateForm([...new Set(setArr)])
+                    this.$refs.selectComp.blur()
                 })
             }
         },
         beforeDestroy () {
             if (this.selectInputDom) {
-                this.selectInputDom.removeEventListener('keydown')
+                this.selectInputDom.removeEventListener('paste')
             }
         },
         methods: {
@@ -330,6 +346,9 @@
 
                         self.items = data
                         self.loading = false
+                        // 远程数据源模式下，下拉框变量需携带json数据
+                        const remoteData = JSON.stringify(data)
+                        bus.$emit('tagRemoteLoaded', { [self.tagCode]: remoteData })
                     },
                     error: function (resp) {
                         self.placeholder = gettext('请求数据失败')
@@ -344,6 +363,9 @@
                 if (!val) { // 下拉框隐藏后，还原搜索过滤掉的选项
                     this.options = this.items.slice(0)
                 }
+            },
+            onClear () {
+                this.updateForm([])
             }
         }
     }
@@ -383,6 +405,13 @@
             &:hover {
                 color: #3a84ff;
             }
+        }
+    }
+    .selected-tip {
+        color: #979ba5;
+        margin-top: 5px;
+        .count {
+            color: #313238;
         }
     }
 </style>
