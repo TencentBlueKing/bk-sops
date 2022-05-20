@@ -24,6 +24,7 @@
                     class="common-icon-info">
                 </i>
             </span>
+            <span class="pre-mako-tip" v-if="scheme.attrs.pre_mako_tip">{{ scheme.attrs.pre_mako_tip }}</span>
         </div>
         <!-- 分组勾选 -->
         <div v-if="hook" class="rf-form-item rf-has-hook show-label">
