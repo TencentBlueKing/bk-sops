@@ -750,7 +750,7 @@
                     const {
                         component, name, stage_name = '', labels, error_ignorable, can_retry,
                         retryable, isSkipped, skippable, optional, auto_retry, timeout_config,
-                        executor_proxy = []
+                        executor_proxy
                     } = config
                     let basicInfoName = i18n.t('请选择插件')
                     let code = ''
