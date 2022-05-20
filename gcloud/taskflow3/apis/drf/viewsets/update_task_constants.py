@@ -28,7 +28,7 @@ from gcloud.contrib.operate_record.models import TaskOperateRecord
 iam = get_iam_client()
 
 
-class RenderCurrentConstantsPermission(permissions.BasePermission):
+class UpdateTaskConstantsPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         task_id = view.kwargs["task_id"]
         task_resources = res_factory.resources_for_task(task_id)
@@ -56,6 +56,9 @@ class UpdateTaskConstantsResponseSerializer(serializers.Serializer):
 
 
 class UpdateTaskConstantsView(APIView):
+
+    permission_classes = [permissions.IsAuthenticated, UpdateTaskConstantsPermission]
+
     @swagger_auto_schema(
         method="POST",
         operation_summary="修改任务的全局变量值",
@@ -67,7 +70,7 @@ class UpdateTaskConstantsView(APIView):
         serializers = UpdateTaskConstantsViewSerializer(data=request.data)
         serializers.is_valid(raise_exception=True)
 
-        task = TaskFlowInstance.objects.filter(id=task_id).only("project_id", "engine_ver", "pipeline_instance")[0]
+        task = TaskFlowInstance.objects.filter(id=task_id).only("project_id", "engine_ver", "pipeline_instance").first()
         set_result = task.set_task_constants(serializers.data["constants"], serializers.data["meta_constants"])
 
         if set_result["result"]:
