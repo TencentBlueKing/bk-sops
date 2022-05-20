@@ -22,7 +22,13 @@ from pipeline.engine.signals import activity_failed
 from pipeline.core.pipeline import Pipeline
 from pipeline.models import PipelineInstance
 from pipeline.signals import post_pipeline_finish, post_pipeline_revoke
-from pipeline.eri.signals import post_set_state, execute_interrupt, schedule_interrupt
+from pipeline.eri.signals import (
+    post_set_state,
+    execute_interrupt,
+    schedule_interrupt,
+    pre_service_execute,
+    pre_service_schedule,
+)
 from pipeline.engine.signals import pipeline_end, pipeline_revoke
 from bk_monitor_report.reporter import MonitorReporter
 
@@ -198,3 +204,15 @@ def schedule_interrupt_handler(sender, event, **kwargs):
         content="node({}) schedule interrupt".format(event.node_id),
         dimension={"name": event.name, "process_id": event.process_id, "traceback": event.exception_traceback},
     )
+
+
+@receiver(pre_service_execute)
+def pre_service_execute_handler(sender, service, data, parent_data, **kwargs):
+    if "__executor_proxy" in data.inputs:
+        parent_data.inputs.executor = data.inputs.__executor_proxy
+
+
+@receiver(pre_service_schedule)
+def pre_service_schedule_handler(sender, service, data, parent_data, callback_data, **kwargs):
+    if "__executor_proxy" in data.inputs:
+        parent_data.inputs.executor = data.inputs.__executor_proxy
