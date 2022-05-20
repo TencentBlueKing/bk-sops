@@ -235,6 +235,9 @@
             }
             .bk-form-radio {
                 margin-right: 48px;
+                .common-icon-info {
+                    color: #979ba5;
+                }
             }
         }
         .expression-tips {
