@@ -1341,7 +1341,7 @@ const en = {
     '全选所有变量': 'Select All variables',
     '已选择 x 个变量': 'Selected {num} variables',
     '变量克隆成功！': 'Variable clone successfully!',
-    '该模板暂未配置模板变量': 'Template variables are not configured for this template',
+    '该流程暂无自定义全局变量': 'There are no custom global variables for this process',
     '取消引用全局变量': 'Dereference global variable',
     '引用全局变量': 'Reference global variable',
     '取消后，该全局变量的引用数为 0 ': 'After cancellation, the reference count of this global variable is 0',
