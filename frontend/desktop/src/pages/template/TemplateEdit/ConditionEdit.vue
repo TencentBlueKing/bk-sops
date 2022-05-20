@@ -51,7 +51,7 @@
                             {{ $t('默认分支') }}
                             <i v-bk-tooltips="defaultTipsConfig" class="common-icon-info"></i>
                         </bk-radio>
-                    </bk-radio-group><br>
+                    </bk-radio-group>
                 </div>
                 <div class="form-item" v-if="branchType === 'customize'">
                     <label class="label">
