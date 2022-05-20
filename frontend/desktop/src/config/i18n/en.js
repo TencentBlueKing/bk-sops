@@ -1348,7 +1348,11 @@ const en = {
     '不再使用的变量，建议在全局变量面板中及时删除': 'Variables that are not used, recommended to delete them in the global variable panel',
     '我知道了': 'I know',
     '选择通知方式后，将默认通知到任务执行人；可选择同时通知其他分组人员': 'After selecting the notify method, the task executor will be notified by default; you can choose to notify other group personnel at the same time',
-    '我创建的': 'I created'
+    '我创建的': 'I created',
+    '分支类型': 'Branch type',
+    '自定义分支': 'Custom branch',
+    '默认分支': 'Default branch',
+    '所有分支均不匹配时执行，类似switch-case-default里面的default': 'Executed when all branches do not match, similar to default in switch-case-default'
 }
 
 export default en
