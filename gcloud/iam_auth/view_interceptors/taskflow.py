@@ -85,10 +85,6 @@ class TaskCloneInpterceptor(TaskSingleActionPostInterceptor):
     action = IAMMeta.TASK_CLONE_ACTION
 
 
-class TaskModifyInputsInterceptor(TaskSingleActionPostInterceptor):
-    action = IAMMeta.TASK_EDIT_ACTION
-
-
 class TaskFuncClaimInterceptor(TaskSingleActionPostInterceptor):
     action = IAMMeta.TASK_CLAIM_ACTION
 
