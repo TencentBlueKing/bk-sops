@@ -801,7 +801,6 @@
                 }
 
                 try {
-                    console.log('1111', this.constants)
                     const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
                     this.tplActions = data.auth_actions
                     this.$bkMessage({
