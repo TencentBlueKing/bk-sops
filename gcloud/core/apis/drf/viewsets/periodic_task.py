@@ -13,9 +13,9 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from rest_framework import mixins, status, permissions
+from rest_framework import status, permissions
 from rest_framework.response import Response
-from rest_framework.exceptions import ErrorDetail
+from rest_framework.exceptions import APIException
 from rest_framework.pagination import LimitOffsetPagination
 
 from pipeline_web.parser.validator import validate_web_pipeline_tree
@@ -28,7 +28,7 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.common_template.models import CommonTemplate
 from gcloud.template_base.utils import replace_template_id
 from gcloud.utils.strings import standardize_name
-from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
+from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.core.apis.drf.serilaziers.periodic_task import PeriodicTaskSerializer, CreatePeriodicTaskSerializer
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.iam_auth import res_factory
@@ -46,6 +46,9 @@ logger = logging.getLogger("root")
 
 class PeriodicTaskPermission(IamPermission):
     actions = {
+        "update": IamPermissionInfo(
+            IAMMeta.PERIODIC_TASK_EDIT_ACTION, res_factory.resources_for_periodic_task_obj, HAS_OBJECT_PERMISSION
+        ),
         "retrieve": IamPermissionInfo(
             IAMMeta.PERIODIC_TASK_VIEW_ACTION, res_factory.resources_for_periodic_task_obj, HAS_OBJECT_PERMISSION
         ),
@@ -69,9 +72,7 @@ class PeriodicTaskPermission(IamPermission):
                 resources = res_factory.resources_for_common_flow(template_id)
                 if request.data.get("project"):
                     resources.extend(res_factory.resources_for_project(request.data["project"]))
-            self.iam_auth_check(
-                request=request, action=iam_action, resources=resources,
-            )
+            self.iam_auth_check(request=request, action=iam_action, resources=resources)
             return True
         return super().has_permission(request, view)
 
@@ -82,7 +83,7 @@ class PeriodicTaskFilter(AllLookupSupportFilterSet):
         fields = {"task__celery_task__enabled": ["exact"], "task__creator": ["contains"], "project__id": ["exact"]}
 
 
-class PeriodicTaskViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins.DestroyModelMixin):
+class PeriodicTaskViewSet(GcloudModelViewSet):
     queryset = PeriodicTask.objects.all()
     serializer_class = PeriodicTaskSerializer
     filter_class = PeriodicTaskFilter
@@ -97,9 +98,8 @@ class PeriodicTaskViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins
     )
     permission_classes = [permissions.IsAuthenticated, PeriodicTaskPermission]
 
-    def create(self, request, *args, **kwargs):
-        serializer = CreatePeriodicTaskSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+    @staticmethod
+    def _handle_serializer(request, serializer):
         template_source = serializer.validated_data["template_source"]
         template_id = serializer.validated_data["template_id"]
         project = serializer.validated_data["project"]
@@ -113,37 +113,58 @@ class PeriodicTaskViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins
             condition = {"id": template_id, "is_deleted": False}
         else:
             message = "invalid template_source[%s]" % template_source
-            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+            raise APIException(detail=message, code=err_code.REQUEST_PARAM_INVALID.code)
 
         try:
             template = model_cls.objects.filter(**condition).first()
         except model_cls.DoesNotExist:
             message = "common template[id=%s] does not exist" % template_id
-            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+            raise APIException(detail=message, code=err_code.REQUEST_PARAM_INVALID.code)
         try:
             replace_template_id(model_cls, pipeline_tree)
         except model_cls.DoesNotExist:
             message = "invalid subprocess, check subprocess node please"
-            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+            raise APIException(detail=message, code=err_code.REQUEST_PARAM_INVALID.code)
 
         # XSS handle
         name = standardize_name(name, PERIOD_TASK_NAME_MAX_LENGTH)
-        creator = request.user.username
+        username = request.user.username
 
         # validate pipeline tree
         try:
             validate_web_pipeline_tree(pipeline_tree)
         except PipelineException as e:
             message = str(e)
-            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+            raise APIException(detail=message, code=err_code.REQUEST_PARAM_INVALID.code)
 
         serializer.validated_data["template"] = template
-        serializer.validated_data["creator"] = creator
+        role = "editor" if serializer.instance else "creator"
+        serializer.validated_data[role] = username
         serializer.validated_data["name"] = name
         serializer.validated_data["project"] = project
         serializer.validated_data["template_source"] = template_source
+        serializer.validated_data["template_version"] = template.version
+        return serializer
 
+    def create(self, request, *args, **kwargs):
+        serializer = CreatePeriodicTaskSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self._handle_serializer(request, serializer)
         instance = serializer.save()
         instance.set_enabled(True)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.enabled:
+            raise APIException(
+                detail="can not modify cron when task is enabled", code=err_code.REQUEST_PARAM_INVALID.code
+            )
+
+        serializer = CreatePeriodicTaskSerializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self._handle_serializer(request, serializer)
+        instance = PeriodicTask.objects.update(instance, **serializer.validated_data)
+        instance.set_enabled(True)
+        return Response(serializer.data)
