@@ -556,7 +556,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 converted_node.setdefault("output", {})[form_key] = constant
         elif node["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
             for condition in node["conditions"].values():
-                condition.pop("tag")
+                condition.pop("tag", None)
         sorted_node = dict(
             sorted(
                 converted_node.items(),
