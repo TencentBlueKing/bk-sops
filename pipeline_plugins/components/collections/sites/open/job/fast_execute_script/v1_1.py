@@ -41,8 +41,6 @@ from pipeline.core.flow.io import (
 )
 from pipeline.component_framework.component import Component
 
-from api.utils.request import batch_request
-from gcloud.exceptions import ApiRequestError
 from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, get_biz_ip_from_frontend
 from ..base import GetJobHistoryResultMixin
@@ -212,35 +210,28 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
 
         if script_source in ["general", "public"]:
             script_name = data.get_one_of_inputs("job_script_list_{}".format(script_source))
-            kwargs = {"name": script_name}
+            kwargs = {"script_name": script_name}
             if script_source == "general":
                 kwargs.update(
                     {
+                        "bk_biz_id": biz_cc_id,
                         "bk_scope_type": JobBizScopeType.BIZ.value,
                         "bk_scope_id": str(biz_cc_id),
-                        "bk_biz_id": biz_cc_id,
                     }
                 )
-                func = client.jobv3.get_script_list
+                scripts = client.job.get_script_list(kwargs)
             else:
-                func = client.jobv3.get_public_script_list
+                scripts = client.job.get_public_script_list(kwargs)
 
-            try:
-                script_list = batch_request(
-                    func=func,
-                    params=kwargs,
-                    get_data=lambda x: x["data"]["data"],
-                    get_count=lambda x: x["data"]["total"],
-                    page_param={"cur_page_param": "start", "page_size_param": "length"},
-                    is_page_merge=True,
-                )
-            except ApiRequestError as e:
-                message = str(e)
-                self.logger.error(str(e))
+            if scripts["result"] is False:
+                api_name = "job.get_script_list" if script_source == "general" else "job.get_public_script_list"
+                message = job_handle_api_error(api_name, job_kwargs, scripts)
+                self.logger.error(message)
                 data.outputs.ex_data = message
                 return False
 
-            # job 脚本名称使用的是模糊匹配，这里需要做一次精确匹配
+            # job V2接口使用的是模糊匹配，这里需要做一次精确匹配
+            script_list = scripts["data"]["data"]
             selected_script = None
             for script in script_list:
                 if script["name"] == script_name:
@@ -248,15 +239,15 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
                     break
 
             if not selected_script:
-                api_name = "jobv3.get_script_list" if script_source == "general" else "jobv3.get_public_script_list"
-                message = job_handle_api_error(api_name, job_kwargs, script_list)
+                api_name = "job.get_script_list" if script_source == "general" else "job.get_public_script_list"
+                message = job_handle_api_error(api_name, job_kwargs, scripts)
                 message += "Data validation error: can not find a script exactly named {}".format(script_name)
                 self.logger.error(message)
                 data.outputs.ex_data = message
                 return False
 
             script_id = selected_script["id"]
-            job_kwargs.update({"script_id": script_id})
+            job_kwargs.update({"script_version_id": script_id})
         else:
             job_kwargs.update(
                 {

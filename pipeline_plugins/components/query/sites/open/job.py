@@ -55,41 +55,45 @@ def _job_get_scripts_data(request, biz_cc_id=None):
     script_type = request.GET.get("script_type")
 
     if biz_cc_id is None or source_type == "public":
-        kwargs = {"script_language": script_type or 0}
-        func = client.jobv3.get_public_script_list
+        kwargs = None
+        script_result = client.job.get_public_script_list()
+        api_name = "job.get_public_script_list"
     else:
         kwargs = {
             "bk_scope_type": JobBizScopeType.BIZ.value,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
-            "script_language": script_type or 0,
+            "is_public": False,
+            "script_type": script_type or 0,
         }
-        func = client.jobv3.get_script_list
+        script_result = client.job.get_script_list(kwargs)
+        api_name = "job.get_script_list"
 
-    script_list = batch_request(
-        func=func,
-        params=kwargs,
-        get_data=lambda x: x["data"]["data"],
-        get_count=lambda x: x["data"]["total"],
-        page_param={"cur_page_param": "start", "page_size_param": "length"},
-        is_page_merge=True,
-    )
+    if not script_result["result"]:
+        message = handle_api_error("job", api_name, kwargs, script_result)
+        logger.error(message)
+        result = {"result": False, "message": message}
+        return result
 
-    return script_list
+    return script_result
 
 
 def job_get_script_name_list(request, biz_cc_id):
-    script_list = _job_get_scripts_data(request, biz_cc_id)
+    script_result = _job_get_scripts_data(request, biz_cc_id)
+    if not script_result["result"]:
+        return JsonResponse(script_result)
     script_names = []
-    for script in script_list:
+    for script in script_result["data"]["data"]:
         script_names.append({"text": script["name"], "value": script["name"]})
     return JsonResponse({"result": True, "data": script_names})
 
 
 def job_get_public_script_name_list(request):
-    script_list = _job_get_scripts_data(request)
+    script_result = _job_get_scripts_data(request)
+    if not script_result["result"]:
+        return JsonResponse(script_result)
     script_names = []
-    for script in script_list:
+    for script in script_result["data"]["data"]:
         script_names.append({"text": script["name"], "value": script["name"]})
     return JsonResponse({"result": True, "data": script_names})
 
@@ -102,9 +106,11 @@ def job_get_script_list(request, biz_cc_id):
     :return:
     """
     # 查询脚本列表
-    script_list = _job_get_scripts_data(request, biz_cc_id)
+    script_result = _job_get_scripts_data(request, biz_cc_id)
+    if not script_result["result"]:
+        return JsonResponse(script_result)
     script_dict = {}
-    for script in script_list:
+    for script in script_result["data"]["data"]:
         script_dict.setdefault(script["name"], []).append(script["id"])
 
     version_data = []
