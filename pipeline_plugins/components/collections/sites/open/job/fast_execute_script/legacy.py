@@ -184,7 +184,7 @@ class JobFastExecuteScriptService(JobService):
 
         script_source = data.get_one_of_inputs("job_script_source")
         if script_source in ["general", "public"]:
-            job_kwargs.update({"script_id": data.get_one_of_inputs("job_script_list_%s" % script_source)})
+            job_kwargs.update({"script_version_id": data.get_one_of_inputs("job_script_list_%s" % script_source)})
         else:
             job_kwargs.update(
                 {
