@@ -76,7 +76,10 @@
             }),
             ...mapState('project', {
                 project_id: state => state.project_id
-            })
+            }),
+            reuseTaskId () {
+                return this.$route.query.task_id
+            }
         },
         watch: {
             constants (val) {
@@ -104,6 +107,9 @@
             ...mapMutations('atomForm/', [
                 'clearAtomForm'
             ]),
+            ...mapActions('task/', [
+                'getTaskInstanceData'
+            ]),
             /**
              * 加载表单元素的标准插件配置文件
              */
@@ -130,6 +136,13 @@
                     this.$emit('onChangeConfigLoading', true)
                 }
 
+                // 任务参数重用
+                let pipelineTree = null
+                if (this.reuseTaskId) {
+                    const instanceData = await this.getTaskInstanceData(this.reuseTaskId)
+                    pipelineTree = JSON.parse(instanceData.pipeline_tree)
+                }
+
                 for (const variable of variableArray) {
                     const { key } = variable
                     const { plugin_code } = variable
@@ -148,12 +161,39 @@
                         }
                     }
                     let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
+                    // 任务参数重用(元变量单独处理)
+                    if (pipelineTree && !variable.is_meta) {
+                        const taskVariable = pipelineTree.constants[key]
+                        if (taskVariable && taskVariable.custom_type === variable.custom_type) { // 重用
+                            if (Object.prototype.toString.call(variable.value) === '[Object Object]') {
+                                const match = Object.keys(variable.value).every(key => key in variable.value)
+                                if (match) {
+                                    variable.value = taskVariable.value
+                                }
+                            } else {
+                                variable.value = taskVariable.value
+                            }
+                        } else if (currentFormConfig) { // 不重用
+                            currentFormConfig.attrs.notReuse = true
+                        }
+                    }
 
                     if (currentFormConfig) {
                         // 若该变量是元变量则进行转换操作
                         if (variable.is_meta || currentFormConfig.meta_transform) {
                             currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
                             this.metaConfig[key] = tools.deepClone(variable)
+                            // 任务参数重用(元变量)
+                            const { items, columns, remote_url } = currentFormConfig.attrs
+                            if (!remote_url && pipelineTree && pipelineTree.constants[key]) { // 重用(远程数据源不进行重用)
+                                const { value } = pipelineTree.constants[key]
+                                const match = (items || columns).some(item => item.value === value)
+                                if (match) {
+                                    currentFormConfig.attrs.value = value
+                                }
+                            } else if (pipelineTree) { // 不重用
+                                currentFormConfig.attrs.notReuse = true
+                            }
                             if (!variable.meta) {
                                 variable.value = currentFormConfig.attrs.value
                             }

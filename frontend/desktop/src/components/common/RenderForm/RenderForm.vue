@@ -438,6 +438,19 @@
                 color: #f4aa1a;
             }
         }
+        &.not-reuse {
+            &:before {
+                background: #fffd69;
+            }
+            .not-reuse-tip {
+                color: #c4c6cc;
+                margin-left: 10px;
+                i {
+                    font-size: 14px;
+                    color: #ff9c01;
+                }
+            }
+        }
     }
     
 }
