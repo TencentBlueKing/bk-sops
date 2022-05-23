@@ -107,8 +107,11 @@
                     @close="closeConfigPanel">
                 </node-config>
                 <condition-edit
+                    v-if="isShowConditionEdit"
                     ref="conditionEdit"
                     :is-show="isShowConditionEdit"
+                    :is-readonly="isViewMode"
+                    :gateways="gateways"
                     :condition-data="conditionData"
                     :back-to-variable-panel="backToVariablePanel"
                     @onBeforeClose="onBeforeClose"

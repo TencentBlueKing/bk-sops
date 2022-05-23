@@ -458,9 +458,15 @@ const template = {
         },
         // 配置分支网关条件
         setBranchCondition (state, condition) {
-            const { id, nodeId, name, value, loc } = condition
+            const { id, nodeId, name, value, loc, default_condition } = condition
             state.gateways[nodeId].conditions[id].name = name
             state.gateways[nodeId].conditions[id].evaluate = value
+            if ('default_condition' in state.gateways[nodeId]) {
+                Vue.delete(state.gateways[nodeId], 'default_condition')
+            }
+            if (default_condition) {
+                state.gateways[nodeId]['default_condition'] = default_condition
+            }
             if (loc !== undefined) {
                 state.gateways[nodeId].conditions[id].loc = loc
             }
