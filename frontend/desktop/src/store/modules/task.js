@@ -321,8 +321,7 @@ const task = {
          * @param {Object} data 表单配置数据
          */
         instanceModifyParams ({ commit }, data) {
-            const { project_id } = store.state.project
-            return axios.post(`taskflow/api/inputs/modify/${project_id}/`, data).then(response => response.data)
+            return axios.post(`taskflow/api/update_task_constants/${data.instance_id}/`, data).then(response => response.data)
         },
         /**
          * 获取节点执行详情

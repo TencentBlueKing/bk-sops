@@ -14,16 +14,17 @@
         class="modify-params-container"
         v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }"
         @click="e => e.stopPropagation()">
-        <div v-if="!paramsCanBeModify" class="panel-notice-task-run">
+        <div v-if="state !== 'CREATED'" class="panel-notice-task-run">
             <p>
                 <i class="common-icon-info ui-notice"></i>
-                {{ $t('已开始执行的任务不能修改参数') }}
+                {{ paramsCanBeModify ? $t('已开始执行的任务，修改参数值仅对还未执行的步骤生效') : $t('已执行完毕的任务不能修改参数') }}
             </p>
         </div>
-        <div :class="['edit-wrapper', { 'cancel-check': !(!isParamsEmpty && paramsCanBeModify) && !paramsCanBeModify }]">
+        <div :class="['edit-wrapper', { 'cancel-check': state !== 'CREATED' }]">
             <TaskParamEdit
                 v-if="!isParamsEmpty"
                 ref="TaskParamEdit"
+                :pre-mako-disabled="(!paramsCanBeModify || state === 'CREATED') ? false : true"
                 :constants="constants"
                 :editable="paramsCanBeModify"
                 @onChangeConfigLoading="onChangeConfigLoading">
@@ -39,14 +40,14 @@
                     }"
                     :loading="pending"
                     v-cursor="{ active: !hasSavePermission }"
-                    data-test-id="taskExcute_form_saveMofifyParamsBtn"
+                    data-test-id="taskExecute_form_saveModifyParamsBtn"
                     @click="onModifyParams">
                     {{ $t('保存') }}
                 </bk-button>
-                <bk-button theme="default" data-test-id="taskExcute_form_cancelBtn" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
+                <bk-button theme="default" data-test-id="taskExecute_form_cancelBtn" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
             </div>
             
-            <bk-button v-else theme="default" data-test-id="taskExcute_form_closeBtn" @click="onCancelRetry">{{ $t('关闭') }}</bk-button>
+            <bk-button v-else theme="default" data-test-id="taskExecute_form_closeBtn" @click="onCancelRetry">{{ $t('关闭') }}</bk-button>
         </div>
 
     </div>
@@ -66,7 +67,7 @@
             NoData
         },
         mixins: [permission],
-        props: ['instanceName', 'instance_id', 'paramsCanBeModify', 'instanceActions'],
+        props: ['state', 'instanceName', 'instance_id', 'paramsCanBeModify', 'instanceActions'],
         data () {
             return {
                 bkMessageInstance: null,

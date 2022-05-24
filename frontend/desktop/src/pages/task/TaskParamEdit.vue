@@ -42,6 +42,10 @@
                     return {}
                 }
             },
+            preMakoDisabled: {
+                type: Boolean,
+                default: false
+            },
             editable: {
                 type: Boolean,
                 default: true
@@ -146,6 +150,12 @@
                             await this.loadAtomConfig({ name, atom, classify, version, project_id: this.project_id })
                             atomConfig = this.atomFormConfig[atom][version]
                         }
+                    }
+                    if (this.preMakoDisabled && variable.pre_render_mako) { // 修改参数页变量预渲染禁止编辑
+                        atomConfig.forEach(item => {
+                            item.attrs['disabled'] = true
+                            item.attrs['pre_mako_tip'] = i18n.t('设置了模板预渲染的变量，不支持中途修改参数值')
+                        })
                     }
                     let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
 
