@@ -1354,7 +1354,8 @@ const cn = {
     '分支类型': '分支类型',
     '自定义分支': '自定义分支',
     '默认分支': '默认分支',
-    '所有分支均不匹配时执行，类似switch-case-default里面的default': '所有分支均不匹配时执行，类似switch-case-default里面的default'
+    '所有分支均不匹配时执行，类似switch-case-default里面的default': '所有分支均不匹配时执行，类似switch-case-default里面的default',
+    '执行代理人在任务开始执行时确定，未执行任务不展示': '执行代理人在任务开始执行时确定，未执行任务不展示'
 }
 
 export default cn
