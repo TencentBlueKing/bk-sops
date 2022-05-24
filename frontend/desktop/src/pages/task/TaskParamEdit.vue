@@ -166,7 +166,7 @@
                         const taskVariable = pipelineTree.constants[key]
                         if (taskVariable && taskVariable.custom_type === variable.custom_type) { // 重用
                             if (Object.prototype.toString.call(variable.value) === '[Object Object]') {
-                                const match = Object.keys(variable.value).every(key => key in variable.value)
+                                const match = Object.keys(variable.value).every(key => key in taskVariable.value)
                                 if (match) {
                                     variable.value = taskVariable.value
                                 }
@@ -184,10 +184,11 @@
                             currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
                             this.metaConfig[key] = tools.deepClone(variable)
                             // 任务参数重用(元变量)
-                            const { items, columns, remote_url } = currentFormConfig.attrs
+                            const { remote_url } = currentFormConfig.attrs
                             if (!remote_url && pipelineTree && pipelineTree.constants[key]) { // 重用(远程数据源不进行重用)
-                                const { value } = pipelineTree.constants[key]
-                                const match = (items || columns).some(item => item.value === value)
+                                const { value, meta, custom_type } = pipelineTree.constants[key]
+                                const listType = custom_type === 'datatable' ? 'columns' : 'items'
+                                const match = meta && meta.value[`${listType}_text`].replace(/ /g, '') === JSON.stringify(currentFormConfig.attrs[listType])
                                 if (match) {
                                     currentFormConfig.attrs.value = value
                                 }
