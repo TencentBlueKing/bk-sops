@@ -749,7 +749,8 @@
                 if (config.type === 'ServiceActivity') {
                     const {
                         component, name, stage_name = '', labels, error_ignorable, can_retry,
-                        retryable, isSkipped, skippable, optional, auto_retry, timeout_config
+                        retryable, isSkipped, skippable, optional, auto_retry, timeout_config,
+                        executor_proxy
                     } = config
                     let basicInfoName = i18n.t('请选择插件')
                     let code = ''
@@ -793,10 +794,11 @@
                         retryable: can_retry === undefined ? retryable : can_retry,
                         selectable: optional,
                         autoRetry: Object.assign({}, { enable: false, interval: 0, times: 1 }, auto_retry),
-                        timeoutConfig: timeout_config || { enable: false, seconds: 10, action: 'forced_fail' }
+                        timeoutConfig: timeout_config || { enable: false, seconds: 10, action: 'forced_fail' },
+                        executor_proxy
                     }
                 } else {
-                    const { template_id, name, stage_name = '', labels, optional, always_use_latest, scheme_id_list } = config
+                    const { template_id, name, stage_name = '', labels, optional, always_use_latest, scheme_id_list, executor_proxy } = config
                     let templateName = i18n.t('请选择子流程')
 
                     if (template_id) {
@@ -824,7 +826,8 @@
                         selectable: optional,
                         alwaysUseLatest: always_use_latest || false, // 兼容旧数据，该字段为新增
                         schemeIdList: scheme_id_list || [], // 兼容旧数据，该字段为后面新增
-                        version: config.hasOwnProperty('version') ? config.version : '' // 子流程版本，区别于标准插件版本
+                        version: config.hasOwnProperty('version') ? config.version : '', // 子流程版本，区别于标准插件版本
+                        executor_proxy
                     }
                 }
             },
@@ -1285,7 +1288,7 @@
             getNodeFullConfig () {
                 let config
                 if (this.isSubflow) {
-                    const { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, version, tpl } = this.basicInfo
+                    const { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, version, tpl, executor_proxy } = this.basicInfo
                     const constants = {}
                     Object.keys(this.subflowForms).forEach(key => {
                         const constant = this.subflowForms[key]
@@ -1304,10 +1307,11 @@
                         template_id: tpl,
                         optional: selectable,
                         always_use_latest: alwaysUseLatest,
-                        scheme_id_list: schemeIdList
+                        scheme_id_list: schemeIdList,
+                        executor_proxy
                     })
                 } else {
-                    const { ignorable, nodeName, stageName, nodeLabel, plugin, retryable, skippable, selectable, version, autoRetry, timeoutConfig } = this.basicInfo
+                    const { ignorable, nodeName, stageName, nodeLabel, plugin, retryable, skippable, selectable, version, autoRetry, timeoutConfig, executor_proxy } = this.basicInfo
                     const data = {} // 标准插件节点在 activity 的 component.data 值
                     Object.keys(this.inputsParamValue).forEach(key => {
                         const formVal = this.inputsParamValue[key]
@@ -1348,7 +1352,8 @@
                         error_ignorable: ignorable,
                         optional: selectable,
                         auto_retry: autoRetry,
-                        timeout_config: timeoutConfig
+                        timeout_config: timeoutConfig,
+                        executor_proxy
                     })
                     delete config.can_retry
                     delete config.isSkipped
@@ -1473,8 +1478,10 @@
                         ['stageName', 'nodeName'].forEach(item => {
                             this.basicInfo[item] = this.basicInfo[item].trim()
                         })
-                        const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional, desc, nodeName, autoRetry, timeoutConfig } = this.basicInfo
-                        const nodeData = { status: '', skippable, retryable, optional, auto_retry: autoRetry, timeout_config: timeoutConfig }
+                        const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional,
+                                desc, nodeName, autoRetry, timeoutConfig, executor_proxy
+                        } = this.basicInfo
+                        const nodeData = { status: '', skippable, retryable, optional, auto_retry: autoRetry, timeout_config: timeoutConfig, executor_proxy }
                         if (!this.isSubflow) {
                             const phase = this.getAtomPhase()
                             nodeData.phase = phase

@@ -52,6 +52,7 @@
                     <i class="common-icon-dark-circle-warning"></i>
                     {{ $t('未能重用') }}
                 </span>
+                <span class="pre-mako-tip" v-if="scheme.attrs.pre_mako_tip">{{ scheme.attrs.pre_mako_tip }}</span>
             </div>
             <!-- 表单名称 -->
             <label

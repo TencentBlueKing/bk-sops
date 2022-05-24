@@ -190,10 +190,11 @@
             </bk-form-item>
             <bk-form-item v-if="common" :label="$t('执行代理人')" data-test-id="templateEdit_form_executor_proxy">
                 <bk-user-selector
+                    :disabled="isViewMode"
                     v-model="formData.executor_proxy"
                     :placeholder="$t('请输入用户')"
                     :api="userApi"
-                    :multiple="false">
+                    @change="onUserSelectChange">
                 </bk-user-selector>
             </bk-form-item>
         </bk-form>
@@ -274,6 +275,15 @@
                     }"
                     class="bk-icon icon-question-circle form-item-tips">
                 </i>
+            </bk-form-item>
+            <bk-form-item v-if="common" :label="$t('执行代理人')" data-test-id="templateEdit_form_executor_proxy">
+                <bk-user-selector
+                    :disabled="isViewMode"
+                    v-model="formData.executor_proxy"
+                    :placeholder="$t('请输入用户')"
+                    :api="userApi"
+                    @change="onUserSelectChange">
+                </bk-user-selector>
             </bk-form-item>
         </bk-form>
     </div>
@@ -608,6 +618,10 @@
                 this.formData.selectable = val
                 this.updateData()
             },
+            onUserSelectChange (tags) {
+                this.formData.executor_proxy = tags
+                this.updateData()
+            },
             async onAlwaysUseLatestChange (val) {
                 this.formData.alwaysUseLatest = val
                 if (!val) {
@@ -624,13 +638,13 @@
             updateData () {
                 const {
                     version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable,
-                    selectable, alwaysUseLatest, autoRetry, timeoutConfig, schemeIdList
+                    selectable, alwaysUseLatest, autoRetry, timeoutConfig, schemeIdList, executor_proxy
                 } = this.formData
                 let data
                 if (this.isSubflow) {
-                    data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, latestVersion: this.version }
+                    data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, latestVersion: this.version, executor_proxy }
                 } else {
-                    data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, autoRetry, timeoutConfig }
+                    data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, autoRetry, timeoutConfig, executor_proxy }
                 }
                 this.$emit('update', data)
             },
@@ -817,6 +831,15 @@
         }
         .user-selector {
             width: 100%;
+            .disabled::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 100%;
+                cursor: not-allowed;
+            }
         }
     }
     .bk-option-content {

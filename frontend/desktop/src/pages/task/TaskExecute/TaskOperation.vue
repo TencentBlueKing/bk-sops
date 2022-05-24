@@ -59,6 +59,7 @@
                 <ModifyParams
                     ref="modifyParams"
                     v-if="nodeInfoType === 'modifyParams'"
+                    :state="state"
                     :params-can-be-modify="paramsCanBeModify"
                     :instance-actions="instanceActions"
                     :instance-name="instanceName"
@@ -468,7 +469,7 @@
                 return operationBtns
             },
             paramsCanBeModify () {
-                return this.isTopTask && this.state === 'CREATED'
+                return this.isTopTask && ['CREATED', 'RUNNING', 'READY', 'SUSPENDED'].includes(this.state)
             },
             // 审计中心/轻应用时,隐藏[查看流程]按钮
             isShowViewProcess () {

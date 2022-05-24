@@ -451,6 +451,12 @@
                 }
             }
         }
+        .pre-mako-tip {
+            position: absolute;
+            right: 0;
+            top: 6px;
+            color: #ff9c01;
+        }
     }
     
 }
