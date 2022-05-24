@@ -168,7 +168,7 @@
                     <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
                         <full-code-editor
                             v-if="curPluginTab === 'build_in_plugin' ? logInfo : executeInfo.thirdPartyNodeLog"
-                            :class="{ 'third-party-editor': curPluginTab === 'third_party_plugin' }"
+                            class="scroll-editor"
                             :key="curPluginTab"
                             :value="curPluginTab === 'build_in_plugin' ? logInfo : executeInfo.thirdPartyNodeLog">
                         </full-code-editor>
@@ -226,8 +226,7 @@
                                             <full-code-editor
                                                 v-show="!adminView"
                                                 :class="[
-                                                    `history-editor-${props.row.history_id}`,
-                                                    { 'third-party-editor': curPluginTab === 'third_party_plugin' }
+                                                    `history-editor-${props.row.history_id}`
                                                 ]"
                                                 :value="getHistoryLogData(props.row)">
                                             </full-code-editor>
@@ -567,7 +566,8 @@
                 isShowRetryBtn: false,
                 scrollId: '',
                 observer: null,
-                editScrollDom: null
+                editScrollDom: null,
+                nodeLogPageInfo: null
             }
         },
         computed: {
@@ -659,37 +659,9 @@
                 }
             },
             curPluginTab (val) {
-                if (val === 'third_party_plugin' && !this.editScrollDom) {
-                    // 第三方日志滚动加载
-                    this.$nextTick(() => {
-                        // 滚动dom
-                        const editScrollDom = document.querySelector('.third-party-editor .code-editor .vertical .slider')
-                        if (!editScrollDom) return
-                        // 编辑器dom
-                        const editDom = document.querySelector('.third-party-editor .monaco-editor')
-                        const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
-                        const { outputs } = this.executeInfo
-                        const traceId = outputs.length && outputs[0].value
-                        // 监听滚动dom
-                        this.observer = new MutationObserver(mutation => {
-                            const { height } = editScrollDom.getBoundingClientRect()
-                            const { height: editHeight } = editDom && editDom.getBoundingClientRect()
-                            const top = editScrollDom.offsetTop
-                            const offsetBottom = editHeight > 300 ? 180 : 80
-                            if (editHeight - height - top < offsetBottom && !this.isLogLoading && this.scrollId) {
-                                this.handleTabChange(traceId)
-                            }
-                        })
-                        this.observer.observe(editScrollDom, {
-                            childList: true,
-                            attributes: true,
-                            characterData: true,
-                            subtree: true
-                        })
-                        this.editScrollDom = editScrollDom
-                    })
-                } else {
-                    this.editScrollDom = null
+                this.editScrollDom = null
+                if (val === 'third_party_plugin' || this.nodeLogPageInfo) {
+                    this.watchEditorScroll()
                 }
             }
         },
@@ -770,6 +742,7 @@
                             this.$set(item, 'historyLogTab', 'build_in_plugin')
                             this.$set(item, 'scrollId', '')
                             this.$set(item, 'observer', null)
+                            this.$set(item, 'pageInfo', null)
                         })
                         this.historyInfo = history.sort((a, b) => {
                             if (a.loop === b.loop) {
@@ -786,6 +759,7 @@
                                 this.$set(item, 'historyLogTab', 'build_in_plugin')
                                 this.$set(item, 'scrollId', '')
                                 this.$set(item, 'observer', null)
+                                this.$set(item, 'pageInfo', null)
                                 return item
                             })
                         }
@@ -921,12 +895,60 @@
                     } else if (this.engineVer === 2) {
                         performLog = await this.getEngineVerNodeLog(query)
                     }
-                    this.logInfo = performLog.data
+                    this.logInfo = this.logInfo + (this.logInfo ? '\n' : '') + performLog.data
+                    this.nodeLogPageInfo = performLog.page
+                    if (this.nodeLogPageInfo && !this.editScrollDom) {
+                        this.watchEditorScroll()
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.isLogLoading = false
                 }
+            },
+            watchEditorScroll () {
+                // 第三方日志滚动加载
+                this.$nextTick(() => {
+                    // 滚动dom
+                    const editScrollDom = document.querySelector('.scroll-editor .code-editor .vertical .slider')
+                    if (!editScrollDom) return
+                    // 编辑器dom
+                    const editDom = document.querySelector('.scroll-editor .monaco-editor')
+                    const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
+                    
+                    // 监听滚动dom
+                    this.observer = new MutationObserver(mutation => {
+                        const { height } = editScrollDom.getBoundingClientRect()
+                        const { height: editHeight } = editDom && editDom.getBoundingClientRect()
+                        const top = editScrollDom.offsetTop
+                        const offsetBottom = editHeight > 300 ? 180 : 80
+                        if (this.curPluginTab === 'third_party_plugin') {
+                            if (editHeight - height - top < offsetBottom && !this.isLogLoading && this.scrollId) {
+                                const { outputs } = this.executeInfo
+                                const traceId = outputs.length && outputs[0].value
+                                this.handleTabChange(traceId)
+                            }
+                        } else if (this.nodeLogPageInfo) {
+                            const { page, total, page_size } = this.nodeLogPageInfo
+                            if (editHeight - height - top < offsetBottom && !this.isLogLoading && page < Math.ceil(total / page_size)) {
+                                const { history_id, version } = this.executeInfo
+                                const query = Object.assign({}, this.nodeDetailConfig, {
+                                    page: page + 1,
+                                    history_id,
+                                    version
+                                })
+                                this.getPerformLog(query)
+                            }
+                        }
+                    })
+                    this.observer.observe(editScrollDom, {
+                        childList: true,
+                        attributes: true,
+                        characterData: true,
+                        subtree: true
+                    })
+                    this.editScrollDom = editScrollDom
+                })
             },
             async getNodeConfig (type, version, pluginVersion) {
                 if (
@@ -1012,6 +1034,7 @@
                 try {
                     this.$set(this.historyLogLoading, id, true)
                     const data = {
+                        page: row.pageInfo ? (row.pageInfo.page + 1) : 1,
                         node_id: this.nodeDetailConfig.node_id,
                         history_id: id,
                         instance_id: this.nodeDetailConfig.instance_id,
@@ -1025,17 +1048,11 @@
                     } else if (this.engineVer === 2) {
                         resp = await this.getEngineVerNodeLog(data)
                     }
-                    // 获取第三方插件的执行历史日志
-                    const traceId = row.outputs.trace_id
-                    if (traceId) {
-                        // 设置第三方节点历史日志
-                        await this.setThirdHistoryLog(row)
-                    } else {
-                        this.$set(this.thirdHistoryLog, id, i18n.t('输出参数中不包含trace_id，无法查看第三方节点日志'))
-                    }
                     if (resp.result) {
                         const respData = this.adminView ? resp.data.log : resp.data
-                        this.$set(this.historyLog, id, respData)
+                        row.pageInfo = this.adminView ? resp.data.page : resp.page
+                        const curLog = this.historyLog[id] || ''
+                        this.$set(this.historyLog, id, curLog + (curLog ? '\n' : '') + respData)
                     }
                 } catch (e) {
                     console.log(e)
@@ -1059,10 +1076,18 @@
                         const { height: editHeight } = editDom && editDom.getBoundingClientRect()
                         const top = scrollDom.offsetTop
                         const offsetBottom = editHeight > 300 ? 180 : 100
-                        if (editHeight - height - top < offsetBottom && !this.historyLogLoading[row.history_id] && row.scrollId) {
-                            this.historyLogLoading[row.history_id] = true
-                            // 设置第三方节点历史日志
-                            await this.setThirdHistoryLog(row)
+                        if (row.historyLogTab === 'third_party_plugin') {
+                            if (editHeight - height - top < offsetBottom && !this.historyLogLoading[row.history_id] && row.scrollId) {
+                                this.historyLogLoading[row.history_id] = true
+                                // 设置第三方节点历史日志
+                                await this.setThirdHistoryLog(row)
+                            }
+                        } else if (row.nodeInfo) {
+                            const { page, total, page_size } = row.nodeInfo
+                            if (editHeight - height - top < offsetBottom && !this.this.historyLogLoading[row.history_id] && page < Math.ceil(total / page_size)) {
+                                const id = Number(row.history_id)
+                                this.getHistoryLog(id, row)
+                            }
                         }
                     })
                     row.observer.observe(scrollDom, {
@@ -1146,9 +1171,18 @@
             async onHistoyExpand (row, expended) {
                 const id = Number(row.history_id)
                 if (expended && !this.historyLog.hasOwnProperty(id)) {
+                    // 获取普通节点历史日志
                     await this.getHistoryLog(id, row)
+                    // 获取第三方插件的执行历史日志
+                    const traceId = row.outputs.trace_id
+                    if (traceId) {
+                        // 设置第三方节点历史日志
+                        await this.setThirdHistoryLog(row)
+                    } else {
+                        this.$set(this.thirdHistoryLog, id, i18n.t('输出参数中不包含trace_id，无法查看第三方节点日志'))
+                    }
                 }
-                if (this.isThirdPartyNode && row && !row.observer) {
+                if (row && !row.observer) {
                     this.$nextTick(() => {
                         // 给历史日志设置监听事件
                         this.setHistoryLogWatch(row)
