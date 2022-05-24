@@ -15,7 +15,6 @@ from django.conf.urls import include, url
 from rest_framework.routers import DefaultRouter
 
 from gcloud.clocked_task.viewset import ClockedTaskViewSet
-from gcloud.tasktmpl3.apis.drf.viewsets.collection_template import CollectionTemplateViewSet
 from gcloud.core.apis.drf.viewsets import (
     ProjectConfigViewSet,
     ResourceConfigViewSet,
@@ -58,7 +57,6 @@ drf_router.register(r"operate_record_template", TemplateOperateRecordSetViewSet)
 drf_router.register(r"new_label", NewLabelViewSet)
 drf_router.register(r"scheme", TemplateSchemeViewSet)
 drf_router.register(r"project_constants", ProjectConstantsViewSet)
-drf_router.register(r"collection_template", CollectionTemplateViewSet)
 drf_router.register(r"business", BusinessSetViewSet)
 drf_router.register(r"component", ComponentModelSetViewSet)
 drf_router.register(r"project", ProjectSetViewSet)
