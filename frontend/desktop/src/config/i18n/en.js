@@ -1354,7 +1354,8 @@ const en = {
     '分支类型': 'Branch type',
     '自定义分支': 'Custom branch',
     '默认分支': 'Default branch',
-    '所有分支均不匹配时执行，类似switch-case-default里面的default': 'Executed when all branches do not match, similar to default in switch-case-default'
+    '所有分支均不匹配时执行，类似switch-case-default里面的default': 'Executed when all branches do not match, similar to default in switch-case-default',
+    '执行代理人在任务开始执行时确定，未执行任务不展示': 'The execution agent is determined when the task starts to execute, and the unexecuted task will not be displayed'
 }
 
 export default en

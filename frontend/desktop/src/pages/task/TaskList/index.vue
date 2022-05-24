@@ -53,6 +53,7 @@
                                 :key="item.id"
                                 :label="item.label"
                                 :prop="item.id"
+                                :render-header="renderTableHeader"
                                 :width="item.width"
                                 :min-width="item.min_width">
                                 <template slot-scope="props">
@@ -291,7 +292,7 @@
             width: 120
         },
         {
-            id: 'executor_proxy',
+            id: 'recorded_executor_proxy',
             label: i18n.t('执行代理人'),
             width: 120
         },
@@ -689,6 +690,24 @@
                     size
                 }))
             },
+            renderTableHeader (h, { column, $index }) {
+                if (column.property !== 'recorded_executor_proxy') {
+                    return column.label
+                }
+
+                return h('span', {
+                    'class': 'executor_proxy-label'
+                }, [
+                    column.label,
+                    h('i', {
+                        'class': 'common-icon-info table-header-tips',
+                        directives: [{
+                            name: 'bk-tooltips',
+                            value: i18n.t('执行代理人在任务开始执行时确定，未执行任务不展示')
+                        }]
+                    })
+                ])
+            },
             onPageChange (page) {
                 this.pagination.current = page
                 this.updateUrl()
@@ -854,6 +873,12 @@
     }
     .template-operate-btn {
         color: $blueDefault;
+    }
+    /deep/.table-header-tips {
+        margin-left: 4px;
+        font-size: 14px;
+        color: #c4c6cc;
+        cursor: pointer;
     }
 }
 </style>
