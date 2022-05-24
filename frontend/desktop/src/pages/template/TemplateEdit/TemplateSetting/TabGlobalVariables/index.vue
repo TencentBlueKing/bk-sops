@@ -80,7 +80,7 @@
                     </bk-button>
                     <bk-button
                         theme="default"
-                        class="clone-variable-btn mr5"
+                        :class="['clone-variable-btn mr5', { 'scale0': isViewMode }]"
                         data-test-id="templateEdit_form_cloneVariable"
                         @click="isVarCloneDialogShow = true">
                         {{ $t('跨流程克隆') }}
@@ -744,9 +744,6 @@
         padding: 30px 30px 20px;
         .add-variable-btn {
             width: 90px;
-            &.scale0 {
-                transform: scale(0);
-            }
         }
         .toggle-system-var {
             float: right;
@@ -762,6 +759,9 @@
             &:hover {
                 color: #f4aa1a;
             }
+        }
+        .scale0 {
+            transform: scale(0);
         }
     }
     .global-variable-tootip {

@@ -16,7 +16,7 @@
                 <advance-search-form
                     :open="isSearchFormOpen"
                     :search-form="searchForm"
-                    :search-config="{ placeholder: $t('请输入轻应用名称') }"
+                    :search-config="{ placeholder: $t('请输入轻应用名称'), value: requestData.flowName }"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
                     <template v-slot:operation>
@@ -246,6 +246,7 @@
                     this.searchMode = false
                     this.searchList = []
                 }
+                this.updateUrl()
             },
             setContainerWidth () {
                 const $container = document.querySelector('.appmaker-page')

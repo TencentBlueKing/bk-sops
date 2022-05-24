@@ -162,6 +162,7 @@
                 } else {
                     this.$router.push(route)
                 }
+                this.title = nav.name
             },
             onHandleNavClick (id, groupIndex, routeIndex) {
                 if (this.view_mode === 'appmaker') { // 轻应用跳转特殊处理

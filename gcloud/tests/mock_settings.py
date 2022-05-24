@@ -72,6 +72,7 @@ PERIODIC_TASK_FILTER = "gcloud.periodictask.models.PeriodicTask.objects.filter"
 PERIODIC_TASK_GET = "gcloud.periodictask.models.PeriodicTask.objects.get"
 PERIODIC_TASK_CREATE = "gcloud.periodictask.models.PeriodicTask.objects.create"
 PERIODIC_TASK_PIPELINE_PERIODIC_TASK_CREATE_TASK = "gcloud.periodictask.models.PipelinePeriodicTask.objects.create_task"
+PERIODIC_TASK_CREATE_SNAPSHOT = "gcloud.periodictask.models.Snapshot.objects.create_snapshot"
 
 PERIODIC_TASK_HISTORY_CREATE = "gcloud.periodictask.models.PeriodicTaskHistory.objects.create"
 

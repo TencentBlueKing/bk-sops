@@ -509,7 +509,7 @@
                 const $branchEl = e.target
                 const lineId = $branchEl.dataset.lineid
                 const nodeId = $branchEl.dataset.nodeid
-                const { name, evaluate: value } = this.canvasData.branchConditions[nodeId][lineId]
+                const { name, evaluate: value, tag } = this.canvasData.branchConditions[nodeId][lineId]
                 if ($branchEl.classList.contains('branch-condition')) {
                     e.stopPropagation()
                     this.$emit('onConditionClick', {
@@ -517,6 +517,7 @@
                         nodeId,
                         name,
                         value,
+                        tag,
                         overlayId
                     })
                 }

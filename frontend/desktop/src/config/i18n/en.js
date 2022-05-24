@@ -1341,7 +1341,7 @@ const en = {
     '全选所有变量': 'Select All variables',
     '已选择 x 个变量': 'Selected {num} variables',
     '变量克隆成功！': 'Variable clone successfully!',
-    '该模板暂未配置模板变量': 'Template variables are not configured for this template',
+    '该流程暂无自定义全局变量': 'There are no custom global variables for this process',
     '取消引用全局变量': 'Dereference global variable',
     '引用全局变量': 'Reference global variable',
     '取消后，该全局变量的引用数为 0 ': 'After cancellation, the reference count of this global variable is 0',
@@ -1350,7 +1350,11 @@ const en = {
     '选择通知方式后，将默认通知到任务执行人；可选择同时通知其他分组人员': 'After selecting the notify method, the task executor will be notified by default; you can choose to notify other group personnel at the same time',
     '我创建的': 'I created',
     '已开始执行的任务，修改参数值仅对还未执行的步骤生效': 'For tasks that have already been executed, modifying parameter values takes effect only for steps that have not been executed yet.',
-    '设置了模板预渲染的变量，不支持中途修改参数值': 'The variable of template pre-rendering is set, and parameter value modification midway is not supported'
+    '设置了模板预渲染的变量，不支持中途修改参数值': 'The variable of template pre-rendering is set, and parameter value modification midway is not supported',
+    '分支类型': 'Branch type',
+    '自定义分支': 'Custom branch',
+    '默认分支': 'Default branch',
+    '所有分支均不匹配时执行，类似switch-case-default里面的default': 'Executed when all branches do not match, similar to default in switch-case-default'
 }
 
 export default en

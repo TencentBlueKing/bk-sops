@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 import json
 import logging
 
+from django.apps import apps
 from django.db import models, transaction
 from django_celery_beat.models import (
     PeriodicTask as DjangoCeleryBeatPeriodicTask,
@@ -106,11 +107,33 @@ class ClockedTask(models.Model):
         return super(ClockedTask, self).delete()
 
     def get_notify_type(self):
-        notify_type = json.loads(self.notify_type)
+        # 如果没有配置，则使用模版中的配置
+        if self.notify_type == "[]":
+            template_cls = (
+                apps.get_model("tasktmpl3", "TaskTemplate")
+                if self.template_source == PROJECT
+                else apps.get_model("template", "CommonTemplate")
+            )
+            template = template_cls.objects.filter(id=self.template_id).only("notify_type").first()
+            notify_type = json.loads(template.notify_type)
+        else:
+            notify_type = json.loads(self.notify_type)
+        logger.info(f"[clocked_task get_notify_type] success: {notify_type}")
         return notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
 
     def get_stakeholders(self):
-        notify_receivers = json.loads(self.notify_receivers)
+        # 如果没有配置，则使用模版中的配置
+        if self.notify_receivers == "{}":
+            template_cls = (
+                apps.get_model("tasktmpl3", "TaskTemplate")
+                if self.template_source == PROJECT
+                else apps.get_model("template", "CommonTemplate")
+            )
+            template = template_cls.objects.filter(id=self.template_id).only("notify_receivers").first()
+            notify_receivers = json.loads(template.notify_receivers)
+        else:
+            notify_receivers = json.loads(self.notify_receivers)
+        logger.info(f"[clocked_task get_stakeholders] success: {notify_receivers}")
         receiver_group = notify_receivers.get("receiver_group", [])
         receivers = [self.creator]
         proj = Project.objects.get(id=self.project_id)

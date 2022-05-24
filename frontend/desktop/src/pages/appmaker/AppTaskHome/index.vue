@@ -17,7 +17,7 @@
                     id="appmakerHome"
                     :open="isSearchFormOpen"
                     :search-form="searchForm"
-                    :search-config="{ placeholder: $t('请输入任务名称') }"
+                    :search-config="{ placeholder: $t('请输入任务名称'), value: requestData.taskName }"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
                 </advance-search-form>

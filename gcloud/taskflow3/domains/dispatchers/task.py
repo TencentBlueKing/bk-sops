@@ -12,14 +12,17 @@ specific language governing permissions and limitations under the License.
 """
 
 import json
+import copy
 import logging
 import traceback
 from typing import Optional
 
 from django.utils import timezone
+from django.db import transaction
 from bamboo_engine import api as bamboo_engine_api
 from bamboo_engine import states as bamboo_engine_states
 from bamboo_engine.context import Context
+from bamboo_engine.eri import ContextValue
 from bamboo_engine import exceptions as bamboo_engine_exceptions
 from pipeline.eri.runtime import BambooDjangoRuntime
 from pipeline.service import task_service
@@ -28,7 +31,8 @@ from pipeline.parser.context import get_pipeline_context
 from pipeline.engine import api as pipeline_api
 from pipeline.engine.models import PipelineModel
 from pipeline.core.data.var import Variable
-from pipeline_web.parser.format import format_web_data_to_pipeline
+from pipeline.eri.utils import CONTEXT_TYPE_MAP
+from pipeline_web.parser.format import format_web_data_to_pipeline, classify_constants
 from pipeline.engine import exceptions as pipeline_exceptions
 from pipeline.exceptions import (
     ConvergeMatchError,
@@ -245,21 +249,13 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             runtime=BambooDjangoRuntime(), pipeline_id=self.pipeline_instance.instance_id
         )
 
-    def set_task_context(
-        self, task_is_started: bool, task_is_finished: bool, context: dict, meta_constants: dict
+    def set_task_constants(
+        self, task_is_started: bool, task_is_finished: bool, constants: dict, meta_constants: dict
     ) -> dict:
         if self.engine_ver not in self.VALID_ENGINE_VER:
             return self._unsupported_engine_ver_result()
 
-        if task_is_started:
-            return {
-                "result": False,
-                "message": "task is started",
-                "data": None,
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
-
-        elif task_is_finished:
+        if task_is_finished:
             return {
                 "result": False,
                 "message": "task is finished",
@@ -268,9 +264,39 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             }
 
         exec_data = self.pipeline_instance.execution_data
+
+        pre_render_constants = []
+        hide_constants = []
+        component_outputs = []
+        validate_keys = set()
+        validate_keys = validate_keys.union(constants.keys())
+        validate_keys = validate_keys.union(meta_constants.keys())
+        for key in constants:
+            if key not in exec_data["constants"]:
+                continue
+            if task_is_started and exec_data["constants"][key].get("pre_render_mako", False):
+                pre_render_constants.append(key)
+            if exec_data["constants"][key].get("show_type", "hide") != "show":
+                hide_constants.append(key)
+            if exec_data["constants"][key].get("source_type") == "component_outputs":
+                component_outputs.append(key)
+
+        if pre_render_constants or hide_constants or component_outputs:
+            return {
+                "result": False,
+                "message": """不支持修改以下变量
+                预渲染变量: %s
+                隐藏变量: %s
+                组件输出: %s
+                """
+                % (pre_render_constants, hide_constants, component_outputs),
+                "data": None,
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+
         try:
             # set constants
-            for key, value in context.items():
+            for key, value in constants.items():
                 if key in exec_data["constants"]:
                     exec_data["constants"][key]["value"] = value
 
@@ -278,12 +304,10 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             for key, value in meta_constants.items():
                 if key in exec_data["constants"] and "meta" in exec_data["constants"][key]:
                     exec_data["constants"][key]["meta"]["value"] = value
-
-            self.pipeline_instance.set_execution_data(exec_data)
         except Exception:
             logger.exception(
-                "TaskFlow set_task_context error:id=%s, constants=%s, error=%s"
-                % (self.taskflow_id, json.dumps(context), traceback.format_exc())
+                "TaskFlow set_task_constants error:id=%s, constants=%s, error=%s"
+                % (self.taskflow_id, json.dumps(constants), traceback.format_exc())
             )
             return {
                 "result": False,
@@ -291,6 +315,44 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 "data": None,
                 "code": err_code.UNKNOWN_ERROR.code,
             }
+
+        context_values = []
+        if task_is_started:
+            web_constants = {}
+            for key in constants:
+                if key not in exec_data["constants"]:
+                    continue
+
+                web_constants[key] = copy.deepcopy(exec_data["constants"][key])
+
+            # parse web tree constants to bamboo tree data
+            data_inputs = classify_constants(constants=web_constants, is_subprocess=False)["data_inputs"]
+            for key, data in data_inputs.items():
+                context_values.append(
+                    ContextValue(
+                        key=key,
+                        type=CONTEXT_TYPE_MAP[data["type"]],
+                        value=data["value"],
+                        code=data.get("custom_type", ""),
+                    )
+                )
+
+        with transaction.atomic():
+            if task_is_started:
+                update_res = bamboo_engine_api.update_context_values(
+                    runtime=BambooDjangoRuntime(),
+                    pipeline_id=self.pipeline_instance.instance_id,
+                    context_values=context_values,
+                )
+                if not update_res.result:
+                    logger.error("update context values failed: %s" % update_res.exc_trace)
+                    return {
+                        "result": False,
+                        "data": "",
+                        "message": "update pipeline context value failed: %s" % update_res.message,
+                        "code": err_code.UNKNOWN_ERROR.code,
+                    }
+            self.pipeline_instance.set_execution_data(exec_data)
 
         return {
             "result": True,

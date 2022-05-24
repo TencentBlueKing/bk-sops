@@ -107,8 +107,11 @@
                     @close="closeConfigPanel">
                 </node-config>
                 <condition-edit
+                    v-if="isShowConditionEdit"
                     ref="conditionEdit"
                     :is-show="isShowConditionEdit"
+                    :is-readonly="isViewMode"
+                    :gateways="gateways"
                     :condition-data="conditionData"
                     :back-to-variable-panel="backToVariablePanel"
                     @onBeforeClose="onBeforeClose"
@@ -801,7 +804,6 @@
                 }
 
                 try {
-                    console.log('1111', this.constants)
                     const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
                     this.tplActions = data.auth_actions
                     this.$bkMessage({
