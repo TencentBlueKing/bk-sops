@@ -1163,7 +1163,7 @@ class TaskFlowInstance(models.Model):
     def record_and_get_executor_proxy(self, executor_proxy):
         if self.recorded_executor_proxy is None:
             self.recorded_executor_proxy = executor_proxy
-            self.save()
+            self.save(update_fields=["recorded_executor_proxy"])
         return self.recorded_executor_proxy
 
 
