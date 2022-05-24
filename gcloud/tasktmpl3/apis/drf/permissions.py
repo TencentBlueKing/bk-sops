@@ -10,23 +10,6 @@ from gcloud.constants import PROJECT, COMMON
 iam = get_iam_client()
 
 
-class CollectionTaskPermissions(IAMMixin, permissions.BasePermission):
-    actions = {
-        "list": IAMMeta.PROJECT_VIEW_ACTION,
-    }
-
-    def has_permission(self, request, view):
-        if view.action == "list":
-            if "project_id" not in request.query_params:
-                return False
-            self.iam_auth_check(
-                request,
-                action=self.actions[view.action],
-                resources=res_factory.resources_for_project(request.query_params["project_id"]),
-            )
-        return True
-
-
 class TemplateFormWithSchemesPermissions(IAMMixin, permissions.BasePermission):
     def has_permission(self, request, view):
         template_id = request.data["template_id"]
