@@ -127,9 +127,11 @@ class MockTaskFlowInstance(object):
         self.executor = kwargs.get("executor", "executor")
         self.executor_proxy = kwargs.get("executor_proxy", "executor_proxy")
         self.recorded_executor_proxy = kwargs.get("recorded_executor_proxy", None)
-        self.record_and_get_executor_proxy = MagicMock(
-            return_value=(self.recorded_executor_proxy or kwargs.get("executor_proxy"))
-        )
+        self.record_and_get_executor_proxy = MagicMock(side_effect=self._record_and_get_executor_proxy_side_effect)
+        self.save = MagicMock()
+
+    def _record_and_get_executor_proxy_side_effect(self, value):
+        return self.recorded_executor_proxy or value
 
 
 class MockPeriodicTask(object):
