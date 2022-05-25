@@ -1354,7 +1354,16 @@ const en = {
     '分支类型': 'Branch type',
     '自定义分支': 'Custom branch',
     '默认分支': 'Default branch',
-    '所有分支均不匹配时执行，类似switch-case-default里面的default': 'Executed when all branches do not match, similar to default in switch-case-default'
+    '所有分支均不匹配时执行，类似switch-case-default里面的default': 'Executed when all branches do not match, similar to default in switch-case-default',
+    '流程待更新': 'Process to be updated',
+    '流程有更新': 'Process has been updated',
+    '更新流程': 'Update process',
+    '流程更新成功': 'Process update succeeded',
+    '创建周期任务': 'Create periodic tasks',
+    '创建': 'Create',
+    '通知方式统一在流程基础信息管理。如需修改，请': 'The notification method is unified in the process basic information management. To modify, please',
+    '前往流程': 'go to process',
+    '旧版': 'Old'
 }
 
 export default en

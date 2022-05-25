@@ -82,6 +82,10 @@ const periodic = {
         // 删除单个周期任务
         deletePeriodic ({ commit }, taskId) {
             return axios.delete(`api/v3/periodic_task/${taskId}/`).then(response => response.data)
+        },
+        // 更新单个周期任务
+        updatePeriodicTask ({ commit }, data) {
+            return axios.put(`api/v3/periodic_task/${data.taskId}/`, data).then(response => response.data)
         }
     }
 }

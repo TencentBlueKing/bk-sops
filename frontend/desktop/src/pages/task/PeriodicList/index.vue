@@ -49,8 +49,13 @@
                                 :width="item.width"
                                 :min-width="item.min_width">
                                 <template slot-scope="{ row }">
+                                    <!--任务-->
+                                    <div v-if="item.id === 'name'" class="task-name">
+                                        <span class="name">{{row.name || '--'}}</span>
+                                        <span class="label" v-if="row.is_latest === null">{{ $t('旧版') }}</span>
+                                    </div>
                                     <!--流程模板-->
-                                    <div v-if="item.id === 'process_template'">
+                                    <div v-else-if="item.id === 'process_template'">
                                         <a
                                             v-if="!hasPermission(['periodic_task_view'], row.auth_actions)"
                                             v-cursor
@@ -66,6 +71,16 @@
                                             :to="templateNameUrl(row)">
                                             {{row.task_template_name}}
                                         </router-link>
+                                        <i
+                                            v-if="row.is_latest === false"
+                                            :class="['common-icon-update', {
+                                                'is-disabled': row.enabled,
+                                                'text-permission-disable': !hasPermission(['periodic_task_edit'], row.auth_actions)
+                                            }]"
+                                            v-cursor="{ active: !hasPermission(['periodic_task_edit'], row.auth_actions) }"
+                                            v-bk-tooltips="$t('流程待更新')"
+                                            @click="onModifyCronPeriodic(row, $event)">
+                                        </i>
                                     </div>
                                     <!--项目-->
                                     <div v-else-if="item.id === 'project'">
@@ -192,11 +207,15 @@
             @onCreateTaskCancel="onCreateTaskCancel">
         </TaskCreateDialog>
         <ModifyPeriodicDialog
+            v-if="isModifyDialogShow"
             :loading="modifyDialogLoading"
             :constants="constants"
             :cron="selectedCron"
             :task-id="selectedPeriodicId"
             :is-modify-dialog-show="isModifyDialogShow"
+            :project_id="project_id"
+            :cur-row="curRow"
+            :is-edit="editTask"
             @onModifyPeriodicConfirm="onModifyPeriodicConfirm"
             @onModifyPeriodicCancel="onModifyPeriodicCancel">
         </ModifyPeriodicDialog>
@@ -361,7 +380,9 @@
                     fieldList: TABLE_FIELDS,
                     selectedFields: TABLE_FIELDS.slice(0),
                     size: 'small'
-                }
+                },
+                editTask: true, // 编辑/创建周期任务
+                curRow: {} // 当前选中行的数据
             }
         },
         computed: {
@@ -576,16 +597,20 @@
                 if (enabled) {
                     return
                 }
+                this.curRow = item
                 const splitCron = this.splitPeriodicCron(cron)
                 this.selectedCron = splitCron
                 this.selectedPeriodicId = taskId
                 this.getPeriodicConstant(taskId)
+                this.editTask = true
                 this.isModifyDialogShow = true
             },
             onModifyPeriodicCancel () {
+                this.curRow = {}
                 this.isModifyDialogShow = false
             },
             onModifyPeriodicConfirm () {
+                this.curRow = {}
                 this.isModifyDialogShow = false
                 this.getPeriodicList()
             },
@@ -635,7 +660,9 @@
                 return cron.split('(')[0].trim()
             },
             onCreatePeriodTask () {
-                this.isNewTaskDialogShow = true
+                this.curRow = {}
+                this.editTask = false
+                this.isModifyDialogShow = true
             },
             onCreateTaskCancel () {
                 this.isNewTaskDialogShow = false
@@ -739,6 +766,27 @@
             overflow: visible;
         }
     }
+    .task-name {
+        display: flex;
+        align-items: center;
+        .name {
+            flex: 1;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        .label {
+            flex-shrink: 0;
+            width: 44px;
+            height: 22px;
+            text-align: center;
+            line-height: 20px;
+            margin-left: 5px;
+            background: #fafbfd;
+            border: 1px solid rgba(151,155,165,0.30);
+            border-radius: 2px;
+        }
+    }
     .icon-check-circle-shape {
         color: #30d878;
     }
@@ -758,6 +806,15 @@
         color: #ff9c01;
         border-radius: 20px;
         font-size: 12px;
+    }
+    .common-icon-update {
+        color: #ee392f;
+        font-size: 14px;
+        cursor: pointer;
+        &.is-disabled {
+            color: #cccccc;
+            cursor: not-allowed;
+        }
     }
     .drop-icon-ellipsis {
         font-size: 18px;
