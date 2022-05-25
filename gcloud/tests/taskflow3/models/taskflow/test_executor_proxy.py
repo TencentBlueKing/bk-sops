@@ -52,3 +52,15 @@ class ExecutorProxyTestCase(TestCase):
             taskflow = TaskFlowInstance()
             taskflow.template_source = "business"
             self.assertEqual(taskflow.executor_proxy, "dummy")
+
+    @patch("gcloud.taskflow3.models.TaskFlowInstance.save", MagicMock(return_value=None))
+    def test_recorded_executor_proxy(self):
+        taskflow = TaskFlowInstance()
+        ep = taskflow.record_and_get_executor_proxy("dummy")
+        self.assertEqual(ep, "dummy")
+        self.assertEqual(taskflow.recorded_executor_proxy, "dummy")
+
+        taskflow2 = TaskFlowInstance(recorded_executor_proxy="recorded_one")
+        ep = taskflow2.record_and_get_executor_proxy("dummy")
+        self.assertEqual(ep, "recorded_one")
+        self.assertEqual(taskflow2.recorded_executor_proxy, "recorded_one")

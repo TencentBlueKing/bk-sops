@@ -697,6 +697,7 @@ class TaskFlowInstance(models.Model):
     current_flow = models.CharField(_("当前任务流程阶段"), max_length=255)
     is_deleted = models.BooleanField(_("是否删除"), default=False)
     engine_ver = models.IntegerField(_("引擎版本"), choices=EngineConfig.ENGINE_VER, default=2)
+    recorded_executor_proxy = models.CharField(_("任务执行人代理"), max_length=255, default=None, blank=True, null=True)
 
     objects = TaskFlowInstanceManager()
 
@@ -1158,6 +1159,12 @@ class TaskFlowInstance(models.Model):
     def get_notify_type(self):
         notify_type = json.loads(self.template.notify_type)
         return notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
+
+    def record_and_get_executor_proxy(self, executor_proxy):
+        if self.recorded_executor_proxy is None:
+            self.recorded_executor_proxy = executor_proxy
+            self.save(update_fields=["recorded_executor_proxy"])
+        return self.recorded_executor_proxy
 
 
 def get_instance_context(pipeline_instance, data_type, username=""):

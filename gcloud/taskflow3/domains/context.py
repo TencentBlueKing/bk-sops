@@ -68,7 +68,10 @@ class TaskContext(object):
         :return: 该任务执行时实际使用的执行人
         :rtype: str
         """
-        return taskflow.executor_proxy or ProjectConfig.objects.task_executor_for_project(self.project_id, operator)
+        runtime_executor_proxy = taskflow.executor_proxy or ProjectConfig.objects.task_executor_for_project(
+            self.project_id, operator
+        )
+        return taskflow.record_and_get_executor_proxy(runtime_executor_proxy)
 
     def context(self):
         return {"${%s}" % TaskContext.prefix: {"type": "plain", "is_param": True, "value": self}}
