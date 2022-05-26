@@ -56,6 +56,9 @@ redis-py-cluster==2.1.0
 django-timezone-field==4.1.0
 importlib-metadata==3.7.3
 
+# otel
+protobuf==3.19.4
+
 # blueapps
 blueapps[opentelemetry]==4.4.2
 whitenoise==5.2.0
@@ -79,6 +82,3 @@ apigw-manager[cryptography]==1.0.7
 
 # rsa
 pyCryptodome==3.9.7
-
-# otel
-protobuf<4.0.0
