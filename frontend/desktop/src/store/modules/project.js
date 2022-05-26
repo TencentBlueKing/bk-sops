@@ -20,6 +20,7 @@ const project = {
         userProjectList: [], // 用户有权限的项目列表
         timezone: window.TIMEZONE,
         config: {}, // 用户在项目下的配置
+        commonConfig: {}, // 公共流程管理的配置
         authActions: []
     },
     mutations: {
@@ -47,6 +48,9 @@ const project = {
         },
         setProjectConfig (state, data) {
             state.config = { ...state.config, ...data }
+        },
+        setCommonConfig (state, data) {
+            state.commonConfig = { ...state.config, ...data }
         }
     },
     actions: {
@@ -166,7 +170,11 @@ const project = {
         setUserProjectConfig ({ commit }, data) {
             const { id, params } = data
             return axios.post(`api/v4/user_custom_config/${id}/set/`, params).then(response => {
-                commit('setProjectConfig', response.data.data)
+                if (id === -1) {
+                    commit('setCommonConfig', response.data.data)
+                } else {
+                    commit('setProjectConfig', response.data.data)
+                }
                 return response.data
             })
         }
