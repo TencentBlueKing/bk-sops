@@ -57,7 +57,7 @@ django-timezone-field==4.1.0
 importlib-metadata==3.7.3
 
 # blueapps
-blueapps==4.4.1
+blueapps[opentelemetry]==4.4.2
 whitenoise==5.2.0
 raven==6.5.0
 python-json-logger==2.0.1
@@ -81,16 +81,4 @@ apigw-manager[cryptography]==1.0.7
 pyCryptodome==3.9.7
 
 # otel
-opentelemetry-api==1.6.2
-opentelemetry-sdk==1.6.2
-opentelemetry-exporter-otlp==1.6.2
-opentelemetry-exporter-jaeger==1.6.2
-opentelemetry-exporter-jaeger-proto-grpc==1.6.2
-opentelemetry-exporter-jaeger-thrift==1.6.2
-opentelemetry-instrumentation==0.25b2
-opentelemetry-instrumentation-celery==0.25b2
-opentelemetry-instrumentation-django==0.25b2
-opentelemetry-instrumentation-dbapi==0.25b2
-opentelemetry-instrumentation-redis==0.25b2
-opentelemetry-instrumentation-logging==0.25b2
-opentelemetry-instrumentation-requests==0.25b2
+protobuf<4.0.0
