@@ -109,6 +109,7 @@
                 <condition-edit
                     ref="conditionEdit"
                     :is-show="isShowConditionEdit"
+                    :is-readonly="isViewMode"
                     :condition-data="conditionData"
                     :back-to-variable-panel="backToVariablePanel"
                     @onBeforeClose="onBeforeClose"
@@ -805,6 +806,7 @@
 
                 try {
                     const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
+                    if (!data.result) return
                     this.tplActions = data.auth_actions
                     this.$bkMessage({
                         message: i18n.t('保存成功'),
