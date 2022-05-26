@@ -588,7 +588,7 @@
                     console.log(e)
                 }
             },
-            onModifyCronPeriodic (item) {
+            async onModifyCronPeriodic (item) {
                 const { enabled, id: taskId, cron } = item
                 if (!this.hasPermission(['periodic_task_edit'], item.auth_actions)) {
                     this.onPeriodicPermissonCheck(['periodic_task_edit'], item)
@@ -601,13 +601,16 @@
                 const splitCron = this.splitPeriodicCron(cron)
                 this.selectedCron = splitCron
                 this.selectedPeriodicId = taskId
-                this.getPeriodicConstant(taskId)
+                await this.getPeriodicConstant(taskId)
                 this.editTask = true
                 this.isModifyDialogShow = true
             },
-            onModifyPeriodicCancel () {
+            onModifyPeriodicCancel (val) {
                 this.curRow = {}
                 this.isModifyDialogShow = false
+                if (val) {
+                    this.getPeriodicList()
+                }
             },
             onModifyPeriodicConfirm () {
                 this.curRow = {}

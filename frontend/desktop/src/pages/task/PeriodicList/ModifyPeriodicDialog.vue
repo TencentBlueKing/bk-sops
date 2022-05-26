@@ -17,8 +17,28 @@
             :is-show.sync="isModifyDialogShow"
             :quick-close="true"
             :before-close="onCloseConfig">
-            <div slot="header">{{ isEdit ? $t('编辑周期任务') : $t('创建周期任务') }}</div>
-            <template slot="content">
+            <div slot="header">
+                <div class="preview-header" v-if="isPreview && previewScheme">
+                    <span @click="isPreview = false">{{ $t('编辑周期任务') }}</span>
+                    <i class="common-icon-angle-right"></i>
+                    {{ previewScheme }}
+                </div>
+                <template v-else>{{ isEdit ? $t('编辑周期任务') : $t('创建周期任务') }}</template>
+            </div>
+            <template slot="content" v-if="isPreview">
+                <NodePreview
+                    ref="nodePreview"
+                    :preview-data-loading="previewDataLoading"
+                    :canvas-data="formatCanvasData('perview', previewData)"
+                    :preview-bread="previewBread"
+                    @onNodeClick="onNodeClick"
+                    @onSelectSubflow="onSelectSubFlow">
+                </NodePreview>
+                <div class="btn-footer">
+                    <bk-button @click="isPreview = false">{{ $t('返回编辑') }}</bk-button>
+                </div>
+            </template>
+            <div slot="content" v-show="!isPreview">
                 <section class="config-section">
                     <p class="title">{{$t('基础信息')}}</p>
                     <bk-form
@@ -93,7 +113,7 @@
                                 <bk-button
                                     theme="primary"
                                     :disabled="!formData.template_id"
-                                    @click="onUpdatePeriodicTask">
+                                    @click="togglePreviewMode">
                                     {{ $t('预览') }}
                                 </bk-button>
                             </div>
@@ -145,7 +165,7 @@
                         theme="primary"
                         :loading="saveLoading"
                         data-test-id="periodicList_form_saveBtn"
-                        @click="onModifyPeriodicConfirm">
+                        @click="onPeriodicConfirm">
                         {{ isEdit ? $t('保存') : $t('创建') }}
                     </bk-button>
                     <bk-button
@@ -156,7 +176,7 @@
                         {{ $t('取消') }}
                     </bk-button>
                 </div>
-            </template>
+            </div>
         </bk-sideslider>
         <bk-dialog
             width="400"
@@ -169,7 +189,7 @@
             <div class="edit-clocked-dialog">
                 <div class="save-tips">{{ $t('保存已修改的信息吗？') }}</div>
                 <div class="action-wrapper">
-                    <bk-button theme="primary" :loading="saveLoading" @click="onModifyPeriodicConfirm">{{ $t('保存') }}</bk-button>
+                    <bk-button theme="primary" :loading="saveLoading" @click="onPeriodicConfirm">{{ $t('保存') }}</bk-button>
                     <bk-button theme="default" :disabled="saveLoading" @click="onModifyPeriodicCancel">{{ $t('不保存') }}</bk-button>
                 </div>
             </div>
@@ -186,6 +206,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import NotifyTypeConfig from '@/pages/template/TemplateEdit/TemplateSetting/NotifyTypeConfig.vue'
     import permission from '@/mixins/permission.js'
+    import NodePreview from '@/pages/task/NodePreview.vue'
 
     export default {
         name: 'ModifyPeriodicDialog',
@@ -193,8 +214,8 @@
             TaskParamEdit,
             NoData,
             LoopRuleSelect,
-            NotifyTypeConfig
-                
+            NotifyTypeConfig,
+            NodePreview
         },
         mixins: [permission],
         props: [
@@ -222,11 +243,22 @@
                     template_id,
                     scheme: ''
                 },
+                templateData: {},
                 templateLoading: false,
                 templateList: [],
                 templateDataLoading: false,
                 schemeLoading: false,
                 schemeList: [],
+                isPreview: false,
+                previewDataLoading: false,
+                previewBread: [],
+                previewData: {
+                    location: [],
+                    line: [],
+                    gateways: {},
+                    constants: []
+                },
+                selectedNodes: [],
                 notifyType: [[]],
                 receiverGroup: [],
                 saveLoading: false,
@@ -235,7 +267,7 @@
                     regex: PERIODIC_REG
                 },
                 periodicCronImg: require('@/assets/images/' + i18n.t('task-zh') + '.png'),
-                periodicConstants: tools.deepClone(this.constants),
+                periodicConstants: {},
                 isUpdateTask: false, // 标识是否为更新任务
                 isShowDialog: false,
                 updateLoading: false
@@ -244,10 +276,20 @@
         computed: {
             isVariableEmpty () {
                 return Object.keys(this.periodicConstants).length === 0
+            },
+            isCommon () {
+                return this.curRow.template_source === 'common'
+            },
+            previewScheme () {
+                const schemeId = this.formData.scheme
+                if (!schemeId) return ''
+                const schemeInfo = this.schemeList.find(item => item.id === schemeId)
+                return i18n.t('预览') + '：' + schemeInfo.name
             }
         },
         created () {
             if (this.isEdit) {
+                this.periodicConstants = tools.deepClone(this.constants)
                 const id = this.curRow.template_id
                 this.onSelectTemplate(id)
             } else {
@@ -260,12 +302,14 @@
             ]),
             ...mapActions('task/', [
                 'loadTaskScheme',
-                'getDefaultTaskScheme'
+                'getDefaultTaskScheme',
+                'loadPreviewNodeData'
             ]),
             ...mapActions('periodic/', [
                 'modifyPeriodicCron',
                 'modifyPeriodicConstants',
-                'updatePeriodicTask'
+                'updatePeriodicTask',
+                'createPeriodic'
             ]),
             ...mapActions('template/', [
                 'loadTemplateData'
@@ -273,7 +317,7 @@
             async getTemplateList () {
                 this.templateLoading = true
                 try {
-                    const templateListData = await this.loadTemplateList({ project__id: this.project_id })
+                    const templateListData = await this.loadTemplateList({ project__id: this.project_id, offset: 0, limit: 10 })
                     this.templateList = templateListData.results
                 } catch (e) {
                     console.log(e)
@@ -294,23 +338,22 @@
                 }
             },
             async onSelectTemplate (id) {
-                console.log(id)
                 // 获取模板详情
                 try {
                     this.templateDataLoading = true
-                    const params = {
-                        templateId: id,
-                        common: this.curRow.template_source === 'common'
-                    }
+                    const params = { templateId: id, common: this.isCommon }
                     const templateData = await this.loadTemplateData(params)
                     // 获取流程模板的通知配置
                     const { notify_receivers, notify_type } = templateData
                     this.notifyType = [notify_type.success.slice(0), notify_type.fail.slice(0)]
                     this.receiverGroup = JSON.parse(notify_receivers).receiver_group.slice(0)
+                    const pipelineDate = JSON.parse(templateData.pipeline_tree)
+                    this.selectedNodes = Object.keys(pipelineDate.activities)
+                    this.templateData = Object.assign({}, templateData, { pipeline_tree: pipelineDate })
+                    // 新建模式拉取预览数据和流程对应的执行方案
                     if (!this.isEdit) {
-                        const pipelineDate = JSON.parse(templateData.pipeline_tree)
-                        console.log(pipelineDate)
-                        this.periodicConstants = pipelineDate.constants
+                        const templateInfo = this.templateList.find(item => item.id === id)
+                        await this.getPreviewNodeData(id, templateInfo.version, true)
                         // 获取模板对应的执行方案
                         this.getTemplateScheme()
                     }
@@ -356,6 +399,107 @@
             },
             onSelectScheme (id) {
                 this.formData.scheme = Number(id)
+                const schemeInfo = this.schemeList.find(item => item.id === id)
+                this.selectedNodes = JSON.parse(schemeInfo.data)
+                // 更新执行参数
+                const { id: templateId, version } = this.templateData
+                this.getPreviewNodeData(templateId, version, true)
+            },
+            togglePreviewMode () {
+                this.previewBread = []
+                this.isPreview = true
+                const { id, name, version } = this.templateData
+                this.previewBread.push({ id, name, version })
+                this.getPreviewNodeData(id, version)
+            },
+            /**
+             * 获取画布预览节点和全局变量表单项(接口已去掉未选择的节点、未使用的全局变量)
+             * @params {Number|String} templateId  模板 ID
+             * @params {String} version  模板版本
+             * @params {Boolean} updateConstants  更新执行参数
+             */
+            async getPreviewNodeData (templateId, version, updateConstants) {
+                this.previewDataLoading = true
+                const excludeNodes = this.getExcludeNode()
+                const params = {
+                    templateId: Number(templateId),
+                    excludeTaskNodesId: excludeNodes,
+                    common: this.isCommon,
+                    version
+                }
+                try {
+                    const resp = await this.loadPreviewNodeData(params)
+                    if (resp.result) {
+                        this.previewData = resp.data.pipeline_tree
+                        if (updateConstants) {
+                            this.periodicConstants = tools.deepClone(this.previewData.constants)
+                        }
+                    }
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.previewDataLoading = false
+                }
+            },
+            getExcludeNode () {
+                const nodes = []
+                const { activities } = this.templateData.pipeline_tree
+                const nodeList = Object.keys(activities)
+                nodeList.forEach(id => {
+                    if (this.selectedNodes.indexOf(id) === -1) {
+                        nodes.push(id)
+                    }
+                })
+                return nodes
+            },
+            /**
+             * 格式化pipelineTree的数据，只输出一部分数据
+             * @params {Object} data  需要格式化的pipelineTree
+             * @return {Object} {lines（线段连接）, locations（节点默认都被选中）, branchConditions（分支条件）}
+             */
+            formatCanvasData (mode, data) {
+                const { line, location, gateways, activities } = data
+                const branchConditions = {}
+                for (const gKey in gateways) {
+                    const item = gateways[gKey]
+                    if (item.conditions) {
+                        branchConditions[item.id] = Object.assign({}, item.conditions)
+                    }
+                }
+                return {
+                    lines: line,
+                    locations: location.map(item => {
+                        const code = item.type === 'tasknode' ? activities[item.id].component.code : ''
+                        return { ...item, mode, code }
+                    }),
+                    branchConditions
+                }
+            },
+            /**
+             * 点击预览模式下的面包屑
+             * @params {String} id  点击的节点id（可能为父节点或其他子流程节点）
+             * @params {Number} index  点击的面包屑的下标
+             */
+            onSelectSubFlow (id, version, index) {
+                this.getPreviewNodeData(id, version)
+                this.previewBread.splice(index + 1, this.previewBread.length)
+            },
+            /**
+             * 点击子流程节点，并进入新的canvas画面
+             * @params {String} id  点击的子流程节点id
+             */
+            onNodeClick (id) {
+                const activity = this.previewData.activities[id]
+                if (!activity || activity.type !== 'SubProcess') {
+                    return
+                }
+                const { template_id, name, version } = activity
+                this.previewBread.push({
+                    id: template_id,
+                    name,
+                    version
+                })
+                this.getPreviewNodeData(template_id, activity.version)
             },
             getJumpUrl () {
                 const { href } = this.$router.resolve({
@@ -373,17 +517,20 @@
                 this.isShowDialog = false
                 this.$emit('onModifyPeriodicCancel')
             },
-            onModifyPeriodicConfirm () {
+            onPeriodicConfirm () {
                 const loopRule = this.$refs.loopRuleSelect.validationExpression()
                 if (!loopRule.check) return
                 this.saveLoading = !this.isUpdateTask
                 const paramEditComp = this.$refs.TaskParamEdit
                 this.$validator.validateAll().then(async (result) => {
                     let formValid = true
-                    let periodicConstants = ''
+                    let constantsValue = ''
                     if (paramEditComp) {
                         const formData = await paramEditComp.getVariableData()
-                        periodicConstants = formData
+                        constantsValue = Object.keys(formData).reduce((acc, key) => {
+                            acc[key] = formData[key]['value']
+                            return acc
+                        }, {})
                         formValid = paramEditComp.validate()
                     }
                     const cronArray = loopRule.rule.split(' ')
@@ -406,36 +553,41 @@
                         'month_of_year': cronArray[4]
                     }
                     if (this.isUpdateTask) { // 更新流程模板
-                        const constants = {}
-                        for (const key in periodicConstants) {
-                            constants[key] = periodicConstants[key]['value']
-                        }
-                        this.confirmUpdatedTask(jsonCron, constants)
+                        this.confirmUpdatedTask(jsonCron, constantsValue)
                         return
                     }
 
+                    if (this.isEdit) { // 确认编辑周期任务
+                        this.onModifyPeriodicConfirm(jsonCron, loopRule, constantsValue)
+                    } else { // 确认创建周期任务
+                        this.onCreatePeriodicConfirm(jsonCron, constantsValue)
+                    }
+                })
+            },
+            onModifyPeriodicConfirm (jsonCron, loopRule, constantsValue) {
+                try {
                     const cronData = {
                         'taskId': this.taskId,
                         'cron': jsonCron
                     }
-                    if (this.cron === loopRule.rule && periodicConstants === '') {
+                    if (this.cron === loopRule.rule && constantsValue === '') {
                         // 没有改变表达式，且没有ramdomform内容
                         this.dialogFooterData[0].loading = false
                         this.$emit('onModifyPeriodicCancel')
-                    } else if (periodicConstants === '') {
+                    } else if (constantsValue === '') {
                         this.modifyCron(cronData)
                     } else {
-                        const constants = {}
-                        for (const key in periodicConstants) {
-                            constants[key] = periodicConstants[key]['value']
-                        }
                         const constantsData = {
                             'taskId': this.taskId,
-                            'constants': constants
+                            'constants': constantsValue
                         }
                         this.modifyPeriodic(cronData, constantsData)
                     }
-                })
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.saveLoading = false
+                }
             },
             modifyPeriodic (cronData, constantsData) {
                 try {
@@ -487,7 +639,7 @@
             onUpdatePeriodicTask () {
                 this.isUpdateTask = true
                 // 借用保存方法的周期校验和执行参数校验
-                this.onModifyPeriodicConfirm()
+                this.onPeriodicConfirm()
             },
             // 更新流程模板
             async confirmUpdatedTask (cronData, constantsData) {
@@ -516,15 +668,49 @@
                     this.isUpdateTask = false
                 }
             },
-            onCloseConfig () {
-                if (!this.isEdit) {
-                    this.isShowDialog = true
-                    return
+            // 创建周期任务
+            async onCreatePeriodicConfirm (cron, constantsValue) {
+                const constants = Object.values(this.previewData.constants).reduce((acc, cur) => {
+                    acc[cur.key] = { ...cur, value: constantsValue[cur.key] }
+                    return acc
+                }, {})
+                const execData = {
+                    ...this.templateData.pipeline_tree,
+                    constants
                 }
+                const data = {
+                    'name': this.formData.name,
+                    'cron': cron,
+                    'templateId': this.formData.template_id,
+                    'execData': JSON.stringify(execData)
+                }
+                try {
+                    const response = await this.createPeriodic(data)
+                    if (!response.result) return
+                    this.$bkMessage({
+                        'message': i18n.t('创建周期任务成功'),
+                        'theme': 'success'
+                    })
+                    this.$emit('onModifyPeriodicCancel', true)
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.saveLoading = false
+                }
+            },
+            onCloseConfig () {
                 const taskParamEdit = this.$refs.TaskParamEdit
                 const sameRenderData = taskParamEdit ? taskParamEdit.judgeDataEqual() : true
+                const sameFormDate = Object.keys(this.formData).every(key => {
+                    if (!(key in this.curRow) && !this.formData[key]) {
+                        return true
+                    } else if (this.curRow[key] === this.formData[key]) {
+                        return true
+                    }
+                })
                 const loopRule = this.$refs.loopRuleSelect.validationExpression()
-                const same = this.cron === loopRule.rule && sameRenderData
+                const sameCronDate = this.cron ? this.cron === loopRule.rule : true
+                const same = sameFormDate && sameCronDate && sameRenderData
                 if (same) {
                     this.onModifyPeriodicCancel()
                 } else {
@@ -692,5 +878,23 @@
         margin-right: 10px;
         padding: 0 25px;
     }
+}
+.preview-header {
+    display: flex;
+    align-self: center;
+    font-size: 14px;
+    > span {
+        color: #3a84ff;
+        cursor: pointer;
+    }
+    .common-icon-angle-right {
+        color: #c4c6cc;
+        font-size: 20px;
+        margin: 0 5px;
+    }
+}
+.node-preview-wrapper {
+    height: calc(100% - 50px);
+    margin: 25px 0;
 }
 </style>

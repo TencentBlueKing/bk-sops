@@ -1359,11 +1359,13 @@ const en = {
     '流程有更新': 'Process has been updated',
     '更新流程': 'Update process',
     '流程更新成功': 'Process update succeeded',
+    '编辑周期任务': 'Edit periodic tasks',
     '创建周期任务': 'Create periodic tasks',
     '创建': 'Create',
     '通知方式统一在流程基础信息管理。如需修改，请': 'The notification method is unified in the process basic information management. To modify, please',
     '前往流程': 'go to process',
-    '旧版': 'Old'
+    '旧版': 'Old',
+    '返回编辑': 'Back to edit'
 }
 
 export default en
