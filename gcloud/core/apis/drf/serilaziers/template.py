@@ -28,8 +28,8 @@ class BaseTemplateSerializer(serializers.ModelSerializer):
         default_notify_type = {"success": [], "fail": []}
         try:
             notify_type = json.loads(obj.notify_type)
-            # 对于旧数据中解析出来为[]的情况，统一返回默认值
-            return notify_type if notify_type else default_notify_type
+            # 对于旧数据中解析出来为[]的情况，返回默认格式
+            return notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
         except Exception as e:
             logger.exception(f"[get_notify_type] error: {e}")
             return default_notify_type
