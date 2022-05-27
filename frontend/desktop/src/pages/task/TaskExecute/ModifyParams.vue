@@ -157,7 +157,11 @@
                     if (!formValid) return false
                     const variables = await paramEditComp.getVariableData()
                     for (const key in variables) {
-                        formData[key] = variables[key].value
+                        const { value, pre_render_mako } = variables[key]
+                        // 过滤掉预渲染类型的变量
+                        if (pre_render_mako !== true) {
+                            formData[key] = value
+                        }
                     }
                     // 远程数据源模式下，需要传meta_constants在text_value_select变量的meta.value
                     if (Object.keys(this.remoteData).length) {

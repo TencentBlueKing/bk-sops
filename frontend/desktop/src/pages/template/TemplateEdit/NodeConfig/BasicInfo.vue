@@ -194,6 +194,7 @@
                     v-model="formData.executor_proxy"
                     :placeholder="$t('请输入用户')"
                     :api="userApi"
+                    :multiple="false"
                     @change="onUserSelectChange">
                 </bk-user-selector>
             </bk-form-item>
@@ -282,6 +283,7 @@
                     v-model="formData.executor_proxy"
                     :placeholder="$t('请输入用户')"
                     :api="userApi"
+                    :multiple="false"
                     @change="onUserSelectChange">
                 </bk-user-selector>
             </bk-form-item>

@@ -140,6 +140,16 @@
                 const { name, value } = val
                 this.conditionName = name
                 this.expression = value
+            },
+            branchType: {
+                handler (val) {
+                    if (val === 'default') {
+                        this.conditionName = i18n.t('其他')
+                    } else {
+                        this.conditionName = this.conditionData.name
+                    }
+                },
+                immediate: true
             }
         },
         methods: {

@@ -786,9 +786,14 @@
                         // 兼容旧数据，分支条件里没有 name 属性的情况
                         const labelName = branchInfo[lineId].name || labelValue
                         const loc = ('loc' in branchInfo[lineId]) ? branchInfo[lineId].loc : -70
+                        const gatewayInfo = this.$store.state.template.gateways[line.source.id]
+                        let defaultCls = ''
+                        if (gatewayInfo && gatewayInfo.default_condition && gatewayInfo.default_condition.flow_id === lineId) {
+                            defaultCls = 'default-branch'
+                        }
                         const labelData = {
                             type: 'Label',
-                            name: `<div class="branch-condition"
+                            name: `<div class="branch-condition ${defaultCls}"
                                     title="${tools.escapeStr(labelName)}(${tools.escapeStr(labelValue)})"
                                     data-lineid="${lineId}"
                                     data-nodeid="${line.sourceId}">${labelName}</div>`,
@@ -1143,9 +1148,14 @@
                 const line = this.canvasData.lines.find(item => item.id === lineId)
                 this.$refs.jsFlow.removeLineOverlay(line, overlayId)
                 this.$nextTick(() => {
+                    const gatewayInfo = this.$store.state.template.gateways[line.source.id]
+                    let defaultCls = ''
+                    if (gatewayInfo && gatewayInfo.default_condition && gatewayInfo.default_condition.flow_id === lineId) {
+                        defaultCls = 'default-branch'
+                    }
                     const labelData = {
                         type: 'Label',
-                        name: `<div class="branch-condition"
+                        name: `<div class="branch-condition ${defaultCls}"
                                 title="${tools.escapeStr(name)}(${tools.escapeStr(value)})"
                                 data-lineid="${lineId}"
                                 data-nodeid="${line.source.id}">${name}</div>`,
@@ -1699,6 +1709,13 @@
                 white-space: nowrap;
                 text-overflow: ellipsis;
                 overflow: hidden;
+                &.default-branch {
+                    background: #f0f1f5;
+                    border: 1px solid #c4c6cc;
+                    &:hover {
+                        border-color: #c4c6cc;
+                    }
+                }
             }
         }
         &.editable {
