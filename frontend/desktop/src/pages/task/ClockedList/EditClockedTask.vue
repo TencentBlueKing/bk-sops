@@ -6,8 +6,29 @@
             :is-show.sync="isShowSideslider"
             :quick-close="true"
             :before-close="onCloseConfig">
-            <div slot="header">{{ title }}</div>
-            <template slot="content">
+            
+            <div slot="header">
+                <div class="preview-header" v-if="isPreview && previewScheme">
+                    <span @click="isPreview = false">{{ sideSliderTitle }}</span>
+                    <i class="common-icon-angle-right"></i>
+                    {{ previewScheme }}
+                </div>
+                <template v-else>{{ sideSliderTitle }}</template>
+            </div>
+            <template slot="content" v-if="isPreview">
+                <NodePreview
+                    ref="nodePreview"
+                    :preview-data-loading="previewDataLoading"
+                    :canvas-data="formatCanvasData('perview', previewData)"
+                    :preview-bread="previewBread"
+                    @onNodeClick="onNodeClick"
+                    @onSelectSubflow="onSelectSubFlow">
+                </NodePreview>
+                <div class="btn-footer">
+                    <bk-button @click="isPreview = false">{{ $t('返回编辑') }}</bk-button>
+                </div>
+            </template>
+            <div slot="content" v-show="!isPreview">
                 <section class="config-section">
                     <p class="title">{{$t('基础信息')}}</p>
                     <bk-form
@@ -15,31 +36,100 @@
                         ref="basicConfigForm"
                         :model="formData"
                         :rules="rules">
-                        <bk-form-item :label="$t('计划名称')" :required="true" property="planName">
-                            <bk-input v-model="formData.task_name" :disabled="true"></bk-input>
+                        <bk-form-item :label="$t('计划名称')" :required="true" property="taskName">
+                            <bk-input :clearable="true" v-model="formData.task_name"></bk-input>
                         </bk-form-item>
-                        <bk-form-item :label="$t('流程模板')" :required="true" property="processTemp">
-                            <div class="select-wrapper">
-                                <bk-input v-model="formData.template_name" :disabled="true"></bk-input>
-                                <i class="bk-icon icon-angle-down"></i>
+                        <bk-form-item :label="$t('流程模板')" :required="true" property="flow">
+                            <bk-select
+                                v-model="formData.template_id"
+                                :searchable="true"
+                                :placeholder="$t('请选择')"
+                                :clearable="false"
+                                v-bkloading="{ isLoading: templateLoading, size: 'small', extCls: 'template-loading' }"
+                                @clear="onClearTemplate"
+                                @selected="onSelectTemplate">
+                                <bk-option
+                                    v-for="(option, index) in templateList"
+                                    :key="index"
+                                    :disabled="!hasPermission(['flow_view'], option.auth_actions)"
+                                    :id="option.id"
+                                    :name="option.name">
+                                    <p
+                                        :title="option.name"
+                                        v-cursor="{ active: !hasPermission(['flow_view'], option.auth_actions) }"
+                                        @click="onTempSelect(['flow_view'], option)">
+                                        {{ option.name }}
+                                    </p>
+                                </bk-option>
+                            </bk-select>
+                        </bk-form-item>
+                        <bk-form-item :label="$t('执行方案')" property="scheme">
+                            <div class="scheme-wrapper">
+                                <bk-select
+                                    v-model="formData.scheme"
+                                    :searchable="true"
+                                    :placeholder="$t('请选择')"
+                                    :clearable="true"
+                                    :disabled="!formData.template_id"
+                                    :loading="isLoading || schemeLoading"
+                                    @clear="onClearScheme"
+                                    @selected="onSelectScheme">
+                                    <bk-option
+                                        v-for="(option, index) in schemeList"
+                                        :key="index"
+                                        :id="option.id"
+                                        :name="option.name">
+                                        <span>{{ option.name }}</span>
+                                        <span v-if="option.isDefault" class="default-label">{{$t('默认')}}</span>
+                                    </bk-option>
+                                </bk-select>
+                                <bk-button
+                                    theme="primary"
+                                    :disabled="isLoading || !formData.template_id"
+                                    @click="togglePreviewMode">
+                                    {{ $t('预览') }}
+                                </bk-button>
                             </div>
                         </bk-form-item>
                         <bk-form-item :label="$t('启动时间')" :required="true" property="startTime">
                             <bk-date-picker
-                                v-model="formData.plan_start_time"
+                                :value="formData.plan_start_time"
                                 :placeholder="`${$t('请选择启动时间')}`"
                                 :options="pickerOptions"
                                 :clearable="false"
                                 data-test-id="clockedList_form_startTime"
-                                :type="'datetime'">
+                                :type="'datetime'"
+                                @change="onPickerChange">
                             </bk-date-picker>
                         </bk-form-item>
                     </bk-form>
                 </section>
                 <section class="config-section">
+                    <p class="title">
+                        <span>{{ $t('通知') }}</span>
+                        <span v-if="!isLoading && formData.template_id" class="tip-desc">
+                            {{ $t('通知方式统一在流程基础信息管理。如需修改，请') }}
+                            <a
+                                class="link"
+                                @click="getJumpUrl()">
+                                {{ $t('前往流程') }}
+                            </a>
+                        </span>
+                    </p>
+                    <NotifyTypeConfig
+                        :notify-type-label="$t('通知方式')"
+                        :label-width="87"
+                        :table-width="570"
+                        :notify-type="notifyType"
+                        :is-view-mode="true"
+                        :notify-type-list="[{ text: $t('任务状态') }]"
+                        :receiver-group="receiverGroup">
+                    </NotifyTypeConfig>
+                </section>
+                <section class="config-section mb20">
                     <p class="title">{{$t('执行参数')}}</p>
                     <TaskParamEdit
-                        v-bkloading="{ isLoading: isLoading, opacity: 1, zIndex: 100 }"
+                        v-bkloading="{ isLoading: isLoading || previewDataLoading, opacity: 1, zIndex: 100 }"
                         class="task-param-wrapper"
                         ref="TaskParamEdit"
                         :constants="constants">
@@ -50,8 +140,9 @@
                         theme="primary"
                         :loading="saveLoading"
                         data-test-id="clockedList_form_saveBtn"
-                        @click="onSaveConfig">
-                        {{ $t('保存') }}
+                        :disabled="isLoading || previewDataLoading"
+                        @click="onClockedConfirm">
+                        {{ type === 'edit' ? $t('保存') : $t('创建') }}
                     </bk-button>
                     <bk-button
                         theme="default"
@@ -61,7 +152,7 @@
                         {{ $t('取消') }}
                     </bk-button>
                 </div>
-            </template>
+            </div>
         </bk-sideslider>
         <bk-dialog
             width="400"
@@ -74,7 +165,7 @@
             <div class="edit-clocked-dialog">
                 <div class="save-tips">{{ $t('保存已修改的信息吗？') }}</div>
                 <div class="action-wrapper">
-                    <bk-button theme="primary" :loading="saveLoading" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
+                    <bk-button theme="primary" :loading="saveLoading" @click="onClockedConfirm">{{ $t('保存') }}</bk-button>
                     <bk-button theme="default" :disabled="saveLoading" @click="onCancelSave">{{ $t('不保存') }}</bk-button>
                 </div>
             </div>
@@ -85,16 +176,25 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions } from 'vuex'
-    import tools from '@/utils/tools.js'
     import TaskParamEdit from '../TaskParamEdit.vue'
+    import NotifyTypeConfig from '@/pages/template/TemplateEdit/TemplateSetting/NotifyTypeConfig.vue'
+    import permission from '@/mixins/permission.js'
+    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import NodePreview from '@/pages/task/NodePreview.vue'
     export default {
         components: {
-            TaskParamEdit
+            TaskParamEdit,
+            NotifyTypeConfig,
+            NodePreview
         },
+        mixins: [permission],
         props: {
-            title: {
+            type: {
                 type: String,
                 default: ''
+            },
+            project_id: {
+                type: [String, Number]
             },
             isShowSideslider: {
                 type: Boolean,
@@ -106,24 +206,69 @@
             }
         },
         data () {
+            const {
+                task_name = '',
+                plan_start_time = '',
+                template_name = '',
+                template_id = ''
+            } = this.curRow
             return {
-                isLoading: false,
                 formData: {
-                    template_name: '',
-                    task_name: '',
-                    plan_start_time: ''
+                    template_name,
+                    template_id,
+                    task_name,
+                    plan_start_time
                 },
-                initPlanStartTime: '',
+                initPlanStartTime: plan_start_time,
                 pickerOptions: {
                     disabledDate (date) {
                         return date.getTime() + 86400000 < Date.now()
                     }
                 },
+                taskNameRule: {
+                    required: true,
+                    max: STRING_LENGTH.TASK_NAME_MAX_LENGTH,
+                    regex: NAME_REG
+                },
                 rules: {
+                    taskName: [
+                        {
+                            required: true,
+                            validator: (val) => {
+                                return this.formData.task_name
+                            },
+                            message: i18n.t('任务名称不能为空'),
+                            trigger: 'change'
+                        },
+                        {
+                            validator: (val) => {
+                                return NAME_REG.test(this.formData.task_name)
+                            },
+                            message: i18n.t('任务名称不能包含') + '\'‘"”$&<>' + i18n.t('非法字符'),
+                            trigger: 'change'
+                        },
+                        {
+                            validator: (val) => {
+                                return STRING_LENGTH.TASK_NAME_MAX_LENGTH > this.formData.task_name.length
+                            },
+                            message: i18n.t('任务名称不能超过') + STRING_LENGTH.TASK_NAME_MAX_LENGTH + i18n.t('个字符'),
+                            trigger: 'change'
+                        }
+                    ],
+                    flow: [
+                        {
+                            required: true,
+                            validator: (val) => {
+                                return this.formData.template_id
+                            },
+                            message: i18n.t('请选择流程模板'),
+                            trigger: 'change'
+                        }
+                    ],
                     startTime: [
                         {
                             required: true,
-                            message: this.$t('请选择启动时间'),
+                            message: i18n.t('请选择启动时间'),
                             trigger: 'blur'
                         },
                         {
@@ -131,78 +276,323 @@
                                 const timeStamp = new Date(this.formData.plan_start_time).getTime()
                                 return timeStamp > new Date().getTime()
                             },
-                            message: this.$t('启动时间不能小于当前时间'),
+                            message: i18n.t('启动时间不能小于当前时间'),
                             trigger: 'blur'
                         }
                     ]
                 },
                 saveLoading: false,
                 constants: {},
-                isShowDialog: false
+                isShowDialog: false,
+                templateData: {},
+                templateLoading: false,
+                templateList: [],
+                templateDataLoading: false,
+                schemeLoading: false,
+                schemeList: [],
+                isPreview: false,
+                previewDataLoading: false,
+                previewBread: [],
+                previewData: {
+                    location: [],
+                    line: [],
+                    gateways: {},
+                    constants: []
+                },
+                selectedNodes: [],
+                notifyType: [[], []],
+                receiverGroup: []
             }
         },
         computed: {
             sameTimeStamp () {
                 const initTimeStamp = new Date(this.initPlanStartTime).getTime()
-                const curTimcStamp = new Date(this.formData.plan_start_time).getTime()
-                return initTimeStamp === curTimcStamp
+                const curTimeStamp = new Date(this.formData.plan_start_time).getTime()
+                return initTimeStamp === curTimeStamp
+            },
+            sideSliderTitle () {
+                return this.type === 'edit' ? i18n.t('编辑计划任务')
+                    : this.type === 'create' ? i18n.t('创建计划任务')
+                        : i18n.t('克隆计划任务')
+            },
+            previewScheme () {
+                const schemeId = this.formData.scheme
+                if (!schemeId) return ''
+                const schemeInfo = this.schemeList.find(item => item.id === schemeId)
+                return i18n.t('预览') + '：' + schemeInfo.name
+            },
+            isLoading () {
+                return this.templateLoading || this.templateDataLoading
             }
         },
-        watch: {
-            isShowSideslider (val) {
-                if (val) {
-                    this.formData = tools.deepClone(this.curRow)
-                    this.initPlanStartTime = this.formData.plan_start_time
-                    this.getTemplateRenderFrom()
-                }
+        async created () {
+            await this.getTemplateList()
+            if (this.type !== 'create') {
+                const id = this.curRow.template_id
+                this.onSelectTemplate(id)
             }
         },
         methods: {
+            ...mapActions('templateList', [
+                'loadTemplateList'
+            ]),
             ...mapActions('task/', [
-                'loadPreviewNodeData'
+                'loadPreviewNodeData',
+                'loadTaskScheme',
+                'getDefaultTaskScheme'
             ]),
             ...mapActions('clocked/', [
-                'updateClocked'
+                'updateClocked',
+                'createClocked'
             ]),
-            async getTemplateRenderFrom () {
+            ...mapActions('template/', [
+                'loadTemplateData'
+            ]),
+            async getTemplateList () {
+                this.templateLoading = true
                 try {
-                    this.isLoading = true
-                    const { template_id, project_id, task_parameters: taskParams } = this.curRow
-                    const params = {
-                        templateId: template_id,
-                        excludeTaskNodesId: taskParams.exclude_task_nodes_id || [],
-                        project_id,
-                        template_source: 'project'
-                    }
-                    const resp = await this.loadPreviewNodeData(params)
-                    const { constants } = resp.data.pipeline_tree
-                    this.constants = Object.values(constants).reduce((acc, cur) => {
-                        acc[cur.key] = {
-                            ...cur,
-                            meta: { ...cur },
-                            value: taskParams.constants[cur.key]
-                        }
-                        return acc
-                    }, {})
-                } catch (error) {
-                    console.warn(error)
+                    const templateListData = await this.loadTemplateList({ project__id: this.project_id })
+                    this.templateList = templateListData.results
+                } catch (e) {
+                    console.log(e)
                 } finally {
-                    this.isLoading = false
+                    this.templateLoading = false
                 }
             },
-            onSaveConfig () {
+            onTempSelect (applyPerm = [], selectInfo) {
+                if (!this.hasPermission(applyPerm, selectInfo.auth_actions)) {
+                    const permissionData = {
+                        project: [{
+                            id: this.project_id,
+                            name: this.formData.task_template_name
+                        }],
+                        flow: [selectInfo]
+                    }
+                    this.applyForPermission(applyPerm, selectInfo.auth_actions, permissionData)
+                }
+            },
+            onClearTemplate () {
+                this.formData.scheme = ''
+                this.schemeList = []
+                this.constants = {}
+            },
+            async onSelectTemplate (id) {
+                // 获取模板详情
+                try {
+                    this.templateDataLoading = true
+                    const params = { templateId: id, common: this.isCommon }
+                    const templateData = await this.loadTemplateData(params)
+                    // 获取流程模板的通知配置
+                    const { notify_receivers, notify_type } = templateData
+                    this.notifyType = [notify_type.success.slice(0), notify_type.fail.slice(0)]
+                    this.receiverGroup = JSON.parse(notify_receivers).receiver_group.slice(0)
+                    const pipelineDate = JSON.parse(templateData.pipeline_tree)
+                    this.selectedNodes = Object.keys(pipelineDate.activities)
+                    this.templateData = Object.assign({}, templateData, { pipeline_tree: pipelineDate })
+                    // 新建模式拉取预览数据和流程对应的执行方案
+                    const templateInfo = this.templateList.find(item => item.id === id)
+                    await this.getPreviewNodeData(id, templateInfo.version, true)
+                    // 获取模板对应的执行方案
+                    this.getTemplateScheme()
+                } catch (e) {
+                    console.warn(e)
+                } finally {
+                    this.templateDataLoading = false
+                }
+            },
+            async getTemplateScheme () {
+                this.schemeLoading = true
+                try {
+                    const defaultScheme = await this.loadDefaultSchemeList()
+                    const data = {
+                        project_id: this.project_id,
+                        template_id: this.formData.template_id
+                    }
+                    const resp = await this.loadTaskScheme(data)
+                    this.schemeList = resp.map(item => {
+                        item.isDefault = defaultScheme.includes(item.id)
+                        return item
+                    })
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.schemeLoading = false
+                }
+            },
+            // 获取默认方案列表
+            async loadDefaultSchemeList () {
+                try {
+                    const resp = await this.getDefaultTaskScheme({
+                        project_id: this.project_id,
+                        template_id: this.formData.template_id
+                    })
+                    if (resp.data.length) {
+                        const { scheme_ids: schemeIds } = resp.data[0]
+                        return schemeIds
+                    }
+                    return []
+                } catch (error) {
+                    console.error(error)
+                }
+            },
+            onClearScheme () {
+                // 更新执行参数
+                const { id: templateId, version } = this.templateData
+                this.getPreviewNodeData(templateId, version, true)
+            },
+            onSelectScheme (id) {
+                this.formData.scheme = Number(id)
+                const schemeInfo = this.schemeList.find(item => item.id === id)
+                this.selectedNodes = JSON.parse(schemeInfo.data)
+                // 更新执行参数
+                const { id: templateId, version } = this.templateData
+                this.getPreviewNodeData(templateId, version, true)
+            },
+            togglePreviewMode () {
+                this.previewBread = []
+                this.isPreview = true
+                const { id, name, version } = this.templateData
+                this.previewBread.push({ id, name, version })
+                this.getPreviewNodeData(id, version)
+            },
+            /**
+             * 获取画布预览节点和全局变量表单项(接口已去掉未选择的节点、未使用的全局变量)
+             * @params {Number|String} templateId  模板 ID
+             * @params {String} version  模板版本
+             * @params {Boolean} updateConstants  更新执行参数
+             */
+            async getPreviewNodeData (templateId, version, updateConstants) {
+                this.previewDataLoading = true
+                const excludeNodes = this.getExcludeNode()
+                const params = {
+                    templateId: Number(templateId),
+                    excludeTaskNodesId: excludeNodes,
+                    common: this.isCommon,
+                    version
+                }
+                try {
+                    const resp = await this.loadPreviewNodeData(params)
+                    if (resp.result) {
+                        this.previewData = resp.data.pipeline_tree
+                        if (updateConstants) {
+                            const { constants = {} } = this.curRow.task_parameters || {}
+                            this.constants = Object.values(this.previewData.constants).reduce((acc, cur) => {
+                                acc[cur.key] = {
+                                    ...cur,
+                                    meta: { ...cur },
+                                    value: constants[cur.key] || cur.value
+                                }
+                                return acc
+                            }, {})
+                        }
+                    }
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.previewDataLoading = false
+                }
+            },
+            getExcludeNode () {
+                const nodes = []
+                const { activities } = this.templateData.pipeline_tree
+                const nodeList = Object.keys(activities)
+                nodeList.forEach(id => {
+                    if (this.selectedNodes.indexOf(id) === -1) {
+                        nodes.push(id)
+                    }
+                })
+                return nodes
+            },
+            /**
+             * 格式化pipelineTree的数据，只输出一部分数据
+             * @params {Object} data  需要格式化的pipelineTree
+             * @return {Object} {lines（线段连接）, locations（节点默认都被选中）, branchConditions（分支条件）}
+             */
+            formatCanvasData (mode, data) {
+                const { line, location, gateways, activities } = data
+                const branchConditions = {}
+                for (const gKey in gateways) {
+                    const item = gateways[gKey]
+                    if (item.conditions) {
+                        branchConditions[item.id] = Object.assign({}, item.conditions)
+                    }
+                }
+                return {
+                    lines: line,
+                    locations: location.map(item => {
+                        const code = item.type === 'tasknode' ? activities[item.id].component.code : ''
+                        return { ...item, mode, code }
+                    }),
+                    branchConditions
+                }
+            },
+            /**
+             * 点击预览模式下的面包屑
+             * @params {String} id  点击的节点id（可能为父节点或其他子流程节点）
+             * @params {Number} index  点击的面包屑的下标
+             */
+            onSelectSubFlow (id, version, index) {
+                this.getPreviewNodeData(id, version)
+                this.previewBread.splice(index + 1, this.previewBread.length)
+            },
+            /**
+             * 点击子流程节点，并进入新的canvas画面
+             * @params {String} id  点击的子流程节点id
+             */
+            onNodeClick (id) {
+                const activity = this.previewData.activities[id]
+                if (!activity || activity.type !== 'SubProcess') {
+                    return
+                }
+                const { template_id, name, version } = activity
+                this.previewBread.push({
+                    id: template_id,
+                    name,
+                    version
+                })
+                this.getPreviewNodeData(template_id, activity.version)
+            },
+            getJumpUrl () {
+                const { href } = this.$router.resolve({
+                    name: 'templatePanel',
+                    params: {
+                        type: 'view'
+                    },
+                    query: {
+                        template_id: this.formData.template_id
+                    }
+                })
+                window.open(href, '_blank')
+            },
+            onPickerChange (date) {
+                this.formData.plan_start_time = date
+            },
+            onClockedConfirm () {
+                this.saveLoading = true
+                if (this.type === 'edit') {
+                    this.onEditClockedConfirm()
+                } else {
+                    this.onCreateClockedConfirm()
+                }
+            },
+            onEditClockedConfirm () {
                 try {
                     this.$refs.basicConfigForm.validate().then(async (result) => {
-                        if (!result) return
-                        this.saveLoading = true
-                        const { id, plan_start_time: time, task_parameters: taskParams } = this.formData
                         const taskParamEdit = this.$refs.TaskParamEdit
+                        const formValid = taskParamEdit.validate()
+                        if (!result || !formValid) {
+                            return
+                        }
+                        this.saveLoading = true
+                        const { task_name, plan_start_time: time } = this.formData
+                        const excludeNode = this.getExcludeNode()
                         const params = {
-                            id,
+                            id: this.curRow.id,
+                            task_name,
                             plan_start_time: this.sameTimeStamp ? undefined : time,
                             task_parameters: {
                                 constants: taskParamEdit ? taskParamEdit.renderData : {},
-                                exclude_task_nodes_id: taskParams.exclude_task_nodes_id || []
+                                exclude_task_nodes_id: excludeNode || []
                             }
                         }
                         await this.updateClocked(params)
@@ -210,20 +600,79 @@
                             'message': i18n.t('编辑计划任务成功'),
                             'theme': 'success'
                         })
-                        this.isShowDialog = false
-                        this.saveLoading = false
-                        this.constants = {}
                         this.$emit('onSaveConfig')
                     })
                 } catch (error) {
                     this.saveLoading = false
                     console.warn(error)
+                } finally {
+                    this.isShowDialog = false
+                    this.saveLoading = false
                 }
+            },
+            onCreateClockedConfirm () {
+                this.$refs.basicConfigForm.validate().then(async (result) => {
+                    const taskParamEdit = this.$refs.TaskParamEdit
+                    const formValid = taskParamEdit.validate()
+                    if (!result || !formValid) {
+                        return
+                    }
+                    const excludeNode = this.getExcludeNode()
+                    const testParams = {
+                        constants: {},
+                        exclude_task_nodes_id: excludeNode
+                    }
+                    const { constants } = this.previewData
+                    for (const [key, val] of Object.entries(constants)) {
+                        testParams.constants[key] = val.value
+                    }
+                    const { task_name, template_id, template_name, plan_start_time } = this.formData
+                    const locTimeZone = new Date().toTimeString().slice(12, 17)
+                    const data = {
+                        id: this.curRow.id,
+                        task_parameters: testParams,
+                        project_id: this.project_id,
+                        task_name,
+                        template_id,
+                        template_name,
+                        template_source: 'project',
+                        notify_receivers: {
+                            receiver_group: this.receiverGroup,
+                            more_receiver: []
+                        },
+                        notify_type: {
+                            success: this.notifyType[0],
+                            fail: this.notifyType[1]
+                        },
+                        plan_start_time: plan_start_time + locTimeZone
+                    }
+                    try {
+                        await this.createClocked(data)
+                        this.$bkMessage({
+                            'message': this.type === 'clone' ? i18n.t('克隆计划任务成功') : i18n.t('创建计划任务成功'),
+                            'theme': 'success'
+                        })
+                        this.$emit('onSaveConfig')
+                    } catch (e) {
+                        console.log(e)
+                    } finally {
+                        this.isShowDialog = false
+                        this.saveLoading = false
+                    }
+                })
             },
             onCloseConfig () {
                 const taskParamEdit = this.$refs.TaskParamEdit
                 const sameRenderData = taskParamEdit ? taskParamEdit.judgeDataEqual() : true
-                if (this.sameTimeStamp && sameRenderData) {
+                const sameFormDate = Object.keys(this.formData).every(key => {
+                    if (key === 'plan_start_time' && this.curRow[key] === this.initPlanStartTime) {
+                        return true
+                    } else if (this.curRow[key] === this.formData[key]) {
+                        return true
+                    }
+                })
+                const same = sameFormDate && sameRenderData
+                if (same) {
                     this.onCancelSave()
                 } else {
                     this.isShowDialog = true
@@ -272,7 +721,7 @@
     font-weight: normal;
 }
 /deep/.btn-footer {
-    z-index: 2;
+    z-index: 100;
 }
 .config-section {
     .title {
@@ -282,29 +731,34 @@
         padding: 18px 0 11px;
         margin-bottom: 24px;
         border-bottom: 1px solid #cacedb;
+        .tip-desc {
+            line-height: 1;
+            font-size: 12px;
+            font-weight: normal;
+            margin-left: 20px;
+            color: #979ba5;
+        }
+        .link {
+            color: #3a84ff;
+            cursor: pointer;
+        }
     }
     /deep/.bk-form {
         .bk-label {
             font-size: 12px;
             color: #63656e;
         }
-        .bk-form-input,
-        .select-wrapper,
+        .bk-form-content,
         .bk-date-picker {
             width: 598px;
         }
-        margin-bottom: 17px;
-    }
-    .select-wrapper {
-        position: relative;
-        .icon-angle-down {
-            position: absolute;
-            right: 7px;
-            top: 7px;
-            font-size: 20px;
-            color: #c4c6cc;
-            cursor: not-allowed;
+        .loop-rule-select {
+            width: 555px;
         }
+        .rule-tips {
+            top: 6px;
+        }
+        margin-bottom: 17px;
     }
 }
 /deep/.no-data-wrapper {
@@ -315,10 +769,61 @@
     bottom: 0;
     width: 100%;
     background: #fafbfd;
-    padding: 8px 0;
+    padding: 8px 0 8px 24px;
+    margin-left: -28px;
+    box-shadow: 0 -1px 0 0 #dcdee5;
     .bk-button {
         margin-right: 10px;
         padding: 0 25px;
     }
+}
+/deep/.notify-type-wrapper {
+    .bk-form-content {
+        margin-left: 90px !important;
+    }
+}
+/deep/.template-loading {
+    .bk-loading-wrapper {
+        top: 65%;
+    }
+}
+.scheme-wrapper {
+    display: flex;
+    align-items: center;
+    .bk-select {
+        flex: 1;
+    }
+    .bk-button {
+        width: 108px;
+        margin-left: 16px;
+    }
+}
+.default-label {
+    height: 22px;
+    line-height: 22px;
+    font-size: 12px;
+    padding: 0 10px;
+    border-radius: 2px;
+    margin-left: 10px;
+    color: #14a568;
+    background: #e4faf0;
+}
+.preview-header {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    > span {
+        color: #3a84ff;
+        cursor: pointer;
+    }
+    .common-icon-angle-right {
+        color: #c4c6cc;
+        font-size: 20px;
+        margin: 0 5px;
+    }
+}
+.node-preview-wrapper {
+    height: calc(100% - 50px);
+    margin: 25px 0;
 }
 </style>

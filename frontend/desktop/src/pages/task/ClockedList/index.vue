@@ -105,6 +105,12 @@
                                     {{ $t('编辑') }}
                                 </a>
                                 <a
+                                    href="javascript:void(0);"
+                                    data-test-id="clockedList_table_cloneBtn"
+                                    @click="onCloneClockedTask(props.row, 'clone')">
+                                    {{ $t('克隆') }}
+                                </a>
+                                <a
                                     v-cursor="{ active: !hasPermission(['clocked_task_delete'], props.row.auth_actions) }"
                                     href="javascript:void(0);"
                                     :class="{
@@ -139,9 +145,11 @@
             @onCreateTaskCancel="onCreateTaskCancel">
         </TaskCreateDialog>
         <EditClockedTask
+            v-if="isShowSideslider"
             :is-show-sideslider="isShowSideslider"
             :cur-row="curRow"
-            :title="$t('编辑计划任务')"
+            :project_id="project_id"
+            :type="sideSliderType"
             @onSaveConfig="onSaveConfig"
             @onCloseConfig="onCloseConfig">
         </EditClockedTask>
@@ -274,6 +282,7 @@
                 selectedTemplateName: '',
                 deleting: false,
                 curRow: {},
+                sideSliderType: '',
                 isShowSideslider: false
             }
         },
@@ -361,7 +370,9 @@
             },
             // 创建计划任务
             onCreateClockedTask () {
-                this.isNewTaskDialogShow = true
+                this.curRow = {}
+                this.sideSliderType = 'create'
+                this.isShowSideslider = true
             },
             // 取消创建
             onCreateTaskCancel () {
@@ -474,6 +485,13 @@
                     return
                 }
                 this.curRow = row
+                this.sideSliderType = 'edit'
+                this.isShowSideslider = true
+            },
+            // 克隆计划任务
+            onCloneClockedTask (row) {
+                this.curRow = row
+                this.sideSliderType = 'clone'
                 this.isShowSideslider = true
             },
             // 保存编辑计划任务
