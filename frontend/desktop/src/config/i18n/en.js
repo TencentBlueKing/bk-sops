@@ -1355,7 +1355,17 @@ const en = {
     '自定义分支': 'Custom branch',
     '默认分支': 'Default branch',
     '所有分支均不匹配时执行，类似switch-case-default里面的default': 'Executed when all branches do not match, similar to default in switch-case-default',
+    '未能重用': 'Failed to reuse',
+    '重用规则': 'Reuse rules',
+    '参数值为非字典类型，KEY&类型前后一致才可重用': 'The parameter value is a non-dictionary type, and the KEY& type can only be reused if it is consistent',
+    '参数值为字典类型，还需要字典内的key前后一致才可重用': 'The parameter value is a dictionary type, and the keys in the dictionary need to be consistent before they can be reused',
+    '元变量还需元数据配置一致才可重用': 'Metavariables also require consistent metadata configuration before they can be reused',
+    '不满足重用规则时使用流程默认值': 'Use process defaults when reuse rules are not met',
+    '使用流程的最新数据再次创建任务，可重用当前参数': 'Create the task again with the latest data from the process, reusing the current parameters',
+    '使用流程默认参数值': 'Use process default parameter values',
+    '重用当前任务参数值': 'Reuse the current task parameter value',
     '执行代理人在任务开始执行时确定，未执行任务不展示': 'The execution agent is determined when the task starts to execute, and the unexecuted task will not be displayed'
+
 }
 
 export default en

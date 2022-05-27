@@ -107,13 +107,13 @@
                                             @click="onTaskPermissonCheck([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row)">
                                             {{$t('再创建')}}
                                         </a>
-                                        <router-link
+                                        <a
                                             v-else
                                             class="task-operation-btn"
                                             data-test-id="taskList_table_recreateBtn"
-                                            :to="getCreateTaskUrl(props.row)">
+                                            @click="getCreateTaskUrl(props.row)">
                                             {{$t('再创建')}}
-                                        </router-link>
+                                        </a>
                                         <a
                                             v-cursor="{ active: !hasPermission(['task_clone'], props.row.auth_actions) }"
                                             :class="['task-operation-btn', {
@@ -179,6 +179,35 @@
             <div class="dialog-content" v-bkloading="{ isLoading: pending.delete, opacity: 1, zIndex: 100 }">
                 {{$t('确认删除') + '"' + theDeleteTaskName + '"?'}}
             </div>
+        </bk-dialog>
+        <bk-dialog
+            width="480"
+            ext-cls="recreate-dialog"
+            :value="isCreateDialogShow"
+            theme="primary"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="$t('再创建')"
+            :ok-text="$t('再创建')"
+            @confirm="onCreateConfirm"
+            @cancel="isCreateDialogShow = false">
+            <bk-alert type="info" :title="$t('使用流程的最新数据再次创建任务，可重用当前参数')"></bk-alert>
+            <bk-radio-group v-model="paramsType">
+                <bk-radio :value="'default'">{{ $t('使用流程默认参数值') }}</bk-radio>
+                <bk-radio :value="'reuse'">
+                    {{ $t('重用当前任务参数值') }}
+                    <bk-popover placement="bottom-end" theme="light" width="344" :ext-cls="'reuse-rule-tip'">
+                        <i class="bk-icon icon-question-circle"></i>
+                        <div slot="content">
+                            <p>{{ $t('重用规则') }}</p><br>
+                            <p>{{ $t('参数值为非字典类型，KEY&类型前后一致才可重用') }}</p>
+                            <p>{{ $t('参数值为字典类型，还需要字典内的key前后一致才可重用') }}</p>
+                            <p>{{ $t('元变量还需元数据配置一致才可重用') }}</p>
+                            <p>{{ $t('不满足重用规则时使用流程默认值') }}</p>
+                        </div>
+                    </bk-popover>
+                </bk-radio>
+            </bk-radio-group>
         </bk-dialog>
     </div>
 </template>
@@ -410,7 +439,10 @@
                     fieldList: TABLE_FIELDS,
                     selectedFields: TABLE_FIELDS.slice(0),
                     size: 'small'
-                }
+                },
+                isCreateDialogShow: false,
+                paramsType: 'default',
+                selectedRow: {}
             }
         },
         computed: {
@@ -571,15 +603,22 @@
                 return this.hasPermission([reqPerm], authActions)
             },
             getCreateTaskUrl (task) {
+                this.selectedRow = task
+                this.isCreateDialogShow = true
+            },
+            onCreateConfirm () {
+                const { id, template_id, template_source } = this.selectedRow
+                const taskId = this.paramsType === 'reuse' ? id : undefined
                 const url = {
                     name: 'taskCreate',
-                    query: { template_id: task.template_id },
+                    query: { template_id: template_id, task_id: taskId },
                     params: { project_id: this.project_id, step: 'selectnode' }
                 }
-                if (task.template_source === 'common') {
+                if (template_source === 'common') {
                     url.query.common = 1
                 }
-                return url
+                this.isCreateDialogShow = false
+                this.$router.push(url)
             },
             /**
              * 单个任务操作项点击时校验
@@ -862,6 +901,7 @@
             padding: 5px;
             color: #3a84ff;
             font-size: 12px;
+            cursor: pointer;
             &.disabled {
                 color: #cccccc;
                 cursor: not-allowed;
@@ -881,4 +921,26 @@
         cursor: pointer;
     }
 }
+</style>
+<style lang="scss">
+    .recreate-dialog {
+        .bk-dialog-header {
+            padding-bottom: 10px;
+        }
+        .bk-alert {
+            margin-bottom: 26px;
+        }
+        .bk-form-control {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 24px;
+            .bk-form-radio {
+                font-size: 12px;
+                .icon-question-circle {
+                    font-size: 14px;
+                }
+            }
+            
+        }
+    }
 </style>

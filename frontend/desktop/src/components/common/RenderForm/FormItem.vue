@@ -36,7 +36,7 @@
         </tag-section>
         <template v-else>
             <!-- 表单作为全局变量时的名称 -->
-            <div v-if="showFormTitle" class="rf-group-name">
+            <div v-if="showFormTitle" :class="['rf-group-name', { 'not-reuse': showNotReuseTitle }]">
                 <span class="name">{{scheme.name || scheme.attrs.name}} ({{ scheme.tag_code }})</span>
                 <span v-if="scheme.attrs.desc" class="rf-group-desc">
                     <i
@@ -47,6 +47,10 @@
                         }"
                         class="common-icon-info">
                     </i>
+                </span>
+                <span v-if="showNotReuseTitle" class="not-reuse-tip">
+                    <i class="common-icon-dark-circle-warning"></i>
+                    {{ $t('未能重用') }}
                 </span>
                 <span class="pre-mako-tip" v-if="scheme.attrs.pre_mako_tip">{{ scheme.attrs.pre_mako_tip }}</span>
             </div>
@@ -214,6 +218,9 @@
         computed: {
             showFormTitle () {
                 return !this.hook && this.option.showGroup && !!(this.scheme.name || this.scheme.attrs.name)
+            },
+            showNotReuseTitle () {
+                return this.option.formEdit && this.scheme.attrs.notReuse
             }
         },
         watch: {
