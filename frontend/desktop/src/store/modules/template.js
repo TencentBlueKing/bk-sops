@@ -935,7 +935,7 @@ const template = {
                 notify_receivers: notifyReceivers
             }, {
                 headers
-            }).then(response => response.data.data)
+            }).then(response => response.data)
         },
         // 自动排版
         getLayoutedPipeline ({ commit }, data) {
