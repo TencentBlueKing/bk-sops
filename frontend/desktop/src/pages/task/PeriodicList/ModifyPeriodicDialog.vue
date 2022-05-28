@@ -44,11 +44,12 @@
                     <bk-form
                         :label-width="90"
                         ref="basicConfigForm"
+                        :rules="rules"
                         :model="formData">
                         <bk-form-item :label="$t('任务名称')" :required="true" property="taskName">
                             <bk-input :disabled="isEdit" v-model="formData.name"></bk-input>
                         </bk-form-item>
-                        <bk-form-item :label="$t('流程')" :required="true" property="processTemp">
+                        <bk-form-item :label="$t('流程')" :required="true" property="flow">
                             <div v-if="isEdit" class="select-box">
                                 <div class="select-wrapper">
                                     <p>
@@ -75,6 +76,7 @@
                                 :placeholder="$t('请选择')"
                                 :clearable="true"
                                 v-bkloading="{ isLoading: templateLoading, size: 'small', extCls: 'template-loading' }"
+                                @clear="onClearTemplate"
                                 @selected="onSelectTemplate">
                                 <bk-option
                                     v-for="(option, index) in templateList"
@@ -99,7 +101,8 @@
                                     :placeholder="$t('请选择')"
                                     :clearable="true"
                                     :disabled="!formData.template_id"
-                                    :is-loading="templateDataLoading || schemeLoading"
+                                    :is-loading="isLoading || schemeLoading"
+                                    @clear="onClearScheme"
                                     @selected="onSelectScheme">
                                     <bk-option
                                         v-for="(option, index) in schemeList"
@@ -112,7 +115,7 @@
                                 </bk-select>
                                 <bk-button
                                     theme="primary"
-                                    :disabled="!formData.template_id"
+                                    :disabled="isLoading || !formData.template_id"
                                     @click="togglePreviewMode">
                                     {{ $t('预览') }}
                                 </bk-button>
@@ -129,7 +132,7 @@
                 <section class="config-section">
                     <p class="title">
                         <span>{{ $t('通知') }}</span>
-                        <span v-if="formData.template_id" class="tip-desc">
+                        <span v-if="!isLoading && formData.template_id" class="tip-desc">
                             {{ $t('通知方式统一在流程基础信息管理。如需修改，请') }}
                             <a
                                 class="link"
@@ -150,7 +153,7 @@
                 </section>
                 <section class="config-section mb20">
                     <p class="title">{{$t('执行参数')}}</p>
-                    <div v-bkloading="{ isLoading: templateDataLoading }">
+                    <div v-bkloading="{ isLoading: isLoading || previewDataLoading }">
                         <NoData v-if="isVariableEmpty"></NoData>
                         <TaskParamEdit
                             v-else
@@ -164,6 +167,7 @@
                     <bk-button
                         theme="primary"
                         :loading="saveLoading"
+                        :disabled="isLoading || previewDataLoading"
                         data-test-id="periodicList_form_saveBtn"
                         @click="onPeriodicConfirm">
                         {{ isEdit ? $t('保存') : $t('创建') }}
@@ -200,7 +204,7 @@
     import i18n from '@/config/i18n/index.js'
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
-    import { PERIODIC_REG } from '@/constants/index.js'
+    import { PERIODIC_REG, NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
     import TaskParamEdit from '@/pages/task/TaskParamEdit.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -266,6 +270,42 @@
                     required: true,
                     regex: PERIODIC_REG
                 },
+                rules: {
+                    taskName: [
+                        {
+                            required: true,
+                            validator: (val) => {
+                                return this.formData.name
+                            },
+                            message: i18n.t('任务名称不能为空'),
+                            trigger: 'change'
+                        },
+                        {
+                            validator: (val) => {
+                                return NAME_REG.test(this.formData.name)
+                            },
+                            message: i18n.t('任务名称不能包含') + '\'‘"”$&<>' + i18n.t('非法字符'),
+                            trigger: 'change'
+                        },
+                        {
+                            validator: (val) => {
+                                return STRING_LENGTH.TASK_NAME_MAX_LENGTH > this.formData.name.length
+                            },
+                            message: i18n.t('任务名称不能超过') + STRING_LENGTH.TASK_NAME_MAX_LENGTH + i18n.t('个字符'),
+                            trigger: 'change'
+                        }
+                    ],
+                    flow: [
+                        {
+                            required: true,
+                            validator: (val) => {
+                                return this.formData.template_id
+                            },
+                            message: i18n.t('请选择流程模板'),
+                            trigger: 'change'
+                        }
+                    ]
+                },
                 periodicCronImg: require('@/assets/images/' + i18n.t('task-zh') + '.png'),
                 periodicConstants: {},
                 isUpdateTask: false, // 标识是否为更新任务
@@ -285,6 +325,9 @@
                 if (!schemeId) return ''
                 const schemeInfo = this.schemeList.find(item => item.id === schemeId)
                 return i18n.t('预览') + '：' + schemeInfo.name
+            },
+            isLoading () {
+                return this.templateLoading || this.templateDataLoading
             }
         },
         created () {
@@ -317,7 +360,7 @@
             async getTemplateList () {
                 this.templateLoading = true
                 try {
-                    const templateListData = await this.loadTemplateList({ project__id: this.project_id, offset: 0, limit: 10 })
+                    const templateListData = await this.loadTemplateList({ project__id: this.project_id })
                     this.templateList = templateListData.results
                 } catch (e) {
                     console.log(e)
@@ -336,6 +379,11 @@
                     }
                     this.applyForPermission(applyPerm, selectInfo.auth_actions, permissionData)
                 }
+            },
+            onClearTemplate () {
+                this.formData.scheme = ''
+                this.schemeList = []
+                this.constants = {}
             },
             async onSelectTemplate (id) {
                 // 获取模板详情
@@ -396,6 +444,11 @@
                 } catch (error) {
                     console.error(error)
                 }
+            },
+            onClearScheme () {
+                // 更新执行参数
+                const { id: templateId, version } = this.templateData
+                this.getPreviewNodeData(templateId, version, true)
             },
             onSelectScheme (id) {
                 this.formData.scheme = Number(id)
@@ -520,9 +573,8 @@
             onPeriodicConfirm () {
                 const loopRule = this.$refs.loopRuleSelect.validationExpression()
                 if (!loopRule.check) return
-                this.saveLoading = !this.isUpdateTask
                 const paramEditComp = this.$refs.TaskParamEdit
-                this.$validator.validateAll().then(async (result) => {
+                this.$refs.basicConfigForm.validate().then(async (result) => {
                     let formValid = true
                     let constantsValue = ''
                     if (paramEditComp) {
@@ -542,9 +594,9 @@
                         return
                     }
                     if (!result || !formValid) {
-                        this.saveLoading = false
                         return
                     }
+                    this.saveLoading = !this.isUpdateTask
                     const jsonCron = {
                         'minute': cronArray[0],
                         'hour': cronArray[1],
