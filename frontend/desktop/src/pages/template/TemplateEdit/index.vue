@@ -805,8 +805,9 @@
                 }
 
                 try {
-                    const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
-                    if (!data.result) return
+                    const resp = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
+                    if (!resp.result) return
+                    const data = resp.data
                     this.tplActions = data.auth_actions
                     this.$bkMessage({
                         message: i18n.t('保存成功'),
