@@ -11,8 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import json
+from datetime import datetime
 from typing import Any, Dict
 
+import pytz
+from django.conf import settings
 from rest_framework import serializers
 
 from gcloud.clocked_task.models import ClockedTask
@@ -31,6 +34,25 @@ class ClockedTaskSerializer(serializers.ModelSerializer):
 
     def set_task_parameters(self, data):
         return {"task_params": json.dumps(data)}
+
+    def validate_task_parameters(self, data):
+        task_parameters = json.loads(data["task_params"])
+        node_appoint_method_num = sum(
+            [
+                1
+                for method in ["exclude_task_nodes_id", "template_schemes_id", "appoint_task_nodes_id"]
+                if task_parameters.get(method)
+            ]
+        )
+        if node_appoint_method_num > 1:
+            raise serializers.ValidationError("can not use multiple method to appoint execute nodes")
+        return data
+
+    def validate_plan_start_time(self, plan_start_time):
+        now = datetime.now(tz=pytz.timezone(settings.TIME_ZONE))
+        if now > plan_start_time:
+            raise serializers.ValidationError("Plan start time should be later than the time to create the plan")
+        return plan_start_time
 
     class Meta:
         model = ClockedTask

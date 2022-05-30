@@ -17,10 +17,10 @@ Create a clocked task
 
 #### task_parameters
 
-| Field                 | Type | Required | Description                                               |
-|-----------------------|------|----------|-----------------------------------------------------------|
-| constants             | dict | YES      | global variables of task, default value is `[]`           |
-| exclude_task_nodes_id | list | YES      | list of node id excluded from task, default value is `[]` |
+| Field               | Type | Required | Description                                                                                |
+|---------------------|------|----------|--------------------------------------------------------------------------------------------|
+| constants           | dict | NO       | global variables of task, default value is `{}`                                            |
+| template_schemes_id | list | NO       | list of template scheme id, default value is `[]`, representing all nodes will be executed |
 
 #### constants KEY
 
@@ -45,7 +45,7 @@ constant value
     "plan_start_time": "2022-05-16 20:26:40+0800",
     "task_parameters": {
         "constants": {},
-        "exclude_task_nodes_id": []
+        "template_schemes_id": []
     },
 }
 ```
@@ -59,7 +59,7 @@ constant value
         "id": 72,
         "task_parameters": {
             "constants": {},
-            "exclude_task_nodes_id": []
+            "template_schemes_id": []
         },
         "creator": "",
         "plan_start_time": "2022-05-16 20:26:40+0800",
