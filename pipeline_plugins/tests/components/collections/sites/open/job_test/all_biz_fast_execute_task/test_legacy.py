@@ -232,7 +232,7 @@ MANUAL_INPUTS = {
 
 # MANUAL_KWARGS
 MANUAL_KWARGS = {
-    "bk_scope_type": "biz_set",
+    "bk_scope_type": "biz",
     "bk_scope_id": "123456",
     "bk_biz_id": 123456,
     "account_alias": "root",
