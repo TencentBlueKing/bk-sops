@@ -602,6 +602,17 @@ def logging_addition_settings(logging_dict: dict, environment="prod"):
         "propagate": True,
     }
 
+    # 对于不开启数据库日志记录的情况，进行统一处理
+    if env.NODE_LOG_DATA_SOURCE != "DATABASE":
+        for logger_config in logging_dict["loggers"].values():
+            logger_config["handlers"] = [
+                handler
+                for handler in logger_config["handlers"]
+                if handler not in ["pipeline_engine_context", "bamboo_engine_context", "pipeline_eri"]
+            ]
+            if not logger_config["handlers"]:
+                logger_config["handlers"] = ["root"]
+
     def handler_filter_injection(filters: list):
         for _, handler in logging_dict["handlers"].items():
             handler.setdefault("filters", []).extend(filters)
