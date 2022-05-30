@@ -117,6 +117,9 @@ class AllBizJobFastPushFileService(JobScheduleService):
         download_speed_limit = data.get_one_of_inputs("download_speed_limit")
         job_timeout = data.get_one_of_inputs("job_timeout")
 
+        if int(biz_cc_id) < 8000000:
+            self.biz_scope_type = JobBizScopeType.BIZ.value
+
         file_source = [
             {
                 "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
@@ -143,7 +146,7 @@ class AllBizJobFastPushFileService(JobScheduleService):
                     for _ip in get_ip_by_regex(attr["job_ip_list"])
                 ]
                 job_kwargs = {
-                    "bk_scope_type": JobBizScopeType.BIZ_SET.value,
+                    "bk_scope_type": self.biz_scope_type,
                     "bk_scope_id": str(biz_cc_id),
                     "bk_biz_id": biz_cc_id,
                     "file_source_list": [source],
@@ -219,6 +222,12 @@ class AllBizJobFastPushFileService(JobScheduleService):
                 name=_("任务url"), key="job_inst_url", type="string", schema=StringItemSchema(description=_("任务url"))
             ),
         ]
+
+    def schedule(self, data, parent_data, callback_data=None):
+        biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
+        if int(biz_cc_id) < 8000000:
+            self.biz_scope_type = JobBizScopeType.BIZ.value
+        return super().schedule(data, parent_data, callback_data)
 
 
 class AllBizJobFastPushFileComponent(Component):
