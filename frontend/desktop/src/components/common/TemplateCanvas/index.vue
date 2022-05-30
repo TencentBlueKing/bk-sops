@@ -670,6 +670,12 @@
                             target: targetId,
                             data: Object.assign({}, node.conditions[line.id])
                         })
+                    } else if (node && node.default_condition && node.default_condition.flow_id === line.id) {
+                        conditions.push({
+                            source: sourceId,
+                            target: targetId,
+                            data: Object.assign({}, node.default_condition)
+                        })
                     }
                 })
                 const endpointOptions = Object.assign({
@@ -951,6 +957,8 @@
                         const node = this.$store.state.template.gateways[sId]
                         if (node && node.conditions && node.conditions[line.id]) {
                             condition = Object.assign({}, node.conditions[line.id])
+                        } else if (node && node.default_condition && node.default_condition.flow_id === line.id) {
+                            condition = Object.assign({}, node.default_condition)
                         }
 
                         const source = {
