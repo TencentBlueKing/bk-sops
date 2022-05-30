@@ -58,12 +58,12 @@ def clocked_task_start(clocked_task_id, *args, **kwargs):
             "creator": clocked_task.creator,
             "description": task_params.get("description", ""),
         }
+        project = Project.objects.get(id=clocked_task.project_id)
+        template = TaskTemplate.objects.select_related("pipeline_template").get(
+            id=clocked_task.template_id, project_id=project.id, is_deleted=False
+        )
+        exclude_task_nodes_id = parse_exclude_task_nodes_id_from_params(template, task_params)
         with transaction.atomic():
-            project = Project.objects.get(id=clocked_task.project_id)
-            template = TaskTemplate.objects.select_related("pipeline_template").get(
-                id=clocked_task.template_id, project_id=project.id, is_deleted=False
-            )
-            exclude_task_nodes_id = parse_exclude_task_nodes_id_from_params(template, task_params)
             data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
                 template,
                 pipeline_instance_kwargs,
