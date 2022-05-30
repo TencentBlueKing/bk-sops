@@ -52,6 +52,22 @@ class PipelineTemplateWebPreviewer(object):
         return list(exclude_task_nodes_id_set)
 
     @staticmethod
+    def get_template_exclude_task_nodes_with_appoint_nodes(pipeline_tree, appoint_nodes_id):
+        """
+        根据执行方案获取要剔除的模版节点
+        @param pipeline_tree:
+        @param appoint_nodes_id:
+        @return:
+        """
+        template_nodes_set = set(pipeline_tree[PE.activities].keys())
+        not_optional_nodes_set = set(
+            [node_id for node_id, node in pipeline_tree[PE.activities].items() if not node["optional"]]
+        )
+        appoint_nodes_id_set = set(appoint_nodes_id)
+        exclude_task_nodes_id_set = template_nodes_set - appoint_nodes_id_set - not_optional_nodes_set
+        return list(exclude_task_nodes_id_set)
+
+    @staticmethod
     def preview_pipeline_tree_exclude_task_nodes(
         pipeline_tree, exclude_task_nodes_id=None, remove_outputs_without_refs=True
     ):

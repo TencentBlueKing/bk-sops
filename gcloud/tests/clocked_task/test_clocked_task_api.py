@@ -11,7 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import json
+import datetime
 
+import pytz
+from django.conf import settings
 from django.urls import reverse
 
 from django_test_toolkit.data_generation.faker_generator import DjangoModelFakerFactory
@@ -65,12 +68,44 @@ class ClockedTaskTestCase(
     def test_create_clocked_task(self):
         task_serialized_data = ClockedTaskSerializer(instance=self.clocked_tasks[0]).data
         task_serialized_data.pop("id")
+        plan_start_time = datetime.datetime.now(tz=pytz.timezone(settings.TIME_ZONE)) + datetime.timedelta(hours=1)
+        task_serialized_data["plan_start_time"] = plan_start_time.strftime("%Y-%m-%d %H:%M:%S%z")
         data = json.dumps(task_serialized_data)
         url = reverse("clocked_task-list")
         response = self.client.post(url, data=data, content_type="application/json")
         self.assertStandardSuccessResponse(response)
         new_task = ClockedTask.objects.filter(id=self.INITIAL_CLOCKED_TASK_NUMBER + 1).first()
         self.assertNotEqual(new_task, None)
+
+    def test_create_clocked_task_with_multiple_appoint_method(self):
+        task_serialized_data = ClockedTaskSerializer(instance=self.clocked_tasks[0]).data
+        task_serialized_data.pop("id")
+        plan_start_time = datetime.datetime.now(tz=pytz.timezone(settings.TIME_ZONE)) + datetime.timedelta(hours=1)
+        task_serialized_data["plan_start_time"] = plan_start_time.strftime("%Y-%m-%d %H:%M:%S%z")
+        task_serialized_data["task_parameters"] = {
+            "constants": {},
+            "exclude_task_nodes_id": [],
+            "template_schemes_id": [1],
+            "appoint_task_nodes_id": ["node1"],
+        }
+        data = json.dumps(task_serialized_data)
+        url = reverse("clocked_task-list")
+        response = self.client.post(url, data=data, content_type="application/json")
+        self.assertEqual(response.status_code, 400)
+        res_data = json.loads(response.content)
+        self.assertEqual(res_data["result"], False)
+
+    def test_create_clocked_task_start_time_earlier_than_now(self):
+        task_serialized_data = ClockedTaskSerializer(instance=self.clocked_tasks[0]).data
+        task_serialized_data.pop("id")
+        plan_start_time = datetime.datetime.now(tz=pytz.timezone(settings.TIME_ZONE)) - datetime.timedelta(hours=1)
+        task_serialized_data["plan_start_time"] = plan_start_time.strftime("%Y-%m-%d %H:%M:%S%z")
+        data = json.dumps(task_serialized_data)
+        url = reverse("clocked_task-list")
+        response = self.client.post(url, data=data, content_type="application/json")
+        self.assertEqual(response.status_code, 400)
+        res_data = json.loads(response.content)
+        self.assertEqual(res_data["result"], False)
 
     def test_update_clocked_task(self):
         task_id = 1
