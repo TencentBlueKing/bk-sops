@@ -382,9 +382,11 @@ const task = {
          */
         getNodeExecutionRecordLog ({ commit }, data) {
             const { project_id } = store.state.project
-            const { history_id, instance_id, node_id } = data
+            const { history_id, instance_id, node_id, page = 1, page_size = 30 } = data
             return axios.get(`taskflow/api/nodes/log/${project_id}/${node_id}/`, {
                 params: {
+                    page,
+                    page_size,
                     history_id,
                     instance_id
                 }
@@ -393,8 +395,13 @@ const task = {
         // 获取v2引擎的节点日志
         getEngineVerNodeLog ({ commit }, data) {
             const { project_id } = store.state.project
-            const { node_id, version, instance_id: task_id } = data
-            return axios.get(`taskflow/api/engine_v2/node_log/${project_id}/${task_id}/${node_id}/${version}/`).then(response => response.data)
+            const { node_id, version, instance_id: task_id, page = 1, page_size = 30 } = data
+            return axios.get(`taskflow/api/engine_v2/node_log/${project_id}/${task_id}/${node_id}/${version}/`, {
+                params: {
+                    page,
+                    page_size
+                }
+            }).then(response => response.data)
         },
         /**
          * 获取节点执行信息
