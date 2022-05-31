@@ -144,7 +144,7 @@
             branchType: {
                 handler (val) {
                     if (val === 'default') {
-                        this.conditionName = i18n.t('其他')
+                        this.conditionName = i18n.t('默认')
                     } else {
                         this.conditionName = this.conditionData.name
                     }
@@ -181,7 +181,7 @@
                             nodeId,
                             overlayId,
                             loc,
-                            value: this.expression.trim(),
+                            value: this.branchType === 'default' ? undefined : this.expression.trim(),
                             name: this.conditionName
                         }
                         if (this.branchType === 'default') {

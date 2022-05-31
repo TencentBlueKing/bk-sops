@@ -74,7 +74,7 @@
         },
         methods: {
             ...mapMutations('template/', [
-                'setBranchCondition'
+                'setPipelineTree'
             ]),
             ...mapActions('task/', [
                 'getTaskInstanceData'
@@ -96,11 +96,9 @@
                     this.templateId = template_id
                     this.templateSource = template_source
                     this.instanceActions = auth_actions
-                    // 将网关配置存起来（判断是否默认网关分支）
+                    // 将节点树存起来
                     const pipelineData = JSON.parse(pipeline_tree)
-                    Object.values(pipelineData.gateways).forEach(value => {
-                        this.setBranchCondition(value)
-                    })
+                    this.setPipelineTree(pipelineData)
                     // 职能化任务通过普通任务执行链接访问时，重定向到职能化任务链接
                     if (this.$route.name === 'taskExecute' && flow_type === 'common_func') {
                         this.$router.replace({

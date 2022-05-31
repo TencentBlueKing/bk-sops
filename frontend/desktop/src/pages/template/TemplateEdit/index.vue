@@ -368,6 +368,10 @@
                     if (item.conditions) {
                         branchConditions[item.id] = Object.assign({}, item.conditions)
                     }
+                    if (item.default_condition) {
+                        const nodeId = item.default_condition.flow_id
+                        branchConditions[item.id][nodeId] = item.default_condition
+                    }
                 }
                 return {
                     activities: this.activities,
