@@ -195,6 +195,6 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
                 instance.modify_constants(serializer.validated_data["constants"])
             if "name" in serializer.validated_data:
                 instance.task.name = serializer.validated_data["name"]
-                instance.task.save()
+                instance.task.save(update_fields=["name"])
 
         return Response(PeriodicTaskReadOnlySerializer(instance=instance).data)
