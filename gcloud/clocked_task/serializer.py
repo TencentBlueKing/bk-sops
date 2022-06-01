@@ -31,6 +31,8 @@ class ClockedTaskSerializer(serializers.ModelSerializer):
     creator = serializers.CharField(help_text="计划任务创建人", read_only=True)
     editor = serializers.CharField(help_text="计划任务编辑人", read_only=True)
     plan_start_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S%z")
+    create_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S%z", read_only=True)
+    edit_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S%z", read_only=True)
 
     def get_task_parameters(self, obj) -> Dict[str, Any]:
         if not getattr(obj, "task_params") or not obj.task_params:
