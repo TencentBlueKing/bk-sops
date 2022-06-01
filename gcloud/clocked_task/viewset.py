@@ -95,4 +95,5 @@ class ClockedTaskViewSet(ApiMixin, IAMMixin, viewsets.ModelViewSet):
             new_plan_start_time = validated_data["plan_start_time"]
             instance.modify_clock(new_plan_start_time)
         kwargs["partial"] = True
+        request.data["editor"] = request.user.username
         return super().update(request, *args, **kwargs)
