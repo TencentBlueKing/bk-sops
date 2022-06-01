@@ -143,6 +143,7 @@
                 <batch-update-dialog
                     v-if="isBatchUpdateDialogShow"
                     :project-id="project_id"
+                    :common="common"
                     :list="subflowShouldUpdated"
                     @globalVariableUpdate="globalVariableUpdate"
                     @close="closeBatchUpdateDialog">
@@ -416,11 +417,10 @@
                         if (!this.activities[nodeId]) {
                             return acc
                         }
-                        const { scheme_id_list = [], template_source } = this.activities[nodeId]
+                        const { scheme_id_list = [] } = this.activities[nodeId]
                         acc.push({
                             ...cur,
-                            scheme_id_list,
-                            template_source: template_source === 'common' ? 'common' : 'project'
+                            scheme_id_list
                         })
                         return acc
                     }, [])

@@ -145,7 +145,11 @@
             NoData
         },
         props: {
-            projectId: Number,
+            projectId: [Number, String],
+            common: {
+                type: String,
+                default: ''
+            },
             list: {
                 type: Array,
                 default () {
@@ -203,7 +207,7 @@
                                 nodeId: item.subprocess_node_id,
                                 version: item.version,
                                 scheme_id_list: item.scheme_id_list,
-                                template_source: item.template_source
+                                template_source: this.common ? 'common' : 'project'
                             })
                         }
                     })
