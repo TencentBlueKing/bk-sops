@@ -13,11 +13,13 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from django.db import transaction
 from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework.pagination import LimitOffsetPagination
 
+from gcloud.core.models import Project
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 from pipeline.exceptions import PipelineException
 
@@ -29,7 +31,11 @@ from gcloud.common_template.models import CommonTemplate
 from gcloud.template_base.utils import replace_template_id
 from gcloud.utils.strings import standardize_name
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
-from gcloud.core.apis.drf.serilaziers.periodic_task import PeriodicTaskSerializer, CreatePeriodicTaskSerializer
+from gcloud.core.apis.drf.serilaziers.periodic_task import (
+    PeriodicTaskReadOnlySerializer,
+    CreatePeriodicTaskSerializer,
+    PatchUpdatePeriodicTaskSerializer,
+)
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta
@@ -47,6 +53,9 @@ logger = logging.getLogger("root")
 class PeriodicTaskPermission(IamPermission):
     actions = {
         "update": IamPermissionInfo(
+            IAMMeta.PERIODIC_TASK_EDIT_ACTION, res_factory.resources_for_periodic_task_obj, HAS_OBJECT_PERMISSION
+        ),
+        "partial_update": IamPermissionInfo(
             IAMMeta.PERIODIC_TASK_EDIT_ACTION, res_factory.resources_for_periodic_task_obj, HAS_OBJECT_PERMISSION
         ),
         "retrieve": IamPermissionInfo(
@@ -85,7 +94,7 @@ class PeriodicTaskFilter(AllLookupSupportFilterSet):
 
 class PeriodicTaskViewSet(GcloudModelViewSet):
     queryset = PeriodicTask.objects.all()
-    serializer_class = PeriodicTaskSerializer
+    serializer_class = PeriodicTaskReadOnlySerializer
     filter_class = PeriodicTaskFilter
     pagination_class = LimitOffsetPagination
     iam_resource_helper = ViewSetResourceHelper(
@@ -166,5 +175,26 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
         serializer.is_valid(raise_exception=True)
         self._handle_serializer(request, serializer)
         instance = PeriodicTask.objects.update(instance, **serializer.validated_data)
-        instance.set_enabled(True)
-        return Response(serializer.data)
+        return Response(PeriodicTaskReadOnlySerializer(instance=instance).data)
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.enabled:
+            raise APIException(
+                detail="can not modify cron when task is enabled", code=err_code.REQUEST_PARAM_INVALID.code
+            )
+
+        serializer = PatchUpdatePeriodicTaskSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        with transaction.atomic():
+            if "cron" in serializer.validated_data:
+                project = Project.objects.filter(id=serializer.validated_data["project"]).first()
+                instance.modify_cron(serializer.validated_data["cron"], project.time_zone)
+            if "constants" in serializer.validated_data:
+                instance.modify_constants(serializer.validated_data["constants"])
+            if "name" in serializer.validated_data:
+                instance.task.name = serializer.validated_data["name"]
+                instance.task.save(update_fields=["name"])
+
+        return Response(PeriodicTaskReadOnlySerializer(instance=instance).data)
