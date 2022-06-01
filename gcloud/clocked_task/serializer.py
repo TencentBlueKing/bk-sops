@@ -25,6 +25,7 @@ from gcloud.utils.drf.serializer import ReadWriteSerializerMethodField
 class ClockedTaskSerializer(serializers.ModelSerializer):
     task_parameters = ReadWriteSerializerMethodField(help_text="任务创建相关数据")
     creator = serializers.CharField(help_text="计划任务创建人", read_only=True)
+    editor = serializers.CharField(help_text="计划任务编辑人", read_only=True)
     plan_start_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S%z")
 
     def get_task_parameters(self, obj) -> Dict[str, Any]:
