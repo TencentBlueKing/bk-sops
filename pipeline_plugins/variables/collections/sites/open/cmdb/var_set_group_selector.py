@@ -138,7 +138,7 @@ class VarSetGroupSelector(LazyVariable, SelfExplainVariable):
         获取该变量中对应属性值
         """
         if "executor" not in self.pipeline_data or "biz_cc_id" not in self.pipeline_data:
-            return "ERROR: executor and biz_cc_id of pipeline is needed"
+            raise Exception("ERROR: executor and biz_cc_id of pipeline is needed")
         operator = self.pipeline_data.get("executor", "")
         bk_biz_id = int(self.pipeline_data.get("biz_cc_id", 0))
         bk_group_id = self.value
