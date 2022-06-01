@@ -216,6 +216,14 @@
             id: 'creator',
             label: i18n.t('创建人'),
             width: 150
+        }, {
+            id: 'create_time',
+            label: i18n.t('创建时间'),
+            width: 200
+        }, {
+            id: 'edit_time',
+            label: i18n.t('更新时间'),
+            width: 200
         }
     ]
     export default {

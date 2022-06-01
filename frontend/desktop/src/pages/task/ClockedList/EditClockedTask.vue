@@ -6,7 +6,6 @@
             :is-show.sync="isShowSideslider"
             :quick-close="true"
             :before-close="onCloseConfig">
-            
             <div slot="header">
                 <div class="preview-header" v-if="isPreview && previewScheme">
                     <span @click="isPreview = false">{{ sideSliderTitle }}</span>
@@ -29,22 +28,21 @@
                 </div>
             </template>
             <div slot="content" v-show="!isPreview">
+                <bk-alert type="info" :title="$t('计划任务在执行时获取最新的流程和执行方案数据创建任务，流程和方案变更将影响未执行的计划任务，如增加参数可能导致计划任务启动失败。')"></bk-alert>
                 <section class="config-section">
-                    <p class="title">{{$t('基础信息')}}</p>
+                    <p class="title mt0">{{$t('流程')}}</p>
                     <bk-form
                         :label-width="90"
                         ref="basicConfigForm"
                         :model="formData"
                         :rules="rules">
-                        <bk-form-item :label="$t('计划名称')" :required="true" property="taskName">
-                            <bk-input :clearable="true" v-model="formData.task_name"></bk-input>
-                        </bk-form-item>
                         <bk-form-item :label="$t('流程模板')" :required="true" property="flow">
                             <bk-select
                                 v-model="formData.template_id"
                                 :searchable="true"
                                 :placeholder="$t('请选择')"
                                 :clearable="false"
+                                :disabled="type === 'edit'"
                                 v-bkloading="{ isLoading: templateLoading, size: 'small', extCls: 'template-loading' }"
                                 @clear="onClearTemplate"
                                 @selected="onSelectTemplate">
@@ -66,10 +64,11 @@
                         <bk-form-item :label="$t('执行方案')" property="scheme">
                             <div class="scheme-wrapper">
                                 <bk-select
-                                    v-model="formData.scheme"
+                                    v-model="formData.schemeId"
                                     :searchable="true"
                                     :placeholder="$t('请选择')"
                                     :clearable="true"
+                                    :multiple="true"
                                     :disabled="!formData.template_id"
                                     :loading="isLoading || schemeLoading"
                                     @clear="onClearScheme"
@@ -84,12 +83,16 @@
                                     </bk-option>
                                 </bk-select>
                                 <bk-button
-                                    theme="primary"
+                                    theme="default"
                                     :disabled="isLoading || !formData.template_id"
                                     @click="togglePreviewMode">
                                     {{ $t('预览') }}
                                 </bk-button>
                             </div>
+                        </bk-form-item>
+                        <p class="title">{{$t('任务信息')}}</p>
+                        <bk-form-item :label="$t('计划名称')" :required="true" property="taskName">
+                            <bk-input :clearable="true" v-model="formData.task_name"></bk-input>
                         </bk-form-item>
                         <bk-form-item :label="$t('启动时间')" :required="true" property="startTime">
                             <bk-date-picker
@@ -148,7 +151,7 @@
                         theme="default"
                         :disabled="saveLoading"
                         data-test-id="clockedList_form_cancelBtn"
-                        @click="onCloseConfig">
+                        @click="onCancelSave">
                         {{ $t('取消') }}
                     </bk-button>
                 </div>
@@ -179,6 +182,7 @@
     import TaskParamEdit from '../TaskParamEdit.vue'
     import NotifyTypeConfig from '@/pages/template/TemplateEdit/TemplateSetting/NotifyTypeConfig.vue'
     import permission from '@/mixins/permission.js'
+    import tools from '@/utils/tools.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import NodePreview from '@/pages/task/NodePreview.vue'
     export default {
@@ -209,17 +213,18 @@
             const {
                 task_name = '',
                 plan_start_time = '',
-                template_name = '',
-                template_id = ''
+                template_id = '',
+                task_parameters = {}
             } = this.curRow
+            const taskName = this.type === 'clone' ? task_name + '_clone' : task_name
             return {
                 formData: {
-                    template_name,
                     template_id,
-                    task_name,
-                    plan_start_time
+                    task_name: taskName,
+                    plan_start_time,
+                    schemeId: task_parameters.template_schemes_id || [0]
                 },
-                initPlanStartTime: plan_start_time,
+                initFormData: {},
                 pickerOptions: {
                     disabledDate (date) {
                         return date.getTime() + 86400000 < Date.now()
@@ -306,7 +311,7 @@
         },
         computed: {
             sameTimeStamp () {
-                const initTimeStamp = new Date(this.initPlanStartTime).getTime()
+                const initTimeStamp = new Date(this.formData.plan_start_time).getTime()
                 const curTimeStamp = new Date(this.formData.plan_start_time).getTime()
                 return initTimeStamp === curTimeStamp
             },
@@ -316,16 +321,22 @@
                         : i18n.t('克隆计划任务')
             },
             previewScheme () {
-                const schemeId = this.formData.scheme
-                if (!schemeId) return ''
-                const schemeInfo = this.schemeList.find(item => item.id === schemeId)
-                return i18n.t('预览') + '：' + schemeInfo.name
+                const schemeId = this.formData.schemeId
+                if (!schemeId.length) return ''
+                const schemeNames = this.schemeList.reduce((acc, cur) => {
+                    if (schemeId.includes(cur.id)) {
+                        acc.push(cur.name)
+                    }
+                    return acc
+                }, [])
+                return i18n.t('预览') + '：' + schemeNames.join(' , ')
             },
             isLoading () {
                 return this.templateLoading || this.templateDataLoading
             }
         },
         async created () {
+            this.initFormData = tools.deepClone(this.formData)
             await this.getTemplateList()
             if (this.type !== 'create') {
                 const id = this.curRow.template_id
@@ -351,7 +362,7 @@
             async getTemplateList () {
                 this.templateLoading = true
                 try {
-                    const templateListData = await this.loadTemplateList({ project__id: this.project_id })
+                    const templateListData = await this.loadTemplateList({ project__id: this.project_id, limit: 10 })
                     this.templateList = templateListData.results
                 } catch (e) {
                     console.log(e)
@@ -372,7 +383,7 @@
                 }
             },
             onClearTemplate () {
-                this.formData.scheme = ''
+                this.formData.schemeId = []
                 this.schemeList = []
                 this.constants = {}
             },
@@ -385,15 +396,20 @@
                     // 获取流程模板的通知配置
                     const { notify_receivers, notify_type } = templateData
                     this.notifyType = [notify_type.success.slice(0), notify_type.fail.slice(0)]
-                    this.receiverGroup = JSON.parse(notify_receivers).receiver_group.slice(0)
+                    const receiverGroup = JSON.parse(notify_receivers).receiver_group
+                    this.receiverGroup = receiverGroup && receiverGroup.slice(0)
                     const pipelineDate = JSON.parse(templateData.pipeline_tree)
-                    this.selectedNodes = Object.keys(pipelineDate.activities)
                     this.templateData = Object.assign({}, templateData, { pipeline_tree: pipelineDate })
-                    // 新建模式拉取预览数据和流程对应的执行方案
-                    const templateInfo = this.templateList.find(item => item.id === id)
-                    await this.getPreviewNodeData(id, templateInfo.version, true)
                     // 获取模板对应的执行方案
-                    this.getTemplateScheme()
+                    await this.getTemplateScheme()
+                    if (this.formData.schemeId.length) {
+                        this.onSelectScheme(this.formData.schemeId, [])
+                    } else {
+                        this.selectedNodes = Object.keys(pipelineDate.activities)
+                        // 新建模式拉取预览数据
+                        const templateInfo = this.templateList.find(item => item.id === id)
+                        this.getPreviewNodeData(id, templateInfo.version, true)
+                    }
                 } catch (e) {
                     console.warn(e)
                 } finally {
@@ -412,6 +428,14 @@
                     this.schemeList = resp.map(item => {
                         item.isDefault = defaultScheme.includes(item.id)
                         return item
+                    })
+                    const { activities } = this.templateData.pipeline_tree
+                    const nodeList = Object.keys(activities)
+                    this.schemeList.unshift({
+                        data: JSON.stringify(nodeList),
+                        id: 0,
+                        idDefault: false,
+                        name: '<' + i18n.t('不使用执行方案') + '>'
                     })
                 } catch (e) {
                     console.log(e)
@@ -440,10 +464,24 @@
                 const { id: templateId, version } = this.templateData
                 this.getPreviewNodeData(templateId, version, true)
             },
-            onSelectScheme (id) {
-                this.formData.scheme = Number(id)
-                const schemeInfo = this.schemeList.find(item => item.id === id)
-                this.selectedNodes = JSON.parse(schemeInfo.data)
+            onSelectScheme (ids, options) {
+                // 切换执行方案时取消<不使用执行方案>
+                const lastId = options.length ? options[options.length - 1].id : undefined
+                ids = lastId === 0 ? [0] : lastId ? ids.filter(id => id) : ids
+                this.formData.schemeId = ids
+                if (ids.length) {
+                    const nodeList = this.schemeList.reduce((acc, cur) => {
+                        if (ids.includes(cur.id)) {
+                            acc.push(...JSON.parse(cur.data))
+                        }
+                        return acc
+                    }, [])
+                    this.selectedNodes = [...new Set(nodeList)]
+                } else {
+                    const { activities } = this.templateData.pipeline_tree
+                    const nodeList = Object.keys(activities)
+                    this.selectedNodes = nodeList
+                }
                 // 更新执行参数
                 const { id: templateId, version } = this.templateData
                 this.getPreviewNodeData(templateId, version, true)
@@ -585,14 +623,13 @@
                         }
                         this.saveLoading = true
                         const { task_name, plan_start_time: time } = this.formData
-                        const excludeNode = this.getExcludeNode()
                         const params = {
                             id: this.curRow.id,
                             task_name,
                             plan_start_time: this.sameTimeStamp ? undefined : time,
                             task_parameters: {
                                 constants: taskParamEdit ? taskParamEdit.renderData : {},
-                                exclude_task_nodes_id: excludeNode || []
+                                template_schemes_id: this.formData.schemeId
                             }
                         }
                         await this.updateClocked(params)
@@ -617,24 +654,19 @@
                     if (!result || !formValid) {
                         return
                     }
-                    const excludeNode = this.getExcludeNode()
-                    const testParams = {
-                        constants: {},
-                        exclude_task_nodes_id: excludeNode
+                    const taskParams = {
+                        constants: taskParamEdit.renderData || {},
+                        template_schemes_id: this.formData.schemeId
                     }
-                    const { constants } = this.previewData
-                    for (const [key, val] of Object.entries(constants)) {
-                        testParams.constants[key] = val.value
-                    }
-                    const { task_name, template_id, template_name, plan_start_time } = this.formData
+                    const { task_name, template_id, plan_start_time } = this.formData
                     const locTimeZone = new Date().toTimeString().slice(12, 17)
                     const data = {
                         id: this.curRow.id,
-                        task_parameters: testParams,
+                        task_parameters: taskParams,
                         project_id: this.project_id,
                         task_name,
                         template_id,
-                        template_name,
+                        template_name: this.templateData.name,
                         template_source: 'project',
                         notify_receivers: {
                             receiver_group: this.receiverGroup,
@@ -664,13 +696,7 @@
             onCloseConfig () {
                 const taskParamEdit = this.$refs.TaskParamEdit
                 const sameRenderData = taskParamEdit ? taskParamEdit.judgeDataEqual() : true
-                const sameFormDate = Object.keys(this.formData).every(key => {
-                    if (key === 'plan_start_time' && this.curRow[key] === this.initPlanStartTime) {
-                        return true
-                    } else if (this.curRow[key] === this.formData[key]) {
-                        return true
-                    }
-                })
+                const sameFormDate = tools.isDataEqual(this.formData, this.initFormData)
                 const same = sameFormDate && sameRenderData
                 if (same) {
                     this.onCancelSave()
@@ -711,7 +737,7 @@
 /deep/.bk-sideslider-content {
     height: calc(100% - 60px);
     position: relative;
-    padding: 0 31px 48px 28px;
+    padding: 18px 31px 48px 28px;
     overflow-y: auto;
     @include scrollbar;
 }
@@ -728,8 +754,8 @@
         color: #313238;
         font-size: 14px;
         line-height: 19px;
-        padding: 18px 0 11px;
-        margin-bottom: 24px;
+        padding: 16px 0 11px;
+        margin: 20px 0 24px;
         border-bottom: 1px solid #cacedb;
         .tip-desc {
             line-height: 1;

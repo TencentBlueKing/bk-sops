@@ -1362,7 +1362,9 @@ const en = {
     '创建': 'Create',
     '通知方式统一在流程基础信息管理。如需修改，请': 'The notification method is unified in the process basic information management. To modify, please',
     '前往流程': 'go to process',
-    '返回编辑': 'Back to edit'
+    '返回编辑': 'Back to edit',
+    '不使用执行方案': 'Do not use implementation plan',
+    '计划任务在执行时获取最新的流程和执行方案数据创建任务，流程和方案变更将影响未执行的计划任务，如增加参数可能导致计划任务启动失败。': 'When a scheduled task is executed, it obtains the latest process and execution plan data to create a task. Changes to the process and plan will affect the unexecuted scheduled task. For example, adding parameters may cause the scheduled task to fail to start.'
 }
 
 export default en
