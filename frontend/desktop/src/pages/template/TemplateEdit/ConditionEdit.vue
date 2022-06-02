@@ -140,6 +140,16 @@
                 const { name, value } = val
                 this.conditionName = name
                 this.expression = value
+            },
+            branchType: {
+                handler (val) {
+                    if (val === 'default') {
+                        this.conditionName = i18n.t('默认')
+                    } else {
+                        this.conditionName = this.conditionData.name
+                    }
+                },
+                immediate: true
             }
         },
         methods: {
@@ -171,7 +181,7 @@
                             nodeId,
                             overlayId,
                             loc,
-                            value: this.expression.trim(),
+                            value: this.branchType === 'default' ? undefined : this.expression.trim(),
                             name: this.conditionName
                         }
                         if (this.branchType === 'default') {

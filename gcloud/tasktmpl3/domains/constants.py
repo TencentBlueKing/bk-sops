@@ -66,7 +66,7 @@ def get_constant_values(constants, extra_data):
         for key, info in classified_constants.items()
     ]
     context = Context(runtime, context_values, extra_data)
-    hydrated_context = context.hydrate()
+    hydrated_context = context.hydrate(mute_error=True)
     return {**constant_values, **hydrated_context}
 
 

@@ -1364,7 +1364,17 @@ const en = {
     '前往流程': 'go to process',
     '返回编辑': 'Back to edit',
     '不使用执行方案': 'Do not use implementation plan',
-    '计划任务在执行时获取最新的流程和执行方案数据创建任务，流程和方案变更将影响未执行的计划任务，如增加参数可能导致计划任务启动失败。': 'When a scheduled task is executed, it obtains the latest process and execution plan data to create a task. Changes to the process and plan will affect the unexecuted scheduled task. For example, adding parameters may cause the scheduled task to fail to start.'
+    '计划任务在执行时获取最新的流程和执行方案数据创建任务，流程和方案变更将影响未执行的计划任务，如增加参数可能导致计划任务启动失败。': 'When a scheduled task is executed, it obtains the latest process and execution plan data to create a task. Changes to the process and plan will affect the unexecuted scheduled task. For example, adding parameters may cause the scheduled task to fail to start.',
+    '未能重用': 'Failed to reuse',
+    '重用规则': 'Reuse rules',
+    '参数值为非字典类型，KEY&类型前后一致才可重用': 'The parameter value is a non-dictionary type, and the KEY& type can only be reused if it is consistent',
+    '参数值为字典类型，还需要字典内的key前后一致才可重用': 'The parameter value is a dictionary type, and the keys in the dictionary need to be consistent before they can be reused',
+    '元变量还需元数据配置一致才可重用': 'Metavariables also require consistent metadata configuration before they can be reused',
+    '不满足重用规则时使用流程默认值': 'Use process defaults when reuse rules are not met',
+    '使用流程的最新数据再次创建任务，可重用当前参数': 'Create the task again with the latest data from the process, reusing the current parameters',
+    '使用流程默认参数值': 'Use process default parameter values',
+    '重用当前任务参数值': 'Reuse the current task parameter value'
+
 }
 
 export default en

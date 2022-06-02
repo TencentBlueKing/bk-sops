@@ -22,8 +22,25 @@ from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.shortcuts.message import send_clocked_task_message
+from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 
 logger = logging.getLogger("celery")
+
+
+def parse_exclude_task_nodes_id_from_params(template, task_params):
+    if task_params.get("exclude_task_nodes_id"):
+        return task_params["exclude_task_nodes_id"]
+    exclude_task_nodes_id = []
+    pipeline_tree = template.pipeline_tree
+    if task_params.get("appoint_task_nodes_id"):
+        exclude_task_nodes_id = PipelineTemplateWebPreviewer.get_template_exclude_task_nodes_with_appoint_nodes(
+            pipeline_tree, task_params["appoint_task_nodes_id"]
+        )
+    elif task_params.get("template_schemes_id"):
+        exclude_task_nodes_id = PipelineTemplateWebPreviewer.get_template_exclude_task_nodes_with_schemes(
+            pipeline_tree, task_params["template_schemes_id"], check_schemes_exist=True
+        )
+    return exclude_task_nodes_id
 
 
 @task
@@ -34,23 +51,24 @@ def clocked_task_start(clocked_task_id, *args, **kwargs):
         # task has been deleted
         logger.warning(f"[clocked_task_start] clocked task {clocked_task_id} not found, may be deleted.")
         return
-    task_params = json.loads(clocked_task.task_params)
-    pipeline_instance_kwargs = {
-        "name": clocked_task.task_name,
-        "creator": clocked_task.creator,
-        "description": task_params.get("description", ""),
-    }
     try:
+        task_params = json.loads(clocked_task.task_params)
+        pipeline_instance_kwargs = {
+            "name": clocked_task.task_name,
+            "creator": clocked_task.creator,
+            "description": task_params.get("description", ""),
+        }
+        project = Project.objects.get(id=clocked_task.project_id)
+        template = TaskTemplate.objects.select_related("pipeline_template").get(
+            id=clocked_task.template_id, project_id=project.id, is_deleted=False
+        )
+        exclude_task_nodes_id = parse_exclude_task_nodes_id_from_params(template, task_params)
         with transaction.atomic():
-            project = Project.objects.get(id=clocked_task.project_id)
-            template = TaskTemplate.objects.select_related("pipeline_template").get(
-                id=clocked_task.template_id, project_id=project.id, is_deleted=False
-            )
             data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
                 template,
                 pipeline_instance_kwargs,
                 task_params.get("constants"),
-                task_params.get("exclude_task_nodes_id"),
+                exclude_task_nodes_id,
                 task_params.get("simplify_vars"),
             )
             taskflow_instance = TaskFlowInstance.objects.create(

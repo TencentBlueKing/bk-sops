@@ -19,8 +19,8 @@
 
 | 参数名称          | 参数类型  | 必须 |     参数说明     |
 |---------------|-------|--| ---------------- |
-| constants     | dict  | 是 |  计划任务参数，对应变量key和value，默认为 `{}` |
-| exclude_task_nodes_id    | list     | 是 | 计划任务跳过执行的节点ID列表，默认为 `[]` |
+| constants     | dict  | 否 |  计划任务参数，对应变量key和value，默认为 `{}` |
+| template_schemes_id    | list     | 否 | 计划任务使用的执行方案列表，默认为 `[]`，代表执行所有流程节点 |
 
 #### constants KEY
 
@@ -45,7 +45,7 @@
     "plan_start_time": "2022-05-16 20:26:40+0800",
     "task_parameters": {
         "constants": {},
-        "exclude_task_nodes_id": []
+        "template_schemes_id": []
     },
 }
 ```
@@ -59,7 +59,7 @@
         "id": 72,
         "task_parameters": {
             "constants": {},
-            "exclude_task_nodes_id": []
+            "template_schemes_id": []
         },
         "creator": "",
         "plan_start_time": "2022-05-16 20:26:40+0800",

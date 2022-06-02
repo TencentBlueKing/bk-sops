@@ -70,7 +70,7 @@ def create_clocked_task(request, template_id, project_id):
             "project_id": project.id,
             "template_name": template.name,
             "template_source": PROJECT,
-            "task_parameters": {"constants": {}, "exclude_task_nodes_id": []},
+            "task_parameters": {"constants": {}, "template_schemes_id": []},
         }
         params.update(request_params)
 

@@ -108,6 +108,19 @@
                     <span>
                         {{ $t('参数信息') }}
                     </span>
+                    <span v-if="reuseTaskId" class="reuse-tip">
+                        <bk-popover placement="top-start" theme="light" width="350" :ext-cls="'reuse-rule-tip'">
+                            <i class="bk-icon icon-question-circle"></i>
+                            <div slot="content">
+                                <p>{{ $t('重用规则') }}</p><br>
+                                <p>{{ $t('参数值为非字典类型，KEY&类型前后一致才可重用') }}</p>
+                                <p>{{ $t('参数值为字典类型，还需要字典内的key前后一致才可重用') }}</p>
+                                <p>{{ $t('元变量还需元数据配置一致才可重用') }}</p>
+                                <p>{{ $t('不满足重用规则时使用流程默认值') }}</p>
+                            </div>
+                        </bk-popover>
+                        {{ $t('重用规则') }}
+                    </span>
                 </div>
                 <div>
                     <ParameterInfo
@@ -269,6 +282,9 @@
             },
             isCustomizeType () {
                 return this.$route.query.type === 'customize'
+            },
+            reuseTaskId () {
+                return this.$route.query.task_id
             }
         },
         created () {
@@ -418,7 +434,12 @@
                 const url = {
                     name: 'taskCreate',
                     params: { project_id: this.project_id, step: 'selectnode' },
-                    query: { 'template_id': this.template_id, common: this.common || undefined, entrance: this.entrance || undefined }
+                    query: {
+                        'template_id': this.template_id,
+                        common: this.common || undefined,
+                        entrance: this.entrance || undefined,
+                        task_id: this.reuseTaskId || undefined
+                    }
                 }
                 if (this.entrance !== 'function') {
                     this.$emit('setFunctionalStep', false)
@@ -738,6 +759,18 @@
         color: #313238;
         border-bottom: 1px solid #cacedb;
         margin-bottom: 30px;
+        .reuse-tip {
+            color: #3a84ff;
+            font-size: 12px;
+            font-weight: normal;
+            margin-left: 25px;
+            .bk-tooltip {
+                line-height: 1;
+            }
+            .icon-question-circle {
+                font-size: 14px;
+            }
+        }
     }
     .common-form-item {
         label {
