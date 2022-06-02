@@ -97,11 +97,9 @@
                                     v-model="formData.schemeId"
                                     :searchable="true"
                                     :placeholder="$t('请选择')"
-                                    :clearable="true"
                                     :multiple="true"
                                     :disabled="formData.is_latest !== true || !formData.template_id"
                                     :loading="isLoading || schemeLoading"
-                                    @clear="onClearScheme"
                                     @selected="onSelectScheme">
                                     <bk-option
                                         v-for="(option, index) in schemeList"
@@ -113,7 +111,7 @@
                                     </bk-option>
                                 </bk-select>
                                 <bk-button
-                                    v-if="formData.is_latest === false"
+                                    v-if="formData.is_latest !== null"
                                     theme="default"
                                     :disabled="isLoading || !formData.template_id"
                                     @click="togglePreviewMode">
@@ -247,8 +245,9 @@
                 is_latest = '',
                 task_template_name = '',
                 template_id = '',
-                template_scheme_ids: schemeId = []
+                template_scheme_ids = []
             } = this.curRow
+            const schemeId = template_scheme_ids || []
             return {
                 formData: {
                     name,
@@ -319,10 +318,9 @@
                 },
                 periodicCronImg: require('@/assets/images/' + i18n.t('task-zh') + '.png'),
                 periodicConstants: {},
-                isUpdateTask: false, // 标识是否为更新任务
                 isShowDialog: false,
                 updateLoading: false,
-                isReplaceTree: false // pipeline_tree是否被更新替换
+                isUpdatePipelineTree: false // pipeline_tree是否被更新替换
             }
         },
         computed: {
@@ -425,7 +423,8 @@
                     // 获取模板对应的执行方案
                     await this.getTemplateScheme()
                     if (this.formData.schemeId) {
-                        this.onSelectScheme(this.formData.schemeId, [], !this.isEdit)
+                        this.onSelectScheme(this.formData.schemeId, [], false)
+                        this.isUpdatePipelineTree = false
                     } else if (!this.isEdit) {
                         const templateInfo = this.templateList.find(item => item.id === id)
                         await this.getPreviewNodeData(id, templateInfo.version, true)
@@ -482,13 +481,8 @@
                     console.error(error)
                 }
             },
-            onClearScheme () {
-                // 更新执行参数
-                const { id: templateId, version } = this.templateData
-                this.getPreviewNodeData(templateId, version, true)
-            },
             onSelectScheme (ids, options, updateConstants = true) {
-                this.isReplaceTree = true
+                this.isUpdatePipelineTree = true
                 // 切换执行方案时取消<不使用执行方案>
                 const lastId = options.length ? options[options.length - 1].id : undefined
                 ids = lastId === 0 ? [0] : lastId ? ids.filter(id => id) : ids
@@ -507,15 +501,21 @@
                     this.selectedNodes = nodeList
                 }
                 // 更新执行参数
-                const { id: templateId, version } = this.templateData
+                const { id: templateId, version: latestVersion } = this.templateData
+                const version = this.formData.is_latest ? latestVersion : this.curRow.template_version
                 this.getPreviewNodeData(templateId, version, updateConstants)
             },
             togglePreviewMode () {
                 this.previewBread = []
                 this.isPreview = true
-                const { id, name, version } = this.templateData
-                this.previewBread.push({ id, name, version })
-                this.getPreviewNodeData(id, version)
+                if (this.formData.is_latest) {
+                    const { id, name, version } = this.templateData
+                    this.previewBread.push({ id, name, version })
+                    this.getPreviewNodeData(id, version)
+                } else {
+                    const { template_id: id, task_template_name: name, template_version: version } = this.curRow
+                    this.previewBread.push({ id, name, version })
+                }
             },
             /**
              * 获取画布预览节点和全局变量表单项(接口已去掉未选择的节点、未使用的全局变量)
@@ -625,10 +625,22 @@
                 })
                 window.open(href, '_blank')
             },
-            onUpdatePeriodicTask () {
-                this.isUpdateTask = true
-                // 借用保存方法的周期校验和执行参数校验
-                this.onPeriodicConfirm()
+            async onUpdatePeriodicTask () {
+                try {
+                    this.updateLoading = true
+                    this.isUpdatePipelineTree = true
+                    const { id, version } = this.templateData
+                    await this.getPreviewNodeData(id, version, true)
+                    this.formData.is_latest = true
+                    this.$bkMessage({
+                        'message': i18n.t('流程更新成功'),
+                        'theme': 'success'
+                    })
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.updateLoading = false
+                }
             },
             onCancelSave () {
                 this.isShowDialog = false
@@ -661,7 +673,7 @@
                     if (!result || !formValid) {
                         return
                     }
-                    this.saveLoading = !this.isUpdateTask
+                    this.saveLoading = true
                     const jsonCron = {
                         'minute': cronArray[0],
                         'hour': cronArray[1],
@@ -678,12 +690,6 @@
                         constants
                     }
 
-                    if (this.isUpdateTask) { // 确认更新流程模板
-                        this.updateLoading = true
-                        this.confirmUpdatedTask(jsonCron, constantsData)
-                        return
-                    }
-
                     if (this.isEdit) { // 确认编辑周期任务
                         this.onModifyPeriodicTask(jsonCron, constantsData)
                     } else { // 确认创建周期任务
@@ -696,8 +702,18 @@
                     const same = this.judgeDataEqual()
                     if (same) {
                         this.$emit('onCancelSave')
-                    } else if (this.isReplaceTree) { // pipeline_tree被更新替换，调update接口
-                        await this.confirmUpdatedTask(jsonCron, constantsData)
+                    } else if (this.isUpdatePipelineTree) { // pipeline_tree被更新替换，调update接口
+                        const schemeIds = this.formData.schemeId.filter(id => id)
+                        const params = {
+                            taskId: this.taskId,
+                            project: this.project_id,
+                            cron: jsonCron,
+                            name: this.formData.name,
+                            template_id: this.curRow.template_id,
+                            template_scheme_ids: schemeIds,
+                            pipeline_tree: JSON.stringify(constantsData)
+                        }
+                        await this.updatePeriodicTask(params)
                         this.$emit('onConfirmSave')
                     } else { // 修改周期任务部分配置，调patch接口
                         const params = {
@@ -710,45 +726,14 @@
                         await this.updatePeriodicPartial(params)
                         this.$emit('onConfirmSave')
                     }
-                    if (!this.isReplaceTree) {
-                        this.$bkMessage({
-                            'message': i18n.t('流程更新成功'),
-                            'theme': 'success'
-                        })
-                    }
-                } catch (error) {
-                    console.warn(error)
-                } finally {
-                    this.saveLoading = false
-                }
-            },
-            // 更新流程模板
-            async confirmUpdatedTask (cronData, constantsData) {
-                try {
-                    const schemeIds = this.formData.schemeId.filter(id => id)
-                    const params = {
-                        taskId: this.taskId,
-                        project: this.project_id,
-                        cron: cronData,
-                        name: this.formData.name,
-                        template_id: this.curRow.template_id,
-                        template_scheme_ids: schemeIds,
-                        pipeline_tree: JSON.stringify(constantsData)
-                    }
-                    const templateData = await this.updatePeriodicTask(params)
-                    this.periodicConstants = templateData.form
-                    this.formData.is_latest = true
-                    this.isReplaceTree = false
                     this.$bkMessage({
                         'message': i18n.t('流程更新成功'),
                         'theme': 'success'
                     })
-                    this.$emit('onUpdateTask', this.curRow)
-                } catch (e) {
-                    console.log(e)
+                } catch (error) {
+                    console.warn(error)
                 } finally {
-                    this.updateLoading = false
-                    this.isUpdateTask = false
+                    this.saveLoading = false
                 }
             },
             // 创建周期任务
