@@ -381,7 +381,7 @@
             async getTemplateList () {
                 this.templateLoading = true
                 try {
-                    const templateListData = await this.loadTemplateList({ project__id: this.project_id, limit: 10 })
+                    const templateListData = await this.loadTemplateList({ project__id: this.project_id })
                     this.templateList = templateListData.results
                 } catch (e) {
                     console.log(e)
