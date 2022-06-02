@@ -38,7 +38,7 @@ def parse_exclude_task_nodes_id_from_params(template, task_params):
         )
     elif task_params.get("template_schemes_id"):
         exclude_task_nodes_id = PipelineTemplateWebPreviewer.get_template_exclude_task_nodes_with_schemes(
-            pipeline_tree, task_params["template_schemes_id"]
+            pipeline_tree, task_params["template_schemes_id"], check_schemes_exist=True
         )
     return exclude_task_nodes_id
 

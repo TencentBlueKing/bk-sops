@@ -61,6 +61,8 @@ class PeriodicTaskReadOnlySerializer(serializers.ModelSerializer):
     task = PipelinePeriodicTaskSerializer()
     project = ProjectSerializer()
     last_run_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S %z", read_only=True)
+    create_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S %z", read_only=True)
+    edit_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S %z", read_only=True)
     is_latest = serializers.SerializerMethodField(help_text="版本是否最新", read_only=True)
     template_scheme_ids = serializers.SerializerMethodField(
         help_text="任务创建时执行方案列表，任务创建以pipeline_tree为准，仅供参考", read_only=True
@@ -97,6 +99,7 @@ class PeriodicTaskReadOnlySerializer(serializers.ModelSerializer):
             "pipeline_tree",
             "is_latest",
             "template_scheme_ids",
+            "template_version",
         ]
 
 

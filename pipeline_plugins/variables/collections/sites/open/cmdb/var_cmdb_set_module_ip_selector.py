@@ -132,7 +132,7 @@ class SetModuleIpSelector(LazyVariable, SelfExplainVariable):
 
         else:
             # 输入ip方式不存在
-            logger.error("[SetModuleIpSelector.get_value] input ip method: {} not exit".format(produce_method))
+            logger.error("[SetModuleIpSelector.get_value] input ip method: {} not exist".format(produce_method))
             data = ""
         return data
 
