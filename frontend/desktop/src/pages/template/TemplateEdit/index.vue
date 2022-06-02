@@ -31,6 +31,7 @@
                 :execute-scheme-saving="executeSchemeSaving"
                 @onDownloadCanvas="onDownloadCanvas"
                 @goBackViewMode="goBackViewMode"
+                @setTplTab="setTplTab"
                 @goBackToTplEdit="goBackToTplEdit"
                 @onClosePreview="onClosePreview"
                 @onOpenExecuteScheme="onOpenExecuteScheme"
@@ -337,7 +338,8 @@
                 envVariableData: {},
                 validateConnectFailList: [], // 节点校验失败列表
                 isPerspective: false, // 流程是否透视
-                nodeVariableInfo: {} // 节点输入输出变量
+                nodeVariableInfo: {}, // 节点输入输出变量
+                recordTplTab: false // 是否已经记录当前打开的tab页
             }
         },
         computed: {
@@ -487,13 +489,14 @@
             this.openSnapshootTimer()
             window.addEventListener('beforeunload', this.handleBeforeUnload, false)
             window.addEventListener('unload', this.handleUnload.bind(this), false)
-            if (this.type === 'edit' || this.type === 'view') {
+            if (this.type === 'edit') {
                 const data = this.getTplTabData()
                 tplTabCount.setTab(data, 'add')
+                this.recordTplTab = true
             }
         },
         beforeDestroy () {
-            if (this.type === 'edit' || this.type === 'view') {
+            if (this.type === 'edit') {
                 const data = this.getTplTabData()
                 tplTabCount.setTab(data, 'del')
             }
@@ -1421,6 +1424,13 @@
             goBackViewMode () {
                 this.isBackViewMode = true
                 this.isExecuteSchemeDialog = true
+            },
+            setTplTab () {
+                if (!this.recordTplTab) {
+                    const data = this.getTplTabData()
+                    tplTabCount.setTab(data, 'add')
+                    this.recordTplTab = true
+                }
             },
             goBackToTplEdit () {
                 const { isDefaultSchemeIng, judgeDataEqual } = this.$refs.taskSelectNode

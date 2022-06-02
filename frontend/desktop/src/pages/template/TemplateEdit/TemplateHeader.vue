@@ -267,6 +267,7 @@
                     params: { ...params, type: 'edit' },
                     query
                 })
+                this.$emit('setTplTab')
             },
             /**
              * 保存按钮，新建/保存并新建任务按钮点击
