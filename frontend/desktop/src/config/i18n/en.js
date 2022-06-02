@@ -1368,7 +1368,18 @@ const en = {
     '返回编辑': 'Back to edit',
     '周期任务根据创建时的流程和执行方案数据生成快照保存，流程变更后不影响周期任务，可手动更新到使用流程最新数据。': 'Periodic tasks generate snapshots and save according to the process and execution plan data at the time of creation. After the process is changed, it does not affect the periodic tasks, and can be manually updated to use the latest data of the process.',
     '不使用执行方案': 'Do not use implementation',
-    '当前流程非最新，执行方案不可更改，请先更新流程': '当前流程非最新，执行方案不可更改，请先更新流程'
+    '当前流程非最新，执行方案不可更改，请先更新流程': '当前流程非最新，执行方案不可更改，请先更新流程',
+    '未能重用': 'Failed to reuse',
+    '重用规则': 'Reuse rules',
+    '参数值为非字典类型，KEY&类型前后一致才可重用': 'The parameter value is a non-dictionary type, and the KEY& type can only be reused if it is consistent',
+    '参数值为字典类型，还需要字典内的key前后一致才可重用': 'The parameter value is a dictionary type, and the keys in the dictionary need to be consistent before they can be reused',
+    '元变量还需元数据配置一致才可重用': 'Metavariables also require consistent metadata configuration before they can be reused',
+    '不满足重用规则时使用流程默认值': 'Use process defaults when reuse rules are not met',
+    '使用流程的最新数据再次创建任务，可重用当前参数': 'Create the task again with the latest data from the process, reusing the current parameters',
+    '使用流程默认参数值': 'Use process default parameter values',
+    '重用当前任务参数值': 'Reuse the current task parameter value',
+    '执行代理人在任务开始执行时确定，未执行任务不展示': 'The execution agent is determined when the task starts to execute, and the unexecuted task will not be displayed'
+
 }
 
 export default en

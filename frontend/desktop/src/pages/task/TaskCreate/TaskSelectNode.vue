@@ -319,10 +319,11 @@
              * 进入参数填写阶段，设置执行节点
              */
             async onGotoParamFill () {
+                const { type, task_id = undefined } = this.$route.query
                 const url = {
                     name: 'taskCreate',
                     params: { project_id: this.project_id, step: 'paramfill' },
-                    query: { template_id: this.template_id, common: this.common, entrance: this.entrance }
+                    query: { template_id: this.template_id, common: this.common, entrance: this.entrance, task_id }
                 }
                 if (this.entrance === 'function') {
                     url.name = 'functionTemplateStep'
@@ -330,7 +331,6 @@
                 if (this.viewMode === 'appmaker') {
                     url.name = 'appmakerTaskCreate'
                 }
-                const { type } = this.$route.query
                 if (type) {
                     url.query.type = type
                 }
@@ -348,6 +348,10 @@
                     const item = gateways[gKey]
                     if (item.conditions) {
                         branchConditions[item.id] = Object.assign({}, item.conditions)
+                    }
+                    if (item.default_condition) {
+                        const nodeId = item.default_condition.flow_id
+                        branchConditions[item.id][nodeId] = item.default_condition
                     }
                 }
                 return {

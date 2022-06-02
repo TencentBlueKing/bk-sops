@@ -524,7 +524,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     return {
                         "result": False,
                         "data": {},
-                        "message": preview_result.message,
+                        "message": f"fail to preview node inputs: {preview_result.exc}",
                         "code": err_code.UNKNOWN_ERROR.code,
                     }
                 inputs = preview_result.data

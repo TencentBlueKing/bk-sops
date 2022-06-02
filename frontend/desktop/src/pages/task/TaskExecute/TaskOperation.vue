@@ -174,9 +174,11 @@
             <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否完成暂停节点继续向后执行？') }}</div>
         </bk-dialog>
         <condition-edit
+            v-if="isShowConditionEdit"
             ref="conditionEdit"
             :is-readonly="true"
             :is-show.sync="isShowConditionEdit"
+            :gateways="pipelineData.gateways"
             :condition-data="conditionData"
             @close="onCloseConfigPanel">
         </condition-edit>
@@ -415,6 +417,10 @@
                     const item = gateways[gKey]
                     if (item.conditions) {
                         branchConditions[item.id] = Object.assign({}, item.conditions)
+                    }
+                    if (item.default_condition) {
+                        const nodeId = item.default_condition.flow_id
+                        branchConditions[item.id][nodeId] = item.default_condition
                     }
                 }
                 return {

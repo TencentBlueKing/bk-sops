@@ -56,7 +56,7 @@ def get_constant_values(constants, extra_data):
         else:
             to_calculate_constants[key] = info
     classified_constants = format_data_to_pipeline_inputs(
-        to_calculate_constants, classified_constants, change_calculated=True
+        to_calculate_constants, classified_constants, change_pipeline_inputs=True
     )
 
     # 沿用V2引擎的变量渲染逻辑
@@ -66,7 +66,7 @@ def get_constant_values(constants, extra_data):
         for key, info in classified_constants.items()
     ]
     context = Context(runtime, context_values, extra_data)
-    hydrated_context = context.hydrate()
+    hydrated_context = context.hydrate(mute_error=True)
     return {**constant_values, **hydrated_context}
 
 

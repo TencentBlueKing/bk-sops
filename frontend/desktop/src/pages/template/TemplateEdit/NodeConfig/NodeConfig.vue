@@ -795,7 +795,7 @@
                         selectable: optional,
                         autoRetry: Object.assign({}, { enable: false, interval: 0, times: 1 }, auto_retry),
                         timeoutConfig: timeout_config || { enable: false, seconds: 10, action: 'forced_fail' },
-                        executor_proxy
+                        executor_proxy: [executor_proxy]
                     }
                 } else {
                     const { template_id, name, stage_name = '', labels, optional, always_use_latest, scheme_id_list, executor_proxy } = config
@@ -827,7 +827,7 @@
                         alwaysUseLatest: always_use_latest || false, // 兼容旧数据，该字段为新增
                         schemeIdList: scheme_id_list || [], // 兼容旧数据，该字段为后面新增
                         version: config.hasOwnProperty('version') ? config.version : '', // 子流程版本，区别于标准插件版本
-                        executor_proxy
+                        executor_proxy: [executor_proxy]
                     }
                 }
             },
@@ -1289,6 +1289,7 @@
                 let config
                 if (this.isSubflow) {
                     const { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, version, tpl, executor_proxy } = this.basicInfo
+                    const executorProxy = executor_proxy.join(',')
                     const constants = {}
                     Object.keys(this.subflowForms).forEach(key => {
                         const constant = this.subflowForms[key]
@@ -1308,10 +1309,11 @@
                         optional: selectable,
                         always_use_latest: alwaysUseLatest,
                         scheme_id_list: schemeIdList,
-                        executor_proxy
+                        executor_proxy: executorProxy
                     })
                 } else {
                     const { ignorable, nodeName, stageName, nodeLabel, plugin, retryable, skippable, selectable, version, autoRetry, timeoutConfig, executor_proxy } = this.basicInfo
+                    const executorProxy = executor_proxy.join(',')
                     const data = {} // 标准插件节点在 activity 的 component.data 值
                     Object.keys(this.inputsParamValue).forEach(key => {
                         const formVal = this.inputsParamValue[key]
@@ -1353,7 +1355,7 @@
                         optional: selectable,
                         auto_retry: autoRetry,
                         timeout_config: timeoutConfig,
-                        executor_proxy
+                        executor_proxy: executorProxy
                     })
                     delete config.can_retry
                     delete config.isSkipped
@@ -1481,7 +1483,8 @@
                         const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional,
                                 desc, nodeName, autoRetry, timeoutConfig, executor_proxy
                         } = this.basicInfo
-                        const nodeData = { status: '', skippable, retryable, optional, auto_retry: autoRetry, timeout_config: timeoutConfig, executor_proxy }
+                        const executorProxy = executor_proxy.join(',')
+                        const nodeData = { status: '', skippable, retryable, optional, auto_retry: autoRetry, timeout_config: timeoutConfig, executor_proxy: executorProxy }
                         if (!this.isSubflow) {
                             const phase = this.getAtomPhase()
                             nodeData.phase = phase

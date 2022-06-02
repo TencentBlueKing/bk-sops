@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import json
 
+from django.core.exceptions import ValidationError
 from mock import patch, MagicMock
 from django.test import TestCase
 
@@ -31,6 +32,9 @@ class MockTemplateScheme(object):
 
 
 class PipelineTemplateWebPreviewerTestCase(TestCase):
+    def setUp(self):
+        MockTemplateScheme.objects.in_bulk.reset_mock()
+
     @patch("pipeline_web.preview_base.TemplateScheme", MockTemplateScheme)
     def test_get_template_exclude_task_nodes_with_schemes(self):
         scheme_id_list = [1, 2, 3]
@@ -53,6 +57,27 @@ class PipelineTemplateWebPreviewerTestCase(TestCase):
         MockTemplateScheme.objects.in_bulk.assert_called_once_with([1, 2, 3])
 
         self.assertEqual(set(exclude_task_nodes), {"node4"})
+
+    @patch("pipeline_web.preview_base.TemplateScheme", MockTemplateScheme)
+    def test_get_template_exclude_task_nodes_with_raise_schemes_not_exist(self):
+        scheme_id_list = [1, 2, 3, 4]
+        pipeline_tree = {
+            "activities": {
+                "node1": {"id": "node1", "type": "ServiceActivity", "optional": True},
+                "node2": {"id": "node2", "type": "ServiceActivity", "optional": False},
+                "node3": {"id": "node3", "type": "ServiceActivity", "optional": True},
+                "node4": {"id": "node4", "type": "ServiceActivity", "optional": True},
+            },
+            "constants": {
+                "${param1}": {"value": "${parent_param2}"},
+                "${param2}": {"value": "constant_value_2"},
+                "${custom_param2}": {"value": "custom_value_2"},
+            },
+        }
+        with self.assertRaises(ValidationError):
+            PipelineTemplateWebPreviewer.get_template_exclude_task_nodes_with_schemes(
+                pipeline_tree, scheme_id_list, check_schemes_exist=True
+            )
 
     def test_preview_pipeline_tree_exclude_task_nodes(self):
         exclude_task_nodes_id = ["node9ab869668031c89ee03bd3b4ce66"]
@@ -361,3 +386,23 @@ class PipelineTemplateWebPreviewerTestCase(TestCase):
                 },
             },
         )
+
+    def test_preview_pipeline_tree_with_appoint_task_nodes(self):
+        appoint_task_nodes_id = ["node1"]
+        pipeline_tree = {
+            "activities": {
+                "node1": {"id": "node1", "type": "ServiceActivity", "optional": True},
+                "node2": {"id": "node2", "type": "ServiceActivity", "optional": False},
+                "node3": {"id": "node3", "type": "ServiceActivity", "optional": True},
+                "node4": {"id": "node4", "type": "ServiceActivity", "optional": True},
+            },
+            "constants": {
+                "${param1}": {"value": "${parent_param2}"},
+                "${param2}": {"value": "constant_value_2"},
+                "${custom_param2}": {"value": "custom_value_2"},
+            },
+        }
+        exclude_task_nodes_id = PipelineTemplateWebPreviewer.get_template_exclude_task_nodes_with_appoint_nodes(
+            pipeline_tree, appoint_task_nodes_id
+        )
+        self.assertEqual(set(exclude_task_nodes_id), {"node3", "node4"})

@@ -18,6 +18,7 @@ from django.utils.translation import ugettext_lazy as _
 from gcloud.constants import GseAgentStatus
 from gcloud.conf import settings as gcloud_settings
 from gcloud.core.models import Project
+from gcloud.exceptions import ApiRequestError
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_id_for_project
 
@@ -59,7 +60,7 @@ class GseAgentStatusIpFilter(IpFilterBase):
             agent_result = client.gse.get_agent_status(agent_kwargs)
             if not agent_result["result"]:
                 message = handle_api_error(_("管控平台(GSE)"), "gse.get_agent_status", agent_kwargs, agent_result)
-                return "error:{}".format(message)
+                raise ApiRequestError(f"ERROR:{message}")
 
             agent_data = agent_result["data"]
             agent_online_ip_list = []

@@ -15,6 +15,7 @@ import logging
 import traceback
 from copy import deepcopy
 import ujson as json
+from django.core.exceptions import ValidationError
 
 from pipeline.models import TemplateScheme
 from pipeline.core.constants import PE
@@ -27,17 +28,20 @@ logger = logging.getLogger("root")
 
 class PipelineTemplateWebPreviewer(object):
     @staticmethod
-    def get_template_exclude_task_nodes_with_schemes(pipeline_tree, scheme_id_list):
+    def get_template_exclude_task_nodes_with_schemes(pipeline_tree, scheme_id_list, check_schemes_exist=False):
         """
         根据执行方案获取要剔除的模版节点
         @param pipeline_tree:
         @param scheme_id_list:
+        @param check_schemes_exist:
         @return:
         """
         template_nodes_set = set(pipeline_tree[PE.activities].keys())
         exclude_task_nodes_id_set = set()
         if scheme_id_list:
             scheme_dict = TemplateScheme.objects.in_bulk(scheme_id_list)
+            if check_schemes_exist and len(scheme_dict) != len(scheme_id_list):
+                raise ValidationError(f"not all input scheme id exit: {set(scheme_id_list)-set(scheme_dict.keys())}")
             scheme_data_set = set()
             for scheme in scheme_dict.values():
                 scheme_data = json.loads(scheme.data)
@@ -49,6 +53,22 @@ class PipelineTemplateWebPreviewer(object):
             if not node["optional"]:
                 exclude_task_nodes_id_set.discard(node_id)
 
+        return list(exclude_task_nodes_id_set)
+
+    @staticmethod
+    def get_template_exclude_task_nodes_with_appoint_nodes(pipeline_tree, appoint_nodes_id):
+        """
+        根据执行方案获取要剔除的模版节点
+        @param pipeline_tree:
+        @param appoint_nodes_id:
+        @return:
+        """
+        template_nodes_set = set(pipeline_tree[PE.activities].keys())
+        not_optional_nodes_set = set(
+            [node_id for node_id, node in pipeline_tree[PE.activities].items() if not node["optional"]]
+        )
+        appoint_nodes_id_set = set(appoint_nodes_id)
+        exclude_task_nodes_id_set = template_nodes_set - appoint_nodes_id_set - not_optional_nodes_set
         return list(exclude_task_nodes_id_set)
 
     @staticmethod

@@ -68,14 +68,17 @@ class PeriodicTaskManager(models.Manager):
             creator=kwargs["creator"],
             template_source=template_source,
         )
-        return super(PeriodicTaskManager, self).create(
-            project=kwargs["project"],
-            task=task,
-            template_id=kwargs["template"].id,
-            template_source=template_source,
-            template_version=kwargs["template_version"],
-            creator=kwargs["creator"],
-        )
+        create_params = {
+            "project": kwargs["project"],
+            "task": task,
+            "template_id": kwargs["template"].id,
+            "template_source": template_source,
+            "template_version": kwargs["template_version"],
+            "creator": kwargs["creator"],
+        }
+        if "template_scheme_ids" in kwargs:
+            create_params["template_scheme_ids"] = kwargs["template_scheme_ids"]
+        return super(PeriodicTaskManager, self).create(**create_params)
 
     def update(self, instance, **kwargs):
         template_source = kwargs.get("template_source", PROJECT)
@@ -97,6 +100,8 @@ class PeriodicTaskManager(models.Manager):
             instance.template_source = template_source
             instance.template_version = kwargs["template_version"]
             instance.editor = kwargs["editor"]
+            if "template_scheme_ids" in kwargs:
+                instance.template_scheme_ids = kwargs["template_scheme_ids"]
             instance.save()
         return instance
 
@@ -151,6 +156,7 @@ class PeriodicTask(models.Model):
     template_id = models.CharField(_("创建任务所用的模板ID"), max_length=255)
     template_source = models.CharField(_("流程模板来源"), max_length=32, choices=TEMPLATE_SOURCE, default=PROJECT)
     template_version = models.CharField(_("创建任务时模版 version"), max_length=255, null=True, blank=True)
+    template_scheme_ids = models.TextField(_("创建任务时模版执行方案id"), null=True, blank=True)
     creator = models.CharField(_("创建者"), max_length=32, default="")
     create_time = models.DateTimeField(_("创建任务时间"), null=True, auto_now_add=True)
     editor = models.CharField(_("更新者"), max_length=32, default="")

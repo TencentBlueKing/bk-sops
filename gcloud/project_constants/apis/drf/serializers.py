@@ -22,6 +22,10 @@ VALID_KEY_PATTERN = r"^[a-zA-Z_][a-zA-Z0-9_]*$"
 VALID_KEY_REGEX = re.compile(VALID_KEY_PATTERN)
 
 
+class ProjectConstantsListPermissionSerializer(serializers.Serializer):
+    project_id = serializers.IntegerField()
+
+
 class ProjectConstantsSerializer(serializers.ModelSerializer):
     create_by = serializers.CharField(read_only=True)
     create_at = serializers.DateTimeField(read_only=True)

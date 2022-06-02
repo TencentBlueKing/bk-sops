@@ -284,11 +284,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         if pre_render_constants or hide_constants or component_outputs:
             return {
                 "result": False,
-                "message": """不支持修改以下变量
-                预渲染变量: %s
-                隐藏变量: %s
-                组件输出: %s
-                """
+                "message": "can't modify consntans, pre-render: %s hided: %s output: %s"
                 % (pre_render_constants, hide_constants, component_outputs),
                 "data": None,
                 "code": err_code.REQUEST_PARAM_INVALID.code,
