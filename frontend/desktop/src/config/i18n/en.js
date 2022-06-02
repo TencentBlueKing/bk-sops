@@ -1365,7 +1365,10 @@ const en = {
     '通知方式统一在流程基础信息管理。如需修改，请': 'The notification method is unified in the process basic information management. To modify, please',
     '前往流程': 'go to process',
     '旧版': 'Old',
-    '返回编辑': 'Back to edit'
+    '返回编辑': 'Back to edit',
+    '周期任务根据创建时的流程和执行方案数据生成快照保存，流程变更后不影响周期任务，可手动更新到使用流程最新数据。': 'Periodic tasks generate snapshots and save according to the process and execution plan data at the time of creation. After the process is changed, it does not affect the periodic tasks, and can be manually updated to use the latest data of the process.',
+    '不使用执行方案': 'Do not use implementation',
+    '当前流程非最新，执行方案不可更改，请先更新流程': '当前流程非最新，执行方案不可更改，请先更新流程'
 }
 
 export default en

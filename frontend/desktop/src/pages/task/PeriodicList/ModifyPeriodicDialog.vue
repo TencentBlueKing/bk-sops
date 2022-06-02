@@ -19,11 +19,11 @@
             :before-close="onCloseConfig">
             <div slot="header">
                 <div class="preview-header" v-if="isPreview && previewScheme">
-                    <span @click="isPreview = false">{{ $t('编辑周期任务') }}</span>
+                    <span @click="isPreview = false">{{ sideSliderTitle }}</span>
                     <i class="common-icon-angle-right"></i>
                     {{ previewScheme }}
                 </div>
-                <template v-else>{{ isEdit ? $t('编辑周期任务') : $t('创建周期任务') }}</template>
+                <template v-else>{{ sideSliderTitle }}</template>
             </div>
             <template slot="content" v-if="isPreview">
                 <NodePreview
@@ -39,17 +39,15 @@
                 </div>
             </template>
             <div slot="content" v-show="!isPreview">
+                <bk-alert type="info" :title="$t('周期任务根据创建时的流程和执行方案数据生成快照保存，流程变更后不影响周期任务，可手动更新到使用流程最新数据。')"></bk-alert>
                 <section class="config-section">
-                    <p class="title">{{$t('基础信息')}}</p>
+                    <p class="title mt0">{{$t('流程')}}</p>
                     <bk-form
                         :label-width="90"
                         ref="basicConfigForm"
                         :rules="rules"
                         :model="formData">
-                        <bk-form-item :label="$t('任务名称')" :required="true" property="taskName">
-                            <bk-input :disabled="isEdit" v-model="formData.name"></bk-input>
-                        </bk-form-item>
-                        <bk-form-item :label="$t('流程')" :required="true" property="flow">
+                        <bk-form-item :label="$t('项目流程')" :required="true" property="flow">
                             <div v-if="isEdit" class="select-box">
                                 <div class="select-wrapper">
                                     <p>
@@ -59,7 +57,7 @@
                                     <i class="bk-icon icon-angle-down"></i>
                                 </div>
                                 <bk-button
-                                    v-if="formData.is_latest === false"
+                                    v-if="formData.is_latest !== true"
                                     ext-cls="update-btn"
                                     theme="primary"
                                     data-test-id="periodicList_form_update"
@@ -74,7 +72,7 @@
                                 v-model="formData.template_id"
                                 :searchable="true"
                                 :placeholder="$t('请选择')"
-                                :clearable="true"
+                                :clearable="false"
                                 v-bkloading="{ isLoading: templateLoading, size: 'small', extCls: 'template-loading' }"
                                 @clear="onClearTemplate"
                                 @selected="onSelectTemplate">
@@ -93,15 +91,16 @@
                                 </bk-option>
                             </bk-select>
                         </bk-form-item>
-                        <bk-form-item v-if="!isEdit" :label="$t('执行方案')" property="scheme">
+                        <bk-form-item :label="$t('执行方案')" property="scheme">
                             <div class="scheme-wrapper">
                                 <bk-select
-                                    v-model="formData.scheme"
+                                    v-model="formData.schemeId"
                                     :searchable="true"
                                     :placeholder="$t('请选择')"
                                     :clearable="true"
-                                    :disabled="!formData.template_id"
-                                    :is-loading="isLoading || schemeLoading"
+                                    :multiple="true"
+                                    :disabled="formData.is_latest !== true || !formData.template_id"
+                                    :loading="isLoading || schemeLoading"
                                     @clear="onClearScheme"
                                     @selected="onSelectScheme">
                                     <bk-option
@@ -114,12 +113,22 @@
                                     </bk-option>
                                 </bk-select>
                                 <bk-button
-                                    theme="primary"
+                                    v-if="formData.is_latest === false"
+                                    theme="default"
                                     :disabled="isLoading || !formData.template_id"
                                     @click="togglePreviewMode">
                                     {{ $t('预览') }}
                                 </bk-button>
                             </div>
+                            <p
+                                v-if="formData.is_latest !== true"
+                                class="schema-disable-tip">
+                                {{ $t('当前流程非最新，执行方案不可更改，请先更新流程') }}
+                            </p>
+                        </bk-form-item>
+                        <p class="title">{{$t('任务信息')}}</p>
+                        <bk-form-item :label="$t('任务名称')" :required="true" property="taskName">
+                            <bk-input v-model="formData.name"></bk-input>
                         </bk-form-item>
                         <bk-form-item :label="$t('周期表达式')" :required="true" property="loop">
                             <LoopRuleSelect
@@ -176,7 +185,7 @@
                         theme="default"
                         :disabled="saveLoading"
                         data-test-id="periodicList_form_cancelBtn"
-                        @click="onModifyPeriodicCancel">
+                        @click="onCancelSave">
                         {{ $t('取消') }}
                     </bk-button>
                 </div>
@@ -194,7 +203,7 @@
                 <div class="save-tips">{{ $t('保存已修改的信息吗？') }}</div>
                 <div class="action-wrapper">
                     <bk-button theme="primary" :loading="saveLoading" @click="onPeriodicConfirm">{{ $t('保存') }}</bk-button>
-                    <bk-button theme="default" :disabled="saveLoading" @click="onModifyPeriodicCancel">{{ $t('不保存') }}</bk-button>
+                    <bk-button theme="default" :disabled="saveLoading" @click="onCancelSave">{{ $t('不保存') }}</bk-button>
                 </div>
             </div>
         </bk-dialog>
@@ -237,16 +246,18 @@
                 name = '',
                 is_latest = '',
                 task_template_name = '',
-                template_id = ''
+                template_id = '',
+                template_scheme_ids: schemeId = []
             } = this.curRow
             return {
                 formData: {
                     name,
-                    is_latest,
+                    is_latest: this.isEdit ? is_latest : true,
                     task_template_name,
                     template_id,
-                    scheme: ''
+                    schemeId: this.isEdit ? (schemeId.length ? schemeId : [0]) : []
                 },
+                initFormData: {},
                 templateData: {},
                 templateLoading: false,
                 templateList: [],
@@ -310,7 +321,8 @@
                 periodicConstants: {},
                 isUpdateTask: false, // 标识是否为更新任务
                 isShowDialog: false,
-                updateLoading: false
+                updateLoading: false,
+                isReplaceTree: false // pipeline_tree是否被更新替换
             }
         },
         computed: {
@@ -320,17 +332,27 @@
             isCommon () {
                 return this.curRow.template_source === 'common'
             },
+            sideSliderTitle () {
+                return this.isEdit ? i18n.t('编辑周期任务') : i18n.t('创建周期任务')
+            },
             previewScheme () {
-                const schemeId = this.formData.scheme
-                if (!schemeId) return ''
-                const schemeInfo = this.schemeList.find(item => item.id === schemeId)
-                return i18n.t('预览') + '：' + schemeInfo.name
+                const schemeId = this.formData.schemeId
+                if (!schemeId.length) return ''
+                const schemeNames = this.schemeList.reduce((acc, cur) => {
+                    if (schemeId.includes(cur.id)) {
+                        acc.push(cur.name)
+                    }
+                    return acc
+                }, [])
+                return i18n.t('预览') + '：' + schemeNames.join(' , ')
             },
             isLoading () {
                 return this.templateLoading || this.templateDataLoading
             }
         },
-        created () {
+        async created () {
+            this.initFormData = tools.deepClone(this.formData)
+            
             if (this.isEdit) {
                 this.periodicConstants = tools.deepClone(this.constants)
                 const id = this.curRow.template_id
@@ -352,6 +374,7 @@
                 'modifyPeriodicCron',
                 'modifyPeriodicConstants',
                 'updatePeriodicTask',
+                'updatePeriodicPartial',
                 'createPeriodic'
             ]),
             ...mapActions('template/', [
@@ -360,7 +383,7 @@
             async getTemplateList () {
                 this.templateLoading = true
                 try {
-                    const templateListData = await this.loadTemplateList({ project__id: this.project_id })
+                    const templateListData = await this.loadTemplateList({ project__id: this.project_id, limit: 10 })
                     this.templateList = templateListData.results
                 } catch (e) {
                     console.log(e)
@@ -381,7 +404,7 @@
                 }
             },
             onClearTemplate () {
-                this.formData.scheme = ''
+                this.formData.schemeId = []
                 this.schemeList = []
                 this.constants = {}
             },
@@ -394,16 +417,18 @@
                     // 获取流程模板的通知配置
                     const { notify_receivers, notify_type } = templateData
                     this.notifyType = [notify_type.success.slice(0), notify_type.fail.slice(0)]
-                    this.receiverGroup = JSON.parse(notify_receivers).receiver_group.slice(0)
+                    const receiverGroup = JSON.parse(notify_receivers).receiver_group
+                    this.receiverGroup = receiverGroup && receiverGroup.slice(0)
                     const pipelineDate = JSON.parse(templateData.pipeline_tree)
                     this.selectedNodes = Object.keys(pipelineDate.activities)
                     this.templateData = Object.assign({}, templateData, { pipeline_tree: pipelineDate })
-                    // 新建模式拉取预览数据和流程对应的执行方案
-                    if (!this.isEdit) {
+                    // 获取模板对应的执行方案
+                    await this.getTemplateScheme()
+                    if (this.formData.schemeId) {
+                        this.onSelectScheme(this.formData.schemeId, [], !this.isEdit)
+                    } else if (!this.isEdit) {
                         const templateInfo = this.templateList.find(item => item.id === id)
                         await this.getPreviewNodeData(id, templateInfo.version, true)
-                        // 获取模板对应的执行方案
-                        this.getTemplateScheme()
                     }
                 } catch (e) {
                     console.warn(e)
@@ -424,9 +449,21 @@
                         item.isDefault = defaultScheme.includes(item.id)
                         return item
                     })
-                    this.schemeLoading = false
+                    const { activities } = this.templateData.pipeline_tree
+                    const nodeList = Object.keys(activities)
+                    this.schemeList.unshift({
+                        data: JSON.stringify(nodeList),
+                        id: 0,
+                        idDefault: false,
+                        name: '<' + i18n.t('不使用执行方案') + '>'
+                    })
+                    if (!this.isEdit) {
+                        this.formData.schemeId = [0]
+                    }
                 } catch (e) {
                     console.log(e)
+                } finally {
+                    this.schemeLoading = false
                 }
             },
             // 获取默认方案列表
@@ -450,13 +487,28 @@
                 const { id: templateId, version } = this.templateData
                 this.getPreviewNodeData(templateId, version, true)
             },
-            onSelectScheme (id) {
-                this.formData.scheme = Number(id)
-                const schemeInfo = this.schemeList.find(item => item.id === id)
-                this.selectedNodes = JSON.parse(schemeInfo.data)
+            onSelectScheme (ids, options, updateConstants = true) {
+                this.isReplaceTree = true
+                // 切换执行方案时取消<不使用执行方案>
+                const lastId = options.length ? options[options.length - 1].id : undefined
+                ids = lastId === 0 ? [0] : lastId ? ids.filter(id => id) : ids
+                this.formData.schemeId = ids
+                if (ids.length) {
+                    const nodeList = this.schemeList.reduce((acc, cur) => {
+                        if (ids.includes(cur.id)) {
+                            acc.push(...JSON.parse(cur.data))
+                        }
+                        return acc
+                    }, [])
+                    this.selectedNodes = [...new Set(nodeList)]
+                } else {
+                    const { activities } = this.templateData.pipeline_tree
+                    const nodeList = Object.keys(activities)
+                    this.selectedNodes = nodeList
+                }
                 // 更新执行参数
                 const { id: templateId, version } = this.templateData
-                this.getPreviewNodeData(templateId, version, true)
+                this.getPreviewNodeData(templateId, version, updateConstants)
             },
             togglePreviewMode () {
                 this.previewBread = []
@@ -485,7 +537,14 @@
                     if (resp.result) {
                         this.previewData = resp.data.pipeline_tree
                         if (updateConstants) {
-                            this.periodicConstants = tools.deepClone(this.previewData.constants)
+                            this.periodicConstants = Object.values(this.previewData.constants).reduce((acc, cur) => {
+                                acc[cur.key] = {
+                                    ...cur,
+                                    meta: { ...cur },
+                                    value: this.constants[cur.key] ? this.constants[cur.key].value : cur.value
+                                }
+                                return acc
+                            }, {})
                         }
                     }
                 } catch (e) {
@@ -566,10 +625,16 @@
                 })
                 window.open(href, '_blank')
             },
-            onModifyPeriodicCancel () {
-                this.isShowDialog = false
-                this.$emit('onModifyPeriodicCancel')
+            onUpdatePeriodicTask () {
+                this.isUpdateTask = true
+                // 借用保存方法的周期校验和执行参数校验
+                this.onPeriodicConfirm()
             },
+            onCancelSave () {
+                this.isShowDialog = false
+                this.$emit('onCancelSave')
+            },
+            // 周期任务保存
             onPeriodicConfirm () {
                 const loopRule = this.$refs.loopRuleSelect.validationExpression()
                 if (!loopRule.check) return
@@ -604,36 +669,52 @@
                         'day_of_month': cronArray[3],
                         'month_of_year': cronArray[4]
                     }
-                    if (this.isUpdateTask) { // 更新流程模板
-                        this.confirmUpdatedTask(jsonCron, constantsValue)
+                    const constants = Object.values(this.previewData.constants).reduce((acc, cur) => {
+                        acc[cur.key] = { ...cur, value: constantsValue[cur.key] }
+                        return acc
+                    }, {})
+                    const constantsData = {
+                        ...this.previewData,
+                        constants
+                    }
+
+                    if (this.isUpdateTask) { // 确认更新流程模板
+                        this.updateLoading = true
+                        this.confirmUpdatedTask(jsonCron, constantsData)
                         return
                     }
 
                     if (this.isEdit) { // 确认编辑周期任务
-                        this.onModifyPeriodicConfirm(jsonCron, loopRule, constantsValue)
+                        this.onModifyPeriodicTask(jsonCron, constantsData)
                     } else { // 确认创建周期任务
-                        this.onCreatePeriodicConfirm(jsonCron, constantsValue)
+                        this.onCreatePeriodicTask(jsonCron, constantsData)
                     }
                 })
             },
-            onModifyPeriodicConfirm (jsonCron, loopRule, constantsValue) {
+            async onModifyPeriodicTask (jsonCron, constantsData) {
                 try {
-                    const cronData = {
-                        'taskId': this.taskId,
-                        'cron': jsonCron
-                    }
-                    if (this.cron === loopRule.rule && constantsValue === '') {
-                        // 没有改变表达式，且没有ramdomform内容
-                        this.dialogFooterData[0].loading = false
-                        this.$emit('onModifyPeriodicCancel')
-                    } else if (constantsValue === '') {
-                        this.modifyCron(cronData)
-                    } else {
-                        const constantsData = {
-                            'taskId': this.taskId,
-                            'constants': constantsValue
+                    const same = this.judgeDataEqual()
+                    if (same) {
+                        this.$emit('onCancelSave')
+                    } else if (this.isReplaceTree) { // pipeline_tree被更新替换，调update接口
+                        await this.confirmUpdatedTask(jsonCron, constantsData)
+                        this.$emit('onConfirmSave')
+                    } else { // 修改周期任务部分配置，调patch接口
+                        const params = {
+                            taskId: this.taskId,
+                            project: this.project_id,
+                            name: this.formData.name,
+                            cron: jsonCron,
+                            constants: constantsData
                         }
-                        this.modifyPeriodic(cronData, constantsData)
+                        await this.updatePeriodicPartial(params)
+                        this.$emit('onConfirmSave')
+                    }
+                    if (!this.isReplaceTree) {
+                        this.$bkMessage({
+                            'message': i18n.t('流程更新成功'),
+                            'theme': 'success'
+                        })
                     }
                 } catch (error) {
                     console.warn(error)
@@ -641,78 +722,28 @@
                     this.saveLoading = false
                 }
             },
-            modifyPeriodic (cronData, constantsData) {
-                try {
-                    Promise.all([this.modifyPeriodicConstants(constantsData), this.modifyPeriodicCron(cronData)]).then((values) => {
-                        if (values[0].result && values[1].result) {
-                            this.$bkMessage({
-                                'message': i18n.t('修改周期任务信息成功'),
-                                'theme': 'success'
-                            })
-                        } else if (values[0].result) {
-                            this.$bkMessage({
-                                'message': i18n.t('修改周期任务参数成功，但表达式修改未成功，请重试'),
-                                'theme': 'warning'
-                            })
-                        } else if (values[1].result) {
-                            this.$bkMessage({
-                                'message': i18n.t('修改周期任务表达式成功，但任务参数未修改成功，请重试'),
-                                'theme': 'warning'
-                            })
-                        } else {
-                            this.$bkMessage({
-                                'message': i18n.t('修改周期任务失败，请联系管理员'),
-                                'theme': 'error'
-                            })
-                        }
-                        this.dialogFooterData[0].loading = false
-                        this.$emit('onModifyPeriodicConfirm')
-                    })
-                } catch (e) {
-                    console.log(e)
-                }
-            },
-            async modifyCron (cronData) {
-                const result = await this.modifyPeriodicCron(cronData)
-                if (result.result) {
-                    this.$bkMessage({
-                        'message': i18n.t('修改周期任务表达式成功'),
-                        'theme': 'success'
-                    })
-                } else {
-                    this.$bkMessage({
-                        'message': i18n.t('修改周期任务失败，请联系管理员'),
-                        'theme': 'error'
-                    })
-                }
-                this.saveLoading = false
-                this.$emit('onModifyPeriodicConfirm')
-            },
-            onUpdatePeriodicTask () {
-                this.isUpdateTask = true
-                // 借用保存方法的周期校验和执行参数校验
-                this.onPeriodicConfirm()
-            },
             // 更新流程模板
             async confirmUpdatedTask (cronData, constantsData) {
                 try {
-                    this.updateLoading = true
-                    const { pipeline_tree, template_id } = this.curRow
-                    const pipelineDate = Object.assign({}, pipeline_tree, { constants: constantsData })
+                    const schemeIds = this.formData.schemeId.filter(id => id)
                     const params = {
                         taskId: this.taskId,
                         project: this.project_id,
                         cron: cronData,
                         name: this.formData.name,
-                        template_id,
-                        pipeline_tree: JSON.stringify(pipelineDate)
+                        template_id: this.curRow.template_id,
+                        template_scheme_ids: schemeIds,
+                        pipeline_tree: JSON.stringify(constantsData)
                     }
-                    await this.updatePeriodicTask(params)
+                    const templateData = await this.updatePeriodicTask(params)
+                    this.periodicConstants = templateData.form
+                    this.formData.is_latest = true
+                    this.isReplaceTree = false
                     this.$bkMessage({
                         'message': i18n.t('流程更新成功'),
                         'theme': 'success'
                     })
-                    this.formData.is_latest = true
+                    this.$emit('onUpdateTask', this.curRow)
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -721,20 +752,14 @@
                 }
             },
             // 创建周期任务
-            async onCreatePeriodicConfirm (cron, constantsValue) {
-                const constants = Object.values(this.previewData.constants).reduce((acc, cur) => {
-                    acc[cur.key] = { ...cur, value: constantsValue[cur.key] }
-                    return acc
-                }, {})
-                const execData = {
-                    ...this.templateData.pipeline_tree,
-                    constants
-                }
+            async onCreatePeriodicTask (cron, constantsData) {
+                const schemeIds = this.formData.schemeId.filter(id => id)
                 const data = {
-                    'name': this.formData.name,
-                    'cron': cron,
-                    'templateId': this.formData.template_id,
-                    'execData': JSON.stringify(execData)
+                    name: this.formData.name,
+                    cron: cron,
+                    templateId: this.formData.template_id,
+                    schemeIds,
+                    execData: JSON.stringify(constantsData)
                 }
                 try {
                     const response = await this.createPeriodic(data)
@@ -743,28 +768,26 @@
                         'message': i18n.t('创建周期任务成功'),
                         'theme': 'success'
                     })
-                    this.$emit('onModifyPeriodicCancel', true)
+                    this.$emit('onConfirmSave')
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.saveLoading = false
                 }
             },
-            onCloseConfig () {
+            judgeDataEqual () {
                 const taskParamEdit = this.$refs.TaskParamEdit
                 const sameRenderData = taskParamEdit ? taskParamEdit.judgeDataEqual() : true
-                const sameFormDate = Object.keys(this.formData).every(key => {
-                    if (!(key in this.curRow) && !this.formData[key]) {
-                        return true
-                    } else if (this.curRow[key] === this.formData[key]) {
-                        return true
-                    }
-                })
+                const sameFormData = tools.isDataEqual(this.formData, this.initFormData)
                 const loopRule = this.$refs.loopRuleSelect.validationExpression()
                 const sameCronDate = this.cron ? this.cron === loopRule.rule : true
-                const same = sameFormDate && sameCronDate && sameRenderData
+                const same = sameFormData && sameCronDate && sameRenderData
+                return same
+            },
+            onCloseConfig () {
+                const same = this.judgeDataEqual()
                 if (same) {
-                    this.onModifyPeriodicCancel()
+                    this.onCancelSave()
                 } else {
                     this.isShowDialog = true
                 }
@@ -799,7 +822,7 @@
 /deep/.bk-sideslider-content {
     height: calc(100% - 60px);
     position: relative;
-    padding: 0 31px 48px 28px;
+    padding: 18px 31px 48px 28px;
     overflow-y: auto;
     @include scrollbar;
 }
@@ -809,7 +832,7 @@
     font-weight: normal;
 }
 /deep/.btn-footer {
-    z-index: 2;
+    z-index: 3000;
 }
 .loop-rule {
     width: 530px;
@@ -820,10 +843,11 @@
         color: #313238;
         font-size: 14px;
         line-height: 19px;
-        padding: 18px 0 11px;
-        margin-bottom: 24px;
+        padding: 16px 0 11px;
+        margin: 20px 0 24px;
         border-bottom: 1px solid #cacedb;
         .tip-desc {
+            line-height: 1;
             font-size: 12px;
             font-weight: normal;
             margin-left: 20px;
@@ -904,6 +928,12 @@
             margin-left: 16px;
         }
     }
+    .schema-disable-tip {
+        font-size: 12px;
+        line-height: 15px;
+        color: #ff9c01;
+        margin-top: 8px;
+    }
 }
 .default-label {
     height: 22px;
@@ -942,6 +972,7 @@
     .common-icon-angle-right {
         color: #c4c6cc;
         font-size: 20px;
+        line-height: inherit;
         margin: 0 5px;
     }
 }

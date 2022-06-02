@@ -52,7 +52,12 @@
                                     <!--任务-->
                                     <div v-if="item.id === 'name'" class="task-name">
                                         <span class="name">{{row.name || '--'}}</span>
-                                        <span class="label" v-if="row.is_latest === null">{{ $t('旧版') }}</span>
+                                        <span
+                                            class="label"
+                                            v-if="row.is_latest === null"
+                                            v-bk-tooltips="{ content: '当前任务为旧版周期任务，无法判断创建周期任务后流程数据是否变更。可前往编辑任务，完成一次更新即升级到新版本，获得新版本的提示更新能力。', width: 440 }">
+                                            {{ $t('旧版') }}
+                                        </span>
                                     </div>
                                     <!--流程模板-->
                                     <div v-else-if="item.id === 'process_template'">
@@ -90,10 +95,16 @@
                                     <div v-else-if="item.id === 'cron'">
                                         <div :title="splitPeriodicCron(row.cron)">{{ splitPeriodicCron(row.cron) }}</div>
                                     </div>
-                                    <!--状态-->
+                                    <!--启动任务-->
                                     <div v-else-if="item.id === 'periodic_status'" class="periodic-status">
-                                        <span :class="row.enabled ? 'bk-icon icon-check-circle-shape' : 'common-icon-dark-circle-pause'"></span>
-                                        {{row.enabled ? $t('启动') : $t('暂停')}}
+                                        <bk-switcher
+                                            :value="row.enabled"
+                                            v-cursor="{ active: !hasPermission(['periodic_task_edit'], row.auth_actions) }"
+                                            :disabled="!hasPermission(['periodic_task_edit'], row.auth_actions)"
+                                            data-test-id="periodicList_table_enableBtn"
+                                            theme="primary"
+                                            @change="onSetEnable(row, $event)">
+                                        </bk-switcher>
                                     </div>
                                     <!-- 其他 -->
                                     <template v-else>
@@ -106,17 +117,6 @@
                             <template slot-scope="props">
                                 <div class="periodic-operation">
                                     <template v-if="!adminView">
-                                        <a
-                                            v-cursor="{ active: !hasPermission(['periodic_task_edit'], props.row.auth_actions) }"
-                                            href="javascript:void(0);"
-                                            :class="['periodic-pause-btn', {
-                                                'periodic-start-btn': !props.row.enabled,
-                                                'text-permission-disable': !hasPermission(['periodic_task_edit'], props.row.auth_actions)
-                                            }]"
-                                            data-test-id="periodicList_table_enableBtn"
-                                            @click="onSetEnable(props.row, $event)">
-                                            {{!props.row.enabled ? $t('启动') : $t('暂停')}}
-                                        </a>
                                         <a
                                             v-cursor="{ active: !hasPermission(['periodic_task_edit'], props.row.auth_actions) }"
                                             href="javascript:void(0);"
@@ -216,8 +216,9 @@
             :project_id="project_id"
             :cur-row="curRow"
             :is-edit="editTask"
-            @onModifyPeriodicConfirm="onModifyPeriodicConfirm"
-            @onModifyPeriodicCancel="onModifyPeriodicCancel">
+            @onUpdateTask="onUpdateTask"
+            @onConfirmSave="onModifyPeriodicConfirm"
+            @onCancelSave="onModifyPeriodicCancel">
         </ModifyPeriodicDialog>
         <BootRecordDialog
             :show="isBootRecordDialogShow"
@@ -297,6 +298,14 @@
             id: 'creator',
             label: i18n.t('创建人'),
             width: 120
+        }, {
+            id: 'create_time',
+            label: i18n.t('创建时间'),
+            width: 200
+        }, {
+            id: 'edit_time',
+            label: i18n.t('更新时间'),
+            width: 200
         }, {
             id: 'total_run_count',
             label: i18n.t('运行次数'),
@@ -605,12 +614,13 @@
                 this.editTask = true
                 this.isModifyDialogShow = true
             },
-            onModifyPeriodicCancel (val) {
+            onUpdateTask (row) {
+                const curRow = this.periodicList.find(item => item.id === row.id)
+                curRow.is_latest = true
+            },
+            onModifyPeriodicCancel () {
                 this.curRow = {}
                 this.isModifyDialogShow = false
-                if (val) {
-                    this.getPeriodicList()
-                }
             },
             onModifyPeriodicConfirm () {
                 this.curRow = {}
@@ -788,6 +798,7 @@
             background: #fafbfd;
             border: 1px solid rgba(151,155,165,0.30);
             border-radius: 2px;
+            cursor: default;
         }
     }
     .icon-check-circle-shape {
