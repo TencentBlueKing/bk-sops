@@ -105,7 +105,11 @@
                                     {{ $t('编辑') }}
                                 </a>
                                 <a
+                                    v-cursor="{ active: !hasPermission(['clocked_task_view'], props.row.auth_actions) }"
                                     href="javascript:void(0);"
+                                    :class="{
+                                        'clocked-bk-disable': !hasPermission(['clocked_task_view'], props.row.auth_actions)
+                                    }"
                                     data-test-id="clockedList_table_cloneBtn"
                                     @click="onCloneClockedTask(props.row, 'clone')">
                                     {{ $t('克隆') }}
@@ -498,6 +502,10 @@
             },
             // 克隆计划任务
             onCloneClockedTask (row) {
+                if (!this.hasPermission(['clocked_task_view'], row.auth_actions)) {
+                    this.onClockedPermissonCheck(['clocked_task_view'], row)
+                    return
+                }
                 this.curRow = row
                 this.sideSliderType = 'clone'
                 this.isShowSideslider = true
