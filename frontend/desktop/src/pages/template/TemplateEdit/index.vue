@@ -496,7 +496,7 @@
             }
         },
         beforeDestroy () {
-            if (this.type === 'edit') {
+            if (this.type === 'edit' || this.recordTplTab) {
                 const data = this.getTplTabData()
                 tplTabCount.setTab(data, 'del')
             }
