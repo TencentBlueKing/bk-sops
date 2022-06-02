@@ -105,6 +105,16 @@
                                     {{ $t('编辑') }}
                                 </a>
                                 <a
+                                    v-cursor="{ active: !hasPermission(['clocked_task_view'], props.row.auth_actions) }"
+                                    href="javascript:void(0);"
+                                    :class="{
+                                        'clocked-bk-disable': !hasPermission(['clocked_task_view'], props.row.auth_actions)
+                                    }"
+                                    data-test-id="clockedList_table_cloneBtn"
+                                    @click="onCloneClockedTask(props.row, 'clone')">
+                                    {{ $t('克隆') }}
+                                </a>
+                                <a
                                     v-cursor="{ active: !hasPermission(['clocked_task_delete'], props.row.auth_actions) }"
                                     href="javascript:void(0);"
                                     :class="{
@@ -139,9 +149,11 @@
             @onCreateTaskCancel="onCreateTaskCancel">
         </TaskCreateDialog>
         <EditClockedTask
+            v-if="isShowSideslider"
             :is-show-sideslider="isShowSideslider"
             :cur-row="curRow"
-            :title="$t('编辑计划任务')"
+            :project_id="project_id"
+            :type="sideSliderType"
             @onSaveConfig="onSaveConfig"
             @onCloseConfig="onCloseConfig">
         </EditClockedTask>
@@ -208,6 +220,14 @@
             id: 'creator',
             label: i18n.t('创建人'),
             width: 150
+        }, {
+            id: 'create_time',
+            label: i18n.t('创建时间'),
+            width: 200
+        }, {
+            id: 'edit_time',
+            label: i18n.t('更新时间'),
+            width: 200
         }
     ]
     export default {
@@ -274,6 +294,7 @@
                 selectedTemplateName: '',
                 deleting: false,
                 curRow: {},
+                sideSliderType: '',
                 isShowSideslider: false
             }
         },
@@ -361,7 +382,9 @@
             },
             // 创建计划任务
             onCreateClockedTask () {
-                this.isNewTaskDialogShow = true
+                this.curRow = {}
+                this.sideSliderType = 'create'
+                this.isShowSideslider = true
             },
             // 取消创建
             onCreateTaskCancel () {
@@ -474,6 +497,17 @@
                     return
                 }
                 this.curRow = row
+                this.sideSliderType = 'edit'
+                this.isShowSideslider = true
+            },
+            // 克隆计划任务
+            onCloneClockedTask (row) {
+                if (!this.hasPermission(['clocked_task_view'], row.auth_actions)) {
+                    this.onClockedPermissonCheck(['clocked_task_view'], row)
+                    return
+                }
+                this.curRow = row
+                this.sideSliderType = 'clone'
                 this.isShowSideslider = true
             },
             // 保存编辑计划任务
