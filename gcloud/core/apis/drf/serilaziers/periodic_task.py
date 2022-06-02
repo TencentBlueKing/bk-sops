@@ -61,6 +61,8 @@ class PeriodicTaskSerializer(serializers.ModelSerializer):
     task = PipelinePeriodicTaskSerializer()
     project = ProjectSerializer()
     last_run_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S %z", read_only=True)
+    create_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S %z", read_only=True)
+    edit_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S %z", read_only=True)
     is_latest = serializers.SerializerMethodField(help_text="版本是否最新", read_only=True)
 
     def get_is_latest(self, obj):
@@ -87,6 +89,7 @@ class PeriodicTaskSerializer(serializers.ModelSerializer):
             "form",
             "pipeline_tree",
             "is_latest",
+            "template_version",
         ]
 
 
