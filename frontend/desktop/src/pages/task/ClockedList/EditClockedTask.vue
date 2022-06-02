@@ -217,12 +217,14 @@
                 task_parameters = {}
             } = this.curRow
             const taskName = this.type === 'clone' ? task_name + '_clone' : task_name
+            const tempSchemeId = task_parameters.template_schemes_id || []
+            const schemeId = this.type === 'create' ? [] : tempSchemeId.length ? tempSchemeId : [0]
             return {
                 formData: {
                     template_id,
                     task_name: taskName,
                     plan_start_time,
-                    schemeId: task_parameters.template_schemes_id || [0]
+                    schemeId
                 },
                 initFormData: {},
                 pickerOptions: {
@@ -437,6 +439,9 @@
                         idDefault: false,
                         name: '<' + i18n.t('不使用执行方案') + '>'
                     })
+                    if (this.type === 'create' && !this.formData.schemeId.length) {
+                        this.formData.schemeId = [0]
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -606,7 +611,6 @@
                 this.formData.plan_start_time = date
             },
             onClockedConfirm () {
-                this.saveLoading = true
                 if (this.type === 'edit') {
                     this.onEditClockedConfirm()
                 } else {
@@ -619,6 +623,7 @@
                         const taskParamEdit = this.$refs.TaskParamEdit
                         const formValid = taskParamEdit.validate()
                         if (!result || !formValid) {
+                            this.saveLoading = false
                             return
                         }
                         this.saveLoading = true
@@ -640,7 +645,6 @@
                         this.$emit('onSaveConfig')
                     })
                 } catch (error) {
-                    this.saveLoading = false
                     console.warn(error)
                 } finally {
                     this.isShowDialog = false
@@ -652,8 +656,10 @@
                     const taskParamEdit = this.$refs.TaskParamEdit
                     const formValid = taskParamEdit.validate()
                     if (!result || !formValid) {
+                        this.saveLoading = false
                         return
                     }
+                    this.saveLoading = true
                     const taskParams = {
                         constants: taskParamEdit.renderData || {},
                         template_schemes_id: this.formData.schemeId
