@@ -32,6 +32,9 @@ class MockTemplateScheme(object):
 
 
 class PipelineTemplateWebPreviewerTestCase(TestCase):
+    def setUp(self):
+        MockTemplateScheme.objects.in_bulk.reset_mock()
+
     @patch("pipeline_web.preview_base.TemplateScheme", MockTemplateScheme)
     def test_get_template_exclude_task_nodes_with_schemes(self):
         scheme_id_list = [1, 2, 3]
