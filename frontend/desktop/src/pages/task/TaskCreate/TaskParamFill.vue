@@ -100,16 +100,6 @@
                                 </span>
                             </div>
                         </div>
-                        <div class="common-form-item">
-                            <NotifyTypeConfig
-                                :notify-type-label="$t('启动失败') + ' ' + $t('通知方式')"
-                                :notify-type="notifyType"
-                                :receiver-group="receiverGroup"
-                                :table-width="500"
-                                :common="common"
-                                @change="onSelectNotifyConfig">
-                            </NotifyTypeConfig>
-                        </div>
                     </template>
                 </div>
             </div>
@@ -176,14 +166,12 @@
     import permission from '@/mixins/permission.js'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
     import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
-    import NotifyTypeConfig from '@/pages/template/TemplateEdit/TemplateSetting/NotifyTypeConfig.vue'
 
     export default {
         name: 'TaskParamFill',
         components: {
             ParameterInfo,
-            LoopRuleSelect,
-            NotifyTypeConfig
+            LoopRuleSelect
         },
         mixins: [permission],
         props: ['project_id', 'template_id', 'common', 'entrance', 'excludeNode'],
@@ -381,8 +369,11 @@
                         return
                     }
 
-                    this.tplActions = templateData.auth_actions
-                    this.isSelectFunctionalType = templateData.default_flow_type === 'common_func'
+                    const { notify_receivers, notify_type, auth_actions, default_flow_type } = templateData
+                    this.notifyType = [notify_type.success.slice(0), notify_type.fail.slice(0)]
+                    this.receiverGroup = JSON.parse(notify_receivers).receiver_group.slice(0)
+                    this.tplActions = auth_actions
+                    this.isSelectFunctionalType = default_flow_type === 'common_func'
                     this.setTemplateData(templateData)
 
                     let schemeId = ''
@@ -476,11 +467,6 @@
                     const timeRange = new Date(this.timeRange).getTime() || 0
                     this.isDateError = timeRange <= new Date().getTime()
                 }
-            },
-            onSelectNotifyConfig (formData) {
-                const { notifyType, receiverGroup } = formData
-                this.notifyType = notifyType
-                this.receiverGroup = receiverGroup
             },
             onCreateTask () {
                 let hasNextPermission = false
@@ -702,8 +688,8 @@
                                 more_receiver: []
                             },
                             notify_type: {
-                                success: [],
-                                fail: this.notifyType[0]
+                                success: this.notifyType[0],
+                                fail: this.notifyType[1]
                             },
                             plan_start_time: this.timeRange + this.locTimeZone
                         }
@@ -737,8 +723,6 @@
                 // 切换其他则情况时计划任务数据
                 if (value !== 'clocked') {
                     this.timeRange = ''
-                    this.notifyType = [[]]
-                    this.receiverGroup = []
                 } else {
                     this.locTimeZone = new Date().toTimeString().slice(12, 17)
                 }

@@ -5,12 +5,15 @@ const en = {
     '请选择启动时间': 'Please select the start time',
     '启动时间不能为空': 'Start time cannot be empty',
     '新建计划任务': 'New clocked task',
+    '创建计划任务': 'New clocked task',
+    '克隆计划任务': 'Clone clocked task',
     '编辑计划任务': 'Edit clocked tasks',
     '启动时间不能小于当前时间': 'Start time cannot be less than current time',
     '已执行的计划任务无法编辑': 'Clocked tasks that have been executed cannot be edited',
     '创建计划任务成功': 'Created the clocked task Successfully',
     '编辑计划任务成功': 'Edit the clocked task successfully',
     '删除计划任务成功': 'Delete the clocked task successfully',
+    '克隆计划任务成功': 'Clone the clocked task successfully',
     '该计划任务已执行，请重新创建': 'The clocked task has been executed, please recreate',
     '计划任务': 'Clocked task',
     '如：2019-01-30 至 2019-02-30': 'Such as: 2019-01-30 to 2019-02-30',
@@ -1355,6 +1358,13 @@ const en = {
     '自定义分支': 'Custom branch',
     '默认分支': 'Default branch',
     '所有分支均不匹配时执行，类似switch-case-default里面的default': 'Executed when all branches do not match, similar to default in switch-case-default',
+    '执行代理人在任务开始执行时确定，未执行任务不展示': 'The execution agent is determined when the task starts to execute, and the unexecuted task will not be displayed',
+    '创建': 'Create',
+    '通知方式统一在流程基础信息管理。如需修改，请': 'The notification method is unified in the process basic information management. To modify, please',
+    '前往流程': 'go to process',
+    '返回编辑': 'Back to edit',
+    '不使用执行方案': 'Do not use implementation plan',
+    '计划任务在执行时获取最新的流程和执行方案数据创建任务，流程和方案变更将影响未执行的计划任务，如增加参数可能导致计划任务启动失败。': 'When a scheduled task is executed, it obtains the latest process and execution plan data to create a task. Changes to the process and plan will affect the unexecuted scheduled task. For example, adding parameters may cause the scheduled task to fail to start.',
     '未能重用': 'Failed to reuse',
     '重用规则': 'Reuse rules',
     '参数值为非字典类型，KEY&类型前后一致才可重用': 'The parameter value is a non-dictionary type, and the KEY& type can only be reused if it is consistent',
@@ -1363,8 +1373,7 @@ const en = {
     '不满足重用规则时使用流程默认值': 'Use process defaults when reuse rules are not met',
     '使用流程的最新数据再次创建任务，可重用当前参数': 'Create the task again with the latest data from the process, reusing the current parameters',
     '使用流程默认参数值': 'Use process default parameter values',
-    '重用当前任务参数值': 'Reuse the current task parameter value',
-    '执行代理人在任务开始执行时确定，未执行任务不展示': 'The execution agent is determined when the task starts to execute, and the unexecuted task will not be displayed'
+    '重用当前任务参数值': 'Reuse the current task parameter value'
 
 }
 
