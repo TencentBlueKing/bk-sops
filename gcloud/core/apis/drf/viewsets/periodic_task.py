@@ -196,5 +196,7 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
             if "name" in serializer.validated_data:
                 instance.task.name = serializer.validated_data["name"]
                 instance.task.save(update_fields=["name"])
+            instance.editor = request.user.username
+            instance.save(update_fields=["editor"])
 
         return Response(PeriodicTaskReadOnlySerializer(instance=instance).data)
