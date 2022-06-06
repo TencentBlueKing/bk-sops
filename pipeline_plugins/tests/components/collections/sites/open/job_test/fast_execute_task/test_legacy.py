@@ -51,10 +51,11 @@ class MockClient(object):
         get_job_instance_ip_log_return=None,
         get_job_instance_status=None,
     ):
+        self.job = MagicMock()
         self.jobv3 = MagicMock()
-        self.jobv3.fast_execute_script = MagicMock(return_value=fast_execute_script_return)
-        self.jobv3.get_job_instance_global_var_value = MagicMock(return_value=get_job_instance_global_var_value_return)
-        self.jobv3.get_job_instance_log = MagicMock(return_value=get_job_instance_log_return)
+        self.job.fast_execute_script = MagicMock(return_value=fast_execute_script_return)
+        self.job.get_job_instance_global_var_value = MagicMock(return_value=get_job_instance_global_var_value_return)
+        self.job.get_job_instance_log = MagicMock(return_value=get_job_instance_log_return)
         self.jobv3.get_job_instance_ip_log = MagicMock(return_value=get_job_instance_ip_log_return)
         self.jobv3.get_job_instance_status = MagicMock(return_value=get_job_instance_status)
 
@@ -201,7 +202,11 @@ FAST_EXECUTE_SCRIPT_FAIL_CLIENT = MockClient(
 FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT = MockClient(
     fast_execute_script_return=SUCCESS_RESULT,
     get_job_instance_global_var_value_return={
-        "data": {"step_instance_var_list": [{"global_var_list": [{"type": 1, "name": "name", "value": "value"}]}]},
+        "data": {
+            "job_instance_var_values": [
+                {"step_instance_var_values": [{"category": 1, "name": "name", "value": "value"}]}
+            ]
+        },
         "result": True,
     },
     get_job_instance_log_return=EXECUTE_SUCCESS_GET_LOG_RETURN,
@@ -251,20 +256,18 @@ MANUAL_KWARGS = {
     "bk_scope_type": "biz",
     "bk_scope_id": "1",
     "bk_biz_id": 1,
-    "timeout": "100",
-    "account_alias": "root",
-    "target_server": {
-        "ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 1}, {"ip": "127.0.0.2", "bk_cloud_id": 2}],
-    },
-    "callback_url": "callback_url",
+    "script_timeout": "100",
+    "account": "root",
+    "ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 1}, {"ip": "127.0.0.2", "bk_cloud_id": 2}],
+    "bk_callback_url": "callback_url",
     "script_param": "MQ==",
-    "script_language": "1",
+    "script_type": "1",
     "script_content": "ZWNobw==",
 }
 
 # 手动输入脚本失败样例输出
 MANUAL_FAIL_OUTPUTS = {
-    "ex_data": "调用作业平台(JOB)接口jobv3.fast_execute_script返回失败, params={params}, error={error}, "
+    "ex_data": "调用作业平台(JOB)接口job.fast_execute_script返回失败, params={params}, error={error}, "
     "request_id=aac7755b09944e4296b2848d81bd9411".format(params=json.dumps(MANUAL_KWARGS), error=FAIL_RESULT["message"])
 }
 
@@ -282,7 +285,6 @@ MANUAL_SUCCESS_OUTPUTS2 = {
     "job_inst_name": "API Quick execution script1521100521303",
     "job_inst_url": "instance_url_token",
     "client": FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT,
-    "name": "value",
     "log_outputs": {},
 }
 
@@ -303,7 +305,7 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = Component
         callback_data={},
     ),
     execute_call_assertion=[
-        CallAssertion(func=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT.jobv3.fast_execute_script, calls=[Call(MANUAL_KWARGS)]),
+        CallAssertion(func=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT.job.fast_execute_script, calls=[Call(MANUAL_KWARGS)]),
     ],
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
@@ -311,12 +313,7 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = Component
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
-            return_value={
-                "ip_result": [
-                    {"InnerIP": "127.0.0.1", "Source": 1},
-                    {"InnerIP": "127.0.0.2", "Source": 2},
-                ]
-            },
+            return_value={"ip_result": [{"InnerIP": "127.0.0.1", "Source": 1}, {"InnerIP": "127.0.0.2", "Source": 2}]},
         ),
     ],
 )
@@ -328,29 +325,19 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_SUCCESS_CASE = ComponentTestCase(
     parent_data=PARENT_DATA,
     execute_assertion=ExecuteAssertion(success=True, outputs=MANUAL_SUCCESS_OUTPUTS),
     schedule_assertion=ScheduleAssertion(
-        success=True,
-        outputs=MANUAL_SUCCESS_OUTPUTS2,
-        callback_data={"job_instance_id": 10000, "status": 3},
+        success=True, outputs=MANUAL_SUCCESS_OUTPUTS2, callback_data={"job_instance_id": 10000, "status": 3},
     ),
     execute_call_assertion=[
-        CallAssertion(func=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT.jobv3.fast_execute_script, calls=[Call(MANUAL_KWARGS)]),
+        CallAssertion(func=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT.job.fast_execute_script, calls=[Call(MANUAL_KWARGS)]),
     ],
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
-        Patcher(
-            target=CC_GET_IPS_INFO_BY_STR,
-            return_value={"ip_result": []},
-        ),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []},),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
-            return_value={
-                "ip_result": [
-                    {"InnerIP": "127.0.0.1", "Source": 1},
-                    {"InnerIP": "127.0.0.2", "Source": 2},
-                ]
-            },
+            return_value={"ip_result": [{"InnerIP": "127.0.0.1", "Source": 1}, {"InnerIP": "127.0.0.2", "Source": 2}]},
         ),
     ],
 )
@@ -363,7 +350,7 @@ FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=False, outputs=MANUAL_FAIL_OUTPUTS),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=FAST_EXECUTE_SCRIPT_FAIL_CLIENT.jobv3.fast_execute_script, calls=[Call(MANUAL_KWARGS)]),
+        CallAssertion(func=FAST_EXECUTE_SCRIPT_FAIL_CLIENT.job.fast_execute_script, calls=[Call(MANUAL_KWARGS)]),
     ],
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
@@ -371,12 +358,7 @@ FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE = ComponentTestCase(
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
-            return_value={
-                "ip_result": [
-                    {"InnerIP": "127.0.0.1", "Source": 1},
-                    {"InnerIP": "127.0.0.2", "Source": 2},
-                ]
-            },
+            return_value={"ip_result": [{"InnerIP": "127.0.0.1", "Source": 1}, {"InnerIP": "127.0.0.2", "Source": 2}]},
         ),
     ],
 )

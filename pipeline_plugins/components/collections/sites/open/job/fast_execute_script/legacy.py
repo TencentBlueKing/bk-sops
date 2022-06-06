@@ -115,10 +115,7 @@ class JobFastExecuteScriptService(JobService):
                 schema=StringItemSchema(description=_("执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"),
-                key="job_account",
-                type="string",
-                schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
+                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
             ),
             self.InputItem(
                 name=_("IP 存在性校验"),
@@ -169,12 +166,10 @@ class JobFastExecuteScriptService(JobService):
             "bk_scope_type": JobBizScopeType.BIZ.value,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
-            "timeout": data.get_one_of_inputs("job_script_timeout"),
-            "account_alias": data.get_one_of_inputs("job_account"),
-            "target_server": {
-                "ip_list": ip_list,
-            },
-            "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
+            "script_timeout": data.get_one_of_inputs("job_script_timeout"),
+            "account": data.get_one_of_inputs("job_account"),
+            "ip_list": ip_list,
+            "bk_callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
 
         script_param = str(data.get_one_of_inputs("job_script_param"))
@@ -188,13 +183,13 @@ class JobFastExecuteScriptService(JobService):
         else:
             job_kwargs.update(
                 {
-                    "script_language": data.get_one_of_inputs("job_script_type"),
+                    "script_type": data.get_one_of_inputs("job_script_type"),
                     "script_content": base64.b64encode(data.get_one_of_inputs("job_content").encode("utf-8")).decode(
                         "utf-8"
                     ),
                 }
             )
-        job_result = client.jobv3.fast_execute_script(job_kwargs)
+        job_result = client.job.fast_execute_script(job_kwargs)
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:
             job_instance_id = job_result["data"]["job_instance_id"]
@@ -204,7 +199,7 @@ class JobFastExecuteScriptService(JobService):
             data.outputs.client = client
             return True
         else:
-            message = job_handle_api_error("jobv3.fast_execute_script", job_kwargs, job_result)
+            message = job_handle_api_error("job.fast_execute_script", job_kwargs, job_result)
             self.logger.error(message)
             data.outputs.ex_data = message
             return False

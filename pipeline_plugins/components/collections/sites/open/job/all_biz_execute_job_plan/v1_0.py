@@ -135,6 +135,9 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
         original_global_var = deepcopy(config_data.get("job_global_var")) or []
         global_var_list = []
 
+        if int(biz_cc_id) < 8000000:
+            self.biz_scope_type = JobBizScopeType.BIZ.value
+
         for _value in original_global_var:
             # 3-IP
             val = loose_strip(_value["value"])
@@ -153,7 +156,7 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
                 global_var_list.append({"id": _value["id"], "value": val})
 
         job_kwargs = {
-            "bk_scope_type": JobBizScopeType.BIZ_SET.value,
+            "bk_scope_type": self.biz_scope_type,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
             "job_plan_id": config_data.get("job_plan_id"),
@@ -176,6 +179,13 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
             self.logger.error(message)
             data.outputs.ex_data = message
             return False
+
+    def schedule(self, data, parent_data, callback_data=None):
+        config_data = data.get_one_of_inputs("all_biz_job_config")
+        biz_cc_id = int(config_data.get("all_biz_cc_id"))
+        if int(biz_cc_id) < 8000000:
+            self.biz_scope_type = JobBizScopeType.BIZ.value
+        return super().schedule(data, parent_data, callback_data)
 
 
 class AllBizJobExecuteJobPlanComponent(Component):

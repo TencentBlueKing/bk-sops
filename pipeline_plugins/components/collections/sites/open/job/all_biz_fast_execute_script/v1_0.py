@@ -162,6 +162,9 @@ class AllBizJobFastExecuteScriptService(JobService):
         job_script_timeout = data.get_one_of_inputs("job_script_timeout")
         ip_info = data.get_one_of_inputs("job_target_ip_table")
 
+        if int(biz_cc_id) < 8000000:
+            self.biz_scope_type = JobBizScopeType.BIZ.value
+
         # 拼装ip_list， bk_cloud_id为空则值为0
         ip_list = [
             {"ip": ip, "bk_cloud_id": int(_ip["bk_cloud_id"]) if str(_ip["bk_cloud_id"]) else 0}
@@ -170,7 +173,7 @@ class AllBizJobFastExecuteScriptService(JobService):
         ]
 
         job_kwargs = {
-            "bk_scope_type": JobBizScopeType.BIZ_SET.value,
+            "bk_scope_type": self.biz_scope_type,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
             "account_alias": data.get_one_of_inputs("job_target_account"),
@@ -208,6 +211,12 @@ class AllBizJobFastExecuteScriptService(JobService):
             self.logger.error(message)
             data.outputs.ex_data = message
             return False
+
+    def schedule(self, data, parent_data, callback_data=None):
+        biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
+        if int(biz_cc_id) < 8000000:
+            self.biz_scope_type = JobBizScopeType.BIZ.value
+        return super().schedule(data, parent_data, callback_data)
 
 
 class AllBizJobFastExecuteScriptComponent(Component):
