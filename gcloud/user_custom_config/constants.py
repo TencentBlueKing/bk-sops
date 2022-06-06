@@ -16,7 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 TASKTMPL_ORDERBY_OPTIONS = [
     {"name": _("模板ID"), "value": "id"},
     {"name": _("创建时间"), "value": "pipeline_template__create_time"},
-    {"name": _("修改时间"), "value": "pipeline_template__edit_time"},
+    {"name": _("更新时间"), "value": "pipeline_template__edit_time"},
     {"name": _("模板类型"), "value": "category"},
 ]
 
