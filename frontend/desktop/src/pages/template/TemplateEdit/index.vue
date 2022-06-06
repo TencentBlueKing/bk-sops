@@ -31,7 +31,6 @@
                 :execute-scheme-saving="executeSchemeSaving"
                 @onDownloadCanvas="onDownloadCanvas"
                 @goBackViewMode="goBackViewMode"
-                @setTplTab="setTplTab"
                 @goBackToTplEdit="goBackToTplEdit"
                 @onClosePreview="onClosePreview"
                 @onOpenExecuteScheme="onOpenExecuteScheme"
@@ -456,6 +455,21 @@
                     // 获取节点与变量的依赖关系
                     this.getNodeVariableCitedData()
                 }
+            },
+            '$route': {
+                handler (val) {
+                    const { type } = val.params
+                    const data = this.getTplTabData()
+                    console.log(type, this.recordTplTab)
+                    if (type === 'edit') {
+                        tplTabCount.setTab(data, 'add')
+                        this.recordTplTab = true
+                    } else if (type === 'view' && this.recordTplTab) {
+                        tplTabCount.setTab(data, 'del')
+                        this.recordTplTab = false
+                    }
+                },
+                immediate: true
             }
         },
         created () {
@@ -489,11 +503,6 @@
             this.openSnapshootTimer()
             window.addEventListener('beforeunload', this.handleBeforeUnload, false)
             window.addEventListener('unload', this.handleUnload.bind(this), false)
-            if (this.type === 'edit') {
-                const data = this.getTplTabData()
-                tplTabCount.setTab(data, 'add')
-                this.recordTplTab = true
-            }
         },
         beforeDestroy () {
             if (this.type === 'edit' || this.recordTplTab) {
@@ -1424,13 +1433,6 @@
             goBackViewMode () {
                 this.isBackViewMode = true
                 this.isExecuteSchemeDialog = true
-            },
-            setTplTab () {
-                if (!this.recordTplTab) {
-                    const data = this.getTplTabData()
-                    tplTabCount.setTab(data, 'add')
-                    this.recordTplTab = true
-                }
             },
             goBackToTplEdit () {
                 const { isDefaultSchemeIng, judgeDataEqual } = this.$refs.taskSelectNode
