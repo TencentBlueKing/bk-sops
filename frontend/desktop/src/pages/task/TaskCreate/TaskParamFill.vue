@@ -135,6 +135,7 @@
         </div>
         <div class="action-wrapper">
             <bk-button
+                v-if="!isCustomizeType"
                 class="preview-step-button"
                 data-test-id="createTask_form_previousStep"
                 @click="onGotoSelectNode">
