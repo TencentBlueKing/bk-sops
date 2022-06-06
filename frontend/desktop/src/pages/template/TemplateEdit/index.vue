@@ -454,6 +454,14 @@
                     // 获取节点与变量的依赖关系
                     this.getNodeVariableCitedData()
                 }
+            },
+            '$route.params.type' (val) {
+                const data = this.getTplTabData()
+                if (val === 'edit') {
+                    tplTabCount.setTab(data, 'add')
+                } else {
+                    tplTabCount.setTab(data, 'del')
+                }
             }
         },
         created () {
@@ -487,13 +495,13 @@
             this.openSnapshootTimer()
             window.addEventListener('beforeunload', this.handleBeforeUnload, false)
             window.addEventListener('unload', this.handleUnload.bind(this), false)
-            if (this.type === 'edit' || this.type === 'view') {
+            if (this.type === 'edit') {
                 const data = this.getTplTabData()
                 tplTabCount.setTab(data, 'add')
             }
         },
         beforeDestroy () {
-            if (this.type === 'edit' || this.type === 'view') {
+            if (this.type === 'edit') {
                 const data = this.getTplTabData()
                 tplTabCount.setTab(data, 'del')
             }
