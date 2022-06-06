@@ -273,7 +273,7 @@
             header-position="left"
             :mask-close="false"
             :value="isCancelGloVarDialogShow"
-            :title="$t('取消引用全局变量')"
+            :title="$t('取消引用为全局变量')"
             @cancel="isCancelGloVarDialogShow = false">
             <p>{{ $t('取消后，该全局变量的引用数为 0 ') }}</p>
             <p>{{ $t('不再使用的变量，建议在全局变量面板中及时删除') }}</p>
