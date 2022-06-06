@@ -106,7 +106,12 @@
                             if (this.engineVer === 1) {
                                 this.$set(this.renderData, key, this.nodeInfo.data.inputs[key])
                             } else if (componentData[key]) {
-                                this.$set(this.renderData, key, componentData[key].value)
+                                const { hook, value } = componentData[key]
+                                if (hook) {
+                                    this.$set(this.renderData, key, this.nodeInfo.data.inputs[key])
+                                } else {
+                                    this.$set(this.renderData, key, value)
+                                }
                             }
                         }
                         this.initalRenderData = tools.deepClone(this.renderData)

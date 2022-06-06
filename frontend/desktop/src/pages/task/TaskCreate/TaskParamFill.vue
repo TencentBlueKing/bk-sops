@@ -331,7 +331,7 @@
                     this.commonTplCreateTaskPermLoading = true
                     const bkSops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
                     const data = {
-                        action: 'common_flow_create_task',
+                        action: this.nextStepPerm[0],
                         resources: [
                             {
                                 system: bkSops.id,
@@ -713,6 +713,9 @@
                     return
                 }
                 this.isStartNow = value
+                if (this.common) {
+                    this.queryCommonTplCreateTaskPerm()
+                }
                 this.$emit('togglePeriodicStep', !value, this.isSelectFunctionalType)
                 if (value === 'periodic') {
                     this.lastTaskName = this.taskName
