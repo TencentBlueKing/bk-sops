@@ -210,8 +210,8 @@
                 showHook,
                 formValue,
                 i18n: {
-                    hooked: gettext('取消引用全局变量'),
-                    cancelHook: gettext('引用全局变量')
+                    hooked: gettext('取消引用为全局变量'),
+                    cancelHook: gettext('引用为全局变量')
                 }
             }
         },

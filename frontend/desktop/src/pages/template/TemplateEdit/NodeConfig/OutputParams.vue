@@ -32,7 +32,7 @@
                                 disabled: isViewMode || !hook
                             }]"
                             v-bk-tooltips="{
-                                content: props.row.hooked ? $t('取消勾选') : $t('勾选参数作为全局变量'),
+                                content: props.row.hooked ? $t('取消引用为全局变量') : $t('引用为全局变量'),
                                 placement: 'bottom',
                                 zIndex: 3000
                             }"
