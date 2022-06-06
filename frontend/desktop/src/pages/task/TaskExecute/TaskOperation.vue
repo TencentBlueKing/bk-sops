@@ -475,7 +475,7 @@
                 return operationBtns
             },
             paramsCanBeModify () {
-                return this.isTopTask && ['CREATED', 'RUNNING', 'READY', 'SUSPENDED'].includes(this.state)
+                return this.isTopTask && !['FINISHED', 'REVOKED'].includes(this.state)
             },
             // 审计中心/轻应用时,隐藏[查看流程]按钮
             isShowViewProcess () {

@@ -456,6 +456,7 @@
             right: 0;
             top: 6px;
             color: #ff9c01;
+            font-size: 12px;
         }
     }
     
