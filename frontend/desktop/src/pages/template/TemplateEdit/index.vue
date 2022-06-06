@@ -337,8 +337,7 @@
                 envVariableData: {},
                 validateConnectFailList: [], // 节点校验失败列表
                 isPerspective: false, // 流程是否透视
-                nodeVariableInfo: {}, // 节点输入输出变量
-                recordTplTab: false // 是否已经记录当前打开的tab页
+                nodeVariableInfo: {} // 节点输入输出变量
             }
         },
         computed: {
@@ -456,20 +455,13 @@
                     this.getNodeVariableCitedData()
                 }
             },
-            '$route': {
-                handler (val) {
-                    const { type } = val.params
-                    const data = this.getTplTabData()
-                    console.log(type, this.recordTplTab)
-                    if (type === 'edit') {
-                        tplTabCount.setTab(data, 'add')
-                        this.recordTplTab = true
-                    } else if (type === 'view' && this.recordTplTab) {
-                        tplTabCount.setTab(data, 'del')
-                        this.recordTplTab = false
-                    }
-                },
-                immediate: true
+            '$route.params.type' (val) {
+                const data = this.getTplTabData()
+                if (val === 'edit') {
+                    tplTabCount.setTab(data, 'add')
+                } else {
+                    tplTabCount.setTab(data, 'del')
+                }
             }
         },
         created () {
@@ -503,9 +495,13 @@
             this.openSnapshootTimer()
             window.addEventListener('beforeunload', this.handleBeforeUnload, false)
             window.addEventListener('unload', this.handleUnload.bind(this), false)
+            if (this.type === 'edit') {
+                const data = this.getTplTabData()
+                tplTabCount.setTab(data, 'add')
+            }
         },
         beforeDestroy () {
-            if (this.type === 'edit' || this.recordTplTab) {
+            if (this.type === 'edit') {
                 const data = this.getTplTabData()
                 tplTabCount.setTab(data, 'del')
             }
