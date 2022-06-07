@@ -101,15 +101,6 @@ def get_periodic_task_allowed_actions_for_user(username, actions, periodic_task_
     return get_resources_allowed_actions_for_user(username, IAMMeta.SYSTEM_ID, actions, resources_list)
 
 
-def get_project_allowed_actions_for_user(username, actions, project_id):
-    resources = res_factory.resources_for_project(project_id)
-
-    if not resources:
-        return {}
-
-    return get_resources_allowed_actions_for_user(username, IAMMeta.SYSTEM_ID, actions, [resources])
-
-
 def get_resources_allowed_actions_for_user(username, system_id, actions, resources_list):
     subject = Subject("user", username)
     actions = [Action(act) for act in actions]
