@@ -303,6 +303,10 @@
             label: i18n.t('创建时间'),
             width: 200
         }, {
+            id: 'editor',
+            label: i18n.t('更新人'),
+            width: 120
+        }, {
             id: 'edit_time',
             label: i18n.t('更新时间'),
             width: 200
@@ -312,7 +316,7 @@
             width: 100
         }, {
             id: 'periodic_status',
-            label: i18n.t('状态'),
+            label: i18n.t('启动/暂停'),
             width: 100
         }
     ]
@@ -474,11 +478,16 @@
                     const { fieldList, size } = JSON.parse(settingFields)
                     this.setting.size = size || 'small'
                     selectedFields = fieldList || this.tableFields
-                    if (!selectedFields || !size) {
-                        localStorage.removeItem('PeriodicList').map(item => item.id)
+                    if (!fieldList || !size) {
+                        localStorage.removeItem('PeriodicList')
                     }
                 } else {
-                    selectedFields = this.tableFields.map(item => item.id)
+                    selectedFields = this.tableFields.reduce((acc, cur) => {
+                        if (!['creator', 'create_time'].includes(cur.id)) {
+                            acc.push(cur.id)
+                        }
+                        return acc
+                    }, [])
                 }
                 this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
             },
@@ -783,7 +792,6 @@
         display: flex;
         align-items: center;
         .name {
-            flex: 1;
             white-space: nowrap;
             text-overflow: ellipsis;
             overflow: hidden;
