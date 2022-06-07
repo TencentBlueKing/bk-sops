@@ -37,15 +37,22 @@
                         :model="formData"
                         :rules="rules">
                         <bk-form-item :label="$t('流程模板')" :required="true" property="flow">
+                            <div v-if="type !== 'create'" class="select-box">
+                                {{ curRow.template_name }}
+                                <i class="bk-icon icon-angle-down"></i>
+                            </div>
                             <bk-select
+                                v-else
                                 v-model="formData.template_id"
                                 :searchable="true"
                                 :placeholder="$t('请选择')"
                                 :clearable="false"
-                                :disabled="type === 'edit'"
+                                enable-scroll-load
+                                :scroll-loading="{ isLoading: tplScrollLoading }"
                                 v-bkloading="{ isLoading: templateLoading, size: 'small', extCls: 'template-loading' }"
                                 @clear="onClearTemplate"
-                                @selected="onSelectTemplate">
+                                @selected="onSelectTemplate"
+                                @scroll-end="onSelectScrollLoad">
                                 <bk-option
                                     v-for="(option, index) in templateList"
                                     :key="index"
@@ -61,8 +68,8 @@
                                 </bk-option>
                             </bk-select>
                         </bk-form-item>
-                        <bk-form-item :label="$t('执行方案')" property="scheme">
-                            <div class="scheme-wrapper">
+                        <bk-form-item :label="isLatest ? $t('执行方案') : $t('已排除节点')" property="scheme" v-if="!isPreview">
+                            <div class="scheme-wrapper" v-if="isLatest">
                                 <bk-select
                                     v-model="formData.schemeId"
                                     :searchable="true"
@@ -80,6 +87,7 @@
                                         :name="option.name">
                                         <span>{{ option.name }}</span>
                                         <span v-if="option.isDefault" class="default-label">{{$t('默认')}}</span>
+                                        <i v-if="formData.schemeId.includes(option.id)" class="bk-icon icon-check-line"></i>
                                     </bk-option>
                                 </bk-select>
                                 <bk-button
@@ -88,6 +96,12 @@
                                     @click="togglePreviewMode">
                                     {{ $t('预览') }}
                                 </bk-button>
+                            </div>
+                            <div v-else class="exclude-wrapper">
+                                <p class="exclude-content" v-bk-overflow-tips>{{ excludeNodes }}</p>
+                                <p class="schema-disable-tip">
+                                    {{ $t('当前任务为旧数据，仅记录已选节点，强制更新后可选执行方案并获得提示更新能力') }}
+                                </p>
                             </div>
                         </bk-form-item>
                         <p class="title">{{$t('任务信息')}}</p>
@@ -108,6 +122,15 @@
                     </bk-form>
                 </section>
                 <section class="config-section">
+                    <p class="title">{{$t('执行参数')}}</p>
+                    <TaskParamEdit
+                        v-bkloading="{ isLoading: isLoading || previewDataLoading, opacity: 1, zIndex: 100 }"
+                        class="task-param-wrapper"
+                        ref="TaskParamEdit"
+                        :constants="constants">
+                    </TaskParamEdit>
+                </section>
+                <section class="config-section mb20">
                     <p class="title">
                         <span>{{ $t('通知') }}</span>
                         <span v-if="!isLoading && formData.template_id" class="tip-desc">
@@ -119,24 +142,19 @@
                             </a>
                         </span>
                     </p>
-                    <NotifyTypeConfig
-                        :notify-type-label="$t('通知方式')"
-                        :label-width="87"
-                        :table-width="570"
-                        :notify-type="notifyType"
-                        :is-view-mode="true"
-                        :notify-type-list="[{ text: $t('任务状态') }]"
-                        :receiver-group="receiverGroup">
-                    </NotifyTypeConfig>
-                </section>
-                <section class="config-section mb20">
-                    <p class="title">{{$t('执行参数')}}</p>
-                    <TaskParamEdit
-                        v-bkloading="{ isLoading: isLoading || previewDataLoading, opacity: 1, zIndex: 100 }"
-                        class="task-param-wrapper"
-                        ref="TaskParamEdit"
-                        :constants="constants">
-                    </TaskParamEdit>
+                    <div v-bkloading="{ isLoading: isLoading || schemeLoading, opacity: 1, zIndex: 100 }">
+                        <NotifyTypeConfig
+                            v-if="formData.template_id"
+                            :notify-type-label="$t('通知方式')"
+                            :label-width="87"
+                            :table-width="570"
+                            :notify-type="notifyType"
+                            :is-view-mode="true"
+                            :notify-type-list="[{ text: $t('任务状态') }]"
+                            :receiver-group="receiverGroup">
+                        </NotifyTypeConfig>
+                        <bk-exception v-else type="empty" scene="part"></bk-exception>
+                    </div>
                 </section>
                 <div class="btn-footer">
                     <bk-button
@@ -293,6 +311,7 @@
                 isShowDialog: false,
                 templateData: {},
                 templateLoading: false,
+                tplScrollLoading: false,
                 templateList: [],
                 templateDataLoading: false,
                 schemeLoading: false,
@@ -308,12 +327,18 @@
                 },
                 selectedNodes: [],
                 notifyType: [[], []],
-                receiverGroup: []
+                receiverGroup: [],
+                totalPage: 1,
+                pagination: {
+                    current: 1,
+                    count: 0,
+                    limit: 15
+                }
             }
         },
         computed: {
             sameTimeStamp () {
-                const initTimeStamp = new Date(this.formData.plan_start_time).getTime()
+                const initTimeStamp = new Date(this.curRow.plan_start_time).getTime()
                 const curTimeStamp = new Date(this.formData.plan_start_time).getTime()
                 return initTimeStamp === curTimeStamp
             },
@@ -335,14 +360,34 @@
             },
             isLoading () {
                 return this.templateLoading || this.templateDataLoading
+            },
+            isLatest () {
+                if (this.type !== 'edit' || !('exclude_task_nodes_id' in this.curRow.task_parameters)) {
+                    return true
+                }
+                return false
+            },
+            excludeNodes () {
+                if (this.isLatest) return ''
+                const nodes = []
+                const { exclude_task_nodes_id = [] } = this.curRow.task_parameters
+                const { activities = {} } = this.templateData.pipeline_tree || {}
+                exclude_task_nodes_id.forEach(id => {
+                    if (activities[id]) {
+                        nodes.push(activities[id].name)
+                    }
+                })
+                return nodes.join(',')
             }
         },
-        async created () {
+        created () {
             this.initFormData = tools.deepClone(this.formData)
-            await this.getTemplateList()
             if (this.type !== 'create') {
                 const id = this.curRow.template_id
                 this.onSelectTemplate(id)
+            } else {
+                this.templateLoading = true
+                this.getTemplateList()
             }
         },
         methods: {
@@ -362,13 +407,21 @@
                 'loadTemplateData'
             ]),
             async getTemplateList () {
-                this.templateLoading = true
                 try {
-                    const templateListData = await this.loadTemplateList({ project__id: this.project_id })
-                    this.templateList = templateListData.results
+                    const offset = (this.pagination.current - 1) * this.pagination.limit
+                    const templateListData = await this.loadTemplateList({ project__id: this.project_id, limit: 15, offset })
+                    this.templateList.push(...templateListData.results)
+                    this.pagination.count = templateListData.count
+                    const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
+                    if (!totalPage) {
+                        this.totalPage = 1
+                    } else {
+                        this.totalPage = totalPage
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
+                    this.tplScrollLoading = false
                     this.templateLoading = false
                 }
             },
@@ -382,6 +435,14 @@
                         flow: [selectInfo]
                     }
                     this.applyForPermission(applyPerm, selectInfo.auth_actions, permissionData)
+                }
+            },
+            // 下拉框滚动加载
+            onSelectScrollLoad () {
+                if (this.totalPage !== this.pagination.current) {
+                    this.tplScrollLoading = true
+                    this.pagination.current += 1
+                    this.getTemplateList()
                 }
             },
             onClearTemplate () {
@@ -633,9 +694,14 @@
                             task_name,
                             plan_start_time: this.sameTimeStamp ? undefined : time,
                             task_parameters: {
-                                constants: taskParamEdit ? taskParamEdit.renderData : {},
-                                template_schemes_id: this.formData.schemeId
+                                constants: taskParamEdit ? taskParamEdit.renderData : {}
                             }
+                        }
+                        if (this.isLatest) {
+                            const schemeIds = this.formData.schemeId.filter(item => item)
+                            params.task_parameters['template_schemes_id'] = schemeIds
+                        } else {
+                            params.task_parameters['exclude_task_nodes_id'] = this.curRow.task_parameters.exclude_task_nodes_id
                         }
                         await this.updateClocked(params)
                         this.$bkMessage({
@@ -660,9 +726,10 @@
                         return
                     }
                     this.saveLoading = true
+                    const schemeIds = this.formData.schemeId.filter(item => item)
                     const taskParams = {
                         constants: taskParamEdit.renderData || {},
-                        template_schemes_id: this.formData.schemeId
+                        template_schemes_id: schemeIds
                     }
                     const { task_name, template_id, plan_start_time } = this.formData
                     const locTimeZone = new Date().toTimeString().slice(12, 17)
@@ -819,6 +886,49 @@
         top: 65%;
     }
 }
+.select-box {
+    height: 32px;
+    position: relative;
+    font-size: 12px;
+    line-height: 20px;
+    color: #63656e;
+    padding: 5px 8px;
+    background: #fafbfd;
+    border: 1px solid #dcdee5;
+    border-radius: 2px;
+    cursor: not-allowed;
+    .icon-angle-down {
+        position: absolute;
+        right: 7px;
+        top: 5px;
+        font-size: 20px;
+        color: #c4c6cc;
+        cursor: not-allowed;
+    }
+}
+.exclude-content {
+    width: 100%;
+    height: 64px;
+    font-size: 12px;
+    padding: 5px 10px;
+    line-height: 1.5;
+    color: #63656e;
+    border: 1px solid #dcdee5;
+    border-radius: 2px;
+    background-color: #fafbfd;
+    cursor: default;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+.schema-disable-tip {
+    font-size: 12px;
+    line-height: 15px;
+    color: #ff9c01;
+    margin-top: 8px;
+}
 .scheme-wrapper {
     display: flex;
     align-items: center;
@@ -839,6 +949,12 @@
     margin-left: 10px;
     color: #14a568;
     background: #e4faf0;
+}
+.icon-check-line {
+    position: absolute;
+    right: 16px;
+    top: 8px;
+    font-size: 16px;
 }
 .preview-header {
     display: flex;

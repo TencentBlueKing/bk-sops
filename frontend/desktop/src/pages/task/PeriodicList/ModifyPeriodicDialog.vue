@@ -73,9 +73,12 @@
                                 :searchable="true"
                                 :placeholder="$t('请选择')"
                                 :clearable="false"
+                                enable-scroll-load
+                                :scroll-loading="{ isLoading: tplScrollLoading }"
                                 v-bkloading="{ isLoading: templateLoading, size: 'small', extCls: 'template-loading' }"
                                 @clear="onClearTemplate"
-                                @selected="onSelectTemplate">
+                                @selected="onSelectTemplate"
+                                @scroll-end="onSelectScrollLoad">
                                 <bk-option
                                     v-for="(option, index) in templateList"
                                     :key="index"
@@ -91,8 +94,11 @@
                                 </bk-option>
                             </bk-select>
                         </bk-form-item>
-                        <bk-form-item :label="$t('执行方案')" property="scheme">
-                            <div class="scheme-wrapper">
+                        <bk-form-item :label="formData.is_latest === null ? $t('已选节点') : $t('执行方案')" property="scheme" v-if="!isPreview">
+                            <p v-if="formData.is_latest === null" class="exclude-wrapper" v-bk-overflow-tips>
+                                {{ includeNodes }}
+                            </p>
+                            <div class="scheme-wrapper" v-else>
                                 <bk-select
                                     v-model="formData.schemeId"
                                     :searchable="true"
@@ -108,6 +114,7 @@
                                         :name="option.name">
                                         <span>{{ option.name }}</span>
                                         <span v-if="option.isDefault" class="default-label">{{$t('默认')}}</span>
+                                        <i v-if="formData.schemeId.includes(option.id)" class="bk-icon icon-check-line"></i>
                                     </bk-option>
                                 </bk-select>
                                 <bk-button
@@ -118,10 +125,11 @@
                                     {{ $t('预览') }}
                                 </bk-button>
                             </div>
-                            <p
-                                v-if="formData.is_latest !== true"
-                                class="schema-disable-tip">
+                            <p v-if="formData.is_latest === false" class="schema-disable-tip">
                                 {{ $t('当前流程非最新，执行方案不可更改，请先更新流程') }}
+                            </p>
+                            <p v-if="formData.is_latest === null" class="schema-disable-tip">
+                                {{ $t('当前任务为旧数据，仅记录已选节点，强制更新后可选执行方案并获得提示更新能力') }}
                             </p>
                         </bk-form-item>
                         <p class="title">{{$t('任务信息')}}</p>
@@ -137,6 +145,18 @@
                     </bk-form>
                 </section>
                 <section class="config-section">
+                    <p class="title">{{$t('执行参数')}}</p>
+                    <div v-bkloading="{ isLoading: isLoading || previewDataLoading }">
+                        <NoData v-if="isVariableEmpty"></NoData>
+                        <TaskParamEdit
+                            v-else
+                            ref="TaskParamEdit"
+                            class="task-param-edit"
+                            :constants="periodicConstants">
+                        </TaskParamEdit>
+                    </div>
+                </section>
+                <section class="config-section mb20">
                     <p class="title">
                         <span>{{ $t('通知') }}</span>
                         <span v-if="!isLoading && formData.template_id" class="tip-desc">
@@ -148,26 +168,18 @@
                             </a>
                         </span>
                     </p>
-                    <NotifyTypeConfig
-                        :notify-type-label="$t('启动失败') + ' ' + $t('通知方式')"
-                        :label-width="87"
-                        :table-width="570"
-                        :notify-type="notifyType"
-                        :is-view-mode="true"
-                        :notify-type-list="[{ text: $t('任务状态') }]"
-                        :receiver-group="receiverGroup">
-                    </NotifyTypeConfig>
-                </section>
-                <section class="config-section mb20">
-                    <p class="title">{{$t('执行参数')}}</p>
-                    <div v-bkloading="{ isLoading: isLoading || previewDataLoading }">
-                        <NoData v-if="isVariableEmpty"></NoData>
-                        <TaskParamEdit
-                            v-else
-                            ref="TaskParamEdit"
-                            class="task-param-edit"
-                            :constants="periodicConstants">
-                        </TaskParamEdit>
+                    <div v-bkloading="{ isLoading: isLoading || schemeLoading, opacity: 1, zIndex: 100 }">
+                        <NotifyTypeConfig
+                            v-if="formData.template_id"
+                            :notify-type-label="$t('启动失败') + ' ' + $t('通知方式')"
+                            :label-width="87"
+                            :table-width="570"
+                            :notify-type="notifyType"
+                            :is-view-mode="true"
+                            :notify-type-list="[{ text: $t('任务状态') }]"
+                            :receiver-group="receiverGroup">
+                        </NotifyTypeConfig>
+                        <bk-exception v-else type="empty" scene="part"></bk-exception>
                     </div>
                 </section>
                 <div class="btn-footer">
@@ -259,6 +271,7 @@
                 initFormData: {},
                 templateData: {},
                 templateLoading: false,
+                tplScrollLoading: false,
                 templateList: [],
                 templateDataLoading: false,
                 schemeLoading: false,
@@ -320,7 +333,13 @@
                 periodicConstants: {},
                 isShowDialog: false,
                 updateLoading: false,
-                isUpdatePipelineTree: false // pipeline_tree是否被更新替换
+                isUpdatePipelineTree: false, // pipeline_tree是否被更新替换
+                totalPage: 1,
+                pagination: {
+                    current: 1,
+                    count: 0,
+                    limit: 15
+                }
             }
         },
         computed: {
@@ -346,9 +365,15 @@
             },
             isLoading () {
                 return this.templateLoading || this.templateDataLoading
+            },
+            includeNodes () {
+                if (this.formData.is_latest !== null) return ''
+                const { activities = {} } = this.curRow.pipeline_tree || {}
+                const nodes = Object.values(activities).map(item => item.name)
+                return nodes.join(',')
             }
         },
-        async created () {
+        created () {
             this.initFormData = tools.deepClone(this.formData)
             
             if (this.isEdit) {
@@ -356,6 +381,7 @@
                 const id = this.curRow.template_id
                 this.onSelectTemplate(id)
             } else {
+                this.templateLoading = true
                 this.getTemplateList()
             }
         },
@@ -379,13 +405,21 @@
                 'loadTemplateData'
             ]),
             async getTemplateList () {
-                this.templateLoading = true
                 try {
-                    const templateListData = await this.loadTemplateList({ project__id: this.project_id })
-                    this.templateList = templateListData.results
+                    const offset = (this.pagination.current - 1) * this.pagination.limit
+                    const templateListData = await this.loadTemplateList({ project__id: this.project_id, limit: 15, offset })
+                    this.templateList.push(...templateListData.results)
+                    this.pagination.count = templateListData.count
+                    const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
+                    if (!totalPage) {
+                        this.totalPage = 1
+                    } else {
+                        this.totalPage = totalPage
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
+                    this.tplScrollLoading = false
                     this.templateLoading = false
                 }
             },
@@ -399,6 +433,14 @@
                         flow: [selectInfo]
                     }
                     this.applyForPermission(applyPerm, selectInfo.auth_actions, permissionData)
+                }
+            },
+            // 下拉框滚动加载
+            onSelectScrollLoad () {
+                if (this.totalPage !== this.pagination.current) {
+                    this.tplScrollLoading = true
+                    this.pagination.current += 1
+                    this.getTemplateList()
                 }
             },
             onClearTemplate () {
@@ -422,9 +464,13 @@
                     this.templateData = Object.assign({}, templateData, { pipeline_tree: pipelineDate })
                     // 获取模板对应的执行方案
                     await this.getTemplateScheme()
-                    if (this.formData.schemeId) {
-                        this.onSelectScheme(this.formData.schemeId, [], false)
-                        this.isUpdatePipelineTree = false
+                    if (this.formData.schemeId.length) {
+                        if (this.formData.is_latest) { // 只有最新流程才允许选择执行方案
+                            this.onSelectScheme(this.formData.schemeId, [], false)
+                            this.isUpdatePipelineTree = false
+                        } else {
+                            this.previewData = tools.deepClone(this.curRow.pipeline_tree)
+                        }
                     } else if (!this.isEdit) {
                         const templateInfo = this.templateList.find(item => item.id === id)
                         await this.getPreviewNodeData(id, templateInfo.version, true)
@@ -685,19 +731,19 @@
                         acc[cur.key] = { ...cur, value: constantsValue[cur.key] }
                         return acc
                     }, {})
-                    const constantsData = {
+                    const pipelineData = {
                         ...this.previewData,
                         constants
                     }
 
                     if (this.isEdit) { // 确认编辑周期任务
-                        this.onModifyPeriodicTask(jsonCron, constantsData)
+                        this.onModifyPeriodicTask(jsonCron, pipelineData)
                     } else { // 确认创建周期任务
-                        this.onCreatePeriodicTask(jsonCron, constantsData)
+                        this.onCreatePeriodicTask(jsonCron, pipelineData)
                     }
                 })
             },
-            async onModifyPeriodicTask (jsonCron, constantsData) {
+            async onModifyPeriodicTask (jsonCron, pipelineData) {
                 try {
                     const same = this.judgeDataEqual()
                     if (same) {
@@ -711,11 +757,15 @@
                             name: this.formData.name,
                             template_id: this.curRow.template_id,
                             template_scheme_ids: schemeIds,
-                            pipeline_tree: JSON.stringify(constantsData)
+                            pipeline_tree: JSON.stringify(pipelineData)
                         }
                         await this.updatePeriodicTask(params)
                         this.$emit('onConfirmSave')
                     } else { // 修改周期任务部分配置，调patch接口
+                        const constantsData = Object.values(pipelineData.constants).reduce((acc, cur) => {
+                            acc[cur.key] = cur.value
+                            return acc
+                        }, {})
                         const params = {
                             taskId: this.taskId,
                             project: this.project_id,
@@ -737,14 +787,14 @@
                 }
             },
             // 创建周期任务
-            async onCreatePeriodicTask (cron, constantsData) {
+            async onCreatePeriodicTask (cron, pipelineData) {
                 const schemeIds = this.formData.schemeId.filter(id => id)
                 const data = {
                     name: this.formData.name,
                     cron: cron,
                     templateId: this.formData.template_id,
                     schemeIds,
-                    execData: JSON.stringify(constantsData)
+                    execData: JSON.stringify(pipelineData)
                 }
                 try {
                     const response = await this.createPeriodic(data)
@@ -902,6 +952,23 @@
             top: 65%;
         }
     }
+    .exclude-wrapper {
+        width: 100%;
+        height: 64px;
+        font-size: 12px;
+        padding: 5px 10px;
+        line-height: 1.5;
+        color: #63656e;
+        border: 1px solid #dcdee5;
+        border-radius: 2px;
+        background-color: #fafbfd;
+        cursor: default;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+    }
     .scheme-wrapper {
         display: flex;
         align-items: center;
@@ -929,6 +996,12 @@
     margin-left: 10px;
     color: #14a568;
     background: #e4faf0;
+}
+.icon-check-line {
+    position: absolute;
+    right: 16px;
+    top: 8px;
+    font-size: 16px;
 }
 /deep/.no-data-wrapper {
     margin: 150px 0;
