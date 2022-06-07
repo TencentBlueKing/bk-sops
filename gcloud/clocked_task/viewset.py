@@ -18,7 +18,7 @@ from rest_framework.response import Response
 
 from gcloud.clocked_task.models import ClockedTask
 from gcloud.clocked_task.permissions import ClockedTaskPermissions
-from gcloud.clocked_task.serializer import ClockedTaskSerializer
+from gcloud.clocked_task.serializer import ClockedTaskSerializer, ClockedTaskPatchSerializer
 from gcloud.core.apis.drf.viewsets import ApiMixin, IAMMixin
 from gcloud.iam_auth import get_iam_client, IAMMeta
 from gcloud.iam_auth.resource_helpers.clocked_task import ClockedTaskResourceHelper
@@ -85,15 +85,16 @@ class ClockedTaskViewSet(ApiMixin, IAMMixin, viewsets.ModelViewSet):
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
+        instance = self.get_object()
         if "plan_start_time" in request.data:
-            instance = self.get_object()
             serializer = self.get_serializer(
                 instance, data={"plan_start_time": request.data.pop("plan_start_time")}, partial=True
             )
             serializer.is_valid(raise_exception=True)
-            validated_data = serializer.validated_data
-            new_plan_start_time = validated_data["plan_start_time"]
+            new_plan_start_time = serializer.validated_data["plan_start_time"]
             instance.modify_clock(new_plan_start_time)
-        kwargs["partial"] = True
         request.data["editor"] = request.user.username
-        return super().update(request, *args, **kwargs)
+        serializer = ClockedTaskPatchSerializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
