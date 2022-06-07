@@ -33,7 +33,10 @@
                         :placeholder="$t('请选择')"
                         :clearable="true"
                         :disabled="!isCreateNewApp"
-                        @selected="onSelectTemplate">
+                        enable-scroll-load
+                        :scroll-loading="{ isLoading: tplScrollLoading }"
+                        @selected="onSelectTemplate"
+                        @scroll-end="onSelectScrollLoad">
                         <bk-option
                             v-for="(option, index) in templateList"
                             :key="index"
@@ -233,6 +236,7 @@
         data () {
             return {
                 templateLoading: true,
+                tplScrollLoading: false,
                 schemeLoading: false,
                 templateList: [],
                 schemeList: [],
@@ -260,7 +264,13 @@
                 appDescRule: {
                     max: STRING_LENGTH.APP_DESCRIPTION_MAX_LENGTH
                 },
-                taskCategories: []
+                taskCategories: [],
+                totalPage: 1,
+                pagination: {
+                    current: 1,
+                    count: 0,
+                    limit: 15
+                }
             }
         },
         computed: {
@@ -333,14 +343,30 @@
                 this.isLogoLoadingError = true
             },
             async getTemplateList () {
-                this.templateLoading = true
                 try {
-                    const templateListData = await this.loadTemplateList({ project__id: this.project_id })
-                    this.templateList = templateListData.results
+                    const offset = (this.pagination.current - 1) * this.pagination.limit
+                    const templateListData = await this.loadTemplateList({ project__id: this.project_id, limit: 15, offset })
+                    this.templateList.push(...templateListData.results)
+                    this.pagination.count = templateListData.count
+                    const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
+                    if (!totalPage) {
+                        this.totalPage = 1
+                    } else {
+                        this.totalPage = totalPage
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
+                    this.tplScrollLoading = false
                     this.templateLoading = false
+                }
+            },
+            // 下拉框滚动加载
+            onSelectScrollLoad () {
+                if (this.totalPage !== this.pagination.current) {
+                    this.tplScrollLoading = true
+                    this.pagination.current += 1
+                    this.getTemplateList()
                 }
             },
             async getTemplateScheme () {
