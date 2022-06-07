@@ -64,3 +64,7 @@ class ClockedTaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClockedTask
         exclude = ("task_params", "notify_type", "notify_receivers")
+
+
+class ClockedTaskPatchSerializer(ClockedTaskSerializer):
+    editor = serializers.CharField(help_text="计划任务编辑人")
