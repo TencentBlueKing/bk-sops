@@ -147,6 +147,10 @@ class PeriodicTaskManager(models.Manager):
         instance.snapshot = snapshot
         instance.extra_info = extra_info
         instance.modify_cron(cron, project.time_zone)
+        instance.queue = queue
+        instance.celery_task.task = trigger_task
+        instance.save()
+        instance.celery_task.save(update_fields=["task"])
         return instance
 
 
