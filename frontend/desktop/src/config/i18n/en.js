@@ -1382,8 +1382,12 @@ const en = {
     '不满足重用规则时使用流程默认值': 'Use process defaults when reuse rules are not met',
     '使用流程的最新数据再次创建任务，可重用当前参数': 'Create the task again with the latest data from the process, reusing the current parameters',
     '使用流程默认参数值': 'Use process default parameter values',
-    '重用当前任务参数值': 'Reuse the current task parameter value'
-
+    '重用当前任务参数值': 'Reuse the current task parameter value',
+    '启动/暂停': 'Start/Pause',
+    '已选节点': 'Selected node',
+    '当前任务为旧数据，仅记录已选节点，强制更新后可选执行方案并获得提示更新能力': 'The current task is the old data, only the selected node is recorded, after the forced update, the execution plan can be selected and the prompt update ability can be obtained',
+    '已排除节点': 'Node excluded',
+    '当前任务为旧数据，仅记录已排除节点，可重选执行方案获得跟随执行方案更新能力': 'The current task is the old data, only the excluded nodes are recorded, and the execution plan can be reselected to obtain the ability to follow the execution plan update'
 }
 
 export default en
