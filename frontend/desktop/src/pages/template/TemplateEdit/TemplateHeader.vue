@@ -14,7 +14,7 @@
         <div class="header-left-area">
             <i class="bk-icon icon-arrows-left back-icon" @click="onBackClick"></i>
             <div class="title">{{ isEditProcessPage ? title : $t('编辑执行方案') }}</div>
-            <h3 v-if="!schemeInfo" class="template-name">{{ name }}</h3>
+            <h3 v-if="!schemeInfo" v-bk-overflow-tips class="template-name">{{ name }}</h3>
             <template v-else>
                 <bk-input ref="schemeInput" class="template-name execution-scheme-input" v-model="schemeInfo.name"></bk-input>
                 <p class="execution-scheme-tip">{{ $t('执行') + schemeInfo.data.length + $t('个节点') }}</p>
@@ -338,6 +338,7 @@
                 } else {
                     this.goBackToTplEdit()
                 }
+                this.schemeInfo = null
             },
             onSaveEditSchemeClick () {
                 /**
