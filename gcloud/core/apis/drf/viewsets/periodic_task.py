@@ -166,11 +166,6 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        if instance.enabled:
-            raise APIException(
-                detail="can not modify cron when task is enabled", code=err_code.REQUEST_PARAM_INVALID.code
-            )
-
         serializer = CreatePeriodicTaskSerializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
         self._handle_serializer(request, serializer)
@@ -179,11 +174,6 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
-        if instance.enabled:
-            raise APIException(
-                detail="can not modify cron when task is enabled", code=err_code.REQUEST_PARAM_INVALID.code
-            )
-
         serializer = PatchUpdatePeriodicTaskSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -196,5 +186,7 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
             if "name" in serializer.validated_data:
                 instance.task.name = serializer.validated_data["name"]
                 instance.task.save(update_fields=["name"])
+            instance.editor = request.user.username
+            instance.save(update_fields=["editor"])
 
         return Response(PeriodicTaskReadOnlySerializer(instance=instance).data)
