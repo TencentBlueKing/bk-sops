@@ -221,6 +221,10 @@
             label: i18n.t('创建人'),
             width: 150
         }, {
+            id: 'editor',
+            label: i18n.t('更新人'),
+            width: 150
+        }, {
             id: 'create_time',
             label: i18n.t('创建时间'),
             width: 200
@@ -357,17 +361,22 @@
             },
             // 获取当前视图表格头显示字段
             getFields () {
-                const settingFields = localStorage.getItem('ClockededList')
+                const settingFields = localStorage.getItem('ClockedList')
                 let selectedFields
                 if (settingFields) {
                     const { fieldList, size } = JSON.parse(settingFields)
                     this.setting.size = size || 'small'
                     selectedFields = fieldList || this.tableFields
-                    if (!selectedFields || !size) {
-                        localStorage.removeItem('ClockededList').map(item => item.id)
+                    if (!fieldList || !size) {
+                        localStorage.removeItem('ClockedList')
                     }
                 } else {
-                    selectedFields = this.tableFields.map(item => item.id)
+                    selectedFields = this.tableFields.reduce((acc, cur) => {
+                        if (!['creator', 'create_time'].includes(cur.id)) {
+                            acc.push(cur.id)
+                        }
+                        return acc
+                    }, [])
                 }
                 this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
             },
@@ -421,7 +430,7 @@
                 this.setting.size = size
                 this.setting.selectedFields = fields
                 const fieldIds = fields.map(m => m.id)
-                localStorage.setItem('ClockededList', JSON.stringify({
+                localStorage.setItem('ClockedList', JSON.stringify({
                     fieldList: fieldIds,
                     size
                 }))
