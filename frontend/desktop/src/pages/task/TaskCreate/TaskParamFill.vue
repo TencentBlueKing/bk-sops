@@ -31,23 +31,6 @@
                         </div>
                     </div>
                     <div
-                        v-if="!isExecuteSchemeHide"
-                        data-test-id="createTask_form_executePlan"
-                        class="common-form-item">
-                        <label class="required">{{$t('执行计划')}}</label>
-                        <div class="common-form-content">
-                            <div class="bk-button-group">
-                                <bk-button
-                                    v-for="(item, index) in btnGroup"
-                                    :key="index"
-                                    :theme="item.id === isStartNow ? 'primary' : 'default'"
-                                    @click="onChangeStartNow(item.id)">
-                                    {{ item.text }}
-                                </bk-button>
-                            </div>
-                        </div>
-                    </div>
-                    <div
                         v-if="isTaskTypeShow"
                         data-test-id="createTask_form_processType"
                         class="common-form-item">
