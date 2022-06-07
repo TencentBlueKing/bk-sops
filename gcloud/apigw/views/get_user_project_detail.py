@@ -55,9 +55,11 @@ def get_user_project_detail(request, project_id):
         system_id=IAMMeta.SYSTEM_ID,
         actions=PROJECT_ACTIONS,
         resources_list=[
-            Resource(
-                IAMMeta.SYSTEM_ID, IAMMeta.PROJECT_RESOURCE, str(request.project.id), {"name": request.project.name}
-            )
+            [
+                Resource(
+                    IAMMeta.SYSTEM_ID, IAMMeta.PROJECT_RESOURCE, str(request.project.id), {"name": request.project.name}
+                )
+            ]
         ],
     )
 
