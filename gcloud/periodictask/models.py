@@ -243,10 +243,10 @@ class PeriodicTask(models.Model):
         PeriodicTaskHistory.objects.filter(task=self).delete()
 
     def modify_cron(self, cron, timezone):
-        self.task.modify_cron(cron, timezone)
+        self.task.modify_cron(cron, timezone, need_enabled=False)
 
     def modify_constants(self, constants):
-        return self.task.modify_constants(constants)
+        return self.task.modify_constants(constants, need_enabled=False)
 
     def get_stakeholders(self):
         notify_receivers = json.loads(self.template.notify_receivers)
