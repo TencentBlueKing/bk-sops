@@ -640,9 +640,15 @@
             },
             // 垮流程克隆变量
             onCloneVarConfirm (constants = []) {
-                const variableKeys = this.variableList.map(item => item.key)
-                constants.forEach(item => {
+                const indexList = []
+                const variableKeys = this.variableList.map(item => {
+                    indexList.push(item.index)
+                    return item.key
+                })
+                const maxIndex = Math.max(...indexList)
+                constants.forEach((item, index) => {
                     item.key = this.setCloneKey(item.key, variableKeys)
+                    item.index = maxIndex + index + 1
                     this.newCloneKeys.push(item.key)
                     this.addVariable(item)
                 })
