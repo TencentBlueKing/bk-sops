@@ -786,6 +786,7 @@
                             desc = descList.join('<br>')
                         }
                     }
+                    const executorProxy = executor_proxy ? executor_proxy.split(',') : []
 
                     return {
                         plugin: code,
@@ -803,7 +804,7 @@
                         selectable: optional,
                         autoRetry: Object.assign({}, { enable: false, interval: 0, times: 1 }, auto_retry),
                         timeoutConfig: timeout_config || { enable: false, seconds: 10, action: 'forced_fail' },
-                        executor_proxy: [executor_proxy]
+                        executor_proxy: executorProxy
                     }
                 } else {
                     const { template_id, name, stage_name = '', labels, optional, always_use_latest, scheme_id_list, executor_proxy } = config
@@ -825,6 +826,7 @@
                             templateName = templateData.name
                         }
                     }
+                    const executorProxy = executor_proxy ? executor_proxy.split(',') : []
                     return {
                         tpl: template_id || '',
                         name: templateName, // 流程模版名称
@@ -835,7 +837,7 @@
                         alwaysUseLatest: always_use_latest || false, // 兼容旧数据，该字段为新增
                         schemeIdList: scheme_id_list || [], // 兼容旧数据，该字段为后面新增
                         version: config.hasOwnProperty('version') ? config.version : '', // 子流程版本，区别于标准插件版本
-                        executor_proxy: [executor_proxy]
+                        executor_proxy: executorProxy
                     }
                 }
             },
@@ -1297,7 +1299,6 @@
                 let config
                 if (this.isSubflow) {
                     const { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, version, tpl, executor_proxy } = this.basicInfo
-                    const executorProxy = executor_proxy.join(',')
                     const constants = {}
                     Object.keys(this.subflowForms).forEach(key => {
                         const constant = this.subflowForms[key]
@@ -1316,12 +1317,13 @@
                         template_id: tpl,
                         optional: selectable,
                         always_use_latest: alwaysUseLatest,
-                        scheme_id_list: schemeIdList,
-                        executor_proxy: executorProxy
+                        scheme_id_list: schemeIdList
                     })
+                    if (this.common) {
+                        config['executor_proxy'] = executor_proxy.join(',')
+                    }
                 } else {
                     const { ignorable, nodeName, stageName, nodeLabel, plugin, retryable, skippable, selectable, version, autoRetry, timeoutConfig, executor_proxy } = this.basicInfo
-                    const executorProxy = executor_proxy.join(',')
                     const data = {} // 标准插件节点在 activity 的 component.data 值
                     Object.keys(this.inputsParamValue).forEach(key => {
                         const formVal = this.inputsParamValue[key]
@@ -1362,9 +1364,11 @@
                         error_ignorable: ignorable,
                         optional: selectable,
                         auto_retry: autoRetry,
-                        timeout_config: timeoutConfig,
-                        executor_proxy: executorProxy
+                        timeout_config: timeoutConfig
                     })
+                    if (this.common) {
+                        config['executor_proxy'] = executor_proxy.join(',')
+                    }
                     delete config.can_retry
                     delete config.isSkipped
                 }
@@ -1491,8 +1495,10 @@
                         const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional,
                                 desc, nodeName, autoRetry, timeoutConfig, executor_proxy
                         } = this.basicInfo
-                        const executorProxy = executor_proxy.join(',')
-                        const nodeData = { status: '', skippable, retryable, optional, auto_retry: autoRetry, timeout_config: timeoutConfig, executor_proxy: executorProxy }
+                        const nodeData = { status: '', skippable, retryable, optional, auto_retry: autoRetry, timeout_config: timeoutConfig }
+                        if (this.common) {
+                            nodeData['executor_proxy'] = executor_proxy.join(',')
+                        }
                         if (!this.isSubflow) {
                             const phase = this.getAtomPhase()
                             nodeData.phase = phase
