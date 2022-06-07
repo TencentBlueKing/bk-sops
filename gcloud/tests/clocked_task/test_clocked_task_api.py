@@ -70,6 +70,10 @@ class ClockedTaskTestCase(
         task_serialized_data.pop("id")
         plan_start_time = datetime.datetime.now(tz=pytz.timezone(settings.TIME_ZONE)) + datetime.timedelta(hours=1)
         task_serialized_data["plan_start_time"] = plan_start_time.strftime("%Y-%m-%d %H:%M:%S%z")
+        task_serialized_data["task_parameters"] = {
+            "constants": {},
+            "template_schemes_id": [],
+        }
         data = json.dumps(task_serialized_data)
         url = reverse("clocked_task-list")
         response = self.client.post(url, data=data, content_type="application/json")
