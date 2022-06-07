@@ -48,7 +48,9 @@ def get_user_project_detail(request, project_id):
             "code": err_code.UNKNOWN_ERROR.code,
         }
 
-    project_allowed_actions = get_project_allowed_actions_for_user(request.user.username, PROJECT_ACTIONS, project_id)
+    project_allowed_actions = get_project_allowed_actions_for_user(
+        request.user.username, PROJECT_ACTIONS, request.project.id
+    )
 
     return {
         "result": True,
