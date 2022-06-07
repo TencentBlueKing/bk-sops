@@ -483,7 +483,7 @@
                     }
                 } else {
                     selectedFields = this.tableFields.reduce((acc, cur) => {
-                        if (!['creator', 'create_time'].includes(cur.id)) {
+                        if (!['creator', 'create_time'].includes(cur.id)) { // 默认不显示创建人/创建时间
                             acc.push(cur.id)
                         }
                         return acc
