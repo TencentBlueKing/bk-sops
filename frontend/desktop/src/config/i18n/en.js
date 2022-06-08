@@ -1387,7 +1387,9 @@ const en = {
     '已选节点': 'Selected node',
     '当前任务为旧数据，仅记录已选节点，强制更新后可选执行方案并获得提示更新能力': 'The current task is the old data, only the selected node is recorded, after the forced update, the execution plan can be selected and the prompt update ability can be obtained',
     '已排除节点': 'Node excluded',
-    '当前任务为旧数据，仅记录已排除节点，可重选执行方案获得跟随执行方案更新能力': 'The current task is the old data, only the excluded nodes are recorded, and the execution plan can be reselected to obtain the ability to follow the execution plan update'
+    '当前任务为旧数据，仅记录已排除节点，可重选执行方案获得跟随执行方案更新能力': 'The current task is the old data, only the excluded nodes are recorded, and the execution plan can be reselected to obtain the ability to follow the execution plan update',
+    '无': 'None',
+    '请选择执行方案': 'Please select an implementation plan'
 }
 
 export default en

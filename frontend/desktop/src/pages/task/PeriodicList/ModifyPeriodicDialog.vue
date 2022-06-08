@@ -96,7 +96,12 @@
                                 </bk-option>
                             </bk-select>
                         </bk-form-item>
-                        <bk-form-item :label="formData.is_latest === null ? $t('已选节点') : $t('执行方案')" property="scheme" v-if="!isPreview">
+                        <bk-form-item
+                            class="scheme-form-item"
+                            v-if="!isPreview"
+                            :label="formData.is_latest === null ? $t('已选节点') : $t('执行方案')"
+                            property="schemeId"
+                            :required="formData.is_latest !== null">
                             <p v-if="formData.is_latest === null" class="exclude-wrapper" v-bk-overflow-tips>
                                 {{ includeNodes }}
                             </p>
@@ -317,6 +322,16 @@
                                 return STRING_LENGTH.TASK_NAME_MAX_LENGTH > this.formData.name.length
                             },
                             message: i18n.t('任务名称不能超过') + STRING_LENGTH.TASK_NAME_MAX_LENGTH + i18n.t('个字符'),
+                            trigger: 'change'
+                        }
+                    ],
+                    schemeId: [
+                        {
+                            required: true,
+                            validator: (val) => {
+                                return this.formData.schemeId
+                            },
+                            message: i18n.t('请选择执行方案'),
                             trigger: 'change'
                         }
                     ],
@@ -927,6 +942,11 @@
         }
         .rule-tips {
             top: 6px;
+        }
+        .scheme-form-item {
+            .tooltips-icon {
+                right: 132px !important;
+            }
         }
     }
     .select-box {
