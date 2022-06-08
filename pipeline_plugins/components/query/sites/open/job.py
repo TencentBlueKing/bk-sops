@@ -120,15 +120,34 @@ def job_get_script_list(request, biz_cc_id):
     return JsonResponse({"result": True, "data": version_data})
 
 
+def job_get_script_by_script_version(request, biz_cc_id):
+    """
+    根据script_version获取业务
+    :param request:
+    :param biz_cc_id:
+    :return:
+    """
+    script_version = request.GET.get("script_version")
+    client = get_client_by_user(request.user.username)
+
+    kwargs = {
+        "bk_scope_type": JobBizScopeType.BIZ.value,
+        "bk_scope_id": str(biz_cc_id),
+        "bk_biz_id": biz_cc_id,
+        "id": script_version,
+    }
+    result = client.jobv3.get_script_version_detail(kwargs)
+    if not result["result"]:
+        return JsonResponse(result)
+    script_name = result["data"].get("name") or ""
+    return JsonResponse({"result": True, "data": {"script_name": script_name}})
+
+
 def job_get_job_tasks_by_biz(request, biz_cc_id):
     client = get_client_by_user(request.user.username)
     plan_list = batch_request(
         func=client.jobv3.get_job_plan_list,
-        params={
-            "bk_scope_type": JobBizScopeType.BIZ.value,
-            "bk_scope_id": str(biz_cc_id),
-            "bk_biz_id": biz_cc_id,
-        },
+        params={"bk_scope_type": JobBizScopeType.BIZ.value, "bk_scope_id": str(biz_cc_id), "bk_biz_id": biz_cc_id},
         get_data=lambda x: x["data"]["data"],
         get_count=lambda x: x["data"]["total"],
         page_param={"cur_page_param": "start", "page_size_param": "length"},
@@ -414,11 +433,9 @@ job_urlpatterns = [
     url(r"^job_get_script_list/(?P<biz_cc_id>\d+)/$", job_get_script_list),
     url(r"^job_get_script_name_list/(?P<biz_cc_id>\d+)/$", job_get_script_name_list),
     url(r"^job_get_public_script_name_list/$", job_get_public_script_name_list),
+    url(r"^job_get_script_by_script_version/(?P<biz_cc_id>\d+)/$", job_get_script_by_script_version),
     url(r"^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$", job_get_job_tasks_by_biz),
-    url(
-        r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$",
-        job_get_job_task_detail,
-    ),
+    url(r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_job_task_detail,),
     url(r"^job_get_instance_detail/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_instance_detail),
     # jobv3接口
     url(r"^jobv3_get_job_template_list/(?P<biz_cc_id>\d+)/$", jobv3_get_job_template_list),
