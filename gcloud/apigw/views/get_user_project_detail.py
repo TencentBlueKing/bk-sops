@@ -76,7 +76,9 @@ def get_user_project_detail(request, project_id):
             "bk_biz_tester": biz_detail["bk_biz_tester"],
             "bk_biz_productor": biz_detail["bk_biz_productor"],
             "auth_actions": [
-                action for action, allowed in project_allowed_actions.get(str(project_id), {}).items() if allowed
+                action
+                for action, allowed in project_allowed_actions.get(str(request.project.id), {}).items()
+                if allowed
             ],
         },
         "code": err_code.SUCCESS.code,
