@@ -337,6 +337,60 @@
             ]
         },
         {
+            tag_code: "job_script_name",
+            type: "text",
+            attrs: {
+                name: gettext("脚本名称"),
+                hookable: false,
+            },
+            events: [
+                {
+                    source: "job_script_name",
+                    type: "init",
+                    action: function (value) {
+                        this.hide();
+                        if (!this.get_parent || !this.get_parent().get_child('job_script_list_general')._get_value() || this.get_parent().get_child("job_script_source")._get_value() !== "general") {
+                            return;
+                        }
+                        var self = this;
+                        const script_version = this.get_parent().get_child('job_script_list_general')._get_value();
+                        const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_by_script_version/' + $.context.getBkBizId() + '/?script_version=' + script_version;
+                        $.ajax({
+                            url: url,
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function (resp) {
+                                if (resp.result === false) {
+                                    show_msg(resp.message, 'error');
+                                }
+                                self._set_value(resp.data.script_name);
+                                if (resp.data.script_name !== "") {
+                                    self.show();
+                                }
+                            },
+                            error: function () {
+                                show_msg('request job script version detail error', 'error');
+                            }
+                        });
+                    }
+                },
+                {
+                    source: "job_script_list_general",
+                    type: "change",
+                    action: function (value) {
+                        this.hide();
+                    }
+                },
+                {
+                    source: "job_script_source",
+                    type: "change",
+                    action: function (value) {
+                        this.hide();
+                    }
+                },
+            ]
+        },
+        {
             tag_code: "job_script_param",
             type: "input",
             attrs: {
