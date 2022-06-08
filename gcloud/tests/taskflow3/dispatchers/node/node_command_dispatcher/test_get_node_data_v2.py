@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from bamboo_engine.eri import ContextValue, ContextValueType
 from django.test import TestCase
 
 from gcloud import err_code
@@ -74,7 +74,10 @@ class GetNodeDataV2TestCase(TestCase):
         project_id = 1
         kwargs = {"pipeline_instance": pipeline_instance, "project_id": project_id}
 
-        runtime = "runtime"
+        runtime = MagicMock()
+        runtime.get_context = MagicMock(
+            return_value=[ContextValue(key="${log_output}", type=ContextValueType(1), value="test", code=None)]
+        )
         runtime_init = MagicMock(return_value=runtime)
         bamboo_api = MagicMock()
         get_pipeline_context = MagicMock(return_value={})
@@ -114,7 +117,10 @@ class GetNodeDataV2TestCase(TestCase):
             node_id=dispatcher.node_id,
             subprocess_stack=subprocess_stack,
             root_pipeline_data={},
-            parent_params={"${_system}": {"type": "plain", "value": "system_obj"}},
+            parent_params={
+                "${_system}": {"type": "plain", "value": "system_obj"},
+                "${log_output}": {"type": "plain", "value": "test"},
+            },
         )
         dispatcher._get_node_info.assert_called_once_with(
             node_id=dispatcher.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
