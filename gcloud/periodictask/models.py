@@ -146,7 +146,7 @@ class PeriodicTaskManager(models.Manager):
         instance.template = template.pipeline_template
         instance.snapshot = snapshot
         instance.extra_info = extra_info
-        instance.modify_cron(cron, project.time_zone)
+        instance.modify_cron(cron, project.time_zone, must_disabled=False)
         instance.queue = queue
         instance.celery_task.task = trigger_task
         instance.save()
