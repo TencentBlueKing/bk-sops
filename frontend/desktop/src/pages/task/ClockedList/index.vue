@@ -219,10 +219,12 @@
         }, {
             id: 'creator',
             label: i18n.t('创建人'),
+            disabled: true,
             width: 150
         }, {
             id: 'editor',
             label: i18n.t('更新人'),
+            disabled: true,
             width: 150
         }, {
             id: 'create_time',
@@ -231,6 +233,7 @@
         }, {
             id: 'edit_time',
             label: i18n.t('更新时间'),
+            disabled: true,
             width: 200
         }
     ]
@@ -372,7 +375,7 @@
                     }
                 } else {
                     selectedFields = this.tableFields.reduce((acc, cur) => {
-                        if (!['creator', 'create_time'].includes(cur.id)) { // 默认不显示创建人/创建时间
+                        if (cur.id !== 'create_time') { // 默认不显示创建时间
                             acc.push(cur.id)
                         }
                         return acc
