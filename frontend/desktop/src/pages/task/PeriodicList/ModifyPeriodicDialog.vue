@@ -75,6 +75,8 @@
                                 :clearable="false"
                                 enable-scroll-load
                                 :scroll-loading="{ isLoading: tplScrollLoading }"
+                                ext-popover-cls="tpl-popover"
+                                :remote-method="onTplSearch"
                                 v-bkloading="{ isLoading: templateLoading, size: 'small', extCls: 'template-loading' }"
                                 @clear="onClearTemplate"
                                 @selected="onSelectTemplate"
@@ -179,7 +181,7 @@
                             :notify-type-list="[{ text: $t('任务状态') }]"
                             :receiver-group="receiverGroup">
                         </NotifyTypeConfig>
-                        <bk-exception v-else type="empty" scene="part"></bk-exception>
+                        <NoData v-else></NoData>
                     </div>
                 </section>
                 <div class="btn-footer">
@@ -339,7 +341,8 @@
                     current: 1,
                     count: 0,
                     limit: 15
-                }
+                },
+                flowName: ''
             }
         },
         computed: {
@@ -384,6 +387,7 @@
                 this.templateLoading = true
                 this.getTemplateList()
             }
+            this.onTplSearch = tools.debounce(this.handleTplSearch, 500)
         },
         methods: {
             ...mapActions('templateList', [
@@ -404,11 +408,21 @@
             ...mapActions('template/', [
                 'loadTemplateData'
             ]),
-            async getTemplateList () {
+            async getTemplateList (add) {
                 try {
                     const offset = (this.pagination.current - 1) * this.pagination.limit
-                    const templateListData = await this.loadTemplateList({ project__id: this.project_id, limit: 15, offset })
-                    this.templateList.push(...templateListData.results)
+                    const params = {
+                        project__id: this.project_id,
+                        limit: 15,
+                        offset,
+                        pipeline_template__name__icontains: this.flowName || undefined
+                    }
+                    const templateListData = await this.loadTemplateList(params)
+                    if (add) {
+                        this.templateList.push(...templateListData.results)
+                    } else { // 搜索
+                        this.templateList = templateListData.results
+                    }
                     this.pagination.count = templateListData.count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
@@ -435,12 +449,18 @@
                     this.applyForPermission(applyPerm, selectInfo.auth_actions, permissionData)
                 }
             },
+            // 下拉框搜索
+            handleTplSearch (val) {
+                this.pagination.current = 1
+                this.flowName = val
+                this.getTemplateList()
+            },
             // 下拉框滚动加载
             onSelectScrollLoad () {
                 if (this.totalPage !== this.pagination.current) {
                     this.tplScrollLoading = true
                     this.pagination.current += 1
-                    this.getTemplateList()
+                    this.getTemplateList(true)
                 }
             },
             onClearTemplate () {
@@ -1037,5 +1057,10 @@
 .node-preview-wrapper {
     height: calc(100% - 50px);
     margin: 25px 0;
+}
+.tpl-popover {
+    .bk-spin-title {
+        font-size: 12px;
+    }
 }
 </style>
