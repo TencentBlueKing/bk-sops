@@ -455,8 +455,12 @@
             position: absolute;
             right: 0;
             top: 6px;
-            color: #ff9c01;
+            color: #63566e;
             font-size: 12px;
+            .icon-exclamation-circle {
+                font-size: 14px;
+                color: #ff9c01;
+            }
         }
     }
     
