@@ -126,6 +126,7 @@
             </bk-button>
             <bk-button
                 :class="['next-step-button', {
+                    'ml40': isCustomizeType,
                     'btn-permission-disable': common ? !hasCommonTplCreateTaskPerm : !hasPermission(nextStepPerm, actions)
                 }]"
                 theme="primary"
