@@ -323,6 +323,7 @@
         {
             id: 'recorded_executor_proxy',
             label: i18n.t('执行代理人'),
+            disabled: true,
             width: 120
         },
         {
