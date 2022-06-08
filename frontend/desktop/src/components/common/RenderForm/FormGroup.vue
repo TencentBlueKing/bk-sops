@@ -28,7 +28,10 @@
                 <i class="common-icon-dark-circle-warning"></i>
                 {{ $t('未能重用') }}
             </span>
-            <span class="pre-mako-tip" v-if="scheme.attrs.pre_mako_tip">{{ scheme.attrs.pre_mako_tip }}</span>
+            <span class="pre-mako-tip" v-if="scheme.attrs.pre_mako_tip">
+                <i class="bk-icon icon-exclamation-circle"></i>
+                {{ scheme.attrs.pre_mako_tip }}
+            </span>
         </div>
         <!-- 分组勾选 -->
         <div v-if="hook" class="rf-form-item rf-has-hook show-label">

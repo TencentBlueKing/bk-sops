@@ -215,10 +215,14 @@
             padding: 0 10px;
             font-size: 12px;
             line-height: 36px;
-            background: $blueNavBg;
-            border: 1px solid #a3c5fd;
+            color: #63656e;
+            background: #f0f8ff;
+            border: 1px solid #c5daff;
+            box-shadow: 0 2px 4px 0 #e1e8f4;
+            border-radius: 2px;
             .ui-notice {
-                margin-right: 10px;
+                font-size: 16px;
+                margin-right: 6px;
                 color: $blueDefault;
             }
         }
