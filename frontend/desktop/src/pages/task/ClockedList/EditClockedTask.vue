@@ -70,7 +70,12 @@
                                 </bk-option>
                             </bk-select>
                         </bk-form-item>
-                        <bk-form-item :label="isLatest ? $t('执行方案') : $t('已排除节点')" property="scheme" v-if="!isPreview">
+                        <bk-form-item
+                            v-if="!isPreview"
+                            class="scheme-form-item"
+                            :label="isLatest ? $t('执行方案') : $t('已排除节点')"
+                            property="schemeId"
+                            :required="isLatest">
                             <div class="scheme-wrapper" v-if="isLatest">
                                 <bk-select
                                     v-model="formData.schemeId"
@@ -284,6 +289,16 @@
                             trigger: 'change'
                         }
                     ],
+                    schemeId: [
+                        {
+                            required: true,
+                            validator: (val) => {
+                                return this.formData.schemeId
+                            },
+                            message: i18n.t('请选择执行方案'),
+                            trigger: 'change'
+                        }
+                    ],
                     flow: [
                         {
                             required: true,
@@ -382,7 +397,7 @@
                         nodes.push(activities[id].name)
                     }
                 })
-                return nodes.join(',')
+                return nodes.join(',') || ('<' + i18n.t('无') + '>')
             }
         },
         created () {
@@ -878,6 +893,11 @@
         }
         .rule-tips {
             top: 6px;
+        }
+        .scheme-form-item {
+            .tooltips-icon {
+                right: 132px !important;
+            }
         }
         margin-bottom: 17px;
     }
