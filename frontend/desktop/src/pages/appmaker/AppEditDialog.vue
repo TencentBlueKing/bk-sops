@@ -33,8 +33,10 @@
                         :placeholder="$t('请选择')"
                         :clearable="true"
                         :disabled="!isCreateNewApp"
+                        ext-popover-cls="tpl-popover"
                         enable-scroll-load
                         :scroll-loading="{ isLoading: tplScrollLoading }"
+                        :remote-method="onTplSearch"
                         @selected="onSelectTemplate"
                         @scroll-end="onSelectScrollLoad">
                         <bk-option
@@ -210,6 +212,7 @@
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
     import { NAME_REG, STRING_LENGTH, TASK_CATEGORIES } from '@/constants/index.js'
+    import tools from '@/utils/tools.js'
     import permission from '@/mixins/permission.js'
     export default {
         name: 'AppEditDialog',
@@ -270,7 +273,8 @@
                     current: 1,
                     count: 0,
                     limit: 15
-                }
+                },
+                flowName: ''
             }
         },
         computed: {
@@ -330,6 +334,7 @@
         created () {
             this.taskCategories = TASK_CATEGORIES.filter(item => item.id !== 'Default')
             this.getTemplateList()
+            this.onTplSearch = tools.debounce(this.handleTplSearch, 500)
         },
         methods: {
             ...mapActions('templateList', [
@@ -342,11 +347,21 @@
             useDefaultLogo () {
                 this.isLogoLoadingError = true
             },
-            async getTemplateList () {
+            async getTemplateList (add) {
                 try {
                     const offset = (this.pagination.current - 1) * this.pagination.limit
-                    const templateListData = await this.loadTemplateList({ project__id: this.project_id, limit: 15, offset })
-                    this.templateList.push(...templateListData.results)
+                    const params = {
+                        project__id: this.project_id,
+                        limit: 15,
+                        offset,
+                        pipeline_template__name__icontains: this.flowName || undefined
+                    }
+                    const templateListData = await this.loadTemplateList(params)
+                    if (add) {
+                        this.templateList.push(...templateListData.results)
+                    } else { // 搜索
+                        this.templateList = templateListData.results
+                    }
                     this.pagination.count = templateListData.count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
@@ -361,12 +376,18 @@
                     this.templateLoading = false
                 }
             },
+            // 下拉框搜索
+            handleTplSearch (val) {
+                this.pagination.current = 1
+                this.flowName = val
+                this.getTemplateList()
+            },
             // 下拉框滚动加载
             onSelectScrollLoad () {
                 if (this.totalPage !== this.pagination.current) {
                     this.tplScrollLoading = true
                     this.pagination.current += 1
-                    this.getTemplateList()
+                    this.getTemplateList(true)
                 }
             },
             async getTemplateScheme () {
@@ -751,6 +772,11 @@
     .bk-button {
         margin-left: 7px;
         min-width: 90px;
+    }
+}
+.tpl-popover {
+    .bk-spin-title {
+        font-size: 12px;
     }
 }
 </style>
