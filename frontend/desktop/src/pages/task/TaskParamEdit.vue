@@ -249,7 +249,7 @@
                 atomList.forEach(item => {
                     item.attrs['disabled'] = true
                     if (item.attrs.children) {
-                        this.setVariableDisable(item.attrs.children)
+                        this.setAtomDisable(item.attrs.children)
                     }
                 })
             },
