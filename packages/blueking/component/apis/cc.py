@@ -655,7 +655,10 @@ class CollectionsCC(object):
             description="查询集群模板",
         )
         self.add_host_lock = ComponentAPI(
-            client=self.client, method="POST", path="/api/c/compapi{bk_api_ver}/cc/add_host_lock/", description="新加主机锁",
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/add_host_lock/",
+            description="新加主机锁",
         )
         self.delete_host_lock = ComponentAPI(
             client=self.client,
@@ -728,4 +731,10 @@ class CollectionsCC(object):
             method="POST",
             path="/api/c/compapi{bk_api_ver}/cc/transfer_host_to_recyclemodule/",
             description="上交主机到业务的待回收模块",
+        )
+        self.list_business_set = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/list_business_set/",
+            description="查询业务集",
         )

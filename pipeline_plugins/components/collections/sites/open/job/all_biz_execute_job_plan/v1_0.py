@@ -34,6 +34,7 @@ from pipeline_plugins.components.utils import (
     get_node_callback_url,
     loose_strip,
     plat_ip_reg,
+    has_biz_set,
 )
 from pipeline_plugins.components.query.sites.open.job import JOBV3_VAR_CATEGORY_IP
 
@@ -135,7 +136,7 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
         original_global_var = deepcopy(config_data.get("job_global_var")) or []
         global_var_list = []
 
-        if int(biz_cc_id) < 8000000:
+        if not has_biz_set(int(biz_cc_id)):
             self.biz_scope_type = JobBizScopeType.BIZ.value
 
         for _value in original_global_var:
@@ -183,7 +184,7 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
     def schedule(self, data, parent_data, callback_data=None):
         config_data = data.get_one_of_inputs("all_biz_job_config")
         biz_cc_id = int(config_data.get("all_biz_cc_id"))
-        if int(biz_cc_id) < 8000000:
+        if not has_biz_set(int(biz_cc_id)):
             self.biz_scope_type = JobBizScopeType.BIZ.value
         return super().schedule(data, parent_data, callback_data)
 
