@@ -55,45 +55,41 @@ def _job_get_scripts_data(request, biz_cc_id=None):
     script_type = request.GET.get("script_type")
 
     if biz_cc_id is None or source_type == "public":
-        kwargs = None
-        script_result = client.job.get_public_script_list()
-        api_name = "job.get_public_script_list"
+        kwargs = {"script_language": script_type or 0}
+        func = client.jobv3.get_public_script_list
     else:
         kwargs = {
             "bk_scope_type": JobBizScopeType.BIZ.value,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
-            "is_public": False,
-            "script_type": script_type or 0,
+            "script_language": script_type or 0,
         }
-        script_result = client.job.get_script_list(kwargs)
-        api_name = "job.get_script_list"
+        func = client.jobv3.get_script_list
 
-    if not script_result["result"]:
-        message = handle_api_error("job", api_name, kwargs, script_result)
-        logger.error(message)
-        result = {"result": False, "message": message}
-        return result
+    script_list = batch_request(
+        func=func,
+        params=kwargs,
+        get_data=lambda x: x["data"]["data"],
+        get_count=lambda x: x["data"]["total"],
+        page_param={"cur_page_param": "start", "page_size_param": "length"},
+        is_page_merge=True,
+    )
 
-    return script_result
+    return script_list
 
 
 def job_get_script_name_list(request, biz_cc_id):
-    script_result = _job_get_scripts_data(request, biz_cc_id)
-    if not script_result["result"]:
-        return JsonResponse(script_result)
+    script_list = _job_get_scripts_data(request, biz_cc_id)
     script_names = []
-    for script in script_result["data"]["data"]:
+    for script in script_list:
         script_names.append({"text": script["name"], "value": script["name"]})
     return JsonResponse({"result": True, "data": script_names})
 
 
 def job_get_public_script_name_list(request):
-    script_result = _job_get_scripts_data(request)
-    if not script_result["result"]:
-        return JsonResponse(script_result)
+    script_list = _job_get_scripts_data(request)
     script_names = []
-    for script in script_result["data"]["data"]:
+    for script in script_list:
         script_names.append({"text": script["name"], "value": script["name"]})
     return JsonResponse({"result": True, "data": script_names})
 
@@ -105,13 +101,14 @@ def job_get_script_list(request, biz_cc_id):
     :param biz_cc_id:
     :return:
     """
+    value_field = request.GET.get("value_field") or "id"
+
     # 查询脚本列表
-    script_result = _job_get_scripts_data(request, biz_cc_id)
-    if not script_result["result"]:
-        return JsonResponse(script_result)
+    script_list = _job_get_scripts_data(request, biz_cc_id)
     script_dict = {}
-    for script in script_result["data"]["data"]:
-        script_dict.setdefault(script["name"], []).append(script["id"])
+    for script in script_list:
+        if isinstance(script[value_field], int):
+            script_dict.setdefault(script["name"], []).append(script[value_field])
 
     version_data = []
     for name, version in list(script_dict.items()):
@@ -124,11 +121,7 @@ def job_get_job_tasks_by_biz(request, biz_cc_id):
     client = get_client_by_user(request.user.username)
     plan_list = batch_request(
         func=client.jobv3.get_job_plan_list,
-        params={
-            "bk_scope_type": JobBizScopeType.BIZ.value,
-            "bk_scope_id": str(biz_cc_id),
-            "bk_biz_id": biz_cc_id,
-        },
+        params={"bk_scope_type": JobBizScopeType.BIZ.value, "bk_scope_id": str(biz_cc_id), "bk_biz_id": biz_cc_id},
         get_data=lambda x: x["data"]["data"],
         get_count=lambda x: x["data"]["total"],
         page_param={"cur_page_param": "start", "page_size_param": "length"},
@@ -415,10 +408,7 @@ job_urlpatterns = [
     url(r"^job_get_script_name_list/(?P<biz_cc_id>\d+)/$", job_get_script_name_list),
     url(r"^job_get_public_script_name_list/$", job_get_public_script_name_list),
     url(r"^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$", job_get_job_tasks_by_biz),
-    url(
-        r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$",
-        job_get_job_task_detail,
-    ),
+    url(r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_job_task_detail,),
     url(r"^job_get_instance_detail/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_instance_detail),
     # jobv3接口
     url(r"^jobv3_get_job_template_list/(?P<biz_cc_id>\d+)/$", jobv3_get_job_template_list),
