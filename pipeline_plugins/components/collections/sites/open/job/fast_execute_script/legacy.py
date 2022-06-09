@@ -166,10 +166,10 @@ class JobFastExecuteScriptService(JobService):
             "bk_scope_type": JobBizScopeType.BIZ.value,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
-            "script_timeout": data.get_one_of_inputs("job_script_timeout"),
-            "account": data.get_one_of_inputs("job_account"),
-            "ip_list": ip_list,
-            "bk_callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
+            "timeout": data.get_one_of_inputs("job_script_timeout"),
+            "account_alias": data.get_one_of_inputs("job_account"),
+            "target_server": {"ip_list": ip_list},
+            "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
 
         script_param = str(data.get_one_of_inputs("job_script_param"))
@@ -179,17 +179,17 @@ class JobFastExecuteScriptService(JobService):
 
         script_source = data.get_one_of_inputs("job_script_source")
         if script_source in ["general", "public"]:
-            job_kwargs.update({"script_id": data.get_one_of_inputs("job_script_list_%s" % script_source)})
+            job_kwargs.update({"script_version_id": data.get_one_of_inputs("job_script_list_%s" % script_source)})
         else:
             job_kwargs.update(
                 {
-                    "script_type": data.get_one_of_inputs("job_script_type"),
+                    "script_language": data.get_one_of_inputs("job_script_type"),
                     "script_content": base64.b64encode(data.get_one_of_inputs("job_content").encode("utf-8")).decode(
                         "utf-8"
                     ),
                 }
             )
-        job_result = client.job.fast_execute_script(job_kwargs)
+        job_result = client.jobv3.fast_execute_script(job_kwargs)
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:
             job_instance_id = job_result["data"]["job_instance_id"]
@@ -199,7 +199,7 @@ class JobFastExecuteScriptService(JobService):
             data.outputs.client = client
             return True
         else:
-            message = job_handle_api_error("job.fast_execute_script", job_kwargs, job_result)
+            message = job_handle_api_error("jobv3.fast_execute_script", job_kwargs, job_result)
             self.logger.error(message)
             data.outputs.ex_data = message
             return False
