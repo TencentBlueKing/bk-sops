@@ -16,6 +16,7 @@ import importlib
 from django.conf import settings
 
 from pipeline_plugins.components.utils.common import *  # noqa
+from pipeline_plugins.components.utils.cc import *  # noqa
 
 utils_module = importlib.import_module("pipeline_plugins.components.utils.sites.%s.utils" % settings.RUN_VER)
 
