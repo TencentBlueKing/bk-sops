@@ -692,10 +692,11 @@
             },
             templateNameUrl (template) {
                 const { template_id: templateId, template_source: templateSource, project } = template
+                const isCommon = templateSource === 'common'
                 const url = {
-                    name: 'templatePanel',
-                    params: { type: 'view', project_id: project.id },
-                    query: { template_id: templateId, common: templateSource === 'common' || undefined }
+                    name: isCommon ? 'commonTemplatePanel' : 'templatePanel',
+                    params: { type: 'view', project_id: isCommon ? undefined : project.id },
+                    query: { template_id: templateId, common: isCommon ? 1 : undefined }
                 }
                 return url
             },
