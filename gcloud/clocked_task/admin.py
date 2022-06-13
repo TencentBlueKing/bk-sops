@@ -27,5 +27,6 @@ class ClockedTaskAdmin(admin.ModelAdmin):
         "template_id",
         "template_name",
         "clocked_task_id",
+        "state",
     ]
     search_field = ["task_name", "template_name", "task_id", "template_id"]
