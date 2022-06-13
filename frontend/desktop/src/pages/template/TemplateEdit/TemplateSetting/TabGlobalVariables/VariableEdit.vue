@@ -578,7 +578,7 @@
                 if (is_meta && source_type === 'component_inputs' && config.meta_transform) {
                     config = config.meta_transform(meta)
                 }
-                if (['input', 'textarea'].includes(custom_type) && this.theEditingData.validation !== '') {
+                if (['input', 'textarea'].includes(custom_type)) {
                     config.attrs.validation.push({
                         type: 'regex',
                         args: this.getInputDefaultValueValidation(),
@@ -652,7 +652,7 @@
             getInputDefaultValueValidation () {
                 let validation = this.theEditingData.validation
                 if (this.theEditingData.show_type === 'show') {
-                    validation = `(^$)|(${validation})`
+                    validation = validation ? `(^$)|(${validation})` : ''
                 }
                 return validation
             },
@@ -720,7 +720,7 @@
                 const validateSet = this.getValidateSet()
                 this.$set(this.renderOption, 'validateSet', validateSet)
 
-                if (['input', 'textarea'].includes(this.theEditingData.custom_type) && this.theEditingData.validation !== '') {
+                if (['input', 'textarea'].includes(this.theEditingData.custom_type)) {
                     const config = tools.deepClone(this.renderConfig[0])
                     const regValidate = config.attrs.validation.find(item => item.type === 'regex')
                     regValidate.args = this.getInputDefaultValueValidation()
