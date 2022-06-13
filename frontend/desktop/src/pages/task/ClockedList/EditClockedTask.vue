@@ -43,6 +43,7 @@
                             </div>
                             <bk-select
                                 v-else
+                                ref="tplSelect"
                                 v-model="formData.template_id"
                                 :searchable="true"
                                 :placeholder="$t('请选择')"
@@ -51,6 +52,7 @@
                                 :scroll-loading="{ isLoading: tplScrollLoading }"
                                 ext-popover-cls="tpl-popover"
                                 :remote-method="onTplSearch"
+                                :allow-enter="false"
                                 v-bkloading="{ isLoading: templateLoading, size: 'small', extCls: 'template-loading' }"
                                 @clear="onClearTemplate"
                                 @selected="onSelectTemplate"
@@ -81,7 +83,7 @@
                                     v-model="formData.schemeId"
                                     :searchable="true"
                                     :placeholder="$t('请选择')"
-                                    :clearable="true"
+                                    :clearable="false"
                                     :multiple="true"
                                     :disabled="!formData.template_id"
                                     :loading="isLoading || schemeLoading"
@@ -125,6 +127,7 @@
                                 :type="'datetime'"
                                 @change="onPickerChange">
                             </bk-date-picker>
+                            <span class="time-zone">{{ locTimeZone }}</span>
                         </bk-form-item>
                     </bk-form>
                 </section>
@@ -203,7 +206,7 @@
 
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapActions } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import TaskParamEdit from '../TaskParamEdit.vue'
     import NotifyTypeConfig from '@/pages/template/TemplateEdit/TemplateSetting/NotifyTypeConfig.vue'
     import permission from '@/mixins/permission.js'
@@ -244,13 +247,14 @@
                 task_parameters = {}
             } = this.curRow
             const taskName = this.type === 'clone' ? task_name + '_clone' : task_name
+            const startTime = plan_start_time.split('+')[0]
             const tempSchemeId = task_parameters.template_schemes_id || []
             const schemeId = this.type === 'create' ? [] : tempSchemeId.length ? tempSchemeId : [0]
             return {
                 formData: {
                     template_id,
                     task_name: taskName,
-                    plan_start_time,
+                    plan_start_time: startTime,
                     schemeId
                 },
                 initFormData: {},
@@ -353,10 +357,14 @@
                     count: 0,
                     limit: 15
                 },
+                locTimeZone: '', // 本地时区
                 flowName: ''
             }
         },
         computed: {
+            ...mapState('project', {
+                'projectName': state => state.projectName
+            }),
             sameTimeStamp () {
                 const initTimeStamp = new Date(this.curRow.plan_start_time).getTime()
                 const curTimeStamp = new Date(this.formData.plan_start_time).getTime()
@@ -401,6 +409,7 @@
             }
         },
         created () {
+            this.locTimeZone = new Date().toTimeString().slice(12, 17)
             this.initFormData = tools.deepClone(this.formData)
             if (this.type !== 'create') {
                 const id = this.curRow.template_id
@@ -449,6 +458,18 @@
                     } else {
                         this.totalPage = totalPage
                     }
+                    if (this.flowName) {
+                        // 远程搜索时不会更新optionsMap, 暂时由外部往map里面添加
+                        const tplSelectDom = this.$refs.tplSelect
+                        tplSelectDom.option = []
+                        this.templateList.forEach(option => {
+                            tplSelectDom.registerOption(option)
+                        })
+                        const tplData = tools.deepClone(this.templateData)
+                        if (tplData.id) {
+                            tplSelectDom.optionsMap[tplData.id] = tplData
+                        }
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -461,7 +482,7 @@
                     const permissionData = {
                         project: [{
                             id: this.project_id,
-                            name: this.formData.task_template_name
+                            name: this.projectName
                         }],
                         flow: [selectInfo]
                     }
@@ -636,10 +657,9 @@
             getExcludeNode () {
                 const nodes = []
                 const { activities } = this.templateData.pipeline_tree
-                const nodeList = Object.keys(activities)
-                nodeList.forEach(id => {
-                    if (this.selectedNodes.indexOf(id) === -1) {
-                        nodes.push(id)
+                Object.values(activities).forEach(item => {
+                    if (this.selectedNodes.indexOf(item.id) === -1 && item.optional) {
+                        nodes.push(item.id)
                     }
                 })
                 return nodes
@@ -729,7 +749,7 @@
                         const params = {
                             id: this.curRow.id,
                             task_name,
-                            plan_start_time: this.sameTimeStamp ? undefined : time,
+                            plan_start_time: this.sameTimeStamp ? undefined : time + this.locTimeZone,
                             task_parameters: {
                                 constants: taskParamEdit ? taskParamEdit.renderData : {}
                             }
@@ -769,7 +789,6 @@
                         template_schemes_id: schemeIds
                     }
                     const { task_name, template_id, plan_start_time } = this.formData
-                    const locTimeZone = new Date().toTimeString().slice(12, 17)
                     const data = {
                         id: this.curRow.id,
                         task_parameters: taskParams,
@@ -786,7 +805,7 @@
                             success: this.notifyType[0],
                             fail: this.notifyType[1]
                         },
-                        plan_start_time: plan_start_time + locTimeZone
+                        plan_start_time: plan_start_time + this.locTimeZone
                     }
                     try {
                         await this.createClocked(data)
@@ -898,6 +917,12 @@
             .tooltips-icon {
                 right: 132px !important;
             }
+        }
+        .time-zone {
+            position: relative;
+            font-size: 12px;
+            margin: 0 8px 0 -50px;
+            color: #979ba5;
         }
         margin-bottom: 17px;
     }

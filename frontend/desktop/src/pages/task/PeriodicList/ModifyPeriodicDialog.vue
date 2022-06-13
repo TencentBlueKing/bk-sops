@@ -69,6 +69,7 @@
                             </div>
                             <bk-select
                                 v-else
+                                ref="tplSelect"
                                 v-model="formData.template_id"
                                 :searchable="true"
                                 :placeholder="$t('请选择')"
@@ -111,6 +112,7 @@
                                     :searchable="true"
                                     :placeholder="$t('请选择')"
                                     :multiple="true"
+                                    :clearable="false"
                                     :disabled="formData.is_latest !== true || !formData.template_id"
                                     :loading="isLoading || schemeLoading"
                                     @selected="onSelectScheme">
@@ -228,7 +230,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapActions } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import { PERIODIC_REG, NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
@@ -361,6 +363,9 @@
             }
         },
         computed: {
+            ...mapState('project', {
+                'projectName': state => state.projectName
+            }),
             isVariableEmpty () {
                 return Object.keys(this.periodicConstants).length === 0
             },
@@ -445,6 +450,18 @@
                     } else {
                         this.totalPage = totalPage
                     }
+                    if (this.flowName) {
+                        // 远程搜索时不会更新optionsMap, 暂时由外部往map里面添加
+                        const tplSelectDom = this.$refs.tplSelect
+                        tplSelectDom.option = []
+                        this.templateList.forEach(option => {
+                            tplSelectDom.registerOption(option)
+                        })
+                        const tplData = tools.deepClone(this.templateData)
+                        if (tplData.id) {
+                            tplSelectDom.optionsMap[tplData.id] = tplData
+                        }
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -457,7 +474,7 @@
                     const permissionData = {
                         project: [{
                             id: this.project_id,
-                            name: this.formData.task_template_name
+                            name: this.projectName
                         }],
                         flow: [selectInfo]
                     }
@@ -507,6 +524,7 @@
                             this.previewData = tools.deepClone(this.curRow.pipeline_tree)
                         }
                     } else if (!this.isEdit) {
+                        this.formData.schemeId = [0]
                         const templateInfo = this.templateList.find(item => item.id === id)
                         await this.getPreviewNodeData(id, templateInfo.version, true)
                     }
@@ -520,8 +538,10 @@
                 this.schemeLoading = true
                 try {
                     const defaultScheme = await this.loadDefaultSchemeList()
+                    const common = this.curRow.template_source === 'common'
                     const data = {
-                        project_id: this.project_id,
+                        isCommon: common || undefined,
+                        project_id: common ? undefined : this.project_id,
                         template_id: this.formData.template_id
                     }
                     const resp = await this.loadTaskScheme(data)
@@ -537,9 +557,6 @@
                         idDefault: false,
                         name: '<' + i18n.t('不使用执行方案') + '>'
                     })
-                    if (!this.isEdit) {
-                        this.formData.schemeId = [0]
-                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -637,10 +654,9 @@
             getExcludeNode () {
                 const nodes = []
                 const { activities } = this.templateData.pipeline_tree
-                const nodeList = Object.keys(activities)
-                nodeList.forEach(id => {
-                    if (this.selectedNodes.indexOf(id) === -1) {
-                        nodes.push(id)
+                Object.values(activities).forEach(item => {
+                    if (this.selectedNodes.indexOf(item.id) === -1 && item.optional) {
+                        nodes.push(item.id)
                     }
                 })
                 return nodes
