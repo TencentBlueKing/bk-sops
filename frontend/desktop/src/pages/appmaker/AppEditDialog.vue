@@ -27,6 +27,7 @@
                 <label class="required">{{$t('流程模板')}}</label>
                 <div class="common-form-content">
                     <bk-select
+                        ref="tplSelect"
                         v-model="appData.appTemplate"
                         class="ui-form-item"
                         :searchable="true"
@@ -242,6 +243,7 @@
                 tplScrollLoading: false,
                 schemeLoading: false,
                 templateList: [],
+                templateData: {},
                 schemeList: [],
                 appTemplateEmpty: false,
                 isChooseLogoPanelShow: false,
@@ -369,6 +371,18 @@
                     } else {
                         this.totalPage = totalPage
                     }
+                    if (this.flowName) {
+                        // 远程搜索时不会更新optionsMap, 暂时由外部往map里面添加
+                        const tplSelectDom = this.$refs.tplSelect
+                        tplSelectDom.option = []
+                        this.templateList.forEach(option => {
+                            tplSelectDom.registerOption(option)
+                        })
+                        const tplData = tools.deepClone(this.templateData)
+                        if (tplData.id) {
+                            tplSelectDom.optionsMap[tplData.id] = tplData
+                        }
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -426,6 +440,7 @@
             },
             onSelectTemplate (id) {
                 const template = this.templateList.find(item => item.id === id)
+                this.templateData = template
                 this.appData.appTemplate = id
                 this.appData.appName = template.name
                 this.appData.appCategory = template.category
