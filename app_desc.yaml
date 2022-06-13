@@ -45,6 +45,9 @@ modules:
             - key: GUNICORN_THREAD_NUM
               value: 10
               description: GunicornThread数量
+            - key: ENABLE_METRICS
+              value: 1
+              description: 是否启动 metrics server
         processes:
             web:
                 command: bin/start_web.sh
@@ -70,6 +73,8 @@ modules:
                   module_name: "api"
         scripts:
             pre_release_hook: bash bin/pre_release
+        bkmonitor:
+            port: 5001
     callback:
         is_default: False
         language: Python
@@ -102,6 +107,9 @@ modules:
             - key: GUNICORN_THREAD_NUM
               value: 10
               description: GunicornThread数量
+            - key: ENABLE_METRICS
+              value: 1
+              description: 是否启动 metrics server
         processes:
             web:
                 command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b :$PORT --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=500 -k gthread --threads $GUNICORN_THREAD_NUM
@@ -117,6 +125,8 @@ modules:
                   module_name: "callback"
                 - bk_app_code: "bk_sops"
                   module_name: "api"
+        bkmonitor:
+            port: 5001
     pipeline:
         is_default: False
         language: Python
@@ -152,6 +162,9 @@ modules:
             - key: CELERY_EXPORTER_PORT
               value: 5001
               description: celery-exporter 监听端口
+            - key: ENABLE_METRICS
+              value: 1
+              description: 是否启动 metrics server
         processes:
             v1-engine:
                 command: celery worker -A blueapps.core.celery -P threads -Q api_task_queue_pipeline_priority,api_task_queue_service_schedule_priority,periodic_task_queue_pipeline_priority,periodic_task_queue_service_schedule_priority,pipeline,pipeline_priority,service_schedule,service_schedule_priority -n v1_engine@%h -c 100 -l info
@@ -211,6 +224,8 @@ modules:
                 module_name: "callback"
               - bk_app_code: "bk_sops"
                 module_name: "api"
+        bkmonitor:
+            port: 5001
     api:
         is_default: False
         language: Python
@@ -243,6 +258,9 @@ modules:
             - key: GUNICORN_THREAD_NUM
               value: 10
               description: GunicornThread数量
+            - key: ENABLE_METRICS
+              value: 1
+              description: 是否启动 metrics server
         processes:
             web:
                 command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b :$PORT --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=500 -k gthread --threads $GUNICORN_THREAD_NUM
@@ -258,3 +276,5 @@ modules:
                 module_name: "callback"
               - bk_app_code: "bk_sops"
                 module_name: "api"
+        bkmonitor:
+            port: 5001
