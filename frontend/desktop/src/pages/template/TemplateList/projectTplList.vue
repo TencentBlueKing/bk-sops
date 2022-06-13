@@ -1338,6 +1338,7 @@
     }
 }
 .bk-dropdown-menu{
+    height: 32px !important;
     &:hover {
         .export-tpl-btn,
         .import-tpl-btn {
@@ -1397,6 +1398,11 @@
     .bk-table-row.hover-row {
         .icon-favorite {
             display: block;
+        }
+    }
+    /deep/.bk-table {
+        td, th {
+            height: 42px;
         }
     }
     .icon-favorite {
