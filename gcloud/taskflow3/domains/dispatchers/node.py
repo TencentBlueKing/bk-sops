@@ -510,7 +510,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     {
                         context_value.key: {"type": "plain", "value": context_value.value}
                         for context_value in existing_context_values
-                        if context_value.type.value == ContextValueType.PLAIN.value
+                        if context_value.type == ContextValueType.PLAIN
                     }
                 )
 
