@@ -1389,7 +1389,10 @@ const en = {
     '已排除节点': 'Node excluded',
     '当前任务为旧数据，仅记录已排除节点，可重选执行方案获得跟随执行方案更新能力': 'The current task is the old data, only the excluded nodes are recorded, and the execution plan can be reselected to obtain the ability to follow the execution plan update',
     '无': 'None',
-    '请选择执行方案': 'Please select an implementation plan'
+    '请选择执行方案': 'Please select an implementation plan',
+    '旧数据克隆时，已排除变成执行方案，默认选中《不使用执行方案》': 'When the old data is cloned, it has been excluded from becoming an execution plan, and "Do not use execution plan" is selected by default.',
+    '对应流程模板已被删除，仅提供修改任务名称，任务执行时间': 'The corresponding process template has been deleted, only the task name and task execution time can be modified.',
+    '对应流程模板已被删除，请重新选择模板创建计划任务': 'The corresponding process template has been deleted, please re-select the template to create a scheduled task'
 }
 
 export default en
