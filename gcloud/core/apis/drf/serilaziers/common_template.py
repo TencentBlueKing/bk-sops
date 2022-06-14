@@ -44,10 +44,6 @@ class CommonTemplateSerializer(CommonTemplateListSerializer):
     def get_pipeline_tree(self, obj):
         return json.dumps(obj.pipeline_tree)
 
-    class Meta:
-        model = CommonTemplate
-        fields = "__all__"
-
 
 class TopCollectionCommonTemplateSerializer(CommonTemplateSerializer):
     is_collected = serializers.BooleanField(read_only=True, help_text="是否收藏")

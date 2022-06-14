@@ -51,10 +51,6 @@ class TaskTemplateSerializer(TaskTemplateListSerializer):
     def get_pipeline_tree(self, obj):
         return json.dumps(obj.pipeline_tree)
 
-    class Meta:
-        model = TaskTemplate
-        fields = "__all__"
-
 
 class TopCollectionTaskTemplateSerializer(TaskTemplateSerializer):
     is_collected = serializers.BooleanField(read_only=True, help_text="是否收藏")
