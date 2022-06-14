@@ -28,11 +28,10 @@ from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 logger = logging.getLogger("celery")
 
 
-def parse_exclude_task_nodes_id_from_params(template, task_params):
+def parse_exclude_task_nodes_id_from_params(pipeline_tree, task_params):
     if task_params.get("exclude_task_nodes_id"):
         return task_params["exclude_task_nodes_id"]
     exclude_task_nodes_id = []
-    pipeline_tree = template.pipeline_tree
     if task_params.get("appoint_task_nodes_id"):
         exclude_task_nodes_id = PipelineTemplateWebPreviewer.get_template_exclude_task_nodes_with_appoint_nodes(
             pipeline_tree, task_params["appoint_task_nodes_id"]
@@ -63,7 +62,8 @@ def clocked_task_start(clocked_task_id, *args, **kwargs):
         template = TaskTemplate.objects.select_related("pipeline_template").get(
             id=clocked_task.template_id, project_id=project.id, is_deleted=False
         )
-        exclude_task_nodes_id = parse_exclude_task_nodes_id_from_params(template, task_params)
+        pipeline_tree = template.pipeline_tree
+        exclude_task_nodes_id = parse_exclude_task_nodes_id_from_params(pipeline_tree, task_params)
         with transaction.atomic():
             data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
                 template,
@@ -71,6 +71,7 @@ def clocked_task_start(clocked_task_id, *args, **kwargs):
                 task_params.get("constants"),
                 exclude_task_nodes_id,
                 task_params.get("simplify_vars"),
+                pipeline_tree,
             )
             taskflow_instance = TaskFlowInstance.objects.create(
                 project=project,
