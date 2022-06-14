@@ -33,6 +33,7 @@ from gcloud.label.models import TemplateLabelRelation, Label
 from gcloud.tasktmpl3.signals import post_template_save_commit
 from gcloud.taskflow3.models import TaskTemplate
 from gcloud.core.apis.drf.serilaziers.task_template import (
+    TaskTemplateListSerializer,
     TaskTemplateSerializer,
     CreateTaskTemplateSerializer,
     TopCollectionTaskTemplateSerializer,
@@ -101,7 +102,6 @@ class TaskTemplateFilter(PropertyFilterSet):
 class TaskTemplateViewSet(GcloudModelViewSet):
     queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
     pagination_class = LimitOffsetPagination
-    serializer_class = TaskTemplateSerializer
     filterset_class = TaskTemplateFilter
     permission_classes = [permissions.IsAuthenticated, TaskTemplatePermission]
     iam_resource_helper = ViewSetResourceHelper(
@@ -117,6 +117,11 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         ],
     )
     ordering_fields = ["pipeline_template"] + [order["value"] for order in TASKTMPL_ORDERBY_OPTIONS]
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return TaskTemplateListSerializer
+        return TaskTemplateSerializer
 
     def _sync_template_lables(self, template_id, label_ids):
         """
@@ -199,7 +204,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             )
 
             if not result["result"]:
-                message = result["verbose_message"]
+                message = result["message"]
                 logger.error(message)
                 return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
@@ -248,7 +253,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             )
 
             if not result["result"]:
-                message = result["verbose_message"]
+                message = result["message"]
                 logger.error(message)
                 return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 

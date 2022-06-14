@@ -46,6 +46,16 @@ TASK_FLOW_TYPE = [
     ("common_func", _("职能化任务流程")),
 ]
 
+# 计划任务相关
+CLOCKED_TASK_NOT_STARTED = "not_started"
+CLOCKED_TASK_STARTED = "started"
+CLOCKED_TASK_START_FAILED = "start_failed"
+CLOCKED_TASK_STATE = [
+    (CLOCKED_TASK_NOT_STARTED, _("未执行")),
+    (CLOCKED_TASK_STARTED, _("已执行")),
+    (CLOCKED_TASK_START_FAILED, _("启动失败")),
+]
+
 # 任务流程对应的步骤
 # NOTE：该变量用于模板和任务授权，如果有变更请务必 makemigrations tasktmpl
 TASK_FLOW = {
