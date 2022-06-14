@@ -376,9 +376,7 @@ class BaseTemplate(models.Model):
 
     def referencer_periodic_task(self):
         periodic_task_cls = apps.get_model("periodictask", "PeriodicTask")
-        periodic_task_referencer = periodic_task_cls.objects.filter(
-            template_id=self.id, task__celery_task__enabled=True
-        ).values("id", "task__name")
+        periodic_task_referencer = periodic_task_cls.objects.filter(template_id=self.id).values("id", "task__name")
         return [{"id": referencer["id"], "name": referencer["task__name"]} for referencer in periodic_task_referencer]
 
     def get_clone_pipeline_tree(self):
