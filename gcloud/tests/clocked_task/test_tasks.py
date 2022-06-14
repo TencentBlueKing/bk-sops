@@ -48,6 +48,7 @@ class ClockedTaskStartTestCase(TestCase):
         Project.objects.get = MagicMock(return_value=project)
 
         task_template = MagicMock()
+        task_template.pipeline_tree = MagicMock()
         TaskTemplate = MagicMock()
         TaskTemplate.objects.select_related().get = MagicMock(return_value=task_template)
 
@@ -87,6 +88,7 @@ class ClockedTaskStartTestCase(TestCase):
             task_params.get("constants"),
             task_params.get("exclude_task_nodes_id"),
             task_params.get("simplify_vars"),
+            task_template.pipeline_tree,
         )
         TaskFlowInstance.objects.create.assert_called_once_with(
             project=project,
