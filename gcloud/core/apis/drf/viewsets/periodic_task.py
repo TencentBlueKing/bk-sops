@@ -174,21 +174,17 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
         common_template_view_actions = get_common_flow_allowed_actions_for_user(
             request.user.username, [IAMMeta.COMMON_FLOW_VIEW_ACTION], tmpl_data[COMMON]
         )
+        view_actions = {
+            PROJECT: template_view_actions,
+            COMMON: common_template_view_actions,
+        }
         for inst in instances:
             tmpl_id = str(inst["template_id"])
-            if (
-                inst["template_source"] == PROJECT
-                and tmpl_id in template_view_actions
-                and template_view_actions[tmpl_id][IAMMeta.FLOW_VIEW_ACTION]
-            ):
-                inst["auth_actions"].append(IAMMeta.FLOW_VIEW_ACTION)
-            elif (
-                inst["template_source"] == COMMON
-                and tmpl_id in common_template_view_actions
-                and common_template_view_actions[tmpl_id][IAMMeta.COMMON_FLOW_VIEW_ACTION]
-            ):
-                inst["auth_actions"].append(IAMMeta.COMMON_FLOW_VIEW_ACTION)
-
+            tmpl_source = inst["template_source"]
+            user_actions = view_actions.get(tmpl_source, {})
+            view_action = IAMMeta.FLOW_VIEW_ACTION if tmpl_source == PROJECT else IAMMeta.COMMON_FLOW_VIEW_ACTION
+            if tmpl_id in user_actions and user_actions[tmpl_id][view_action]:
+                inst["auth_actions"].append(view_action)
         return self.get_paginated_response(instances) if page is not None else Response(instances)
 
     def create(self, request, *args, **kwargs):
