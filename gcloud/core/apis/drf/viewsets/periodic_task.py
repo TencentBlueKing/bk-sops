@@ -20,6 +20,7 @@ from rest_framework.exceptions import APIException
 from rest_framework.pagination import LimitOffsetPagination
 
 from gcloud.core.models import Project
+from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user, get_common_flow_allowed_actions_for_user
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 from pipeline.exceptions import PipelineException
 
@@ -154,6 +155,41 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
         serializer.validated_data["template_source"] = template_source
         serializer.validated_data["template_version"] = template.version
         return serializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        # 支持使用方配置不分页
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page if page else queryset, many=True)
+        # 注入权限
+        instances = self.injection_auth_actions(request, serializer.data, serializer.instance)
+        # 获取并注入对应流程查看权限
+        tmpl_data = {
+            PROJECT: [inst["template_id"] for inst in instances if inst["template_source"] == PROJECT],
+            COMMON: [inst["template_id"] for inst in instances if inst["template_source"] == COMMON],
+        }
+        template_view_actions = get_flow_allowed_actions_for_user(
+            request.user.username, [IAMMeta.FLOW_VIEW_ACTION], tmpl_data[PROJECT]
+        )
+        common_template_view_actions = get_common_flow_allowed_actions_for_user(
+            request.user.username, [IAMMeta.COMMON_FLOW_VIEW_ACTION], tmpl_data[COMMON]
+        )
+        for inst in instances:
+            tmpl_id = str(inst["template_id"])
+            if (
+                inst["template_source"] == PROJECT
+                and tmpl_id in template_view_actions
+                and template_view_actions[tmpl_id][IAMMeta.FLOW_VIEW_ACTION]
+            ):
+                inst["auth_actions"].append(IAMMeta.FLOW_VIEW_ACTION)
+            elif (
+                inst["template_source"] == COMMON
+                and tmpl_id in common_template_view_actions
+                and common_template_view_actions[tmpl_id][IAMMeta.COMMON_FLOW_VIEW_ACTION]
+            ):
+                inst["auth_actions"].append(IAMMeta.COMMON_FLOW_VIEW_ACTION)
+
+        return self.get_paginated_response(instances) if page is not None else Response(instances)
 
     def create(self, request, *args, **kwargs):
         serializer = CreatePeriodicTaskSerializer(data=request.data)

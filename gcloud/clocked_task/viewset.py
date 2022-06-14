@@ -22,6 +22,7 @@ from gcloud.clocked_task.serializer import ClockedTaskSerializer, ClockedTaskPat
 from gcloud.core.apis.drf.viewsets import ApiMixin, IAMMixin
 from gcloud.iam_auth import get_iam_client, IAMMeta
 from gcloud.iam_auth.resource_helpers.clocked_task import ClockedTaskResourceHelper
+from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user
 
 iam = get_iam_client()
 
@@ -50,15 +51,19 @@ class ClockedTaskViewSet(ApiMixin, IAMMixin, viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-
         page = self.paginate_queryset(queryset)
-
-        serializer = self.get_serializer(page if page is not None else queryset, many=True)
+        instances = page if page is not None else list(queryset)
+        serializer = self.get_serializer(instances, many=True)
         deserialized_instances = serializer.data
-        auth_actions = self.iam_get_instances_auth_actions(request, list(queryset))
-        if auth_actions:
-            for deserialized_instance in deserialized_instances:
-                deserialized_instance["auth_actions"] = auth_actions[deserialized_instance["id"]]
+        auth_actions = self.iam_get_instances_auth_actions(request, instances) or {}
+        template_view_actions = get_flow_allowed_actions_for_user(
+            request.user.username, [IAMMeta.FLOW_VIEW_ACTION], [inst.template_id for inst in instances]
+        )
+        for deserialized_instance in deserialized_instances:
+            deserialized_instance["auth_actions"] = auth_actions.get(deserialized_instance["id"], [])
+            tmpl_id = str(deserialized_instance["template_id"])
+            if tmpl_id in template_view_actions and template_view_actions[tmpl_id][IAMMeta.FLOW_VIEW_ACTION]:
+                deserialized_instance["auth_actions"].append(IAMMeta.FLOW_VIEW_ACTION)
 
         return (
             self.get_paginated_response(deserialized_instances)
