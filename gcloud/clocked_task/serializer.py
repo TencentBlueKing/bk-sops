@@ -30,6 +30,7 @@ class ClockedTaskSerializer(serializers.ModelSerializer):
     task_parameters = ReadWriteSerializerMethodField(help_text="任务创建相关数据")
     creator = serializers.CharField(help_text="计划任务创建人", read_only=True)
     editor = serializers.CharField(help_text="计划任务编辑人", read_only=True)
+    state = serializers.CharField(help_text="计划任务状态", read_only=True)
     plan_start_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S%z")
     create_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S%z", read_only=True)
     edit_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S%z", read_only=True)

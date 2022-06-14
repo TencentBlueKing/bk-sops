@@ -17,6 +17,7 @@ from celery import task
 from django.db import transaction
 
 from gcloud.clocked_task.models import ClockedTask
+from gcloud.constants import CLOCKED_TASK_STARTED, CLOCKED_TASK_START_FAILED
 from gcloud.core.models import Project, EngineConfig
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
@@ -87,7 +88,9 @@ def clocked_task_start(clocked_task_id, *args, **kwargs):
                     template_source=clocked_task.template_source,
                 ),
             )
-            ClockedTask.objects.filter(id=clocked_task_id).update(task_id=taskflow_instance.id)
+            ClockedTask.objects.filter(id=clocked_task_id).update(
+                task_id=taskflow_instance.id, state=CLOCKED_TASK_STARTED
+            )
 
             # crete auto retry strategy
             arn_creator = AutoRetryNodeStrategyCreator(
@@ -105,4 +108,5 @@ def clocked_task_start(clocked_task_id, *args, **kwargs):
         taskflow_instance.task_action("start", clocked_task.creator)
     except Exception as ex:
         logger.exception("[clocked_task_start] task create error")
+        ClockedTask.objects.filter(id=clocked_task_id).update(state=CLOCKED_TASK_START_FAILED)
         send_clocked_task_message(clocked_task, str(ex))
