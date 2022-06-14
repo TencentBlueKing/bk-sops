@@ -18,6 +18,8 @@ from typing import Optional, List
 from bamboo_engine import exceptions as bamboo_exceptions
 from bamboo_engine import api as bamboo_engine_api
 from bamboo_engine import states as bamboo_engine_states
+from bamboo_engine.eri import ContextValueType
+
 from engine_pickle_obj.context import SystemObject
 from gcloud.project_constants.domains.context import get_project_constants_context
 from pipeline.engine import states as pipeline_states
@@ -507,6 +509,14 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     {
                         key: {"type": "plain", "value": value}
                         for key, value in get_project_constants_context(kwargs["project_id"]).items()
+                    }
+                )
+                existing_context_values = runtime.get_context(pipeline_instance.instance_id)
+                root_pipeline_context.update(
+                    {
+                        context_value.key: {"type": "plain", "value": context_value.value}
+                        for context_value in existing_context_values
+                        if context_value.type == ContextValueType.PLAIN
                     }
                 )
 
