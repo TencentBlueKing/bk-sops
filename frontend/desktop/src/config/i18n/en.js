@@ -1265,7 +1265,7 @@ const en = {
     '变量未找到': 'Variable not found',
     '至少保留一条触发条件': 'Keep at least one trigger condition',
     '自动隐藏': 'Auto hide',
-    '自动隐藏在显示状态下触发，当触发条件都满足时，才会在编辑页面隐藏，但是不会对传参产生影响': 'Auto-hide is triggered in the display state. When the trigger conditions are met, it will be hidden on the editing page, but it will not affect the parameter transfer.',
+    '满足触发条件的变量，在任务执行填参页面将自动隐藏。可用来实现特定条件下忽略必填参数': 'Variables that meet the trigger conditions will be automatically hidden on the task execution parameter page. Can be used to ignore required parameters under certain conditions',
     '启动失败': 'Failed to activate',
     '节点ID': 'Node ID',
     '表格设置': 'Table Settings',
@@ -1323,7 +1323,7 @@ const en = {
     '清除': 'Clear',
     '已选择x项': '{num} items selected',
     '确认删除所选的x个变量？': 'Are you sure to delete the selected {num} variables?',
-    '模板预渲染为是的变量，会在开始节点执行时就完成渲染，引用了节点输出的变量开启预渲染后会渲染失败': 'If the template pre-rendering is a yes variable, the rendering will be completed when the node starts executing. If the pre rendering is enabled, the rendering will fail',
+    '开启模板预渲染的变量在任务执行初始完成渲染，后续变量值保存不变，且不可引用输出变量': 'Variables that enable template pre-rendering are rendered at the beginning of task execution, and subsequent variable values are kept unchanged, and output variables cannot be referenced',
     '顶层流程（n）': 'Top Flow({n})',
     '子流程（n）': 'Sub Flow({n})',
     '是否覆盖已有子流程（实验功能，请谨慎使用并选择正确的流程）': 'Whether to override existing subprocesses (Experimental feature, please use it with caution and choose the correct process)',
@@ -1389,7 +1389,10 @@ const en = {
     '已排除节点': 'Node excluded',
     '当前任务为旧数据，仅记录已排除节点，可重选执行方案获得跟随执行方案更新能力': 'The current task is the old data, only the excluded nodes are recorded, and the execution plan can be reselected to obtain the ability to follow the execution plan update',
     '无': 'None',
-    '请选择执行方案': 'Please select an implementation plan'
+    '请选择执行方案': 'Please select an implementation plan',
+    '旧数据克隆时，已排除变成执行方案，默认选中《不使用执行方案》': 'When the old data is cloned, it has been excluded from becoming an execution plan, and "Do not use execution plan" is selected by default.',
+    '对应流程模板已被删除，仅提供修改任务名称，任务执行时间': 'The corresponding process template has been deleted, only the task name and task execution time can be modified.',
+    '对应流程模板已被删除，请重新选择模板创建计划任务': 'The corresponding process template has been deleted, please re-select the template to create a scheduled task'
 }
 
 export default en

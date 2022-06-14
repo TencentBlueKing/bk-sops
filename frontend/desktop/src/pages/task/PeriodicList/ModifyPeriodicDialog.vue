@@ -69,6 +69,7 @@
                             </div>
                             <bk-select
                                 v-else
+                                ref="tplSelect"
                                 v-model="formData.template_id"
                                 :searchable="true"
                                 :placeholder="$t('请选择')"
@@ -82,8 +83,8 @@
                                 @selected="onSelectTemplate"
                                 @scroll-end="onSelectScrollLoad">
                                 <bk-option
-                                    v-for="(option, index) in templateList"
-                                    :key="index"
+                                    v-for="option in templateList"
+                                    :key="option.id"
                                     :disabled="!hasPermission(['flow_view'], option.auth_actions)"
                                     :id="option.id"
                                     :name="option.name">
@@ -98,7 +99,7 @@
                         </bk-form-item>
                         <bk-form-item
                             class="scheme-form-item"
-                            v-if="!isPreview"
+                            v-if="!isPreview && !isTplDeleted"
                             :label="formData.is_latest === null ? $t('已选节点') : $t('执行方案')"
                             property="schemeId"
                             :required="formData.is_latest !== null">
@@ -111,6 +112,7 @@
                                     :searchable="true"
                                     :placeholder="$t('请选择')"
                                     :multiple="true"
+                                    :clearable="false"
                                     :disabled="formData.is_latest !== true || !formData.template_id"
                                     :loading="isLoading || schemeLoading"
                                     @selected="onSelectScheme">
@@ -166,7 +168,7 @@
                 <section class="config-section mb20">
                     <p class="title">
                         <span>{{ $t('通知') }}</span>
-                        <span v-if="!isLoading && formData.template_id" class="tip-desc">
+                        <span v-if="!isLoading && formData.template_id && !isTplDeleted" class="tip-desc">
                             {{ $t('通知方式统一在流程基础信息管理。如需修改，请') }}
                             <a
                                 class="link"
@@ -228,7 +230,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapActions } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import { PERIODIC_REG, NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
@@ -308,14 +310,14 @@
                                 return this.formData.name
                             },
                             message: i18n.t('任务名称不能为空'),
-                            trigger: 'change'
+                            trigger: 'blur'
                         },
                         {
                             validator: (val) => {
                                 return NAME_REG.test(this.formData.name)
                             },
                             message: i18n.t('任务名称不能包含') + '\'‘"”$&<>' + i18n.t('非法字符'),
-                            trigger: 'change'
+                            trigger: 'blur'
                         },
                         {
                             validator: (val) => {
@@ -332,7 +334,7 @@
                                 return this.formData.schemeId
                             },
                             message: i18n.t('请选择执行方案'),
-                            trigger: 'change'
+                            trigger: 'blur'
                         }
                     ],
                     flow: [
@@ -342,7 +344,7 @@
                                 return this.formData.template_id
                             },
                             message: i18n.t('请选择流程模板'),
-                            trigger: 'change'
+                            trigger: 'blur'
                         }
                     ]
                 },
@@ -357,10 +359,14 @@
                     count: 0,
                     limit: 15
                 },
-                flowName: ''
+                flowName: '',
+                isTplDeleted: false // 旧数据模板是否被删除
             }
         },
         computed: {
+            ...mapState('project', {
+                'projectName': state => state.projectName
+            }),
             isVariableEmpty () {
                 return Object.keys(this.periodicConstants).length === 0
             },
@@ -457,7 +463,7 @@
                     const permissionData = {
                         project: [{
                             id: this.project_id,
-                            name: this.formData.task_template_name
+                            name: this.projectName
                         }],
                         flow: [selectInfo]
                     }
@@ -507,10 +513,20 @@
                             this.previewData = tools.deepClone(this.curRow.pipeline_tree)
                         }
                     } else if (!this.isEdit) {
+                        this.formData.schemeId = [0]
                         const templateInfo = this.templateList.find(item => item.id === id)
                         await this.getPreviewNodeData(id, templateInfo.version, true)
                     }
                 } catch (e) {
+                    // 判断模板是否为删除
+                    if (e.status === 404 && this.isEdit) {
+                        this.isTplDeleted = true
+                        this.previewData = tools.deepClone(this.curRow.pipeline_tree)
+                        this.$bkMessage({
+                            theme: 'warning',
+                            message: i18n.t('对应流程模板已被删除，仅提供修改任务名称，任务执行时间')
+                        })
+                    }
                     console.warn(e)
                 } finally {
                     this.templateDataLoading = false
@@ -520,8 +536,10 @@
                 this.schemeLoading = true
                 try {
                     const defaultScheme = await this.loadDefaultSchemeList()
+                    const common = this.curRow.template_source === 'common'
                     const data = {
-                        project_id: this.project_id,
+                        isCommon: common || undefined,
+                        project_id: common ? undefined : this.project_id,
                         template_id: this.formData.template_id
                     }
                     const resp = await this.loadTaskScheme(data)
@@ -537,9 +555,6 @@
                         idDefault: false,
                         name: '<' + i18n.t('不使用执行方案') + '>'
                     })
-                    if (!this.isEdit) {
-                        this.formData.schemeId = [0]
-                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -621,7 +636,6 @@
                             this.periodicConstants = Object.values(this.previewData.constants).reduce((acc, cur) => {
                                 acc[cur.key] = {
                                     ...cur,
-                                    meta: { ...cur },
                                     value: this.constants[cur.key] ? this.constants[cur.key].value : cur.value
                                 }
                                 return acc
@@ -637,10 +651,9 @@
             getExcludeNode () {
                 const nodes = []
                 const { activities } = this.templateData.pipeline_tree
-                const nodeList = Object.keys(activities)
-                nodeList.forEach(id => {
-                    if (this.selectedNodes.indexOf(id) === -1) {
-                        nodes.push(id)
+                Object.values(activities).forEach(item => {
+                    if (this.selectedNodes.indexOf(item.id) === -1 && item.optional) {
+                        nodes.push(item.id)
                     }
                 })
                 return nodes
@@ -734,13 +747,10 @@
                 const paramEditComp = this.$refs.TaskParamEdit
                 this.$refs.basicConfigForm.validate().then(async (result) => {
                     let formValid = true
-                    let constantsValue = ''
+                    let constants = {}
                     if (paramEditComp) {
                         const formData = await paramEditComp.getVariableData()
-                        constantsValue = Object.keys(formData).reduce((acc, key) => {
-                            acc[key] = formData[key]['value']
-                            return acc
-                        }, {})
+                        constants = formData
                         formValid = paramEditComp.validate()
                     }
                     const cronArray = loopRule.rule.split(' ')
@@ -762,10 +772,6 @@
                         'day_of_month': cronArray[3],
                         'month_of_year': cronArray[4]
                     }
-                    const constants = Object.values(this.previewData.constants).reduce((acc, cur) => {
-                        acc[cur.key] = { ...cur, value: constantsValue[cur.key] }
-                        return acc
-                    }, {})
                     const pipelineData = {
                         ...this.previewData,
                         constants

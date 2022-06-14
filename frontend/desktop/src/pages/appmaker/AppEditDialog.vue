@@ -27,6 +27,7 @@
                 <label class="required">{{$t('流程模板')}}</label>
                 <div class="common-form-content">
                     <bk-select
+                        ref="tplSelect"
                         v-model="appData.appTemplate"
                         class="ui-form-item"
                         :searchable="true"
@@ -40,8 +41,8 @@
                         @selected="onSelectTemplate"
                         @scroll-end="onSelectScrollLoad">
                         <bk-option
-                            v-for="(option, index) in templateList"
-                            :key="index"
+                            v-for="option in templateList"
+                            :key="option.id"
                             :disabled="!hasPermission(['flow_view'], option.auth_actions)"
                             :id="option.id"
                             :name="option.name">
@@ -242,6 +243,7 @@
                 tplScrollLoading: false,
                 schemeLoading: false,
                 templateList: [],
+                templateData: {},
                 schemeList: [],
                 appTemplateEmpty: false,
                 isChooseLogoPanelShow: false,
@@ -426,6 +428,7 @@
             },
             onSelectTemplate (id) {
                 const template = this.templateList.find(item => item.id === id)
+                this.templateData = template
                 this.appData.appTemplate = id
                 this.appData.appName = template.name
                 this.appData.appCategory = template.category

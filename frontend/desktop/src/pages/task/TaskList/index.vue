@@ -435,7 +435,7 @@
                 ],
                 crtCreateMethodTab: 'all', // 当前选中创建方法tab
                 tableFields: TABLE_FIELDS,
-                defaultSelected: ['id', 'name', 'start_time', 'finish_time', 'executor_name', 'task_status'],
+                defaultSelected: ['id', 'name', 'start_time', 'finish_time', 'executor_name', 'task_status', 'recorded_executor_proxy'],
                 setting: {
                     fieldList: TABLE_FIELDS,
                     selectedFields: TABLE_FIELDS.slice(0),

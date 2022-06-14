@@ -74,6 +74,13 @@
                 @click="onGotoParamFill">
                 {{ $t('下一步') }}
             </bk-button>
+            <bk-button
+                v-if="isPreviewMode"
+                class="preview-button"
+                data-test-id="templateEdit_form_closePreview"
+                @click="togglePreviewMode(false)">
+                {{ $t('关闭预览') }}
+            </bk-button>
             <bk-button v-if="isSchemeShow && !isPreviewMode" data-test-id="createTask_form_exportScheme" @click="onExportScheme">{{ $t('导出当前方案') }}</bk-button>
         </div>
         <bk-sideslider
@@ -746,6 +753,9 @@
     background-color: #ffffff;
     .next-button {
         width: 140px;
+    }
+    .preview-button {
+        width: 120px;
     }
 }
 .title-back {

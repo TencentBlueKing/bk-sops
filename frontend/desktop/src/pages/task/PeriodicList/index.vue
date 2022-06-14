@@ -117,10 +117,10 @@
                                 <div class="periodic-operation">
                                     <template v-if="!adminView">
                                         <a
-                                            v-cursor="{ active: !hasPermission(['periodic_task_edit'], props.row.auth_actions) }"
+                                            v-cursor="{ active: !hasPermission(getEditPerm(props.row), props.row.auth_actions) }"
                                             href="javascript:void(0);"
                                             :class="['periodic-bk-btn', {
-                                                'text-permission-disable': !hasPermission(['periodic_task_edit'], props.row.auth_actions)
+                                                'text-permission-disable': !hasPermission(getEditPerm(props.row), props.row.auth_actions)
                                             }]"
                                             data-test-id="periodicList_table_editBtn"
                                             @click="onModifyCronPeriodic(props.row, $event)">
@@ -508,6 +508,12 @@
                 this.updateUrl()
                 this.getPeriodicList()
             },
+            getEditPerm (row) {
+                if (row.template_source === 'common') {
+                    return ['periodic_task_edit', 'comm_flow_view']
+                }
+                return ['periodic_task_edit', 'flow_view']
+            },
             /**
              * 单个周期任务操作项点击时校验
              * @params {Array} required 需要的权限
@@ -608,8 +614,8 @@
             },
             async onModifyCronPeriodic (item) {
                 const { id: taskId, cron } = item
-                if (!this.hasPermission(['periodic_task_edit'], item.auth_actions)) {
-                    this.onPeriodicPermissonCheck(['periodic_task_edit'], item)
+                if (!this.hasPermission(this.getEditPerm(item), item.auth_actions)) {
+                    this.onPeriodicPermissonCheck(this.getEditPerm(item), item)
                     return
                 }
                 this.curRow = item
@@ -692,10 +698,11 @@
             },
             templateNameUrl (template) {
                 const { template_id: templateId, template_source: templateSource, project } = template
+                const isCommon = templateSource === 'common'
                 const url = {
-                    name: 'templatePanel',
-                    params: { type: 'view', project_id: project.id },
-                    query: { template_id: templateId, common: templateSource === 'common' || undefined }
+                    name: isCommon ? 'commonTemplatePanel' : 'templatePanel',
+                    params: { type: 'view', project_id: isCommon ? undefined : project.id },
+                    query: { template_id: templateId, common: isCommon ? 1 : undefined }
                 }
                 return url
             },

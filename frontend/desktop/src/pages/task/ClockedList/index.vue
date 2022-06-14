@@ -82,6 +82,9 @@
                                     </template>
                                     <template v-else>{{ '--' }}</template>
                                 </div>
+                                <div v-else-if="item.id === 'state'">
+                                    {{ row.state === 'not_started' ? $t('未执行') : row.state === 'started' ? $t('已执行') : row.state ? $t('启动失败') : '--' }}
+                                </div>
                                 <!-- 其他 -->
                                 <template v-else>
                                     <span :title="row[item.id] || '--'">{{ row[item.id] || '--' }}</span>
@@ -91,24 +94,24 @@
                         <bk-table-column :label="$t('操作')" width="240">
                             <div class="clocked-operation" slot-scope="props">
                                 <a
-                                    v-cursor="{ active: !hasPermission(['clocked_task_edit'], props.row.auth_actions) }"
+                                    v-cursor="{ active: !hasPermission(['clocked_task_edit', 'flow_view'], props.row.auth_actions) }"
                                     href="javascript:void(0);"
                                     :class="{
-                                        'clocked-bk-disable': !hasPermission(['clocked_task_edit'], props.row.auth_actions) || props.row.task_id
+                                        'clocked-bk-disable': !hasPermission(['clocked_task_edit', 'flow_view'], props.row.auth_actions) || props.row.task_id
                                     }"
                                     v-bk-tooltips.top="{
                                         content: $t('已执行的计划任务无法编辑'),
-                                        disabled: hasPermission(['clocked_task_edit'], props.row.auth_actions) ? !props.row.task_id : true
+                                        disabled: hasPermission(['clocked_task_edit', 'flow_view'], props.row.auth_actions) ? !props.row.task_id : true
                                     }"
                                     data-test-id="clockedList_table_editBtn"
                                     @click="onEditClockedTask(props.row, $event)">
                                     {{ $t('编辑') }}
                                 </a>
                                 <a
-                                    v-cursor="{ active: !hasPermission(['clocked_task_view'], props.row.auth_actions) }"
+                                    v-cursor="{ active: !hasPermission(['clocked_task_view', 'flow_view'], props.row.auth_actions) }"
                                     href="javascript:void(0);"
                                     :class="{
-                                        'clocked-bk-disable': !hasPermission(['clocked_task_view'], props.row.auth_actions)
+                                        'clocked-bk-disable': !hasPermission(['clocked_task_view', 'flow_view'], props.row.auth_actions)
                                     }"
                                     data-test-id="clockedList_table_cloneBtn"
                                     @click="onCloneClockedTask(props.row, 'clone')">
@@ -235,6 +238,10 @@
             label: i18n.t('更新时间'),
             disabled: true,
             width: 200
+        }, {
+            id: 'state',
+            label: i18n.t('任务状态'),
+            width: 150
         }
     ]
     export default {
@@ -492,8 +499,8 @@
             // 编辑计划任务
             async onEditClockedTask (row) {
                 // 权限校验
-                if (!this.hasPermission(['clocked_task_edit'], row.auth_actions)) {
-                    this.onClockedPermissonCheck(['clocked_task_edit'], row)
+                if (!this.hasPermission(['clocked_task_edit', 'flow_view'], row.auth_actions)) {
+                    this.onClockedPermissonCheck(['clocked_task_edit', 'flow_view'], row)
                     return
                 }
                 if (row.task_id) return
@@ -514,8 +521,8 @@
             },
             // 克隆计划任务
             onCloneClockedTask (row) {
-                if (!this.hasPermission(['clocked_task_view'], row.auth_actions)) {
-                    this.onClockedPermissonCheck(['clocked_task_view'], row)
+                if (!this.hasPermission(['clocked_task_view', 'flow_view'], row.auth_actions)) {
+                    this.onClockedPermissonCheck(['clocked_task_view', 'flow_view'], row)
                     return
                 }
                 this.curRow = row

@@ -354,11 +354,8 @@
                         return
                     }
 
-                    const { notify_receivers, notify_type, auth_actions, default_flow_type } = templateData
-                    this.notifyType = [notify_type.success.slice(0), notify_type.fail.slice(0)]
-                    this.receiverGroup = JSON.parse(notify_receivers).receiver_group.slice(0)
-                    this.tplActions = auth_actions
-                    this.isSelectFunctionalType = default_flow_type === 'common_func'
+                    this.tplActions = templateData.auth_actions
+                    this.isSelectFunctionalType = templateData.default_flow_type === 'common_func'
                     this.setTemplateData(templateData)
 
                     let schemeId = ''

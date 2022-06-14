@@ -166,6 +166,9 @@
                     }
                     if (this.preMakoDisabled && variable.pre_render_mako) { // 修改参数页变量预渲染禁止编辑
                         atomConfig.forEach(item => {
+                            if (!item.attrs) {
+                                item.attrs = {}
+                            }
                             item.attrs['disabled'] = true
                             item.attrs['pre_mako_tip'] = i18n.t('设置了模板预渲染的变量，不支持中途修改参数值')
                             if (item.attrs.children) { // 预渲染变量下包含子组件配置禁止编辑
@@ -247,6 +250,9 @@
             },
             setAtomDisable (atomList) {
                 atomList.forEach(item => {
+                    if (!item.attrs) {
+                        item.attrs = {}
+                    }
                     item.attrs['disabled'] = true
                     if (item.attrs.children) {
                         this.setAtomDisable(item.attrs.children)
