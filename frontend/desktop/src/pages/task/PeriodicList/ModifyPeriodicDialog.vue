@@ -197,6 +197,8 @@
                         :loading="saveLoading"
                         :disabled="isLoading || previewDataLoading"
                         data-test-id="periodicList_form_saveBtn"
+                        :class="{ 'btn-permission-disable': hasNoCreatePerm }"
+                        v-cursor="{ active: hasNoCreatePerm }"
                         @click="onPeriodicConfirm">
                         {{ isEdit ? $t('保存') : $t('创建') }}
                     </bk-button>
@@ -395,6 +397,10 @@
                 const { activities = {} } = this.curRow.pipeline_tree || {}
                 const nodes = Object.values(activities).map(item => item.name)
                 return nodes.join(',')
+            },
+            hasNoCreatePerm () {
+                const { id, auth_actions } = this.templateData
+                return this.isEdit || !id ? false : !this.hasPermission(['flow_create_periodic_task'], auth_actions)
             }
         },
         created () {
@@ -742,6 +748,18 @@
             },
             // 周期任务保存
             onPeriodicConfirm () {
+                if (this.hasNoCreatePerm) {
+                    const { id, name, auth_actions } = this.templateData
+                    const resourceData = {
+                        flow: [{ id, name }],
+                        project: [{
+                            id: this.project_id,
+                            name: this.projectName
+                        }]
+                    }
+                    this.applyForPermission(['flow_create_periodic_task'], auth_actions, resourceData)
+                    return
+                }
                 const loopRule = this.$refs.loopRuleSelect.validationExpression()
                 if (!loopRule.check) return
                 const paramEditComp = this.$refs.TaskParamEdit
