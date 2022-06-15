@@ -1148,6 +1148,10 @@
                         this.pagination.current -= 1
                     }
                     this.getTemplateList()
+                    this.$bkMessage({
+                        message: i18n.t('流程') + i18n.t('删除成功！'),
+                        theme: 'success'
+                    })
                 } catch (e) {
                     console.log(e)
                 } finally {

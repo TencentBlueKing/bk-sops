@@ -273,12 +273,11 @@
             header-position="left"
             :mask-close="false"
             :value="isCancelGloVarDialogShow"
-            :title="$t('取消引用为全局变量')"
-            @cancel="isCancelGloVarDialogShow = false">
-            <p>{{ $t('取消后，该全局变量的引用数为 0 ') }}</p>
-            <p>{{ $t('不再使用的变量，建议在全局变量面板中及时删除') }}</p>
+            :title="$t('取消引用为全局变量')">
+            <p>{{ $t('全局变量【 x 】的引用数已为 0。如果不再使用，可立即删除变量; 也可以稍后再全局变量面板中删除', { key: unhookingVarForm.key })}}</p>
             <template slot="footer">
-                <bk-button theme="primary" @click="onCancelVarConfirmClick">{{ $t('我知道了') }}</bk-button>
+                <bk-button theme="primary" @click="deleteUnhookingVar">{{ $t('删除变量') }}</bk-button>
+                <bk-button @click="onCancelVarConfirmClick">{{ $t('以后再说') }}</bk-button>
             </template>
         </bk-dialog>
     </div>
@@ -1223,7 +1222,7 @@
                         this.$set(sourceInfo, id, [tagCode])
                     }
                 } else if (type === 'delete') {
-                    this.unhookingVarForm = data
+                    this.unhookingVarForm = { ...data, value: constant.value }
                     this.variableCited = await this.getVariableCitedData() || {}
                     const { activities, conditions, constants } = this.variableCited[key]
                     const citedNum = activities.length + conditions.length + constants.length
@@ -1264,12 +1263,19 @@
                     console.log(e)
                 }
             },
+            deleteUnhookingVar () {
+                const { key, source } = this.unhookingVarForm
+                this.$delete(this.localConstants, key)
+                const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
+                refDom && refDom.setFromData({ ...this.unhookingVarForm })
+                this.isCancelGloVarDialogShow = false
+            },
             onCancelVarConfirmClick () {
                 const { key, source } = this.unhookingVarForm
                 const constant = this.localConstants[key]
                 constant.source_info = {}
                 const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
-                refDom && refDom.setFromData()
+                refDom && refDom.setFromData({ ...this.unhookingVarForm })
                 this.isCancelGloVarDialogShow = false
             },
             // 删除全局变量

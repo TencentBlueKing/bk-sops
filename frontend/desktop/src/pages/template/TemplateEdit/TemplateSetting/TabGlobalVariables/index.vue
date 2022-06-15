@@ -582,6 +582,10 @@
                 this.deleteVarKey = ''
                 this.$emit('templateDataChanged')
                 this.getVariableCitedData() // 删除变量后更新引用数据
+                this.$bkMessage({
+                    theme: 'success',
+                    message: i18n.t('变量') + i18n.t('删除成功！')
+                })
             },
             onCloneVariable (data) {
                 const variableData = tools.deepClone(data)

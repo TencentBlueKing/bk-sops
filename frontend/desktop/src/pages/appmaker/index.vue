@@ -280,6 +280,10 @@
                 try {
                     await this.appmakerDelete(this.currentAppData.id)
                     this.loadData()
+                    this.$bkMessage({
+                        message: i18n.t('轻应用') + i18n.t('删除成功！'),
+                        theme: 'success'
+                    })
                 } catch (e) {
                     console.log(e)
                 } finally {
