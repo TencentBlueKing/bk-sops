@@ -510,9 +510,9 @@
             },
             getEditPerm (row) {
                 if (row.template_source === 'common') {
-                    return ['periodic_task_edit', 'comm_flow_view']
+                    return ['comm_flow_view', 'periodic_task_edit']
                 }
-                return ['periodic_task_edit', 'flow_view']
+                return ['flow_view', 'periodic_task_edit']
             },
             /**
              * 单个周期任务操作项点击时校验

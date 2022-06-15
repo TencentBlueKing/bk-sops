@@ -179,6 +179,8 @@
                         :loading="saveLoading"
                         data-test-id="clockedList_form_saveBtn"
                         :disabled="isLoading || previewDataLoading"
+                        :class="{ 'btn-permission-disable': hasNoCreatePerm }"
+                        v-cursor="{ active: hasNoCreatePerm }"
                         @click="onClockedConfirm">
                         {{ type === 'edit' ? $t('保存') : $t('创建') }}
                     </bk-button>
@@ -414,6 +416,10 @@
                     }
                 })
                 return nodes.join(',') || ('<' + i18n.t('无') + '>')
+            },
+            hasNoCreatePerm () {
+                const { id, auth_actions } = this.templateData
+                return this.type === 'edit' || !id ? false : !this.hasPermission(['flow_create_clocked_task'], auth_actions)
             }
         },
         created () {
@@ -793,6 +799,18 @@
                 }
             },
             onCreateClockedConfirm () {
+                if (this.hasNoCreatePerm) {
+                    const { id, name, auth_actions } = this.templateData
+                    const resourceData = {
+                        flow: [{ id, name }],
+                        project: [{
+                            id: this.project_id,
+                            name: this.projectName
+                        }]
+                    }
+                    this.applyForPermission(['flow_create_clocked_task'], auth_actions, resourceData)
+                    return
+                }
                 this.$refs.basicConfigForm.validate().then(async (result) => {
                     const taskParamEdit = this.$refs.TaskParamEdit
                     const formValid = taskParamEdit.validate()
