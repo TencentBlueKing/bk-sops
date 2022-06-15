@@ -247,11 +247,9 @@
                     this.$emit('hookChange', 'delete', config)
                 }
             },
-            setFromData () {
+            setFromData (data = {}) {
                 const form = this.unhookingVarForm
-                const variableKey = this.formData[form]
-                const constant = this.constants[variableKey]
-                this.formData[form] = tools.deepClone(constant.value)
+                this.formData[form] = tools.deepClone(data.value)
                 this.hooked[form] = false
                 this.$emit('update', tools.deepClone(this.formData))
             },
