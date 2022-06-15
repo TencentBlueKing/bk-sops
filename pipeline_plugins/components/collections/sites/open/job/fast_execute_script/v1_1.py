@@ -41,6 +41,8 @@ from pipeline.core.flow.io import (
 )
 from pipeline.component_framework.component import Component
 
+from api.utils.request import batch_request
+from gcloud.exceptions import ApiRequestError
 from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, get_biz_ip_from_frontend
 from ..base import GetJobHistoryResultMixin
@@ -122,15 +124,12 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
                 schema=StringItemSchema(description=_("执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"),
-                key="job_account",
-                type="string",
-                schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
+                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
             ),
             self.InputItem(
                 name=_("IP 存在性校验"),
                 key="ip_is_exist",
-                type="string",
+                type="boolean",
                 schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
             ),
             self.InputItem(
@@ -197,9 +196,7 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
             "bk_biz_id": biz_cc_id,
             "timeout": data.get_one_of_inputs("job_script_timeout"),
             "account_alias": data.get_one_of_inputs("job_account"),
-            "target_server": {
-                "ip_list": ip_list,
-            },
+            "target_server": {"ip_list": ip_list},
             "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
 
@@ -210,28 +207,31 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
 
         if script_source in ["general", "public"]:
             script_name = data.get_one_of_inputs("job_script_list_{}".format(script_source))
-            kwargs = {"script_name": script_name}
+            kwargs = {"name": script_name}
             if script_source == "general":
                 kwargs.update(
-                    {
-                        "bk_biz_id": biz_cc_id,
-                        "bk_scope_type": JobBizScopeType.BIZ.value,
-                        "bk_scope_id": str(biz_cc_id),
-                    }
+                    {"bk_scope_type": JobBizScopeType.BIZ.value, "bk_scope_id": str(biz_cc_id), "bk_biz_id": biz_cc_id}
                 )
-                scripts = client.job.get_script_list(kwargs)
+                func = client.jobv3.get_script_list
             else:
-                scripts = client.job.get_public_script_list(kwargs)
+                func = client.jobv3.get_public_script_list
 
-            if scripts["result"] is False:
-                api_name = "job.get_script_list" if script_source == "general" else "job.get_public_script_list"
-                message = job_handle_api_error(api_name, job_kwargs, scripts)
-                self.logger.error(message)
+            try:
+                script_list = batch_request(
+                    func=func,
+                    params=kwargs,
+                    get_data=lambda x: x["data"]["data"],
+                    get_count=lambda x: x["data"]["total"],
+                    page_param={"cur_page_param": "start", "page_size_param": "length"},
+                    is_page_merge=True,
+                )
+            except ApiRequestError as e:
+                message = str(e)
+                self.logger.error(str(e))
                 data.outputs.ex_data = message
                 return False
 
-            # job V2接口使用的是模糊匹配，这里需要做一次精确匹配
-            script_list = scripts["data"]["data"]
+            # job 脚本名称使用的是模糊匹配，这里需要做一次精确匹配
             selected_script = None
             for script in script_list:
                 if script["name"] == script_name:
@@ -239,15 +239,15 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
                     break
 
             if not selected_script:
-                api_name = "job.get_script_list" if script_source == "general" else "job.get_public_script_list"
-                message = job_handle_api_error(api_name, job_kwargs, scripts)
+                api_name = "jobv3.get_script_list" if script_source == "general" else "jobv3.get_public_script_list"
+                message = job_handle_api_error(api_name, job_kwargs, script_list)
                 message += "Data validation error: can not find a script exactly named {}".format(script_name)
                 self.logger.error(message)
                 data.outputs.ex_data = message
                 return False
 
             script_id = selected_script["id"]
-            job_kwargs.update({"script_version_id": script_id})
+            job_kwargs.update({"script_id": script_id})
         else:
             job_kwargs.update(
                 {
