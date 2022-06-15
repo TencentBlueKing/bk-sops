@@ -864,8 +864,22 @@
                             const index = this.selectedTpls.findIndex(tpl => tpl.id === id)
                             this.selectedTpls.splice(index, 1)
                         })
+                        this.$bkMessage({
+                            message: i18n.t('流程') + i18n.t('删除成功！'),
+                            theme: 'success'
+                        })
                         this.pagination.current = 1
                         this.getTemplateList()
+                    } else if (Object.keys(res.data.references).length) {
+                        const deleteArr = []
+                        Object.values(res.data.references).forEach(item => {
+                            const value = item.template[0]
+                            deleteArr.push(`${value.name}(${value.id})`)
+                        })
+                        this.$bkMessage({
+                            message: i18n.t('流程') + deleteArr.join(i18n.t('，')) + i18n.t('删除失败！'),
+                            theme: 'error'
+                        })
                     }
                 }
                 return Promise.resolve()
@@ -1041,6 +1055,10 @@
                         this.pagination.current -= 1
                     }
                     this.getTemplateList()
+                    this.$bkMessage({
+                        message: i18n.t('公共流程') + i18n.t('删除成功！'),
+                        theme: 'success'
+                    })
                 } catch (e) {
                     console.log(e)
                 } finally {
