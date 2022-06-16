@@ -669,6 +669,10 @@
                         this.pagination.current -= 1
                     }
                     await this.getTaskList()
+                    this.$bkMessage({
+                        message: i18n.t('任务') + i18n.t('删除成功！'),
+                        theme: 'success'
+                    })
                 } catch (e) {
                     console.log(e)
                 } finally {

@@ -660,7 +660,7 @@
                     this.deleting = true
                     await this.deletePeriodic(this.selectedDeleteTaskId)
                     this.$bkMessage({
-                        'message': i18n.t('删除周期任务成功'),
+                        'message': i18n.t('周期任务') + i18n.t('删除成功'),
                         'theme': 'success'
                     })
                     this.isDeleteDialogShow = false
