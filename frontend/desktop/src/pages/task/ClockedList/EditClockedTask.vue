@@ -20,6 +20,8 @@
                     :preview-data-loading="previewDataLoading"
                     :canvas-data="formatCanvasData('perview', previewData)"
                     :preview-bread="previewBread"
+                    :preview-data="previewData"
+                    :common="false"
                     @onNodeClick="onNodeClick"
                     @onSelectSubflow="onSelectSubFlow">
                 </NodePreview>
@@ -81,8 +83,9 @@
                             :label="isLatest ? $t('执行方案') : $t('已排除节点')"
                             property="schemeId"
                             :required="isLatest">
-                            <div class="scheme-wrapper" v-if="isLatest">
+                            <div class="scheme-wrapper">
                                 <bk-select
+                                    v-if="isLatest"
                                     v-model="formData.schemeId"
                                     :searchable="true"
                                     :placeholder="$t('请选择')"
@@ -102,6 +105,9 @@
                                         <i v-if="formData.schemeId.includes(option.id)" class="bk-icon icon-check-line"></i>
                                     </bk-option>
                                 </bk-select>
+                                <p v-else class="exclude-wrapper" v-bk-overflow-tips>
+                                    {{ excludeNodes }}
+                                </p>
                                 <bk-button
                                     v-if="!isTplDeleted"
                                     theme="default"
@@ -110,12 +116,9 @@
                                     {{ $t('预览') }}
                                 </bk-button>
                             </div>
-                            <div v-else class="exclude-wrapper">
-                                <p class="exclude-content" v-bk-overflow-tips>{{ excludeNodes }}</p>
-                                <p class="schema-disable-tip">
-                                    {{ $t('当前任务为旧数据，仅记录已排除节点，可重选执行方案获得跟随执行方案更新能力') }}
-                                </p>
-                            </div>
+                            <p v-if="!isLatest" class="schema-disable-tip">
+                                {{ $t('当前任务为旧数据，仅记录已排除节点，可重选执行方案获得跟随执行方案更新能力') }}
+                            </p>
                             <p v-if="type === 'clone' && ('exclude_task_nodes_id' in curRow.task_parameters)" class="schema-disable-tip">
                                 {{ $t('旧数据克隆时，已排除变成执行方案，默认选中《不使用执行方案》') }}
                             </p>
@@ -514,7 +517,7 @@
                 // 获取模板详情
                 try {
                     this.templateDataLoading = true
-                    const params = { templateId: id, common: this.isCommon }
+                    const params = { templateId: id }
                     const templateData = await this.loadTemplateData(params)
                     // 获取流程模板的通知配置
                     const { notify_receivers, notify_type } = templateData
@@ -650,7 +653,6 @@
                 const params = {
                     templateId: Number(templateId),
                     excludeTaskNodesId: excludeNodes,
-                    common: this.isCommon,
                     version
                 }
                 try {
@@ -699,6 +701,10 @@
                     const item = gateways[gKey]
                     if (item.conditions) {
                         branchConditions[item.id] = Object.assign({}, item.conditions)
+                    }
+                    if (item.default_condition) {
+                        const nodeId = item.default_condition.flow_id
+                        branchConditions[item.id][nodeId] = item.default_condition
                     }
                 }
                 return {
@@ -1009,9 +1015,9 @@
         cursor: not-allowed;
     }
 }
-.exclude-content {
-    width: 100%;
-    height: 64px;
+.exclude-wrapper {
+    flex: 1;
+    height: 32px;
     font-size: 12px;
     padding: 5px 10px;
     line-height: 1.5;

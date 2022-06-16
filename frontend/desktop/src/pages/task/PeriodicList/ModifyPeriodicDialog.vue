@@ -31,6 +31,8 @@
                     :preview-data-loading="previewDataLoading"
                     :canvas-data="formatCanvasData('perview', previewData)"
                     :preview-bread="previewBread"
+                    :preview-data="previewData"
+                    :common="isCommon"
                     @onNodeClick="onNodeClick"
                     @onSelectSubflow="onSelectSubFlow">
                 </NodePreview>
@@ -103,11 +105,12 @@
                             :label="formData.is_latest === null ? $t('已选节点') : $t('执行方案')"
                             property="schemeId"
                             :required="formData.is_latest !== null">
-                            <p v-if="formData.is_latest === null" class="exclude-wrapper" v-bk-overflow-tips>
-                                {{ includeNodes }}
-                            </p>
-                            <div class="scheme-wrapper" v-else>
+                            <div class="scheme-wrapper">
+                                <p v-if="formData.is_latest === null" class="exclude-wrapper" v-bk-overflow-tips>
+                                    {{ includeNodes }}
+                                </p>
                                 <bk-select
+                                    v-else
                                     v-model="formData.schemeId"
                                     :searchable="true"
                                     :placeholder="$t('请选择')"
@@ -127,7 +130,6 @@
                                     </bk-option>
                                 </bk-select>
                                 <bk-button
-                                    v-if="formData.is_latest !== null"
                                     theme="default"
                                     :disabled="isLoading || !formData.template_id"
                                     @click="togglePreviewMode">
@@ -677,6 +679,10 @@
                     if (item.conditions) {
                         branchConditions[item.id] = Object.assign({}, item.conditions)
                     }
+                    if (item.default_condition) {
+                        const nodeId = item.default_condition.flow_id
+                        branchConditions[item.id][nodeId] = item.default_condition
+                    }
                 }
                 return {
                     lines: line,
@@ -1017,8 +1023,8 @@
         }
     }
     .exclude-wrapper {
-        width: 100%;
-        height: 64px;
+        flex: 1;
+        height: 32px;
         font-size: 12px;
         padding: 5px 10px;
         line-height: 1.5;

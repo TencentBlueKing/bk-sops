@@ -54,14 +54,17 @@
 </template>
 <script>
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
-    import { mapState, mapActions } from 'vuex'
+    import tplPerspective from '@/mixins/tplPerspective.js'
     export default {
         name: 'NodePreview',
         components: {
             TemplateCanvas
         },
+        mixins: [tplPerspective],
         props: {
             canvasData: Object,
+            previewData: Object,
+            common: Boolean,
             previewBread: Array,
             previewDataLoading: Boolean,
             isAllSelected: Boolean,
@@ -72,17 +75,8 @@
             return {
                 ellipsis: '...',
                 showBreakList: [0, 1, 2],
-                isOmit: true,
-                nodeVariableInfo: {} // 节点输入输出变量
+                isOmit: true
             }
-        },
-        computed: {
-            ...mapState({
-                'activities': state => state.template.activities,
-                'constants': state => state.template.constants,
-                'gateways': state => state.template.gateways,
-                'internalVariable': state => state.template.internalVariable
-            })
         },
         watch: {
             previewBread (val) {
@@ -94,65 +88,11 @@
             }
         },
         methods: {
-            ...mapActions('template/', [
-                'getVariableCite'
-            ]),
             onNodeClick (id) {
                 if (this.previewDataLoading) {
                     return
                 }
                 this.$emit('onNodeClick', id)
-            },
-            async onTogglePerspective (val) {
-                if (!val) return
-                // 获取节点与变量的依赖关系
-                try {
-                    const constants = { ...this.internalVariable, ...this.constants }
-                    const data = {
-                        activities: this.activities,
-                        gateways: this.gateways,
-                        constants
-                    }
-                    const resp = await this.getVariableCite(data)
-                    if (!resp.result) return
-                    const variableCited = resp.data.defined
-                    const nodeCitedInfo = Object.keys(variableCited).reduce((acc, key) => {
-                        const values = variableCited[key]
-                        const nodeInfo = constants[key]
-                        if (nodeInfo.source_type === 'component_outputs') {
-                            const outputIds = Object.keys(nodeInfo.source_info) || []
-                            outputIds.forEach(nodeId => {
-                                if (!(nodeId in acc)) {
-                                    acc[nodeId] = {
-                                        'input': [],
-                                        'output': []
-                                    }
-                                }
-                                acc[nodeId]['output'].push(key)
-                            })
-                        } else {
-                            values.activities.forEach(nodeId => {
-                                if (!(nodeId in acc)) {
-                                    acc[nodeId] = {
-                                        'input': [],
-                                        'output': []
-                                    }
-                                }
-                                acc[nodeId]['input'].push(key)
-                            })
-                        }
-                        return acc
-                    }, {})
-                    // 去重
-                    Object.keys(nodeCitedInfo).forEach(key => {
-                        const values = nodeCitedInfo[key]
-                        values.input = [...new Set(values.input)]
-                        values.output = [...new Set(values.output)]
-                    })
-                    this.nodeVariableInfo = nodeCitedInfo
-                } catch (e) {
-                    console.log(e)
-                }
             },
             onSelectSubflow (id, version, index) {
                 if (this.previewDataLoading) {
