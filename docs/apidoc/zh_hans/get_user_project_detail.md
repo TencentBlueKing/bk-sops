@@ -36,7 +36,12 @@
         "bk_biz_developer": "",
         "bk_biz_maintainer": "admin,gcloudadmin",
         "bk_biz_tester": "",
-        "bk_biz_productor": ""
+        "bk_biz_productor": "",
+        "auth_actions": [
+            "project_view",
+            "project_edit",
+            "project_fast_create_task"
+        ]
     },
     "code": 0,
     "request_id": "xxx",
@@ -65,3 +70,4 @@
 |  bk_biz_maintainer  | string     | 业务运维人员列表           |
 |  bk_biz_tester  | string     | 业务测试人员列表           |
 |  bk_biz_productor  | string     | 业务产品人员列表           |
+|  auth_actions  | list     | 当前用户对该项目对象拥有的操作权限           |
