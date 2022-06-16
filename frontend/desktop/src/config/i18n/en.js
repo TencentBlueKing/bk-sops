@@ -1375,7 +1375,7 @@ const en = {
     '执行代理人在任务开始执行时确定，未执行任务不展示': 'The execution agent is determined when the task starts to execute, and the unexecuted task will not be displayed',
     '计划任务在执行时获取最新的流程和执行方案数据创建任务，流程和方案变更将影响未执行的计划任务，如增加参数可能导致计划任务启动失败。': 'When a scheduled task is executed, it obtains the latest process and execution plan data to create a task. Changes to the process and plan will affect the unexecuted scheduled task. For example, adding parameters may cause the scheduled task to fail to start.',
     '未能重用': 'Failed to reuse',
-    '重用规则': 'Reuse rules',
+    '重用说明': 'Reuse instructions',
     '参数值为非字典类型，KEY&类型前后一致才可重用': 'The parameter value is a non-dictionary type, and the KEY& type can only be reused if it is consistent',
     '参数值为字典类型，还需要字典内的key前后一致才可重用': 'The parameter value is a dictionary type, and the keys in the dictionary need to be consistent before they can be reused',
     '元变量还需元数据配置一致才可重用': 'Metavariables also require consistent metadata configuration before they can be reused',
@@ -1403,7 +1403,11 @@ const en = {
     '变量引用和豁免使用指引': 'Guidelines for Variable References and Exemptions',
     '变量引用：使用参数的配置创建全局变量并引用，或不创建直接引用同类型变量': 'Variable reference: use the configuration of parameters to create global variables and reference them, or not to create direct references to variables of the same type',
     '变量豁免：开启后忽略参数中的全局变量，视为普通字符串': 'Variable exemption: global variables in parameters are ignored when enabled, and are treated as ordinary strings',
-    '流程当前被使用中，无法删除': 'The process is currently in use and cannot be deleted'
+    '流程当前被使用中，无法删除': 'The process is currently in use and cannot be deleted',
+    '以下情况参数值无法重用，使用变量默认值：': 'The parameter value cannot be reused in the following cases, and the variable default value is used:',
+    '变量的类型变更': 'Variable type change',
+    '变量值的配置项变更': 'Configuration item change of variable value',
+    '元变量的配置变更': 'Metavariable configuration changes'
 }
 
 export default en
