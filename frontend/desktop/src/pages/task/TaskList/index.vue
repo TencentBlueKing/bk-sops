@@ -199,11 +199,10 @@
                     <bk-popover placement="bottom-end" theme="light" width="344" :ext-cls="'reuse-rule-tip'">
                         <i class="bk-icon icon-question-circle"></i>
                         <div slot="content">
-                            <p>{{ $t('重用规则') }}</p><br>
-                            <p>{{ $t('参数值为非字典类型，KEY&类型前后一致才可重用') }}</p>
-                            <p>{{ $t('参数值为字典类型，还需要字典内的key前后一致才可重用') }}</p>
-                            <p>{{ $t('元变量还需元数据配置一致才可重用') }}</p>
-                            <p>{{ $t('不满足重用规则时使用流程默认值') }}</p>
+                            <p class="mb10">{{ $t('以下情况参数值无法重用，使用变量默认值：') }}</p>
+                            <p>{{ '1. ' + $t('变量的类型变更') }}</p>
+                            <p>{{ '2. ' + $t('变量值的配置项变更') }}</p>
+                            <p>{{ '3. ' + $t('元变量的配置变更') }}</p>
                         </div>
                     </bk-popover>
                 </bk-radio>
