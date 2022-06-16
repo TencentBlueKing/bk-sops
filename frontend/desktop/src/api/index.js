@@ -12,7 +12,6 @@
 import axios from 'axios'
 import axiosDefaults from 'axios/lib/defaults'
 import bus from '@/utils/bus.js'
-import isCrossOriginIFrame from '@/utils/isCrossOriginIFrame.js'
 import { setJqueryAjaxConfig } from '@/config/setting.js'
 import { generateTraceId } from '@/utils/uuid.js'
 
@@ -74,9 +73,16 @@ axios.interceptors.response.use(
                 break
             case 401:
                 const data = response.data
-                if (data.has_plain) {
-                    const topWindow = isCrossOriginIFrame() ? window : window.top
-                    topWindow.BLUEKING.corefunc.open_login_dialog(data.login_url, data.width, data.height, response.config.method)
+                if (data.has_plain && !window.loginWindow) {
+                    const { login_url: src, width, height } = data
+                    const { availHeight, availWidth } = window.screen
+                    const left = (availWidth - width) / 2
+                    const top = (availHeight - height) / 2
+                    window.loginWindow = window.open(src, '_blank', `
+                        width=` + width + `,
+                        height=` + height + `,
+                        left=` + left + `,
+                        top=` + top + `,`)
                 }
                 break
             case 499:
