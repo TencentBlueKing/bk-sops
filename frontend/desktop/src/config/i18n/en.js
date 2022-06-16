@@ -1402,7 +1402,8 @@ const en = {
     '变量引用': 'Variable reference',
     '变量引用和豁免使用指引': 'Guidelines for Variable References and Exemptions',
     '变量引用：使用参数的配置创建全局变量并引用，或不创建直接引用同类型变量': 'Variable reference: use the configuration of parameters to create global variables and reference them, or not to create direct references to variables of the same type',
-    '变量豁免：开启后忽略参数中的全局变量，视为普通字符串': 'Variable exemption: global variables in parameters are ignored when enabled, and are treated as ordinary strings'
+    '变量豁免：开启后忽略参数中的全局变量，视为普通字符串': 'Variable exemption: global variables in parameters are ignored when enabled, and are treated as ordinary strings',
+    '流程当前被使用中，无法删除': 'The process is currently in use and cannot be deleted'
 }
 
 export default en
