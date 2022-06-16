@@ -1393,11 +1393,16 @@ const en = {
     '旧数据克隆时，已排除变成执行方案，默认选中《不使用执行方案》': 'When the old data is cloned, it has been excluded from becoming an execution plan, and "Do not use execution plan" is selected by default.',
     '对应流程模板已被删除，仅提供修改任务名称，任务执行时间': 'The corresponding process template has been deleted, only the task name and task execution time can be modified.',
     '对应流程模板已被删除，请重新选择模板创建计划任务': 'The corresponding process template has been deleted, please re-select the template to create a scheduled task',
-    '引用为全局变量：将参数配置为全局变量并使用': 'Reference as global variable: configure the parameter as a global variable and use',
-    '豁免渲染：开启后忽略参数中引用的变量，视为普通字符串': 'Exemption from rendering: When enabled, the variables referenced in the parameters are ignored and treated as ordinary strings',
     '变量': 'Variable',
     '以后再说': 'Tell you later',
-    '全局变量【 x 】的引用数已为 0。如果不再使用，可立即删除变量; 也可以稍后再全局变量面板中删除': 'The reference count of the global variable [ x ] is already 0. Variables can be deleted immediately if they are no longer used; they can also be deleted later in the Global Variables panel'
+    '全局变量【 x 】的引用数已为 0。如果不再使用，可立即删除变量; 也可以稍后再全局变量面板中删除': 'The reference count of the global variable [ x ] is already 0. Variables can be deleted immediately if they are no longer used; they can also be deleted later in the Global Variables panel',
+    '取消变量豁免': 'Cancel variable exemption',
+    '变量豁免': 'Variable exemption',
+    '取消变量引用': 'Dereference variable',
+    '变量引用': 'Variable reference',
+    '变量引用和豁免使用指引': 'Guidelines for Variable References and Exemptions',
+    '变量引用：使用参数的配置创建全局变量并引用，或不创建直接引用同类型变量': 'Variable reference: use the configuration of parameters to create global variables and reference them, or not to create direct references to variables of the same type',
+    '变量豁免：开启后忽略参数中的全局变量，视为普通字符串': 'Variable exemption: global variables in parameters are ignored when enabled, and are treated as ordinary strings'
 }
 
 export default en

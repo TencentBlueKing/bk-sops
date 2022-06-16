@@ -70,7 +70,7 @@
             <i
                 :class="['common-icon-render-skip render-skip-icon', { actived: !render, disabled: !option.formEdit || hook }]"
                 v-bk-tooltips="{
-                    content: !render ? $t('取消渲染豁免') : $t('渲染豁免'),
+                    content: !render ? $t('取消变量豁免') : $t('变量豁免'),
                     placement: 'bottom',
                     zIndex: 3000
                 }"
@@ -147,8 +147,8 @@
                 showForm, // combine 类型 Tag 组是否显示
                 showHook, // combine 类型 Tag 组是否可勾选
                 i18n: {
-                    hooked: gettext('取消引用为全局变量'),
-                    cancelHook: gettext('引用为全局变量')
+                    hooked: gettext('取消变量引用'),
+                    cancelHook: gettext('变量引用')
                 }
             }
         },
