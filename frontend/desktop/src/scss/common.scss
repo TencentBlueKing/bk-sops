@@ -88,18 +88,20 @@
         padding: 0;
     }
 }
-
-.reuse-rule-tip .tippy-tooltip {
-    &.light-theme {
-        color: #63656e;
-        line-height: 16px;
-        padding: 6px 10px;
-        border: 1px solid #dcdee5;
-        box-shadow: none;
-        .tippy-arrow {
-            border: 1px solid #dcdee5 !important;
-        }
-    }
+.reuse-rule-tip,
+.citations-waivers-guide-tip {
+    .tippy-tooltip {
+       &.light-theme {
+           color: #63656e;
+           line-height: 16px;
+           padding: 6px 10px;
+           border: 1px solid #dcdee5;
+           box-shadow: 0 0 5px 0 rgba(0,0,0,0.09);
+           .tippy-arrow {
+               border: 1px solid #dcdee5 !important;
+           }
+       }
+   }
 }
 
 .common-error-tip {

@@ -22,6 +22,8 @@
                 :is-all-selected="isAllSelected"
                 :is-show-select-all-tool="isSelectAllShow"
                 :canvas-data="canvasData"
+                :node-variable-info="nodeVariableInfo"
+                @onTogglePerspective="onTogglePerspective"
                 @onNodeCheckClick="onNodeCheckClick"
                 @onToggleAllNode="onToggleAllNode">
             </TemplateCanvas>
@@ -31,6 +33,8 @@
                 :preview-data-loading="previewDataLoading"
                 :canvas-data="formatCanvasData('perview', previewData)"
                 :preview-bread="previewBread"
+                :preview-data="previewData"
+                :common="common"
                 @onNodeClick="onNodeClick"
                 @onSelectSubflow="onSelectSubflow">
             </NodePreview>
@@ -128,6 +132,7 @@
     import NodePreview from '@/pages/task/NodePreview.vue'
     import EditScheme from './EditScheme.vue'
     import bus from '@/utils/bus.js'
+    import tplPerspective from '@/mixins/tplPerspective.js'
 
     export default {
         components: {
@@ -137,6 +142,7 @@
             TemplateCanvas,
             NodePreview
         },
+        mixins: [tplPerspective],
         props: {
             project_id: [String, Number],
             template_id: [String, Number],

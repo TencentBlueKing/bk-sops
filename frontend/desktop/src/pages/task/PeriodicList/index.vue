@@ -510,7 +510,7 @@
             },
             getEditPerm (row) {
                 if (row.template_source === 'common') {
-                    return ['comm_flow_view', 'periodic_task_edit']
+                    return ['common_flow_view', 'periodic_task_edit']
                 }
                 return ['flow_view', 'periodic_task_edit']
             },
@@ -520,10 +520,11 @@
              * @params {Object} periodic 模板数据对象
              */
             onPeriodicPermissonCheck (required, periodic) {
-                const { id, name, task_template_name, template_id, project } = periodic
+                const { id, name, task_template_name, template_id, project, auth_actions, template_source } = periodic
+                const isCommon = template_source === 'common'
                 const resourceData = {
                     periodic_task: [{ id, name }],
-                    flow: [{
+                    [isCommon ? 'common_flow' : 'flow']: [{
                         id: template_id,
                         name: task_template_name
                     }],
@@ -532,7 +533,7 @@
                         name: project.name
                     }]
                 }
-                this.applyForPermission(required, periodic.auth_actions, resourceData)
+                this.applyForPermission(required, auth_actions, resourceData)
             },
             onDeletePeriodic (periodic) {
                 if (!this.hasPermission(['periodic_task_delete'], periodic.auth_actions)) {
@@ -659,7 +660,7 @@
                     this.deleting = true
                     await this.deletePeriodic(this.selectedDeleteTaskId)
                     this.$bkMessage({
-                        'message': i18n.t('删除周期任务成功'),
+                        'message': i18n.t('周期任务') + i18n.t('删除成功'),
                         'theme': 'success'
                     })
                     this.isDeleteDialogShow = false

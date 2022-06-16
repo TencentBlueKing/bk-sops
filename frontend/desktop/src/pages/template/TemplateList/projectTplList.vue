@@ -971,13 +971,8 @@
                         this.pagination.current = 1
                         this.getTemplateList()
                     } else if (Object.keys(res.data.references).length) {
-                        const deleteArr = []
-                        Object.values(res.data.references).forEach(item => {
-                            const value = item.template[0]
-                            deleteArr.push(`${value.name}(${value.id})`)
-                        })
                         this.$bkMessage({
-                            message: i18n.t('流程') + deleteArr.join(i18n.t('，')) + i18n.t('删除失败！'),
+                            message: i18n.t('流程当前被使用中，无法删除'),
                             theme: 'error'
                         })
                     }

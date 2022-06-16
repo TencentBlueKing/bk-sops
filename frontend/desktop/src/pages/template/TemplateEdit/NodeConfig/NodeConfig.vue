@@ -184,6 +184,16 @@
                                             class="bk-icon icon-question-circle section-tips">
                                         </i>
                                     </h3>
+                                    <p class="citations-waivers-guide">
+                                        <bk-popover placement="top-end" theme="light" width="258" :ext-cls="'citations-waivers-guide-tip'">
+                                            <i class="bk-icon icon-info-circle-shape"></i>
+                                            {{ $t('变量引用和豁免使用指引') }}
+                                            <div slot="content">
+                                                <p>{{ $t('变量引用：使用参数的配置创建全局变量并引用，或不创建直接引用同类型变量') }}</p><br>
+                                                <p>{{ $t('变量豁免：开启后忽略参数中的全局变量，视为普通字符串') }}</p>
+                                            </div>
+                                        </bk-popover>
+                                    </p>
                                     <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading, zIndex: 100 }">
                                         <template v-if="!inputLoading">
                                             <input-params
@@ -273,7 +283,7 @@
             header-position="left"
             :mask-close="false"
             :value="isCancelGloVarDialogShow"
-            :title="$t('取消引用为全局变量')">
+            :title="$t('取消变量引用')">
             <p>{{ $t('全局变量【 x 】的引用数已为 0。如果不再使用，可立即删除变量; 也可以稍后再全局变量面板中删除', { key: unhookingVarForm.key })}}</p>
             <template slot="footer">
                 <bk-button theme="primary" @click="deleteUnhookingVar">{{ $t('删除变量') }}</bk-button>
@@ -1616,6 +1626,7 @@
         }
     }
     .config-section {
+        position: relative;
         margin-bottom: 50px;
         & > h3 {
             margin: 0 0 20px 0;
@@ -1625,6 +1636,17 @@
             line-height: 1;
             color: #313238;
             border-bottom: 1px solid #cacecb;
+        }
+        .citations-waivers-guide {
+            position: absolute;
+            right: 0;
+            top: 0;
+            color: #979ba5;
+            font-size: 12px;
+            cursor: pointer;
+            &:hover {
+                color: #3a84ff;
+            }
         }
         .basic-info-wrapper {
             min-height: 250px;
