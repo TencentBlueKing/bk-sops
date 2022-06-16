@@ -706,11 +706,9 @@
                         params.project__id = this.business.id
                     }
                     const tplListData = await this.loadTemplateList(params)
-                    if (!isCommon) {
-                        tplListData.results.forEach(item => {
-                            item.isCommon = true
-                        })
-                    }
+                    tplListData.results.forEach(item => {
+                        item.isCommon = isCommon
+                    })
 
                     // 当项目列表为空或轮到公共流程加载时, 添加公共流程分组
                     if (isCommon && !this.template.list[1]) {
