@@ -82,7 +82,8 @@ def job_get_script_name_list(request, biz_cc_id):
     script_list = _job_get_scripts_data(request, biz_cc_id)
     script_names = []
     for script in script_list:
-        script_names.append({"text": script["name"], "value": script["name"]})
+        if script["online_script_version_id"]:
+            script_names.append({"text": script["name"], "value": script["name"]})
     return JsonResponse({"result": True, "data": script_names})
 
 
@@ -90,7 +91,8 @@ def job_get_public_script_name_list(request):
     script_list = _job_get_scripts_data(request)
     script_names = []
     for script in script_list:
-        script_names.append({"text": script["name"], "value": script["name"]})
+        if script["online_script_version_id"]:
+            script_names.append({"text": script["name"], "value": script["name"]})
     return JsonResponse({"result": True, "data": script_names})
 
 
