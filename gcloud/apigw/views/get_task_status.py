@@ -46,7 +46,7 @@ def cache_decisioner(key, value):
 @project_inject
 @iam_intercept(TaskViewInterceptor())
 @bucket_cached(
-    BucketTTLCache(TTLCache, {"maxsize": 1024, "ttl": 60}, decisioner=cache_decisioner),
+    BucketTTLCache(TTLCache, {"maxsize": 1024, "ttl": 10}, decisioner=cache_decisioner),
     bucket_and_key_func=api_bucket_and_key,
 )
 def get_task_status(request, task_id, project_id):
