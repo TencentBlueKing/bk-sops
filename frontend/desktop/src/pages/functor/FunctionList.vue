@@ -519,11 +519,11 @@
                     }
                     if (executeTime[0] && executeTime[1]) {
                         if (this.common) {
-                            data['pipeline_template__start_time__gte'] = moment(executeTime[0]).format('YYYY-MM-DD')
-                            data['pipeline_template__start_time__lte'] = moment(executeTime[1]).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__gte'] = moment(executeTime[0]).format('YYYY-MM-DD') + ' 00:00:00'
+                            data['pipeline_template__start_time__lte'] = moment(executeTime[1]).add('1', 'd').format('YYYY-MM-DD') + ' 23:59:59'
                         } else {
-                            data['create_time__gte'] = moment.tz(executeTime[0], this.timeZone).format('YYYY-MM-DD')
-                            data['create_time__lte'] = moment.tz(executeTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                            data['create_time__gte'] = moment.tz(executeTime[0], this.timeZone).format('YYYY-MM-DD') + ' 00:00:00'
+                            data['create_time__lte'] = moment.tz(executeTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD') + ' 23:59:59'
                         }
                     }
                     const functorListData = await this.loadFunctionTaskList(data)
