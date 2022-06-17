@@ -120,7 +120,7 @@
                                 {{ $t('当前任务为旧数据，仅记录已排除节点，可重选执行方案获得跟随执行方案更新能力') }}
                             </p>
                             <p v-if="type === 'clone' && ('exclude_task_nodes_id' in curRow.task_parameters)" class="schema-disable-tip">
-                                {{ $t('旧数据克隆时，已排除变成执行方案，默认选中《不使用执行方案》') }}
+                                {{ $t('旧数据计划任务克隆，不再记录已排除节点，请重选执行方案') }}
                             </p>
                         </bk-form-item>
                         <p class="title">{{$t('任务信息')}}</p>

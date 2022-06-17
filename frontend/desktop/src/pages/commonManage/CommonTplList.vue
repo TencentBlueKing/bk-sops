@@ -1035,7 +1035,8 @@
                         templateId: this.theDeleteTemplateId,
                         common: '1'
                     }
-                    await this.deleteTemplate(data)
+                    const resp = await this.deleteTemplate(data)
+                    if (!resp.result) return
                     if (this.selectedTpls.find(tpl => tpl.id === this.theDeleteTemplateId)) {
                         const index = this.selectedTpls.findIndex(tpl => tpl.id === this.theDeleteTemplateId)
                         this.selectedTpls.splice(index, 1)
