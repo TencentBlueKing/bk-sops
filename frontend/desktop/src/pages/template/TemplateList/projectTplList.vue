@@ -1127,13 +1127,13 @@
                     const data = {
                         templateId: this.theDeleteTemplateId
                     }
-                    await this.deleteTemplate(data)
+                    const resp = await this.deleteTemplate(data)
+                    if (!resp.result) return
                     if (this.selectedTpls.find(tpl => tpl.id === this.theDeleteTemplateId)) {
                         const index = this.selectedTpls.findIndex(tpl => tpl.id === this.theDeleteTemplateId)
                         this.selectedTpls.splice(index, 1)
                     }
                     this.theDeleteTemplateId = undefined
-                    this.isDeleteDialogShow = false
                     // 最后一页最后一条删除后，往前翻一页
                     if (
                         this.pagination.current > 1
@@ -1151,6 +1151,7 @@
                     console.log(e)
                 } finally {
                     this.pending.delete = false
+                    this.isDeleteDialogShow = false
                 }
             },
             onDeleteCancel () {
