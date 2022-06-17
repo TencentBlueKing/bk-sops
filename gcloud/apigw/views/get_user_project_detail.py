@@ -45,7 +45,7 @@ def get_user_project_detail(request, project_id):
         return {
             "result": False,
             "message": "can not get business[{}] detail for user[{}]".format(
-                request.user.username, request.project.bk_biz_id
+                request.project.bk_biz_id, request.user.username
             ),
             "code": err_code.UNKNOWN_ERROR.code,
         }
