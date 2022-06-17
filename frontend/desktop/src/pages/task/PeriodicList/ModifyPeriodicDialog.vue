@@ -822,7 +822,8 @@
                             name: this.formData.name,
                             template_id: this.curRow.template_id,
                             template_scheme_ids: schemeIds,
-                            pipeline_tree: JSON.stringify(pipelineData)
+                            pipeline_tree: JSON.stringify(pipelineData),
+                            template_source: this.isCommon ? 'common' : undefined
                         }
                         await this.updatePeriodicTask(params)
                         this.$emit('onConfirmSave')
