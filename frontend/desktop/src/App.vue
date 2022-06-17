@@ -135,6 +135,7 @@
                 })
             }
             this.getPageFooter()
+            window.addEventListener('message', this.messageHandler, false)
         },
         mounted () {
             this.initData()
@@ -288,6 +289,14 @@
             // 左侧导航切换重置权限界面
             navChangeRoute () {
                 this.permissinApplyShow = false
+            },
+            // 绑定跨域通信事件
+            messageHandler (message) {
+                const data = message.data // message.data为另一个页面传递的数据
+                if (data && data === 'login') {
+                    window.loginWindow.close() // 关闭弹出的窗口
+                    window.location.reload()
+                }
             }
         }
     }
