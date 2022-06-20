@@ -38,7 +38,7 @@
                         ref="basicConfigForm"
                         :model="formData"
                         :rules="rules">
-                        <bk-form-item :label="$t('流程模板')" :required="true" property="flow">
+                        <bk-form-item :label="$t('流程模板')" :required="true" property="flow" data-test-id="clockedEdit_form_selectTemplate">
                             <div
                                 v-if="isTplDeleted ? type === 'edit' : type !== 'create'"
                                 class="select-box"
@@ -80,6 +80,7 @@
                         <bk-form-item
                             v-if="isTplDeleted ? type === 'clone' : !isPreview"
                             class="scheme-form-item"
+                            data-test-id="clockedEdit_form_selectScheme"
                             :label="isLatest ? $t('执行方案') : $t('已排除节点')"
                             property="schemeId"
                             :required="isLatest">
@@ -124,10 +125,10 @@
                             </p>
                         </bk-form-item>
                         <p class="title">{{$t('任务信息')}}</p>
-                        <bk-form-item :label="$t('计划名称')" :required="true" property="taskName">
+                        <bk-form-item :label="$t('计划名称')" :required="true" property="taskName" data-test-id="clockedEdit_form_taskName">
                             <bk-input :clearable="true" v-model="formData.task_name"></bk-input>
                         </bk-form-item>
-                        <bk-form-item :label="$t('启动时间')" :required="true" property="startTime">
+                        <bk-form-item :label="$t('启动时间')" :required="true" property="startTime" data-test-id="clockedEdit_form_startTime">
                             <bk-date-picker
                                 :value="formData.plan_start_time"
                                 :placeholder="`${$t('请选择启动时间')}`"
@@ -157,6 +158,7 @@
                             {{ $t('通知方式统一在流程基础信息管理。如需修改，请') }}
                             <a
                                 class="link"
+                                data-test-id="clockedEdit_form_jumpFlow"
                                 @click="getJumpUrl()">
                                 {{ $t('前往流程') }}
                             </a>
@@ -180,7 +182,7 @@
                     <bk-button
                         theme="primary"
                         :loading="saveLoading"
-                        data-test-id="clockedList_form_saveBtn"
+                        data-test-id="clockedEdit_form_saveBtn"
                         :disabled="isLoading || previewDataLoading"
                         :class="{ 'btn-permission-disable': hasNoCreatePerm }"
                         v-cursor="{ active: hasNoCreatePerm }"
@@ -190,7 +192,7 @@
                     <bk-button
                         theme="default"
                         :disabled="saveLoading"
-                        data-test-id="clockedList_form_cancelBtn"
+                        data-test-id="clockedEdit_form_cancelBtn"
                         @click="onCancelSave">
                         {{ $t('取消') }}
                     </bk-button>
