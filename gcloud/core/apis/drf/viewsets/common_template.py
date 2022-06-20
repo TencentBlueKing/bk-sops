@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -30,6 +30,7 @@ from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.core.apis.drf.serilaziers.common_template import (
+    CommonTemplateListSerializer,
     CommonTemplateSerializer,
     CreateCommonTemplateSerializer,
     TopCollectionCommonTemplateSerializer,
@@ -83,7 +84,6 @@ class CommonTemplateFilter(PropertyFilterSet):
 class CommonTemplateViewSet(GcloudModelViewSet):
     queryset = CommonTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
     pagination_class = LimitOffsetPagination
-    serializer_class = CommonTemplateSerializer
     iam_resource_helper = ViewSetResourceHelper(
         resource_func=res_factory.resources_for_common_flow_obj,
         actions=[IAMMeta.COMMON_FLOW_VIEW_ACTION, IAMMeta.COMMON_FLOW_EDIT_ACTION, IAMMeta.COMMON_FLOW_DELETE_ACTION],
@@ -91,6 +91,11 @@ class CommonTemplateViewSet(GcloudModelViewSet):
     filterset_class = CommonTemplateFilter
     permission_classes = [permissions.IsAuthenticated, CommonTemplatePermission]
     ordering = ["-id"]
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return CommonTemplateListSerializer
+        return CommonTemplateSerializer
 
     @swagger_auto_schema(
         method="GET", operation_summary="带收藏指定的流程列表", responses={200: TopCollectionCommonTemplateSerializer}
@@ -177,7 +182,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
             )
 
             if not result["result"]:
-                message = result["verbose_message"]
+                message = result["message"]
                 logger.error(message)
                 return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
@@ -217,7 +222,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
             )
 
             if not result["result"]:
-                message = result["verbose_message"]
+                message = result["message"]
                 logger.error(message)
                 return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 

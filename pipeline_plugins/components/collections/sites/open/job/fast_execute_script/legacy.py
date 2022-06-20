@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -115,10 +115,7 @@ class JobFastExecuteScriptService(JobService):
                 schema=StringItemSchema(description=_("执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"),
-                key="job_account",
-                type="string",
-                schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
+                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
             ),
             self.InputItem(
                 name=_("IP 存在性校验"),
@@ -171,9 +168,7 @@ class JobFastExecuteScriptService(JobService):
             "bk_biz_id": biz_cc_id,
             "timeout": data.get_one_of_inputs("job_script_timeout"),
             "account_alias": data.get_one_of_inputs("job_account"),
-            "target_server": {
-                "ip_list": ip_list,
-            },
+            "target_server": {"ip_list": ip_list},
             "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
 
@@ -184,7 +179,7 @@ class JobFastExecuteScriptService(JobService):
 
         script_source = data.get_one_of_inputs("job_script_source")
         if script_source in ["general", "public"]:
-            job_kwargs.update({"script_id": data.get_one_of_inputs("job_script_list_%s" % script_source)})
+            job_kwargs.update({"script_version_id": data.get_one_of_inputs("job_script_list_%s" % script_source)})
         else:
             job_kwargs.update(
                 {

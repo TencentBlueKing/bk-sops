@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -20,7 +20,7 @@ from django_celery_beat.models import (
     ClockedSchedule as DjangoCeleryBeatClockedSchedule,
 )
 
-from gcloud.constants import TEMPLATE_SOURCE, PROJECT
+from gcloud.constants import TEMPLATE_SOURCE, PROJECT, CLOCKED_TASK_STATE, CLOCKED_TASK_NOT_STARTED
 from gcloud.utils.unique import uniqid
 from gcloud.core.models import StaffGroupSet, Project
 from gcloud.shortcuts.cmdb import get_business_group_members
@@ -90,6 +90,9 @@ class ClockedTask(models.Model):
     notify_type = models.CharField(help_text="计划任务事件通知方式", max_length=128, default="[]")
     # 形如 json.dumps({'receiver_group': ['Maintainers'], 'more_receiver': 'username1,username2'})
     notify_receivers = models.TextField(help_text="计划任务事件通知人", default="{}")
+    state = models.CharField(
+        help_text="计划任务状态", max_length=64, choices=CLOCKED_TASK_STATE, default=CLOCKED_TASK_NOT_STARTED
+    )
 
     objects = ClockedTaskManager()
 

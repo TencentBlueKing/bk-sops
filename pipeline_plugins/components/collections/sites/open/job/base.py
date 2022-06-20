@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -514,7 +514,6 @@ class Jobv3Service(Service):
         if status in JOB_SUCCESS:
 
             if self.reload_outputs:
-
                 client = data.outputs.client
 
                 # 判断是否对IP进行Tag分组
@@ -541,7 +540,7 @@ class Jobv3Service(Service):
                 # 全局变量重载
                 get_var_kwargs = {
                     "bk_scope_type": self.biz_scope_type,
-                    "bk_scope_id": str(data.inputs.biz_cc_id),
+                    "bk_scope_id": str(data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)),
                     "bk_biz_id": data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
                     "job_instance_id": job_instance_id,
                 }

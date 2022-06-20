@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -20,7 +20,7 @@ from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemS
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
 from pipeline_plugins.components.utils.common import batch_execute_func
-from pipeline_plugins.components.utils import get_job_instance_url, loose_strip
+from pipeline_plugins.components.utils import get_job_instance_url, loose_strip, has_biz_set
 from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
@@ -117,6 +117,9 @@ class AllBizJobFastPushFileService(JobScheduleService):
         download_speed_limit = data.get_one_of_inputs("download_speed_limit")
         job_timeout = data.get_one_of_inputs("job_timeout")
 
+        if not has_biz_set(int(biz_cc_id)):
+            self.biz_scope_type = JobBizScopeType.BIZ.value
+
         file_source = [
             {
                 "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
@@ -143,7 +146,7 @@ class AllBizJobFastPushFileService(JobScheduleService):
                     for _ip in get_ip_by_regex(attr["job_ip_list"])
                 ]
                 job_kwargs = {
-                    "bk_scope_type": JobBizScopeType.BIZ_SET.value,
+                    "bk_scope_type": self.biz_scope_type,
                     "bk_scope_id": str(biz_cc_id),
                     "bk_biz_id": biz_cc_id,
                     "file_source_list": [source],
@@ -219,6 +222,12 @@ class AllBizJobFastPushFileService(JobScheduleService):
                 name=_("任务url"), key="job_inst_url", type="string", schema=StringItemSchema(description=_("任务url"))
             ),
         ]
+
+    def schedule(self, data, parent_data, callback_data=None):
+        biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
+        if not has_biz_set(int(biz_cc_id)):
+            self.biz_scope_type = JobBizScopeType.BIZ.value
+        return super().schedule(data, parent_data, callback_data)
 
 
 class AllBizJobFastPushFileComponent(Component):

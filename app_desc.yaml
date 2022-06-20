@@ -1,5 +1,5 @@
 spec_version: 2
-app_version: "3.20.4"
+app_version: "3.24.0"
 app:
     region: default
     bk_app_code: bk_sops
@@ -45,6 +45,9 @@ modules:
             - key: GUNICORN_THREAD_NUM
               value: 10
               description: GunicornThread数量
+            - key: ENABLE_METRICS
+              value: 1
+              description: 是否启动 metrics server
         processes:
             web:
                 command: bin/start_web.sh
@@ -70,6 +73,8 @@ modules:
                   module_name: "api"
         scripts:
             pre_release_hook: bash bin/pre_release
+        bkmonitor:
+            port: 5001
     callback:
         is_default: False
         language: Python
@@ -102,6 +107,9 @@ modules:
             - key: GUNICORN_THREAD_NUM
               value: 10
               description: GunicornThread数量
+            - key: ENABLE_METRICS
+              value: 1
+              description: 是否启动 metrics server
         processes:
             web:
                 command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b :$PORT --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=500 -k gthread --threads $GUNICORN_THREAD_NUM
@@ -117,6 +125,8 @@ modules:
                   module_name: "callback"
                 - bk_app_code: "bk_sops"
                   module_name: "api"
+        bkmonitor:
+            port: 5001
     pipeline:
         is_default: False
         language: Python
@@ -141,7 +151,7 @@ modules:
               value: 100000
               description: celery exporter 存储任务最大值
             - key: CELERY_EXPORTER_QUEUE
-              value: default api_task_queue_pipeline_priority api_task_queue_service_schedule_priority periodic_task_queue_pipeline_priority periodic_task_queue_service_schedule_priority pipeline pipeline_additional_task pipeline_additional_task_priority pipeline_priority pipeline_statistics_priority service_schedule service_schedule_priority task_prepare_api node_auto_retry timeout_node_execute timeout_nodes_record
+              value: default api_task_queue_pipeline_priority api_task_queue_service_schedule_priority periodic_task_queue_pipeline_priority periodic_task_queue_service_schedule_priority pipeline pipeline_additional_task pipeline_additional_task_priority pipeline_priority pipeline_statistics_priority service_schedule service_schedule_priority task_prepare_api er_execute er_execute_api er_execute_periodic_task er_schedule er_schedule_api er_schedule_periodic_task node_auto_retry timeout_node_execute timeout_nodes_record
               description: celery exporter 队列
             - key: BKAPP_AUTO_UPDATE_VARIABLE_MODELS
               value: 0
@@ -149,6 +159,12 @@ modules:
             - key: BKAPP_AUTO_UPDATE_COMPONENT_MODELS
               value: 0
               description: 是否自动更新插件模型
+            - key: CELERY_EXPORTER_PORT
+              value: 5001
+              description: celery-exporter 监听端口
+            - key: ENABLE_METRICS
+              value: 1
+              description: 是否启动 metrics server
         processes:
             v1-engine:
                 command: celery worker -A blueapps.core.celery -P threads -Q api_task_queue_pipeline_priority,api_task_queue_service_schedule_priority,periodic_task_queue_pipeline_priority,periodic_task_queue_service_schedule_priority,pipeline,pipeline_priority,service_schedule,service_schedule_priority -n v1_engine@%h -c 100 -l info
@@ -190,8 +206,8 @@ modules:
                 command: celery worker -A blueapps.core.celery -P threads -Q pipeline_statistics_priority -n default@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 2
-            web:
-                command: celery-prometheus-exporter --broker amqp://$RABBITMQ_USER:$RABBITMQ_PASSWORD@$RABBITMQ_HOST:$RABBITMQ_PORT/$RABBITMQ_VHOST --addr :$PORT --queue-list $CELERY_EXPORTER_QUEUE
+            exporter:
+                command: celery-prometheus-exporter --broker amqp://$RABBITMQ_USER:$RABBITMQ_PASSWORD@$RABBITMQ_HOST:$RABBITMQ_PORT/$RABBITMQ_VHOST --addr :$CELERY_EXPORTER_PORT --queue-list $CELERY_EXPORTER_QUEUE
                 plan: 4C1G5R
                 replicas: 1
             node-timeout:
@@ -208,6 +224,8 @@ modules:
                 module_name: "callback"
               - bk_app_code: "bk_sops"
                 module_name: "api"
+        bkmonitor:
+            port: 5001
     api:
         is_default: False
         language: Python
@@ -240,6 +258,9 @@ modules:
             - key: GUNICORN_THREAD_NUM
               value: 10
               description: GunicornThread数量
+            - key: ENABLE_METRICS
+              value: 1
+              description: 是否启动 metrics server
         processes:
             web:
                 command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b :$PORT --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=500 -k gthread --threads $GUNICORN_THREAD_NUM
@@ -255,3 +276,5 @@ modules:
                 module_name: "callback"
               - bk_app_code: "bk_sops"
                 module_name: "api"
+        bkmonitor:
+            port: 5001

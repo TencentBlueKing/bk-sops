@@ -101,7 +101,7 @@
                 <div class="form-item clearfix" v-if="theEditingData.show_type === 'show' && !isInternalVal">
                     <label
                         class="form-label condition-tip"
-                        v-bk-tooltips.top="$t('自动隐藏在显示状态下触发，当触发条件都满足时，才会在编辑页面隐藏，但是不会对传参产生影响')">
+                        v-bk-tooltips.top="$t('满足触发条件的变量，在任务执行填参页面将自动隐藏。可用来实现特定条件下忽略必填参数')">
                         {{ $t('自动隐藏')}}
                     </label>
                     <div class="form-content">
@@ -162,7 +162,7 @@
                 <div class="form-item clearfix" v-if="!isInternalVal">
                     <label
                         class="form-label condition-tip"
-                        v-bk-tooltips.top="$t('模板预渲染为是的变量，会在开始节点执行时就完成渲染，引用了节点输出的变量开启预渲染后会渲染失败')">
+                        v-bk-tooltips.top="$t('开启模板预渲染的变量在任务执行初始完成渲染，后续变量值保存不变，且不可引用输出变量')">
                         {{ $t('模板预渲染')}}
                     </label>
                     <div class="form-content">
@@ -578,7 +578,7 @@
                 if (is_meta && source_type === 'component_inputs' && config.meta_transform) {
                     config = config.meta_transform(meta)
                 }
-                if (['input', 'textarea'].includes(custom_type) && this.theEditingData.validation !== '') {
+                if (['input', 'textarea'].includes(custom_type)) {
                     config.attrs.validation.push({
                         type: 'regex',
                         args: this.getInputDefaultValueValidation(),
@@ -652,7 +652,7 @@
             getInputDefaultValueValidation () {
                 let validation = this.theEditingData.validation
                 if (this.theEditingData.show_type === 'show') {
-                    validation = `(^$)|(${validation})`
+                    validation = validation ? `(^$)|(${validation})` : ''
                 }
                 return validation
             },
@@ -720,7 +720,7 @@
                 const validateSet = this.getValidateSet()
                 this.$set(this.renderOption, 'validateSet', validateSet)
 
-                if (['input', 'textarea'].includes(this.theEditingData.custom_type) && this.theEditingData.validation !== '') {
+                if (['input', 'textarea'].includes(this.theEditingData.custom_type)) {
                     const config = tools.deepClone(this.renderConfig[0])
                     const regValidate = config.attrs.validation.find(item => item.type === 'regex')
                     regValidate.args = this.getInputDefaultValueValidation()

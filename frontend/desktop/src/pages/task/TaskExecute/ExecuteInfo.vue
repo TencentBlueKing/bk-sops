@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -233,7 +233,7 @@
                                         </div>
                                         <NoData v-show="!getHistoryLogData(props.row)"></NoData>
                                     </div>
-                                
+
                                 </div>
                             </template>
                         </bk-table-column>
@@ -778,7 +778,7 @@
                             })
                             this.getPerformLog(query)
                         }
-                        
+
                         // 兼容 JOB 执行作业输出参数
                         // 输出参数 preset 为 true 或者 preset 为 false 但在输出参数的全局变量中存在时，才展示
                         if (componentCode === 'job_execute_task' && this.inputsInfo.hasOwnProperty('job_global_var')) {
@@ -824,7 +824,7 @@
                             this.theExecuteTime = respData.loop
                         }
                     }
-                    
+
                     this.executeInfo.plugin_version = this.isThirdPartyNode ? inputs.plugin_version : version
                     this.executeInfo.name = this.location.name || NODE_DICT[this.location.type]
                     if (this.isThirdPartyNode) {
@@ -920,7 +920,7 @@
                     // 编辑器dom
                     const editDom = document.querySelector('.scroll-editor .monaco-editor')
                     const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
-                    
+
                     // 监听滚动dom
                     this.observer = new MutationObserver(mutation => {
                         const { height } = editScrollDom.getBoundingClientRect()
@@ -1195,6 +1195,7 @@
                 }
             },
             onSelectNode (nodeHeirarchy, selectNodeId, nodeType) {
+                this.editScrollDom = null
                 this.$emit('onClickTreeNode', nodeHeirarchy, selectNodeId, nodeType)
             },
             inputSwitcher () {

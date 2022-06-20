@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -28,7 +28,10 @@
                 <i class="common-icon-dark-circle-warning"></i>
                 {{ $t('未能重用') }}
             </span>
-            <span class="pre-mako-tip" v-if="scheme.attrs.pre_mako_tip">{{ scheme.attrs.pre_mako_tip }}</span>
+            <span class="pre-mako-tip" v-if="scheme.attrs.pre_mako_tip">
+                <i class="bk-icon icon-exclamation-circle"></i>
+                {{ scheme.attrs.pre_mako_tip }}
+            </span>
         </div>
         <!-- 分组勾选 -->
         <div v-if="hook" class="rf-form-item rf-has-hook show-label">
@@ -67,7 +70,7 @@
             <i
                 :class="['common-icon-render-skip render-skip-icon', { actived: !render, disabled: !option.formEdit || hook }]"
                 v-bk-tooltips="{
-                    content: !render ? $t('取消渲染豁免') : $t('渲染豁免'),
+                    content: !render ? $t('取消变量豁免') : $t('变量豁免'),
                     placement: 'bottom',
                     zIndex: 3000
                 }"
@@ -144,8 +147,8 @@
                 showForm, // combine 类型 Tag 组是否显示
                 showHook, // combine 类型 Tag 组是否可勾选
                 i18n: {
-                    hooked: gettext('取消引用为全局变量'),
-                    cancelHook: gettext('引用为全局变量')
+                    hooked: gettext('取消变量引用'),
+                    cancelHook: gettext('变量引用')
                 }
             }
         },
@@ -276,7 +279,7 @@
                         }
                     })
                 }
-                
+
                 return isValid
             }
         }

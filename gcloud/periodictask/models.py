@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -146,7 +146,11 @@ class PeriodicTaskManager(models.Manager):
         instance.template = template.pipeline_template
         instance.snapshot = snapshot
         instance.extra_info = extra_info
-        instance.modify_cron(cron, project.time_zone)
+        instance.modify_cron(cron, project.time_zone, must_disabled=False)
+        instance.queue = queue
+        instance.celery_task.task = trigger_task
+        instance.save()
+        instance.celery_task.save(update_fields=["task"])
         return instance
 
 
@@ -239,10 +243,10 @@ class PeriodicTask(models.Model):
         PeriodicTaskHistory.objects.filter(task=self).delete()
 
     def modify_cron(self, cron, timezone):
-        self.task.modify_cron(cron, timezone)
+        self.task.modify_cron(cron, timezone, must_disabled=False)
 
     def modify_constants(self, constants):
-        return self.task.modify_constants(constants)
+        return self.task.modify_constants(constants, must_disabled=False)
 
     def get_stakeholders(self):
         notify_receivers = json.loads(self.template.notify_receivers)

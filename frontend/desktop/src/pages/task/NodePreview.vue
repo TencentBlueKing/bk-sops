@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -45,20 +45,26 @@
                 :is-show-select-all-tool="isShowSelectAllTool"
                 :is-select-all-tool-disabled="isSelectAllToolDisabled"
                 :canvas-data="canvasData"
-                @onNodeClick="onNodeClick">
+                :node-variable-info="nodeVariableInfo"
+                @onNodeClick="onNodeClick"
+                @onTogglePerspective="onTogglePerspective">
             </TemplateCanvas>
         </div>
     </div>
 </template>
 <script>
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
+    import tplPerspective from '@/mixins/tplPerspective.js'
     export default {
         name: 'NodePreview',
         components: {
             TemplateCanvas
         },
+        mixins: [tplPerspective],
         props: {
             canvasData: Object,
+            previewData: Object,
+            common: Boolean,
             previewBread: Array,
             previewDataLoading: Boolean,
             isAllSelected: Boolean,

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -501,7 +501,7 @@
                 let curPermission = [...this.authActions]
                 const resourceData = {}
                 if (this.common) {
-                    if (this.type === 'edit') { // 公共流程编辑权限
+                    if (['view', 'edit'].includes(this.type)) { // 公共流程编辑权限
                         curPermission = [...this.tplActions]
                         resourceData.common_flow = [{
                             id: this.template_id,
@@ -513,7 +513,7 @@
                         id: this.project_id,
                         name: this.projectName
                     }]
-                    if (this.type === 'edit') { // 普通流程编辑权限
+                    if (['view', 'edit'].includes(this.type)) { // 普通流程编辑权限
                         curPermission = [...this.tplActions]
                         resourceData.flow = [{
                             id: this.template_id,

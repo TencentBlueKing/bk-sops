@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -199,7 +199,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.20.4"
+STATIC_VERSION = "3.24.0"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -530,6 +530,7 @@ VARIABLE_SPECIFIC_EXCEPTIONS = (ApiRequestError,)
 def logging_addition_settings(logging_dict: dict, environment="prod"):
     # formatters
     logging_dict["formatters"]["light"] = {"format": "%(message)s"}
+    logging_dict["formatters"]["engine"] = {"format": "[%(asctime)s][%(levelname)s] %(message)s"}
 
     # handlers
     logging_dict["handlers"]["pipeline_engine_context"] = {
@@ -539,7 +540,7 @@ def logging_addition_settings(logging_dict: dict, environment="prod"):
 
     logging_dict["handlers"]["bamboo_engine_context"] = {
         "class": "pipeline.eri.log.EngineContextLogHandler",
-        "formatter": "light",
+        "formatter": "engine",
     }
 
     logging_dict["handlers"]["engine"] = {
@@ -549,7 +550,7 @@ def logging_addition_settings(logging_dict: dict, environment="prod"):
 
     logging_dict["handlers"]["pipeline_eri"] = {
         "class": "pipeline.eri.log.ERINodeLogHandler",
-        "formatter": "light",
+        "formatter": "engine",
     }
 
     # loggers
@@ -598,6 +599,17 @@ def logging_addition_settings(logging_dict: dict, environment="prod"):
         "level": "INFO",
         "propagate": True,
     }
+
+    # 对于不开启数据库日志记录的情况，进行统一处理
+    if env.NODE_LOG_DATA_SOURCE != "DATABASE":
+        for logger_config in logging_dict["loggers"].values():
+            logger_config["handlers"] = [
+                handler
+                for handler in logger_config["handlers"]
+                if handler not in ["pipeline_engine_context", "bamboo_engine_context", "pipeline_eri"]
+            ]
+            if not logger_config["handlers"]:
+                logger_config["handlers"] = ["root"]
 
     def handler_filter_injection(filters: list):
         for _, handler in logging_dict["handlers"].items():
@@ -689,8 +701,9 @@ def monitor_report_config():
 
 # 自定义上报监控配置
 if env.BK_MONITOR_REPORT_ENABLE:
-    CELERY_SEND_EVENTS = True
     monitor_report_config()
+
+CELERY_SEND_EVENTS = env.CELERY_SEND_EVENTS
 
 ENABLE_OTEL_TRACE = env.ENABLE_OTEL_TRACE
 
@@ -716,3 +729,8 @@ BK_IAM_APIGW_HOST = env.BK_IAM_APIGW_HOST
 
 # 节点日志持久化时间
 LOG_PERSISTENT_DAYS = env.BK_NODE_LOG_PERSISTENT_DAYS
+
+# 启动节点日志数据源拉取
+NODE_LOG_DATA_SOURCE = env.NODE_LOG_DATA_SOURCE
+NODE_LOG_DATA_SOURCE_CONFIG = env.NODE_LOG_DATA_SOURCE_CONFIG
+PAASV3_APIGW_API_TOKEN = env.PAASV3_APIGW_API_TOKEN

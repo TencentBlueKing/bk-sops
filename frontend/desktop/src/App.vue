@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -135,6 +135,7 @@
                 })
             }
             this.getPageFooter()
+            window.addEventListener('message', this.messageHandler, false)
         },
         mounted () {
             this.initData()
@@ -288,6 +289,14 @@
             // 左侧导航切换重置权限界面
             navChangeRoute () {
                 this.permissinApplyShow = false
+            },
+            // 绑定跨域通信事件
+            messageHandler (message) {
+                const data = message.data // message.data为另一个页面传递的数据
+                if (data && data === 'login') {
+                    window.loginWindow.close() // 关闭弹出的窗口
+                    window.location.reload()
+                }
             }
         }
     }

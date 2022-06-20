@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -22,6 +22,8 @@
                 :is-all-selected="isAllSelected"
                 :is-show-select-all-tool="isSelectAllShow"
                 :canvas-data="canvasData"
+                :node-variable-info="nodeVariableInfo"
+                @onTogglePerspective="onTogglePerspective"
                 @onNodeCheckClick="onNodeCheckClick"
                 @onToggleAllNode="onToggleAllNode">
             </TemplateCanvas>
@@ -31,6 +33,8 @@
                 :preview-data-loading="previewDataLoading"
                 :canvas-data="formatCanvasData('perview', previewData)"
                 :preview-bread="previewBread"
+                :preview-data="previewData"
+                :common="common"
                 @onNodeClick="onNodeClick"
                 @onSelectSubflow="onSelectSubflow">
             </NodePreview>
@@ -73,6 +77,13 @@
                 data-test-id="createTask_form_nextStep"
                 @click="onGotoParamFill">
                 {{ $t('下一步') }}
+            </bk-button>
+            <bk-button
+                v-if="isPreviewMode"
+                class="preview-button"
+                data-test-id="templateEdit_form_closePreview"
+                @click="togglePreviewMode(false)">
+                {{ $t('关闭预览') }}
             </bk-button>
             <bk-button v-if="isSchemeShow && !isPreviewMode" data-test-id="createTask_form_exportScheme" @click="onExportScheme">{{ $t('导出当前方案') }}</bk-button>
         </div>
@@ -121,6 +132,7 @@
     import NodePreview from '@/pages/task/NodePreview.vue'
     import EditScheme from './EditScheme.vue'
     import bus from '@/utils/bus.js'
+    import tplPerspective from '@/mixins/tplPerspective.js'
 
     export default {
         components: {
@@ -130,6 +142,7 @@
             TemplateCanvas,
             NodePreview
         },
+        mixins: [tplPerspective],
         props: {
             project_id: [String, Number],
             template_id: [String, Number],
@@ -746,6 +759,9 @@
     background-color: #ffffff;
     .next-button {
         width: 140px;
+    }
+    .preview-button {
+        width: 120px;
     }
 }
 .title-back {

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -253,9 +253,7 @@ MANUAL_KWARGS = {
     "bk_biz_id": 1,
     "timeout": "100",
     "account_alias": "root",
-    "target_server": {
-        "ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 1}, {"ip": "127.0.0.2", "bk_cloud_id": 2}],
-    },
+    "target_server": {"ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 1}, {"ip": "127.0.0.2", "bk_cloud_id": 2}]},
     "callback_url": "callback_url",
     "script_param": "MQ==",
     "script_language": "1",
@@ -311,12 +309,7 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = Component
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
-            return_value={
-                "ip_result": [
-                    {"InnerIP": "127.0.0.1", "Source": 1},
-                    {"InnerIP": "127.0.0.2", "Source": 2},
-                ]
-            },
+            return_value={"ip_result": [{"InnerIP": "127.0.0.1", "Source": 1}, {"InnerIP": "127.0.0.2", "Source": 2}]},
         ),
     ],
 )
@@ -328,29 +321,19 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_SUCCESS_CASE = ComponentTestCase(
     parent_data=PARENT_DATA,
     execute_assertion=ExecuteAssertion(success=True, outputs=MANUAL_SUCCESS_OUTPUTS),
     schedule_assertion=ScheduleAssertion(
-        success=True,
-        outputs=MANUAL_SUCCESS_OUTPUTS2,
-        callback_data={"job_instance_id": 10000, "status": 3},
+        success=True, outputs=MANUAL_SUCCESS_OUTPUTS2, callback_data={"job_instance_id": 10000, "status": 3},
     ),
     execute_call_assertion=[
         CallAssertion(func=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT.jobv3.fast_execute_script, calls=[Call(MANUAL_KWARGS)]),
     ],
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
-        Patcher(
-            target=CC_GET_IPS_INFO_BY_STR,
-            return_value={"ip_result": []},
-        ),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []},),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
-            return_value={
-                "ip_result": [
-                    {"InnerIP": "127.0.0.1", "Source": 1},
-                    {"InnerIP": "127.0.0.2", "Source": 2},
-                ]
-            },
+            return_value={"ip_result": [{"InnerIP": "127.0.0.1", "Source": 1}, {"InnerIP": "127.0.0.2", "Source": 2}]},
         ),
     ],
 )
@@ -371,12 +354,7 @@ FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE = ComponentTestCase(
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
-            return_value={
-                "ip_result": [
-                    {"InnerIP": "127.0.0.1", "Source": 1},
-                    {"InnerIP": "127.0.0.2", "Source": 2},
-                ]
-            },
+            return_value={"ip_result": [{"InnerIP": "127.0.0.1", "Source": 1}, {"InnerIP": "127.0.0.2", "Source": 2}]},
         ),
     ],
 )

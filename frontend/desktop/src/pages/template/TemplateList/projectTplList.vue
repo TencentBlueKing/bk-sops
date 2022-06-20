@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -971,13 +971,8 @@
                         this.pagination.current = 1
                         this.getTemplateList()
                     } else if (Object.keys(res.data.references).length) {
-                        const deleteArr = []
-                        Object.values(res.data.references).forEach(item => {
-                            const value = item.template[0]
-                            deleteArr.push(`${value.name}(${value.id})`)
-                        })
                         this.$bkMessage({
-                            message: i18n.t('流程') + deleteArr.join(i18n.t('，')) + i18n.t('删除失败！'),
+                            message: i18n.t('流程当前被使用中，无法删除'),
                             theme: 'error'
                         })
                     }
@@ -1132,13 +1127,13 @@
                     const data = {
                         templateId: this.theDeleteTemplateId
                     }
-                    await this.deleteTemplate(data)
+                    const resp = await this.deleteTemplate(data)
+                    if (!resp.result) return
                     if (this.selectedTpls.find(tpl => tpl.id === this.theDeleteTemplateId)) {
                         const index = this.selectedTpls.findIndex(tpl => tpl.id === this.theDeleteTemplateId)
                         this.selectedTpls.splice(index, 1)
                     }
                     this.theDeleteTemplateId = undefined
-                    this.isDeleteDialogShow = false
                     // 最后一页最后一条删除后，往前翻一页
                     if (
                         this.pagination.current > 1
@@ -1148,10 +1143,15 @@
                         this.pagination.current -= 1
                     }
                     this.getTemplateList()
+                    this.$bkMessage({
+                        message: i18n.t('流程') + i18n.t('删除成功！'),
+                        theme: 'success'
+                    })
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.pending.delete = false
+                    this.isDeleteDialogShow = false
                 }
             },
             onDeleteCancel () {
@@ -1253,7 +1253,7 @@
                 if (this.selectedTpls.length === 0 || !this.hasBatchViewAuth) {
                     return
                 }
-                
+
                 try {
                     const cancelList = this.selectedTpls.reduce((acc, cur) => {
                         if (cur.is_collected) {
@@ -1338,6 +1338,7 @@
     }
 }
 .bk-dropdown-menu{
+    height: 32px !important;
     &:hover {
         .export-tpl-btn,
         .import-tpl-btn {
@@ -1397,6 +1398,11 @@
     .bk-table-row.hover-row {
         .icon-favorite {
             display: block;
+        }
+    }
+    /deep/.bk-table {
+        td, th {
+            height: 42px;
         }
     }
     .icon-favorite {

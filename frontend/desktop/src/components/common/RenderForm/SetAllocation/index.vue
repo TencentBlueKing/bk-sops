@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -421,7 +421,7 @@
                 const rowCount = sheetData.length
                 const headerMap = {}
                 const moduleNameReg = /[\u4e00-\u9fa5\w]+\uff1a(\w+)\((\d+)\)$/ // 表头模块列字符匹配，eg: 模块：console(3)
-                
+
                 this.colsLoading = true
                 this.originalCols.forEach(col => {
                     const tagCode = col.tag_code

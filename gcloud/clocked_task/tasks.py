@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -17,6 +17,7 @@ from celery import task
 from django.db import transaction
 
 from gcloud.clocked_task.models import ClockedTask
+from gcloud.constants import CLOCKED_TASK_STARTED, CLOCKED_TASK_START_FAILED
 from gcloud.core.models import Project, EngineConfig
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
@@ -27,11 +28,10 @@ from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 logger = logging.getLogger("celery")
 
 
-def parse_exclude_task_nodes_id_from_params(template, task_params):
+def parse_exclude_task_nodes_id_from_params(pipeline_tree, task_params):
     if task_params.get("exclude_task_nodes_id"):
         return task_params["exclude_task_nodes_id"]
     exclude_task_nodes_id = []
-    pipeline_tree = template.pipeline_tree
     if task_params.get("appoint_task_nodes_id"):
         exclude_task_nodes_id = PipelineTemplateWebPreviewer.get_template_exclude_task_nodes_with_appoint_nodes(
             pipeline_tree, task_params["appoint_task_nodes_id"]
@@ -62,7 +62,8 @@ def clocked_task_start(clocked_task_id, *args, **kwargs):
         template = TaskTemplate.objects.select_related("pipeline_template").get(
             id=clocked_task.template_id, project_id=project.id, is_deleted=False
         )
-        exclude_task_nodes_id = parse_exclude_task_nodes_id_from_params(template, task_params)
+        pipeline_tree = template.pipeline_tree
+        exclude_task_nodes_id = parse_exclude_task_nodes_id_from_params(pipeline_tree, task_params)
         with transaction.atomic():
             data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
                 template,
@@ -70,6 +71,7 @@ def clocked_task_start(clocked_task_id, *args, **kwargs):
                 task_params.get("constants"),
                 exclude_task_nodes_id,
                 task_params.get("simplify_vars"),
+                pipeline_tree,
             )
             taskflow_instance = TaskFlowInstance.objects.create(
                 project=project,
@@ -87,7 +89,9 @@ def clocked_task_start(clocked_task_id, *args, **kwargs):
                     template_source=clocked_task.template_source,
                 ),
             )
-            ClockedTask.objects.filter(id=clocked_task_id).update(task_id=taskflow_instance.id)
+            ClockedTask.objects.filter(id=clocked_task_id).update(
+                task_id=taskflow_instance.id, state=CLOCKED_TASK_STARTED
+            )
 
             # crete auto retry strategy
             arn_creator = AutoRetryNodeStrategyCreator(
@@ -105,4 +109,5 @@ def clocked_task_start(clocked_task_id, *args, **kwargs):
         taskflow_instance.task_action("start", clocked_task.creator)
     except Exception as ex:
         logger.exception("[clocked_task_start] task create error")
+        ClockedTask.objects.filter(id=clocked_task_id).update(state=CLOCKED_TASK_START_FAILED)
         send_clocked_task_message(clocked_task, str(ex))

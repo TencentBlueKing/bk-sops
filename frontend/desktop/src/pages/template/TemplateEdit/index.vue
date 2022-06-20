@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -145,6 +145,7 @@
                 <batch-update-dialog
                     v-if="isBatchUpdateDialogShow"
                     :project-id="project_id"
+                    :common="common"
                     :list="subflowShouldUpdated"
                     @globalVariableUpdate="globalVariableUpdate"
                     @close="closeBatchUpdateDialog">
@@ -419,11 +420,13 @@
                 if (this.subprocess_info) {
                     return this.subprocess_info.details.reduce((acc, cur) => {
                         const nodeId = cur.subprocess_node_id
-                        const { scheme_id_list = [], template_source } = this.activities[nodeId]
+                        if (!this.activities[nodeId]) {
+                            return acc
+                        }
+                        const { scheme_id_list = [] } = this.activities[nodeId]
                         acc.push({
                             ...cur,
-                            scheme_id_list,
-                            template_source: template_source === 'common' ? 'common' : 'project'
+                            scheme_id_list
                         })
                         return acc
                     }, [])
@@ -456,6 +459,14 @@
                 if (this.isPerspective) {
                     // 获取节点与变量的依赖关系
                     this.getNodeVariableCitedData()
+                }
+            },
+            '$route.params.type' (val) {
+                const data = this.getTplTabData()
+                if (val === 'edit') {
+                    tplTabCount.setTab(data, 'add')
+                } else {
+                    tplTabCount.setTab(data, 'del')
                 }
             }
         },
@@ -490,13 +501,13 @@
             this.openSnapshootTimer()
             window.addEventListener('beforeunload', this.handleBeforeUnload, false)
             window.addEventListener('unload', this.handleUnload.bind(this), false)
-            if (this.type === 'edit' || this.type === 'view') {
+            if (this.type === 'edit') {
                 const data = this.getTplTabData()
                 tplTabCount.setTab(data, 'add')
             }
         },
         beforeDestroy () {
-            if (this.type === 'edit' || this.type === 'view') {
+            if (this.type === 'edit') {
                 const data = this.getTplTabData()
                 tplTabCount.setTab(data, 'del')
             }
@@ -808,7 +819,9 @@
                 }
 
                 try {
-                    const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
+                    const resp = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
+                    if (!resp.result) return
+                    const data = resp.data
                     this.tplActions = data.auth_actions
                     this.$bkMessage({
                         message: i18n.t('保存成功'),

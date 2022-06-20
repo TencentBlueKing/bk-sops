@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -46,7 +46,7 @@
                 </bk-button>
                 <bk-button theme="default" data-test-id="taskExecute_form_cancelBtn" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
             </div>
-            
+
             <bk-button v-else theme="default" data-test-id="taskExecute_form_closeBtn" @click="onCancelRetry">{{ $t('关闭') }}</bk-button>
         </div>
 
@@ -215,10 +215,14 @@
             padding: 0 10px;
             font-size: 12px;
             line-height: 36px;
-            background: $blueNavBg;
-            border: 1px solid #a3c5fd;
+            color: #63656e;
+            background: #f0f8ff;
+            border: 1px solid #c5daff;
+            box-shadow: 0 2px 4px 0 #e1e8f4;
+            border-radius: 2px;
             .ui-notice {
-                margin-right: 10px;
+                font-size: 16px;
+                margin-right: 6px;
                 color: $blueDefault;
             }
         }

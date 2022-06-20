@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -108,7 +108,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
     def start_v1(self, executor: str) -> dict:
         try:
-            result = self.pipeline_instance.start(executor=executor, queue=self.queue)
+            result = self.pipeline_instance.start(executor=executor, queue=self.queue, check_workers=False)
             if result.result:
                 taskflow_started.send(sender=self.__class__, task_id=self.taskflow_id)
 
@@ -191,9 +191,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         except Exception as e:
             logger.exception("run pipeline failed")
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
-                start_time=None,
-                is_started=False,
-                executor="",
+                start_time=None, is_started=False, executor="",
             )
             return {
                 "result": False,
@@ -203,9 +201,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         if not result.result:
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
-                start_time=None,
-                is_started=False,
-                executor="",
+                start_time=None, is_started=False, executor="",
             )
             logger.error("run_pipeline fail: {}, exception: {}".format(result.message, result.exc_trace))
         else:

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -655,7 +655,10 @@ class CollectionsCC(object):
             description="查询集群模板",
         )
         self.add_host_lock = ComponentAPI(
-            client=self.client, method="POST", path="/api/c/compapi{bk_api_ver}/cc/add_host_lock/", description="新加主机锁",
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/add_host_lock/",
+            description="新加主机锁",
         )
         self.delete_host_lock = ComponentAPI(
             client=self.client,
@@ -728,4 +731,10 @@ class CollectionsCC(object):
             method="POST",
             path="/api/c/compapi{bk_api_ver}/cc/transfer_host_to_recyclemodule/",
             description="上交主机到业务的待回收模块",
+        )
+        self.list_business_set = ComponentAPI(
+            client=self.client,
+            method="POST",
+            path="/api/c/compapi{bk_api_ver}/cc/list_business_set/",
+            description="查询业务集",
         )

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -37,6 +37,7 @@ class AllBizJobFastExecuteScriptComponentTest(TestCase, ComponentTestMixin):
         return [
             FAST_EXECUTE_SCRIPT_FAIL_CASE,
             FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE,
+            BIZ_SET_FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE,
         ]
 
 
@@ -48,6 +49,7 @@ class MockClient(object):
         get_job_instance_log_return=None,
         get_job_instance_ip_log_return=None,
         get_job_instance_status=None,
+        list_business_set_return=None,
     ):
         self.jobv3 = MagicMock()
         self.jobv3.fast_execute_script = MagicMock(return_value=fast_execute_script_return)
@@ -55,6 +57,8 @@ class MockClient(object):
         self.jobv3.get_job_instance_log = MagicMock(return_value=get_job_instance_log_return)
         self.jobv3.get_job_instance_ip_log = MagicMock(return_value=get_job_instance_ip_log_return)
         self.jobv3.get_job_instance_status = MagicMock(return_value=get_job_instance_status)
+        self.cc = MagicMock()
+        self.cc.list_business_set = MagicMock(return_value=list_business_set_return)
 
 
 # mock path
@@ -70,6 +74,8 @@ JOB_HANDLE_API_ERROR = (
 GET_JOB_INSTANCE_URL = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.v1_0.get_job_instance_url"
 )
+UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_user"
+
 
 # success result
 SUCCESS_RESULT = {
@@ -191,7 +197,9 @@ EXECUTE_SUCCESS_GET_IP_LOG_RETURN = {
 
 # mock clients
 FAST_EXECUTE_SCRIPT_FAIL_CLIENT = MockClient(
-    fast_execute_script_return=FAIL_RESULT, get_job_instance_global_var_value_return={}
+    fast_execute_script_return=FAIL_RESULT,
+    get_job_instance_global_var_value_return={},
+    list_business_set_return={"result": True, "data": {"info": []}},
 )
 
 # mock clients
@@ -208,6 +216,24 @@ FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT = MockClient(
     get_job_instance_log_return=EXECUTE_SUCCESS_GET_LOG_RETURN,
     get_job_instance_ip_log_return=EXECUTE_SUCCESS_GET_IP_LOG_RETURN,
     get_job_instance_status=EXECUTE_SUCCESS_GET_STATUS_RETURN,
+    list_business_set_return={"result": True, "data": {"info": []}},
+)
+
+# mock clients
+FAST_EXECUTE_SCRIPT_BIZ_SET_SUCCESS_CLIENT = MockClient(
+    fast_execute_script_return=SUCCESS_RESULT,
+    get_job_instance_global_var_value_return={
+        "data": {
+            "job_instance_var_values": [
+                {"step_instance_var_values": [{"category": 1, "name": "name", "value": "value"}]}
+            ]
+        },
+        "result": True,
+    },
+    get_job_instance_log_return=EXECUTE_SUCCESS_GET_LOG_RETURN,
+    get_job_instance_ip_log_return=EXECUTE_SUCCESS_GET_IP_LOG_RETURN,
+    get_job_instance_status=EXECUTE_SUCCESS_GET_STATUS_RETURN,
+    list_business_set_return={"result": True, "data": {"info": ["biz_set"]}},
 )
 
 # mock GET_NODE_CALLBACK_URL
@@ -232,6 +258,28 @@ MANUAL_INPUTS = {
 
 # MANUAL_KWARGS
 MANUAL_KWARGS = {
+    "bk_scope_type": "biz",
+    "bk_scope_id": "123456",
+    "bk_biz_id": 123456,
+    "account_alias": "root",
+    "target_server": {
+        "ip_list": [
+            {"ip": "127.0.0.1", "bk_cloud_id": 0},
+            {"ip": "127.0.0.2", "bk_cloud_id": 0},
+            {"ip": "127.0.0.3", "bk_cloud_id": 0},
+            {"ip": "200.0.0.1", "bk_cloud_id": 1},
+            {"ip": "200.0.0.2", "bk_cloud_id": 1},
+            {"ip": "200.0.0.3", "bk_cloud_id": 1},
+        ],
+    },
+    "callback_url": "callback_url",
+    "script_param": "IGJiYg==",
+    "timeout": 80,
+    "script_language": "1",
+    "script_content": "Y2QgL2Fh",
+}
+
+BIZ_SET_MANUAL_KWARGS = {
     "bk_scope_type": "biz_set",
     "bk_scope_id": "123456",
     "bk_biz_id": 123456,
@@ -267,6 +315,13 @@ MANUAL_SUCCESS_OUTPUTS = {
     "client": FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT,
 }
 
+BIZ_SET_MANUAL_SUCCESS_OUTPUTS = {
+    "job_inst_id": SUCCESS_RESULT["data"]["job_instance_id"],
+    "job_inst_name": "API Quick execution script1521100521303",
+    "job_inst_url": "instance_url_token",
+    "client": FAST_EXECUTE_SCRIPT_BIZ_SET_SUCCESS_CLIENT,
+}
+
 # 异步回调函数参数错误返回
 SCHEDULE_CALLBACK_DATA_ERROR_OUTPUTS = {"ex_data": "invalid callback_data, job_instance_id: None, status: None"}
 
@@ -287,6 +342,32 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = Component
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT),
+        Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT),
+        Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
+    ],
+)
+
+# 业务集脚本成功异步执行失败样例
+BIZ_SET_FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = ComponentTestCase(
+    name="all biz biz set fast execute script success schedule callback data error test case",
+    inputs=MANUAL_INPUTS,
+    parent_data=PARENT_DATA,
+    execute_assertion=ExecuteAssertion(success=True, outputs=BIZ_SET_MANUAL_SUCCESS_OUTPUTS),
+    schedule_assertion=ScheduleAssertion(
+        success=False,
+        outputs=dict(list(BIZ_SET_MANUAL_SUCCESS_OUTPUTS.items()) + list(SCHEDULE_CALLBACK_DATA_ERROR_OUTPUTS.items())),
+        callback_data={},
+    ),
+    execute_call_assertion=[
+        CallAssertion(
+            func=FAST_EXECUTE_SCRIPT_BIZ_SET_SUCCESS_CLIENT.jobv3.fast_execute_script,
+            calls=[Call(BIZ_SET_MANUAL_KWARGS)],
+        ),
+    ],
+    patchers=[
+        Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_BIZ_SET_SUCCESS_CLIENT),
+        Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_BIZ_SET_SUCCESS_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],
 )
@@ -304,6 +385,7 @@ FAST_EXECUTE_SCRIPT_FAIL_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_FAIL_CLIENT),
+        Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_FAIL_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],
 )
