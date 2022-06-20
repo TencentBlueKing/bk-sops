@@ -34,7 +34,11 @@ const Configuration = {
   /*
    * Functions that return true if commitlint should ignore the given message.
    */
-  ignores: [(commit) => commit === ''],
+  ignores: [
+      (commit) => commit === '',
+      (message) => message.includes('Merge'),
+      (message) => message.includes('merge')
+  ],
   /*
    * Whether commitlint uses the default ignore rules.
    */
