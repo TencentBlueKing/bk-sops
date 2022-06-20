@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -13,13 +13,14 @@ specific language governing permissions and limitations under the License.
 import json
 import logging
 
+from django.apps import apps
 from django.db import models, transaction
 from django_celery_beat.models import (
     PeriodicTask as DjangoCeleryBeatPeriodicTask,
     ClockedSchedule as DjangoCeleryBeatClockedSchedule,
 )
 
-from gcloud.constants import TEMPLATE_SOURCE, PROJECT
+from gcloud.constants import TEMPLATE_SOURCE, PROJECT, CLOCKED_TASK_STATE, CLOCKED_TASK_NOT_STARTED
 from gcloud.utils.unique import uniqid
 from gcloud.core.models import StaffGroupSet, Project
 from gcloud.shortcuts.cmdb import get_business_group_members
@@ -81,11 +82,17 @@ class ClockedTask(models.Model):
     template_source = models.CharField(help_text="流程模板来源", max_length=32, choices=TEMPLATE_SOURCE, default=PROJECT)
     clocked_task_id = models.IntegerField(help_text="计划任务 Celery任务 ID", null=True)
     creator = models.CharField(help_text="计划任务创建人", max_length=32)
+    create_time = models.DateTimeField("创建任务时间", null=True, auto_now_add=True)
+    editor = models.CharField("更新者", max_length=32, default="")
+    edit_time = models.DateTimeField("更新任务时间", null=True, auto_now=True)
     plan_start_time = models.DateTimeField(help_text="计划任务启动时间", db_index=True)
     task_params = models.TextField(help_text="任务创建相关数据", null=True)
     notify_type = models.CharField(help_text="计划任务事件通知方式", max_length=128, default="[]")
     # 形如 json.dumps({'receiver_group': ['Maintainers'], 'more_receiver': 'username1,username2'})
     notify_receivers = models.TextField(help_text="计划任务事件通知人", default="{}")
+    state = models.CharField(
+        help_text="计划任务状态", max_length=64, choices=CLOCKED_TASK_STATE, default=CLOCKED_TASK_NOT_STARTED
+    )
 
     objects = ClockedTaskManager()
 
@@ -106,11 +113,33 @@ class ClockedTask(models.Model):
         return super(ClockedTask, self).delete()
 
     def get_notify_type(self):
-        notify_type = json.loads(self.notify_type)
+        # 如果没有配置，则使用模版中的配置
+        if self.notify_type == "[]":
+            template_cls = (
+                apps.get_model("tasktmpl3", "TaskTemplate")
+                if self.template_source == PROJECT
+                else apps.get_model("template", "CommonTemplate")
+            )
+            template = template_cls.objects.filter(id=self.template_id).only("notify_type").first()
+            notify_type = json.loads(template.notify_type)
+        else:
+            notify_type = json.loads(self.notify_type)
+        logger.info(f"[clocked_task get_notify_type] success: {notify_type}")
         return notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
 
     def get_stakeholders(self):
-        notify_receivers = json.loads(self.notify_receivers)
+        # 如果没有配置，则使用模版中的配置
+        if self.notify_receivers == "{}":
+            template_cls = (
+                apps.get_model("tasktmpl3", "TaskTemplate")
+                if self.template_source == PROJECT
+                else apps.get_model("template", "CommonTemplate")
+            )
+            template = template_cls.objects.filter(id=self.template_id).only("notify_receivers").first()
+            notify_receivers = json.loads(template.notify_receivers)
+        else:
+            notify_receivers = json.loads(self.notify_receivers)
+        logger.info(f"[clocked_task get_stakeholders] success: {notify_receivers}")
         receiver_group = notify_receivers.get("receiver_group", [])
         receivers = [self.creator]
         proj = Project.objects.get(id=self.project_id)

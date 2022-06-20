@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -13,20 +13,21 @@ specific language governing permissions and limitations under the License.
 
 import copy
 
+from bamboo_engine.template import Template
 from pipeline import exceptions
 from pipeline.core.data import library, var
-from pipeline.core.data.expression import ConstantTemplate
 from pipeline.validators.utils import format_node_io_to_list
 
 from pipeline_web.constants import PWE
 
 
-def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
+def format_web_data_to_pipeline(web_pipeline: dict, is_subprocess: bool = False) -> dict:
     """
-    @summary:
-    @param web_pipeline: pipeline 前端数据
-    @param is_subprocess: 是否子流程
-    @return:
+    更新或创建新的普通上下文数据
+
+    :param web_pipeline: pipeline web tree
+    :param is_subprocess: 是否是子流程的 tree
+    :return: bamboo pipeline tree
     """
     pipeline_tree = copy.deepcopy(web_pipeline)
     constants = pipeline_tree.pop("constants")
@@ -43,7 +44,7 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
         if act["type"] == "ServiceActivity":
             act_data = act["component"].pop("data")
 
-            all_inputs = calculate_constants_type(act_data, classification["data_inputs"])
+            all_inputs = format_data_to_pipeline_inputs(act_data, classification["data_inputs"])
             act["component"]["inputs"] = {key: value for key, value in list(all_inputs.items()) if key in act_data}
             act["component"]["global_outputs"] = classification["acts_outputs"].get(act_id, {})
 
@@ -60,6 +61,15 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
                 raise exceptions.InvalidOperationException(
                     "timeout_config can not be enabled with error_ignorable or auto_retry at the same time"
                 )
+
+            # 节点执行代理人配置
+            if act.get("executor_proxy"):
+                act["component"]["inputs"]["__executor_proxy"] = {
+                    "type": "plain",
+                    "value": act.get("executor_proxy"),
+                    "is_param": False,
+                    "need_render": False,
+                }
 
         elif act["type"] == "SubProcess":
             parent_params = {}
@@ -115,7 +125,13 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
     return pipeline_tree
 
 
-def get_pre_render_mako_keys(constants):
+def get_pre_render_mako_keys(constants: dict) -> set:
+    """
+    获取需要预渲染的变量的 keys
+
+    :param constants: pipeline web tree 中的 constants 字段
+    :return: 需要预渲染的变量的 keys
+    """
     pre_render_inputs_keys = set()
     for key, info in list(constants.items()):
         if info["source_type"] == "component_outputs":
@@ -128,7 +144,15 @@ def get_pre_render_mako_keys(constants):
     return pre_render_inputs_keys
 
 
-def classify_constants(constants, is_subprocess):
+def classify_constants(constants: dict, is_subprocess: bool):
+    """
+    将 pipeline web tree 中的 constants 字段转换成
+    bamboo pipeline tree 中的 data inputs 和节点输出的<节点ID:key -> data key>信息
+
+    :param constants: pipeline web tree
+    :param is_subprocess: 是否是子流程的 tree
+    :return: bamboo pipeline tree 中的 data inputs 和节点输出的<节点ID:key -> data key>信息
+    """
     # pipeline tree inputs
     data_inputs = {}
     # pipeline act outputs
@@ -176,7 +200,7 @@ def classify_constants(constants, is_subprocess):
                 "is_param": info["is_param"],
             }
         else:
-            ref = ConstantTemplate(info["value"]).get_reference()
+            ref = Template(info["value"]).get_reference()
             constant_type = "splice" if ref else "plain"
             is_param = info["show_type"] == "show" and is_subprocess
             data_inputs[key] = {"type": constant_type, "value": info["value"], "is_param": is_param}
@@ -185,22 +209,23 @@ def classify_constants(constants, is_subprocess):
     return result
 
 
-def calculate_constants_type(to_calculate, calculated, change_calculated=False):
+def format_data_to_pipeline_inputs(data: dict, pipeline_inputs: dict, change_pipeline_inputs: bool = False):
     """
-    @summary:
-    @param to_calculate: 待计算的变量
-    @param calculated: 变量类型确定的，直接放入结果
-    @param change_calculated: 是否直接修改calculated并作为结果返回
-    @return:
+    将 data 中的数据转换成 pipeline inputs 并添加到 pipeline_inputs 中
+
+    :param data: 待计算的变量
+    :param pipeline_inputs: 变量类型确定的，直接放入结果
+    :param change_pipeline_inputs: 是否直接修改pipeline_inputs并作为结果返回
+    :return:
     """
-    data = copy.deepcopy(calculated) if not change_calculated else calculated
-    for key, info in list(to_calculate.items()):
-        ref = ConstantTemplate(info["value"]).get_reference()
+    ret = copy.deepcopy(pipeline_inputs) if not change_pipeline_inputs else pipeline_inputs
+    for key, info in list(data.items()):
+        ref = Template(info["value"]).get_reference()
         constant_type = "splice" if ref else "plain"
         # is_param和need_render禁止同时为True
         if info.get("is_param") and info.get("need_render"):
             raise exceptions.DataException("is_param and need_render cannot be selected at the same time")
-        data.setdefault(
+        ret.setdefault(
             key,
             {
                 "type": constant_type,
@@ -210,10 +235,17 @@ def calculate_constants_type(to_calculate, calculated, change_calculated=False):
             },
         )
 
-    return data
+    return ret
 
 
-def get_all_nodes(pipeline_tree, with_subprocess=False):
+def get_all_nodes(pipeline_tree: dict, with_subprocess: bool = False) -> dict:
+    """
+    获取 pipeline_tree 中所有 activity 的信息
+
+    :param pipeline_tree: pipeline web tree
+    :param with_subprocess: 是否是子流程的 tree
+    :return: 包含 pipeline_tree 中所有 activity 的字典（包括子流程的 acitivity）
+    """
     all_nodes = {}
     all_nodes.update(pipeline_tree[PWE.activities])
     all_nodes.update(pipeline_tree[PWE.gateways])

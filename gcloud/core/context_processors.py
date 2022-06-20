@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -63,6 +63,7 @@ def mysetting(request):
         "BK_CC_HOST": settings.BK_CC_HOST,
         "BK_JOB_HOST": settings.BK_JOB_HOST,
         "BK_IAM_SAAS_HOST": settings.BK_IAM_SAAS_HOST,
+        "BK_IAM_APPLY_URL": settings.BK_IAM_SAAS_HOST.strip("/") + "/apply-join-user-group",
         "BK_IAM_APP_CODE": settings.BK_IAM_APP_CODE,
         "BK_USER_MANAGE_HOST": settings.BK_USER_MANAGE_HOST,
         "APP_PATH": request.get_full_path(),  # 当前页面，主要为了login_required做跳转用

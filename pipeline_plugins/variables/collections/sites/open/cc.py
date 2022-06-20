@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -48,7 +48,7 @@ class VarIpPickerVariable(LazyVariable):
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
-            return "ERROR: executor and project_id of pipeline is needed"
+            raise Exception("ERROR: executor and project_id of pipeline is needed")
         var_ip_picker = self.value
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
@@ -119,7 +119,7 @@ class VarCmdbIpSelector(LazyVariable, SelfExplainVariable):
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
-            return "ERROR: executor and project_id of pipeline is needed"
+            raise Exception("ERROR: executor and project_id of pipeline is needed")
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)
@@ -130,7 +130,7 @@ class VarCmdbIpSelector(LazyVariable, SelfExplainVariable):
         ip_result = get_ip_picker_result(username, bk_biz_id, bk_supplier_account, ip_selector)
         if not ip_result["result"]:
             logger.error(f"[ip_selector get_value] error: {ip_result}")
-            return f'error: {ip_result["message"]}'
+            raise Exception(f'ERROR: {ip_result["message"]}')
         separator = self.value.get("separator", ",")
 
         # get for old value compatible
@@ -215,9 +215,7 @@ class VarCmdbSetAllocation(LazyVariable, SelfExplainVariable):
             FieldExplain(key="${KEY._module}", type=Type.LIST, description="集群下的模块信息列表，元素类型为字典，键为模块名，值为模块下的主机列"),
             FieldExplain(key="${KEY.flat__ip_list}", type=Type.STRING, description="本次操作创建的所有集群下的主机（去重后），用 ',' 连接"),
             FieldExplain(
-                key="${KEY.flat__verbose_ip_list}",
-                type=Type.STRING,
-                description="返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接",
+                key="${KEY.flat__verbose_ip_list}", type=Type.STRING, description="返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接",
             ),
             FieldExplain(
                 key="${KEY.flat__verbose_ip_module_list}",
@@ -296,7 +294,7 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
         @return:
         """
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
-            return "ERROR: executor and project_id of pipeline is needed"
+            raise Exception("ERROR: executor and project_id of pipeline is needed")
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)
@@ -369,7 +367,7 @@ class VarCmdbIpFilter(LazyVariable, SelfExplainVariable):
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
-            return "ERROR: executor and project_id of pipeline is needed"
+            raise Exception("ERROR: executor and project_id of pipeline is needed")
 
         origin_ips = self.value.get("origin_ips", "")
         ip_cloud = self.value.get("ip_cloud", True)

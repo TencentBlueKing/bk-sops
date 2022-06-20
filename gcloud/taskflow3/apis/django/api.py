@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -50,7 +50,6 @@ from gcloud.taskflow3.apis.django.validators import (
     NodesActionValidator,
     SpecNodesTimerResetValidator,
     TaskCloneValidator,
-    TaskModifyInputsValidator,
     TaskFuncClaimValidator,
     PreviewTaskTreeValidator,
     QueryTaskCountValidator,
@@ -66,7 +65,6 @@ from gcloud.iam_auth.view_interceptors.taskflow import (
     NodesActionInterceptor,
     SpecNodesTimerResetInpterceptor,
     TaskCloneInpterceptor,
-    TaskModifyInputsInterceptor,
     TaskFuncClaimInterceptor,
     GetNodeLogInterceptor,
     StatusViewInterceptor,
@@ -342,23 +340,6 @@ def task_clone(request, project_id):
     ctx = {"result": True, "data": {"new_instance_id": new_task.id}, "message": "", "code": err_code.SUCCESS.code}
 
     return JsonResponse(ctx)
-
-
-@require_POST
-@request_validate(TaskModifyInputsValidator)
-@iam_intercept(TaskModifyInputsInterceptor())
-@record_operation(RecordType.task.name, OperateType.update.name)
-def task_modify_inputs(request, project_id):
-    data = json.loads(request.body)
-
-    task_id = data["instance_id"]
-
-    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
-
-    constants = data.get("constants", {})
-    meta_constants = data.get("meta_constants", {})
-
-    return JsonResponse(task.set_task_context(constants, meta_constants))
 
 
 @require_POST

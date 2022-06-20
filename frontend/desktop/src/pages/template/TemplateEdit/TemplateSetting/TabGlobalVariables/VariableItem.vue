@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -19,7 +19,14 @@
             <i v-if="isSystemVar" class="variable-icon common-icon-lock-disable"></i>
             <i v-if="isProjectVar" class="variable-icon common-icon-paper"></i>
             <span class="col-item col-name" v-bk-overflow-tips="{ distance: 0 }">
-                {{ variableData.name }}
+                <span>
+                    {{ variableData.name }}
+                    <i
+                        v-if="newCloneKeys.includes(variableData.key)"
+                        class="cross-process-clone-icon"
+                        @click.stop="$emit('onCancelCloneKey', variableData.key)">
+                    </i>
+                </span>
             </span>
             <span class="col-item col-key" v-bk-overflow-tips="{ distance: 0 }">
                 {{ variableData.key }}
@@ -142,6 +149,7 @@
             common: [String, Number],
             variableCited: Object,
             variableChecked: Boolean,
+            newCloneKeys: Array,
             isViewMode: Boolean
         },
         data () {
@@ -363,6 +371,20 @@ $localBorderColor: #d8e2e7;
     .col-name {
         width: 170px;
         padding-right: 10px;
+        > span {
+            position: relative;
+            .cross-process-clone-icon {
+                position: absolute;
+                top: 1px;
+                right: -2px;
+                display: inline-block;
+                width: 6px;
+                height: 6px;
+                background: #ff5656;
+                border: 1px solid #fff;
+                border-radius: 50%;
+            }
+        }
     }
     .col-key {
         position: relative;

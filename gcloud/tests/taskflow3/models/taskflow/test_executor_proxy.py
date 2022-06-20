@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -52,3 +52,15 @@ class ExecutorProxyTestCase(TestCase):
             taskflow = TaskFlowInstance()
             taskflow.template_source = "business"
             self.assertEqual(taskflow.executor_proxy, "dummy")
+
+    @patch("gcloud.taskflow3.models.TaskFlowInstance.save", MagicMock(return_value=None))
+    def test_recorded_executor_proxy(self):
+        taskflow = TaskFlowInstance()
+        ep = taskflow.record_and_get_executor_proxy("dummy")
+        self.assertEqual(ep, "dummy")
+        self.assertEqual(taskflow.recorded_executor_proxy, "dummy")
+
+        taskflow2 = TaskFlowInstance(recorded_executor_proxy="recorded_one")
+        ep = taskflow2.record_and_get_executor_proxy("dummy")
+        self.assertEqual(ep, "recorded_one")
+        self.assertEqual(taskflow2.recorded_executor_proxy, "recorded_one")

@@ -1,6 +1,6 @@
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -188,6 +188,16 @@
                     @change="onSelectableChange">
                 </bk-switcher>
             </bk-form-item>
+            <bk-form-item v-if="common" :label="$t('执行代理人')" data-test-id="templateEdit_form_executor_proxy">
+                <bk-user-selector
+                    :disabled="isViewMode"
+                    v-model="formData.executor_proxy"
+                    :placeholder="$t('请输入用户')"
+                    :api="userApi"
+                    :multiple="false"
+                    @change="onUserSelectChange">
+                </bk-user-selector>
+            </bk-form-item>
         </bk-form>
         <!-- 子流程 -->
         <bk-form
@@ -267,17 +277,31 @@
                     class="bk-icon icon-question-circle form-item-tips">
                 </i>
             </bk-form-item>
+            <bk-form-item v-if="common" :label="$t('执行代理人')" data-test-id="templateEdit_form_executor_proxy">
+                <bk-user-selector
+                    :disabled="isViewMode"
+                    v-model="formData.executor_proxy"
+                    :placeholder="$t('请输入用户')"
+                    :api="userApi"
+                    :multiple="false"
+                    @change="onUserSelectChange">
+                </bk-user-selector>
+            </bk-form-item>
         </bk-form>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
     import tools from '@/utils/tools.js'
+    import BkUserSelector from '@blueking/user-selector'
     import { mapState, mapActions, mapMutations } from 'vuex'
     import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
 
     export default {
         name: 'BasicInfo',
+        components: {
+            BkUserSelector
+        },
         props: {
             projectId: [String, Number],
             nodeConfig: Object,
@@ -377,7 +401,8 @@
                     width: 400,
                     content: '#html-error-ingored-tootip',
                     placement: 'top'
-                }
+                },
+                userApi: `${window.MEMBER_SELECTOR_DATA_HOST}/api/c/compapi/v2/usermanage/fs_list_users/`
             }
         },
         computed: {
@@ -595,6 +620,10 @@
                 this.formData.selectable = val
                 this.updateData()
             },
+            onUserSelectChange (tags) {
+                this.formData.executor_proxy = tags
+                this.updateData()
+            },
             async onAlwaysUseLatestChange (val) {
                 this.formData.alwaysUseLatest = val
                 if (!val) {
@@ -611,13 +640,13 @@
             updateData () {
                 const {
                     version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable,
-                    selectable, alwaysUseLatest, autoRetry, timeoutConfig, schemeIdList
+                    selectable, alwaysUseLatest, autoRetry, timeoutConfig, schemeIdList, executor_proxy
                 } = this.formData
                 let data
                 if (this.isSubflow) {
-                    data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, latestVersion: this.version }
+                    data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, latestVersion: this.version, executor_proxy }
                 } else {
-                    data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, autoRetry, timeoutConfig }
+                    data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, autoRetry, timeoutConfig, executor_proxy }
                 }
                 this.$emit('update', data)
             },
@@ -800,6 +829,18 @@
             line-height: 12px;
             .bk-button-text {
                 font-size: 12px;
+            }
+        }
+        .user-selector {
+            width: 100%;
+            .disabled::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 100%;
+                cursor: not-allowed;
             }
         }
     }

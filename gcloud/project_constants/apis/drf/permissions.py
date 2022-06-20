@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -18,15 +18,18 @@ from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from iam import Subject, Action
 from iam.shortcuts import allow_or_raise_auth_failed
 
+from .serializers import ProjectConstantsListPermissionSerializer
+
 iam = get_iam_client()
 
 
 class ProjectConstantPermissions(permissions.BasePermission):
     def has_permission(self, request, view):
         if view.action == "list":
-            if "project_id" not in request.query_params:
-                return False
-            project_resources = res_factory.resources_for_project(request.query_params["project_id"])
+            serializer = ProjectConstantsListPermissionSerializer(data=request.query_params)
+            serializer.is_valid(raise_exception=True)
+
+            project_resources = res_factory.resources_for_project(serializer.validated_data["project_id"])
             allow_or_raise_auth_failed(
                 iam=iam,
                 system=IAMMeta.SYSTEM_ID,
@@ -37,10 +40,10 @@ class ProjectConstantPermissions(permissions.BasePermission):
 
         elif view.action == "create":
             # let serializer to handle this
-            if "project_id" not in request.data:
-                return True
+            serializer = view.serializer_class(data=request.data)
+            serializer.is_valid(raise_exception=True)
 
-            project_resources = res_factory.resources_for_project(request.data["project_id"])
+            project_resources = res_factory.resources_for_project(serializer.validated_data["project_id"])
             allow_or_raise_auth_failed(
                 iam=iam,
                 system=IAMMeta.SYSTEM_ID,

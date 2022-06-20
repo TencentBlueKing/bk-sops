@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -16,6 +16,7 @@ from django.conf import settings
 import env
 from iam import IAM
 from iam import DummyIAM
+from iam.api.client import Client
 
 
 def get_iam_client():
@@ -26,3 +27,11 @@ def get_iam_client():
     if settings.BK_IAM_APIGW_HOST:
         return IAM(app_code, app_secret, bk_apigateway_url=settings.BK_IAM_APIGW_HOST)
     return IAM(app_code, app_secret, settings.BK_IAM_INNER_HOST, settings.BK_PAAS_ESB_HOST)
+
+
+def get_iam_api_client():
+    app_code = env.BKAPP_SOPS_IAM_APP_CODE
+    app_secret = env.BKAPP_SOPS_IAM_APP_SECRET_KEY
+    if settings.BK_IAM_APIGW_HOST:
+        return Client(app_code, app_secret, bk_apigateway_url=settings.BK_IAM_APIGW_HOST)
+    return Client(app_code, app_secret, settings.BK_IAM_INNER_HOST, settings.BK_PAAS_ESB_HOST)

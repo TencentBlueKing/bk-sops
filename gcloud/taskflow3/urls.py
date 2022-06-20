@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -19,6 +19,7 @@ from gcloud.taskflow3.apis.django.v4.urls import v4_urlpatterns
 from gcloud.taskflow3.apis.drf.viewsets.render_current_constants import RenderCurrentConstantsView
 from gcloud.taskflow3.apis.drf.viewsets.engine_v2_node_log import EngineV2NodeLogView
 from gcloud.taskflow3.apis.drf.viewsets.preview_task_tree import PreviewTaskTreeWithSchemesView
+from gcloud.taskflow3.apis.drf.viewsets.update_task_constants import UpdateTaskConstantsView
 
 urlpatterns = [
     url(r"^api/context/$", api.context),
@@ -26,7 +27,6 @@ urlpatterns = [
     url(r"^api/clone/(?P<project_id>\d+)/$", api.task_clone),
     url(r"^api/action/(?P<action>\w+)/(?P<project_id>\d+)/$", api.task_action),
     url(r"^api/flow/claim/(?P<project_id>\d+)/$", api.task_func_claim),
-    url(r"^api/inputs/modify/(?P<project_id>\d+)/$", api.task_modify_inputs),
     url(r"^api/nodes/action/(?P<action>\w+)/(?P<project_id>\d+)/$", api.nodes_action),
     url(r"^api/nodes/data/(?P<project_id>\d+)/$", api.data),
     url(r"^api/nodes/detail/(?P<project_id>\d+)/$", api.detail),
@@ -44,4 +44,5 @@ urlpatterns = [
         EngineV2NodeLogView.as_view(),
     ),
     path(r"api/preview_task_tree_with_schemes/", PreviewTaskTreeWithSchemesView.as_view()),
+    path(r"api/update_task_constants/<int:task_id>/", UpdateTaskConstantsView.as_view()),
 ]

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -189,26 +189,6 @@ class TaskCloneValidator(ObjectJsonBodyValidator):
 
         if not self.data.get("instance_id"):
             return False, "instance_id can not be empty"
-
-        return True, ""
-
-
-class TaskModifyInputsValidator(ObjectJsonBodyValidator):
-    def validate(self, request, *args, **kwargs):
-
-        valid, err = super().validate(request, *args, **kwargs)
-
-        if not valid:
-            return valid, err
-
-        if not self.data.get("instance_id"):
-            return False, "instance_id can not be empty"
-
-        if not self.data.get("constants"):
-            return False, "constants can not be empty"
-
-        if not isinstance(self.data["constants"], dict):
-            return False, "constants must be a object"
 
         return True, ""
 

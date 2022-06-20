@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -26,7 +26,7 @@
                     <advance-search-form
                         id="taskList"
                         :open="isSearchFormOpen"
-                        :search-config="{ placeholder: $t('请输入任务名称') }"
+                        :search-config="{ placeholder: $t('请输入任务名称'), value: requestData.taskName }"
                         :search-form="searchForm"
                         @onSearchInput="onSearchInput"
                         @submit="onSearchFormSubmit">
@@ -53,6 +53,7 @@
                                 :key="item.id"
                                 :label="item.label"
                                 :prop="item.id"
+                                :render-header="renderTableHeader"
                                 :width="item.width"
                                 :min-width="item.min_width">
                                 <template slot-scope="props">
@@ -106,13 +107,13 @@
                                             @click="onTaskPermissonCheck([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row)">
                                             {{$t('再创建')}}
                                         </a>
-                                        <router-link
+                                        <a
                                             v-else
                                             class="task-operation-btn"
                                             data-test-id="taskList_table_recreateBtn"
-                                            :to="getCreateTaskUrl(props.row)">
+                                            @click="getCreateTaskUrl(props.row)">
                                             {{$t('再创建')}}
-                                        </router-link>
+                                        </a>
                                         <a
                                             v-cursor="{ active: !hasPermission(['task_clone'], props.row.auth_actions) }"
                                             :class="['task-operation-btn', {
@@ -178,6 +179,34 @@
             <div class="dialog-content" v-bkloading="{ isLoading: pending.delete, opacity: 1, zIndex: 100 }">
                 {{$t('确认删除') + '"' + theDeleteTaskName + '"?'}}
             </div>
+        </bk-dialog>
+        <bk-dialog
+            width="480"
+            ext-cls="recreate-dialog"
+            :value="isCreateDialogShow"
+            theme="primary"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="$t('再创建')"
+            :ok-text="$t('再创建')"
+            @confirm="onCreateConfirm"
+            @cancel="isCreateDialogShow = false">
+            <bk-alert type="info" :title="$t('使用流程的最新数据再次创建任务，可重用当前参数')"></bk-alert>
+            <bk-radio-group v-model="paramsType">
+                <bk-radio :value="'default'">{{ $t('使用流程默认参数值') }}</bk-radio>
+                <bk-radio :value="'reuse'">
+                    {{ $t('重用当前任务参数值') }}
+                    <bk-popover placement="bottom-end" theme="light" width="344" :ext-cls="'reuse-rule-tip'">
+                        <i class="bk-icon icon-question-circle"></i>
+                        <div slot="content">
+                            <p class="mb10">{{ $t('以下情况参数值无法重用，使用变量默认值：') }}</p>
+                            <p>{{ '1. ' + $t('变量的类型变更') }}</p>
+                            <p>{{ '2. ' + $t('变量值的配置项变更') }}</p>
+                            <p>{{ '3. ' + $t('元变量的配置变更') }}</p>
+                        </div>
+                    </bk-popover>
+                </bk-radio>
+            </bk-radio-group>
         </bk-dialog>
     </div>
 </template>
@@ -291,6 +320,12 @@
             width: 120
         },
         {
+            id: 'recorded_executor_proxy',
+            label: i18n.t('执行代理人'),
+            disabled: true,
+            width: 120
+        },
+        {
             id: 'create_method',
             label: i18n.t('创建方式'),
             width: 100
@@ -399,12 +434,15 @@
                 ],
                 crtCreateMethodTab: 'all', // 当前选中创建方法tab
                 tableFields: TABLE_FIELDS,
-                defaultSelected: ['id', 'name', 'start_time', 'finish_time', 'executor_name', 'task_status'],
+                defaultSelected: ['id', 'name', 'start_time', 'finish_time', 'executor_name', 'task_status', 'recorded_executor_proxy'],
                 setting: {
                     fieldList: TABLE_FIELDS,
                     selectedFields: TABLE_FIELDS.slice(0),
                     size: 'small'
-                }
+                },
+                isCreateDialogShow: false,
+                paramsType: 'default',
+                selectedRow: {}
             }
         },
         computed: {
@@ -556,6 +594,7 @@
             searchInputhandler (data) {
                 this.requestData.taskName = data
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getTaskList()
             },
             hasCreateTaskPerm (task) {
@@ -564,15 +603,22 @@
                 return this.hasPermission([reqPerm], authActions)
             },
             getCreateTaskUrl (task) {
+                this.selectedRow = task
+                this.isCreateDialogShow = true
+            },
+            onCreateConfirm () {
+                const { id, template_id, template_source } = this.selectedRow
+                const taskId = this.paramsType === 'reuse' ? id : undefined
                 const url = {
                     name: 'taskCreate',
-                    query: { template_id: task.template_id },
+                    query: { template_id: template_id, task_id: taskId },
                     params: { project_id: this.project_id, step: 'selectnode' }
                 }
-                if (task.template_source === 'common') {
+                if (template_source === 'common') {
                     url.query.common = 1
                 }
-                return url
+                this.isCreateDialogShow = false
+                this.$router.push(url)
             },
             /**
              * 单个任务操作项点击时校验
@@ -622,6 +668,10 @@
                         this.pagination.current -= 1
                     }
                     await this.getTaskList()
+                    this.$bkMessage({
+                        message: i18n.t('任务') + i18n.t('删除成功！'),
+                        theme: 'success'
+                    })
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -682,6 +732,24 @@
                     fieldList: fieldIds,
                     size
                 }))
+            },
+            renderTableHeader (h, { column, $index }) {
+                if (column.property !== 'recorded_executor_proxy') {
+                    return column.label
+                }
+
+                return h('span', {
+                    'class': 'executor_proxy-label'
+                }, [
+                    column.label,
+                    h('i', {
+                        'class': 'common-icon-info table-header-tips',
+                        directives: [{
+                            name: 'bk-tooltips',
+                            value: i18n.t('执行代理人在任务开始执行时确定，未执行任务不展示')
+                        }]
+                    })
+                ])
             },
             onPageChange (page) {
                 this.pagination.current = page
@@ -837,6 +905,7 @@
             padding: 5px;
             color: #3a84ff;
             font-size: 12px;
+            cursor: pointer;
             &.disabled {
                 color: #cccccc;
                 cursor: not-allowed;
@@ -849,5 +918,33 @@
     .template-operate-btn {
         color: $blueDefault;
     }
+    /deep/.table-header-tips {
+        margin-left: 4px;
+        font-size: 14px;
+        color: #c4c6cc;
+        cursor: pointer;
+    }
 }
+</style>
+<style lang="scss">
+    .recreate-dialog {
+        .bk-dialog-header {
+            padding-bottom: 10px;
+        }
+        .bk-alert {
+            margin-bottom: 26px;
+        }
+        .bk-form-control {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 24px;
+            .bk-form-radio {
+                font-size: 12px;
+                .icon-question-circle {
+                    font-size: 14px;
+                }
+            }
+
+        }
+    }
 </style>

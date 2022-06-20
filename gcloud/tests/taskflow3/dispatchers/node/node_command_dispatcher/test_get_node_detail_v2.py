@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -85,8 +85,8 @@ class GetNodeDetailV2TestCase(TestCase):
         get_node_histories_return.result = True
         get_node_histories_return.data = [{"outputs": {}, "id": "hid"}]
         bamboo_api.get_node_histories = MagicMock(return_value=get_node_histories_return)
-
         dispatcher = NodeCommandDispatcher(engine_ver=2, node_id="node_id")
+
         dispatcher._get_node_info = MagicMock()
         format_pipeline_status = MagicMock()
 

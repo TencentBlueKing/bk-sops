@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -67,10 +67,7 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
                 schema=StringItemSchema(description=_("作业模板 ID")),
             ),
             self.InputItem(
-                name=_("执行方案 ID"),
-                key="job_plan_id",
-                type="string",
-                schema=StringItemSchema(description=_("执行方案 ID")),
+                name=_("执行方案 ID"), key="job_plan_id", type="string", schema=StringItemSchema(description=_("执行方案 ID")),
             ),
             self.InputItem(
                 name=_("全局变量"),
@@ -155,8 +152,7 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
                     data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(val))
                     return False
 
-                if ip_list:
-                    global_var_list.append({"id": _value["id"], "server": {"ip_list": ip_list}})
+                global_var_list.append({"id": _value["id"], "server": {"ip_list": ip_list}})
             else:
                 global_var_list.append({"id": _value["id"], "value": val})
 

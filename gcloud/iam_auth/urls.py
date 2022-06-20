@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -19,4 +19,5 @@ urlpatterns = [
     url(r"^meta/$", api.meta_info),
     url(r"^apply_perms_url/$", api.apply_perms_url),
     url(r"^is_allow/$", api.is_allow),
+    url(r"^is_allow/common_flow_management/$", api.is_allow_common_flow_management),
 ]

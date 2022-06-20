@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -23,6 +23,8 @@ class Taskflow3Config(AppConfig):
         from gcloud.taskflow3.signals.handlers import pipeline_finish_handler  # noqa
         from gcloud.taskflow3.signals.handlers import pipeline_revoke_handler  # noqa
         from gcloud.taskflow3.signals.handlers import pipeline_fail_handler  # noqa
+        from gcloud.taskflow3.signals.handlers import pre_service_execute_handler  # noqa
+        from gcloud.taskflow3.signals.handlers import pre_service_schedule_handler  # noqa
 
         # bamboo-pipeline 流程实例 unpickle 路径兼容
         from gcloud.taskflow3.domains import context

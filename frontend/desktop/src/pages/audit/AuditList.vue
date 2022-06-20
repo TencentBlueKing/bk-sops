@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -16,7 +16,7 @@
                 <advance-search-form
                     id="auditList"
                     :open="isSearchFormOpen"
-                    :search-config="{ placeholder: $t('请输入任务名称') }"
+                    :search-config="{ placeholder: $t('请输入任务名称'), value: requestData.taskName }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
@@ -433,6 +433,7 @@
             searchInputhandler (data) {
                 this.requestData.taskName = data
                 this.pagination.current = 1
+                this.updateUrl()
                 this.loadAuditTask()
             },
             async getProjectList () {

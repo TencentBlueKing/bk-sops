@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -42,6 +42,10 @@
                     return {}
                 }
             },
+            preMakoDisabled: {
+                type: Boolean,
+                default: false
+            },
             editable: {
                 type: Boolean,
                 default: true
@@ -76,7 +80,10 @@
             }),
             ...mapState('project', {
                 project_id: state => state.project_id
-            })
+            }),
+            reuseTaskId () {
+                return this.$route.query.task_id
+            }
         },
         watch: {
             constants (val) {
@@ -104,6 +111,9 @@
             ...mapMutations('atomForm/', [
                 'clearAtomForm'
             ]),
+            ...mapActions('task/', [
+                'getTaskInstanceData'
+            ]),
             /**
              * 加载表单元素的标准插件配置文件
              */
@@ -130,6 +140,13 @@
                     this.$emit('onChangeConfigLoading', true)
                 }
 
+                // 任务参数重用
+                let pipelineTree = null
+                if (this.reuseTaskId) {
+                    const instanceData = await this.getTaskInstanceData(this.reuseTaskId)
+                    pipelineTree = JSON.parse(instanceData.pipeline_tree)
+                }
+
                 for (const variable of variableArray) {
                     const { key } = variable
                     const { plugin_code } = variable
@@ -144,16 +161,56 @@
                             atomConfig = await this.getThirdPartyAtomConfig(plugin_code, version)
                         } else {
                             await this.loadAtomConfig({ name, atom, classify, version, project_id: this.project_id })
-                            atomConfig = this.atomFormConfig[atom][version]
+                            atomConfig = tools.deepClone(this.atomFormConfig[atom][version])
                         }
                     }
+                    if (this.preMakoDisabled && variable.pre_render_mako) { // 修改参数页变量预渲染禁止编辑
+                        atomConfig.forEach(item => {
+                            if (!item.attrs) {
+                                item.attrs = {}
+                            }
+                            item.attrs['disabled'] = true
+                            item.attrs['pre_mako_tip'] = i18n.t('设置了模板预渲染的变量，不支持中途修改参数值')
+                            if (item.attrs.children) { // 预渲染变量下包含子组件配置禁止编辑
+                                this.setAtomDisable(item.attrs.children)
+                            }
+                        })
+                    }
                     let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
+                    // 任务参数重用(元变量单独处理)
+                    if (pipelineTree && !variable.is_meta) {
+                        const taskVariable = pipelineTree.constants[key]
+                        if (taskVariable && taskVariable.custom_type === variable.custom_type) { // 重用
+                            if (Object.prototype.toString.call(variable.value) === '[Object Object]') {
+                                const match = Object.keys(variable.value).every(key => key in taskVariable.value)
+                                if (match) {
+                                    variable.value = taskVariable.value
+                                }
+                            } else {
+                                variable.value = taskVariable.value
+                            }
+                        } else if (currentFormConfig) { // 不重用
+                            currentFormConfig.attrs.notReuse = true
+                        }
+                    }
 
                     if (currentFormConfig) {
                         // 若该变量是元变量则进行转换操作
                         if (variable.is_meta || currentFormConfig.meta_transform) {
                             currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
                             this.metaConfig[key] = tools.deepClone(variable)
+                            // 任务参数重用(元变量)
+                            const { remote_url } = currentFormConfig.attrs
+                            if (!remote_url && pipelineTree && pipelineTree.constants[key]) { // 重用(远程数据源不进行重用)
+                                const { value, meta, custom_type } = pipelineTree.constants[key]
+                                const listType = custom_type === 'datatable' ? 'columns' : 'items'
+                                const match = meta && meta.value[`${listType}_text`].replace(/ /g, '') === JSON.stringify(currentFormConfig.attrs[listType])
+                                if (match) {
+                                    currentFormConfig.attrs.value = value
+                                }
+                            } else if (pipelineTree) { // 不重用
+                                currentFormConfig.attrs.notReuse = true
+                            }
                             if (!variable.meta) {
                                 variable.value = currentFormConfig.attrs.value
                             }
@@ -189,6 +246,17 @@
                 this.$nextTick(() => {
                     this.isConfigLoading = false
                     this.$emit('onChangeConfigLoading', false)
+                })
+            },
+            setAtomDisable (atomList) {
+                atomList.forEach(item => {
+                    if (!item.attrs) {
+                        item.attrs = {}
+                    }
+                    item.attrs['disabled'] = true
+                    if (item.attrs.children) {
+                        this.setAtomDisable(item.attrs.children)
+                    }
                 })
             },
             async getThirdPartyAtomConfig (code, version) {

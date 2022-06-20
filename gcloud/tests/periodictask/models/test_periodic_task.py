@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -43,6 +43,7 @@ class PeriodicTaskTestCase(TestCase):
             pipeline_tree=self.pipeline_tree,
             creator=self.creator,
             project=self.project,
+            template_version=self.template_version,
         )
 
     @factory.django.mute_signals(signals.pre_save, signals.post_save)
@@ -76,10 +77,8 @@ class PeriodicTaskTestCase(TestCase):
         self.pipeline_template = PipelineTemplate.objects.create(
             template_id=uniqid(), name=self.task_template_name, creator=self.creator, snapshot=self.snapshot
         )
-        task_template = TaskTemplate(
-            project=self.project,
-            pipeline_template=self.pipeline_template,
-        )
+        self.template_version = "template_version"
+        task_template = TaskTemplate(project=self.project, pipeline_template=self.pipeline_template,)
         task_template.save()
         self.template = task_template
         self.task = self.create_a_task()
@@ -99,11 +98,27 @@ class PeriodicTaskTestCase(TestCase):
         self.assertEqual(self.task.template_id, self.template.id)
         self.assertEqual(self.task.project.id, self.project.id)
 
+    def test_update_task(self):
+        PeriodicTask.objects.update(
+            instance=self.task,
+            name="test",
+            template=self.template,
+            cron={"hour": "*/5"},
+            pipeline_tree=self.pipeline_tree,
+            editor=self.creator,
+            project=self.project,
+            template_version=f"new_{self.template_version}",
+        )
+        self.assertEqual(self.task.template_version, f"new_{self.template_version}")
+        self.assertEqual(self.task.editor, self.creator)
+        self.assertEqual(self.task.template_id, self.template.id)
+        self.assertEqual(self.task.project.id, self.project.id)
+
     @patch(PIPELINE_TEMPLATE_WEB_WRAPPER_UNFOLD_SUBPROCESS, MagicMock())
     @patch(PERIODIC_TASK_PIPELINE_PERIODIC_TASK_CREATE_TASK, MagicMock())
     def test_create_pipeline_task(self):
         pipeline_tree = self.pipeline_tree
-        PeriodicTask.objects.create_pipeline_task(
+        PeriodicTask.objects.create_or_update_pipeline_task(
             project=self.project,
             template=self.template,
             name=self.name,
@@ -136,11 +151,30 @@ class PeriodicTaskTestCase(TestCase):
         )
 
     @patch(PIPELINE_TEMPLATE_WEB_WRAPPER_UNFOLD_SUBPROCESS, MagicMock())
+    def test_update_pipeline_task(self):
+        new_pipeline_tree = {**self.pipeline_tree, "new_tree_key": "new_tree"}
+        pipeline_task = self.task.task
+        PeriodicTask.objects.create_or_update_pipeline_task(
+            project=self.project,
+            template=self.template,
+            name=self.name,
+            cron={"hour": "*/5"},
+            pipeline_tree=new_pipeline_tree,
+            creator=self.creator,
+            is_create=False,
+            instance=pipeline_task,
+        )
+
+        PipelineTemplateWebWrapper.unfold_subprocess.assert_called_once_with(new_pipeline_tree, self.template.__class__)
+        self.assertEqual(pipeline_task.snapshot.data, Snapshot.objects.create_snapshot(new_pipeline_tree).data)
+        self.assertEqual(pipeline_task.cron, "* */5 * * * (m/h/dM/MY/d) Asia/Shanghai")
+
+    @patch(PIPELINE_TEMPLATE_WEB_WRAPPER_UNFOLD_SUBPROCESS, MagicMock())
     @patch(PERIODIC_TASK_PIPELINE_PERIODIC_TASK_CREATE_TASK, MagicMock())
     def test_create_pipeline_task__raise_invalid_operation(self):
         self.assertRaises(
             InvalidOperationException,
-            PeriodicTask.objects.create_pipeline_task,
+            PeriodicTask.objects.create_or_update_pipeline_task,
             project=self.invalid_project,
             template=self.template,
             name=self.name,

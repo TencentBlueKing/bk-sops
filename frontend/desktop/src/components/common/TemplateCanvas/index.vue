@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -509,7 +509,7 @@
                 const $branchEl = e.target
                 const lineId = $branchEl.dataset.lineid
                 const nodeId = $branchEl.dataset.nodeid
-                const { name, evaluate: value } = this.canvasData.branchConditions[nodeId][lineId]
+                const { name, evaluate: value, tag } = this.canvasData.branchConditions[nodeId][lineId]
                 if ($branchEl.classList.contains('branch-condition')) {
                     e.stopPropagation()
                     this.$emit('onConditionClick', {
@@ -517,6 +517,7 @@
                         nodeId,
                         name,
                         value,
+                        tag,
                         overlayId
                     })
                 }
@@ -669,6 +670,12 @@
                             target: targetId,
                             data: Object.assign({}, node.conditions[line.id])
                         })
+                    } else if (node && node.default_condition && node.default_condition.flow_id === line.id) {
+                        conditions.push({
+                            source: sourceId,
+                            target: targetId,
+                            data: Object.assign({}, node.default_condition)
+                        })
                     }
                 })
                 const endpointOptions = Object.assign({
@@ -785,9 +792,14 @@
                         // 兼容旧数据，分支条件里没有 name 属性的情况
                         const labelName = branchInfo[lineId].name || labelValue
                         const loc = ('loc' in branchInfo[lineId]) ? branchInfo[lineId].loc : -70
+                        const gatewayInfo = this.$store.state.template.gateways[line.source.id]
+                        let defaultCls = ''
+                        if (gatewayInfo && gatewayInfo.default_condition && gatewayInfo.default_condition.flow_id === lineId) {
+                            defaultCls = 'default-branch'
+                        }
                         const labelData = {
                             type: 'Label',
-                            name: `<div class="branch-condition"
+                            name: `<div class="branch-condition ${defaultCls}"
                                     title="${tools.escapeStr(labelName)}(${tools.escapeStr(labelValue)})"
                                     data-lineid="${lineId}"
                                     data-nodeid="${line.sourceId}">${labelName}</div>`,
@@ -945,6 +957,8 @@
                         const node = this.$store.state.template.gateways[sId]
                         if (node && node.conditions && node.conditions[line.id]) {
                             condition = Object.assign({}, node.conditions[line.id])
+                        } else if (node && node.default_condition && node.default_condition.flow_id === line.id) {
+                            condition = Object.assign({}, node.default_condition)
                         }
 
                         const source = {
@@ -1142,9 +1156,14 @@
                 const line = this.canvasData.lines.find(item => item.id === lineId)
                 this.$refs.jsFlow.removeLineOverlay(line, overlayId)
                 this.$nextTick(() => {
+                    const gatewayInfo = this.$store.state.template.gateways[line.source.id]
+                    let defaultCls = ''
+                    if (gatewayInfo && gatewayInfo.default_condition && gatewayInfo.default_condition.flow_id === lineId) {
+                        defaultCls = 'default-branch'
+                    }
                     const labelData = {
                         type: 'Label',
-                        name: `<div class="branch-condition"
+                        name: `<div class="branch-condition ${defaultCls}"
                                 title="${tools.escapeStr(name)}(${tools.escapeStr(value)})"
                                 data-lineid="${lineId}"
                                 data-nodeid="${line.source.id}">${name}</div>`,
@@ -1698,6 +1717,13 @@
                 white-space: nowrap;
                 text-overflow: ellipsis;
                 overflow: hidden;
+                &.default-branch {
+                    background: #f0f1f5;
+                    border: 1px solid #c4c6cc;
+                    &:hover {
+                        border-color: #c4c6cc;
+                    }
+                }
             }
         }
         &.editable {

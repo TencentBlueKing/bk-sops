@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -36,8 +36,10 @@ class TaskExecutorTestCase(TestCase):
     def test_use_taskflow_executor_proxy(self):
         taskflow = MagicMock()
         taskflow.executor_proxy = "dummy"
+        taskflow.record_and_get_executor_proxy = MagicMock(return_value="dummy")
         context = TaskContext()
         self.assertEqual(context.task_executor(taskflow, "operator"), "dummy")
+        taskflow.record_and_get_executor_proxy.assert_called_once_with("dummy")
 
     def test_use_project_config_executor_proxy(self):
         project_config = MagicMock()
@@ -45,5 +47,7 @@ class TaskExecutorTestCase(TestCase):
         with patch(TASKFLOW_CONTEXT_PROJECT_CONFIG, project_config):
             taskflow = MagicMock()
             taskflow.executor_proxy = ""
+            taskflow.record_and_get_executor_proxy = MagicMock(return_value="proxy")
             context = TaskContext()
             self.assertEqual(context.task_executor(taskflow, "operator"), "proxy")
+            taskflow.record_and_get_executor_proxy.assert_called_once_with("proxy")

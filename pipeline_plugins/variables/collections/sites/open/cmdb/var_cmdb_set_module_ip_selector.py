@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -54,7 +54,7 @@ class SetModuleIpSelector(LazyVariable, SelfExplainVariable):
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
-            return "ERROR: executor and project_id of pipeline is needed"
+            raise Exception("ERROR: executor and project_id of pipeline is needed")
         var_ip_selector = self.value
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
@@ -80,13 +80,7 @@ class SetModuleIpSelector(LazyVariable, SelfExplainVariable):
             service_template_list = get_service_template_list(username, bk_biz_id, bk_supplier_account)
             # 如果勾选的set中有空闲机池，则会将所有空闲机module id添加进去
             service_template_list.extend(
-                get_biz_inner_module_list(
-                    var_ip_selector,
-                    username,
-                    bk_biz_id,
-                    bk_supplier_account,
-                    produce_method,
-                )
+                get_biz_inner_module_list(var_ip_selector, username, bk_biz_id, bk_supplier_account, produce_method)
             )
 
             # 通过集群模块筛选的ip
@@ -138,7 +132,7 @@ class SetModuleIpSelector(LazyVariable, SelfExplainVariable):
 
         else:
             # 输入ip方式不存在
-            logger.error("[SetModuleIpSelector.get_value] input ip method: {} not exit".format(produce_method))
+            logger.error("[SetModuleIpSelector.get_value] input ip method: {} not exist".format(produce_method))
             data = ""
         return data
 

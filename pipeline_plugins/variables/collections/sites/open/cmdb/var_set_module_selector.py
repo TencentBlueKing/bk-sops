@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -126,7 +126,7 @@ class VarSetModuleSelector(LazyVariable, SelfExplainVariable):
             flat__module_id: ${var.flat__module_id}
         """
         if "executor" not in self.pipeline_data or "biz_cc_id" not in self.pipeline_data:
-            return "ERROR: executor and biz_cc_id of pipeline is needed"
+            raise Exception("ERROR: executor and biz_cc_id of pipeline is needed")
         operator = self.pipeline_data.get("executor", "")
         bk_biz_id = int(self.pipeline_data.get("biz_cc_id", 0))
         bk_set_id = int(self.value.get("bk_set_id", 0))

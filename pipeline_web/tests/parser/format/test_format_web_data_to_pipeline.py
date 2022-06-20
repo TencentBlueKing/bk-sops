@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -850,7 +850,8 @@ web_tree = json.loads(
                 "stage_name": "",
                 "type": "ServiceActivity",
                 "retryable": true,
-                "skippable": true
+                "skippable": true,
+                "executor_proxy": "tester"
             },
             "n465cfafc9723b14abfd93c20c15f101": {
                 "component": {
@@ -2086,6 +2087,12 @@ pipeline_tree = json.loads(
                             "value": true,
                             "is_param": false,
                             "need_render": true
+                        },
+                        "__executor_proxy": {
+                            "type": "plain",
+                            "value": "tester",
+                            "is_param": false,
+                            "need_render": false
                         }
                     },
                     "global_outputs": {
@@ -2104,7 +2111,8 @@ pipeline_tree = json.loads(
                 "stage_name": "",
                 "type": "ServiceActivity",
                 "retryable": true,
-                "skippable": true
+                "skippable": true,
+                "executor_proxy": "tester"
             },
             "n465cfafc9723b14abfd93c20c15f101": {
                 "component": {

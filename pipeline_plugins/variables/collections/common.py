@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -22,6 +22,7 @@ from django.utils import timezone
 
 from gcloud.constants import Type
 from gcloud.core.models import StaffGroupSet
+from gcloud.exceptions import ApiRequestError
 from gcloud.utils.cmdb import get_notify_receivers
 from gcloud.conf import settings as gcloud_settings
 from pipeline.core.data.var import SpliceVariable, LazyVariable, RegisterVariableMeta
@@ -314,7 +315,7 @@ class StaffGroupSelector(LazyVariable, SelfExplainVariable):
 
     def get_value(self):
         if "executor" not in self.pipeline_data or "biz_cc_id" not in self.pipeline_data:
-            return "ERROR: executor and biz_cc_id of pipeline is needed"
+            raise Exception("ERROR: executor and biz_cc_id of pipeline is needed")
         operator = self.pipeline_data["executor"]
         bk_biz_id = int(self.pipeline_data["biz_cc_id"])
         supplier_account = supplier_account_for_business(bk_biz_id)
@@ -336,8 +337,9 @@ class StaffGroupSelector(LazyVariable, SelfExplainVariable):
         # 拼接cc分组人员和自定义分组人员
         res = get_notify_receivers(client, bk_biz_id, supplier_account, cc_staff_group, staff_names)
 
-        if res["result"]:
-            return res["data"]
-        else:
-            logger.error("get cc({}) staff_group failed".format(bk_biz_id))
-            return staff_names
+        if not res["result"]:
+            message = f'get cc({bk_biz_id}) staff_group failed: {res["message"]}'
+            logger.error(message)
+            raise ApiRequestError(message)
+
+        return res["data"]

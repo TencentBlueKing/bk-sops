@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -18,7 +18,7 @@
                     id="commonTplList"
                     :open="isSearchFormOpen"
                     :search-form="searchForm"
-                    :search-config="{ placeholder: $t('请输入流程名称') }"
+                    :search-config="{ placeholder: $t('请输入流程名称'), value: requestData.flowName }"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
                     <template v-slot:operation>
@@ -79,10 +79,12 @@
                 </advance-search-form>
                 <div class="template-table-content" data-test-id="commonProcess_table_processList">
                     <bk-table
+                        ref="templateTable"
                         class="template-table"
                         :data="templateList"
                         :pagination="pagination"
                         :size="setting.size"
+                        :default-sort="getDefaultSortConfig"
                         v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1, zIndex: 100 }"
                         @sort-change="handleSortChange"
                         @page-change="onPageChange"
@@ -96,10 +98,12 @@
                             v-for="item in setting.selectedFields"
                             :key="item.id"
                             :label="item.label"
-                            :prop="item.id"
+                            :prop="item.key || item.id"
                             :width="item.width"
                             :min-width="item.min_width"
-                            :sortable="item.sortable">
+                            :render-header="renderTableHeader"
+                            :sort-orders="['descending', 'ascending', null]"
+                            :sortable="sortableCols.find(col => col.value === (item.key || item.id)) ? 'custom' : false">
                             <template slot-scope="{ row }">
                                 <!--流程名称-->
                                 <div v-if="item.id === 'name'" class="name-column">
@@ -206,12 +210,14 @@
                             </template>
                         </bk-table-column>
                         <bk-table-column type="setting">
-                            <bk-table-setting-content
+                            <table-setting-content
                                 :fields="setting.fieldList"
                                 :selected="setting.selectedFields"
                                 :size="setting.size"
+                                :sortable-cols="sortableCols"
+                                :order="ordering"
                                 @setting-change="handleSettingChange">
-                            </bk-table-setting-content>
+                            </table-setting-content>
                         </bk-table-column>
                         <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
                     </bk-table>
@@ -271,6 +277,7 @@
     import ExportTemplateDialog from '@/pages/template/TemplateList/ExportTemplateDialog.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
+    import TableSettingContent from '@/components/common/TableSettingContent.vue'
     import permission from '@/mixins/permission.js'
     import SelectProjectModal from '@/components/common/modal/SelectProjectModal.vue'
     // moment用于时区使用
@@ -327,9 +334,9 @@
             min_width: 400
         },
         {
+            key: 'pipeline_template__create_time',
             id: 'create_time',
             label: i18n.t('创建时间'),
-            sortable: 'custom',
             width: 200
         },
         {
@@ -339,11 +346,13 @@
             width: 200
         },
         {
+            key: 'pipeline_template__edit_time',
             id: 'subprocess_has_update',
             label: i18n.t('子流程更新'),
             width: 200
         },
         {
+            key: 'category',
             id: 'category_name',
             label: i18n.t('分类'),
             min_width: 180
@@ -368,7 +377,8 @@
             ExportTemplateDialog,
             SelectProjectModal,
             AdvanceSearchForm,
-            NoData
+            NoData,
+            TableSettingContent
         },
         mixins: [permission],
         data () {
@@ -381,7 +391,6 @@
                 creator = '',
                 keyword = ''
             } = this.$route.query
-            console.log(page)
             const searchForm = SEARCH_FORM.map(item => {
                 if (this.$route.query[item.key]) {
                     if (Array.isArray(item.value)) {
@@ -431,6 +440,7 @@
                 expiredSubflowTplList: [],
                 selectedTpls: [], // 选中的流程模板
                 templateList: [],
+                sortableCols: [],
                 isDeleteDialogShow: false,
                 isImportDialogShow: false,
                 isImportYamlDialogShow: false,
@@ -469,14 +479,16 @@
                 hasCreateTaskPerm: true,
                 selectedProject: {},
                 selectedTpl: {},
-                ordering: null, // 排序参数
+                ordering: this.$store.state.project.commonConfig.task_template_ordering, // 排序参数
                 tableFields: TABLE_FIELDS,
                 defaultSelected: ['id', 'name', 'label', 'edit_time', 'subprocess_has_update', 'creator_name'],
                 setting: {
                     fieldList: TABLE_FIELDS,
                     selectedFields: TABLE_FIELDS.slice(0),
                     size: 'small'
-                }
+                },
+                isInit: true, // 避免default-sort在初始化时去触发table的sort-change事件
+                categoryTips: i18n.t('模板分类即将下线，建议使用标签')
             }
         },
         computed: {
@@ -507,6 +519,17 @@
                     result = this.selectedTpls.every(template => this.hasPermission(['common_flow_delete'], template.auth_actions))
                 }
                 return result
+            },
+            // 获取默认排序配置
+            getDefaultSortConfig () {
+                const { ordering } = this
+                if (ordering) {
+                    if (/^-/.test(this.ordering)) {
+                        return { prop: ordering.replace(/^-/, ''), order: 'descending' }
+                    }
+                    return { prop: ordering, order: 'ascending' }
+                }
+                return {}
             }
         },
         watch: {
@@ -522,14 +545,29 @@
             this.getProjectBaseInfo()
             this.queryCreateCommonTplPerm()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+            // 获取表头排序列表和设置
+            const res = await this.getUserProjectConfigOptions({ id: -1, params: { configs: 'task_template_ordering' } })
+            this.sortableCols = res.data.task_template_ordering
+            const commonConfig = await this.getUserProjectConfigs(-1)
+            this.setCommonConfig(commonConfig.data)
+            this.ordering = commonConfig.data.task_template_ordering
+
             await this.getTemplateList()
             this.firstLoading = false
         },
         methods: {
+            ...mapMutations('project', [
+                'setCommonConfig'
+            ]),
             ...mapActions([
                 'queryUserPermission',
                 'addToCollectList',
                 'deleteCollect'
+            ]),
+            ...mapActions('project/', [
+                'getUserProjectConfigOptions',
+                'getUserProjectConfigs',
+                'setUserProjectConfig'
             ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo'
@@ -570,6 +608,7 @@
                     console.log(e)
                 } finally {
                     this.listLoading = false
+                    this.isInit = false
                 }
             },
             getQueryData () {
@@ -591,8 +630,15 @@
                     category: category || undefined,
                     subprocess_has_update,
                     has_subprocess,
-                    order_by: this.ordering || undefined,
                     new: true
+                }
+                const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
+                if (keys.includes(this.ordering)) {
+                    const symbol = /^-/.test(this.ordering) ? '-' : ''
+                    const orderVal = this.ordering.replace(/^-/, '')
+                    data['order_by'] = `${symbol}pipeline_template__${orderVal}`
+                } else {
+                    data['order_by'] = this.ordering
                 }
                 if (queryTime[0] && queryTime[1]) {
                     data['pipeline_template__edit_time__gte'] = moment(queryTime[0]).format('YYYY-MM-DD')
@@ -646,6 +692,7 @@
             searchInputhandler (data) {
                 this.requestData.flowName = data
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getTemplateList()
             },
             onSearchFormSubmit (data) {
@@ -817,8 +864,17 @@
                             const index = this.selectedTpls.findIndex(tpl => tpl.id === id)
                             this.selectedTpls.splice(index, 1)
                         })
+                        this.$bkMessage({
+                            message: i18n.t('流程') + i18n.t('删除成功！'),
+                            theme: 'success'
+                        })
                         this.pagination.current = 1
                         this.getTemplateList()
+                    } else if (Object.keys(res.data.references).length) {
+                        this.$bkMessage({
+                            message: i18n.t('流程当前被使用中，无法删除'),
+                            theme: 'error'
+                        })
                     }
                 }
                 return Promise.resolve()
@@ -876,16 +932,37 @@
                 this.isDeleteDialogShow = true
             },
             handleSortChange ({ prop, order }) {
-                const params = 'pipeline_template__' + prop
+                if (this.isInit) return
                 if (order === 'ascending') {
-                    this.ordering = params
+                    this.ordering = prop
                 } else if (order === 'descending') {
-                    this.ordering = '-' + params
+                    this.ordering = '-' + prop
                 } else {
                     this.ordering = ''
                 }
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getTemplateList()
+                if (this.ordering) {
+                    this.setUserProjectConfig({ id: -1, params: { task_template_ordering: this.ordering } })
+                }
+            },
+            renderTableHeader (h, { column, $index }) {
+                if (column.property !== 'category') {
+                    return column.label
+                }
+                return h('span', {
+                    'class': 'category-label'
+                }, [
+                    column.label,
+                    h('i', {
+                        'class': 'common-icon-info table-header-tips',
+                        directives: [{
+                            name: 'bk-tooltips',
+                            value: this.categoryTips
+                        }]
+                    })
+                ])
             },
             onPageChange (page) {
                 this.pagination.current = page
@@ -899,7 +976,7 @@
                 this.getTemplateList()
             },
             // 表格功能选项
-            handleSettingChange ({ fields, size }) {
+            handleSettingChange ({ fields, size, order }) {
                 this.setting.size = size
                 this.setting.selectedFields = fields
                 const fieldIds = fields.map(m => m.id)
@@ -907,6 +984,12 @@
                     fieldList: fieldIds,
                     size
                 }))
+                if (order && order !== this.ordering) {
+                    this.ordering = order
+                    this.$refs.templateTable.clearSort()
+                    this.$refs.templateTable.sort(/^-/.test(order) ? order.replace(/^-/, '') : order, /^-/.test(order) ? 'descending' : 'ascending')
+                    this.setUserProjectConfig({ id: -1, params: { task_template_ordering: order } })
+                }
             },
             updateUrl () {
                 const { current, limit } = this.pagination
@@ -952,7 +1035,8 @@
                         templateId: this.theDeleteTemplateId,
                         common: '1'
                     }
-                    await this.deleteTemplate(data)
+                    const resp = await this.deleteTemplate(data)
+                    if (!resp.result) return
                     if (this.selectedTpls.find(tpl => tpl.id === this.theDeleteTemplateId)) {
                         const index = this.selectedTpls.findIndex(tpl => tpl.id === this.theDeleteTemplateId)
                         this.selectedTpls.splice(index, 1)
@@ -967,6 +1051,10 @@
                         this.pagination.current -= 1
                     }
                     this.getTemplateList()
+                    this.$bkMessage({
+                        message: i18n.t('公共流程') + i18n.t('删除成功！'),
+                        theme: 'success'
+                    })
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -1271,6 +1359,12 @@ a {
             font-size: 18px;
             color: #979ba5;
         }
+    }
+    /deep/.table-header-tips {
+        margin-left: 4px;
+        font-size: 14px;
+        color: #c4c6cc;
+        cursor: pointer;
     }
 }
 </style>

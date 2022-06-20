@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -72,6 +72,7 @@ PERIODIC_TASK_FILTER = "gcloud.periodictask.models.PeriodicTask.objects.filter"
 PERIODIC_TASK_GET = "gcloud.periodictask.models.PeriodicTask.objects.get"
 PERIODIC_TASK_CREATE = "gcloud.periodictask.models.PeriodicTask.objects.create"
 PERIODIC_TASK_PIPELINE_PERIODIC_TASK_CREATE_TASK = "gcloud.periodictask.models.PipelinePeriodicTask.objects.create_task"
+PERIODIC_TASK_CREATE_SNAPSHOT = "gcloud.periodictask.models.Snapshot.objects.create_snapshot"
 
 PERIODIC_TASK_HISTORY_CREATE = "gcloud.periodictask.models.PeriodicTaskHistory.objects.create"
 

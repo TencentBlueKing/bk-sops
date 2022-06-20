@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -550,6 +550,7 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             {"category": 1, "name": "key_2", "value": "value_2"},
             {"category": 3, "name": "key_3", "value": "1.1.1.1,2.2.2.2"},
             {"category": 3, "name": "key_3", "value": "0:4.4.4.4,0:3.3.3.3"},
+            {"category": 3, "name": "key_4", "value": ""},
         ],
         "job_task_id": 12345,
         "is_tagged_ip": True,
@@ -627,6 +628,7 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
                                     ],
                                 },
                             },
+                            {"name": "key_4", "server": {"ip_list": []}},
                         ],
                         "callback_url": "url_token",
                     }

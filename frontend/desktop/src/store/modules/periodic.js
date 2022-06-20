@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -34,7 +34,7 @@ const periodic = {
          */
         createPeriodic ({ state }, data) {
             const { project_id } = store.state.project
-            const { name, cron, templateId, execData, templateSource } = data
+            const { name, cron, templateId, execData, templateSource, schemeIds } = data
 
             return axios.post('api/v3/periodic_task/', {
                 project: project_id,
@@ -42,7 +42,8 @@ const periodic = {
                 name,
                 template_id: templateId,
                 pipeline_tree: execData,
-                template_source: templateSource
+                template_source: templateSource,
+                template_scheme_ids: schemeIds
             }).then(response => response.data)
         },
         /**
@@ -82,6 +83,14 @@ const periodic = {
         // 删除单个周期任务
         deletePeriodic ({ commit }, taskId) {
             return axios.delete(`api/v3/periodic_task/${taskId}/`).then(response => response.data)
+        },
+        // 更新周期任务流程
+        updatePeriodicTask ({ commit }, data) {
+            return axios.put(`api/v3/periodic_task/${data.taskId}/`, data).then(response => response.data.data)
+        },
+        // 修改周期任务部分配置
+        updatePeriodicPartial ({ commit }, data) {
+            return axios.patch(`api/v3/periodic_task/${data.taskId}/`, data).then(response => response.data)
         }
     }
 }

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 from gcloud.core.apis.drf.viewsets import IAMMixin
 from gcloud.iam_auth import get_iam_client, res_factory, IAMMeta
 from rest_framework import permissions
+
+from .serializer import ClockedTaskListPermissionSerializer
 
 iam = get_iam_client()
 
@@ -29,17 +31,23 @@ class ClockedTaskPermissions(IAMMixin, permissions.BasePermission):
 
     def has_permission(self, request, view):
         if view.action == "list":
-            if "project_id" not in request.query_params:
-                return False
+            serializer = ClockedTaskListPermissionSerializer(data=request.query_params)
+            serializer.is_valid(raise_exception=True)
+
             self.iam_auth_check(
                 request,
                 action=self.actions[view.action],
-                resources=res_factory.resources_for_project(request.query_params["project_id"]),
+                resources=res_factory.resources_for_project(serializer.validated_data["project_id"]),
             )
         elif view.action == "create":
-            template_id = request.data.get("template_id")
+            serializer = view.serializer_class(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            template_id = serializer.validated_data["template_id"]
             self.iam_auth_check(
-                request, action=self.actions[view.action], resources=res_factory.resources_for_flow(template_id),
+                request,
+                action=self.actions[view.action],
+                resources=res_factory.resources_for_flow(template_id),
             )
         return True
 

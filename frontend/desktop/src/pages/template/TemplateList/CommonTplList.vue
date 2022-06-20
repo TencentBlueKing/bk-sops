@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -18,7 +18,7 @@
                     id="commonTplList"
                     :open="isSearchFormOpen"
                     :search-form="searchForm"
-                    :search-config="{ placeholder: $t('请输入流程名称') }"
+                    :search-config="{ placeholder: $t('请输入流程名称'), value: requestData.flowName }"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
                     <template v-slot:search-extend>
@@ -438,6 +438,7 @@
             searchInputHandler (data) {
                 this.requestData.flowName = data
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getTemplateList()
             },
             onSearchFormSubmit (data) {

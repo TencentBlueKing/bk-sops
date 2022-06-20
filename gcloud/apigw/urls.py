@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.conf.urls import url
 
+from gcloud.apigw.views.create_clocked_task import create_clocked_task
 from gcloud.apigw.views.get_mini_app_list import get_mini_app_list
 from gcloud.apigw.views.register_project import register_project
 from gcloud.apigw.views.get_plugin_detail import get_plugin_detail
@@ -97,5 +98,6 @@ urlpatterns = [
     url(r"^preview_common_task_tree/(?P<project_id>\d+)/(?P<template_id>\d+)/$", preview_common_task_tree),
     url(r"^register_project/$", register_project),
     url(r"^create_and_start_task/(?P<template_id>\d+)/(?P<project_id>\d+)/$", create_and_start_task),
+    url(r"^create_clocked_task/(?P<template_id>\d+)/(?P<project_id>\d+)/$", create_clocked_task),
     url(r"^get_mini_app_list/(?P<project_id>\d+)/$", get_mini_app_list),
 ]

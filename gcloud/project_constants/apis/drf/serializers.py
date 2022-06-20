@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -20,6 +20,10 @@ from gcloud.project_constants.models import ProjectConstant
 
 VALID_KEY_PATTERN = r"^[a-zA-Z_][a-zA-Z0-9_]*$"
 VALID_KEY_REGEX = re.compile(VALID_KEY_PATTERN)
+
+
+class ProjectConstantsListPermissionSerializer(serializers.Serializer):
+    project_id = serializers.IntegerField()
 
 
 class ProjectConstantsSerializer(serializers.ModelSerializer):

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -56,6 +56,19 @@
                     </el-option-group>
                 </template>
             </el-select>
+            <p v-if="multiple" class="selected-tip">
+                {{ $t('已选') }}
+                <span class="count">{{ seletedValue.length }}</span>
+                {{ $t('项') }}
+                <bk-button
+                    class="ml10"
+                    :disabled="!editable || disabled || !seletedValue.length"
+                    text
+                    title="primary"
+                    @click="onClear">
+                    {{ $t('清除') }}
+                </bk-button>
+            </p>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
         <span v-else class="rf-view-value">{{viewValue}}</span>
@@ -221,7 +234,8 @@
             return {
                 options: this.$attrs.items ? this.$attrs.items.slice(0) : [],
                 loading: false,
-                loading_text: gettext('加载中')
+                loading_text: gettext('加载中'),
+                selectInputDom: null
             }
         },
         computed: {
@@ -266,6 +280,32 @@
         },
         mounted () {
             this.remoteMethod()
+            if (this.multiple) {
+                this.selectInputDom = document.querySelector('.el-select .el-select__input')
+                if (!this.selectInputDom) return
+                this.selectInputDom.addEventListener('paste', (event) => {
+                    event.preventDefault()
+                    let paste = (event.clipboardData || window.clipboardData).getData('text')
+                    paste = paste.replace(/\\(t|s)/g, ' ')
+                    const selection = window.getSelection()
+                    if (!selection.rangeCount) return false
+                    paste = paste.split(/,|;|\s+/).filter(item => item)
+                    const matchVal = []
+                    this.items.forEach(item => {
+                        if (paste.includes(item.text)) {
+                            matchVal.push(item.value)
+                        }
+                    })
+                    const setArr = [...this.value, ...matchVal]
+                    this.updateForm([...new Set(setArr)])
+                    this.$refs.selectComp.blur()
+                })
+            }
+        },
+        beforeDestroy () {
+            if (this.selectInputDom) {
+                this.selectInputDom.removeEventListener('paste')
+            }
         },
         methods: {
             filterLabel (val) {
@@ -323,6 +363,9 @@
                 if (!val) { // 下拉框隐藏后，还原搜索过滤掉的选项
                     this.options = this.items.slice(0)
                 }
+            },
+            onClear () {
+                this.updateForm([])
             }
         }
     }
@@ -362,6 +405,13 @@
             &:hover {
                 color: #3a84ff;
             }
+        }
+    }
+    .selected-tip {
+        color: #979ba5;
+        margin-top: 5px;
+        .count {
+            color: #313238;
         }
     }
 </style>

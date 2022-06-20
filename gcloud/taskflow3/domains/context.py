@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -68,7 +68,10 @@ class TaskContext(object):
         :return: 该任务执行时实际使用的执行人
         :rtype: str
         """
-        return taskflow.executor_proxy or ProjectConfig.objects.task_executor_for_project(self.project_id, operator)
+        runtime_executor_proxy = taskflow.executor_proxy or ProjectConfig.objects.task_executor_for_project(
+            self.project_id, operator
+        )
+        return taskflow.record_and_get_executor_proxy(runtime_executor_proxy)
 
     def context(self):
         return {"${%s}" % TaskContext.prefix: {"type": "plain", "is_param": True, "value": self}}

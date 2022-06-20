@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -189,6 +189,12 @@ const store = new Vuex.Store({
          */
         queryUserPermission ({ commit }, data) {
             return axios.post('iam/api/is_allow/', data).then(response => response.data)
+        },
+        /**
+         * 查询用户是否有公共流程管理页面权限
+         */
+        queryUserCommonPermission ({ commit }) {
+            return axios.get('iam/api/is_allow/common_flow_management/').then(response => response.data)
         },
         /**
          * 获取权限中心跳转链接

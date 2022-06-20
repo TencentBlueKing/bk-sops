@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -47,9 +47,10 @@ const clocked = {
          * @param {Object} data 所需参数
          */
         updateClocked ({ state }, data) {
-            const { id, task_parameters, plan_start_time } = data
+            const { id, task_parameters, plan_start_time, task_name } = data
 
             return axios.patch(`api/v4/clocked_task/${id}/`, {
+                task_name,
                 task_parameters,
                 plan_start_time
             }).then(response => response.data)
