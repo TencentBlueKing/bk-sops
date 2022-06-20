@@ -49,7 +49,7 @@
                         ref="basicConfigForm"
                         :rules="rules"
                         :model="formData">
-                        <bk-form-item :label="$t('项目流程')" :required="true" property="flow">
+                        <bk-form-item :label="$t('项目流程')" :required="true" property="flow" data-test-id="periodicEdit_form_selectTemplate">
                             <div v-if="isEdit" class="select-box">
                                 <div class="select-wrapper">
                                     <p>
@@ -101,6 +101,7 @@
                         </bk-form-item>
                         <bk-form-item
                             class="scheme-form-item"
+                            data-test-id="periodicEdit_form_selectScheme"
                             v-if="!isPreview && !isTplDeleted"
                             :label="formData.is_latest === null ? $t('已选节点') : $t('执行方案')"
                             property="schemeId"
@@ -144,10 +145,10 @@
                             </p>
                         </bk-form-item>
                         <p class="title">{{$t('任务信息')}}</p>
-                        <bk-form-item :label="$t('任务名称')" :required="true" property="taskName">
+                        <bk-form-item :label="$t('任务名称')" :required="true" property="taskName" data-test-id="periodicEdit_form_taskName">
                             <bk-input v-model="formData.name"></bk-input>
                         </bk-form-item>
-                        <bk-form-item :label="$t('周期表达式')" :required="true" property="loop">
+                        <bk-form-item :label="$t('周期表达式')" :required="true" property="loop" data-test-id="periodicEdit_form_loop">
                             <LoopRuleSelect
                                 ref="loopRuleSelect"
                                 class="loop-rule"
@@ -174,6 +175,7 @@
                             {{ $t('通知方式统一在流程基础信息管理。如需修改，请') }}
                             <a
                                 class="link"
+                                data-test-id="periodicEdit_form_jumpFlow"
                                 @click="getJumpUrl()">
                                 {{ $t('前往流程') }}
                             </a>
@@ -198,7 +200,7 @@
                         theme="primary"
                         :loading="saveLoading"
                         :disabled="isLoading || previewDataLoading"
-                        data-test-id="periodicList_form_saveBtn"
+                        data-test-id="periodicEdit_form_saveBtn"
                         :class="{ 'btn-permission-disable': hasNoCreatePerm }"
                         v-cursor="{ active: hasNoCreatePerm }"
                         @click="onPeriodicConfirm">
@@ -207,7 +209,7 @@
                     <bk-button
                         theme="default"
                         :disabled="saveLoading"
-                        data-test-id="periodicList_form_cancelBtn"
+                        data-test-id="periodicEdit_form_cancelBtn"
                         @click="onCancelSave">
                         {{ $t('取消') }}
                     </bk-button>
