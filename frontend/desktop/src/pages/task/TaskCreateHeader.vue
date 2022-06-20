@@ -16,7 +16,7 @@
             <div class="title">{{ title }}</div>
             <div v-if="instanceName" class="instance-name">{{ instanceName }}</div>
         </div>
-        <div class="step-area" slot="expand">
+        <div class="step-area" slot="expand" v-if="!isAppMaker || $route.query.type !== 'customize'">
             <bk-steps :steps="steps" :cur-step="currentStep" size="small" line-type="solid"></bk-steps>
         </div>
     </page-header>
@@ -64,6 +64,9 @@
             }),
             isShowBackBtn () {
                 return !(this.view_mode === 'appmaker' && this.$route.path.indexOf('newtask') !== -1)
+            },
+            isAppMaker () {
+                return this.$store.state.view_mode === 'appmaker'
             }
         },
         methods: {

@@ -162,8 +162,7 @@ class JobExecuteTaskServiceBase(JobService):
                     if not result:
                         return False
 
-                if ip_list:
-                    global_vars.append({"name": _value["name"], "server": {"ip_list": ip_list}})
+                global_vars.append({"name": _value["name"], "server": {"ip_list": ip_list}})
             else:
                 global_vars.append({"name": _value["name"], "value": val})
 

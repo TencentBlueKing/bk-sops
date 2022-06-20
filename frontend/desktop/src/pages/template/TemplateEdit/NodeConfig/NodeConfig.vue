@@ -184,6 +184,16 @@
                                             class="bk-icon icon-question-circle section-tips">
                                         </i>
                                     </h3>
+                                    <p class="citations-waivers-guide">
+                                        <bk-popover placement="top-end" theme="light" width="258" :ext-cls="'citations-waivers-guide-tip'">
+                                            <i class="bk-icon icon-info-circle-shape"></i>
+                                            {{ $t('变量引用和豁免使用指引') }}
+                                            <div slot="content">
+                                                <p>{{ $t('变量引用：使用参数的配置创建全局变量并引用，或不创建直接引用同类型变量') }}</p><br>
+                                                <p>{{ $t('变量豁免：开启后忽略参数中的全局变量，视为普通字符串') }}</p>
+                                            </div>
+                                        </bk-popover>
+                                    </p>
                                     <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading, zIndex: 100 }">
                                         <template v-if="!inputLoading">
                                             <input-params
@@ -216,6 +226,7 @@
                                         <template v-if="!outputLoading">
                                             <output-params
                                                 v-if="outputs.length"
+                                                ref="outputParams"
                                                 :constants="localConstants"
                                                 :params="outputs"
                                                 :version="basicInfo.version"
@@ -265,6 +276,19 @@
                     <bk-button theme="default" @click="onClosePanel()">{{ $t('不保存') }}</bk-button>
                 </div>
             </div>
+        </bk-dialog>
+        <bk-dialog
+            width="480"
+            ext-cls="cancel-global-variable-dialog"
+            header-position="left"
+            :mask-close="false"
+            :value="isCancelGloVarDialogShow"
+            :title="$t('取消变量引用')">
+            <p>{{ $t('全局变量【 x 】的引用数已为 0。如果不再使用，可立即删除变量; 也可以稍后再全局变量面板中删除', { key: unhookingVarForm.key })}}</p>
+            <template slot="footer">
+                <bk-button theme="primary" @click="deleteUnhookingVar">{{ $t('删除变量') }}</bk-button>
+                <bk-button @click="onCancelVarConfirmClick">{{ $t('以后再说') }}</bk-button>
+            </template>
         </bk-dialog>
     </div>
 </template>
@@ -317,6 +341,7 @@
                 constantsLoading: false, // 子流程输入参数配置项加载
                 subflowVersionUpdating: false, // 子流程更新
                 isConfirmDialogShow: false, // 确认是否保存编辑数据
+                isCancelGloVarDialogShow: false, // 取消勾选全局变量
                 nodeConfig: {}, // 任务节点的完整 activity 配置参数
                 isBaseInfoLoading: true, // 基础信息loading
                 basicInfo: {}, // 基础信息模块
@@ -333,12 +358,15 @@
                 localConstants: {}, // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
                 randomKey: new Date().getTime(), // 输入、输出参数勾选状态改变时更新popover
                 isThirdParty: false, // 是否为第三方插件
-                quickOperateVariableVisable: false
+                quickOperateVariableVisable: false,
+                variableCited: {}, // 全局变量被任务节点、网关节点以及其他全局变量引用情况
+                unhookingVarForm: {} // 正被取消勾选的表单配置
             }
         },
         computed: {
             ...mapState({
                 'activities': state => state.template.activities,
+                'gateways': state => state.template.gateways,
                 'constants': state => state.template.constants,
                 'internalVariable': state => state.template.internalVariable,
                 'locations': state => state.template.location,
@@ -445,7 +473,8 @@
                 'loadPluginServiceAppDetail'
             ]),
             ...mapActions('template/', [
-                'loadTemplateData'
+                'loadTemplateData',
+                'getVariableCite'
             ]),
             ...mapActions('task', [
                 'loadSubflowConfig'
@@ -737,7 +766,8 @@
                 if (config.type === 'ServiceActivity') {
                     const {
                         component, name, stage_name = '', labels, error_ignorable, can_retry,
-                        retryable, isSkipped, skippable, optional, auto_retry, timeout_config
+                        retryable, isSkipped, skippable, optional, auto_retry, timeout_config,
+                        executor_proxy
                     } = config
                     let basicInfoName = i18n.t('请选择插件')
                     let code = ''
@@ -765,6 +795,7 @@
                             desc = descList.join('<br>')
                         }
                     }
+                    const executorProxy = executor_proxy ? executor_proxy.split(',') : []
 
                     return {
                         plugin: code,
@@ -781,10 +812,11 @@
                         retryable: can_retry === undefined ? retryable : can_retry,
                         selectable: optional,
                         autoRetry: Object.assign({}, { enable: false, interval: 0, times: 1 }, auto_retry),
-                        timeoutConfig: timeout_config || { enable: false, seconds: 10, action: 'forced_fail' }
+                        timeoutConfig: timeout_config || { enable: false, seconds: 10, action: 'forced_fail' },
+                        executor_proxy: executorProxy
                     }
                 } else {
-                    const { template_id, name, stage_name = '', labels, optional, always_use_latest, scheme_id_list } = config
+                    const { template_id, name, stage_name = '', labels, optional, always_use_latest, scheme_id_list, executor_proxy } = config
                     let templateName = i18n.t('请选择子流程')
 
                     if (template_id) {
@@ -803,6 +835,7 @@
                             templateName = templateData.name
                         }
                     }
+                    const executorProxy = executor_proxy ? executor_proxy.split(',') : []
                     return {
                         tpl: template_id || '',
                         name: templateName, // 流程模版名称
@@ -812,7 +845,8 @@
                         selectable: optional,
                         alwaysUseLatest: always_use_latest || false, // 兼容旧数据，该字段为新增
                         schemeIdList: scheme_id_list || [], // 兼容旧数据，该字段为后面新增
-                        version: config.hasOwnProperty('version') ? config.version : '' // 子流程版本，区别于标准插件版本
+                        version: config.hasOwnProperty('version') ? config.version : '', // 子流程版本，区别于标准插件版本
+                        executor_proxy: executorProxy
                     }
                 }
             },
@@ -1186,8 +1220,8 @@
                 this.randomKey = new Date().getTime()
             },
             // 更新全局变量的 source_info
-            setVariableSourceInfo (data) {
-                const { type, id, key, tagCode } = data
+            async setVariableSourceInfo (data) {
+                const { type, id, key, tagCode, source } = data
                 const constant = this.localConstants[key]
                 if (!constant) return
                 const sourceInfo = constant.source_info
@@ -1198,22 +1232,61 @@
                         this.$set(sourceInfo, id, [tagCode])
                     }
                 } else if (type === 'delete') {
-                    if (sourceInfo[id].length <= 1) {
-                        this.$delete(sourceInfo, id)
+                    this.unhookingVarForm = { ...data, value: constant.value }
+                    this.variableCited = await this.getVariableCitedData() || {}
+                    const { activities, conditions, constants } = this.variableCited[key]
+                    const citedNum = activities.length + conditions.length + constants.length
+                    if (citedNum <= 1) {
+                        this.isCancelGloVarDialogShow = true
                     } else {
-                        let atomIndex
-                        sourceInfo[id].some((item, index) => {
-                            if (item === tagCode) {
-                                atomIndex = index
-                                return true
-                            }
-                        })
-                        sourceInfo[id].splice(atomIndex, 1)
-                    }
-                    if (!Object.keys(sourceInfo).length) {
-                        this.deleteVariable(key)
+                        if (sourceInfo[id].length <= 1) {
+                            this.$delete(sourceInfo, id)
+                        } else {
+                            let atomIndex
+                            sourceInfo[id].some((item, index) => {
+                                if (item === tagCode) {
+                                    atomIndex = index
+                                    return true
+                                }
+                            })
+                            sourceInfo[id].splice(atomIndex, 1)
+                        }
+                        const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
+                        refDom && refDom.setFromData()
                     }
                 }
+            },
+            async getVariableCitedData () {
+                try {
+                    const config = this.getNodeFullConfig()
+                    const activities = Object.assign({}, this.activities, { [this.nodeId]: config })
+                    const data = {
+                        activities,
+                        gateways: this.gateways,
+                        constants: { ...this.internalVariable, ...this.localConstants }
+                    }
+                    const resp = await this.getVariableCite(data)
+                    if (resp.result) {
+                        return resp.data.defined
+                    }
+                } catch (e) {
+                    console.log(e)
+                }
+            },
+            deleteUnhookingVar () {
+                const { key, source } = this.unhookingVarForm
+                this.$delete(this.localConstants, key)
+                const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
+                refDom && refDom.setFromData({ ...this.unhookingVarForm })
+                this.isCancelGloVarDialogShow = false
+            },
+            onCancelVarConfirmClick () {
+                const { key, source } = this.unhookingVarForm
+                const constant = this.localConstants[key]
+                constant.source_info = {}
+                const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
+                refDom && refDom.setFromData({ ...this.unhookingVarForm })
+                this.isCancelGloVarDialogShow = false
             },
             // 删除全局变量
             deleteVariable (key) {
@@ -1241,7 +1314,7 @@
             getNodeFullConfig () {
                 let config
                 if (this.isSubflow) {
-                    const { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, version, tpl } = this.basicInfo
+                    const { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, version, tpl, executor_proxy } = this.basicInfo
                     const constants = {}
                     Object.keys(this.subflowForms).forEach(key => {
                         const constant = this.subflowForms[key]
@@ -1262,8 +1335,11 @@
                         always_use_latest: alwaysUseLatest,
                         scheme_id_list: schemeIdList
                     })
+                    if (this.common) {
+                        config['executor_proxy'] = executor_proxy.join(',')
+                    }
                 } else {
-                    const { ignorable, nodeName, stageName, nodeLabel, plugin, retryable, skippable, selectable, version, autoRetry, timeoutConfig } = this.basicInfo
+                    const { ignorable, nodeName, stageName, nodeLabel, plugin, retryable, skippable, selectable, version, autoRetry, timeoutConfig, executor_proxy } = this.basicInfo
                     const data = {} // 标准插件节点在 activity 的 component.data 值
                     Object.keys(this.inputsParamValue).forEach(key => {
                         const formVal = this.inputsParamValue[key]
@@ -1306,6 +1382,9 @@
                         auto_retry: autoRetry,
                         timeout_config: timeoutConfig
                     })
+                    if (this.common) {
+                        config['executor_proxy'] = executor_proxy.join(',')
+                    }
                     delete config.can_retry
                     delete config.isSkipped
                 }
@@ -1429,8 +1508,13 @@
                         ['stageName', 'nodeName'].forEach(item => {
                             this.basicInfo[item] = this.basicInfo[item].trim()
                         })
-                        const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional, desc, nodeName, autoRetry, timeoutConfig } = this.basicInfo
+                        const { alwaysUseLatest, latestVersion, version, skippable, retryable, selectable: optional,
+                                desc, nodeName, autoRetry, timeoutConfig, executor_proxy
+                        } = this.basicInfo
                         const nodeData = { status: '', skippable, retryable, optional, auto_retry: autoRetry, timeout_config: timeoutConfig }
+                        if (this.common) {
+                            nodeData['executor_proxy'] = executor_proxy.join(',')
+                        }
                         if (!this.isSubflow) {
                             const phase = this.getAtomPhase()
                             nodeData.phase = phase
@@ -1542,6 +1626,7 @@
         }
     }
     .config-section {
+        position: relative;
         margin-bottom: 50px;
         & > h3 {
             margin: 0 0 20px 0;
@@ -1551,6 +1636,17 @@
             line-height: 1;
             color: #313238;
             border-bottom: 1px solid #cacecb;
+        }
+        .citations-waivers-guide {
+            position: absolute;
+            right: 0;
+            top: 0;
+            color: #979ba5;
+            font-size: 12px;
+            cursor: pointer;
+            &:hover {
+                color: #3a84ff;
+            }
         }
         .basic-info-wrapper {
             min-height: 250px;
@@ -1649,6 +1745,17 @@
         }
         .action-wrapper .bk-button {
             margin-right: 6px;
+        }
+    }
+    .cancel-global-variable-dialog {
+        .bk-dialog-header {
+            padding-bottom: 18px;
+            .bk-dialog-header-inner {
+                font-size: 20px;
+            }
+        }
+        .bk-dialog-body {
+            line-height: 24px;
         }
     }
 </style>

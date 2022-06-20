@@ -458,11 +458,29 @@ const template = {
         },
         // 配置分支网关条件
         setBranchCondition (state, condition) {
-            const { id, nodeId, name, value, loc } = condition
-            state.gateways[nodeId].conditions[id].name = name
-            state.gateways[nodeId].conditions[id].evaluate = value
+            const { id, nodeId, name, value, loc, default_condition } = condition
+            const conditions = state.gateways[nodeId].conditions
+            if (default_condition) {
+                state.gateways[nodeId]['default_condition'] = default_condition
+                Vue.delete(conditions, id)
+            } else if (conditions[id]) {
+                conditions[id].name = name
+                conditions[id].evaluate = value
+            } else if (!conditions[id]) {
+                const { tag } = state.gateways[nodeId].default_condition
+                conditions[id] = {
+                    tag,
+                    name,
+                    evaluate: value
+                }
+                Vue.delete(state.gateways[nodeId], 'default_condition')
+            }
             if (loc !== undefined) {
-                state.gateways[nodeId].conditions[id].loc = loc
+                if (default_condition) {
+                    state.gateways[nodeId]['default_condition'].loc = loc
+                } else if (conditions[id]) {
+                    conditions[id].loc = loc
+                }
             }
         },
         // 节点增加、删除、编辑、复制,操作，数据更新
@@ -624,6 +642,11 @@ const template = {
                         }
                     } else {
                         gatewayNode.outgoing = ''
+                    }
+                    // 删除默认网关分支连线时需要清除网关处理的default_condition
+                    const tag = `branch_${sourceNode}_${targetNode}`
+                    if (gatewayNode.default_condition && gatewayNode.default_condition.tag === tag) {
+                        Vue.delete(gatewayNode, 'default_condition')
                     }
                 }
                 if (state.gateways[targetNode]) {
@@ -880,13 +903,24 @@ const template = {
                 group: item.group,
                 icon: item.icon
             }))
+            // 剔除 gateways condition中默认分支配置
+            const pureGateways = Object.values(gateways).reduce((acc, cur) => {
+                if (cur.default_condition) {
+                    const lineId = cur.default_condition.flow_id
+                    if (cur.conditions[lineId]) {
+                        Vue.delete(cur.conditions, lineId)
+                    }
+                }
+                acc[cur.id] = cur
+                return acc
+            }, {})
             // 完整的画布数据
             const fullCanvasData = {
                 activities,
                 constants,
                 end_event,
                 flows,
-                gateways,
+                gateways: pureGateways,
                 line,
                 location: pureLocation,
                 outputs,

@@ -85,8 +85,8 @@ class GetNodeDetailV2TestCase(TestCase):
         get_node_histories_return.result = True
         get_node_histories_return.data = [{"outputs": {}, "id": "hid"}]
         bamboo_api.get_node_histories = MagicMock(return_value=get_node_histories_return)
-
         dispatcher = NodeCommandDispatcher(engine_ver=2, node_id="node_id")
+
         dispatcher._get_node_info = MagicMock()
         format_pipeline_status = MagicMock()
 

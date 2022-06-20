@@ -82,6 +82,9 @@
                                     </template>
                                     <template v-else>{{ '--' }}</template>
                                 </div>
+                                <div v-else-if="item.id === 'state'">
+                                    {{ row.state === 'not_started' ? $t('未执行') : row.state === 'started' ? $t('已执行') : row.state ? $t('启动失败') : '--' }}
+                                </div>
                                 <!-- 其他 -->
                                 <template v-else>
                                     <span :title="row[item.id] || '--'">{{ row[item.id] || '--' }}</span>
@@ -91,18 +94,29 @@
                         <bk-table-column :label="$t('操作')" width="240">
                             <div class="clocked-operation" slot-scope="props">
                                 <a
-                                    v-cursor="{ active: !hasPermission(['clocked_task_edit'], props.row.auth_actions) }"
+                                    v-cursor="{ active: props.row.task_id ? false : !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions) }"
                                     href="javascript:void(0);"
                                     :class="{
-                                        'clocked-bk-disable': !hasPermission(['clocked_task_edit'], props.row.auth_actions) || props.row.task_id
+                                        'text-permission-disable': !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions),
+                                        'clocked-bk-disable': props.row.task_id
                                     }"
                                     v-bk-tooltips.top="{
                                         content: $t('已执行的计划任务无法编辑'),
-                                        disabled: hasPermission(['clocked_task_edit'], props.row.auth_actions) ? !props.row.task_id : true
+                                        disabled: !props.row.task_id
                                     }"
                                     data-test-id="clockedList_table_editBtn"
                                     @click="onEditClockedTask(props.row, $event)">
                                     {{ $t('编辑') }}
+                                </a>
+                                <a
+                                    v-cursor="{ active: !hasPermission(['flow_view', 'clocked_task_view'], props.row.auth_actions) }"
+                                    href="javascript:void(0);"
+                                    :class="{
+                                        'clocked-bk-disable': !hasPermission(['flow_view', 'clocked_task_view'], props.row.auth_actions)
+                                    }"
+                                    data-test-id="clockedList_table_cloneBtn"
+                                    @click="onCloneClockedTask(props.row, 'clone')">
+                                    {{ $t('克隆') }}
                                 </a>
                                 <a
                                     v-cursor="{ active: !hasPermission(['clocked_task_delete'], props.row.auth_actions) }"
@@ -139,9 +153,11 @@
             @onCreateTaskCancel="onCreateTaskCancel">
         </TaskCreateDialog>
         <EditClockedTask
+            v-if="isShowSideslider"
             :is-show-sideslider="isShowSideslider"
             :cur-row="curRow"
-            :title="$t('编辑计划任务')"
+            :project_id="project_id"
+            :type="sideSliderType"
             @onSaveConfig="onSaveConfig"
             @onCloseConfig="onCloseConfig">
         </EditClockedTask>
@@ -207,6 +223,25 @@
         }, {
             id: 'creator',
             label: i18n.t('创建人'),
+            disabled: true,
+            width: 150
+        }, {
+            id: 'editor',
+            label: i18n.t('更新人'),
+            disabled: true,
+            width: 150
+        }, {
+            id: 'create_time',
+            label: i18n.t('创建时间'),
+            width: 200
+        }, {
+            id: 'edit_time',
+            label: i18n.t('更新时间'),
+            disabled: true,
+            width: 200
+        }, {
+            id: 'state',
+            label: i18n.t('任务状态'),
             width: 150
         }
     ]
@@ -274,6 +309,7 @@
                 selectedTemplateName: '',
                 deleting: false,
                 curRow: {},
+                sideSliderType: '',
                 isShowSideslider: false
             }
         },
@@ -336,17 +372,22 @@
             },
             // 获取当前视图表格头显示字段
             getFields () {
-                const settingFields = localStorage.getItem('ClockededList')
+                const settingFields = localStorage.getItem('ClockedList')
                 let selectedFields
                 if (settingFields) {
                     const { fieldList, size } = JSON.parse(settingFields)
                     this.setting.size = size || 'small'
                     selectedFields = fieldList || this.tableFields
-                    if (!selectedFields || !size) {
-                        localStorage.removeItem('ClockededList').map(item => item.id)
+                    if (!fieldList || !size) {
+                        localStorage.removeItem('ClockedList')
                     }
                 } else {
-                    selectedFields = this.tableFields.map(item => item.id)
+                    selectedFields = this.tableFields.reduce((acc, cur) => {
+                        if (cur.id !== 'create_time') { // 默认不显示创建时间
+                            acc.push(cur.id)
+                        }
+                        return acc
+                    }, [])
                 }
                 this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
             },
@@ -361,7 +402,9 @@
             },
             // 创建计划任务
             onCreateClockedTask () {
-                this.isNewTaskDialogShow = true
+                this.curRow = {}
+                this.sideSliderType = 'create'
+                this.isShowSideslider = true
             },
             // 取消创建
             onCreateTaskCancel () {
@@ -398,7 +441,7 @@
                 this.setting.size = size
                 this.setting.selectedFields = fields
                 const fieldIds = fields.map(m => m.id)
-                localStorage.setItem('ClockededList', JSON.stringify({
+                localStorage.setItem('ClockedList', JSON.stringify({
                     fieldList: fieldIds,
                     size
                 }))
@@ -456,9 +499,11 @@
             },
             // 编辑计划任务
             async onEditClockedTask (row) {
+                // 已执行的计划任务禁止编辑
+                if (row.task_id) return
                 // 权限校验
-                if (!this.hasPermission(['clocked_task_edit'], row.auth_actions)) {
-                    this.onClockedPermissonCheck(['clocked_task_edit'], row)
+                if (!this.hasPermission(['flow_view', 'clocked_task_edit'], row.auth_actions)) {
+                    this.onClockedPermissonCheck(['flow_view', 'clocked_task_edit'], row)
                     return
                 }
                 if (row.task_id) return
@@ -474,6 +519,17 @@
                     return
                 }
                 this.curRow = row
+                this.sideSliderType = 'edit'
+                this.isShowSideslider = true
+            },
+            // 克隆计划任务
+            onCloneClockedTask (row) {
+                if (!this.hasPermission(['flow_view', 'clocked_task_view'], row.auth_actions)) {
+                    this.onClockedPermissonCheck(['flow_view', 'clocked_task_view'], row)
+                    return
+                }
+                this.curRow = row
+                this.sideSliderType = 'clone'
                 this.isShowSideslider = true
             },
             // 保存编辑计划任务
@@ -503,7 +559,7 @@
                     this.deleting = true
                     await this.deleteClocked({ id: this.selectedDeleteTaskId })
                     this.$bkMessage({
-                        'message': i18n.t('删除计划任务成功'),
+                        'message': i18n.t('计划任务') + i18n.t('删除成功'),
                         'theme': 'success'
                     })
                     this.isDeleteDialogShow = false
@@ -558,8 +614,8 @@
         padding: 5px;
         cursor: pointer;
         &.clocked-bk-disable {
-            color:#cccccc;
-            cursor: not-allowed;
+            color:#cccccc !important;
+            cursor: not-allowed !important;
         }
     }
     .empty-data {

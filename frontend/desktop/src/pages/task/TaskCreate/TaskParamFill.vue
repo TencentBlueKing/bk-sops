@@ -31,23 +31,6 @@
                         </div>
                     </div>
                     <div
-                        v-if="!isExecuteSchemeHide"
-                        data-test-id="createTask_form_executePlan"
-                        class="common-form-item">
-                        <label class="required">{{$t('执行计划')}}</label>
-                        <div class="common-form-content">
-                            <div class="bk-button-group">
-                                <bk-button
-                                    v-for="(item, index) in btnGroup"
-                                    :key="index"
-                                    :theme="item.id === isStartNow ? 'primary' : 'default'"
-                                    @click="onChangeStartNow(item.id)">
-                                    {{ item.text }}
-                                </bk-button>
-                            </div>
-                        </div>
-                    </div>
-                    <div
                         v-if="isTaskTypeShow"
                         data-test-id="createTask_form_processType"
                         class="common-form-item">
@@ -60,6 +43,7 @@
                                     {{ $t('默认任务流程') }}
                                 </bk-button>
                                 <bk-button
+                                    v-if="viewMode !== 'appmaker' || !isCustomizeType"
                                     :theme="isSelectFunctionalType ? 'primary' : 'default'"
                                     @click="onSwitchTaskType(true)">
                                     {{ $t('职能化任务流程') }}
@@ -99,16 +83,6 @@
                                 </span>
                             </div>
                         </div>
-                        <div class="common-form-item">
-                            <NotifyTypeConfig
-                                :notify-type-label="$t('启动失败') + ' ' + $t('通知方式')"
-                                :notify-type="notifyType"
-                                :receiver-group="receiverGroup"
-                                :table-width="500"
-                                :common="common"
-                                @change="onSelectNotifyConfig">
-                            </NotifyTypeConfig>
-                        </div>
                     </template>
                 </div>
             </div>
@@ -116,6 +90,18 @@
                 <div class="param-info-title">
                     <span>
                         {{ $t('参数信息') }}
+                    </span>
+                    <span v-if="reuseTaskId" class="reuse-tip">
+                        <bk-popover placement="top-start" theme="light" width="350" :ext-cls="'reuse-rule-tip'">
+                            <i class="bk-icon icon-question-circle"></i>
+                            {{ $t('重用说明') }}
+                            <div slot="content">
+                                <p class="mb10">{{ $t('以下情况参数值无法重用，使用变量默认值：') }}</p>
+                                <p>{{ '1. ' + $t('变量的类型变更') }}</p>
+                                <p>{{ '2. ' + $t('变量值的配置项变更') }}</p>
+                                <p>{{ '3. ' + $t('元变量的配置变更') }}</p>
+                            </div>
+                        </bk-popover>
                     </span>
                 </div>
                 <div>
@@ -131,6 +117,7 @@
         </div>
         <div class="action-wrapper">
             <bk-button
+                v-if="!isCustomizeType"
                 class="preview-step-button"
                 data-test-id="createTask_form_previousStep"
                 @click="onGotoSelectNode">
@@ -138,6 +125,7 @@
             </bk-button>
             <bk-button
                 :class="['next-step-button', {
+                    'ml40': isCustomizeType,
                     'btn-permission-disable': common ? !hasCommonTplCreateTaskPerm : !hasPermission(nextStepPerm, actions)
                 }]"
                 theme="primary"
@@ -146,7 +134,7 @@
                 v-cursor="{ active: common ? !hasCommonTplCreateTaskPerm : !hasPermission(nextStepPerm, actions) }"
                 data-test-id="createTask_form_createTask"
                 @click="onCreateTask">
-                {{$t('下一步')}}
+                {{ (viewMode === 'appmaker' && isCustomizeType) ? $t('执行') : $t('下一步') }}
             </bk-button>
         </div>
     </div>
@@ -162,14 +150,12 @@
     import permission from '@/mixins/permission.js'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
     import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
-    import NotifyTypeConfig from '@/pages/template/TemplateEdit/TemplateSetting/NotifyTypeConfig.vue'
 
     export default {
         name: 'TaskParamFill',
         components: {
             ParameterInfo,
-            LoopRuleSelect,
-            NotifyTypeConfig
+            LoopRuleSelect
         },
         mixins: [permission],
         props: ['project_id', 'template_id', 'common', 'entrance', 'excludeNode'],
@@ -277,6 +263,12 @@
             // 不显示【执行计划】的情况
             isExecuteSchemeHide () {
                 return this.common || this.viewMode === 'appmaker' || (['periodicTask', 'clockedTask', 'taskflow', 'function'].indexOf(this.entrance) > -1)
+            },
+            isCustomizeType () {
+                return this.$route.query.type === 'customize'
+            },
+            reuseTaskId () {
+                return this.$route.query.task_id
             }
         },
         created () {
@@ -423,7 +415,12 @@
                 const url = {
                     name: 'taskCreate',
                     params: { project_id: this.project_id, step: 'selectnode' },
-                    query: { 'template_id': this.template_id, common: this.common || undefined, entrance: this.entrance || undefined }
+                    query: {
+                        'template_id': this.template_id,
+                        common: this.common || undefined,
+                        entrance: this.entrance || undefined,
+                        task_id: this.reuseTaskId || undefined
+                    }
                 }
                 if (this.entrance !== 'function') {
                     this.$emit('setFunctionalStep', false)
@@ -433,6 +430,9 @@
                 if (this.viewMode === 'appmaker') {
                     url.name = 'appmakerTaskCreate'
                     url.params.app_id = this.app_id
+                }
+                if (this.isCustomizeType) {
+                    url.query.type = 'customize'
                 }
                 this.$router.push(url)
             },
@@ -448,11 +448,6 @@
                     const timeRange = new Date(this.timeRange).getTime() || 0
                     this.isDateError = timeRange <= new Date().getTime()
                 }
-            },
-            onSelectNotifyConfig (formData) {
-                const { notifyType, receiverGroup } = formData
-                this.notifyType = notifyType
-                this.receiverGroup = receiverGroup
             },
             onCreateTask () {
                 let hasNextPermission = false
@@ -596,6 +591,9 @@
                                         query: { instance_id: taskData.id, template_id }
                                     }
                                 }
+                                if (this.isCustomizeType) {
+                                    url.params.is_now = true
+                                }
                             } else if (this.$route.name === 'functionTemplateStep' && this.entrance === 'function') { // 职能化创建任务
                                 url = {
                                     name: 'functionTaskExecute',
@@ -671,8 +669,8 @@
                                 more_receiver: []
                             },
                             notify_type: {
-                                success: [],
-                                fail: this.notifyType[0]
+                                success: this.notifyType[0],
+                                fail: this.notifyType[1]
                             },
                             plan_start_time: this.timeRange + this.locTimeZone
                         }
@@ -709,8 +707,6 @@
                 // 切换其他则情况时计划任务数据
                 if (value !== 'clocked') {
                     this.timeRange = ''
-                    this.notifyType = [[]]
-                    this.receiverGroup = []
                 } else {
                     this.locTimeZone = new Date().toTimeString().slice(12, 17)
                 }
@@ -747,6 +743,19 @@
         color: #313238;
         border-bottom: 1px solid #cacedb;
         margin-bottom: 30px;
+        .reuse-tip {
+            color: #3a84ff;
+            font-size: 12px;
+            font-weight: normal;
+            margin-left: 25px;
+            cursor: default;
+            .bk-tooltip {
+                line-height: 1;
+            }
+            .icon-question-circle {
+                font-size: 14px;
+            }
+        }
     }
     .common-form-item {
         label {

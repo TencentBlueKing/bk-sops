@@ -70,8 +70,13 @@
                                     :loading="tplLoading"
                                     :searchable="true"
                                     :value="overriders[row.meta.id]"
+                                    ext-popover-cls="tpl-popover"
+                                    enable-scroll-load
+                                    :scroll-loading="{ isLoading: scrollLoading }"
+                                    :remote-method="onTplSearch"
                                     @clear="overriders[row.meta.id] = ''"
-                                    @selected="overriders[row.meta.id] = $event">
+                                    @selected="overriders[row.meta.id] = $event"
+                                    @scroll-end="onSelectScrollLoad(row)">
                                     <bk-option
                                         v-for="item in (common ? commonTemplateList : templateList)"
                                         :key="item.id"
@@ -134,8 +139,13 @@
                                         :loading="tplLoading"
                                         :searchable="true"
                                         :value="overriders[row.meta.id]"
+                                        ext-popover-cls="tpl-popover"
+                                        enable-scroll-load
+                                        :scroll-loading="{ isLoading: scrollLoading }"
+                                        :remote-method="onCommonTplSearch"
                                         @clear="onClearRefer(row)"
-                                        @selected="onSelectRefer(row, $event)">
+                                        @selected="onSelectRefer(row, $event)"
+                                        @scroll-end="onSelectScrollLoad(row)">
                                         <bk-option
                                             v-for="item in ((common || row.refer === 'useCommonExisting') ? commonTemplateList : templateList)"
                                             :key="item.id"
@@ -199,6 +209,7 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapActions } from 'vuex'
+    import tools from '@/utils/tools.js'
     import permission from '@/mixins/permission.js'
 
     export default {
@@ -228,6 +239,7 @@
                 checkPending: false,
                 importPending: false,
                 tplLoading: false,
+                scrollLoading: false,
                 topFlowPagination: {
                     current: 1,
                     count: 0
@@ -235,6 +247,18 @@
                 subFlowPagination: {
                     current: 1,
                     count: 0
+                },
+                totalPage: 1,
+                pagination: {
+                    current: 1,
+                    count: 0,
+                    limit: 15
+                },
+                commonTotalPage: 1,
+                commonPagination: {
+                    current: 1,
+                    count: 0,
+                    limit: 15
                 }
             }
         },
@@ -247,6 +271,10 @@
             subFlowTableList () {
                 return this.subFlowList.slice((this.subFlowPagination.current - 1) * 5, this.subFlowPagination.current * 5)
             }
+        },
+        created () {
+            this.onTplSearch = tools.debounce(this.handleTplSearch, 500)
+            this.onCommonTplSearch = tools.debounce(this.handleCommonTplSearch, 500)
         },
         methods: {
             ...mapActions('templateList', [
@@ -283,9 +311,11 @@
                         }
                         this.errorMsg = this.handleErrorMsg(res.data)
                         // 查询项目流程列表及公共流程列表
-                        const promiseArr = [this.getTemplateData({ common: 1 })]
+                        let offset = (this.commonPagination.current - 1) * this.commonPagination.limit
+                        const promiseArr = [this.getTemplateData({ common: 1, offset, limit: 15 })]
                         if (!this.common) {
-                            promiseArr.push(this.getTemplateData({ project__id: this.project_id }))
+                            offset = (this.pagination.current - 1) * this.pagination.limit
+                            promiseArr.push(this.getTemplateData({ project__id: this.project_id, offset, limit: 15 }))
                         }
                         this.tplLoading = true
                         Promise.all(promiseArr).then(res => {
@@ -305,17 +335,87 @@
                     })
                 }
             },
-            async getTemplateData (data) {
+            async getTemplateData (data, add) {
                 try {
                     const respData = await this.loadTemplateList(data)
                     if (data.common) {
-                        this.commonTemplateList = respData.results
+                        if (add) {
+                            this.commonTemplateList.push(...respData.results)
+                        } else {
+                            this.commonTemplateList = respData.results
+                        }
+                        this.commonPagination.count = respData.count
                     } else {
-                        this.templateList = respData.results
+                        if (add) {
+                            this.templateList.push(...respData.results)
+                        } else {
+                            this.templateList = respData.results
+                        }
+                        this.pagination.count = respData.count
+                    }
+                    const totalPage = Math.ceil(respData.count / 15)
+                    const variable = data.common ? 'commonTotalPage' : 'totalPage'
+                    if (!totalPage) {
+                        this[variable] = 1
+                    } else {
+                        this[variable] = totalPage
                     }
                 } catch (e) {
                     console.log(e)
+                } finally {
+                    this.scrollLoading = false
                 }
+            },
+            // 下拉框搜索
+            handleTplSearch (val) {
+                this.pagination.current = 1
+                this.flowName = val
+                const params = this.getQueryData()
+                this.getTemplateData(params)
+            },
+            // 公共模板下拉框搜索
+            handleCommonTplSearch (val) {
+                this.commonPagination.current = 1
+                this.commonFlowName = val
+                const params = this.getQueryData(true)
+                this.getTemplateData(params)
+            },
+            // 下拉框滚动加载
+            onSelectScrollLoad (row) {
+                if (['useExisting', 'overrider'].includes(row.refer)) {
+                    if (this.totalPage !== this.pagination.current) {
+                        this.scrollLoading = true
+                        this.pagination.current += 1
+                        const params = this.getQueryData()
+                        this.getTemplateData(params, true)
+                    }
+                } else if (row.refer === 'useCommonExisting') {
+                    if (this.commonTotalPage !== this.commonPagination.current) {
+                        this.scrollLoading = true
+                        this.commonPagination.current += 1
+                        const params = this.getQueryData(true)
+                        this.getTemplateData(params, true)
+                    }
+                }
+            },
+            getQueryData (common = undefined) {
+                let tplName, offset, projectId
+                if (common) {
+                    tplName = this.commonFlowName
+                    offset = (this.commonPagination.current - 1) * this.commonPagination.limit
+                } else {
+                    tplName = this.flowName
+                    offset = (this.pagination.current - 1) * this.pagination.limit
+                    projectId = this.project_id
+                }
+                const data = {
+                    project__id: projectId || undefined,
+                    common,
+                    offset,
+                    limit: 15,
+                    pipeline_template__name__icontains: tplName || undefined
+                }
+                return data
             },
             handleErrorMsg (data) {
                 if (data && data.error && Object.keys(data.error).length > 0) {
@@ -607,6 +707,14 @@
                     transform: scale(0);
                 }
             }
+        }
+    }
+    .tpl-popover {
+        .bk-option {
+            white-space: nowrap;
+        }
+        .bk-spin-title {
+            font-size: 12px;
         }
     }
 </style>

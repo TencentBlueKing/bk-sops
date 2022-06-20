@@ -27,16 +27,22 @@
                 <label class="required">{{$t('流程模板')}}</label>
                 <div class="common-form-content">
                     <bk-select
+                        ref="tplSelect"
                         v-model="appData.appTemplate"
                         class="ui-form-item"
                         :searchable="true"
                         :placeholder="$t('请选择')"
                         :clearable="true"
                         :disabled="!isCreateNewApp"
-                        @selected="onSelectTemplate">
+                        ext-popover-cls="tpl-popover"
+                        enable-scroll-load
+                        :scroll-loading="{ isLoading: tplScrollLoading }"
+                        :remote-method="onTplSearch"
+                        @selected="onSelectTemplate"
+                        @scroll-end="onSelectScrollLoad">
                         <bk-option
-                            v-for="(option, index) in templateList"
-                            :key="index"
+                            v-for="option in templateList"
+                            :key="option.id"
                             :disabled="!hasPermission(['flow_view'], option.auth_actions)"
                             :id="option.id"
                             :name="option.name">
@@ -207,6 +213,7 @@
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
     import { NAME_REG, STRING_LENGTH, TASK_CATEGORIES } from '@/constants/index.js'
+    import tools from '@/utils/tools.js'
     import permission from '@/mixins/permission.js'
     export default {
         name: 'AppEditDialog',
@@ -233,8 +240,10 @@
         data () {
             return {
                 templateLoading: true,
+                tplScrollLoading: false,
                 schemeLoading: false,
                 templateList: [],
+                templateData: {},
                 schemeList: [],
                 appTemplateEmpty: false,
                 isChooseLogoPanelShow: false,
@@ -260,7 +269,14 @@
                 appDescRule: {
                     max: STRING_LENGTH.APP_DESCRIPTION_MAX_LENGTH
                 },
-                taskCategories: []
+                taskCategories: [],
+                totalPage: 1,
+                pagination: {
+                    current: 1,
+                    count: 0,
+                    limit: 15
+                },
+                flowName: ''
             }
         },
         computed: {
@@ -320,6 +336,7 @@
         created () {
             this.taskCategories = TASK_CATEGORIES.filter(item => item.id !== 'Default')
             this.getTemplateList()
+            this.onTplSearch = tools.debounce(this.handleTplSearch, 500)
         },
         methods: {
             ...mapActions('templateList', [
@@ -332,15 +349,47 @@
             useDefaultLogo () {
                 this.isLogoLoadingError = true
             },
-            async getTemplateList () {
-                this.templateLoading = true
+            async getTemplateList (add) {
                 try {
-                    const templateListData = await this.loadTemplateList({ project__id: this.project_id })
-                    this.templateList = templateListData.results
+                    const offset = (this.pagination.current - 1) * this.pagination.limit
+                    const params = {
+                        project__id: this.project_id,
+                        limit: 15,
+                        offset,
+                        pipeline_template__name__icontains: this.flowName || undefined
+                    }
+                    const templateListData = await this.loadTemplateList(params)
+                    if (add) {
+                        this.templateList.push(...templateListData.results)
+                    } else { // 搜索
+                        this.templateList = templateListData.results
+                    }
+                    this.pagination.count = templateListData.count
+                    const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
+                    if (!totalPage) {
+                        this.totalPage = 1
+                    } else {
+                        this.totalPage = totalPage
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
+                    this.tplScrollLoading = false
                     this.templateLoading = false
+                }
+            },
+            // 下拉框搜索
+            handleTplSearch (val) {
+                this.pagination.current = 1
+                this.flowName = val
+                this.getTemplateList()
+            },
+            // 下拉框滚动加载
+            onSelectScrollLoad () {
+                if (this.totalPage !== this.pagination.current) {
+                    this.tplScrollLoading = true
+                    this.pagination.current += 1
+                    this.getTemplateList(true)
                 }
             },
             async getTemplateScheme () {
@@ -379,6 +428,7 @@
             },
             onSelectTemplate (id) {
                 const template = this.templateList.find(item => item.id === id)
+                this.templateData = template
                 this.appData.appTemplate = id
                 this.appData.appName = template.name
                 this.appData.appCategory = template.category
@@ -725,6 +775,11 @@
     .bk-button {
         margin-left: 7px;
         min-width: 90px;
+    }
+}
+.tpl-popover {
+    .bk-spin-title {
+        font-size: 12px;
     }
 }
 </style>

@@ -48,7 +48,7 @@ const templateList = {
                 url = 'api/v3/template/'
             }
 
-            return axios.delete(`${url}${templateId}/`).then(response => response.data.objects)
+            return axios.delete(`${url}${templateId}/`).then(response => response.data)
         },
         // 我收藏的流程模板
         loadCollectTemplateList ({ commit }, data) {

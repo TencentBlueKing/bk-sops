@@ -45,20 +45,26 @@
                 :is-show-select-all-tool="isShowSelectAllTool"
                 :is-select-all-tool-disabled="isSelectAllToolDisabled"
                 :canvas-data="canvasData"
-                @onNodeClick="onNodeClick">
+                :node-variable-info="nodeVariableInfo"
+                @onNodeClick="onNodeClick"
+                @onTogglePerspective="onTogglePerspective">
             </TemplateCanvas>
         </div>
     </div>
 </template>
 <script>
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
+    import tplPerspective from '@/mixins/tplPerspective.js'
     export default {
         name: 'NodePreview',
         components: {
             TemplateCanvas
         },
+        mixins: [tplPerspective],
         props: {
             canvasData: Object,
+            previewData: Object,
+            common: Boolean,
             previewBread: Array,
             previewDataLoading: Boolean,
             isAllSelected: Boolean,

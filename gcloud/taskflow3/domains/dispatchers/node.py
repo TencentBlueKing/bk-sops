@@ -86,10 +86,16 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
     @ensure_return_is_dict
     def retry_v2(self, operator: str, **kwargs) -> dict:
+        # 重试时确保不会丢失节点配置的执行代理人信息
+        runtime = BambooDjangoRuntime()
+        api_result = bamboo_engine_api.get_data(runtime=runtime, node_id=self.node_id)
+        if not api_result.result:
+            return api_result
+        if "__executor_proxy" in api_result.data["inputs"] and kwargs["inputs"]:
+            kwargs["inputs"]["__executor_proxy"] = api_result.data["inputs"]["__executor_proxy"]["value"]
+
         # 数据为空的情况传入 None, v2 engine api 不认为 {} 是空数据
-        return bamboo_engine_api.retry_node(
-            runtime=BambooDjangoRuntime(), node_id=self.node_id, data=kwargs["inputs"] or None
-        )
+        return bamboo_engine_api.retry_node(runtime=runtime, node_id=self.node_id, data=kwargs["inputs"] or None)
 
     @ensure_return_is_dict
     def skip_v1(self, operator: str, **kwargs) -> dict:
@@ -528,7 +534,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     return {
                         "result": False,
                         "data": {},
-                        "message": preview_result.message,
+                        "message": f"fail to preview node inputs: {preview_result.exc}",
                         "code": err_code.UNKNOWN_ERROR.code,
                     }
                 inputs = preview_result.data

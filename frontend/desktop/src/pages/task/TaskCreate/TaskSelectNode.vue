@@ -22,6 +22,8 @@
                 :is-all-selected="isAllSelected"
                 :is-show-select-all-tool="isSelectAllShow"
                 :canvas-data="canvasData"
+                :node-variable-info="nodeVariableInfo"
+                @onTogglePerspective="onTogglePerspective"
                 @onNodeCheckClick="onNodeCheckClick"
                 @onToggleAllNode="onToggleAllNode">
             </TemplateCanvas>
@@ -31,6 +33,8 @@
                 :preview-data-loading="previewDataLoading"
                 :canvas-data="formatCanvasData('perview', previewData)"
                 :preview-bread="previewBread"
+                :preview-data="previewData"
+                :common="common"
                 @onNodeClick="onNodeClick"
                 @onSelectSubflow="onSelectSubflow">
             </NodePreview>
@@ -73,6 +77,13 @@
                 data-test-id="createTask_form_nextStep"
                 @click="onGotoParamFill">
                 {{ $t('下一步') }}
+            </bk-button>
+            <bk-button
+                v-if="isPreviewMode"
+                class="preview-button"
+                data-test-id="templateEdit_form_closePreview"
+                @click="togglePreviewMode(false)">
+                {{ $t('关闭预览') }}
             </bk-button>
             <bk-button v-if="isSchemeShow && !isPreviewMode" data-test-id="createTask_form_exportScheme" @click="onExportScheme">{{ $t('导出当前方案') }}</bk-button>
         </div>
@@ -121,6 +132,7 @@
     import NodePreview from '@/pages/task/NodePreview.vue'
     import EditScheme from './EditScheme.vue'
     import bus from '@/utils/bus.js'
+    import tplPerspective from '@/mixins/tplPerspective.js'
 
     export default {
         components: {
@@ -130,6 +142,7 @@
             TemplateCanvas,
             NodePreview
         },
+        mixins: [tplPerspective],
         props: {
             project_id: [String, Number],
             template_id: [String, Number],
@@ -319,16 +332,20 @@
              * 进入参数填写阶段，设置执行节点
              */
             async onGotoParamFill () {
+                const { type, task_id = undefined } = this.$route.query
                 const url = {
                     name: 'taskCreate',
                     params: { project_id: this.project_id, step: 'paramfill' },
-                    query: { template_id: this.template_id, common: this.common, entrance: this.entrance }
+                    query: { template_id: this.template_id, common: this.common, entrance: this.entrance, task_id }
                 }
                 if (this.entrance === 'function') {
                     url.name = 'functionTemplateStep'
                 }
                 if (this.viewMode === 'appmaker') {
                     url.name = 'appmakerTaskCreate'
+                }
+                if (type) {
+                    url.query.type = type
                 }
                 this.$router.push(url)
             },
@@ -344,6 +361,10 @@
                     const item = gateways[gKey]
                     if (item.conditions) {
                         branchConditions[item.id] = Object.assign({}, item.conditions)
+                    }
+                    if (item.default_condition) {
+                        const nodeId = item.default_condition.flow_id
+                        branchConditions[item.id][nodeId] = item.default_condition
                     }
                 }
                 return {
@@ -738,6 +759,9 @@
     background-color: #ffffff;
     .next-button {
         width: 140px;
+    }
+    .preview-button {
+        width: 120px;
     }
 }
 .title-back {

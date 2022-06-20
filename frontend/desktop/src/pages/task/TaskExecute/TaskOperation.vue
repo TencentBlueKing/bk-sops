@@ -59,6 +59,7 @@
                 <ModifyParams
                     ref="modifyParams"
                     v-if="nodeInfoType === 'modifyParams'"
+                    :state="state"
                     :params-can-be-modify="paramsCanBeModify"
                     :instance-actions="instanceActions"
                     :instance-name="instanceName"
@@ -173,9 +174,11 @@
             <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否完成暂停节点继续向后执行？') }}</div>
         </bk-dialog>
         <condition-edit
+            v-if="isShowConditionEdit"
             ref="conditionEdit"
             :is-readonly="true"
             :is-show.sync="isShowConditionEdit"
+            :gateways="pipelineData.gateways"
             :condition-data="conditionData"
             @close="onCloseConfigPanel">
         </condition-edit>
@@ -415,6 +418,10 @@
                     if (item.conditions) {
                         branchConditions[item.id] = Object.assign({}, item.conditions)
                     }
+                    if (item.default_condition) {
+                        const nodeId = item.default_condition.flow_id
+                        branchConditions[item.id][nodeId] = item.default_condition
+                    }
                 }
                 return {
                     lines: line,
@@ -468,7 +475,7 @@
                 return operationBtns
             },
             paramsCanBeModify () {
-                return this.isTopTask && this.state === 'CREATED'
+                return this.isTopTask && !['FINISHED', 'REVOKED'].includes(this.state)
             },
             // 审计中心/轻应用时,隐藏[查看流程]按钮
             isShowViewProcess () {
@@ -481,6 +488,12 @@
         mounted () {
             this.loadTaskStatus()
             this.getSingleAtomList()
+            const { is_now } = this.$route.params
+            if (is_now) {
+                this.$nextTick(() => {
+                    this.onOperationClick('execute')
+                })
+            }
         },
         beforeDestroy () {
             if (source) {

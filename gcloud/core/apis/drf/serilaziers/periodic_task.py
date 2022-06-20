@@ -56,11 +56,26 @@ class PipelinePeriodicTaskSerializer(serializers.ModelSerializer):
         ]
 
 
-class PeriodicTaskSerializer(serializers.ModelSerializer):
+class PeriodicTaskReadOnlySerializer(serializers.ModelSerializer):
 
     task = PipelinePeriodicTaskSerializer()
     project = ProjectSerializer()
     last_run_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S %z", read_only=True)
+    create_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S %z", read_only=True)
+    edit_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S %z", read_only=True)
+    is_latest = serializers.SerializerMethodField(help_text="版本是否最新", read_only=True)
+    template_scheme_ids = serializers.SerializerMethodField(
+        help_text="任务创建时执行方案列表，任务创建以pipeline_tree为准，仅供参考", read_only=True
+    )
+
+    def get_is_latest(self, obj):
+        return obj.template_version == obj.template.version if obj.template_version else None
+
+    def get_template_scheme_ids(self, obj):
+        try:
+            return json.loads(obj.template_scheme_ids)
+        except Exception:
+            return obj.template_scheme_ids
 
     class Meta:
         model = PeriodicTask
@@ -69,6 +84,9 @@ class PeriodicTaskSerializer(serializers.ModelSerializer):
             "id",
             "task",
             "creator",
+            "editor",
+            "create_time",
+            "edit_time",
             "cron",
             "enabled",
             "last_run_at",
@@ -79,6 +97,9 @@ class PeriodicTaskSerializer(serializers.ModelSerializer):
             "total_run_count",
             "form",
             "pipeline_tree",
+            "is_latest",
+            "template_scheme_ids",
+            "template_version",
         ]
 
 
@@ -87,14 +108,24 @@ class CreatePeriodicTaskSerializer(serializers.ModelSerializer):
     cron = serializers.DictField(write_only=True)
     template_source = serializers.CharField(required=False, default=PROJECT)
     pipeline_tree = ReadWriteSerializerMethodField()
+    template_scheme_ids = ReadWriteSerializerMethodField()
     name = serializers.CharField()
     template_id = serializers.IntegerField()
 
-    def set_pipeline_tree(self, obj):
-        return {"pipeline_tree": json.loads(obj)}
+    def set_pipeline_tree(self, data):
+        return {"pipeline_tree": json.loads(data)}
 
     def get_pipeline_tree(self, obj):
         return json.dumps(obj.pipeline_tree)
+
+    def get_template_scheme_ids(self, obj):
+        try:
+            return json.loads(obj.template_scheme_ids)
+        except Exception:
+            return obj.template_scheme_ids
+
+    def set_template_scheme_ids(self, data):
+        return {"template_scheme_ids": json.dumps(data)}
 
     def validate_project(self, value):
         try:
@@ -111,4 +142,11 @@ class CreatePeriodicTaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PeriodicTask
-        fields = ["project", "cron", "name", "template_id", "pipeline_tree", "template_source"]
+        fields = ["project", "cron", "name", "template_id", "pipeline_tree", "template_source", "template_scheme_ids"]
+
+
+class PatchUpdatePeriodicTaskSerializer(serializers.Serializer):
+    cron = serializers.DictField(help_text="周期", required=False)
+    project = serializers.IntegerField(help_text="项目ID", required=False)
+    constants = serializers.DictField(help_text="执行参数", required=False)
+    name = serializers.CharField(help_text="任务名", required=False)

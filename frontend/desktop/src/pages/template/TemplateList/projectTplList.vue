@@ -22,7 +22,7 @@
                     id="templateList"
                     :open="isSearchFormOpen"
                     :search-form="searchForm"
-                    :search-config="{ placeholder: $t('请输入流程名称') }"
+                    :search-config="{ placeholder: $t('请输入流程名称'), value: requestData.flowName }"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
                     <template v-slot:operation>
@@ -797,6 +797,7 @@
             searchInputHandler (data) {
                 this.requestData.flowName = data
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getTemplateList()
             },
             renderHeaderCheckbox (h) {
@@ -970,13 +971,8 @@
                         this.pagination.current = 1
                         this.getTemplateList()
                     } else if (Object.keys(res.data.references).length) {
-                        const deleteArr = []
-                        Object.values(res.data.references).forEach(item => {
-                            const value = item.template[0]
-                            deleteArr.push(`${value.name}(${value.id})`)
-                        })
                         this.$bkMessage({
-                            message: i18n.t('流程') + deleteArr.join(i18n.t('，')) + i18n.t('删除失败！'),
+                            message: i18n.t('流程当前被使用中，无法删除'),
                             theme: 'error'
                         })
                     }
@@ -1131,13 +1127,13 @@
                     const data = {
                         templateId: this.theDeleteTemplateId
                     }
-                    await this.deleteTemplate(data)
+                    const resp = await this.deleteTemplate(data)
+                    if (!resp.result) return
                     if (this.selectedTpls.find(tpl => tpl.id === this.theDeleteTemplateId)) {
                         const index = this.selectedTpls.findIndex(tpl => tpl.id === this.theDeleteTemplateId)
                         this.selectedTpls.splice(index, 1)
                     }
                     this.theDeleteTemplateId = undefined
-                    this.isDeleteDialogShow = false
                     // 最后一页最后一条删除后，往前翻一页
                     if (
                         this.pagination.current > 1
@@ -1147,10 +1143,15 @@
                         this.pagination.current -= 1
                     }
                     this.getTemplateList()
+                    this.$bkMessage({
+                        message: i18n.t('流程') + i18n.t('删除成功！'),
+                        theme: 'success'
+                    })
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.pending.delete = false
+                    this.isDeleteDialogShow = false
                 }
             },
             onDeleteCancel () {
@@ -1337,6 +1338,7 @@
     }
 }
 .bk-dropdown-menu{
+    height: 32px !important;
     &:hover {
         .export-tpl-btn,
         .import-tpl-btn {
@@ -1396,6 +1398,11 @@
     .bk-table-row.hover-row {
         .icon-favorite {
             display: block;
+        }
+    }
+    /deep/.bk-table {
+        td, th {
+            height: 42px;
         }
     }
     .icon-favorite {

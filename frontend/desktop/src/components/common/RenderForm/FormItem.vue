@@ -36,17 +36,25 @@
         </tag-section>
         <template v-else>
             <!-- 表单作为全局变量时的名称 -->
-            <div v-if="showFormTitle" class="rf-group-name">
+            <div v-if="showFormTitle" :class="['rf-group-name', { 'not-reuse': showNotReuseTitle }]">
                 <span class="name">{{scheme.name || scheme.attrs.name}} ({{ scheme.tag_code }})</span>
                 <span v-if="scheme.attrs.desc" class="rf-group-desc">
                     <i
                         v-bk-tooltips="{
                             content: scheme.attrs.desc,
                             placements: ['right'],
-                            zIndex: 2002
+                            zIndex: 2006
                         }"
                         class="common-icon-info">
                     </i>
+                </span>
+                <span v-if="showNotReuseTitle" class="not-reuse-tip">
+                    <i class="common-icon-dark-circle-warning"></i>
+                    {{ $t('未能重用') }}
+                </span>
+                <span class="pre-mako-tip" v-if="scheme.attrs.pre_mako_tip">
+                    <i class="bk-icon icon-exclamation-circle"></i>
+                    {{ scheme.attrs.pre_mako_tip }}
                 </span>
             </div>
             <!-- 表单名称 -->
@@ -92,7 +100,7 @@
                 <i
                     :class="['common-icon-render-skip render-skip-icon', { actived: !render, disabled: !option.formEdit || hook }]"
                     v-bk-tooltips="{
-                        content: !render ? $t('取消渲染豁免') : $t('渲染豁免'),
+                        content: !render ? $t('取消变量豁免') : $t('变量豁免'),
                         placement: 'bottom',
                         zIndex: 3000
                     }"
@@ -205,14 +213,17 @@
                 showHook,
                 formValue,
                 i18n: {
-                    hooked: gettext('取消勾选'),
-                    cancelHook: gettext('勾选参数作为全局变量')
+                    hooked: gettext('取消变量引用'),
+                    cancelHook: gettext('变量引用')
                 }
             }
         },
         computed: {
             showFormTitle () {
                 return !this.hook && this.option.showGroup && !!(this.scheme.name || this.scheme.attrs.name)
+            },
+            showNotReuseTitle () {
+                return this.option.formEdit && this.scheme.attrs.notReuse
             }
         },
         watch: {

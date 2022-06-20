@@ -38,7 +38,7 @@
     </div>
 </template>
 <script>
-    import { mapActions } from 'vuex'
+    import { mapMutations, mapActions } from 'vuex'
     import TaskOperation from './TaskOperation.vue'
     import TaskFunctionalization from './TaskFunctionalization.vue'
     import dom from '@/utils/dom.js'
@@ -73,6 +73,9 @@
             this.getTaskData()
         },
         methods: {
+            ...mapMutations('template/', [
+                'setPipelineTree'
+            ]),
             ...mapActions('task/', [
                 'getTaskInstanceData'
             ]),
@@ -80,7 +83,6 @@
                 try {
                     this.taskDataLoading = true
                     const instanceData = await this.getTaskInstanceData(this.instance_id)
-                    console.log(instanceData)
                     const { flow_type, current_flow, pipeline_tree, name, template_id, template_source, auth_actions, engine_ver } = instanceData
                     if (this.isFunctional && current_flow === 'func_claim') {
                         this.showParamsFill = true
@@ -94,6 +96,9 @@
                     this.templateId = template_id
                     this.templateSource = template_source
                     this.instanceActions = auth_actions
+                    // 将节点树存起来
+                    const pipelineData = JSON.parse(pipeline_tree)
+                    this.setPipelineTree(pipelineData)
                     // 职能化任务通过普通任务执行链接访问时，重定向到职能化任务链接
                     if (this.$route.name === 'taskExecute' && flow_type === 'common_func') {
                         this.$router.replace({

@@ -26,8 +26,7 @@ class BaseTaskTemplateSerializer(BaseTemplateSerializer):
     project = ProjectSerializer()
 
 
-class TaskTemplateSerializer(BaseTaskTemplateSerializer):
-
+class TaskTemplateListSerializer(BaseTaskTemplateSerializer):
     name = serializers.CharField(read_only=True, help_text="模板名称")
     category_name = serializers.CharField(read_only=True, help_text="分类名称")
     creator_name = serializers.CharField(read_only=True, help_text="创建者名称")
@@ -40,14 +39,17 @@ class TaskTemplateSerializer(BaseTaskTemplateSerializer):
     subprocess_has_update = serializers.BooleanField(read_only=True, help_text="子流程是否更新")
     has_subprocess = serializers.BooleanField(read_only=True, help_text="是否有子流程")
     description = serializers.CharField(read_only=True, help_text="流程描述", source="pipeline_template.description")
-    pipeline_tree = serializers.SerializerMethodField(read_only=True, help_text="pipeline_tree")
-
-    def get_pipeline_tree(self, obj):
-        return json.dumps(obj.pipeline_tree)
 
     class Meta:
         model = TaskTemplate
         fields = "__all__"
+
+
+class TaskTemplateSerializer(TaskTemplateListSerializer):
+    pipeline_tree = serializers.SerializerMethodField(read_only=True, help_text="pipeline_tree")
+
+    def get_pipeline_tree(self, obj):
+        return json.dumps(obj.pipeline_tree)
 
 
 class TopCollectionTaskTemplateSerializer(TaskTemplateSerializer):

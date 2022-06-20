@@ -18,7 +18,7 @@
                     id="commonTplList"
                     :open="isSearchFormOpen"
                     :search-form="searchForm"
-                    :search-config="{ placeholder: $t('请输入流程名称') }"
+                    :search-config="{ placeholder: $t('请输入流程名称'), value: requestData.flowName }"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
                     <template v-slot:search-extend>
@@ -438,6 +438,7 @@
             searchInputHandler (data) {
                 this.requestData.flowName = data
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getTemplateList()
             },
             onSearchFormSubmit (data) {

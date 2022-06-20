@@ -438,6 +438,30 @@
                 color: #f4aa1a;
             }
         }
+        &.not-reuse {
+            &:before {
+                background: #fffd69;
+            }
+            .not-reuse-tip {
+                color: #c4c6cc;
+                margin-left: 10px;
+                i {
+                    font-size: 14px;
+                    color: #ff9c01;
+                }
+            }
+        }
+        .pre-mako-tip {
+            position: absolute;
+            right: 0;
+            top: 6px;
+            color: #63566e;
+            font-size: 12px;
+            .icon-exclamation-circle {
+                font-size: 14px;
+                color: #ff9c01;
+            }
+        }
     }
     
 }

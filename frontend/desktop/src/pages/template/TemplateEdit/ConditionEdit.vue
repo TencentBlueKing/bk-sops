@@ -42,6 +42,19 @@
                 </div>
                 <div class="form-item">
                     <label class="label">
+                        {{ $t('分支类型') }}
+                        <span class="required">*</span>
+                    </label>
+                    <bk-radio-group v-model="branchType">
+                        <bk-radio :value="'customize'" :disabled="isReadonly">{{ $t('自定义分支') }}</bk-radio>
+                        <bk-radio :value="'default'" :disabled="isReadonly || hasDefaultBranch">
+                            {{ $t('默认分支') }}
+                            <i v-bk-tooltips="defaultTipsConfig" class="common-icon-info"></i>
+                        </bk-radio>
+                    </bk-radio-group>
+                </div>
+                <div class="form-item" v-if="branchType === 'customize'">
+                    <label class="label">
                         {{ $t('表达式')}}
                         <span class="required">*</span>
                     </label>
@@ -72,6 +85,7 @@
 </template>
 
 <script>
+    import i18n from '@/config/i18n/index.js'
     import { mapMutations } from 'vuex'
     import { NAME_REG } from '@/constants/index.js'
     import CodeEditor from '@/components/common/CodeEditor.vue'
@@ -83,6 +97,7 @@
         },
         props: {
             isShow: Boolean,
+            gateways: Object,
             conditionData: Object,
             backToVariablePanel: Boolean,
             isReadonly: {
@@ -91,8 +106,23 @@
             }
         },
         data () {
-            const { name, value } = this.conditionData
+            const { name, value, id, nodeId } = this.conditionData
+            const gwConfig = this.gateways[nodeId]
+            const defaultCondition = gwConfig && gwConfig.default_condition // 默认分支配置
+            const isDefaultBranch = defaultCondition && defaultCondition.flow_id === id // 当前分支是否为默认分支
+            const branchType = isDefaultBranch ? 'default' : 'customize'
+            let hasDefaultBranch = false
+            if (defaultCondition && defaultCondition.flow_id !== id) {
+                hasDefaultBranch = true
+            }
             return {
+                branchType, // 当前分支类型
+                hasDefaultBranch, // 是否存在默认分支(不包含当前分支)
+                defaultTipsConfig: {
+                    width: 216,
+                    content: i18n.t('所有分支均不匹配时执行，类似switch-case-default里面的default'),
+                    placements: ['bottom-start']
+                },
                 conditionName: name,
                 expression: value,
                 conditionRule: {
@@ -110,6 +140,16 @@
                 const { name, value } = val
                 this.conditionName = name
                 this.expression = value
+            },
+            branchType: {
+                handler (val) {
+                    if (val === 'default') {
+                        this.conditionName = i18n.t('默认')
+                    } else {
+                        this.conditionName = this.conditionData.name
+                    }
+                },
+                immediate: true
             }
         },
         methods: {
@@ -135,14 +175,21 @@
             confirm () {
                 this.$validator.validateAll().then(result => {
                     if (result) {
-                        const { id, nodeId, overlayId, loc } = this.conditionData
+                        const { id, nodeId, tag, overlayId, loc } = this.conditionData
                         const data = {
                             id,
                             nodeId,
                             overlayId,
                             loc,
-                            value: this.expression.trim(),
+                            value: this.branchType === 'default' ? undefined : this.expression.trim(),
                             name: this.conditionName
+                        }
+                        if (this.branchType === 'default') {
+                            data.default_condition = {
+                                name: this.conditionName,
+                                tag,
+                                flow_id: id
+                            }
                         }
                         this.setBranchCondition(data)
                         this.$emit('updataCanvasCondition', data)
@@ -194,6 +241,12 @@
                     margin-bottom: 10px;
                     font-size: 12px;
                     color: #b8b8b8;
+                }
+            }
+            .bk-form-radio {
+                margin-right: 48px;
+                .common-icon-info {
+                    color: #979ba5;
                 }
             }
         }

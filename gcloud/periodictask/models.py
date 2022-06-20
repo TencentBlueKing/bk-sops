@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 import ujson as json
-from django.db import models
+from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 
@@ -22,7 +22,7 @@ from gcloud.utils.strings import django_celery_beat_cron_time_format_fit
 from pipeline.contrib.periodic_task.models import BAMBOO_ENGINE_TRIGGER_TASK
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory as PipelinePeriodicTaskHistory
-from pipeline.models import PipelineTemplate
+from pipeline.models import PipelineTemplate, Snapshot
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 from gcloud.core.models import Project, EngineConfig, StaffGroupSet
@@ -50,16 +50,16 @@ class PeriodicTaskManager(models.Manager):
         return qs.first()
 
     def creator_for(self, id):
-        qs = self.filter(id=id).values("task__creator")
+        qs = self.filter(id=id).values("creator")
 
         if not qs:
             raise self.model.DoesNotExist("{}(id={}) does not exist.".format(self.model.__name__, id))
 
-        return qs.first()["task__creator"]
+        return qs.first()["creator"]
 
     def create(self, **kwargs):
         template_source = kwargs.get("template_source", PROJECT)
-        task = self.create_pipeline_task(
+        task = self.create_or_update_pipeline_task(
             project=kwargs["project"],
             template=kwargs["template"],
             name=kwargs["name"],
@@ -68,11 +68,47 @@ class PeriodicTaskManager(models.Manager):
             creator=kwargs["creator"],
             template_source=template_source,
         )
-        return super(PeriodicTaskManager, self).create(
-            project=kwargs["project"], task=task, template_id=kwargs["template"].id, template_source=template_source
-        )
+        create_params = {
+            "project": kwargs["project"],
+            "task": task,
+            "template_id": kwargs["template"].id,
+            "template_source": template_source,
+            "template_version": kwargs["template_version"],
+            "creator": kwargs["creator"],
+        }
+        if "template_scheme_ids" in kwargs:
+            create_params["template_scheme_ids"] = kwargs["template_scheme_ids"]
+        return super(PeriodicTaskManager, self).create(**create_params)
 
-    def create_pipeline_task(self, project, template, name, cron, pipeline_tree, creator, template_source=PROJECT):
+    def update(self, instance, **kwargs):
+        template_source = kwargs.get("template_source", PROJECT)
+        pipeline_periodic_task = instance.task
+        with transaction.atomic():
+            self.create_or_update_pipeline_task(
+                project=kwargs["project"],
+                template=kwargs["template"],
+                name=kwargs["name"],
+                cron=kwargs["cron"],
+                pipeline_tree=kwargs["pipeline_tree"],
+                creator=pipeline_periodic_task.creator,
+                template_source=template_source,
+                is_create=False,
+                instance=pipeline_periodic_task,
+            )
+            instance.project = kwargs["project"]
+            instance.template_id = kwargs["template"].id
+            instance.template_source = template_source
+            instance.template_version = kwargs["template_version"]
+            instance.editor = kwargs["editor"]
+            if "template_scheme_ids" in kwargs:
+                instance.template_scheme_ids = kwargs["template_scheme_ids"]
+            instance.save()
+        return instance
+
+    @staticmethod
+    def create_or_update_pipeline_task(
+        project, template, name, cron, pipeline_tree, creator, template_source=PROJECT, is_create=True, *args, **kwargs
+    ):
         if template_source == PROJECT and template.project.id != project.id:
             raise InvalidOperationException("template %s do not belong to project[%s]" % (template.id, project.name))
 
@@ -91,18 +127,31 @@ class PeriodicTaskManager(models.Manager):
         queue = settings.PERIODIC_TASK_QUEUE_NAME_V2
         trigger_task = BAMBOO_ENGINE_TRIGGER_TASK
 
-        return PipelinePeriodicTask.objects.create_task(
-            name=name,
-            template=template.pipeline_template,
-            cron=cron,
-            data=pipeline_tree,
-            creator=creator,
-            timezone=project.time_zone,
-            extra_info=extra_info,
-            spread=True,
-            queue=queue,
-            trigger_task=trigger_task,
-        )
+        if is_create:
+            return PipelinePeriodicTask.objects.create_task(
+                name=name,
+                template=template.pipeline_template,
+                cron=cron,
+                data=pipeline_tree,
+                creator=creator,
+                timezone=project.time_zone,
+                extra_info=extra_info,
+                spread=True,
+                queue=queue,
+                trigger_task=trigger_task,
+            )
+        instance = kwargs["instance"]
+        snapshot = Snapshot.objects.create_snapshot(pipeline_tree)
+        instance.name = name
+        instance.template = template.pipeline_template
+        instance.snapshot = snapshot
+        instance.extra_info = extra_info
+        instance.modify_cron(cron, project.time_zone, must_disabled=False)
+        instance.queue = queue
+        instance.celery_task.task = trigger_task
+        instance.save()
+        instance.celery_task.save(update_fields=["task"])
+        return instance
 
 
 class PeriodicTask(models.Model):
@@ -110,6 +159,12 @@ class PeriodicTask(models.Model):
     task = models.ForeignKey(PipelinePeriodicTask, verbose_name=_("pipeline 层周期任务"), on_delete=models.CASCADE)
     template_id = models.CharField(_("创建任务所用的模板ID"), max_length=255)
     template_source = models.CharField(_("流程模板来源"), max_length=32, choices=TEMPLATE_SOURCE, default=PROJECT)
+    template_version = models.CharField(_("创建任务时模版 version"), max_length=255, null=True, blank=True)
+    template_scheme_ids = models.TextField(_("创建任务时模版执行方案id"), null=True, blank=True)
+    creator = models.CharField(_("创建者"), max_length=32, default="")
+    create_time = models.DateTimeField(_("创建任务时间"), null=True, auto_now_add=True)
+    editor = models.CharField(_("更新者"), max_length=32, default="")
+    edit_time = models.DateTimeField(_("更新任务时间"), null=True, auto_now=True)
 
     objects = PeriodicTaskManager()
 
@@ -140,10 +195,6 @@ class PeriodicTask(models.Model):
     @property
     def last_run_at(self):
         return self.task.last_run_at
-
-    @property
-    def creator(self):
-        return self.task.creator
 
     @property
     def pipeline_tree(self):
@@ -192,10 +243,10 @@ class PeriodicTask(models.Model):
         PeriodicTaskHistory.objects.filter(task=self).delete()
 
     def modify_cron(self, cron, timezone):
-        self.task.modify_cron(cron, timezone)
+        self.task.modify_cron(cron, timezone, must_disabled=False)
 
     def modify_constants(self, constants):
-        return self.task.modify_constants(constants)
+        return self.task.modify_constants(constants, must_disabled=False)
 
     def get_stakeholders(self):
         notify_receivers = json.loads(self.template.notify_receivers)

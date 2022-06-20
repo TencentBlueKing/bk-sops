@@ -101,7 +101,7 @@
                 <div class="form-item clearfix" v-if="theEditingData.show_type === 'show' && !isInternalVal">
                     <label
                         class="form-label condition-tip"
-                        v-bk-tooltips.top="$t('自动隐藏在显示状态下触发，当触发条件都满足时，才会在编辑页面隐藏，但是不会对传参产生影响')">
+                        v-bk-tooltips.top="$t('满足触发条件的变量，在任务执行填参页面将自动隐藏。可用来实现特定条件下忽略必填参数')">
                         {{ $t('自动隐藏')}}
                     </label>
                     <div class="form-content">
@@ -162,7 +162,7 @@
                 <div class="form-item clearfix" v-if="!isInternalVal">
                     <label
                         class="form-label condition-tip"
-                        v-bk-tooltips.top="$t('模板预渲染为是的变量，会在开始节点执行时就完成渲染，引用了节点输出的变量开启预渲染后会渲染失败')">
+                        v-bk-tooltips.top="$t('开启模板预渲染的变量在任务执行初始完成渲染，后续变量值保存不变，且不可引用输出变量')">
                         {{ $t('模板预渲染')}}
                     </label>
                     <div class="form-content">
@@ -294,6 +294,8 @@
                 },
                 varTypeListLoading: false,
                 varTypeList: [], // 变量类型，input、textarea、datetime 等
+                varTypeData: {},
+                inputRegexp: '', // input，textarea类型正则
                 atomConfigLoading: false,
                 atomTypeKey: '',
                 isSaveConfirmDialogShow: false,
@@ -655,7 +657,13 @@
                 return validation
             },
             // 变量类型切换
-            onValTypeChange (val) {
+            onValTypeChange (val, oldValue) {
+                // 将上一个类型的填写的数据存起来
+                Object.assign(this.varTypeData, tools.deepClone(this.renderData))
+                // 将input textarea类型正则存起来
+                if (['input', 'textarea'].includes(oldValue)) {
+                    this.inputRegexp = this.theEditingData.validation
+                }
                 let data
                 this.varTypeList.some(group => {
                     const option = group.children.find(item => item.code === val)
@@ -664,10 +672,15 @@
                         return true
                     }
                 })
-                this.renderData = {}
+                if (val in this.varTypeData) {
+                    const value = this.varTypeData[val]
+                    this.renderData = { [val]: value }
+                } else {
+                    this.renderData = {}
+                }
                 // input textarea类型需要正则校验
                 if (['input', 'textarea'].includes(val)) {
-                    this.theEditingData.validation = '^.+$'
+                    this.theEditingData.validation = this.inputRegexp || '^.+$'
                 } else {
                     this.theEditingData.validation = ''
                 }
@@ -842,6 +855,7 @@
                                 this.atomFormConfig[this.atomTypeKey][variable.version]
                             )
                         }
+                        this.$emit('setNewCloneKeys', variable.key)
                         this.addVariable(tools.deepClone(variable))
                     } else { // 编辑变量
                         this.editVariable({ key: this.variableData.key, variable })

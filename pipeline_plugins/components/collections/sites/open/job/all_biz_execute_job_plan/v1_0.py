@@ -67,10 +67,7 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
                 schema=StringItemSchema(description=_("作业模板 ID")),
             ),
             self.InputItem(
-                name=_("执行方案 ID"),
-                key="job_plan_id",
-                type="string",
-                schema=StringItemSchema(description=_("执行方案 ID")),
+                name=_("执行方案 ID"), key="job_plan_id", type="string", schema=StringItemSchema(description=_("执行方案 ID")),
             ),
             self.InputItem(
                 name=_("全局变量"),
@@ -155,8 +152,7 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
                     data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(val))
                     return False
 
-                if ip_list:
-                    global_var_list.append({"id": _value["id"], "server": {"ip_list": ip_list}})
+                global_var_list.append({"id": _value["id"], "server": {"ip_list": ip_list}})
             else:
                 global_var_list.append({"id": _value["id"], "value": val})
 

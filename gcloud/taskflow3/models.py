@@ -585,7 +585,12 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
 
     @staticmethod
     def create_pipeline_instance_exclude_task_nodes(
-        template, task_info, constants=None, exclude_task_nodes_id=None, simplify_vars=None
+        template,
+        task_info,
+        constants=None,
+        exclude_task_nodes_id=None,
+        simplify_vars=None,
+        appointed_pipeline_tree=None,
     ):
         """
         :param template: 任务模板
@@ -602,6 +607,8 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         :type exclude_task_nodes_id: list
         :param simplify_vars: 需要进行类型简化的变量的 key 列表
         :type simplify_vars: list, optional
+        :param appointed_pipeline_tree: 指定准备好的pipeline_tree
+        :type appointed_pipeline_tree: dict, optional
         :return: pipeline instance
         :rtype: PipelineInstance
         """
@@ -613,7 +620,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         else:
             simplify_vars = set(simplify_vars)
 
-        pipeline_tree = template.pipeline_tree
+        pipeline_tree = appointed_pipeline_tree or template.pipeline_tree
 
         PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
 
@@ -697,6 +704,7 @@ class TaskFlowInstance(models.Model):
     current_flow = models.CharField(_("当前任务流程阶段"), max_length=255)
     is_deleted = models.BooleanField(_("是否删除"), default=False)
     engine_ver = models.IntegerField(_("引擎版本"), choices=EngineConfig.ENGINE_VER, default=2)
+    recorded_executor_proxy = models.CharField(_("任务执行人代理"), max_length=255, default=None, blank=True, null=True)
 
     objects = TaskFlowInstanceManager()
 
@@ -954,7 +962,7 @@ class TaskFlowInstance(models.Model):
         with transaction.atomic():
             if name:
                 self.pipeline_instance.name = name
-            self.set_task_context(constants)
+            self.set_task_constants(constants)
             result = self.function_task.get(task=self).claim_task(username)
             if result["result"]:
                 self.current_flow = "execute_task"
@@ -1026,17 +1034,17 @@ class TaskFlowInstance(models.Model):
         self.save()
         return self
 
-    def set_task_context(self, constants, meta_constants=None):
+    def set_task_constants(self, constants, meta_constants=None):
         dispatcher = TaskCommandDispatcher(
             engine_ver=self.engine_ver,
             taskflow_id=self.id,
             pipeline_instance=self.pipeline_instance,
             project_id=self.project_id,
         )
-        return dispatcher.set_task_context(
+        return dispatcher.set_task_constants(
             task_is_started=self.pipeline_instance.is_started,
             task_is_finished=self.pipeline_instance.is_finished,
-            context=constants,
+            constants=constants,
             meta_constants=meta_constants or {},
         )
 
@@ -1158,6 +1166,12 @@ class TaskFlowInstance(models.Model):
     def get_notify_type(self):
         notify_type = json.loads(self.template.notify_type)
         return notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
+
+    def record_and_get_executor_proxy(self, executor_proxy):
+        if self.recorded_executor_proxy is None:
+            self.recorded_executor_proxy = executor_proxy
+            self.save(update_fields=["recorded_executor_proxy"])
+        return self.recorded_executor_proxy
 
 
 def get_instance_context(pipeline_instance, data_type, username=""):
