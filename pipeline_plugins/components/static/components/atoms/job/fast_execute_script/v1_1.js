@@ -526,5 +526,18 @@
                 formViewHidden: true
             }
         },
+        {
+            tag_code: "need_log_outputs_even_fail",
+            type: "radio",
+            attrs: {
+                name: gettext("失败依然加载日志"),
+                items: [
+                    {value: true, name: gettext("是")},
+                    {value: false, name: gettext("否")},
+                ],
+                default: false,
+                hookable: true,
+            }
+        },
     ]
 })();
