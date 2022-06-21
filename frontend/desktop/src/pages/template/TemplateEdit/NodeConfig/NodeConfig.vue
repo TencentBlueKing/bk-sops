@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -184,6 +184,16 @@
                                             class="bk-icon icon-question-circle section-tips">
                                         </i>
                                     </h3>
+                                    <p class="citations-waivers-guide">
+                                        <bk-popover placement="top-end" theme="light" width="258" :ext-cls="'citations-waivers-guide-tip'">
+                                            <i class="bk-icon icon-info-circle-shape"></i>
+                                            {{ $t('变量引用和豁免使用指引') }}
+                                            <div slot="content">
+                                                <p>{{ $t('变量引用：使用参数的配置创建全局变量并引用，或不创建直接引用同类型变量') }}</p><br>
+                                                <p>{{ $t('变量豁免：开启后忽略参数中的全局变量，视为普通字符串') }}</p>
+                                            </div>
+                                        </bk-popover>
+                                    </p>
                                     <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading, zIndex: 100 }">
                                         <template v-if="!inputLoading">
                                             <input-params
@@ -273,12 +283,11 @@
             header-position="left"
             :mask-close="false"
             :value="isCancelGloVarDialogShow"
-            :title="$t('取消引用为全局变量')"
-            @cancel="isCancelGloVarDialogShow = false">
-            <p>{{ $t('取消后，该全局变量的引用数为 0 ') }}</p>
-            <p>{{ $t('不再使用的变量，建议在全局变量面板中及时删除') }}</p>
+            :title="$t('取消变量引用')">
+            <p>{{ $t('全局变量【 x 】的引用数已为 0。如果不再使用，可立即删除变量; 也可以稍后再全局变量面板中删除', { key: unhookingVarForm.key })}}</p>
             <template slot="footer">
-                <bk-button theme="primary" @click="onCancelVarConfirmClick">{{ $t('我知道了') }}</bk-button>
+                <bk-button theme="primary" @click="deleteUnhookingVar">{{ $t('删除变量') }}</bk-button>
+                <bk-button @click="onCancelVarConfirmClick">{{ $t('以后再说') }}</bk-button>
             </template>
         </bk-dialog>
     </div>
@@ -735,6 +744,14 @@
                             type: 'regex',
                             args: variable.validation,
                             error_message: i18n.t('默认值不符合正则规则：') + variable.validation
+                        })
+                    }
+                    // 参数填写时为保证每个表单 tag_code 唯一，原表单 tag_code 会被替换为变量 key，导致事件监听不生效
+                    if (formItemConfig.hasOwnProperty('events')) {
+                        formItemConfig.events.forEach(e => {
+                            if (e.source === tagCode) {
+                                e.source = '${' + e.source + '}'
+                            }
                         })
                     }
                     inputs.push(formItemConfig)
@@ -1215,7 +1232,7 @@
                         this.$set(sourceInfo, id, [tagCode])
                     }
                 } else if (type === 'delete') {
-                    this.unhookingVarForm = data
+                    this.unhookingVarForm = { ...data, value: constant.value }
                     this.variableCited = await this.getVariableCitedData() || {}
                     const { activities, conditions, constants } = this.variableCited[key]
                     const citedNum = activities.length + conditions.length + constants.length
@@ -1256,12 +1273,19 @@
                     console.log(e)
                 }
             },
+            deleteUnhookingVar () {
+                const { key, source } = this.unhookingVarForm
+                this.$delete(this.localConstants, key)
+                const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
+                refDom && refDom.setFromData({ ...this.unhookingVarForm })
+                this.isCancelGloVarDialogShow = false
+            },
             onCancelVarConfirmClick () {
                 const { key, source } = this.unhookingVarForm
                 const constant = this.localConstants[key]
                 constant.source_info = {}
                 const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
-                refDom && refDom.setFromData()
+                refDom && refDom.setFromData({ ...this.unhookingVarForm })
                 this.isCancelGloVarDialogShow = false
             },
             // 删除全局变量
@@ -1602,6 +1626,7 @@
         }
     }
     .config-section {
+        position: relative;
         margin-bottom: 50px;
         & > h3 {
             margin: 0 0 20px 0;
@@ -1611,6 +1636,17 @@
             line-height: 1;
             color: #313238;
             border-bottom: 1px solid #cacecb;
+        }
+        .citations-waivers-guide {
+            position: absolute;
+            right: 0;
+            top: 0;
+            color: #979ba5;
+            font-size: 12px;
+            cursor: pointer;
+            &:hover {
+                color: #3a84ff;
+            }
         }
         .basic-info-wrapper {
             min-height: 250px;

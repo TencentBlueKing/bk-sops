@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -15,6 +15,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from gcloud.clocked_task.models import ClockedTask
 from gcloud.utils import managermixins
 from pipeline.exceptions import SubprocessExpiredError
 from pipeline_web.core.abstract import NodeAttr
@@ -24,7 +25,7 @@ from pipeline.models import PipelineTemplate, TemplateRelationship, TemplateCurr
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 from gcloud import err_code
-from gcloud.constants import TEMPLATE_EXPORTER_VERSION, COMMON, PROJECT
+from gcloud.constants import TEMPLATE_EXPORTER_VERSION, COMMON, PROJECT, CLOCKED_TASK_NOT_STARTED
 from gcloud.exceptions import FlowExportError
 from gcloud.conf import settings
 from gcloud.constants import TASK_CATEGORY
@@ -366,6 +367,17 @@ class BaseTemplate(models.Model):
             return []
 
         return appmaker_referencer
+
+    def referencer_clocked_task(self):
+        clocked_task_referencer = ClockedTask.objects.filter(
+            template_id=self.id, state=CLOCKED_TASK_NOT_STARTED
+        ).values("id", "task_name")
+        return [{"id": referencer["id"], "name": referencer["task_name"]} for referencer in clocked_task_referencer]
+
+    def referencer_periodic_task(self):
+        periodic_task_cls = apps.get_model("periodictask", "PeriodicTask")
+        periodic_task_referencer = periodic_task_cls.objects.filter(template_id=self.id).values("id", "task__name")
+        return [{"id": referencer["id"], "name": referencer["task__name"]} for referencer in periodic_task_referencer]
 
     def get_clone_pipeline_tree(self):
         clone_tree = self.pipeline_template.clone_data()

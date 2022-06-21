@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -94,15 +94,14 @@
                     <span v-if="reuseTaskId" class="reuse-tip">
                         <bk-popover placement="top-start" theme="light" width="350" :ext-cls="'reuse-rule-tip'">
                             <i class="bk-icon icon-question-circle"></i>
+                            {{ $t('重用说明') }}
                             <div slot="content">
-                                <p>{{ $t('重用规则') }}</p><br>
-                                <p>{{ $t('参数值为非字典类型，KEY&类型前后一致才可重用') }}</p>
-                                <p>{{ $t('参数值为字典类型，还需要字典内的key前后一致才可重用') }}</p>
-                                <p>{{ $t('元变量还需元数据配置一致才可重用') }}</p>
-                                <p>{{ $t('不满足重用规则时使用流程默认值') }}</p>
+                                <p class="mb10">{{ $t('以下情况参数值无法重用，使用变量默认值：') }}</p>
+                                <p>{{ '1. ' + $t('变量的类型变更') }}</p>
+                                <p>{{ '2. ' + $t('变量值的配置项变更') }}</p>
+                                <p>{{ '3. ' + $t('元变量的配置变更') }}</p>
                             </div>
                         </bk-popover>
-                        {{ $t('重用规则') }}
                     </span>
                 </div>
                 <div>
@@ -126,6 +125,7 @@
             </bk-button>
             <bk-button
                 :class="['next-step-button', {
+                    'ml40': isCustomizeType,
                     'btn-permission-disable': common ? !hasCommonTplCreateTaskPerm : !hasPermission(nextStepPerm, actions)
                 }]"
                 theme="primary"
@@ -315,7 +315,7 @@
                     this.commonTplCreateTaskPermLoading = true
                     const bkSops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
                     const data = {
-                        action: 'common_flow_create_task',
+                        action: this.nextStepPerm[0],
                         resources: [
                             {
                                 system: bkSops.id,
@@ -353,11 +353,8 @@
                         return
                     }
 
-                    const { notify_receivers, notify_type, auth_actions, default_flow_type } = templateData
-                    this.notifyType = [notify_type.success.slice(0), notify_type.fail.slice(0)]
-                    this.receiverGroup = JSON.parse(notify_receivers).receiver_group.slice(0)
-                    this.tplActions = auth_actions
-                    this.isSelectFunctionalType = default_flow_type === 'common_func'
+                    this.tplActions = templateData.auth_actions
+                    this.isSelectFunctionalType = templateData.default_flow_type === 'common_func'
                     this.setTemplateData(templateData)
 
                     let schemeId = ''
@@ -697,6 +694,9 @@
                     return
                 }
                 this.isStartNow = value
+                if (this.common) {
+                    this.queryCommonTplCreateTaskPerm()
+                }
                 this.$emit('togglePeriodicStep', !value, this.isSelectFunctionalType)
                 if (value === 'periodic') {
                     this.lastTaskName = this.taskName
@@ -748,6 +748,7 @@
             font-size: 12px;
             font-weight: normal;
             margin-left: 25px;
+            cursor: default;
             .bk-tooltip {
                 line-height: 1;
             }

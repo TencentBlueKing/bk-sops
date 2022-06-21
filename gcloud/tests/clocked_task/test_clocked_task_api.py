@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -70,6 +70,10 @@ class ClockedTaskTestCase(
         task_serialized_data.pop("id")
         plan_start_time = datetime.datetime.now(tz=pytz.timezone(settings.TIME_ZONE)) + datetime.timedelta(hours=1)
         task_serialized_data["plan_start_time"] = plan_start_time.strftime("%Y-%m-%d %H:%M:%S%z")
+        task_serialized_data["task_parameters"] = {
+            "constants": {},
+            "template_schemes_id": [],
+        }
         data = json.dumps(task_serialized_data)
         url = reverse("clocked_task-list")
         response = self.client.post(url, data=data, content_type="application/json")

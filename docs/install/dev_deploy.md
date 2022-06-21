@@ -51,6 +51,7 @@ export DB_NAME = "{你的 DB 名}"
 export RUN_VER = "open"
 export BKAPP_API_JWT_EXEMPT="1"
 export BKAPP_IAM_SKIP="True"
+export BK_IAM_HOST="{开发环境 权限中心 域名}"
 ```
 
 
@@ -121,6 +122,11 @@ npm run build
 3）处理静态资源
 
 回到项目根目录，执行以下命令
+
+如果尚未收集静态文件：
+```bash
+python manage.py collectstatic --noinput
+```
 
 ```bash
 cp -r ./frontend/desktop/static ./staticfiles/bk_sops

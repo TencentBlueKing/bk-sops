@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -124,15 +124,12 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
                 schema=StringItemSchema(description=_("执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"),
-                key="job_account",
-                type="string",
-                schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
+                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
             ),
             self.InputItem(
                 name=_("IP 存在性校验"),
                 key="ip_is_exist",
-                type="string",
+                type="boolean",
                 schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
             ),
             self.InputItem(
@@ -199,9 +196,7 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
             "bk_biz_id": biz_cc_id,
             "timeout": data.get_one_of_inputs("job_script_timeout"),
             "account_alias": data.get_one_of_inputs("job_account"),
-            "target_server": {
-                "ip_list": ip_list,
-            },
+            "target_server": {"ip_list": ip_list},
             "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
 
@@ -215,11 +210,7 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
             kwargs = {"name": script_name}
             if script_source == "general":
                 kwargs.update(
-                    {
-                        "bk_scope_type": JobBizScopeType.BIZ.value,
-                        "bk_scope_id": str(biz_cc_id),
-                        "bk_biz_id": biz_cc_id,
-                    }
+                    {"bk_scope_type": JobBizScopeType.BIZ.value, "bk_scope_id": str(biz_cc_id), "bk_biz_id": biz_cc_id}
                 )
                 func = client.jobv3.get_script_list
             else:

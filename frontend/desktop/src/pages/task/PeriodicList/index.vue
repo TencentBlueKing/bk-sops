@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -51,7 +51,7 @@
                                 <template slot-scope="{ row }">
                                     <!--任务-->
                                     <div v-if="item.id === 'name'" class="task-name">
-                                        <span class="name">{{row.name || '--'}}</span>
+                                        <span class="name" :title="row.name">{{row.name || '--'}}</span>
                                         <span
                                             class="label"
                                             v-if="row.is_latest === null"
@@ -60,7 +60,7 @@
                                         </span>
                                     </div>
                                     <!--流程模板-->
-                                    <div v-else-if="item.id === 'process_template'">
+                                    <div v-else-if="item.id === 'process_template'" class="template-name">
                                         <a
                                             v-if="!hasPermission(['periodic_task_view'], row.auth_actions)"
                                             v-cursor
@@ -79,7 +79,6 @@
                                         <i
                                             v-if="row.is_latest === false"
                                             :class="['common-icon-update', {
-                                                'is-disabled': row.enabled,
                                                 'text-permission-disable': !hasPermission(['periodic_task_edit'], row.auth_actions)
                                             }]"
                                             v-cursor="{ active: !hasPermission(['periodic_task_edit'], row.auth_actions) }"
@@ -118,13 +117,11 @@
                                 <div class="periodic-operation">
                                     <template v-if="!adminView">
                                         <a
-                                            v-cursor="{ active: !hasPermission(['periodic_task_edit'], props.row.auth_actions) }"
+                                            v-cursor="{ active: !hasPermission(getEditPerm(props.row), props.row.auth_actions) }"
                                             href="javascript:void(0);"
                                             :class="['periodic-bk-btn', {
-                                                'periodic-bk-disable': props.row.enabled,
-                                                'text-permission-disable': !hasPermission(['periodic_task_edit'], props.row.auth_actions)
+                                                'text-permission-disable': !hasPermission(getEditPerm(props.row), props.row.auth_actions)
                                             }]"
-                                            :title="props.row.enabled ? $t('请暂停任务后再执行编辑操作') : ''"
                                             data-test-id="periodicList_table_editBtn"
                                             @click="onModifyCronPeriodic(props.row, $event)">
                                             {{ $t('编辑') }}
@@ -297,6 +294,7 @@
         }, {
             id: 'creator',
             label: i18n.t('创建人'),
+            disabled: true,
             width: 120
         }, {
             id: 'create_time',
@@ -305,10 +303,12 @@
         }, {
             id: 'editor',
             label: i18n.t('更新人'),
+            disabled: true,
             width: 120
         }, {
             id: 'edit_time',
             label: i18n.t('更新时间'),
+            disabled: true,
             width: 200
         }, {
             id: 'total_run_count',
@@ -483,7 +483,7 @@
                     }
                 } else {
                     selectedFields = this.tableFields.reduce((acc, cur) => {
-                        if (!['creator', 'create_time'].includes(cur.id)) { // 默认不显示创建人/创建时间
+                        if (cur.id !== 'create_time') { // 默认不显示创建时间
                             acc.push(cur.id)
                         }
                         return acc
@@ -508,16 +508,23 @@
                 this.updateUrl()
                 this.getPeriodicList()
             },
+            getEditPerm (row) {
+                if (row.template_source === 'common') {
+                    return ['common_flow_view', 'periodic_task_edit']
+                }
+                return ['flow_view', 'periodic_task_edit']
+            },
             /**
              * 单个周期任务操作项点击时校验
              * @params {Array} required 需要的权限
              * @params {Object} periodic 模板数据对象
              */
             onPeriodicPermissonCheck (required, periodic) {
-                const { id, name, task_template_name, template_id, project } = periodic
+                const { id, name, task_template_name, template_id, project, auth_actions, template_source } = periodic
+                const isCommon = template_source === 'common'
                 const resourceData = {
                     periodic_task: [{ id, name }],
-                    flow: [{
+                    [isCommon ? 'common_flow' : 'flow']: [{
                         id: template_id,
                         name: task_template_name
                     }],
@@ -526,7 +533,7 @@
                         name: project.name
                     }]
                 }
-                this.applyForPermission(required, periodic.auth_actions, resourceData)
+                this.applyForPermission(required, auth_actions, resourceData)
             },
             onDeletePeriodic (periodic) {
                 if (!this.hasPermission(['periodic_task_delete'], periodic.auth_actions)) {
@@ -607,12 +614,9 @@
                 }
             },
             async onModifyCronPeriodic (item) {
-                const { enabled, id: taskId, cron } = item
-                if (!this.hasPermission(['periodic_task_edit'], item.auth_actions)) {
-                    this.onPeriodicPermissonCheck(['periodic_task_edit'], item)
-                    return
-                }
-                if (enabled) {
+                const { id: taskId, cron } = item
+                if (!this.hasPermission(this.getEditPerm(item), item.auth_actions)) {
+                    this.onPeriodicPermissonCheck(this.getEditPerm(item), item)
                     return
                 }
                 this.curRow = item
@@ -656,7 +660,7 @@
                     this.deleting = true
                     await this.deletePeriodic(this.selectedDeleteTaskId)
                     this.$bkMessage({
-                        'message': i18n.t('删除周期任务成功'),
+                        'message': i18n.t('周期任务') + i18n.t('删除成功'),
                         'theme': 'success'
                     })
                     this.isDeleteDialogShow = false
@@ -695,10 +699,11 @@
             },
             templateNameUrl (template) {
                 const { template_id: templateId, template_source: templateSource, project } = template
+                const isCommon = templateSource === 'common'
                 const url = {
-                    name: 'templatePanel',
-                    params: { type: 'view', project_id: project.id },
-                    query: { template_id: templateId, common: templateSource === 'common' || undefined }
+                    name: isCommon ? 'commonTemplatePanel' : 'templatePanel',
+                    params: { type: 'view', project_id: isCommon ? undefined : project.id },
+                    query: { template_id: templateId, common: isCommon ? 1 : undefined }
                 }
                 return url
             },
@@ -809,6 +814,24 @@
             cursor: default;
         }
     }
+    .template-name {
+        display: flex;
+        align-items: center;
+        .periodic-name {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        .common-icon-update {
+            color: #ee392f;
+            font-size: 14px;
+            cursor: pointer;
+            &.is-disabled {
+                color: #cccccc;
+                cursor: not-allowed;
+            }
+        }
+    }
     .icon-check-circle-shape {
         color: #30d878;
     }
@@ -828,15 +851,6 @@
         color: #ff9c01;
         border-radius: 20px;
         font-size: 12px;
-    }
-    .common-icon-update {
-        color: #ee392f;
-        font-size: 14px;
-        cursor: pointer;
-        &.is-disabled {
-            color: #cccccc;
-            cursor: not-allowed;
-        }
     }
     .drop-icon-ellipsis {
         font-size: 18px;

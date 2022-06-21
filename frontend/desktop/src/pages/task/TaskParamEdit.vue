@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -161,13 +161,19 @@
                             atomConfig = await this.getThirdPartyAtomConfig(plugin_code, version)
                         } else {
                             await this.loadAtomConfig({ name, atom, classify, version, project_id: this.project_id })
-                            atomConfig = this.atomFormConfig[atom][version]
+                            atomConfig = tools.deepClone(this.atomFormConfig[atom][version])
                         }
                     }
                     if (this.preMakoDisabled && variable.pre_render_mako) { // 修改参数页变量预渲染禁止编辑
                         atomConfig.forEach(item => {
+                            if (!item.attrs) {
+                                item.attrs = {}
+                            }
                             item.attrs['disabled'] = true
                             item.attrs['pre_mako_tip'] = i18n.t('设置了模板预渲染的变量，不支持中途修改参数值')
+                            if (item.attrs.children) { // 预渲染变量下包含子组件配置禁止编辑
+                                this.setAtomDisable(item.attrs.children)
+                            }
                         })
                     }
                     let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
@@ -240,6 +246,17 @@
                 this.$nextTick(() => {
                     this.isConfigLoading = false
                     this.$emit('onChangeConfigLoading', false)
+                })
+            },
+            setAtomDisable (atomList) {
+                atomList.forEach(item => {
+                    if (!item.attrs) {
+                        item.attrs = {}
+                    }
+                    item.attrs['disabled'] = true
+                    if (item.attrs.children) {
+                        this.setAtomDisable(item.attrs.children)
+                    }
                 })
             },
             async getThirdPartyAtomConfig (code, version) {

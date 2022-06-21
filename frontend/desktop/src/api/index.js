@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,7 +12,6 @@
 import axios from 'axios'
 import axiosDefaults from 'axios/lib/defaults'
 import bus from '@/utils/bus.js'
-import isCrossOriginIFrame from '@/utils/isCrossOriginIFrame.js'
 import { setJqueryAjaxConfig } from '@/config/setting.js'
 import { generateTraceId } from '@/utils/uuid.js'
 
@@ -74,9 +73,16 @@ axios.interceptors.response.use(
                 break
             case 401:
                 const data = response.data
-                if (data.has_plain) {
-                    const topWindow = isCrossOriginIFrame() ? window : window.top
-                    topWindow.BLUEKING.corefunc.open_login_dialog(data.login_url, data.width, data.height, response.config.method)
+                if (data.has_plain && !window.loginWindow) {
+                    const { login_url: src, width, height } = data
+                    const { availHeight, availWidth } = window.screen
+                    const left = (availWidth - width) / 2
+                    const top = (availHeight - height) / 2
+                    window.loginWindow = window.open(src, '_blank', `
+                        width=` + width + `,
+                        height=` + height + `,
+                        left=` + left + `,
+                        top=` + top + `,`)
                 }
                 break
             case 499:

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -77,11 +77,7 @@ def create_periodic_task(request, template_id, project_id):
             result = {
                 "result": False,
                 "message": "template[id={template_id}] of project[project_id={project_id} , biz_id{biz_id}] "
-                "does not exist".format(
-                    template_id=template_id,
-                    project_id=project.id,
-                    biz_id=project.bk_biz_id,
-                ),
+                "does not exist".format(template_id=template_id, project_id=project.id, biz_id=project.bk_biz_id),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return result
@@ -136,6 +132,7 @@ def create_periodic_task(request, template_id, project_id):
             cron=cron,
             pipeline_tree=pipeline_tree,
             creator=request.user.username,
+            template_version=template.version,
         )
     except Exception as e:
         logger.exception("[API] create_periodic_task create error: {}".format(e))

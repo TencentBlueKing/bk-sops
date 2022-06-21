@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -37,12 +37,16 @@ class GetUserProjectDetailAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
     @patch(
-        APIGW_GET_USER_PROJECT_DETAIL_GET_BUSINESS_DETAIL, MagicMock(side_effect=Exception()),
+        APIGW_GET_USER_PROJECT_DETAIL_GET_BUSINESS_DETAIL,
+        MagicMock(side_effect=Exception()),
     )
     def test_get_user_project_detail__get_business_detail_raise(self):
         response = self.client.get(path=self.url().format(project_id=TEST_PROJECT_ID))
@@ -57,7 +61,10 @@ class GetUserProjectDetailAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID_2, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID_2,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -93,5 +100,6 @@ class GetUserProjectDetailAPITest(APITest):
                 "bk_biz_maintainer": TEST_BIZ_MAINTAINER,
                 "bk_biz_tester": TEST_BIZ_TESTER,
                 "bk_biz_productor": TEST_BIZ_PRODUCTOR,
+                "auth_actions": ["project_view", "project_edit", "project_fast_create_task"],
             },
         )

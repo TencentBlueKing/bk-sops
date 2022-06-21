@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -39,7 +39,7 @@ from gcloud.utils.ip import get_ip_by_regex
 from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema, IntItemSchema, ArrayItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.collections.sites.open.job import JobService
-from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url
+from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, has_biz_set
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
@@ -162,6 +162,9 @@ class AllBizJobFastExecuteScriptService(JobService):
         job_script_timeout = data.get_one_of_inputs("job_script_timeout")
         ip_info = data.get_one_of_inputs("job_target_ip_table")
 
+        if not has_biz_set(int(biz_cc_id)):
+            self.biz_scope_type = JobBizScopeType.BIZ.value
+
         # 拼装ip_list， bk_cloud_id为空则值为0
         ip_list = [
             {"ip": ip, "bk_cloud_id": int(_ip["bk_cloud_id"]) if str(_ip["bk_cloud_id"]) else 0}
@@ -170,7 +173,7 @@ class AllBizJobFastExecuteScriptService(JobService):
         ]
 
         job_kwargs = {
-            "bk_scope_type": JobBizScopeType.BIZ_SET.value,
+            "bk_scope_type": self.biz_scope_type,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
             "account_alias": data.get_one_of_inputs("job_target_account"),
@@ -208,6 +211,12 @@ class AllBizJobFastExecuteScriptService(JobService):
             self.logger.error(message)
             data.outputs.ex_data = message
             return False
+
+    def schedule(self, data, parent_data, callback_data=None):
+        biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
+        if not has_biz_set(int(biz_cc_id)):
+            self.biz_scope_type = JobBizScopeType.BIZ.value
+        return super().schedule(data, parent_data, callback_data)
 
 
 class AllBizJobFastExecuteScriptComponent(Component):

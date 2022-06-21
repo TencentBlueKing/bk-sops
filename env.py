@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -36,7 +36,7 @@ ENABLE_OTEL_TRACE = os.getenv("BKAPP_ENABLE_OTEL_TRACE", False)
 
 BK_APP_OTEL_INSTRUMENT_DB_API = os.getenv("BKAPP_OTEL_INSTRUMENT_DB_API", False)
 
-NODE_CALLBACK_RETRY_TIMES = int(os.getenv("NODE_CALLBACK_RETRY_TIMES", 3))
+NODE_CALLBACK_RETRY_TIMES = int(os.getenv("NODE_CALLBACK_RETRY_TIMES", os.getenv("BKAPP_NODE_CALLBACK_RETRY_TIMES", 5)))
 
 # 蓝鲸插件开发地址
 BK_PLUGIN_DEVELOP_URL = os.getenv("BK_PLUGIN_DEVELOP_URL", "")
@@ -56,5 +56,15 @@ BKAPP_INNER_CALLBACK_ENTRY = os.getenv("BKAPP_INNER_CALLBACK_ENTRY", "")
 # 网关管理员
 BK_APIGW_MANAGER_MAINTAINERS = os.getenv("BK_APIGW_MANAGER_MAINTAINERS", "admin").split(",")
 
+# 启动节点日志数据源拉取
+NODE_LOG_DATA_SOURCE = os.getenv("NODE_LOG_DATA_SOURCE", "DATABASE")
+NODE_LOG_DATA_SOURCE_CONFIG = json.loads(os.getenv("NODE_LOG_DATA_SOURCE_CONFIG", "{}"))
+
+# PAAS V3 APIGW token
+PAASV3_APIGW_API_TOKEN = os.getenv("BKAPP_PAASV3_APIGW_API_TOKEN")
+
 # APIGW 访问地址
 BK_APIGW_URL_TMPL = os.getenv("BK_API_URL_TMPL")
+
+# 是否允许 celery worker 发送监控事件
+CELERY_SEND_EVENTS = bool(os.getenv("CELERY_SEND_EVENTS", False))

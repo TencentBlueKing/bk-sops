@@ -1,7 +1,7 @@
 /**
  * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
  * Edition) available.
- * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+ * Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * http://opensource.org/licenses/MIT
@@ -182,7 +182,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_list/' + $.context.getBkBizId() + '/?type=public';
+                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_list/' + $.context.getBkBizId() + '/?type=public&value_field=online_script_version_id';
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -223,7 +223,7 @@
                     action: function () {
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         if (cc_id !== '' && $.context.canSelectBiz()) {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + cc_id + '/?type=public';
+                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + cc_id + '/?type=public&value_field=online_script_version_id';
                             this.remoteMethod();
                         }
                     }
@@ -235,7 +235,7 @@
                         if (!$.context.canSelectBiz() || value === '') {
                             return;
                         }
-                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + value + '/?type=public';
+                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + value + '/?type=public&value_field=online_script_version_id';
                         this.remoteMethod();
                     }
                 },
@@ -261,7 +261,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_list/' + $.context.getBkBizId() + '/?type=general';
+                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_list/' + $.context.getBkBizId() + '/?type=general&value_field=online_script_version_id';
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -302,7 +302,7 @@
                     action: function () {
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         if (cc_id !== '' && $.context.canSelectBiz()) {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + cc_id + '/?type=general';
+                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + cc_id + '/?type=general&value_field=online_script_version_id';
                             this.remoteMethod();
                         }
                     }
@@ -318,7 +318,7 @@
                         if (value === '') {
                             return;
                         }
-                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + value + '/?type=general';
+                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + value + '/?type=general&value_field=online_script_version_id';
                         this.remoteMethod();
                     }
                 },
@@ -334,6 +334,60 @@
                         }
                     }
                 }
+            ]
+        },
+        {
+            tag_code: "job_script_name",
+            type: "text",
+            attrs: {
+                name: gettext("脚本名称"),
+                hookable: false,
+            },
+            events: [
+                {
+                    source: "job_script_name",
+                    type: "init",
+                    action: function (value) {
+                        this.hide();
+                        if (!this.get_parent || !this.get_parent().get_child('job_script_list_general')._get_value() || this.get_parent().get_child("job_script_source")._get_value() !== "general") {
+                            return;
+                        }
+                        var self = this;
+                        const script_version = this.get_parent().get_child('job_script_list_general')._get_value();
+                        const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_by_script_version/' + $.context.getBkBizId() + '/?script_version=' + script_version;
+                        $.ajax({
+                            url: url,
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function (resp) {
+                                if (resp.result === false) {
+                                    show_msg(resp.message, 'error');
+                                }
+                                self._set_value(resp.data.script_name);
+                                if (resp.data.script_name !== "") {
+                                    self.show();
+                                }
+                            },
+                            error: function () {
+                                show_msg('request job script version detail error', 'error');
+                            }
+                        });
+                    }
+                },
+                {
+                    source: "job_script_list_general",
+                    type: "change",
+                    action: function (value) {
+                        this.hide();
+                    }
+                },
+                {
+                    source: "job_script_source",
+                    type: "change",
+                    action: function (value) {
+                        this.hide();
+                    }
+                },
             ]
         },
         {

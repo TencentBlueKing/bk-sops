@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -585,7 +585,12 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
 
     @staticmethod
     def create_pipeline_instance_exclude_task_nodes(
-        template, task_info, constants=None, exclude_task_nodes_id=None, simplify_vars=None
+        template,
+        task_info,
+        constants=None,
+        exclude_task_nodes_id=None,
+        simplify_vars=None,
+        appointed_pipeline_tree=None,
     ):
         """
         :param template: 任务模板
@@ -602,6 +607,8 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         :type exclude_task_nodes_id: list
         :param simplify_vars: 需要进行类型简化的变量的 key 列表
         :type simplify_vars: list, optional
+        :param appointed_pipeline_tree: 指定准备好的pipeline_tree
+        :type appointed_pipeline_tree: dict, optional
         :return: pipeline instance
         :rtype: PipelineInstance
         """
@@ -613,7 +620,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         else:
             simplify_vars = set(simplify_vars)
 
-        pipeline_tree = template.pipeline_tree
+        pipeline_tree = appointed_pipeline_tree or template.pipeline_tree
 
         PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
 

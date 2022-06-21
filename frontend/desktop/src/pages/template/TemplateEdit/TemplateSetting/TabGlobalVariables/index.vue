@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -529,7 +529,7 @@
                 const end = Math.max(newIndex, oldIndex) + 1
                 const delta = this.isHideSystemVar ? start : start - Object.keys(this.internalVariable).length
                 const indexChangedVar = this.variableList.slice(start, end)
-                
+
                 indexChangedVar.forEach((item, index) => {
                     item.index = index + delta
                     if (item.key in this.internalVariable) return
@@ -582,6 +582,10 @@
                 this.deleteVarKey = ''
                 this.$emit('templateDataChanged')
                 this.getVariableCitedData() // 删除变量后更新引用数据
+                this.$bkMessage({
+                    theme: 'success',
+                    message: i18n.t('变量') + i18n.t('删除成功！')
+                })
             },
             onCloneVariable (data) {
                 const variableData = tools.deepClone(data)

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -864,8 +864,17 @@
                             const index = this.selectedTpls.findIndex(tpl => tpl.id === id)
                             this.selectedTpls.splice(index, 1)
                         })
+                        this.$bkMessage({
+                            message: i18n.t('流程') + i18n.t('删除成功！'),
+                            theme: 'success'
+                        })
                         this.pagination.current = 1
                         this.getTemplateList()
+                    } else if (Object.keys(res.data.references).length) {
+                        this.$bkMessage({
+                            message: i18n.t('流程当前被使用中，无法删除'),
+                            theme: 'error'
+                        })
                     }
                 }
                 return Promise.resolve()
@@ -1026,7 +1035,8 @@
                         templateId: this.theDeleteTemplateId,
                         common: '1'
                     }
-                    await this.deleteTemplate(data)
+                    const resp = await this.deleteTemplate(data)
+                    if (!resp.result) return
                     if (this.selectedTpls.find(tpl => tpl.id === this.theDeleteTemplateId)) {
                         const index = this.selectedTpls.findIndex(tpl => tpl.id === this.theDeleteTemplateId)
                         this.selectedTpls.splice(index, 1)
@@ -1041,6 +1051,10 @@
                         this.pagination.current -= 1
                     }
                     this.getTemplateList()
+                    this.$bkMessage({
+                        message: i18n.t('公共流程') + i18n.t('删除成功！'),
+                        theme: 'success'
+                    })
                 } catch (e) {
                     console.log(e)
                 } finally {

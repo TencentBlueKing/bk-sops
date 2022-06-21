@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -13,13 +13,17 @@ specific language governing permissions and limitations under the License.
 from cachetools import cached, TTLCache
 from django.views.decorators.http import require_GET
 
+from iam import Resource
 from blueapps.account.decorators import login_exempt
+
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.decorators import project_inject
 from gcloud.apigw.utils import api_hash_key
 from gcloud.core.utils import get_user_business_detail as get_business_detail
 from gcloud.apigw.views.utils import logger
+from gcloud.iam_auth.utils import get_resources_allowed_actions_for_user
+from gcloud.iam_auth.conf import IAMMeta, PROJECT_ACTIONS
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 from apigw_manager.apigw.decorators import apigw_require
@@ -41,10 +45,23 @@ def get_user_project_detail(request, project_id):
         return {
             "result": False,
             "message": "can not get business[{}] detail for user[{}]".format(
-                request.user.username, request.project.bk_biz_id
+                request.project.bk_biz_id, request.user.username
             ),
             "code": err_code.UNKNOWN_ERROR.code,
         }
+
+    project_allowed_actions = get_resources_allowed_actions_for_user(
+        username=request.user.username,
+        system_id=IAMMeta.SYSTEM_ID,
+        actions=PROJECT_ACTIONS,
+        resources_list=[
+            [
+                Resource(
+                    IAMMeta.SYSTEM_ID, IAMMeta.PROJECT_RESOURCE, str(request.project.id), {"name": request.project.name}
+                )
+            ]
+        ],
+    )
 
     return {
         "result": True,
@@ -58,6 +75,11 @@ def get_user_project_detail(request, project_id):
             "bk_biz_maintainer": biz_detail["bk_biz_maintainer"],
             "bk_biz_tester": biz_detail["bk_biz_tester"],
             "bk_biz_productor": biz_detail["bk_biz_productor"],
+            "auth_actions": [
+                action
+                for action, allowed in project_allowed_actions.get(str(request.project.id), {}).items()
+                if allowed
+            ],
         },
         "code": err_code.SUCCESS.code,
     }

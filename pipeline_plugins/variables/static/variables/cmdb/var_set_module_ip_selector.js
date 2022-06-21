@@ -1,7 +1,7 @@
 /**
  * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
  * Edition) available.
- * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+ * Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * http://opensource.org/licenses/MIT
@@ -25,9 +25,9 @@
                         attrs: {
                             name: gettext("填参方式"),
                             items: [
-                                {value: "custom", name: gettext("自定义输入IP")},
-                                {value: "select", name: gettext("选择集群模块")},
-                                {value: "manual", name: gettext("手动输入集群模块")},
+                                { value: "custom", name: gettext("自定义输入IP") },
+                                { value: "select", name: gettext("选择集群模块") },
+                                { value: "manual", name: gettext("手动输入集群模块") },
                             ],
                             default: "custom",
                             validation: [
@@ -41,7 +41,7 @@
                                 source: "var_ip_method",
                                 type: "init",
                                 action: function () {
-                                     var self = this;
+                                    var self = this;
 
                                     function init_self(self) {
                                         setTimeout(function () {
@@ -62,26 +62,7 @@
                             placeholder: gettext("IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"),
                             validation: [
                                 {
-                                    type: "custom",
-                                    args: function (value) {
-                                        var self = this
-                                        var result = {
-                                            result: true,
-                                            error_message: ""
-                                        }
-                                        if (!self.get_parent) {
-                                            return result
-                                        } else if (self.get_parent().get_child('var_ip_method')) {
-                                            if (self.get_parent().get_child('var_ip_method').value === "custom" && !value) {
-                                                result.result = false;
-                                                result.error_message = gettext("请输入IP");
-                                            }
-                                        } else if (!value) {
-                                            result.result = false;
-                                            result.error_message = gettext("请输入IP");
-                                        }
-                                        return result
-                                    }
+                                    type: "required"
                                 }
                             ]
                         },
@@ -138,26 +119,7 @@
                                         },
                                         validation: [
                                             {
-                                                type: "custom",
-                                                args: function (value) {
-                                                    var self = this
-                                                    var result = {
-                                                        result: true,
-                                                        error_message: ""
-                                                    }
-                                                    if(self.get_parent ? !self.get_parent().get_parent : true){
-                                                        return result
-                                                    } else if (self.get_parent().get_parent().get_child('var_ip_method')) {
-                                                        if (self.get_parent().get_parent().get_child('var_ip_method').value === "select" && !value) {
-                                                            result.result = false;
-                                                            result.error_message = gettext("请选择集群");
-                                                        }
-                                                    } else if (!value) {
-                                                        result.result = false;
-                                                        result.error_message = gettext("请选择集群");
-                                                    }
-                                                    return result
-                                                }
+                                                type: "required"
                                             }
                                         ]
                                     },
@@ -180,26 +142,7 @@
                                         },
                                         validation: [
                                             {
-                                                type: "custom",
-                                                args: function (value) {
-                                                    var self = this
-                                                    var result = {
-                                                        result: true,
-                                                        error_message: ""
-                                                    }
-                                                    if(self.get_parent ? !self.get_parent().get_parent : true){
-                                                        return result
-                                                    } else if (self.get_parent().get_parent().get_child('var_ip_method')) {
-                                                        if (self.get_parent().get_parent().get_child('var_ip_method').value === "select" && !value.length) {
-                                                            result.result = false;
-                                                            result.error_message = gettext("请选择服务模板");
-                                                        }
-                                                    } else if (!value.length) {
-                                                        result.result = false;
-                                                        result.error_message = gettext("请选择服务模板");
-                                                    }
-                                                    return result
-                                                }
+                                                type: "required"
                                             }
                                         ]
                                     },
@@ -257,26 +200,7 @@
                                         placeholder: gettext("请输入集群，多个使用英文逗号分隔，可输入all选择所有集群"),
                                         validation: [
                                             {
-                                                type: "custom",
-                                                args: function (value) {
-                                                    var self = this
-                                                    var result = {
-                                                        result: true,
-                                                        error_message: ""
-                                                    }
-                                                    if(self.get_parent ? !self.get_parent().get_parent : true){
-                                                        return result
-                                                    } else if (self.get_parent().get_parent().get_child('var_ip_method')) {
-                                                        if (self.get_parent().get_parent().get_child('var_ip_method').value === "manual" && !value) {
-                                                            result.result = false;
-                                                            result.error_message = gettext("请输入集群");
-                                                        }
-                                                    } else if (!value) {
-                                                        result.result = false;
-                                                        result.error_message = gettext("请输入集群");
-                                                    }
-                                                    return result
-                                                }
+                                                type: "required"
                                             }
                                         ]
                                     },
@@ -289,26 +213,7 @@
                                         placeholder: gettext("请输入服务模板，多个使用英文逗号分隔，可输入all选择所有服务模板"),
                                         validation: [
                                             {
-                                                type: "custom",
-                                                args: function (value) {
-                                                    var self = this
-                                                    var result = {
-                                                        result: true,
-                                                        error_message: ""
-                                                    }
-                                                    if(self.get_parent ? !self.get_parent().get_parent : true){
-                                                        return result
-                                                    } else if (self.get_parent().get_parent().get_child('var_ip_method')) {
-                                                        if (self.get_parent().get_parent().get_child('var_ip_method').value === "manual" && !value) {
-                                                            result.result = false;
-                                                            result.error_message = gettext("请输入服务模板");
-                                                        }
-                                                    } else if (!value) {
-                                                        result.result = false;
-                                                        result.error_message = gettext("请输入服务模板");
-                                                    }
-                                                    return result
-                                                }
+                                                type: "required"
                                             }
                                         ]
                                     },

@@ -18,7 +18,7 @@ from gcloud.common_template.models import CommonTemplate
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
 
 
-class CommonTemplateSerializer(BaseTemplateSerializer):
+class CommonTemplateListSerializer(BaseTemplateSerializer):
     category_name = serializers.CharField(help_text="分类名称")
     create_time = serializers.DateTimeField(help_text="创建时间", format=DATETIME_FORMAT)
     creator_name = serializers.CharField(help_text="创建者名")
@@ -32,14 +32,17 @@ class CommonTemplateSerializer(BaseTemplateSerializer):
     template_id = serializers.IntegerField(help_text="流程ID")
     subprocess_info = serializers.DictField(read_only=True, help_text="子流程信息")
     version = serializers.CharField(help_text="流程版本")
-    pipeline_tree = serializers.SerializerMethodField(read_only=True, help_text="pipeline_tree")
-
-    def get_pipeline_tree(self, obj):
-        return json.dumps(obj.pipeline_tree)
 
     class Meta:
         model = CommonTemplate
         fields = "__all__"
+
+
+class CommonTemplateSerializer(CommonTemplateListSerializer):
+    pipeline_tree = serializers.SerializerMethodField(read_only=True, help_text="pipeline_tree")
+
+    def get_pipeline_tree(self, obj):
+        return json.dumps(obj.pipeline_tree)
 
 
 class TopCollectionCommonTemplateSerializer(CommonTemplateSerializer):

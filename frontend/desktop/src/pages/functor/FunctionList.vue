@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -195,6 +195,7 @@
                     <label>{{$t('选择模板')}}</label>
                     <div class="common-form-content">
                         <bk-select
+                            ref="tplSelect"
                             v-model="template.id"
                             class="bk-select-inline"
                             :popover-width="260"
@@ -203,18 +204,29 @@
                             :placeholder="$t('请选择')"
                             :clearable="true"
                             :disabled="template.disabled"
+                            enable-scroll-load
+                            :scroll-loading="{ isLoading: template.loading }"
+                            :show-empty="false"
+                            :remote-method="onTplSearch"
                             @selected="onSelectedTemplate"
-                            @clear="onClearTemplate">
-                            <bk-option-group
-                                v-for="(group, index) in template.list"
-                                :name="group.name"
-                                :key="index">
-                                <bk-option v-for="childOption in group.children"
-                                    :key="childOption.id"
-                                    :id="childOption.id"
-                                    :name="childOption.name">
-                                </bk-option>
-                            </bk-option-group>
+                            @clear="onClearTemplate"
+                            @scroll-end="onSelectScrollLoad">
+                            <div v-bkloading="{ isLoading: tplSearchLoading, size: 'small', extCls: 'template-loading' }">
+                                <bk-option-group
+                                    v-for="(group, index) in template.list"
+                                    :name="group.name"
+                                    :key="index">
+                                    <p slot="group-name">
+                                        {{ group.name }}
+                                        ({{ group.count }})
+                                    </p>
+                                    <bk-option v-for="childOption in group.children"
+                                        :key="childOption.id"
+                                        :id="childOption.id"
+                                        :name="childOption.name">
+                                    </bk-option>
+                                </bk-option-group>
+                            </div>
                         </bk-select>
                         <i class="common-icon-info template-selector-tips"
                             v-bk-tooltips="{
@@ -415,10 +427,12 @@
                     list: [
                         {
                             name: i18n.t('项目流程'),
+                            count: 0,
                             children: []
                         },
                         {
                             name: i18n.t('公共流程'),
+                            count: 0,
                             children: []
                         }
                     ],
@@ -463,7 +477,17 @@
                         message: i18n.t('必填项'),
                         trigger: 'blur'
                     }]
-                }
+                },
+                totalPage: 1,
+                tplPagination: {
+                    current: 1,
+                    count: 0,
+                    limit: 15
+                },
+                tplSearchLoading: false,
+                flowName: '',
+                isLoadCommonTpl: false,
+                onTplSearch: null
             }
         },
         computed: {
@@ -483,6 +507,7 @@
             await this.getProjectList()
             await this.getProjectSearchForm()
             this.firstLoading = false
+            this.onTplSearch = toolsUtils.debounce(this.handleTplSearch, 500)
         },
         beforeDestroy () {
             this.clearAutoRedraw()
@@ -519,11 +544,11 @@
                     }
                     if (executeTime[0] && executeTime[1]) {
                         if (this.common) {
-                            data['pipeline_template__start_time__gte'] = moment(executeTime[0]).format('YYYY-MM-DD')
-                            data['pipeline_template__start_time__lte'] = moment(executeTime[1]).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__gte'] = moment(executeTime[0]).format('YYYY-MM-DD') + ' 00:00:00'
+                            data['pipeline_template__start_time__lte'] = moment(executeTime[1]).add('1', 'd').format('YYYY-MM-DD') + ' 23:59:59'
                         } else {
-                            data['create_time__gte'] = moment.tz(executeTime[0], this.timeZone).format('YYYY-MM-DD')
-                            data['create_time__lte'] = moment.tz(executeTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                            data['create_time__gte'] = moment.tz(executeTime[0], this.timeZone).format('YYYY-MM-DD') + ' 00:00:00'
+                            data['create_time__lte'] = moment.tz(executeTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD') + ' 23:59:59'
                         }
                     }
                     const functorListData = await this.loadFunctionTaskList(data)
@@ -665,25 +690,73 @@
                     console.warn(error)
                 }
             },
-            async getTemplateList () {
-                this.template.loading = true
+            async getTemplateList (add, isCommon = this.isLoadCommonTpl) {
                 try {
                     // 查询职能化数据及公共流程数据
-                    await Promise.all([
-                        this.loadTemplateList({ project__id: this.business.id }),
-                        this.loadTemplateList({ common: 1 })
-                    ]).then(value => {
-                        this.template.list[0].children = value[0].results
-                        this.template.list[1].children = value[1].results.map(item => {
-                            item.isCommon = true
-                            return item
-                        })
-                        this.clearAtomForm()
+                    const { limit, current } = this.tplPagination
+                    const offset = (current - 1) * limit
+                    const params = {
+                        limit: 15,
+                        offset,
+                        pipeline_template__name__icontains: this.flowName || undefined
+                    }
+                    if (isCommon) {
+                        params.common = 1
+                    } else {
+                        params.project__id = this.business.id
+                    }
+                    const tplListData = await this.loadTemplateList(params)
+                    tplListData.results.forEach(item => {
+                        item.isCommon = isCommon
                     })
+
+                    // 当项目列表为空或轮到公共流程加载时, 添加公共流程分组
+                    if (isCommon && !this.template.list[1]) {
+                        this.template.list.push({
+                            name: i18n.t('公共流程'),
+                            children: tplListData.results
+                        })
+                    } else if (!isCommon && !tplListData.count) {
+                        this.template.list[0].children = []
+                    } else {
+                        if (add) {
+                            this.template.list[isCommon ? 1 : 0].children.push(...tplListData.results)
+                        } else {
+                            this.template.list[isCommon ? 1 : 0].children = tplListData.results
+                        }
+                    }
+                    this.template.list[isCommon ? 1 : 0].count = tplListData.count
+                    this.tplPagination.count = tplListData.count
+                    const totalPage = Math.ceil(this.tplPagination.count / limit)
+                    if (!totalPage) {
+                        this.totalPage = 1
+                    } else {
+                        this.totalPage = totalPage
+                    }
+                    // 项目流程第一次加载时, 移除公共流程分组(为了实现滚动加载)
+                    if (!isCommon && current === 1) {
+                        this.template.list.splice(1, 1)
+                    }
+
+                    // 开始重新加载公共流程列表
+                    if (!isCommon && (totalPage === 1 || this.totalPage <= current)) {
+                        this.isLoadCommonTpl = true
+                        this.resetTplPagination()
+                        await this.getTemplateList()
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.template.loading = false
+                    this.tplSearchLoading = false
+                }
+            },
+            resetTplPagination () {
+                this.totalPage = 1
+                this.tplPagination = {
+                    current: 1,
+                    count: 0,
+                    limit: 15
                 }
             },
             onSelectedBusiness (id) {
@@ -691,6 +764,9 @@
                 this.business.id = id
                 this.business.name = business.name
                 this.business.auth_actions = business.auth_actions
+                this.isLoadCommonTpl = false
+                this.resetTplPagination()
+                this.tplSearchLoading = true
                 this.getTemplateList()
                 this.business.empty = false
                 this.template.id = ''
@@ -836,10 +912,30 @@
                 this.template.empty = false
                 this.hasCreateTaskPerm = true
             },
+            // 下拉框搜索
+            async handleTplSearch (val) {
+                this.tplSearchLoading = true
+                this.isLoadCommonTpl = false
+                this.tplPagination.current = 1
+                this.flowName = val
+                const optionsDom = document.querySelector('.bk-options')
+                optionsDom && optionsDom.scrollTo(0, 0)
+                this.getTemplateList(false)
+            },
+            // 下拉框滚动加载
+            onSelectScrollLoad () {
+                if (this.totalPage !== this.tplPagination.current) {
+                    this.tplPagination.current += 1
+                    this.template.loading = true
+                    this.getTemplateList(true)
+                }
+            },
             onClearTemplate () {
                 this.template.id = ''
                 this.template.name = ''
                 this.template.project = {}
+                this.isLoadCommonTpl = false
+                this.resetTplPagination()
             },
             onClearBusiness () {
                 this.business.id = ''

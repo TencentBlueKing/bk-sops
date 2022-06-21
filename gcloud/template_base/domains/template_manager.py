@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -258,6 +258,24 @@ class TemplateManager:
                 ),
             )
 
+        clocked_task_referencer = template.referencer_clocked_task()
+        if clocked_task_referencer:
+            return (
+                False,
+                "flow template are referenced by clocked tasks[{}], please delete them first".format(
+                    ",".join(["{}:{}".format(item["id"], item["name"]) for item in clocked_task_referencer])
+                ),
+            )
+
+        periodic_task_referencer = template.referencer_periodic_task()
+        if periodic_task_referencer:
+            return (
+                False,
+                "flow template are referenced by periodic tasks[{}], please delete them first".format(
+                    ",".join(["{}:{}".format(item["id"], item["name"]) for item in periodic_task_referencer])
+                ),
+            )
+
         return True, ""
 
     def delete(self, template: object) -> dict:
@@ -298,7 +316,13 @@ class TemplateManager:
             appmaker_referencer = template.referencer_appmaker()
             if appmaker_referencer:
                 references.setdefault(template.id, {}).setdefault("appmaker", []).extend(appmaker_referencer)
-            if referencer or appmaker_referencer:
+            clocked_task_referencer = template.referencer_clocked_task()
+            if clocked_task_referencer:
+                references.setdefault(template.id, {}).setdefault("clocked_task", []).extend(clocked_task_referencer)
+            periodic_task_referencer = template.referencer_periodic_task()
+            if periodic_task_referencer:
+                references.setdefault(template.id, {}).setdefault("periodic_task", []).extend(periodic_task_referencer)
+            if referencer or appmaker_referencer or clocked_task_referencer or periodic_task_referencer:
                 not_delete_list.append(template.id)
             else:
                 delete_pipeline_template_id_list.append(template.pipeline_template.template_id)

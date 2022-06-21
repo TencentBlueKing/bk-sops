@@ -1,7 +1,7 @@
 /**
  * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
  * Edition) available.
- * Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+ * Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * http://opensource.org/licenses/MIT
@@ -254,6 +254,9 @@
                                 result: true,
                                 error_message: ""
                             };
+                            if (!value) {
+                                return result
+                            }
                             if (+value < 60 || +value > 86400) {
                                 result.result = false;
                                 result.error_message = gettext("超时时间必须在 60 - 86400 范围内")

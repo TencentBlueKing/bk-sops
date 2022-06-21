@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework.exceptions import ErrorDetail
 from rest_framework import serializers, generics, permissions, status
@@ -125,16 +125,21 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
 
 class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, generics.DestroyAPIView):
     serializer_class = TaskFlowInstanceSerializer
-    queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False, is_deleted=False).order_by(
-        "pipeline_instance"
-    )
+    queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False, is_deleted=False).order_by("-id")
     iam_resource_helper = ViewSetResourceHelper(resource_func=res_factory.resources_for_task_obj, actions=TASK_ACTIONS)
     filter_class = TaskFlowFilterSet
     permission_classes = [permissions.IsAuthenticated, TaskFlowInstancePermission]
-    ordering_fields = ["pipeline_instance"]
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
+
+        # [我的动态] 接口过滤
+        if "creator_or_executor" in request.query_params:
+            queryset = queryset.filter(
+                Q(pipeline_instance__executor=request.user.username)
+                | Q(pipeline_instance__creator=request.user.username)
+            )
+
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page, many=True)
         # 注入权限

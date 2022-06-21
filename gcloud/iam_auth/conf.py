@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -390,4 +390,10 @@ MINI_APP_ACTIONS = [
     IAMMeta.MINI_APP_EDIT_ACTION,
     IAMMeta.MINI_APP_DELETE_ACTION,
     IAMMeta.MINI_APP_CREATE_TASK_ACTION,
+]
+
+PROJECT_ACTIONS = [
+    IAMMeta.PROJECT_VIEW_ACTION,
+    IAMMeta.PROJECT_EDIT_ACTION,
+    IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION,
 ]

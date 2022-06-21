@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -199,11 +199,10 @@
                     <bk-popover placement="bottom-end" theme="light" width="344" :ext-cls="'reuse-rule-tip'">
                         <i class="bk-icon icon-question-circle"></i>
                         <div slot="content">
-                            <p>{{ $t('重用规则') }}</p><br>
-                            <p>{{ $t('参数值为非字典类型，KEY&类型前后一致才可重用') }}</p>
-                            <p>{{ $t('参数值为字典类型，还需要字典内的key前后一致才可重用') }}</p>
-                            <p>{{ $t('元变量还需元数据配置一致才可重用') }}</p>
-                            <p>{{ $t('不满足重用规则时使用流程默认值') }}</p>
+                            <p class="mb10">{{ $t('以下情况参数值无法重用，使用变量默认值：') }}</p>
+                            <p>{{ '1. ' + $t('变量的类型变更') }}</p>
+                            <p>{{ '2. ' + $t('变量值的配置项变更') }}</p>
+                            <p>{{ '3. ' + $t('元变量的配置变更') }}</p>
                         </div>
                     </bk-popover>
                 </bk-radio>
@@ -323,6 +322,7 @@
         {
             id: 'recorded_executor_proxy',
             label: i18n.t('执行代理人'),
+            disabled: true,
             width: 120
         },
         {
@@ -434,7 +434,7 @@
                 ],
                 crtCreateMethodTab: 'all', // 当前选中创建方法tab
                 tableFields: TABLE_FIELDS,
-                defaultSelected: ['id', 'name', 'start_time', 'finish_time', 'executor_name', 'task_status'],
+                defaultSelected: ['id', 'name', 'start_time', 'finish_time', 'executor_name', 'task_status', 'recorded_executor_proxy'],
                 setting: {
                     fieldList: TABLE_FIELDS,
                     selectedFields: TABLE_FIELDS.slice(0),
@@ -668,6 +668,10 @@
                         this.pagination.current -= 1
                     }
                     await this.getTaskList()
+                    this.$bkMessage({
+                        message: i18n.t('任务') + i18n.t('删除成功！'),
+                        theme: 'success'
+                    })
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -940,7 +944,7 @@
                     font-size: 14px;
                 }
             }
-            
+
         }
     }
 </style>

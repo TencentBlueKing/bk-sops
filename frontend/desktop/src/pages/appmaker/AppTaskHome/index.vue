@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -296,12 +296,12 @@
                         pipeline_instance__is_revoked,
                         project__id: this.project_id
                     }
-                    
+
                     if (queryTime[0] && queryTime[1]) {
                         data['pipeline_instance__start_time__gte'] = moment.tz(queryTime[0], this.businessTimezone).format('YYYY-MM-DD')
                         data['pipeline_instance__start_time__lte'] = moment.tz(queryTime[1], this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
                     }
-                    
+
                     const appmakerListData = await this.loadTaskList(data)
                     const list = appmakerListData.results
                     this.appmakerList = list

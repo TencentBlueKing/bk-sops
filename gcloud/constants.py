@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2021 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -44,6 +44,16 @@ TASK_CATEGORY = (
 TASK_FLOW_TYPE = [
     ("common", _("默认任务流程")),
     ("common_func", _("职能化任务流程")),
+]
+
+# 计划任务相关
+CLOCKED_TASK_NOT_STARTED = "not_started"
+CLOCKED_TASK_STARTED = "started"
+CLOCKED_TASK_START_FAILED = "start_failed"
+CLOCKED_TASK_STATE = [
+    (CLOCKED_TASK_NOT_STARTED, _("未执行")),
+    (CLOCKED_TASK_STARTED, _("已执行")),
+    (CLOCKED_TASK_START_FAILED, _("启动失败")),
 ]
 
 # 任务流程对应的步骤
