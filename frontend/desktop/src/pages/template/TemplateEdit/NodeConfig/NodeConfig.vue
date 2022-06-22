@@ -284,7 +284,7 @@
             :mask-close="false"
             :value="isCancelGloVarDialogShow"
             :title="$t('取消变量引用')">
-            <p>{{ $t('全局变量【 x 】的引用数已为 0。如果不再使用，可立即删除变量; 也可以稍后再全局变量面板中删除', { key: unhookingVarForm.key })}}</p>
+            <p>{{ $t('全局变量【 x 】的引用数已为 0。如果不再使用，可立即删除变量; 也可以稍后在全局变量面板中删除', { key: unhookingVarForm.key })}}</p>
             <template slot="footer">
                 <bk-button theme="primary" @click="deleteUnhookingVar">{{ $t('删除变量') }}</bk-button>
                 <bk-button @click="onCancelVarConfirmClick">{{ $t('以后再说') }}</bk-button>
