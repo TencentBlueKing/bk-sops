@@ -1407,7 +1407,8 @@ const en = {
     '以下情况参数值无法重用，使用变量默认值：': 'The parameter value cannot be reused in the following cases, and the variable default value is used:',
     '变量的类型变更': 'Variable type change',
     '变量值的配置项变更': 'Configuration item change of variable value',
-    '元变量的配置变更': 'Metavariable configuration changes'
+    '元变量的配置变更': 'Metavariable configuration changes',
+    '不再支持周期任务使用公共流程，请使用项目流程': 'Periodic tasks are no longer supported to use public processes, please use project processes'
 }
 
 export default en
