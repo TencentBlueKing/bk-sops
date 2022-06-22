@@ -140,9 +140,10 @@
                         <span class="col-item col-name ellipsis" v-bk-overflow-tips="{ distance: 0 }">
                             {{ variable.name }}
                         </span>
-                        <span class="col-item col-key ellipsis" v-bk-overflow-tips="{ distance: 0 }">
-                            {{ variable.key }}
-                        </span>
+                        <div class="col-item col-key" :class="{ 'length-overrun': !variable.lengthMatch }">
+                            <p v-bk-overflow-tips="{ distance: 0 }" class="ellipsis">{{ variable.key }}</p>
+                            <p v-if="!variable.lengthMatch">{{ $t('无法克隆此变量，因克隆后变量长度超限') }}</p>
+                        </div>
                         <span class="col-item col-type">
                             {{ variable.type }}
                         </span>
@@ -188,6 +189,7 @@
     import { mapActions, mapState } from 'vuex'
     import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
+    import { STRING_LENGTH } from '@/constants/index.js'
 
     export default {
         name: 'VariableCloneDialog',
@@ -201,6 +203,10 @@
                 default: false
             },
             varTypeList: {
+                type: Array,
+                default: () => ([])
+            },
+            globalVariableList: {
                 type: Array,
                 default: () => ([])
             }
@@ -440,6 +446,7 @@
                         if (result && !checkTypeList.includes(cur.source_type)) {
                             cur.type = result.name
                             cur.checked = false
+                            cur.lengthMatch = true
                             acc.push(cur)
                         }
                         return acc
@@ -452,13 +459,48 @@
             },
             // 确定克隆变量
             onCloneVarConfirm () {
-                const constants = this.variableList.filter(item => item.checked)
-                this.$emit('onCloneVarConfirm', constants)
-                this.$bkMessage({
-                    message: i18n.t('变量克隆成功！'),
-                    offsetY: 80,
-                    theme: 'success'
+                let constants = this.variableList.filter(item => item.checked)
+                const indexList = []
+                const variableKeys = this.globalVariableList.map(item => {
+                    indexList.push(item.index)
+                    return item.key
                 })
+                const maxIndex = Math.max(...indexList)
+                const cloneErrorList = []
+                constants = toolsUtils.deepClone(constants).map((item, index) => {
+                    const key = this.setCloneKey(item.key, variableKeys)
+                    if (key.slice(2, -1).length > STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH) {
+                        cloneErrorList.push(item.key)
+                    } else {
+                        item.key = key
+                        item.index = maxIndex + index + 1
+                    }
+                    return item
+                })
+                if (cloneErrorList.length) {
+                    this.variableList.forEach(item => {
+                        if (cloneErrorList.includes(item.key)) {
+                            item.lengthMatch = false
+                        }
+                    })
+                } else {
+                    this.$emit('onCloneVarConfirm', constants)
+                    this.$bkMessage({
+                        message: i18n.t('变量克隆成功！'),
+                        offsetY: 80,
+                        theme: 'success'
+                    })
+                }
+            },
+            setCloneKey (key, variableKeys) {
+                let newKey = key
+                if (variableKeys.includes(key)) {
+                    newKey = key.slice(0, -1) + '_clone}'
+                }
+                if (variableKeys.includes(newKey)) {
+                    newKey = this.setCloneKey(newKey, variableKeys)
+                }
+                return newKey
             },
             // 取消变量克隆
             onCancel () {
@@ -722,7 +764,6 @@
         .variable-checkbox,
         .col-item-checkbox {
             position: absolute;
-            top: 12px;
             left: 16px;
         }
         .col-name {
@@ -731,6 +772,13 @@
         }
         .col-key {
             width: 300px;
+            &.length-overrun {
+                line-height: 24px !important;
+                margin: 5px 0;
+                p:last-child {
+                    color: #ff5656;
+                }
+            }
         }
         .col-type {
             flex: 1;
@@ -763,7 +811,7 @@
             align-items: center;
             border-bottom: 1px solid #dcdee5;
             .col-item {
-                height: 42px;
+                min-height: 42px;
                 line-height: 42px;
                 padding-right: 10px;
             }

@@ -176,7 +176,6 @@
                                     :common="common"
                                     :is-view-mode="isViewMode"
                                     :new-clone-keys="newCloneKeys"
-                                    @onCancelCloneKey="onCancelCloneKey"
                                     @viewClick="viewClick"
                                     @onEditVariable="onEditVariable"
                                     @onDeleteVariable="onDeleteVariable"
@@ -218,6 +217,7 @@
             <variable-clone
                 :is-var-clone-dialog-show="isVarCloneDialogShow"
                 :var-type-list="varTypeList"
+                :global-variable-list="variableList"
                 @onCloneVarConfirm="onCloneVarConfirm"
                 @onCloneVarCancel="isVarCloneDialogShow = false">
             </variable-clone>
@@ -546,6 +546,7 @@
              */
             onEditVariable (key) {
                 this.variableData = tools.deepClone(this.constants[key] || this.internalVariable[key])
+                this.newCloneKeys = []
             },
             onCitedNodeClick (data) {
                 const { group, id } = data
@@ -644,36 +645,14 @@
             },
             // 垮流程克隆变量
             onCloneVarConfirm (constants = []) {
-                const indexList = []
-                const variableKeys = this.variableList.map(item => {
-                    indexList.push(item.index)
-                    return item.key
-                })
-                const maxIndex = Math.max(...indexList)
-                constants.forEach((item, index) => {
-                    item.key = this.setCloneKey(item.key, variableKeys)
-                    item.index = maxIndex + index + 1
+                constants.forEach(item => {
                     this.newCloneKeys.push(item.key)
                     this.addVariable(item)
                 })
                 this.isVarCloneDialogShow = false
             },
-            setCloneKey (key, variableKeys) {
-                let newKey = key
-                if (variableKeys.includes(key)) {
-                    newKey = key.slice(0, -1) + '_clone}'
-                }
-                if (variableKeys.includes(newKey)) {
-                    newKey = this.setCloneKey(newKey, variableKeys)
-                }
-                return newKey
-            },
             setNewCloneKeys (key) {
-                this.newCloneKeys.push(key)
-            },
-            onCancelCloneKey (key) {
-                const index = this.newCloneKeys.findIndex(item => item === key)
-                this.newCloneKeys.splice(index, 1)
+                this.newCloneKeys = [key]
             }
         }
     }

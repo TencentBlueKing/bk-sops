@@ -1395,7 +1395,7 @@ const en = {
     '对应流程模板已被删除，请重新选择模板创建计划任务': 'The corresponding process template has been deleted, please re-select the template to create a scheduled task',
     '变量': 'Variable',
     '以后再说': 'Tell you later',
-    '全局变量【 x 】的引用数已为 0。如果不再使用，可立即删除变量; 也可以稍后再全局变量面板中删除': 'The reference count of the global variable [ x ] is already 0. Variables can be deleted immediately if they are no longer used; they can also be deleted later in the Global Variables panel',
+    '全局变量【 x 】的引用数已为 0。如果不再使用，可立即删除变量; 也可以稍后在全局变量面板中删除': 'The reference count of the global variable [ x ] is already 0. Variables can be deleted immediately if they are no longer used; they can also be deleted later in the Global Variables panel',
     '取消变量豁免': 'Cancel variable exemption',
     '变量豁免': 'Variable exemption',
     '取消变量引用': 'Dereference variable',
@@ -1407,7 +1407,8 @@ const en = {
     '以下情况参数值无法重用，使用变量默认值：': 'The parameter value cannot be reused in the following cases, and the variable default value is used:',
     '变量的类型变更': 'Variable type change',
     '变量值的配置项变更': 'Configuration item change of variable value',
-    '元变量的配置变更': 'Metavariable configuration changes'
+    '元变量的配置变更': 'Metavariable configuration changes',
+    '无法克隆此变量，因克隆后变量长度超限': 'The variable cannot be cloned because the variable length exceeds the limit after cloning'
 }
 
 export default en
