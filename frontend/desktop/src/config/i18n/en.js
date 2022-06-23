@@ -1264,8 +1264,8 @@ const en = {
     '所有变量值都会以字符串类型进行记录和判断，会忽略类型差异': 'All variable values will be recorded and judged in string type, and type differences will be ignored',
     '变量未找到': 'Variable not found',
     '至少保留一条触发条件': 'Keep at least one trigger condition',
-    '自动隐藏': 'Auto hide',
-    '满足触发条件的变量，在任务执行填参页面将自动隐藏。可用来实现特定条件下忽略必填参数': 'Variables that meet the trigger conditions will be automatically hidden on the task execution parameter page. Can be used to ignore required parameters under certain conditions',
+    '执行时隐藏': 'Auto hide',
+    '满足触发条件的变量，在任务执行填参页面将自动隐藏。可实现特定条件忽略必填参数': 'Variables that meet the trigger conditions will be automatically hidden on the task execution parameter page. Can be used to ignore required parameters under certain conditions',
     '启动失败': 'Failed to activate',
     '节点ID': 'Node ID',
     '表格设置': 'Table Settings',
@@ -1323,7 +1323,7 @@ const en = {
     '清除': 'Clear',
     '已选择x项': '{num} items selected',
     '确认删除所选的x个变量？': 'Are you sure to delete the selected {num} variables?',
-    '开启模板预渲染的变量在任务执行初始完成渲染，后续变量值保存不变，且不可引用输出变量': 'Variables that enable template pre-rendering are rendered at the beginning of task execution, and subsequent variable values are kept unchanged, and output variables cannot be referenced',
+    '设置为常量表示在任务执行最开始完成值的渲染，后续执行过程中值保存不变': 'Setting it as a constant means that the rendering of the value is completed at the beginning of the task execution, and the value is kept unchanged in the subsequent execution process',
     '顶层流程（n）': 'Top Flow({n})',
     '子流程（n）': 'Sub Flow({n})',
     '是否覆盖已有子流程（实验功能，请谨慎使用并选择正确的流程）': 'Whether to override existing subprocesses (Experimental feature, please use it with caution and choose the correct process)',
@@ -1408,7 +1408,11 @@ const en = {
     '变量的类型变更': 'Variable type change',
     '变量默认值的字段增减': 'Field increase or decrease of variable default value',
     '下拉框、表格类型变量的配置变更': 'Configuration changes for drop-down boxes and table type variables',
-    '不再支持周期任务使用公共流程，请使用项目流程': 'Periodic tasks are no longer supported to use public processes, please use project processes'
+    '不再支持周期任务使用公共流程，请使用项目流程': 'Periodic tasks are no longer supported to use public processes, please use project processes',
+    '常量': 'Constant',
+    '必填': 'Required',
+    '非必填': 'Not required',
+    '执行时必填': 'Required for execution'
 }
 
 export default en
