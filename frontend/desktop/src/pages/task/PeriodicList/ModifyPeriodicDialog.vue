@@ -383,6 +383,9 @@
                 return this.isEdit ? i18n.t('编辑周期任务') : i18n.t('创建周期任务')
             },
             previewScheme () {
+                if (this.formData.is_latest === null) {
+                    return ''
+                }
                 const schemeId = this.formData.schemeId
                 if (!schemeId.length) return ''
                 const schemeNames = this.schemeList.reduce((acc, cur) => {
@@ -574,9 +577,11 @@
             // 获取默认方案列表
             async loadDefaultSchemeList () {
                 try {
+                    const common = this.curRow.template_source === 'common'
                     const resp = await this.getDefaultTaskScheme({
                         project_id: this.project_id,
-                        template_id: this.formData.template_id
+                        template_id: this.formData.template_id,
+                        template_type: common ? 'common' : undefined
                     })
                     if (resp.data.length) {
                         const { scheme_ids: schemeIds } = resp.data[0]
@@ -1038,9 +1043,7 @@
         cursor: default;
         overflow: hidden;
         text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
+        white-space: nowrap;
     }
     .scheme-wrapper {
         display: flex;

@@ -146,7 +146,7 @@
                             </thead-popover>
                         </span>
                         <span class="col-show t-head">
-                            {{ $t('显示') }}
+                            {{ $t('必填') }}
                             <thead-popover
                                 :content-list="varShowList"
                                 type="show"
@@ -276,11 +276,11 @@
                     checked: false,
                     code: 'all'
                 }, {
-                    name: i18n.t('显示'),
+                    name: i18n.t('是'),
                     checked: false,
                     code: 'show'
                 }, {
-                    name: i18n.t('隐藏'),
+                    name: i18n.t('否'),
                     checked: false,
                     code: 'hide'
                 }
@@ -500,7 +500,7 @@
                     source_tag: 'input.input',
                     source_type: 'custom',
                     validation: '^.+$',
-                    is_condition_hide: false,
+                    is_condition_hide: 'false',
                     pre_render_mako: false,
                     value: '',
                     version: 'legacy'
