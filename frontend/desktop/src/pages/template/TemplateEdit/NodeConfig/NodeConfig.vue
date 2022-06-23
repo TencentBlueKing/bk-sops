@@ -187,10 +187,10 @@
                                     <p class="citations-waivers-guide">
                                         <bk-popover placement="top-end" theme="light" width="258" :ext-cls="'citations-waivers-guide-tip'">
                                             <i class="bk-icon icon-info-circle-shape"></i>
-                                            {{ $t('变量引用和豁免使用指引') }}
+                                            {{ $t('设置为变量&变量免渲染使用指引') }}
                                             <div slot="content">
-                                                <p>{{ $t('变量引用：使用参数的配置创建全局变量并引用，或不创建直接引用同类型变量') }}</p><br>
-                                                <p>{{ $t('变量豁免：开启后忽略参数中的全局变量，视为普通字符串') }}</p>
+                                                <p>{{ $t('设置为变量：将节点的输入或输出设置为全局变量，可供其他节点使用') }}</p><br>
+                                                <p>{{ $t('变量免渲染：忽略参数中的全局变量，将${}视为普通字符串') }}</p>
                                             </div>
                                         </bk-popover>
                                     </p>
