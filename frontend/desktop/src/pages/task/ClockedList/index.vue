@@ -94,15 +94,15 @@
                         <bk-table-column :label="$t('操作')" width="240">
                             <div class="clocked-operation" slot-scope="props">
                                 <a
-                                    v-cursor="{ active: props.row.task_id ? false : !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions) }"
+                                    v-cursor="{ active: !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions) }"
                                     href="javascript:void(0);"
                                     :class="{
-                                        'text-permission-disable': !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions),
-                                        'clocked-bk-disable': props.row.task_id
+                                        'clocked-bk-disable': props.row.task_id,
+                                        'text-permission-disable': !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions)
                                     }"
                                     v-bk-tooltips.top="{
                                         content: $t('已执行的计划任务无法编辑'),
-                                        disabled: !props.row.task_id
+                                        disabled: !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions) || !props.row.task_id
                                     }"
                                     data-test-id="clockedList_table_editBtn"
                                     @click="onEditClockedTask(props.row, $event)">
@@ -499,13 +499,12 @@
             },
             // 编辑计划任务
             async onEditClockedTask (row) {
-                // 已执行的计划任务禁止编辑
-                if (row.task_id) return
                 // 权限校验
                 if (!this.hasPermission(['flow_view', 'clocked_task_edit'], row.auth_actions)) {
                     this.onClockedPermissonCheck(['flow_view', 'clocked_task_edit'], row)
                     return
                 }
+                // 已执行的计划任务禁止编辑
                 if (row.task_id) return
                 // 检查计划任务是否已执行
                 const resp = await this.getClockedDetail(row)
@@ -615,7 +614,7 @@
         cursor: pointer;
         &.clocked-bk-disable {
             color:#cccccc !important;
-            cursor: not-allowed !important;
+            cursor: not-allowed;
         }
     }
     .empty-data {
