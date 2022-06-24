@@ -143,6 +143,9 @@
                             <p v-if="formData.is_latest === null" class="schema-disable-tip">
                                 {{ $t('当前任务为旧数据，仅记录已选节点，强制更新后可选执行方案并获得提示更新能力') }}
                             </p>
+                            <p v-if="hasDeleteScheme" class="schema-disable-tip">
+                                {{ $t('选中的执行方案被删除，请重新选择执行方案') }}
+                            </p>
                         </bk-form-item>
                         <p class="title">{{$t('任务信息')}}</p>
                         <bk-form-item :label="$t('任务名称')" :required="true" property="taskName" data-test-id="periodicEdit_form_taskName">
@@ -366,7 +369,8 @@
                     limit: 15
                 },
                 flowName: '',
-                isTplDeleted: false // 旧数据模板是否被删除
+                isTplDeleted: false, // 旧数据模板是否被删除
+                hasDeleteScheme: false // 是否存在执行方案被删除
             }
         },
         computed: {
@@ -416,7 +420,7 @@
             if (this.isEdit) {
                 this.periodicConstants = tools.deepClone(this.constants)
                 const id = this.curRow.template_id
-                this.onSelectTemplate(id)
+                this.getTemplateDate(id)
             } else {
                 this.templateLoading = true
                 this.getTemplateList()
@@ -502,7 +506,7 @@
                 this.schemeList = []
                 this.constants = {}
             },
-            async onSelectTemplate (id) {
+            async getTemplateDate (id) {
                 // 获取模板详情
                 try {
                     this.templateDataLoading = true
@@ -525,7 +529,7 @@
                         } else {
                             this.previewData = tools.deepClone(this.curRow.pipeline_tree)
                         }
-                    } else if (!this.isEdit) {
+                    } else {
                         this.formData.schemeId = [0]
                         const templateInfo = this.templateList.find(item => item.id === id)
                         await this.getPreviewNodeData(id, templateInfo.version, true)
@@ -544,6 +548,10 @@
                 } finally {
                     this.templateDataLoading = false
                 }
+            },
+            onSelectTemplate (id) {
+                this.formData.schemeId = []
+                this.getTemplateDate(id)
             },
             async getTemplateScheme () {
                 this.schemeLoading = true
@@ -568,6 +576,18 @@
                         idDefault: false,
                         name: '<' + i18n.t('不使用执行方案') + '>'
                     })
+                    if (this.formData.schemeId.length) {
+                        // 执行方案被删除逻辑
+                        this.hasDeleteScheme = false
+                        this.formData.schemeId = this.formData.schemeId.filter(id => {
+                            const isMatch = this.schemeList.some(item => item.id === Number(id))
+                            if (isMatch) {
+                                return true
+                            } else {
+                                this.hasDeleteScheme = true
+                            }
+                        })
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
@@ -598,6 +618,9 @@
                 const lastId = options.length ? options[options.length - 1].id : undefined
                 ids = lastId === 0 ? [0] : lastId ? ids.filter(id => id) : ids
                 this.formData.schemeId = ids
+                if (options.length) {
+                    this.hasDeleteScheme = false // 清除执行方案被删除提示
+                }
                 if (ids.length) {
                     const nodeList = this.schemeList.reduce((acc, cur) => {
                         if (ids.includes(cur.id)) {
