@@ -197,7 +197,7 @@
             tag_code: "need_log_outputs_even_fail",
             type: "radio",
             attrs: {
-                name: gettext("失败依然提取日志变量"),
+                name: gettext("失败时提取变量"),
                 items: [
                     {value: true, name: gettext("是")},
                     {value: false, name: gettext("否")},
