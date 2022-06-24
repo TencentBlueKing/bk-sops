@@ -112,7 +112,7 @@
                                 </template>
                             </bk-table-column>
                         </template>
-                        <bk-table-column :label="$t('操作')" width="240">
+                        <bk-table-column :label="$t('操作')" width="190" fixed="right">
                             <template slot-scope="props">
                                 <div class="periodic-operation">
                                     <template v-if="!adminView">
