@@ -139,8 +139,13 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
                 Q(pipeline_instance__executor=request.user.username)
                 | Q(pipeline_instance__creator=request.user.username)
             )
-
-        page = self.paginate_queryset(queryset)
+            # 该场景不需要翻页，不调用qs.count()优化查询效率
+            self.paginator.limit = self.paginator.get_limit(request)
+            self.paginator.offset = self.paginator.get_offset(request)
+            self.paginator.count = -1
+            page = list(queryset[self.paginator.offset : self.paginator.offset + self.paginator.limit])
+        else:
+            page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page, many=True)
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, page)
