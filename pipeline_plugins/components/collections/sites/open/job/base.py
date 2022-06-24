@@ -372,7 +372,7 @@ class JobService(Service):
                 self.biz_scope_type,
             )
             if not get_job_sops_var_dict_return["result"]:
-                self.logger.warning(
+                self.logger.error(
                     _("{group}.{job_service_name}: 提取日志失败，{message}").format(
                         group=__group_name__,
                         job_service_name=self.__class__.__name__,
@@ -381,7 +381,7 @@ class JobService(Service):
                 )
                 data.set_outputs("log_outputs", {})
                 self.finish_schedule()
-                return True if job_success else False
+                return False
 
             log_outputs = get_job_sops_var_dict_return["data"]
             self.logger.info(
@@ -759,7 +759,7 @@ class GetJobHistoryResultMixin(object):
             )
             data.set_outputs("log_outputs", {})
             self.logger.info(data.outputs)
-            return True
+            return False
         log_outputs = get_job_sops_var_dict_return["data"]
         self.logger.info(
             _("{group}.{job_service_name}：输出日志提取变量为：{log_outputs}").format(
