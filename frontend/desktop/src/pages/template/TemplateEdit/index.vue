@@ -602,7 +602,7 @@
                         }
                     })
                     this.atomList = this.handleAtomVersionOrder(atomList)
-                    this.handleAtomGroup(atomList)
+                    this.handleAtomGroup(tools.deepClone(this.atomList))
                     this.markNodesPhase()
                 } catch (e) {
                     console.log(e)
