@@ -97,12 +97,12 @@
                                     v-cursor="{ active: !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions) }"
                                     href="javascript:void(0);"
                                     :class="{
-                                        'clocked-bk-disable': props.row.task_id,
+                                        'clocked-bk-disable': props.row.state !== 'not_started',
                                         'text-permission-disable': !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions)
                                     }"
                                     v-bk-tooltips.top="{
-                                        content: $t('已执行的计划任务无法编辑'),
-                                        disabled: !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions) || !props.row.task_id
+                                        content: props.row.task_id ? $t('已执行的计划任务无法编辑') : $t('启动失败的计划任务无法编辑'),
+                                        disabled: !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions) || props.row.state === 'not_started'
                                     }"
                                     data-test-id="clockedList_table_editBtn"
                                     @click="onEditClockedTask(props.row, $event)">
@@ -505,7 +505,7 @@
                     return
                 }
                 // 已执行的计划任务禁止编辑
-                if (row.task_id) return
+                if (row.state !== 'not_started') return
                 // 检查计划任务是否已执行
                 const resp = await this.getClockedDetail(row)
                 if (resp.data.task_id) {
