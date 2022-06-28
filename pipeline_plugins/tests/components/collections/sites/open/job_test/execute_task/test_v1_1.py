@@ -550,7 +550,6 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             {"category": 1, "name": "key_2", "value": "value_2"},
             {"category": 3, "name": "key_3", "value": "1.1.1.1,2.2.2.2"},
             {"category": 3, "name": "key_3", "value": "0:4.4.4.4,0:3.3.3.3"},
-            {"category": 3, "name": "key_4", "value": ""},
         ],
         "job_task_id": 12345,
         "is_tagged_ip": True,
@@ -628,7 +627,6 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
                                     ],
                                 },
                             },
-                            {"name": "key_4", "server": {"ip_list": []}},
                         ],
                         "callback_url": "url_token",
                     }

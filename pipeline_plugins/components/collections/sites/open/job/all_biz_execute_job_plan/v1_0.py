@@ -152,7 +152,8 @@ class AllBizJobExecuteJobPlanService(Jobv3Service):
                     data.outputs.ex_data = _("IP 校验失败，请确认输入的 IP {} 是否合法".format(val))
                     return False
 
-                global_var_list.append({"id": _value["id"], "server": {"ip_list": ip_list}})
+                if ip_list:
+                    global_var_list.append({"id": _value["id"], "server": {"ip_list": ip_list}})
             else:
                 global_var_list.append({"id": _value["id"], "value": val})
 
