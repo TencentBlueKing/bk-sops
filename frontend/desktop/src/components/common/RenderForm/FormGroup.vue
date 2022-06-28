@@ -147,7 +147,7 @@
                 showForm, // combine 类型 Tag 组是否显示
                 showHook, // combine 类型 Tag 组是否可勾选
                 i18n: {
-                    hooked: gettext('取消设置为变量'),
+                    hooked: gettext('取消变量引用'),
                     cancelHook: gettext('设置为变量')
                 }
             }

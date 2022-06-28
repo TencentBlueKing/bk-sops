@@ -1420,7 +1420,6 @@ const en = {
     '启动失败的计划任务无法编辑': 'Scheduled tasks that failed to start cannot be edited',
     '取消变量免渲染': 'Cancel variable-free rendering',
     '变量免渲染': 'Variable free rendering',
-    '取消设置为变量': 'Unset as variable',
     '设置为变量': 'Set as variable'
 }
 
