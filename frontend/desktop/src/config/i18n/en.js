@@ -1417,7 +1417,11 @@ const en = {
     '非必填': 'Not required',
     '执行时必填': 'Required for execution',
     '选中的执行方案被删除，请重新选择执行方案': 'The selected execution plan is deleted, please re-select the execution plan',
-    '启动失败的计划任务无法编辑': 'Scheduled tasks that failed to start cannot be edited'
+    '启动失败的计划任务无法编辑': 'Scheduled tasks that failed to start cannot be edited',
+    '取消变量免渲染': 'Cancel variable-free rendering',
+    '变量免渲染': 'Variable free rendering',
+    '取消设置为变量': 'Unset as variable',
+    '设置为变量': 'Set as variable'
 }
 
 export default en
