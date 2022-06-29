@@ -151,7 +151,7 @@ modules:
               value: 100000
               description: celery exporter 存储任务最大值
             - key: CELERY_EXPORTER_QUEUE
-              value: default api_task_queue_pipeline_priority api_task_queue_service_schedule_priority periodic_task_queue_pipeline_priority periodic_task_queue_service_schedule_priority pipeline pipeline_additional_task pipeline_additional_task_priority pipeline_priority pipeline_statistics_priority service_schedule service_schedule_priority task_prepare_api er_execute er_execute_api er_execute_periodic_task er_schedule er_schedule_api er_schedule_periodic_task node_auto_retry timeout_node_execute timeout_nodes_record
+              value: default api_task_queue_pipeline_priority api_task_queue_service_schedule_priority periodic_task_queue_pipeline_priority periodic_task_queue_service_schedule_priority pipeline pipeline_additional_task pipeline_additional_task_priority pipeline_priority pipeline_statistics_priority service_schedule service_schedule_priority task_prepare_api er_execute er_execute_api er_execute_periodic_task er_schedule er_schedule_api er_schedule_periodic_task node_auto_retry timeout_node_execute timeout_nodes_record task_callback
               description: celery exporter 队列
             - key: BKAPP_AUTO_UPDATE_VARIABLE_MODELS
               value: 0
@@ -183,7 +183,7 @@ modules:
                 plan: 4C1G5R
                 replicas: 2
             cworker:
-                command: python manage.py celery worker -Q pipeline_additional_task,pipeline_additional_task_priority,node_auto_retry,timeout_node_execute,timeout_nodes_record -n common_worker@%h -P threads -c 6 -l info
+                command: python manage.py celery worker -Q pipeline_additional_task,pipeline_additional_task_priority,node_auto_retry,timeout_node_execute,timeout_nodes_record,task_callback -n common_worker@%h -P threads -c 6 -l info
                 plan: 4C1G5R
                 replicas: 2
             er-e:

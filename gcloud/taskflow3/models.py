@@ -36,7 +36,12 @@ from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 
 from gcloud import err_code
 from gcloud.conf import settings
-from gcloud.constants import TASK_FLOW_TYPE, TASK_CATEGORY, TASKFLOW_NODE_TIMEOUT_CONFIG_BATCH_CREAT_COUNT
+from gcloud.constants import (
+    TASK_FLOW_TYPE,
+    TASK_CATEGORY,
+    TASKFLOW_NODE_TIMEOUT_CONFIG_BATCH_CREAT_COUNT,
+    CALLBACK_STATUSES,
+)
 from gcloud.core.models import Project, EngineConfig, StaffGroupSet
 from gcloud.core.utils import convert_readable_username
 from gcloud.contrib.appmaker.models import AppMaker
@@ -1274,3 +1279,17 @@ class TimeoutNodesRecord(models.Model):
     class Meta:
         verbose_name = _("超时节点数据记录 TimeoutNodesRecord")
         verbose_name_plural = _("超时节点数据记录 TimeoutNodesRecord")
+
+
+class TaskCallBackRecord(models.Model):
+    id = models.BigAutoField(verbose_name="ID", primary_key=True)
+    task_id = models.BigIntegerField(verbose_name=_("任务ID"), db_index=True)
+    url = models.TextField(verbose_name=_("回调地址"))
+    create_time = models.DateTimeField(verbose_name=_("创建时间"), auto_now_add=True)
+    status = models.CharField(verbose_name=_("状态"), max_length=100, choices=CALLBACK_STATUSES, default="ready")
+    extra_info = models.TextField(verbose_name=_("附加信息"), default="{}")
+    callback_time = models.DateTimeField(verbose_name=_("回调时间"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = verbose_name_plural = _("任务回调记录")
+        ordering = ["-id"]
