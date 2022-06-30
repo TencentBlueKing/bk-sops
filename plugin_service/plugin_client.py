@@ -260,18 +260,18 @@ class PluginServiceApiClient:
     @staticmethod
     def _request_api_and_error_retry(url, method, **kwargs):
         """请求API接口,失败进行重试"""
+        message = f"request url {url} with method {method} and kwargs {kwargs}".replace(
+            env.PAASV3_APIGW_API_TOKEN, "******"
+        )
         for invoke_num in range(1, env.BKAPP_INVOKE_PAAS_RETRY_NUM + 1):
             try:
-                logger.info(
-                    "[PluginServiceApiClient] request url {} with method {} and kwargs {}".format(url, method, kwargs)
-                )
+                logger.info(f"[PluginServiceApiClient] {message}")
                 result = getattr(requests, method)(url, **kwargs)
                 result.raise_for_status()
                 break
             except Exception as e:
-                message = "request api error,invoke_num:{},{} {},kwargs:{},error:{} ".format(
-                    invoke_num, method, url, kwargs, str(e)
+                logger.error(
+                    f"[PluginServiceApiClient] request api error, invoke_num: {invoke_num}, error: {str(e)}, {message}"
                 )
-                logger.error(message.replace(env.PAASV3_APIGW_API_TOKEN, "******"))
 
         return result
