@@ -906,7 +906,7 @@
              */
             handleAtomVersionOrder (atomList) {
                 return atomList.map(atom => {
-                    const index = atom.list.find(item => item.version === 'legacy')
+                    const index = atom.list.findIndex(item => item.version === 'legacy')
                     const list = atom.list.slice(0)
                     const legacyList = []
                     if (index > -1) {
