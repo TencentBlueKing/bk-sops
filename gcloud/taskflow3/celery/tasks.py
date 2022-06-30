@@ -169,7 +169,7 @@ def execute_node_timeout_strategy(node_id, version):
 @task
 def task_callback(task_id, retry_times=0, *args, **kwargs):
     tcb = TaskCallBacker(task_id, *args, **kwargs)
-    if not tcb.record:
+    if not tcb.check_record_existence():
         message = f"[task_callback] task_id {task_id} does not in TaskCallBackRecord."
         logger.error(message)
         return
@@ -186,7 +186,8 @@ def task_callback(task_id, retry_times=0, *args, **kwargs):
             countdown=1,
         )
         return
-    tcb.record.extra_info = json.dumps(kwargs)
-    tcb.record.status = CallbackStatus.SUCCESS.value if result else CallbackStatus.FAIL.value
-    tcb.record.callback_time = timezone.now()
-    tcb.record.save(update_fields=["status", "callback_time", "extra_info"])
+    tcb.update_record(
+        extra_info=json.dumps(kwargs),
+        status=CallbackStatus.SUCCESS.value if result else CallbackStatus.FAIL.value,
+        callback_time=timezone.now(),
+    )

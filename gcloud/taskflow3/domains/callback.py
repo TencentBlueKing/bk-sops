@@ -26,6 +26,14 @@ class TaskCallBacker:
         self.extra_info = {**kwargs, "task_id": self.task_id}
         self.record = TaskCallBackRecord.objects.filter(task_id=self.task_id).first()
 
+    def check_record_existence(self):
+        return True if self.record else False
+
+    def update_record(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self.record, key, value)
+        self.record.save(update_fields=list(kwargs.keys()))
+
     def callback(self):
         url = self.record.url
         response = None
