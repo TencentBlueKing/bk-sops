@@ -15,7 +15,6 @@ from mock import patch, MagicMock
 
 from django.test import TestCase
 
-from gcloud.constants import CallbackStatus
 from gcloud.taskflow3.celery.tasks import task_callback
 
 
@@ -24,31 +23,34 @@ class TaskCallbackTestCase(TestCase):
         settings = MagicMock()
         settings.REQUEST_RETRY_NUMBER = 0
         tcb = MagicMock()
-        tcb.record = MagicMock()
+        tcb.check_record_existence = MagicMock(return_value=True)
         tcb.callback = MagicMock(return_value=False)
         with patch("gcloud.taskflow3.celery.tasks.settings", settings):
             with patch("gcloud.taskflow3.celery.tasks.TaskCallBacker", MagicMock(return_value=tcb)):
-                task_callback(task_id=1)
-        self.assertEqual(tcb.record.status, CallbackStatus.FAIL.value)
+                with patch("gcloud.taskflow3.celery.tasks.task_callback.apply_async", MagicMock(return_value=True)):
+                    task_callback(task_id=1)
+        tcb.update_record.assert_called()
 
     def test_callback_fail_not_reach_retry_times(self):
         settings = MagicMock()
         settings.REQUEST_RETRY_NUMBER = 1
         tcb = MagicMock()
-        tcb.record = MagicMock()
+        tcb.check_record_existence = MagicMock(return_value=True)
         tcb.callback = MagicMock(return_value=False)
         with patch("gcloud.taskflow3.celery.tasks.settings", settings):
             with patch("gcloud.taskflow3.celery.tasks.TaskCallBacker", MagicMock(return_value=tcb)):
-                task_callback(task_id=1)
-        tcb.record.save.assert_not_called()
+                with patch("gcloud.taskflow3.celery.tasks.task_callback.apply_async", MagicMock(return_value=True)):
+                    task_callback(task_id=1)
+        tcb.update_record.assert_not_called()
 
     def test_callback_success(self):
         settings = MagicMock()
         settings.REQUEST_RETRY_NUMBER = 1
         tcb = MagicMock()
-        tcb.record = MagicMock()
+        tcb.check_record_existence = MagicMock(return_value=True)
         tcb.callback = MagicMock(return_value=True)
         with patch("gcloud.taskflow3.celery.tasks.settings", settings):
             with patch("gcloud.taskflow3.celery.tasks.TaskCallBacker", MagicMock(return_value=tcb)):
-                task_callback(task_id=1)
-        self.assertEqual(tcb.record.status, CallbackStatus.SUCCESS.value)
+                with patch("gcloud.taskflow3.celery.tasks.task_callback.apply_async", MagicMock(return_value=True)):
+                    task_callback(task_id=1)
+        tcb.update_record.assert_called()
