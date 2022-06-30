@@ -122,6 +122,21 @@ NOTIFY_TYPE = [
     ("voice", _("语音")),
 ]
 
+
+# 任务回调状态
+class CallbackStatus(Enum):
+    READY = "ready"
+    SUCCESS = "success"
+    FAIL = "fail"
+
+
+CALLBACK_STATUSES = [
+    (CallbackStatus.READY.value, _("未回调")),
+    (CallbackStatus.SUCCESS.value, _("回调成功")),
+    (CallbackStatus.FAIL.value, _("回调失败")),
+]
+
+
 TEMPLATE_NAME_MAX_LENGTH = 50
 TASK_NAME_MAX_LENGTH = 100
 PERIOD_TASK_NAME_MAX_LENGTH = 50
