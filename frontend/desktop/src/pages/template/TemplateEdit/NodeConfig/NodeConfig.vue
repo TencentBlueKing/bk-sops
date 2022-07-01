@@ -284,7 +284,7 @@
             :mask-close="false"
             :value="isCancelGloVarDialogShow"
             :title="$t('取消变量引用')">
-            <p>{{ $t('全局变量【 x 】的引用数已为 0。如果不再使用，可立即删除变量; 也可以稍后在全局变量面板中删除', { key: unhookingVarForm.key })}}</p>
+            <p style="word-break: break-all;">{{ $t('全局变量【 x 】的引用数已为 0。如果不再使用，可立即删除变量; 也可以稍后在全局变量面板中删除', { key: unhookingVarForm.key })}}</p>
             <template slot="footer">
                 <bk-button theme="primary" @click="deleteUnhookingVar">{{ $t('删除变量') }}</bk-button>
                 <bk-button @click="onCancelVarConfirmClick">{{ $t('以后再说') }}</bk-button>
@@ -1291,7 +1291,6 @@
                 }
             },
             deleteUnhookingVar () {
-                console.log(this.unhookingVarForm.key)
                 const { key, source } = this.unhookingVarForm
                 this.$delete(this.localConstants, key)
                 const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
@@ -1337,7 +1336,7 @@
                     Object.keys(this.subflowForms).forEach(key => {
                         const constant = this.subflowForms[key]
                         if (constant.show_type === 'show') {
-                            constant.value = tools.deepClone(this.inputsParamValue[key])
+                            constant.value = key in this.inputsParamValue ? tools.deepClone(this.inputsParamValue[key]) : constant.value
                             constant.need_render = key in this.inputsRenderConfig ? this.inputsRenderConfig[key] : true
                         }
                         constants[key] = constant
