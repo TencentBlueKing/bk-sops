@@ -73,7 +73,8 @@
                 },
                 isRouterAlive: false,
                 projectDetailLoading: false, // 项目详情加载
-                appmakerDataLoading: false // 轻应用加载 app 详情,
+                appmakerDataLoading: false, // 轻应用加载 app 详情,
+                isUseSnapshot: false // 登录成功时是否使用快照
             }
         },
         computed: {
@@ -123,6 +124,10 @@
             })
             bus.$on('showErrMessage', info => {
                 window.show_msg(info.message, 'error', info.traceId)
+            })
+            // 登录成功后使用快照
+            bus.$on('useSnapshot', data => {
+                this.isUseSnapshot = true
             })
 
             /**
@@ -295,7 +300,12 @@
                 const data = message.data // message.data为另一个页面传递的数据
                 if (data && data === 'login') {
                     window.loginWindow.close() // 关闭弹出的窗口
-                    window.location.reload()
+                    window.loginWindow = null
+                    if (this.isUseSnapshot) { // 使用模板快照
+                        this.isUseSnapshot = false
+                        localStorage.setItem('useSnapshot', true)
+                    }
+                    this.reload() // 刷新页面
                 }
             }
         }

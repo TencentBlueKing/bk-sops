@@ -471,6 +471,11 @@
             }
         },
         created () {
+            // 登录失败时创建模板快照
+            bus.$on('createSnapshot', data => {
+                this.setTplSnapshoot('loginUpdate')
+                bus.$emit('useSnapshot', true)
+            })
             this.initTemplateData()
             // 获取流程内置变量
             this.getSystemVars()
@@ -636,7 +641,18 @@
                     if (this.type === 'clone') {
                         templateData.name = templateData.name.slice(0, STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH - 6) + '_clone'
                     }
-                    this.setTemplateData(templateData)
+                    // 登录成功后，使用最新的快照模板
+                    if (localStorage.getItem('useSnapshot') && this.snapshoots.length) {
+                        localStorage.removeItem('useSnapshot')
+                        const data = this.snapshoots[0]
+                        this.replaceTemplate(data.template)
+                        this.$bkMessage({
+                            'message': i18n.t('存在未保存内容，已自动载入'),
+                            'theme': 'success'
+                        })
+                    } else {
+                        this.setTemplateData(templateData)
+                    }
                 } catch (e) {
                     if (e.status === 404) {
                         this.$router.push({ name: 'notFoundPage' })

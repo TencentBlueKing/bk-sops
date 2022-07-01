@@ -74,6 +74,7 @@ axios.interceptors.response.use(
             case 401:
                 const data = response.data
                 if (data.has_plain && !window.loginWindow) {
+                    bus.$emit('createSnapshot', true) // 创建模板快照
                     const { login_url: src, width, height } = data
                     const { availHeight, availWidth } = window.screen
                     const left = (availWidth - width) / 2

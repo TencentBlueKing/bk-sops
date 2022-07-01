@@ -1421,7 +1421,8 @@ const en = {
     '取消变量免渲染': 'Cancel variable-free rendering',
     '变量免渲染': 'Variable free rendering',
     '取消设置为变量': 'Unset as variable',
-    '设置为变量': 'Set as variable'
+    '设置为变量': 'Set as variable',
+    '存在未保存内容，已自动载入': 'Unsaved content exists, autoloaded'
 }
 
 export default en
