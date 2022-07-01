@@ -267,7 +267,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         validate_keys = set()
         validate_keys = validate_keys.union(constants.keys())
         validate_keys = validate_keys.union(meta_constants.keys())
-        for key in constants:
+        for key in validate_keys:
             if key not in exec_data["constants"]:
                 continue
             if task_is_started and exec_data["constants"][key].get("pre_render_mako", False):
