@@ -49,6 +49,7 @@
                     @onGatewaySelectionClick="onGatewaySelectionClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
                     @onApprovalClick="onApprovalClick"
+                    @onSubflowStepDetailClick="handleSubflowCanvasChange"
                     @onSubflowPauseResumeClick="onSubflowPauseResumeClick">
                 </TemplateCanvas>
             </div>
@@ -1222,16 +1223,12 @@
             },
             onNodeClick (id, type) {
                 this.defaultActiveId = id
-                if (type === 'subflow') {
-                    this.handleSubflowCanvasChange(id)
-                } else {
-                    this.setNodeDetailConfig(id)
-                    if (this.nodeDetailConfig.node_id) {
-                        this.updateNodeActived(this.nodeDetailConfig.node_id, false)
-                    }
-                    this.updateNodeActived(id, true)
-                    this.openNodeInfoPanel('executeInfo', i18n.t('节点参数'))
+                this.setNodeDetailConfig(id)
+                if (this.nodeDetailConfig.node_id) {
+                    this.updateNodeActived(this.nodeDetailConfig.node_id, false)
                 }
+                this.updateNodeActived(id, true)
+                this.openNodeInfoPanel('executeInfo', i18n.t('节点参数'))
             },
             onOpenConditionEdit (data) {
                 this.isShowConditionEdit = true
