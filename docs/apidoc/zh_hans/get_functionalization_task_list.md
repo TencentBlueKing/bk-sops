@@ -4,14 +4,15 @@
 
 #### 接口参数
 
-| 字段          |  类型       | 必选   |  描述             |
-|-----------------|-------------|---------|------------------|
-| status |   string     |   否   | 职能化任务状态，对应关系：submitted:未认领, claimed:已认领, rejected:已驳回, executed:已执行, finished:已完成。 |
-| id_in  |   string   |   否   | 职能化任务筛选id来源列表，以逗号`,`分隔 |
-| task_id_in |   string   |   否   | 职能化任务筛选原任务id来源列表，以逗号`,`分隔（对应页面”任务ID“） |
-| expected_timezone | string |   否   |  任务时间相关字段期望返回的时区，形如Asia/Shanghai |
-|   limit       |   int        |   否   | 分页，返回任务列表任务数，默认为100 |
-|   offset      |   int        |   否   |  分页，返回任务列表起始任务下标，默认为0 |
+| 字段                | 类型     | 必选  | 描述                                                                                 |
+|-------------------|--------|-----|------------------------------------------------------------------------------------|
+| status            | string | 否   | 职能化任务状态，对应关系：submitted:未认领, claimed:已认领, rejected:已驳回, executed:已执行, finished:已完成。 |
+| id_in             | string | 否   | 职能化任务筛选id来源列表，以逗号`,`分隔                                                             |
+| task_id_in        | string | 否   | 职能化任务筛选原任务id来源列表，以逗号`,`分隔（对应页面”任务ID“）                                              |
+| expected_timezone | string | 否   | 任务时间相关字段期望返回的时区，形如Asia/Shanghai                                                    |
+| project_id        | int    | 否   | 项目id作为过滤条件，仅支持标准运维项目id，非ccid                                                       | 
+| limit             | int    | 否   | 分页，返回任务列表任务数，默认为100                                                                |
+| offset            | int    | 否   | 分页，返回任务列表起始任务下标，默认为0                                                               |
 
 ### 请求参数示例
 
