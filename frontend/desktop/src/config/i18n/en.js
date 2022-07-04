@@ -1264,7 +1264,7 @@ const en = {
     '所有变量值都会以字符串类型进行记录和判断，会忽略类型差异': 'All variable values will be recorded and judged in string type, and type differences will be ignored',
     '变量未找到': 'Variable not found',
     '至少保留一条触发条件': 'Keep at least one trigger condition',
-    '执行时隐藏': 'Auto hide',
+    '条件隐藏': 'Conditional hiding',
     '满足触发条件的变量，在任务执行填参页面将自动隐藏。可实现特定条件忽略必填参数': 'Variables that meet the trigger conditions will be automatically hidden on the task execution parameter page. Can be used to ignore required parameters under certain conditions',
     '启动失败': 'Failed to activate',
     '节点ID': 'Node ID',
@@ -1422,7 +1422,8 @@ const en = {
     '变量免渲染': 'Variable free rendering',
     '取消设置为变量': 'Unset as variable',
     '设置为变量': 'Set as variable',
-    '存在未保存内容，已自动载入': 'Unsaved content exists, autoloaded'
+    '存在未保存内容，已自动载入': 'Unsaved content exists, autoloaded',
+    '开启': 'Open'
 }
 
 export default en
