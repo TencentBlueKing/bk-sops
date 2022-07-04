@@ -305,7 +305,11 @@
                         this.isUseSnapshot = false
                         localStorage.setItem('useSnapshot', true)
                     }
-                    this.reload() // 刷新页面
+                    // 刷新页面(公共流程模板页面登录后路由需要单独挂载)
+                    if (this.$route.query.common) {
+                        this.reload()
+                    }
+                    this.initData()
                 }
             }
         }
