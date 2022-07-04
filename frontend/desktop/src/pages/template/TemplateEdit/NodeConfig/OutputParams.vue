@@ -32,7 +32,7 @@
                                 disabled: isViewMode || !hook
                             }]"
                             v-bk-tooltips="{
-                                content: props.row.hooked ? $t('取消设置为变量') : $t('设置为变量'),
+                                content: props.row.hooked ? $t('取消变量引用') : $t('设置为变量'),
                                 placement: 'bottom',
                                 zIndex: 3000
                             }"

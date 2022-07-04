@@ -213,7 +213,7 @@
                 showHook,
                 formValue,
                 i18n: {
-                    hooked: gettext('取消设置为变量'),
+                    hooked: gettext('取消变量引用'),
                     cancelHook: gettext('设置为变量')
                 }
             }

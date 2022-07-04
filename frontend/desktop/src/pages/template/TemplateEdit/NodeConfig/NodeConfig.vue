@@ -360,7 +360,8 @@
                 isThirdParty: false, // 是否为第三方插件
                 quickOperateVariableVisable: false,
                 variableCited: {}, // 全局变量被任务节点、网关节点以及其他全局变量引用情况
-                unhookingVarForm: {} // 正被取消勾选的表单配置
+                unhookingVarForm: {}, // 正被取消勾选的表单配置
+                isUpdateConstants: false // 是否更新输入参数配置
             }
         },
         computed: {
@@ -938,10 +939,10 @@
 
             // 标准插件（子流程）选择面板切换插件（子流程）
             // isThirdParty 是否为第三方插件
-            onPluginOrTplChange (val) {
+            async onPluginOrTplChange (val) {
                 this.isSelectorPanelShow = false
                 this.isThirdParty = val.id === 'remote_plugin'
-                this.clearParamsSourceInfo()
+                await this.clearParamsSourceInfo()
                 if (this.isSubflow) {
                     this.tplChange(val)
                 } else {
@@ -1007,7 +1008,7 @@
                     desc = descList.join('<br>')
                 }
                 this.updateBasicInfo({ version: val, desc })
-                this.clearParamsSourceInfo()
+                await this.clearParamsSourceInfo()
                 this.inputsParamValue = {}
                 await this.getPluginDetail()
                 this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
@@ -1073,7 +1074,7 @@
                 this.subflowVersionUpdating = true
                 const oldForms = Object.assign({}, this.subflowForms)
                 await this.getSubflowDetail(this.basicInfo.tpl)
-                this.subflowUpdateParamsChange()
+                await this.subflowUpdateParamsChange()
                 this.inputs = await this.getSubflowInputsConfig()
                 this.subflowVersionUpdating = false
                 this.$nextTick(() => {
@@ -1094,7 +1095,9 @@
              * 1.输入、输出参数被勾选，并且对应变量在新流程模板中被删除或者变量 source_tag 有更新，需要在更新后修改全局变量 source_info 信息
              * 2.新增和修改输入、输出参数，不做处理
              */
-            subflowUpdateParamsChange () {
+            async subflowUpdateParamsChange () {
+                this.isUpdateConstants = true
+                this.variableCited = await this.getVariableCitedData() || {}
                 const nodeId = this.nodeConfig.id
                 for (const key in this.localConstants) {
                     const varItem = this.localConstants[key]
@@ -1129,9 +1132,13 @@
                         }
                     }
                 }
+                this.variableCited = {}
+                this.isUpdateConstants = false
             },
             // 取消已勾选为全局变量的输入、输出参数勾选状态
-            clearParamsSourceInfo () {
+            async clearParamsSourceInfo () {
+                this.isUpdateConstants = true
+                this.variableCited = await this.getVariableCitedData() || {}
                 const nodeId = this.nodeConfig.id
                 for (const key in this.localConstants) {
                     const varItem = this.localConstants[key]
@@ -1164,6 +1171,8 @@
                         }
                     }
                 }
+                this.variableCited = {}
+                this.isUpdateConstants = false
             },
             // 查看子流程模板
             onViewSubflow (id) {
@@ -1191,7 +1200,7 @@
             async onSelectSubflowScheme () {
                 const oldForms = Object.assign({}, this.subflowForms)
                 await this.getSubflowDetail(this.basicInfo.tpl, this.basicInfo.version)
-                this.subflowUpdateParamsChange()
+                await this.subflowUpdateParamsChange()
                 this.inputs = await this.getSubflowInputsConfig()
                 this.$nextTick(() => {
                     this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms, oldForms)
@@ -1214,6 +1223,7 @@
                 if (type === 'create') {
                     this.$set(this.localConstants, data.key, data)
                 } else {
+                    this.variableCited = {}
                     this.setVariableSourceInfo(data)
                 }
                 // 如果全局变量数据有变，需要更新popover
@@ -1233,11 +1243,18 @@
                     }
                 } else if (type === 'delete') {
                     this.unhookingVarForm = { ...data, value: constant.value }
-                    this.variableCited = await this.getVariableCitedData() || {}
+                    if (!Object.keys(this.variableCited).length) {
+                        this.variableCited = await this.getVariableCitedData() || {}
+                    }
                     const { activities, conditions, constants } = this.variableCited[key]
                     const citedNum = activities.length + conditions.length + constants.length
                     if (citedNum <= 1) {
-                        this.isCancelGloVarDialogShow = true
+                        // 切换插件/切换版本/更新子流程时直接删除引用量为1变量
+                        if (this.isUpdateConstants) {
+                            this.deleteUnhookingVar()
+                        } else {
+                            this.isCancelGloVarDialogShow = true
+                        }
                     } else {
                         if (sourceInfo[id].length <= 1) {
                             this.$delete(sourceInfo, id)
@@ -1274,6 +1291,7 @@
                 }
             },
             deleteUnhookingVar () {
+                console.log(this.unhookingVarForm.key)
                 const { key, source } = this.unhookingVarForm
                 this.$delete(this.localConstants, key)
                 const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
