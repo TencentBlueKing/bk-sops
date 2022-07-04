@@ -291,9 +291,9 @@
                     if (!selection.rangeCount) return false
                     paste = paste.split(/,|;|\s+/).filter(item => item)
                     const matchVal = []
-                    this.items.forEach(item => {
-                        if (paste.includes(item.text)) {
-                            matchVal.push(item.value)
+                    this.items.forEach(option => {
+                        if (paste.some(item => item.toLowerCase() === option.text.toLowerCase())) {
+                            matchVal.push(option.value)
                         }
                     })
                     const setArr = [...this.value, ...matchVal]
