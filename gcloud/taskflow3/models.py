@@ -397,9 +397,9 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         total = taskflow.count()
         task_instance_id_list = taskflow.values_list("id", flat=True)
         taskflow_statistics_data = list(
-            TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)[
-                (page - 1) * limit : page * limit
-            ].values(
+            TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)
+            .order_by("-create_time")[(page - 1) * limit : page * limit]
+            .values(
                 "instance_id",
                 "task_instance_id",
                 "project_id",
