@@ -68,3 +68,7 @@ BK_APIGW_URL_TMPL = os.getenv("BK_API_URL_TMPL")
 
 # 是否允许 celery worker 发送监控事件
 CELERY_SEND_EVENTS = bool(os.getenv("CELERY_SEND_EVENTS", False))
+
+# 默认请求重定向配置
+NEED_HTTP_REDIRECT = os.getenv("BKAPP_NEED_HTTP_REDIRECT", False)
+DEFAULT_REDIRECT_HOST = os.getenv("BKAPP_DEFAULT_REDIRECT_HOST", "")
