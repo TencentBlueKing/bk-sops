@@ -471,31 +471,7 @@
             }
         },
         created () {
-            this.initTemplateData()
-            // 获取流程内置变量
-            this.getSystemVars()
-            this.getSingleAtomList()
-            this.getProjectBaseInfo()
-            if (!this.common) {
-                this.getTemplateLabelList()
-            }
-            this.templateDataLoading = true
-            this.snapshoots = this.getTplSnapshoots()
-            if (['edit', 'clone', 'view'].includes(this.type)) {
-                this.getTemplateData()
-            } else {
-                let name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
-                if (this.common) {
-                    if (window.TIMEZONE) {
-                        name = 'new' + moment.tz(window.TIMEZONE).format('YYYYMMDDHHmmss')
-                    } else {
-                        // 无时区的公共流程使用本地的时间
-                        name = 'new' + moment().format('YYYYMMDDHHmmss')
-                    }
-                }
-                this.setTemplateName(name)
-                this.templateDataLoading = false
-            }
+            this.initData()
         },
         mounted () {
             this.openSnapshootTimer()
@@ -570,6 +546,33 @@
                 'loadTaskScheme',
                 'saveTaskSchemList'
             ]),
+            initData () {
+                this.initTemplateData()
+                // 获取流程内置变量
+                this.getSystemVars()
+                this.getSingleAtomList()
+                this.getProjectBaseInfo()
+                if (!this.common) {
+                    this.getTemplateLabelList()
+                }
+                this.templateDataLoading = true
+                this.snapshoots = this.getTplSnapshoots()
+                if (['edit', 'clone', 'view'].includes(this.type)) {
+                    this.getTemplateData()
+                } else {
+                    let name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
+                    if (this.common) {
+                        if (window.TIMEZONE) {
+                            name = 'new' + moment.tz(window.TIMEZONE).format('YYYYMMDDHHmmss')
+                        } else {
+                            // 无时区的公共流程使用本地的时间
+                            name = 'new' + moment().format('YYYYMMDDHHmmss')
+                        }
+                    }
+                    this.setTemplateName(name)
+                    this.templateDataLoading = false
+                }
+            },
             /**
              * 加载标准插件列表
              */
@@ -1824,6 +1827,7 @@
                     } else {
                         this.isEditProcessPage = false
                     }
+                    this.isTemplateDataChanged = false
                 } else {
                     const { isDefaultSchemeIng, judgeDataEqual } = this.$refs.taskSelectNode
                     const isEqual = isDefaultSchemeIng ? !judgeDataEqual() : false
@@ -1833,9 +1837,20 @@
             // 编辑执行方案弹框 取消事件
             onCancelSave () {
                 this.isExecuteSchemeDialog = false
-                this.isEditProcessPage = true
-                this.isTemplateDataChanged = false
                 this.isExecuteScheme = false
+                // 返回查看模式时初始化数据
+                if (this.isBackViewMode) {
+                    this.isTemplateDataChanged = false
+                    this.isGlobalVariableUpdate = false
+                    this.$router.push({
+                        query: { template_id: this.template_id },
+                        params: { type: 'view' }
+                    })
+                    this.initData()
+                } else if (!this.isEditProcessPage) {
+                    this.isTemplateDataChanged = false
+                    this.isEditProcessPage = true
+                }
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
