@@ -157,7 +157,7 @@
                 this.$emit('onSubflowPauseResumeClick', id, value)
             },
             onSubflowDetailClick (id) {
-                this.$emit('onSubflowStepDetailClick', id, 'subflowDetail')
+                this.$emit('onNodeClick', id, 'subflowDetail')
             }
         }
     }

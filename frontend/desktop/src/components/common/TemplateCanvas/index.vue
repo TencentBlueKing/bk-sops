@@ -92,7 +92,6 @@
                     @onTaskNodeResumeClick="$emit('onTaskNodeResumeClick', $event)"
                     @onApprovalClick="$emit('onApprovalClick', $event)"
                     @addNodesToDragSelection="addNodeToSelectedList"
-                    @onSubflowStepDetailClick="$emit('onSubflowStepDetailClick', $event)"
                     @onSubflowPauseResumeClick="onSubflowPauseResumeClick">
                 </node-template>
             </template>
