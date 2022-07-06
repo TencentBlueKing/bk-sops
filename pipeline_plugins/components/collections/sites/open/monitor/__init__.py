@@ -15,5 +15,6 @@ from django.utils.translation import ugettext_lazy as _
 
 __group_name__ = _("监控平台(Monitor)")
 
-from .alarm_shield_disable import * # noqa
+from .alarm_shield_disable import *  # noqa
 from .alarm_shield import *  # noqa
+from .base import *  # noqa
