@@ -10,12 +10,14 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import os
 import uuid
 import logging
 import traceback
 
 import pytz
-from django.http import JsonResponse, HttpResponse
+from django.conf import settings
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.utils import timezone
 from django.utils.deprecation import MiddlewareMixin
 from django.db.models import ObjectDoesNotExist
@@ -82,3 +84,17 @@ class TraceIDInjectMiddleware(MiddlewareMixin):
         ):
             response.setdefault("Sops-Trace-Id", request.trace_id)
         return response
+
+
+class HttpResponseIndexRedirect(HttpResponseRedirect):
+    def __init__(self, redirect_to, *args, **kwargs):
+        super(HttpResponseIndexRedirect, self).__init__(redirect_to, *args, **kwargs)
+        self["Location"] = os.path.join(settings.DEFAULT_REDIRECT_HOST, redirect_to.lstrip("/"))
+
+
+class HttpRedirectMiddleware(MiddlewareMixin):
+    def process_request(self, request):
+        if not settings.NEED_HTTP_REDIRECT:
+            return None
+        if settings.DEFAULT_REDIRECT_HOST and settings.DEFAULT_REDIRECT_HOST not in request.build_absolute_uri():
+            return HttpResponseIndexRedirect(request.path)

@@ -183,6 +183,7 @@ if env.BKAPP_PYINSTRUMENT_ENABLE:
     MIDDLEWARE += ("pyinstrument.middleware.ProfilerMiddleware",)
 
 MIDDLEWARE = (
+    "gcloud.core.middlewares.HttpRedirectMiddleware",
     "gcloud.core.middlewares.TraceIDInjectMiddleware",
     "weixin.core.middlewares.WeixinProxyPatchMiddleware",
 ) + MIDDLEWARE
@@ -734,3 +735,7 @@ LOG_PERSISTENT_DAYS = env.BK_NODE_LOG_PERSISTENT_DAYS
 NODE_LOG_DATA_SOURCE = env.NODE_LOG_DATA_SOURCE
 NODE_LOG_DATA_SOURCE_CONFIG = env.NODE_LOG_DATA_SOURCE_CONFIG
 PAASV3_APIGW_API_TOKEN = env.PAASV3_APIGW_API_TOKEN
+
+# 请求默认重定向配置
+NEED_HTTP_REDIRECT = env.NEED_HTTP_REDIRECT
+DEFAULT_REDIRECT_HOST = env.DEFAULT_REDIRECT_HOST
