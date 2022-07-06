@@ -78,7 +78,7 @@ MONITOR_CLIENT = (
 )
 CMDB_GET_BIZ_HOST = "gcloud.utils.cmdb.get_business_host"
 BIZ_MODEL_SUPPLIER_ACCOUNT_FOR_BIZ = (
-    "pipeline_plugins.components.collections.sites.open.monitor." "base.Business.objects.supplier_account_for_business"
+    "pipeline_plugins.components.collections.sites.open.monitor.base.Business.objects.supplier_account_for_business"
 )
 
 # mock client
