@@ -21,6 +21,7 @@ from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
 from api.utils.request import batch_request
+from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from pipeline_plugins.base.utils.inject import (
     supplier_account_inject,
     supplier_id_inject,
@@ -57,6 +58,7 @@ def cc_search_object_attribute(request, obj_id, biz_cc_id, supplier_account):
     if not cc_result["result"]:
         message = handle_api_error("cc", "cc.search_object_attribute", kwargs, cc_result)
         logger.error(message)
+        check_and_raise_raw_auth_fail_exception(cc_result, message)
         result = {"result": False, "data": [], "message": message}
         return JsonResponse(result)
 
@@ -81,6 +83,7 @@ def cc_search_object_attribute_all(request, obj_id, biz_cc_id, supplier_account)
     if not cc_result["result"]:
         message = handle_api_error("cc", "cc.search_object_attribute", kwargs, cc_result)
         logger.error(message)
+        check_and_raise_raw_auth_fail_exception(cc_result, message)
         result = {"result": False, "data": [], "message": message}
         return JsonResponse(result)
 
@@ -119,6 +122,7 @@ def cc_search_create_object_attribute(request, obj_id, biz_cc_id, supplier_accou
     if not cc_result["result"]:
         message = handle_api_error("cc", "cc.search_object_attribute", kwargs, cc_result)
         logger.error(message)
+        check_and_raise_raw_auth_fail_exception(cc_result, message)
         result = {"result": False, "data": [], "message": message}
         return JsonResponse(result)
 
@@ -154,6 +158,7 @@ def cc_list_service_category(request, biz_cc_id, bk_parent_id, supplier_account)
     if not list_service_category_return["result"]:
         message = handle_api_error("cc", "cc.list_service_category", kwargs, list_service_category_return)
         logger.error(message)
+        check_and_raise_raw_auth_fail_exception(list_service_category_return, message)
         return JsonResponse({"result": False, "data": [], "message": message})
 
     service_categories_untreated = list_service_category_return["data"]["info"]
@@ -195,6 +200,7 @@ def cc_get_service_category_topo(request, biz_cc_id, supplier_account):
     if not list_service_category_return["result"]:
         message = handle_api_error("cc", "cc.list_service_category", kwargs, list_service_category_return)
         logger.error(message)
+        check_and_raise_raw_auth_fail_exception(list_service_category_return, message)
         return JsonResponse({"result": False, "data": [], "message": message})
     service_categories = list_service_category_return["data"]["info"]
     topo_merged_by_id = {
@@ -228,7 +234,7 @@ def cc_list_service_template(request, biz_cc_id, supplier_account):
     kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
     service_templates = []
     try:
-        service_templates_untreated = batch_request(client.cc.list_service_template, kwargs)
+        service_templates_untreated = batch_request(client.cc.list_service_template, kwargs, check_iam_auth_fail=True)
     except ApiRequestError as e:
         return JsonResponse({"result": False, "data": [], "message": e})
     for template_untreated in service_templates_untreated:
@@ -304,6 +310,7 @@ def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
     if not cc_result["result"]:
         message = handle_api_error("cc", "cc.search_biz_inst_topo", kwargs, cc_result)
         logger.error(message)
+        check_and_raise_raw_auth_fail_exception(cc_result, message)
         result = {"result": False, "data": [], "message": message}
         return JsonResponse(result)
 
@@ -312,6 +319,7 @@ def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
         if not inter_result["result"]:
             message = handle_api_error("cc", "cc.get_biz_internal_module", kwargs, inter_result)
             logger.error(message)
+            check_and_raise_raw_auth_fail_exception(inter_result, message)
             result = {"result": False, "data": [], "message": message}
             return JsonResponse(result)
         cc_result["data"] = insert_inter_result_to_topo_data(inter_result["data"], cc_result["data"])
@@ -372,7 +380,7 @@ def cc_list_set_template(request, biz_cc_id, supplier_account):
     client = get_client_by_user(request.user.username)
     kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
 
-    set_templates = batch_request(client.cc.list_set_template, kwargs)
+    set_templates = batch_request(client.cc.list_set_template, kwargs, check_iam_auth_fail=True)
     template_list = [
         {"value": set_template.get("id"), "text": set_template.get("name")} for set_template in set_templates
     ]
@@ -387,6 +395,7 @@ def cc_get_editable_module_attribute(request, biz_cc_id):
     client = get_client_by_user(request.user.username)
     result = client.cc.search_object_attribute(kwargs)
     if not result["result"]:
+        check_and_raise_raw_auth_fail_exception(result)
         return JsonResponse({"result": False, "data": "调用cc接口失败，message={}".format(result["message"])})
     data = result["data"]
     module_attribute = []
@@ -408,6 +417,7 @@ def cc_input_host_property(request, biz_cc_id):
     cc_result = client.cc.search_object_attribute(kwargs)
 
     if not cc_result["result"]:
+        check_and_raise_raw_auth_fail_exception(cc_result)
         return JsonResponse({"result": False, "message": cc_result["message"]})
 
     obj_property = []
@@ -427,6 +437,7 @@ def cc_get_editable_set_attribute(request, biz_cc_id):
     client = get_client_by_user(request.user.username)
     result = client.cc.search_object_attribute(kwargs)
     if not result["result"]:
+        check_and_raise_raw_auth_fail_exception(result)
         return JsonResponse({"result": False, "data": "调用cc接口失败，message={}".format(result["message"])})
     data = result["data"]
     set_attribute = []

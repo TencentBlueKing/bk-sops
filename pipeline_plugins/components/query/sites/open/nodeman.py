@@ -18,6 +18,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.conf.urls import url
 
 from api.collections.nodeman import BKNodeManClient
+from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.utils.handlers import handle_api_error
 
 logger = logging.getLogger("root")
@@ -31,6 +32,7 @@ def nodeman_get_cloud_area(request):
     if not cloud_area_result["result"]:
         message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.cloud_list", {}, cloud_area_result)
         logger.error(message)
+        check_and_raise_raw_auth_fail_exception(cloud_area_result, message)
         return JsonResponse(
             {"result": cloud_area_result["result"], "code": cloud_area_result.get("code", "-1"), "message": message}
         )
@@ -67,6 +69,7 @@ def nodeman_get_plugin_list(request, category):
     if not plugin_list["result"]:
         message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.plugin_process", {}, plugin_list)
         logger.error(message)
+        check_and_raise_raw_auth_fail_exception(plugin_list, message)
         return JsonResponse(
             {"result": plugin_list["result"], "code": plugin_list.get("code", "-1"), "message": message}
         )
@@ -88,6 +91,7 @@ def nodeman_get_plugin_version(request, plugin, os_type):
     if not plugin_version_list["result"]:
         message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.plugin_package", {}, plugin_version_list)
         logger.error(message)
+        check_and_raise_raw_auth_fail_exception(plugin_version_list, message)
         return JsonResponse(
             {"result": plugin_version_list["result"], "code": plugin_version_list.get("code", "-1"), "message": message}
         )
@@ -106,12 +110,7 @@ def nodeman_is_support_tjj(request):
     @param request:
     @return:
     """
-    return JsonResponse({
-        "result": True,
-        "message": "success",
-        "code": 0,
-        "data": BKAPP_NODEMAN_SUPPORT_TJJ
-    })
+    return JsonResponse({"result": True, "message": "success", "code": 0, "data": BKAPP_NODEMAN_SUPPORT_TJJ})
 
 
 nodeman_urlpatterns = [
