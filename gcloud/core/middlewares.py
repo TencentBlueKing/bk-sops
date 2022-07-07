@@ -97,4 +97,4 @@ class HttpRedirectMiddleware(MiddlewareMixin):
         if not settings.NEED_HTTP_REDIRECT:
             return None
         if settings.DEFAULT_REDIRECT_HOST and settings.DEFAULT_REDIRECT_HOST not in request.build_absolute_uri():
-            return HttpResponseIndexRedirect(request.path)
+            return HttpResponseIndexRedirect(request.get_full_path())
