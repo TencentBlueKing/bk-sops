@@ -50,6 +50,20 @@ Currently, SOPS has the following Tag components built-in:
 - codeEditor
 # Tag component attribute and method
 
+All attribute configurations in the Tag component are declared in the `attrs` field.
+
+For example, to set the name attribute to "business id" and the placeholder attribute to "Please select business" for the select component.
+
+```js
+  ...
+  attrs: {
+    name: 'business id',
+    placeholder: 'Please select business'
+  }
+  ...
+```
+
+
 When the configuration items defined by standard plugin are rendered in the page, they will be passed on to Tag components as attributes. Tage component can expand a variety of form configurations based on different attribute values. For example, `TagSelect` component can use `multiple` attribute to define whether a drop-down box is multi-select or single-select. `TagUpload` component can use `remote_data_init` attribute to customize the processing logic after loading the data.
 
 When different standard plugins are rendered on the frontend page, there are some public interaction logics, including form item name, hidden status, hookability, validation rules, etc. These are public attributes, and all Tag components support standard plugin custom configuration. Since different Tags have their own application scenarios, they have different types of native forms or specific business scenarios encapsulated in the components, and the attributes they support are also different. Only certain tag components support standard plug-ins. Some attributes only support standard plugin custom configuration in specific Tag component, such attributes are called private attributes, such as the `remote_data_init` attribute in the `TagUpload` component.
@@ -150,7 +164,7 @@ Multi-select box. The options can be passed through configuration item for users
 
 **Attributes**
 
-  - `item`: the options provided. E.g. [{name: 'WeChat', value: 'weixin'}, {name: 'Mail', value: 'mail}]
+  - `items`: the options provided. E.g. [{name: 'WeChat', value: 'weixin'}, {name: 'Mail', value: 'mail}]
   - `disabled`: set whether this component is disabled.
   - `value`: the value of the selected item.
 
