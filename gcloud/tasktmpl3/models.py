@@ -104,6 +104,10 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         component_code = filters.get("component_code")
         version = filters.get("version")
         is_remote = filters.get("is_remote", False)
+        order_by = filters.get("order_by", "-template_create_time")
+        # 对创建时间做一层转换
+        if order_by.replace("-", "") == "create_time":
+            order_by = order_by.replace("create_time", "template_create_time")
         # 获取到组件code对应的template_id_list
         if component_code:
             template_node_template_data = TemplateNodeStatistics.objects.filter(
@@ -111,11 +115,11 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                 component_code=component_code,
                 version=version,
                 is_remote=is_remote,
-            )
+            ).order_by(order_by)
         else:
             template_node_template_data = TemplateNodeStatistics.objects.filter(
                 task_template_id__in=tasktmpl_id_list,
-            )
+            ).order_by(order_by)
         total = template_node_template_data.count()
         atom_template_data = template_node_template_data.values(
             "template_id",
@@ -144,14 +148,6 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                     "creator": data["template_creator"],
                 }
             )
-        # order_by字段错误的情况默认使用-template_d排序
-        order_by = filters.get("order_by", "-template_id")
-        if order_by.startswith("-"):
-            # 需要去除负号
-            order_by = order_by[1:]
-            groups = sorted(groups, key=lambda group: group.get(order_by), reverse=True)
-        else:
-            groups = sorted(groups, key=lambda group: group.get(order_by), reverse=False)
         return total, groups
 
     def group_by_atom_execute(self, tasktmpl, filters, page, limit):

@@ -318,14 +318,15 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
                 "instance_id", flat=True
             )
 
-        taskflow_list = taskflow.filter(pipeline_instance__id__in=instance_id_list)
+        order_by = filters.get("order_by", "-pipeline_instance__create_time")
+        if order_by.replace("-", "") == "create_time":
+            order_by = order_by.replace("create_time", "pipeline_instance__create_time")
+        if "instance_id" in order_by:
+            order_by = order_by.replace("instance_id", "id")
+
+        taskflow_list = taskflow.filter(pipeline_instance__id__in=instance_id_list).order_by(order_by)
         # 获得总数
         total = taskflow_list.count()
-        order_by = filters.get("order_by", "-instance_id")
-        if order_by == "-instance_id":
-            taskflow_list = taskflow_list.order_by("-id")
-        elif order_by == "instance_id":
-            taskflow_list = taskflow_list.order_by("id")
         taskflow_list = taskflow_list.values(
             "id",
             "project_id",
@@ -392,13 +393,13 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         @param limit:
         @return:
         """
-
         # 查询出有序的taskflow统计数据
         total = taskflow.count()
         task_instance_id_list = taskflow.values_list("id", flat=True)
+        order_by = filters.get("order_by", "-create_time")
         taskflow_statistics_data = list(
             TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)
-            .order_by("-create_time")[(page - 1) * limit : page * limit]
+            .order_by(order_by)[(page - 1) * limit : page * limit]
             .values(
                 "instance_id",
                 "task_instance_id",
