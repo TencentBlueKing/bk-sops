@@ -282,7 +282,7 @@
             ext-cls="cancel-global-variable-dialog"
             header-position="left"
             :mask-close="false"
-            :value="isCancelGloVarDialogShow"
+            v-model="isCancelGloVarDialogShow"
             :title="$t('取消变量引用')">
             <p>{{ $t('全局变量【 x 】的引用数已为 0。如果不再使用，可立即删除变量; 也可以稍后再全局变量面板中删除', { key: unhookingVarForm.key })}}</p>
             <template slot="footer">

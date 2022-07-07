@@ -1616,7 +1616,7 @@
 .task-operation {
     .operation-table {
         width: 100%;
-        font-size: 14px;
+        font-size: 12px;
         border: 1px solid #ebebeb;
         border-collapse: collapse;
         th {
