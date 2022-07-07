@@ -165,7 +165,7 @@
                                 </template>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('操作')" width="240" class="operation-cell">
+                        <bk-table-column :label="$t('操作')" width="240" class="operation-cell" :fixed="templateList.length ? 'right' : false">
                             <template slot-scope="props">
                                 <div class="template-operation">
                                     <template>
