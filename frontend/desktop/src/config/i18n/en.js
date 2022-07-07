@@ -1407,7 +1407,11 @@ const en = {
     '以下情况参数值无法重用，使用变量默认值：': 'The parameter value cannot be reused in the following cases, and the variable default value is used:',
     '变量的类型变更': 'Variable type change',
     '变量值的配置项变更': 'Configuration item change of variable value',
-    '元变量的配置变更': 'Metavariable configuration changes'
+    '元变量的配置变更': 'Metavariable configuration changes',
+    '确认离开当前页面吗？': '确认离开Are you sure to leave the current page?当前页面吗？',
+    '离开将会丢失保存信息，建议保存后离开': 'If you leave, you will lose the saved information. It is recommended to save and leave.',
+    '留在此页': 'Stay on this page',
+    '直接离开': 'Just leave'
 }
 
 export default en

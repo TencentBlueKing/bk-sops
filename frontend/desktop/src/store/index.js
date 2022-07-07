@@ -13,6 +13,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import modules from './modules/index.js'
 import axios from 'axios'
+import i18n from '@/config/i18n/index.js'
 
 Vue.use(Vuex)
 
@@ -42,6 +43,16 @@ const store = new Vuex.Store({
             system: [],
             resources: [],
             actions: []
+        },
+        infoBasicConfig: {
+            title: i18n.t('确认离开当前页面吗？'),
+            subTitle: i18n.t('离开将会丢失保存信息，建议保存后离开'),
+            okText: i18n.t('留在此页'),
+            cancelText: i18n.t('直接离开'),
+            maskClose: false,
+            closeFn: () => {
+                return true
+            }
         }
     },
     mutations: {
