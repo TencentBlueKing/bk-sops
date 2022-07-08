@@ -318,7 +318,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
                 "instance_id", flat=True
             )
 
-        order_by = filters.get("order_by", "-pipeline_instance__create_time")
+        order_by = filters.get("order_by", "-id")
         if order_by.replace("-", "") == "create_time":
             order_by = order_by.replace("create_time", "pipeline_instance__create_time")
         if "instance_id" in order_by:
