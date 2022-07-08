@@ -98,6 +98,7 @@
             }
         },
         created () {
+            window.msg_list = []
             bus.$on('showLoginModal', args => {
                 const { has_plain, login_url, width, height, method } = args
                 if (has_plain) {
@@ -129,9 +130,23 @@
              * 兼容标准插件配置项里，异步请求用到的全局弹窗提示
              */
             window.show_msg = (msg, type = 'error', traceId) => {
-                this.$nextTick(() => {
-                    /* eslint-disable-next-line */
-                    new ErrorNotify(msg, type, traceId, this)
+                const index = window.msg_list.findIndex(item => item.msg === msg)
+                if (index > -1) {
+                    if (traceId && !window.msg_list[index].traceId) {
+                        window.msg_list[index] = { msg, type, traceId }
+                    } else {
+                        return
+                    }
+                } else {
+                    window.msg_list.push({ msg, type, traceId })
+                }
+                setTimeout(() => { // 异步执行,可以把前端报错的trace_id同步上
+                    const info = window.msg_list.find(item => item.msg === msg && item.traceId === traceId)
+                    if (!info) return
+                    this.$nextTick(() => {
+                        /* eslint-disable-next-line */
+                        new ErrorNotify(info.msg, info.type, info.traceId, this)
+                    })
                 })
             }
             this.getPageFooter()
