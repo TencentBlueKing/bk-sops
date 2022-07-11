@@ -96,5 +96,10 @@ class HttpRedirectMiddleware(MiddlewareMixin):
     def process_request(self, request):
         if not settings.NEED_HTTP_REDIRECT:
             return None
-        if settings.DEFAULT_REDIRECT_HOST and settings.DEFAULT_REDIRECT_HOST not in request.build_absolute_uri():
+
+        absolute_uri = request.build_absolute_uri()
+        if not any([host in absolute_uri for host in settings.REDIRECT_HOSTS]):
+            return None
+
+        if settings.DEFAULT_REDIRECT_HOST and settings.DEFAULT_REDIRECT_HOST not in absolute_uri:
             return HttpResponseIndexRedirect(request.get_full_path())
