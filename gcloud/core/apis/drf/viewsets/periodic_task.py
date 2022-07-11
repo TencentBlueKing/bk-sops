@@ -90,7 +90,13 @@ class PeriodicTaskPermission(IamPermission):
 class PeriodicTaskFilter(AllLookupSupportFilterSet):
     class Meta:
         model = PeriodicTask
-        fields = {"task__celery_task__enabled": ["exact"], "task__creator": ["contains"], "project__id": ["exact"]}
+        fields = {
+            "id": ["exact"],
+            "task__celery_task__enabled": ["exact"],
+            "task__creator": ["exact"],
+            "project__id": ["exact"],
+            "editor": ["exact"],
+        }
 
 
 class PeriodicTaskViewSet(GcloudModelViewSet):
