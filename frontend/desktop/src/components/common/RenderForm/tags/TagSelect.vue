@@ -282,11 +282,9 @@
             this.remoteMethod()
             if (this.multiple) {
                 this.selectInputDom = document.querySelector('.el-select .el-select__input')
-            } else {
-                this.selectInputDom = document.querySelector('.el-input .el-input__inner')
+                if (!this.selectInputDom) return
+                this.selectInputDom.addEventListener('paste', this.handleSelectPaste)
             }
-            if (!this.selectInputDom) return
-            this.selectInputDom.addEventListener('paste', this.handleSelectPaste)
         },
         beforeDestroy () {
             if (this.selectInputDom) {
@@ -381,8 +379,6 @@
                 if (this.multiple) {
                     const setArr = [...this.value, ...matchVal]
                     this.updateForm([...new Set(setArr)])
-                } else {
-                    this.updateForm(matchVal[0])
                 }
                 this.$refs.selectComp.blur()
             }
