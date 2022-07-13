@@ -98,6 +98,9 @@ class HttpRedirectMiddleware(MiddlewareMixin):
             return None
 
         absolute_uri = request.build_absolute_uri()
+        if any([host in absolute_uri for host in settings.NOT_REDIRECT_HOSTS]):
+            return None
+
         if not any([host in absolute_uri for host in settings.REDIRECT_HOSTS]):
             return None
 
