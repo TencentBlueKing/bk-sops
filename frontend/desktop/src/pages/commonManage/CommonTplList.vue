@@ -280,20 +280,12 @@
     const SEARCH_LIST = [
         {
             id: 'id',
-            name: 'ID',
-            isOnce: true
+            name: 'ID'
         },
         {
             id: 'keyword',
             name: i18n.t('流程名'),
-            isDefaultOption: true,
-            isOnce: true
-        },
-        {
-            id: 'label_ids',
-            name: i18n.t('标签'),
-            children: [],
-            multiable: true
+            isDefaultOption: true
         },
         {
             id: 'subprocessUpdateVal',
@@ -302,18 +294,15 @@
                 { id: 1, name: i18n.t('是') },
                 { id: -1, name: i18n.t('否') },
                 { id: 0, name: i18n.t('无子流程') }
-            ],
-            isOnce: true
+            ]
         },
         {
             id: 'creator',
-            name: i18n.t('创建人'),
-            isOnce: true
+            name: i18n.t('创建人')
         },
         {
             id: 'editor',
-            name: i18n.t('更新人'),
-            isOnce: true
+            name: i18n.t('更新人')
         }
     ]
     const TABLE_FIELDS = [
@@ -385,7 +374,6 @@
                 creator = '',
                 editor = '',
                 keyword = '',
-                label_ids = '',
                 template_id = ''
             } = this.$route.query
             const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
@@ -470,7 +458,6 @@
                     creator,
                     queryTime: queryTime ? queryTime.split(',') : ['', ''],
                     flowName: keyword,
-                    label_ids: label_ids ? label_ids.split(',') : [],
                     id: template_id,
                     editor
                 },
@@ -622,7 +609,7 @@
                 }
             },
             getQueryData () {
-                const { subprocessUpdateVal, creator, queryTime, flowName, id, editor, label_ids } = this.requestData
+                const { subprocessUpdateVal, creator, queryTime, flowName, id, editor } = this.requestData
                 /**
                  * 无子流程 has_subprocess=false
                  * 有子流程，需要更新 has_subprocess=true&subprocess_has_update=true
@@ -641,8 +628,7 @@
                     has_subprocess,
                     new: true,
                     id,
-                    editor,
-                    label_ids: label_ids && label_ids.length ? label_ids.join(',') : undefined
+                    editor
                 }
                 const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
                 if (keys.includes(this.ordering)) {
@@ -1042,7 +1028,7 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { queryTime, subprocessUpdateVal, creator, flowName, id, editor, label_ids } = this.requestData
+                const { queryTime, subprocessUpdateVal, creator, flowName, id, editor } = this.requestData
                 const filterObj = {
                     limit,
                     subprocessUpdateVal,
@@ -1051,8 +1037,7 @@
                     queryTime: queryTime && queryTime.every(item => item) ? queryTime.join(',') : '',
                     keyword: flowName,
                     template_id: id,
-                    editor,
-                    label_ids: label_ids && label_ids.length ? label_ids.join(',') : ''
+                    editor
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {

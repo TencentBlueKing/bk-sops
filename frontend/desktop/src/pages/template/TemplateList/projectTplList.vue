@@ -312,14 +312,12 @@
     const SEARCH_LIST = [
         {
             id: 'id',
-            name: 'ID',
-            isOnce: true
+            name: 'ID'
         },
         {
             id: 'keyword',
             name: i18n.t('流程名'),
-            isDefaultOption: true,
-            isOnce: true
+            isDefaultOption: true
         },
         {
             id: 'label_ids',
@@ -334,18 +332,15 @@
                 { id: 1, name: i18n.t('是') },
                 { id: -1, name: i18n.t('否') },
                 { id: 0, name: i18n.t('无子流程') }
-            ],
-            isOnce: true
+            ]
         },
         {
             id: 'creator',
-            name: i18n.t('创建人'),
-            isOnce: true
+            name: i18n.t('创建人')
         },
         {
             id: 'editor',
-            name: i18n.t('更新人'),
-            isOnce: true
+            name: i18n.t('更新人')
         }
     ]
 

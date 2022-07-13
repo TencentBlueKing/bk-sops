@@ -1,5 +1,5 @@
 <template>
-    <section ref="wrap" class="search-select" :class="{ 'is-focus': isVisible }" @click="handleWrapClick">
+    <section ref="wrap" class="search-select" :class="{ 'is-focus': input.focus }" @click="handleWrapClick">
         <div
             class="search-input"
             :style="{ maxHeight: (shrink ? (input.focus ? maxHeight : minHeight) : maxHeight) + 'px' }">
@@ -124,7 +124,7 @@
             </div>
         </div>
         <span v-if="input.value || searchSelectValue.length" @click.stop="handleClear" class="bk-icon icon-close-circle-shape close-icon"></span>
-        <span v-else @click.stop="handleKeyEnter" :class="['bk-icon icon-search search-icon', { 'is-focus': isVisible }]"></span>
+        <span v-else @click.stop="handleKeyEnter" :class="['bk-icon icon-search search-icon', { 'is-focus': input.focus }]"></span>
     </section>
     
 </template>

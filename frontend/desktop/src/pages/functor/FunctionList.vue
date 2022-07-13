@@ -21,6 +21,9 @@
                         @click="onCreateTask">
                         {{$t('新建')}}
                     </bk-button>
+                    <span class="auto-redraw" @click.stop>
+                        <bk-checkbox v-model="isAutoRedraw" @change="onAutoRedrawChange">{{ $t('实时刷新') }}</bk-checkbox>
+                    </span>
                     <search-select
                         ref="searchSelect"
                         id="functionList"
@@ -35,7 +38,7 @@
                         :data="functorList"
                         :pagination="pagination"
                         :size="setting.size"
-                        v-bkloading="{ isLoading: firstLoading && listLoading, opacity: 1, zIndex: 100 }"
+                        v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1, zIndex: 100 }"
                         @page-change="onPageChange"
                         @page-limit-change="onPageLimitChange">
                         <bk-table-column
@@ -740,8 +743,7 @@
                     const project_id = this.$route.query['selectedProject']
                     if (project_id) {
                         const { id, name, children } = form
-                        console.log(project_id, children)
-                        const values = children.filter(item => project_id === item.id)
+                        const values = children.filter(item => String(project_id) === String(item.id))
                         this.searchSelectValue.push({ id, name, values })
                     }
                 } catch (error) {
@@ -1029,13 +1031,8 @@
                     }
                     return acc
                 }, {})
+                this.dateTimeRange = data['executeTime'] || []
                 this.requestData = data
-                this.pagination.current = 1
-                this.updateUrl()
-                this.loadFunctionTask()
-            },
-            onSearchFormSubmit (data) {
-                this.requestData = Object.assign({}, this.requestData, data)
                 this.pagination.current = 1
                 this.updateUrl()
                 this.loadFunctionTask()
@@ -1128,7 +1125,12 @@
 .search-wrapper {
     position: relative;
     display: flex;
+    align-items: center;
     justify-content: space-between;
+    .auto-redraw {
+        position: relative;
+        right: 500px;
+    }
 }
 .functor-container {
     padding: 20px 24px;

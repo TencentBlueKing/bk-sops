@@ -467,6 +467,7 @@
                     }
                     return acc
                 }, {})
+                this.dateTimeRange = data['executeTime'] || []
                 this.requestData = data
                 this.pagination.current = 1
                 this.updateUrl()
@@ -483,8 +484,7 @@
                     const project_id = this.$route.query['selectedProject']
                     if (project_id) {
                         const { id, name, children } = form
-                        console.log(project_id, children)
-                        const values = children.filter(item => project_id === item.id)
+                        const values = children.filter(item => String(project_id) === String(item.id))
                         this.searchSelectValue.push({ id, name, values })
                     }
                 } catch (e) {
