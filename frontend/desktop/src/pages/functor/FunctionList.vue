@@ -13,28 +13,23 @@
     <div class="functor-container">
         <skeleton :loading="firstLoading" loader="taskList">
             <div class="list-wrapper">
-                <advance-search-form
-                    id="functionList"
-                    :open="isSearchFormOpen"
-                    :search-config="{ placeholder: $t('请输入任务名称'), value: requestData.taskName }"
-                    :search-form="searchForm"
-                    @onSearchInput="onSearchInput"
-                    @submit="onSearchFormSubmit">
-                    <template v-slot:operation>
-                        <bk-button
-                            theme="primary"
-                            style="min-width: 120px;"
-                            data-test-id="function_form_createTaskBtn"
-                            @click="onCreateTask">
-                            {{$t('新建')}}
-                        </bk-button>
-                    </template>
-                    <template v-slot:search-extend>
-                        <span class="auto-redraw" @click.stop>
-                            <bk-checkbox v-model="isAutoRedraw" @change="onAutoRedrawChange">{{ $t('实时刷新') }}</bk-checkbox>
-                        </span>
-                    </template>
-                </advance-search-form>
+                <div class="search-wrapper mb20">
+                    <bk-button
+                        theme="primary"
+                        style="min-width: 120px;"
+                        data-test-id="function_form_createTaskBtn"
+                        @click="onCreateTask">
+                        {{$t('新建')}}
+                    </bk-button>
+                    <search-select
+                        ref="searchSelect"
+                        id="functionList"
+                        placeholder="ID/任务名/所属项目/提单人/认领人/认领状态/执行状态"
+                        :value="searchSelectValue"
+                        :search-list="searchList"
+                        @change="handleSearchValueChange">
+                    </search-select>
+                </div>
                 <div class="functor-table-content" data-test-id="function_table_functionTaskList">
                     <bk-table
                         :data="functorList"
@@ -49,6 +44,7 @@
                             :label="item.label"
                             :prop="item.id"
                             :width="item.width"
+                            :render-header="renderTableHeader"
                             :min-width="item.min_width">
                             <template slot-scope="props">
                                 <!--所属项目-->
@@ -278,56 +274,54 @@
     import { mapActions, mapMutations, mapState } from 'vuex'
     import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
-    import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import MemberSelect from '@/components/common/Individualization/MemberSelect.vue'
+    import SearchSelect from '@/components/common/searchSelect/index.vue'
+    import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
-    const SEARCH_FORM = [
+    const SEARCH_LIST = [
         {
-            type: 'select',
-            label: i18n.t('所属项目'),
-            key: 'selectedProject',
-            loading: true,
-            placeholder: i18n.t('请选择项目'),
-            list: [],
-            value: ''
+            id: 'id',
+            name: 'ID'
         },
         {
-            type: 'dateRange',
-            key: 'executeTime',
-            placeholder: i18n.t('选择日期时间范围'),
-            label: i18n.t('提单时间'),
-            value: ['', '']
+            id: 'keyword',
+            name: i18n.t('任务名'),
+            isDefaultOption: true
         },
         {
-            type: 'input',
-            key: 'creator',
-            label: i18n.t('提单人'),
-            placeholder: i18n.t('请输入提单人'),
-            value: ''
+            id: 'selectedProject',
+            name: i18n.t('所属项目'),
+            children: []
         },
         {
-            type: 'input',
-            key: 'claimant',
-            label: i18n.t('认领人'),
-            placeholder: i18n.t('请输入认领人'),
-            value: ''
+            id: 'creator',
+            name: i18n.t('提单人')
         },
         {
-            type: 'select',
-            label: i18n.t('状态'),
-            key: 'statusSync',
-            loading: false,
-            placeholder: i18n.t('请选择状态'),
-            list: [
-                { 'value': 'submitted', 'name': i18n.t('未认领') },
-                { 'value': 'claimed', 'name': i18n.t('已认领') },
-                { 'value': 'executed', 'name': i18n.t('已执行') },
-                { 'value': 'finished', 'name': i18n.t('完成') }
-            ],
-            value: ''
+            id: 'claimant',
+            name: i18n.t('认领人')
+        },
+        {
+            id: 'claimStatus',
+            name: i18n.t('认领状态'),
+            children: [
+                { id: 'submitted', name: i18n.t('未认领') },
+                { id: 'claimed', name: i18n.t('已认领') },
+                { id: 'executed', name: i18n.t('已执行') },
+                { id: 'finished', name: i18n.t('完成') }
+            ]
+        },
+        {
+            id: 'statusSync',
+            name: i18n.t('执行状态'),
+            children: [
+                { id: 'not_started', name: i18n.t('未执行') },
+                { id: 'started', name: i18n.t('已执行') },
+                { id: 'start_failed', name: i18n.t('启动失败') }
+            ]
         }
     ]
     const TABLE_FIELDS = [
@@ -375,9 +369,9 @@
         name: 'functionHome',
         components: {
             Skeleton,
-            AdvanceSearchForm,
             NoData,
-            MemberSelect
+            MemberSelect,
+            SearchSelect
         },
         mixins: [permission, task],
         props: ['project_id', 'app_id'],
@@ -388,26 +382,39 @@
                 selectedProject = '',
                 executeTime = '',
                 creator = '',
+                claimStatus = '',
                 statusSync = '',
-                keyword = ''
+                keyword = '',
+                task_id = '',
+                claimant = ''
             } = this.$route.query
-            const searchForm = SEARCH_FORM.map(item => {
-                if (this.$route.query[item.key]) {
-                    if (Array.isArray(item.value)) {
-                        item.value = this.$route.query[item.key].split(',')
-                    } else {
-                        item.value = item.key === 'selectedProject' ? Number(this.$route.query[item.key]) : this.$route.query[item.key]
+            const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
+                const values_text = this.$route.query[cur.id]
+                if (values_text) {
+                    const { id, name, children } = cur
+                    let values = []
+                    if (!children) {
+                        values = [values_text]
+                        acc.push({ id, name, values })
+                    } else if (children.length) {
+                        const ids = values_text.split(',')
+                        values = children.filter(item => ids.includes(String(item.id)))
+                        acc.push({ id, name, values })
                     }
                 }
-                return item
-            })
-            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
+                return acc
+            }, [])
+            if (task_id) {
+                searchSelectValue.push({ id: 'id', name: 'ID', values: [task_id] })
+            }
+            if (executeTime) {
+                const values = executeTime.split(',')
+                searchSelectValue.push({ id: 'dateRange', name: '执行时间', values })
+            }
             return {
                 firstLoading: true,
                 listLoading: false,
                 functorSync: 0,
-                searchForm,
-                isSearchFormOpen,
                 isShowNewTaskDialog: false,
                 isShowTransferDialog: false,
                 functorBasicInfoLoading: true,
@@ -453,8 +460,11 @@
                     selectedProject,
                     creator,
                     statusSync,
+                    claimStatus,
                     executeTime: executeTime ? executeTime.split(',') : ['', ''],
-                    taskName: keyword
+                    taskName: keyword,
+                    id: task_id,
+                    claimant
                 },
                 pagination: {
                     current: Number(page),
@@ -487,7 +497,10 @@
                 tplSearchLoading: false,
                 flowName: '',
                 isLoadCommonTpl: false,
-                onTplSearch: null
+                onTplSearch: null,
+                searchList: toolsUtils.deepClone(SEARCH_LIST),
+                searchSelectValue,
+                dateTimeRange: executeTime.split(',')
             }
         },
         computed: {
@@ -532,17 +545,19 @@
             async loadFunctionTask () {
                 this.listLoading = true
                 try {
-                    const { selectedProject, executeTime, creator, statusSync, taskName, claimant } = this.requestData
+                    const { selectedProject, executeTime, creator, statusSync, taskName, claimant, id, claimStatus } = this.requestData
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
-                        task__pipeline_instance__name__contains: taskName || undefined,
+                        task__pipeline_instance__name__icontains: taskName || undefined,
                         creator: creator || undefined,
                         claimant: claimant || undefined,
                         task__project__id: selectedProject || undefined,
-                        status: statusSync || undefined
+                        status: claimStatus || undefined,
+                        task_id: id || undefined,
+                        statusSync: statusSync || undefined
                     }
-                    if (executeTime[0] && executeTime[1]) {
+                    if (executeTime && executeTime[0] && executeTime[1]) {
                         if (this.common) {
                             data['pipeline_template__start_time__gte'] = moment(executeTime[0]).format('YYYY-MM-DD') + ' 00:00:00'
                             data['pipeline_template__start_time__lte'] = moment(executeTime[1]).add('1', 'd').format('YYYY-MM-DD') + ' 23:59:59'
@@ -562,6 +577,39 @@
                     console.log(e)
                 } finally {
                     this.listLoading = false
+                }
+            },
+            renderTableHeader (h, { column, $index }) {
+                if (column.property === 'create_time') {
+                    return <TableRenderHeader
+                        name={ column.label }
+                        orderShow = { false }
+                        dateValue={ this.dateTimeRange }
+                        onDateChange={ data => this.handleDateTimeFilter(data) }>
+                    </TableRenderHeader>
+                } else {
+                    return column.label
+                }
+            },
+            handleDateTimeFilter (date = []) {
+                this.dateTimeRange = date
+                const index = this.searchSelectValue.findIndex(item => item.id === 'dateRange')
+                if (index > -1) {
+                    if (date.length) {
+                        this.searchSelectValue[index].values = date
+                    } else {
+                        this.searchSelectValue.splice(index, 1)
+                    }
+                } else {
+                    const info = {
+                        id: 'dateRange',
+                        name: '提单时间',
+                        values: date
+                    }
+                    this.searchSelectValue.push(info)
+                    // 添加搜索记录
+                    const searchDom = this.$refs.searchSelect
+                    searchDom && searchDom.addSearchRecord(info)
                 }
             },
             // 获取当前视图表格头显示字段
@@ -607,15 +655,18 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { selectedProject, executeTime, creator, statusSync, taskName } = this.requestData
+                const { selectedProject, executeTime, creator, statusSync, taskName, id, claimant, claimStatus } = this.requestData
                 const filterObj = {
                     limit,
                     selectedProject,
                     creator,
                     statusSync,
                     page: current,
-                    executeTime: executeTime.every(item => item) ? executeTime.join(',') : '',
-                    keyword: taskName
+                    executeTime: executeTime && executeTime.every(item => item) ? executeTime.join(',') : '',
+                    keyword: taskName,
+                    task_id: id,
+                    claimant,
+                    claimStatus
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {
@@ -683,9 +734,16 @@
             async getProjectSearchForm () {
                 try {
                     const businessData = await this.loadUserProjectList()
-                    const form = this.searchForm.find(item => item.key === 'selectedProject')
-                    form.list = businessData.results.map(m => ({ name: m.name, value: m.id }))
-                    form.loading = false
+                    const form = this.searchList.find(item => item.id === 'selectedProject')
+                    form.children = businessData.results.map(m => ({ name: m.name, id: m.id }))
+                    // 因为项目所属列表是通过接口获取的，所以需要把路径上的标签添加进去
+                    const project_id = this.$route.query['selectedProject']
+                    if (project_id) {
+                        const { id, name, children } = form
+                        console.log(project_id, children)
+                        const values = children.filter(item => project_id === item.id)
+                        this.searchSelectValue.push({ id, name, values })
+                    }
                 } catch (error) {
                     console.warn(error)
                 }
@@ -958,6 +1016,24 @@
                 }
                 this.applyForPermission(required, data.auth_actions, permissionData)
             },
+            handleSearchValueChange (data) {
+                data = data.reduce((acc, cur) => {
+                    if (cur.id === 'dateRange') {
+                        acc['executeTime'] = cur.values
+                    } else if (cur.id === 'keyword') {
+                        acc['taskName'] = cur.values[0]
+                    } else if (cur.values.length > 1) {
+                        acc[cur.id] = cur.values.map(item => item.id)
+                    } else {
+                        acc[cur.id] = cur.values[0].id || cur.values[0]
+                    }
+                    return acc
+                }, {})
+                this.requestData = data
+                this.pagination.current = 1
+                this.updateUrl()
+                this.loadFunctionTask()
+            },
             onSearchFormSubmit (data) {
                 this.requestData = Object.assign({}, this.requestData, data)
                 this.pagination.current = 1
@@ -1048,6 +1124,11 @@
 .bk-select-inline,.bk-input-inline {
     display: inline-block;
     width: 260px;
+}
+.search-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
 }
 .functor-container {
     padding: 20px 24px;
