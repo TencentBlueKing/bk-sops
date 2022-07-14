@@ -38,6 +38,7 @@ class FunctionTaskViewSet(GcloudListViewSet):
     filter_fields = {
         "task_id": ["exact"],
         "task__project__id": ["exact"],
+        "task__pipeline_instance__name": ["icontains", "contains"],
         "creator": ["exact", "icontains"],
         "claimant": ["exact", "icontains"],
         "status": ["exact"],
