@@ -217,22 +217,6 @@
             </template>
             <bk-button v-else theme="primary" @click="$emit('closeEditingPanel')">{{ $t('返回') }}</bk-button>
         </div>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            :theme="'primary'"
-            :mask-close="false"
-            :show-footer="false"
-            :value="isSaveConfirmDialogShow"
-            @cancel="isSaveConfirmDialogShow = false">
-            <div class="variable-confirm-dialog-content">
-                <div class="leave-tips">{{ $t('保存已修改的变量信息吗？') }}</div>
-                <div class="action-wrapper">
-                    <bk-button theme="primary" :disabled="atomConfigLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
-                    <bk-button theme="default" @click="$emit('closeEditingPanel')">{{ $t('不保存') }}</bk-button>
-                </div>
-            </div>
-        </bk-dialog>
     </div>
 </template>
 <script>
@@ -298,7 +282,6 @@
                 inputRegexp: '', // input，textarea类型正则
                 atomConfigLoading: false,
                 atomTypeKey: '',
-                isSaveConfirmDialogShow: false,
                 // 变量名称校验规则
                 variableNameRule: {
                     required: true,
@@ -316,7 +299,8 @@
                 'atomFormConfig': state => state.atomForm.config,
                 'constants': state => state.template.constants,
                 'internalVariable': state => state.template.internalVariable,
-                'outputs': state => state.template.outputs
+                'outputs': state => state.template.outputs,
+                'infoBasicConfig': state => state.infoBasicConfig
             }),
             ...mapState('project', {
                 'project_id': state => state.project_id
@@ -767,7 +751,12 @@
             },
             handleMaskClick () {
                 if (!this.variableData.key) {
-                    this.isSaveConfirmDialogShow = true
+                    this.$bkInfo({
+                        ...this.infoBasicConfig,
+                        cancelFn: () => {
+                            this.$emit('closeEditingPanel')
+                        }
+                    })
                 } else {
                     const editingVariable = tools.deepClone(this.theEditingData)
                     editingVariable.key = /^\$\{\w+\}$/.test(editingVariable.key) ? editingVariable.key : '${' + editingVariable.key + '}'
@@ -779,13 +768,14 @@
                     if (tools.isDataEqual(editingVariable, this.variableData)) {
                         this.$emit('closeEditingPanel')
                     } else {
-                        this.isSaveConfirmDialogShow = true
+                        this.$bkInfo({
+                            ...this.infoBasicConfig,
+                            cancelFn: () => {
+                                this.$emit('closeEditingPanel')
+                            }
+                        })
                     }
                 }
-            },
-            onConfirmClick () {
-                this.isSaveConfirmDialogShow = false
-                this.onSaveVariable()
             },
             // 保存变量数据
             onSaveVariable () {
