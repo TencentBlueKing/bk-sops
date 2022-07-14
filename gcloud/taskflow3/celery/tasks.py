@@ -16,12 +16,15 @@ import logging
 
 from celery import task
 from django.conf import settings
+from django.utils import timezone
 
 from pipeline.engine.models import PipelineProcess
 from pipeline.eri.models import State, Process
 from pipeline.eri.runtime import BambooDjangoRuntime
 
 import metrics
+from gcloud.constants import CallbackStatus
+from gcloud.taskflow3.domains.callback import TaskCallBacker
 from gcloud.taskflow3.domains.node_timeout_strategy import node_timeout_handler
 from gcloud.taskflow3.models import (
     TaskFlowInstance,
@@ -161,3 +164,30 @@ def execute_node_timeout_strategy(node_id, version):
     )
 
     return action_result
+
+
+@task
+def task_callback(task_id, retry_times=0, *args, **kwargs):
+    tcb = TaskCallBacker(task_id, *args, **kwargs)
+    if not tcb.check_record_existence():
+        message = f"[task_callback] task_id {task_id} does not in TaskCallBackRecord."
+        logger.error(message)
+        return
+    try:
+        result = tcb.callback()
+    except Exception as e:
+        logger.exception(f"[task_callback] task_id {task_id}, retry_times {retry_times} callback error: {e}")
+        result = False
+    if not result and retry_times < settings.REQUEST_RETRY_NUMBER:
+        task_callback.apply_async(
+            kwargs=dict(task_id=task_id, retry_times=retry_times + 1, **kwargs),
+            queue="task_callback",
+            routing_key="task_callback",
+            countdown=1,
+        )
+        return
+    tcb.update_record(
+        extra_info=json.dumps(kwargs),
+        status=CallbackStatus.SUCCESS.value if result else CallbackStatus.FAIL.value,
+        callback_time=timezone.now(),
+    )

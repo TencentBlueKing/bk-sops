@@ -157,19 +157,6 @@
                 ext-cls="common-dialog"
                 :theme="'primary'"
                 :mask-close="false"
-                :header-position="'left'"
-                :title="$t('离开页面')"
-                :value="isLeaveDialogShow"
-                data-test-id="templateEdit_form_leaveDialog"
-                @confirm="onLeaveConfirm"
-                @cancel="onLeaveCancel">
-                <div class="leave-tips">{{ $t('系统不会保存您所做的更改，确认离开？') }}</div>
-            </bk-dialog>
-            <bk-dialog
-                width="400"
-                ext-cls="common-dialog"
-                :theme="'primary'"
-                :mask-close="false"
                 :show-footer="false"
                 :value="multipleTabDialogShow"
                 data-test-id="templateEdit_form_commonDialog"
@@ -178,7 +165,7 @@
                     <h3>{{ $t('确定保存修改的内容？') }}</h3>
                     <p><i class="bk-icon icon-exclamation-circle">{{ $t('当前流程模板在浏览器多个标签页打开') }}</i></p>
                     <div class="action-wrapper">
-                        <bk-button theme="primary" @click="onMutilpleTabConfirm">{{ $t('确定') }}</bk-button>
+                        <bk-button theme="primary" @click="onMultipleTabConfirm">{{ $t('确定') }}</bk-button>
                         <bk-button theme="default" @click="multipleTabDialogShow = false">{{ $t('取消') }}</bk-button>
                     </div>
                 </div>
@@ -199,23 +186,6 @@
                     <div class="action-wrapper">
                         <bk-button theme="primary" :loading="templateSaving || executeSchemeSaving" @click="onConfirmSave">{{ $t('确定') }}</bk-button>
                         <bk-button theme="default" :disabled="templateSaving || executeSchemeSaving" @click="onCancelSave">{{ $t('取消') }}</bk-button>
-                    </div>
-                </div>
-            </bk-dialog>
-            <bk-dialog
-                width="400"
-                ext-cls="condition-edit-dialog"
-                :theme="'primary'"
-                :mask-close="false"
-                :show-footer="false"
-                :value="isShowDialog"
-                data-test-id="templateEdit_form_conditeEditDialog"
-                @cancel="isShowDialog = false">
-                <div class="condition-edit-confirm-dialog-content">
-                    <div class="leave-tips">{{ $t('保存已修改的信息吗？') }}</div>
-                    <div class="action-wrapper">
-                        <bk-button theme="primary" :loading="isSaveLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
-                        <bk-button theme="default" :disabled="isSaveLoading" @click="onCancelClick">{{ $t('不保存') }}</bk-button>
                     </div>
                 </div>
             </bk-dialog>
@@ -264,8 +234,6 @@
         props: ['template_id', 'type', 'common', 'entrance'],
         data () {
             return {
-                isShowDialog: false,
-                isSaveLoading: false,
                 isSchemaListChange: false,
                 executeSchemeSaving: false,
                 taskSchemeList: [],
@@ -357,7 +325,8 @@
                 'category': state => state.template.category,
                 'subprocess_info': state => state.template.subprocess_info,
                 'username': state => state.username,
-                'site_url': state => state.site_url
+                'site_url': state => state.site_url,
+                'infoBasicConfig': state => state.infoBasicConfig
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone,
@@ -472,31 +441,7 @@
             }
         },
         created () {
-            this.initTemplateData()
-            // 获取流程内置变量
-            this.getSystemVars()
-            this.getSingleAtomList()
-            this.getProjectBaseInfo()
-            if (!this.common) {
-                this.getTemplateLabelList()
-            }
-            this.templateDataLoading = true
-            this.snapshoots = this.getTplSnapshoots()
-            if (['edit', 'clone', 'view'].includes(this.type)) {
-                this.getTemplateData()
-            } else {
-                let name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
-                if (this.common) {
-                    if (window.TIMEZONE) {
-                        name = 'new' + moment.tz(window.TIMEZONE).format('YYYYMMDDHHmmss')
-                    } else {
-                        // 无时区的公共流程使用本地的时间
-                        name = 'new' + moment().format('YYYYMMDDHHmmss')
-                    }
-                }
-                this.setTemplateName(name)
-                this.templateDataLoading = false
-            }
+            this.initData()
         },
         mounted () {
             this.openSnapshootTimer()
@@ -571,6 +516,33 @@
                 'loadTaskScheme',
                 'saveTaskSchemList'
             ]),
+            initData () {
+                this.initTemplateData()
+                // 获取流程内置变量
+                this.getSystemVars()
+                this.getSingleAtomList()
+                this.getProjectBaseInfo()
+                if (!this.common) {
+                    this.getTemplateLabelList()
+                }
+                this.templateDataLoading = true
+                this.snapshoots = this.getTplSnapshoots()
+                if (['edit', 'clone', 'view'].includes(this.type)) {
+                    this.getTemplateData()
+                } else {
+                    let name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
+                    if (this.common) {
+                        if (window.TIMEZONE) {
+                            name = 'new' + moment.tz(window.TIMEZONE).format('YYYYMMDDHHmmss')
+                        } else {
+                            // 无时区的公共流程使用本地的时间
+                            name = 'new' + moment().format('YYYYMMDDHHmmss')
+                        }
+                    }
+                    this.setTemplateName(name)
+                    this.templateDataLoading = false
+                }
+            },
             /**
              * 加载标准插件列表
              */
@@ -869,7 +841,7 @@
                         this.goToTaskUrl(data.template_id)
                     } else if (this.isBackViewMode) {
                         this.$router.back()
-                    } else { // 保存后需要切到查看模式(查看执行方案除时为查看模式)
+                    } else { // 保存后需要切到查看模式(查看执行方案时为编辑模式)
                         this.$router.push({
                             params: { type: this.isExecuteScheme ? 'edit' : 'view' },
                             query: { template_id: data.template_id }
@@ -1435,7 +1407,19 @@
             },
             goBackViewMode () {
                 this.isBackViewMode = true
-                this.isExecuteSchemeDialog = true
+                this.$bkInfo({
+                    ...this.infoBasicConfig,
+                    cancelFn: () => {
+                        // 返回查看模式时初始化数据
+                        this.isTemplateDataChanged = false
+                        this.isGlobalVariableUpdate = false
+                        this.$router.push({
+                            query: { template_id: this.template_id },
+                            params: { type: 'view' }
+                        })
+                        this.initData()
+                    }
+                })
             },
             goBackToTplEdit () {
                 const { isDefaultSchemeIng, judgeDataEqual } = this.$refs.taskSelectNode
@@ -1443,7 +1427,13 @@
                 if (isEqual) {
                     this.isEditProcessPage = true
                 } else {
-                    this.isExecuteSchemeDialog = true
+                    this.$bkInfo({
+                        ...this.infoBasicConfig,
+                        cancelFn: () => {
+                            this.isEditProcessPage = true
+                            this.isTemplateDataChanged = false
+                        }
+                    })
                 }
             },
             updateTaskSchemeList (val, isChange) {
@@ -1591,23 +1581,12 @@
             },
             // 分支条件侧滑点击遮罩事件
             onBeforeClose () {
-                this.isShowDialog = true
-            },
-            // 分支条件弹框保存
-            async onConfirmClick () {
-                this.isSaveLoading = true
-                try {
-                    await this.$refs.conditionEdit.confirm()
-                    this.isSaveLoading = false
-                    this.isShowDialog = false
-                } catch (error) {
-                    this.isSaveLoading = false
-                }
-            },
-            // 分支条件弹框取消
-            onCancelClick () {
-                this.isShowDialog = false
-                this.isShowConditionEdit = false
+                this.$bkInfo({
+                    ...this.infoBasicConfig,
+                    cancelFn: () => {
+                        this.isShowConditionEdit = false
+                    }
+                })
             },
             onCloseConfigPanel (openVariablePanel) {
                 this.isShowConditionEdit = false
@@ -1798,7 +1777,7 @@
                 }
             },
             // 多 tab 打开同一流程模板
-            onMutilpleTabConfirm () {
+            onMultipleTabConfirm () {
                 this.checkNodeAndSaveTemplate()
                 this.multipleTabDialogShow = false
             },
@@ -1820,22 +1799,13 @@
                 if (this.isEditProcessPage) {
                     await this.saveTemplate()
                     this.isExecuteSchemeDialog = false
-                    if (this.isBackViewMode) {
-                        this.isBackViewMode = false
-                    } else {
-                        this.isEditProcessPage = false
-                    }
-                } else {
-                    const { isDefaultSchemeIng, judgeDataEqual } = this.$refs.taskSelectNode
-                    const isEqual = isDefaultSchemeIng ? !judgeDataEqual() : false
-                    this.onSaveExecuteSchemeClick(isEqual)
+                    this.isEditProcessPage = false
+                    this.isTemplateDataChanged = false
                 }
             },
             // 编辑执行方案弹框 取消事件
             onCancelSave () {
                 this.isExecuteSchemeDialog = false
-                this.isEditProcessPage = true
-                this.isTemplateDataChanged = false
                 this.isExecuteScheme = false
             }
         },
@@ -1849,7 +1819,13 @@
                 next()
             } else {
                 this.leaveToPath = to.fullPath
-                this.isLeaveDialogShow = true
+                this.$bkInfo({
+                    ...this.infoBasicConfig,
+                    cancelFn: () => {
+                        this.allowLeave = true
+                        this.$router.push({ path: this.leaveToPath })
+                    }
+                })
             }
         }
     }
@@ -1908,25 +1884,6 @@
         }
         .action-wrapper .bk-button {
             margin-right: 6px;
-        }
-    }
-    /deep/ .condition-edit-dialog {
-        .bk-dialog-tool {
-            display: none;
-        }
-        .bk-dialog-body {
-            padding: 0;
-            .condition-edit-confirm-dialog-content {
-                padding: 40px 0;
-                text-align: center;
-                .leave-tips {
-                    font-size: 24px;
-                    margin-bottom: 20px;
-                }
-                .action-wrapper .bk-button {
-                    margin-right: 6px;
-                }
-            }
         }
     }
 </style>

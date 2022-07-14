@@ -8,6 +8,8 @@ from api import BKMonitorClient
 from django.utils.translation import ugettext_lazy as _
 from django.http import JsonResponse
 
+from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
+
 logger = logging.getLogger("root")
 
 
@@ -17,6 +19,7 @@ def monitor_get_strategy(request, biz_cc_id):
     if not response["result"]:
         message = _(u"查询监控(Monitor)的策略[app_id=%s]接口monitor.query_strategy返回失败: %s") % (biz_cc_id, response["message"])
         logger.error(message)
+        check_and_raise_raw_auth_fail_exception(response, message)
         result = {"result": False, "data": [], "message": message}
         return JsonResponse(result)
     strategy_list = []

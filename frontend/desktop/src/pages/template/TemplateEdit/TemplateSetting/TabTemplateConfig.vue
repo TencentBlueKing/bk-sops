@@ -135,23 +135,6 @@
                 <bk-button theme="default" data-test-id="tabTemplateConfig_form_cancelBtn" @click="closeTab">{{ isViewMode ? $t('关闭') : $t('取消') }}</bk-button>
             </div>
             <bk-dialog
-                width="400"
-                ext-cls="common-dialog"
-                :theme="'primary'"
-                :mask-close="false"
-                :show-footer="false"
-                :value="isSaveConfirmDialogShow"
-                data-test-id="tabTemplateConfig_dialog_confirmDialog"
-                @cancel="isSaveConfirmDialogShow = false">
-                <div class="template-config-dialog-content">
-                    <div class="leave-tips">{{ $t('保存已修改的配置信息吗？') }}</div>
-                    <div class="action-wrapper">
-                        <bk-button theme="primary" data-test-id="tabTemplateConfig_form_saveBtn" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
-                        <bk-button theme="default" data-test-id="tabTemplateConfig_form_cancelBtn" @click="closeTab">{{ $t('不保存') }}</bk-button>
-                    </div>
-                </div>
-            </bk-dialog>
-            <bk-dialog
                 width="600"
                 ext-cls="common-dialog label-dialog"
                 header-position="left"
@@ -240,7 +223,6 @@
                     labels: template_labels,
                     defaultFlowType: default_flow_type
                 },
-                isSaveConfirmDialogShow: false,
                 rules: {
                     name: [
                         {
@@ -292,7 +274,8 @@
         computed: {
             ...mapState({
                 'username': state => state.username,
-                'timeout': state => state.template.time_out
+                'timeout': state => state.template.time_out,
+                'infoBasicConfig': state => state.infoBasicConfig
             }),
             ...mapState('project', {
                 'authActions': state => state.authActions
@@ -367,10 +350,6 @@
                     this.$emit('templateDataChanged')
                 })
             },
-            onConfirmClick () {
-                this.isSaveConfirmDialogShow = false
-                this.onSaveConfig()
-            },
             beforeClose () {
                 if (this.isViewMode) {
                     this.closeTab()
@@ -392,7 +371,12 @@
                     this.closeTab()
                     return true
                 } else {
-                    this.isSaveConfirmDialogShow = true
+                    this.$bkInfo({
+                        ...this.infoBasicConfig,
+                        cancelFn: () => {
+                            this.closeTab()
+                        }
+                    })
                     return false
                 }
             },
@@ -491,17 +475,6 @@
         &:hover {
             color: #f4aa1a;
         }
-    }
-}
-/deep/ .template-config-dialog-content {
-    padding: 40px 0;
-    text-align: center;
-    .leave-tips {
-        font-size: 24px;
-        margin-bottom: 20px;
-    }
-    .action-wrapper .bk-button {
-        margin-right: 6px;
     }
 }
 .executor-proxy-desc {

@@ -36,7 +36,12 @@ from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 
 from gcloud import err_code
 from gcloud.conf import settings
-from gcloud.constants import TASK_FLOW_TYPE, TASK_CATEGORY, TASKFLOW_NODE_TIMEOUT_CONFIG_BATCH_CREAT_COUNT
+from gcloud.constants import (
+    TASK_FLOW_TYPE,
+    TASK_CATEGORY,
+    TASKFLOW_NODE_TIMEOUT_CONFIG_BATCH_CREAT_COUNT,
+    CALLBACK_STATUSES,
+)
 from gcloud.core.models import Project, EngineConfig, StaffGroupSet
 from gcloud.core.utils import convert_readable_username
 from gcloud.contrib.appmaker.models import AppMaker
@@ -313,14 +318,15 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
                 "instance_id", flat=True
             )
 
-        taskflow_list = taskflow.filter(pipeline_instance__id__in=instance_id_list)
+        order_by = filters.get("order_by", "-id")
+        if order_by.replace("-", "") == "create_time":
+            order_by = order_by.replace("create_time", "pipeline_instance__create_time")
+        if "instance_id" in order_by:
+            order_by = order_by.replace("instance_id", "id")
+
+        taskflow_list = taskflow.filter(pipeline_instance__id__in=instance_id_list).order_by(order_by)
         # 获得总数
         total = taskflow_list.count()
-        order_by = filters.get("order_by", "-instance_id")
-        if order_by == "-instance_id":
-            taskflow_list = taskflow_list.order_by("-id")
-        elif order_by == "instance_id":
-            taskflow_list = taskflow_list.order_by("id")
         taskflow_list = taskflow_list.values(
             "id",
             "project_id",
@@ -387,14 +393,14 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         @param limit:
         @return:
         """
-
         # 查询出有序的taskflow统计数据
         total = taskflow.count()
         task_instance_id_list = taskflow.values_list("id", flat=True)
+        order_by = filters.get("order_by", "-create_time")
         taskflow_statistics_data = list(
-            TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)[
-                (page - 1) * limit : page * limit
-            ].values(
+            TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)
+            .order_by(order_by)[(page - 1) * limit : page * limit]
+            .values(
                 "instance_id",
                 "task_instance_id",
                 "project_id",
@@ -1274,3 +1280,17 @@ class TimeoutNodesRecord(models.Model):
     class Meta:
         verbose_name = _("超时节点数据记录 TimeoutNodesRecord")
         verbose_name_plural = _("超时节点数据记录 TimeoutNodesRecord")
+
+
+class TaskCallBackRecord(models.Model):
+    id = models.BigAutoField(verbose_name="ID", primary_key=True)
+    task_id = models.BigIntegerField(verbose_name=_("任务ID"), db_index=True)
+    url = models.TextField(verbose_name=_("回调地址"))
+    create_time = models.DateTimeField(verbose_name=_("创建时间"), auto_now_add=True)
+    status = models.CharField(verbose_name=_("状态"), max_length=100, choices=CALLBACK_STATUSES, default="ready")
+    extra_info = models.TextField(verbose_name=_("附加信息"), default="{}")
+    callback_time = models.DateTimeField(verbose_name=_("回调时间"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = verbose_name_plural = _("任务回调记录")
+        ordering = ["-id"]

@@ -19,10 +19,10 @@ from django.utils.translation import ugettext_lazy as _
 from api.collections.monitor import BKMonitorClient
 from gcloud.conf import settings
 
-from pipeline.core.flow.io import StringItemSchema
+from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
 
-from pipeline_plugins.components.collections.sites.open.monitor.base import MonitorBaseService
+from pipeline_plugins.components.collections.sites.open.monitor import MonitorBaseService
 
 __group_name__ = _("监控平台(Monitor)")
 
@@ -68,6 +68,20 @@ class MonitorAlarmShieldStrategyService(MonitorBaseService):
                 type="string",
                 schema=StringItemSchema(description=_("屏蔽持续的时间")),
             ),
+            self.InputItem(
+                name=_("维度筛选方式"),
+                key="bk_dimension_select_type",
+                type="string",
+                schema=StringItemSchema(description=_("维度筛选方式")),
+            ),
+            self.InputItem(
+                name=_("维度"),
+                key="bk_dimension_list",
+                type="array",
+                schema=ArrayItemSchema(
+                    item_schema=ObjectItemSchema(description=_("维度"), property_schemas={}), description="维度"
+                ),
+            ),
         ]
 
     def execute(self, data, parent_data):
@@ -77,6 +91,8 @@ class MonitorAlarmShieldStrategyService(MonitorBaseService):
         bk_biz_id = parent_data.get_one_of_inputs("biz_cc_id")
         executor = parent_data.get_one_of_inputs("executor")
         client = BKMonitorClient(username=executor)
+        dimension_list = data.get_one_of_inputs("bk_dimension_list", [])
+        dimension_select_type = data.get_one_of_inputs("bk_dimension_select_type")
         strategy = data.get_one_of_inputs("bk_alarm_shield_strategy")
         begin_time = data.get_one_of_inputs("bk_alarm_shield_strategy_begin_time")
         end_time = data.get_one_of_inputs("bk_alarm_shield_strategy_end_time")
@@ -92,17 +108,17 @@ class MonitorAlarmShieldStrategyService(MonitorBaseService):
         elif time_type == 2:
             end_time = self.get_end_time_by_duration(begin_time, int(shield_duration))
 
-        request_body = self.get_request_body(bk_biz_id, begin_time, end_time, "strategy", strategy, executor)
+        request_body = self.get_request_body(
+            bk_biz_id, begin_time, end_time, strategy, dimension_list, dimension_select_type
+        )
 
         if scope_value:
             target = self.get_ip_dimension(scope_value, bk_biz_id, executor)
             request_body["dimension_config"].update(target)
-
         result_flag = self.send_request(request_body, data, client)
-
         return result_flag
 
-    def get_dimension_config(self, shied_type, shied_value, bk_biz_id, client):
+    def get_dimension_config(self, shied_value):
         return {"id": shied_value}
 
     def get_ip_dimension(self, scope_value, bk_biz_id, username):
@@ -111,12 +127,46 @@ class MonitorAlarmShieldStrategyService(MonitorBaseService):
         )
         return ip_dimension
 
-    def get_request_body(self, bk_biz_id, begin_time, end_time, shied_type, shied_value, username):
-        dimension_config = self.get_dimension_config(shied_type, shied_value, bk_biz_id, username)
+    def get_dimension_conditions(self, dimension_list, dimension_select_type):
+        """
+        构建 维度条件列表
+        @param dimension_list: [{
+            "dimension_name":"bk_biz_id",
+            "dimension_value":"2,3,4"
+        }]
+        @param dimension_select_type: and/or
+        @return: [{
+            "condition":"and",
+            "key":"bk_biz_id",
+            "method":"eq",
+            "name":"bk_biz_id"
+        }]
+        """
+        conditions = []
+        for dimension in dimension_list:
+            conditions.append(
+                {
+                    "condition": dimension_select_type,
+                    "key": dimension["dimension_name"],
+                    "method": "eq",
+                    "value": dimension["dimension_value"].split(","),
+                    "name": dimension["dimension_name"],
+                }
+            )
+        return conditions
+
+    def get_request_body(
+        self, bk_biz_id, begin_time, end_time, shied_value, dimension_list=None, dimension_select_type="and"
+    ):
+        dimension_config = self.get_dimension_config(shied_value)
+        if dimension_list:
+            dimension_conditions = self.get_dimension_conditions(dimension_list, dimension_select_type)
+            dimension_config["dimension_conditions"] = dimension_conditions
+
         request_body = self.build_request_body(
             begin_time=begin_time,
             bk_biz_id=bk_biz_id,
-            shied_type=shied_type,
+            shied_type="strategy",
             dimension_config=dimension_config,
             end_time=end_time,
         )
@@ -127,5 +177,5 @@ class MonitorAlarmShieldStrategyComponent(Component):
     name = _("蓝鲸监控告警屏蔽(按策略)")
     code = "monitor_alarm_shield_strategy"
     bound_service = MonitorAlarmShieldStrategyService
-    form = "{static_url}components/atoms/monitor/alarm_shield_strategy/v1_1.js".format(static_url=settings.STATIC_URL)
-    version = "1.1"
+    form = "{static_url}components/atoms/monitor/alarm_shield_strategy/v1_2.js".format(static_url=settings.STATIC_URL)
+    version = "1.2"

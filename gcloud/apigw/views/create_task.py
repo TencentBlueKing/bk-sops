@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import copy
+import re
 
 import jsonschema
 import ujson as json
@@ -32,7 +33,7 @@ from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
 from gcloud.constants import PROJECT
 from gcloud.utils.strings import standardize_pipeline_node_name
-from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
+from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig, TaskCallBackRecord
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.apigw.views.utils import logger
@@ -81,6 +82,15 @@ def create_task(request, template_id, project_id):
             template_id=template_id, project_id=project.id, params=params
         )
     )
+
+    callback_url = params.pop("callback_url", None)
+    CALLBACK_URL_PATTERN = r"^https?://\w.+$"
+    if callback_url and not (isinstance(callback_url, str) and re.match(CALLBACK_URL_PATTERN, callback_url)):
+        return {
+            "result": False,
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+            "message": f"callback_url format error, must match {CALLBACK_URL_PATTERN}",
+        }
 
     # 兼容老版本的接口调用
     if template_source in NON_COMMON_TEMPLATE_TYPES:
@@ -166,11 +176,7 @@ def create_task(request, template_id, project_id):
             exclude_task_nodes_id = get_exclude_nodes_by_execute_nodes(params["execute_task_nodes_id"], tmpl)
         try:
             data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
-                tmpl,
-                pipeline_instance_kwargs,
-                params["constants"],
-                exclude_task_nodes_id,
-                params["simplify_vars"],
+                tmpl, pipeline_instance_kwargs, params["constants"], exclude_task_nodes_id, params["simplify_vars"],
             )
         except Exception as e:
             message = f"[API] create_task create pipeline without tree error: {e}"
@@ -191,6 +197,10 @@ def create_task(request, template_id, project_id):
             project_id=project.id, template_id=template_id, template_source=template_source
         ),
     )
+
+    # create callback url record
+    if callback_url:
+        TaskCallBackRecord.objects.create(task_id=task.id, url=callback_url)
 
     # crete auto retry strategy
     arn_creator = AutoRetryNodeStrategyCreator(taskflow_id=task.id, root_pipeline_id=task.pipeline_instance.instance_id)

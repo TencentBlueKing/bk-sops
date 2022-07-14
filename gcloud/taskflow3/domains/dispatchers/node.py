@@ -442,6 +442,9 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         inputs = {}
         outputs = {}
         pipeline_instance = kwargs["pipeline_instance"]
+        node_info = self._get_node_info(
+            node_id=self.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
+        )
 
         if state:
             # 获取最新的执行数据
@@ -467,7 +470,11 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                         }
 
                 data = result.data
-                inputs = data["inputs"]
+                if node_info["type"] == "SubProcess":
+                    # remove prefix '${' and subfix '}' in subprocess execution input
+                    inputs = {k[2:-1]: v for k, v in data["inputs"].items()}
+                else:
+                    inputs = data["inputs"]
                 outputs = data["outputs"]
                 outputs = {"outputs": outputs, "ex_data": outputs.get("ex_data")}
             # 读取历史记录
@@ -489,10 +496,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     outputs = {"outputs": outputs, "ex_data": outputs.get("ex_data")}
         # 未执行节点需要实时渲染
         else:
-            node_info = self._get_node_info(
-                node_id=self.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
-            )
-            if node_info["type"] != "ServiceActivity":
+            if node_info["type"] not in {"ServiceActivity", "SubProcess"}:
                 return {
                     "result": True,
                     "data": {"inputs": {}, "outputs": [], "ex_data": ""},
@@ -537,7 +541,12 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                         "message": f"fail to preview node inputs: {preview_result.exc}",
                         "code": err_code.UNKNOWN_ERROR.code,
                     }
-                inputs = preview_result.data
+
+                if node_info["type"] == "SubProcess":
+                    # remove prefix '${' and subfix '}' in subprocess execution input
+                    inputs = {k[2:-1]: v for k, v in preview_result.data.items()}
+                else:
+                    inputs = preview_result.data
 
             except Exception as err:
                 return {

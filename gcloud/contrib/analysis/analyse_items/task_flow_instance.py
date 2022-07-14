@@ -116,25 +116,24 @@ def dispatch(group_by, filters=None, page=None, limit=None):
     orm_filters = produce_filter(filters)
     format_create_and_finish_time(filters)
 
-    try:
-        # version 条件为插件版本，需要过滤掉
-        if "version" in orm_filters:
-            orm_filters.pop("version")
-        taskflow = TaskFlowInstance.objects.filter(**orm_filters).select_related("pipeline_instance", "project")
-    except Exception as e:
-        message = "query taskflow params conditions[{filters}] have invalid key or value: {error}".format(
-            filters=filters, error=e
-        )
-        logger.error(message)
-        return False, message
-
     # 查询不同类别、创建方式、流程类型对应的流程数
     if group_by in [AE.create_method, AE.flow_type]:
         result, message, total, groups = TaskFlowInstance.objects.general_group_by(orm_filters, group_by)
         if not result:
             return False, message
     else:
-        total, groups = TASK_GROUP_BY_METHODS[group_by](taskflow, filters, page, limit)
+        try:
+            # version 条件为插件版本，需要过滤掉
+            if "version" in orm_filters:
+                orm_filters.pop("version")
+            taskflow = TaskFlowInstance.objects.filter(**orm_filters).select_related("pipeline_instance", "project")
+            total, groups = TASK_GROUP_BY_METHODS[group_by](taskflow, filters, page, limit)
+        except Exception as e:
+            message = "query taskflow params conditions[{filters}] have invalid key or value: {error}".format(
+                filters=filters, error=e
+            )
+            logger.error(message)
+            return False, message
 
     data = {"total": total, "groups": groups}
     return True, data

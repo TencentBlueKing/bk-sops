@@ -94,7 +94,7 @@
                                     </template>
                                 </template>
                             </bk-table-column>
-                            <bk-table-column :label="$t('操作')" width="190">
+                            <bk-table-column :label="$t('操作')" width="190" :fixed="taskList.length ? 'right' : false">
                                 <template slot-scope="props">
                                     <div class="task-operation">
                                         <!-- 事后鉴权，后续对接新版权限中心 -->

@@ -19,11 +19,10 @@ from django.utils.translation import ugettext_lazy as _
 from django.conf.urls import url
 
 from api.utils.request import batch_request
-from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
-from iam.exceptions import RawAuthFailedException
 
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
+from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.utils.handlers import handle_api_error
 
 logger = logging.getLogger("root")
@@ -73,6 +72,7 @@ def _job_get_scripts_data(request, biz_cc_id=None):
         get_count=lambda x: x["data"]["total"],
         page_param={"cur_page_param": "start", "page_size_param": "length"},
         is_page_merge=True,
+        check_iam_auth_fail=True,
     )
 
     return script_list
@@ -137,6 +137,7 @@ def job_get_script_by_script_version(request, biz_cc_id):
     }
     result = client.jobv3.get_script_version_detail(kwargs)
     if not result["result"]:
+        check_and_raise_raw_auth_fail_exception(result)
         return JsonResponse(result)
     script_name = result["data"].get("name") or ""
     return JsonResponse({"result": True, "data": {"script_name": script_name}})
@@ -151,6 +152,7 @@ def job_get_job_tasks_by_biz(request, biz_cc_id):
         get_count=lambda x: x["data"]["total"],
         page_param={"cur_page_param": "start", "page_size_param": "length"},
         is_page_merge=True,
+        check_iam_auth_fail=True,
     )
     task_list = []
     for task in plan_list:
@@ -169,15 +171,11 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
         }
     )
     if not job_result["result"]:
-
         message = _("查询作业平台(JOB)的作业模板详情[app_id=%s]接口jobv3.get_job_plan_detail返回失败: %s") % (
             biz_cc_id,
             job_result["message"],
         )
-
-        if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
-            logger.warning(message)
-            raise RawAuthFailedException(permissions=job_result.get("permission", {}))
+        check_and_raise_raw_auth_fail_exception(job_result, message)
 
         logger.error(message)
         result = {"result": False, "data": [], "message": message}
@@ -247,14 +245,8 @@ def job_get_instance_detail(request, biz_cc_id, task_id):
     job_result = client.job.get_job_instance_log(log_kwargs)
     if not job_result["result"]:
         message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (biz_cc_id, job_result["message"])
-
-        if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
-            logger.warning(message)
-            raise RawAuthFailedException(permissions=job_result.get("permission", []))
-
+        check_and_raise_raw_auth_fail_exception(job_result, message)
         logger.error(message)
-
-    if not job_result["result"]:
         return JsonResponse(
             {"result": False, "message": "job instance log fetch error: {}".format(job_result["message"])}
         )
@@ -293,6 +285,7 @@ def jobv3_get_job_template_list(request, biz_cc_id):
         get_count=lambda x: x["data"]["total"],
         page_param={"cur_page_param": "start", "page_size_param": "length"},
         is_page_merge=True,
+        check_iam_auth_fail=True,
     )
 
     data = []
@@ -323,6 +316,7 @@ def jobv3_get_job_plan_list(request, biz_cc_id, job_template_id):
         get_count=lambda x: x["data"]["total"],
         page_param={"cur_page_param": "start", "page_size_param": "length"},
         is_page_merge=True,
+        check_iam_auth_fail=True,
     )
 
     data = []
@@ -350,6 +344,7 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
 
     jobv3_result = client.jobv3.get_job_plan_detail(kwargs)
     if not jobv3_result["result"]:
+        check_and_raise_raw_auth_fail_exception(jobv3_result)
         message = handle_api_error("jobv3", "get_job_plan_detail", kwargs, jobv3_result)
         logger.error(message)
         result = {"result": False, "message": message}
@@ -414,9 +409,7 @@ def jobv3_get_instance_list(request, biz_cc_id, type, status):
             job_result["message"],
         )
 
-        if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
-            logger.warning(message)
-            raise RawAuthFailedException(permissions=job_result.get("permission", []))
+        check_and_raise_raw_auth_fail_exception(job_result, message)
         logger.error(message)
         return JsonResponse(
             {"result": False, "message": "job instance list fetch error: {}".format(job_result["message"])}

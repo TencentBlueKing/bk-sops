@@ -251,6 +251,14 @@
                 }
             }
         },
+        watch: {
+            isNewTaskDialogShow (val) {
+                if (!val) {
+                    this.templateList = []
+                    this.publicList = []
+                }
+            }
+        },
         created () {
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
