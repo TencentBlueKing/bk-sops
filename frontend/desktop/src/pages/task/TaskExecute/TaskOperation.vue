@@ -73,7 +73,7 @@
                     :engine-ver="engineVer"
                     :selected-flow-path="selectedFlowPath"
                     :admin-view="adminView"
-                    :pipeline-data="pipelineData"
+                    :pipeline-data="nodePipelineData"
                     :default-active-id="defaultActiveId"
                     :node-detail-config="nodeDetailConfig"
                     @onRetryClick="onRetryClick"
@@ -371,7 +371,8 @@
                             trigger: 'blur'
                         }]
                     }
-                }
+                },
+                nodePipelineData: {}
             }
         },
         computed: {
@@ -1212,6 +1213,12 @@
                         this.updateNodeActived(this.nodeDetailConfig.node_id, false)
                     }
                     this.updateNodeActived(id, true)
+                    // 如果为子流程节点则需要重置pipelineData的constants
+                    this.nodePipelineData = { ...this.pipelineData }
+                    if (type === 'subflowDetail') {
+                        const { constants } = this.pipelineData.activities[id].pipeline
+                        this.nodePipelineData['constants'] = constants
+                    }
                     this.openNodeInfoPanel('executeInfo', i18n.t('节点参数'))
                 }
             },
@@ -1318,6 +1325,12 @@
                 }
 
                 this.setNodeDetailConfig(selectNodeId, !nodeHeirarchy)
+                // 节点树切换时，如果为子流程节点则需要重置pipelineData的constants
+                this.nodePipelineData = { ...this.pipelineData }
+                if (nodeType === 'subflow') {
+                    const { constants } = this.pipelineData.activities[selectNodeId].pipeline
+                    this.nodePipelineData['constants'] = constants
+                }
                 this.updateNodeActived(selectNodeId, true)
             },
             // 切换画布视图
