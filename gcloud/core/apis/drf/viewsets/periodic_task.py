@@ -92,6 +92,7 @@ class PeriodicTaskFilter(AllLookupSupportFilterSet):
         model = PeriodicTask
         fields = {
             "id": ["exact"],
+            "task__name": ["icontains"],
             "task__celery_task__enabled": ["exact"],
             "task__creator": ["exact"],
             "project__id": ["exact"],
