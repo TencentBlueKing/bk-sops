@@ -31,7 +31,7 @@
                     <bk-form-item v-if="!common" :label="$t('标签')" data-test-id="tabTemplateConfig_form_label">
                         <bk-select
                             v-model="formData.labels"
-                            ext-popover-cls="label-select"
+                            ext-popover-cls="label-select-popover"
                             :display-tag="true"
                             :multiple="true"
                             :disabled="isViewMode"
@@ -51,7 +51,7 @@
                                 </div>
                             </bk-option>
                             <div slot="extension" @click="onEditLabel" class="label-select-extension" data-test-id="tabTemplateConfig_form_editLabel">
-                                <i class="common-icon-edit"></i>
+                                <i class="bk-icon icon-plus-circle"></i>
                                 <span>{{ $t('编辑标签') }}</span>
                             </div>
                         </bk-select>
@@ -151,15 +151,61 @@
                     </div>
                 </div>
             </bk-dialog>
+            <bk-dialog
+                width="600"
+                ext-cls="common-dialog label-dialog"
+                header-position="left"
+                render-directive="if"
+                :mask-close="false"
+                :auto-close="false"
+                :title="$t('新建标签')"
+                :loading="labelLoading"
+                :value="labelDialogShow"
+                @confirm="editLabelConfirm"
+                @cancel="labelDialogShow = false">
+                <bk-form ref="labelForm" :model="labelDetail" :rules="labelRules">
+                    <bk-form-item property="name" :label="$t('标签名称')" :required="true">
+                        <bk-input v-model="labelDetail.name"></bk-input>
+                    </bk-form-item>
+                    <bk-form-item property="color" :label="$t('标签颜色')" :required="true">
+                        <bk-dropdown-menu
+                            ref="dropdown"
+                            trigger="click"
+                            class="color-dropdown"
+                            @show="colorDropdownShow = true"
+                            @hide="colorDropdownShow = false">
+                            <div class="dropdown-trigger-btn" slot="dropdown-trigger">
+                                <span class="color-block" :style="{ background: labelDetail.color }"></span>
+                                <i :class="['bk-icon icon-angle-down',{ 'icon-flip': colorDropdownShow }]"></i>
+                            </div>
+                            <div class="color-list" slot="dropdown-content">
+                                <div class="tip">{{ $t('选择颜色') }}</div>
+                                <div>
+                                    <span
+                                        v-for="color in colorList"
+                                        :key="color"
+                                        class="color-item color-block"
+                                        :style="{ background: color }"
+                                        @click="labelDetail.color = color">
+                                    </span>
+                                </div>
+                            </div>
+                        </bk-dropdown-menu>
+                    </bk-form-item>
+                    <bk-form-item :label="$t('标签描述')">
+                        <bk-input type="textarea" v-model="labelDetail.description"></bk-input>
+                    </bk-form-item>
+                </bk-form>
+            </bk-dialog>
         </div>
     </bk-sideslider>
 </template>
 
 <script>
-    import { mapState, mapMutations } from 'vuex'
+    import { mapState, mapMutations, mapActions } from 'vuex'
     import MemberSelect from '@/components/common/Individualization/MemberSelect.vue'
     import tools from '@/utils/tools.js'
-    import { NAME_REG, STRING_LENGTH, TASK_CATEGORIES } from '@/constants/index.js'
+    import { NAME_REG, STRING_LENGTH, TASK_CATEGORIES, LABEL_COLOR_LIST } from '@/constants/index.js'
     import i18n from '@/config/i18n/index.js'
     import NotifyTypeConfig from './NotifyTypeConfig.vue'
 
@@ -214,11 +260,38 @@
                         }
                     ]
                 },
-                taskCategories: TASK_CATEGORIES
+                taskCategories: TASK_CATEGORIES,
+                labelDialogShow: false,
+                labelRules: {
+                    color: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    name: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        },
+                        {
+                            max: 50,
+                            message: i18n.t('标签名称不能超过') + 50 + i18n.t('个字符'),
+                            trigger: 'blur'
+                        }
+                    ]
+                },
+                labelDetail: {},
+                colorDropdownShow: false,
+                colorList: LABEL_COLOR_LIST,
+                labelLoading: false
             }
         },
         computed: {
             ...mapState({
+                'username': state => state.username,
                 'timeout': state => state.template.time_out
             }),
             ...mapState('project', {
@@ -231,6 +304,9 @@
         methods: {
             ...mapMutations('template/', [
                 'setTplConfig'
+            ]),
+            ...mapActions('project', [
+                'createTemplateLabel'
             ]),
             onSelectCategory (val) {
                 if (val) {
@@ -251,8 +327,9 @@
                 }
             },
             onEditLabel () {
-                const { href } = this.$router.resolve({ name: 'projectConfig', params: { id: this.$route.params.project_id } })
-                window.open(href, '_blank')
+                this.labelDetail = { color: '#1c9574', name: '', description: '' }
+                this.labelDialogShow = true
+                this.colorDropdownShow = false
             },
             getTemplateConfig () {
                 const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType } = this.formData
@@ -321,6 +398,40 @@
             },
             closeTab () {
                 this.$emit('closeTab')
+            },
+            editLabelConfirm () {
+                if (this.labelLoading) {
+                    return
+                }
+                this.labelLoading = true
+                try {
+                    this.$refs.labelForm.validate().then(async result => {
+                        if (result) {
+                            const { color, name, description } = this.labelDetail
+                            const { project_id } = this.$route.params
+                            const data = {
+                                creator: this.username,
+                                project_id: Number(project_id),
+                                color,
+                                name,
+                                description
+                            }
+                            const resp = await this.createTemplateLabel(data)
+                            if (resp.result) {
+                                this.$emit('updateTemplateLabelList')
+                                this.labelDialogShow = false
+                                this.$bkMessage({
+                                    message: i18n.t('标签新建成功'),
+                                    theme: 'success'
+                                })
+                            }
+                        }
+                    })
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.labelLoading = false
+                }
             }
         }
     }

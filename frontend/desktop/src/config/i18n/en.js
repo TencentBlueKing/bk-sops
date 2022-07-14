@@ -1407,7 +1407,11 @@ const en = {
     '以下情况参数值无法重用，使用变量默认值：': 'The parameter value cannot be reused in the following cases, and the variable default value is used:',
     '变量的类型变更': 'Variable type change',
     '变量值的配置项变更': 'Configuration item change of variable value',
-    '元变量的配置变更': 'Metavariable configuration changes'
+    '元变量的配置变更': 'Metavariable configuration changes',
+    '标签新建成功': 'Label creates successful',
+    '标签颜色': 'Label color',
+    '新建标签': 'New label',
+    '模板标签修改成功': 'Template tag modified successfully'
 }
 
 export default en
