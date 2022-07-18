@@ -132,6 +132,7 @@
                     @modifyTemplateData="modifyTemplateData"
                     @createSnapshoot="onCreateSnapshoot"
                     @useSnapshoot="onUseSnapshoot"
+                    @updateTemplateLabelList="getTemplateLabelList"
                     @updateSnapshoot="onUpdateSnapshoot">
                 </template-setting>
             </div>
@@ -309,7 +310,8 @@
                 isPerspective: false, // 流程是否透视
                 nodeVariableInfo: {}, // 节点输入输出变量
                 initType: '', // 记录最初的流程类型
-                routerCount: 0
+                routerCount: 0,
+                isMultipleTabCount: 0
             }
         },
         computed: {
@@ -414,9 +416,6 @@
             },
             isViewMode () {
                 return this.type === 'view'
-            },
-            isMultipleTabCount () {
-                return tplTabCount.getCount(this.getTplTabData())
             }
         },
         watch: {
@@ -438,6 +437,7 @@
                 } else {
                     tplTabCount.setTab(data, 'del')
                 }
+                this.setMultipleTabCount()
             }
         },
         created () {
@@ -452,6 +452,7 @@
                 const data = this.getTplTabData()
                 tplTabCount.setTab(data, 'add')
             }
+            this.setMultipleTabCount()
         },
         beforeDestroy () {
             if (this.type === 'edit') {
@@ -1797,6 +1798,9 @@
             onCancelSave () {
                 this.isExecuteSchemeDialog = false
                 this.isExecuteScheme = false
+            },
+            setMultipleTabCount () {
+                this.isMultipleTabCount = tplTabCount.getCount(this.getTplTabData())
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page

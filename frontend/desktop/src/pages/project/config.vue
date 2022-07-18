@@ -241,7 +241,7 @@
         </bk-dialog>
         <bk-dialog
             width="600"
-            ext-cls="common-dialog"
+            ext-cls="common-dialog label-dialog"
             header-position="left"
             render-directive="if"
             :mask-close="false"
@@ -251,8 +251,11 @@
             :value="isLabelDialogShow"
             @confirm="editLabelConfirm"
             @cancel="isLabelDialogShow = false">
-            <bk-form ref="labelForm" class="label-dialog" :model="labelDetail" :rules="labelRules">
-                <bk-form-item property="color" :label="$t('颜色')" :required="true">
+            <bk-form ref="labelForm" :model="labelDetail" :rules="labelRules">
+                <bk-form-item property="name" :label="$t('标签名称')" :required="true">
+                    <bk-input v-model="labelDetail.name"></bk-input>
+                </bk-form-item>
+                <bk-form-item property="color" :label="$t('标签颜色')" :required="true">
                     <bk-dropdown-menu
                         ref="dropdown"
                         trigger="click"
@@ -277,10 +280,7 @@
                         </div>
                     </bk-dropdown-menu>
                 </bk-form-item>
-                <bk-form-item property="name" :label="$t('名称')" :required="true">
-                    <bk-input v-model="labelDetail.name"></bk-input>
-                </bk-form-item>
-                <bk-form-item :label="$t('描述')">
+                <bk-form-item :label="$t('标签描述')">
                     <bk-input type="textarea" v-model="labelDetail.description"></bk-input>
                 </bk-form-item>
             </bk-form>
@@ -994,8 +994,7 @@
     }
     .agent-dialog,
     .scheme-dialog,
-    .delete-dialog,
-    .label-dialog {
+    .delete-dialog {
         padding: 30px;
         word-break: break-all;
         /deep/ .bk-form-content {
@@ -1029,47 +1028,6 @@
             button {
                 width: 80px;
                 margin: 30px 5px 14px;
-            }
-        }
-    }
-    .color-dropdown {
-        .dropdown-trigger-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 7px;
-            height: 32px;
-            border: 1px solid #c4c6cc;
-            border-radius: 2px;
-            cursor: pointer;
-            &>i {
-                margin: 0 6px;
-                font-size: 16px;
-            }
-        }
-        .color-block {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-        }
-        .color-list {
-            width: 268px;
-            padding: 6px 16px 6px;
-            overflow: hidden;
-            .tip {
-                margin-bottom: 10px;
-                color: #b2bed4;
-                font-size: 12px;
-                line-height: 1;
-            }
-            .color-item {
-                float: left;
-                margin-right: 4px;
-                margin-bottom: 4px;
-                cursor: pointer;
-                &:nth-child(10n) {
-                    margin-right: 0;
-                }
             }
         }
     }
