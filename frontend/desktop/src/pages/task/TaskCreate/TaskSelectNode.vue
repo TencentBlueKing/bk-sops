@@ -105,22 +105,6 @@
                 @importTextScheme="importTextScheme">
             </edit-scheme>
         </bk-sideslider>
-        <bk-dialog
-            width="400"
-            ext-cls="task-scheme-dialog"
-            :theme="'primary'"
-            :mask-close="false"
-            :show-footer="false"
-            :value="isShowDialog"
-            @cancel="isShowDialog = false">
-            <div class="task-scheme-confirm-dialog-content">
-                <div class="leave-tips">{{ $t('保存已修改的信息吗？') }}</div>
-                <div class="task-scheme-action-wrapper">
-                    <bk-button theme="primary" :loading="isSaveLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
-                    <bk-button theme="default" :disabled="isSaveLoading" @click="onCancelClick">{{ $t('不保存') }}</bk-button>
-                </div>
-            </div>
-        </bk-dialog>
     </div>
 </template>
 <script>
@@ -181,8 +165,6 @@
                 isDefaultSchemeIng: false,
                 schemeInfo: null,
                 prevSelectedNodes: [],
-                isShowDialog: false,
-                isSaveLoading: false,
                 isEditSchemeShow: false
             }
         },
@@ -195,7 +177,8 @@
                 'gateways': state => state.template.gateways,
                 'taskScheme': state => state.task.taskScheme,
                 'app_id': state => state.app_id,
-                'viewMode': state => state.view_mode
+                'viewMode': state => state.view_mode,
+                'infoBasicConfig': state => state.infoBasicConfig
             }),
             canvasData () {
                 const mode = 'select'
@@ -556,7 +539,12 @@
              * 设置任务方案二次确认弹框
              */
             setTaskSchemeDialog () {
-                this.isShowDialog = true
+                this.$bkInfo({
+                    ...this.infoBasicConfig,
+                    cancelFn: () => {
+                        this.onCancelClick()
+                    }
+                })
             },
             /**
              * 批量选择执行方案
@@ -670,29 +658,12 @@
                 if (isEqual) {
                     this.isEditSchemeShow = false
                 } else {
-                    this.isShowDialog = true
-                }
-            },
-            async onConfirmClick () {
-                this.isSaveLoading = true
-                try {
-                    if (this.isDefaultSchemeIng) {
-                        await this.$refs.taskScheme.onSaveDefaultExecuteScheme()
-                        this.$refs.taskScheme.isDefaultSchemeIng = false
-                        this.isDefaultSchemeIng = false
-                        this.isShowDialog = false
-                        return
-                    }
-                    const editScheme = this.$refs.editScheme
-                    editScheme && editScheme.onSaveScheme()
-                    this.isShowDialog = false
-                    if (!editScheme.errorMsg) {
-                        this.isEditSchemeShow = false
-                    }
-                } catch (error) {
-                    console.warn(error)
-                } finally {
-                    this.isSaveLoading = false
+                    this.$bkInfo({
+                        ...this.infoBasicConfig,
+                        cancelFn: () => {
+                            this.onCancelClick()
+                        }
+                    })
                 }
             },
             onCancelClick () {
@@ -703,25 +674,11 @@
                 } else {
                     this.isEditSchemeShow = false
                 }
-                this.isShowDialog = false
             }
         }
     }
 </script>
 
-<style lang="scss">
-    .task-scheme-confirm-dialog-content {
-        padding: 40px 0;
-        text-align: center;
-        .leave-tips {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-        .task-scheme-action-wrapper .bk-button {
-            margin-right: 6px;
-        }
-    }
-</style>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 

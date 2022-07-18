@@ -83,7 +83,8 @@ class TaskTemplateFilter(PropertyFilterSet):
         fields = {
             "id": ["exact"],
             "pipeline_template__name": ["icontains"],
-            "pipeline_template__creator": ["contains"],
+            "pipeline_template__creator": ["exact"],
+            "pipeline_template__editor": ["exact"],
             "category": ["exact"],
             "pipeline_template__has_subprocess": ["exact"],
             "pipeline_template__edit_time": ["gte", "lte"],

@@ -38,6 +38,10 @@ export default class ErrorNotify {
                 this.notify.$el.querySelector('.progress-bar').style.width = `${(this.remainingTime / 10000) * 100}%`
                 this.startTimeCountDown()
             } else {
+                const index = window.msg_list.findIndex(item => item.msg === this.notify.message)
+                if (index > -1) {
+                    window.msg_list.splice(index, 1)
+                }
                 this.notify.$el.removeEventListener('mouseenter', this.stopTimeCountDown, false)
                 this.notify.$el.removeEventListener('mouseleave', this.startTimeCountDown, false)
                 this.notify && this.notify.close()
