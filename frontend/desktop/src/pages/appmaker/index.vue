@@ -13,22 +13,23 @@
     <div class="appmaker-page">
         <skeleton :loading="firstLoading" loader="appmakerList">
             <div class="page-content" :style="{ width: `${contentWidth}px` }">
-                <advance-search-form
-                    :open="isSearchFormOpen"
-                    :search-form="searchForm"
-                    :search-config="{ placeholder: $t('请输入轻应用名称'), value: requestData.flowName }"
-                    @onSearchInput="onSearchInput"
-                    @submit="onSearchFormSubmit">
-                    <template v-slot:operation>
-                        <bk-button
-                            theme="primary"
-                            style="min-width: 120px;"
-                            data-test-id="appmaker_form_creatApp"
-                            @click="onCreateApp">
-                            {{$t('新建')}}
-                        </bk-button>
-                    </template>
-                </advance-search-form>
+                <div class="search-wrapper mb20">
+                    <bk-button
+                        theme="primary"
+                        style="min-width: 120px;"
+                        data-test-id="appmaker_form_creatApp"
+                        @click="onCreateApp">
+                        {{$t('新建')}}
+                    </bk-button>
+                    <search-select
+                        ref="searchSelect"
+                        id="appList"
+                        :placeholder="$t('应用名/创建人')"
+                        v-model="searchSelectValue"
+                        :search-list="searchList"
+                        @change="handleSearchValueChange">
+                    </search-select>
+                </div>
                 <div v-bkloading="{ isLoading: !firstLoading && loading, opacity: 1, zIndex: 100 }">
                     <div v-if="appList.length" class="app-list" data-test-id="appmaker_form_appList">
                         <app-card
@@ -95,26 +96,19 @@
     import { mapActions, mapState } from 'vuex'
     import toolsUtils from '@/utils/tools.js'
     import Skeleton from '@/components/skeleton/index.vue'
-    import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import AppCard from './AppCard.vue'
     import AppEditDialog from './AppEditDialog.vue'
     import NoData from '@/components/common/base/NoData.vue'
-    // moment用于时区使用
-    import moment from 'moment-timezone'
-    const SEARCH_FORM = [
+    import SearchSelect from '@/components/common/searchSelect/index.vue'
+    const SEARCH_LIST = [
         {
-            type: 'input',
-            key: 'editor',
-            label: i18n.t('更新人'),
-            placeholder: i18n.t('请输入更新人'),
-            value: ''
+            id: 'flowName',
+            name: i18n.t('应用名'),
+            isDefaultOption: true
         },
         {
-            type: 'dateRange',
-            key: 'updateTime',
-            placeholder: i18n.t('选择日期时间范围'),
-            label: i18n.t('更新时间'),
-            value: ['', '']
+            id: 'editor',
+            name: i18n.t('更新人')
         }
     ]
     export default {
@@ -124,31 +118,27 @@
             NoData,
             AppCard,
             AppEditDialog,
-            AdvanceSearchForm
+            SearchSelect
         },
         props: ['project_id', 'common'],
         data () {
-            const { editor = '', updateTime = '', keyword = '' } = this.$route.query
-            const searchForm = SEARCH_FORM.map(item => {
-                if (this.$route.query[item.key]) {
-                    if (Array.isArray(item.value)) {
-                        item.value = this.$route.query[item.key].split(',')
-                    } else {
-                        item.value = this.$route.query[item.key]
-                    }
+            const { editor = '', flowName = '' } = this.$route.query
+            const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
+                const values_text = this.$route.query[cur.id]
+                if (values_text) {
+                    const { id, name } = cur
+                    acc.push({ id, name, values: [values_text] })
                 }
-                return item
-            })
-            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
+                return acc
+            }, [])
             return {
                 firstLoading: true,
                 loading: false,
                 collectedLoading: false,
                 contentWidth: 0,
-                list: [],
+                appList: [],
                 collectedList: [],
                 searchMode: false,
-                searchList: [],
                 currentAppData: undefined,
                 isCreateNewApp: false,
                 isEditDialogShow: false,
@@ -157,26 +147,21 @@
                     edit: false,
                     delete: false
                 },
-                searchForm,
-                isSearchFormOpen,
                 requestData: {
-                    updateTime: updateTime ? updateTime.split(',') : ['', ''],
                     editor,
-                    flowName: keyword
-                }
+                    flowName
+                },
+                searchList: toolsUtils.deepClone(SEARCH_LIST),
+                searchSelectValue
             }
         },
         computed: {
             ...mapState('project', {
                 'timeZone': state => state.timezone
-            }),
-            appList () {
-                return this.searchMode ? this.searchList : this.list
-            }
+            })
         },
         async created () {
             this.getCollectList()
-            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             this.resizeHandler = toolsUtils.debounce(this.setContainerWidth, 500)
             window.addEventListener('resize', this.resizeHandler)
             await this.loadData()
@@ -200,18 +185,15 @@
             async loadData () {
                 this.loading = true
                 try {
-                    const { updateTime, editor } = this.requestData
+                    const { editor, flowName } = this.requestData
                     const data = {
                         editor: editor || undefined,
-                        project__id: this.project_id
-                    }
-                    if (updateTime[0] && updateTime[1]) {
-                        data['edit_time__gte'] = moment.tz(updateTime[0], this.timeZone).format('YYYY-MM-DD')
-                        data['edit_time__lte'] = moment.tz(updateTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                        project__id: this.project_id,
+                        name__icontains: flowName || undefined
                     }
                     const resp = await this.loadAppmaker(data)
                     // logo_url相同会造成浏览器缓存,兼容不同环境下接口返回的logo_url
-                    this.list = resp.results.map(item => {
+                    this.appList = resp.results.map(item => {
                         if (item.logo_url.indexOf('v=') === -1) {
                             item.logo_url = `${item.logo_url}?v=${new Date().getTime()}`
                         }
@@ -233,20 +215,6 @@
                 } finally {
                     this.collectedLoading = false
                 }
-            },
-            searchInputhandler (data) {
-                this.requestData.flowName = data
-                if (data.length || this.requestData.editor || this.requestData.updateTime.every(item => item !== '')) {
-                    this.searchMode = true
-                    const reg = new RegExp(this.requestData.flowName, 'i')
-                    this.searchList = this.list.filter(item => {
-                        return reg.test(item.name)
-                    })
-                } else {
-                    this.searchMode = false
-                    this.searchList = []
-                }
-                this.updateUrl()
             },
             setContainerWidth () {
                 const $container = document.querySelector('.appmaker-page')
@@ -329,18 +297,21 @@
                     logo_url: undefined
                 }
             },
-            async onSearchFormSubmit (data) {
-                this.requestData = Object.assign({}, this.requestData, data)
+            handleSearchValueChange (data) {
+                data = data.reduce((acc, cur) => {
+                    acc[cur.id] = cur.values[0]
+                    return acc
+                }, {})
+                this.requestData = data
+                this.searchMode = !!Object.keys(data).length
                 this.updateUrl()
-                await this.loadData()
-                this.searchInputhandler(this.requestData.flowName)
+                this.loadData()
             },
             updateUrl () {
-                const { updateTime, editor, flowName } = this.requestData
+                const { editor, flowName } = this.requestData
                 const filterObj = {
                     editor,
-                    updateTime: updateTime.every(item => item) ? updateTime.join(',') : '',
-                    keyword: flowName
+                    flowName: flowName
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {
@@ -359,6 +330,12 @@
 .bk-select-inline,.bk-input-inline {
     display: inline-block;
     width: 260px;
+}
+.search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 .appmaker-page {
     height: 100%;

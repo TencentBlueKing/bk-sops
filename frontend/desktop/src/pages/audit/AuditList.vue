@@ -13,14 +13,16 @@
     <div class="audit-container">
         <skeleton :loading="firstLoading" loader="commonList">
             <div class="list-wrapper">
-                <advance-search-form
-                    id="auditList"
-                    :open="isSearchFormOpen"
-                    :search-config="{ placeholder: $t('请输入任务名称'), value: requestData.taskName }"
-                    :search-form="searchForm"
-                    @onSearchInput="onSearchInput"
-                    @submit="onSearchFormSubmit">
-                </advance-search-form>
+                <div class="search-wrapper mb20">
+                    <search-select
+                        ref="searchSelect"
+                        id="auditList"
+                        :placeholder="$t('ID/任务名/所属项目/创建人/执行人/状态')"
+                        v-model="searchSelectValue"
+                        :search-list="searchList"
+                        @change="handleSearchValueChange">
+                    </search-select>
+                </div>
                 <div class="audit-table-content" data-test-id="aduit_table_auditList">
                     <bk-table
                         :data="auditList"
@@ -35,6 +37,7 @@
                             :label="item.label"
                             :prop="item.id"
                             :width="item.width"
+                            :render-header="renderTableHeader"
                             :min-width="item.min_width">
                             <template slot-scope="props">
                                 <!--所属项目-->
@@ -116,64 +119,43 @@
     import permission from '@/mixins/permission.js'
     import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
-    import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
     import task from '@/mixins/task.js'
-    const SEARCH_FORM = [
+    import SearchSelect from '@/components/common/searchSelect/index.vue'
+    import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
+    const SEARCH_LIST = [
         {
-            type: 'select',
-            label: i18n.t('所属项目'),
-            key: 'selectedProject',
-            loading: true,
-            placeholder: i18n.t('请选择所属项目'),
-            list: [],
-            value: ''
+            id: 'task_id',
+            name: 'ID'
         },
         {
-            type: 'dateRange',
-            key: 'executeTime',
-            placeholder: i18n.t('选择日期时间范围'),
-            label: i18n.t('执行开始'),
-            value: ['', '']
+            id: 'taskName',
+            name: i18n.t('任务名'),
+            isDefaultOption: true
         },
         {
-            type: 'input',
-            key: 'creator',
-            label: i18n.t('创建人'),
-            placeholder: i18n.t('请输入创建人'),
-            value: ''
+            id: 'selectedProject',
+            name: i18n.t('所属项目'),
+            children: []
         },
         {
-            type: 'input',
-            key: 'executor',
-            label: i18n.t('执行人'),
-            placeholder: i18n.t('请输入执行人'),
-            value: ''
+            id: 'creator',
+            name: i18n.t('创建人')
         },
         {
-            type: 'select',
-            label: i18n.t('状态'),
-            key: 'statusSync',
-            loading: false,
-            placeholder: i18n.t('请选择状态'),
-            list: [
-                { 'value': 'nonExecution', 'name': i18n.t('未执行') },
-                { 'value': 'running', 'name': i18n.t('未完成') },
-                { 'value': 'revoked', 'name': i18n.t('撤销') },
-                { 'value': 'finished', 'name': i18n.t('完成') }
-            ],
-            value: ''
+            id: 'executor',
+            name: i18n.t('执行人')
         },
         {
-            type: 'select',
-            label: i18n.t('任务分类'),
-            key: 'category',
-            loading: true,
-            placeholder: i18n.t('请选择分类'),
-            tips: i18n.t('模板分类即将下线，建议使用标签'),
-            list: [],
-            value: ''
+            id: 'statusSync',
+            name: i18n.t('状态'),
+            children: [
+                { id: 'nonExecution', name: i18n.t('未执行') },
+                { id: 'running', name: i18n.t('未完成') },
+                { id: 'revoked', name: i18n.t('撤销') },
+                { id: 'finished', name: i18n.t('完成') }
+            ]
         }
     ]
     const TABLE_FIELDS = [
@@ -221,8 +203,8 @@
         name: 'auditHome',
         components: {
             Skeleton,
-            AdvanceSearchForm,
-            NoData
+            NoData,
+            SearchSelect
         },
         mixins: [permission, task],
         data () {
@@ -231,26 +213,35 @@
                 limit = 15,
                 selectedProject = '',
                 category = '',
-                executeTime = '',
+                queryTime = '',
                 creator = '',
                 executor = '',
                 statusSync = '',
-                keyword = ''
+                taskName = '',
+                task_id = ''
             } = this.$route.query
-            const searchForm = SEARCH_FORM.map(item => {
-                if (this.$route.query[item.key]) {
-                    if (Array.isArray(item.value)) {
-                        item.value = this.$route.query[item.key].split(',')
-                    } else {
-                        item.value = item.key === 'selectedProject' ? Number(this.$route.query[item.key]) : this.$route.query[item.key]
+            const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
+                const values_text = this.$route.query[cur.id]
+                if (values_text) {
+                    const { id, name, children } = cur
+                    let values = []
+                    if (!children) {
+                        values = [values_text]
+                        acc.push({ id, name, values })
+                    } else if (children.length) {
+                        const ids = values_text.split(',')
+                        values = children.filter(item => ids.includes(String(item.id)))
+                        acc.push({ id, name, values })
                     }
                 }
-                return item
-            })
-            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
+                return acc
+            }, [])
+            if (queryTime) {
+                const values = queryTime.split(',')
+                searchSelectValue.push({ id: 'dateRange', name: '执行时间', values })
+            }
             return {
                 firstLoading: true,
-                taskBasicInfoLoading: true,
                 listLoading: false,
                 activeTaskCategory: undefined,
                 business: {
@@ -260,10 +251,7 @@
                     searchable: true,
                     empty: false
                 },
-                searchForm,
-                isSearchFormOpen,
                 auditList: [],
-                taskCategory: [],
                 executeStatus: [], // 任务执行态
                 requestData: {
                     selectedProject,
@@ -271,8 +259,9 @@
                     creator,
                     executor,
                     statusSync,
-                    executeTime: executeTime ? executeTime.split(',') : ['', ''],
-                    taskName: keyword
+                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
+                    taskName,
+                    task_id
                 },
                 pagination: {
                     current: Number(page),
@@ -285,7 +274,10 @@
                     fieldList: TABLE_FIELDS,
                     selectedFields: TABLE_FIELDS.slice(0),
                     size: 'small'
-                }
+                },
+                searchList: toolsUtils.deepClone(SEARCH_LIST),
+                searchSelectValue,
+                dateTimeRange: queryTime ? queryTime.split(',') : []
             }
         },
         computed: {
@@ -296,8 +288,6 @@
         async created () {
             this.getFields()
             this.loadAuditTask()
-            this.getProjectBaseInfo()
-            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             await this.getProjectList()
             this.firstLoading = false
         },
@@ -305,16 +295,13 @@
             ...mapActions('auditTask/', [
                 'loadAuditTaskList'
             ]),
-            ...mapActions('template/', [
-                'loadProjectBaseInfo'
-            ]),
             ...mapActions('project/', [
                 'loadUserProjectList'
             ]),
             async loadAuditTask () {
                 this.listLoading = true
                 try {
-                    const { selectedProject, executeTime, category, creator, executor, statusSync, taskName } = this.requestData
+                    const { selectedProject, queryTime, category, creator, executor, statusSync, taskName, task_id } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
                     let pipeline_instance__is_revoked
@@ -341,20 +328,21 @@
                         project__id: selectedProject || undefined,
                         category: category || undefined,
                         user_type: 'auditor',
-                        pipeline_instance__name__contains: taskName || undefined,
+                        pipeline_instance__name__icontains: taskName || undefined,
                         pipeline_instance__is_started,
                         pipeline_instance__is_finished,
                         pipeline_instance__is_revoked,
                         pipeline_instance__creator__contains: creator || undefined,
-                        pipeline_instance__executor__contains: executor || undefined
+                        pipeline_instance__executor__contains: executor || undefined,
+                        id: task_id || undefined
                     }
-                    if (executeTime[0] && executeTime[1]) {
+                    if (queryTime && queryTime[0] && queryTime[1]) {
                         if (this.common) {
-                            data['pipeline_template__start_time__gte'] = moment(executeTime[0]).format('YYYY-MM-DD')
-                            data['pipeline_template__start_time__lte'] = moment(executeTime[1]).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__gte'] = moment(queryTime[0]).format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__lte'] = moment(queryTime[1]).add('1', 'd').format('YYYY-MM-DD')
                         } else {
-                            data['pipeline_instance__start_time__gte'] = moment.tz(executeTime[0], this.timeZone).format('YYYY-MM-DD')
-                            data['pipeline_instance__start_time__lte'] = moment.tz(executeTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__gte'] = moment.tz(queryTime[0], this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(queryTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                         }
                     }
                     const auditListData = await this.loadAuditTaskList(data)
@@ -368,6 +356,39 @@
                     console.log(e)
                 } finally {
                     this.listLoading = false
+                }
+            },
+            renderTableHeader (h, { column, $index }) {
+                if (column.property === 'start_time') {
+                    return <TableRenderHeader
+                        name={ column.label }
+                        orderShow = { false }
+                        dateValue={ this.dateTimeRange }
+                        onDateChange={ data => this.handleDateTimeFilter(data) }>
+                    </TableRenderHeader>
+                } else {
+                    return column.label
+                }
+            },
+            handleDateTimeFilter (date = []) {
+                this.dateTimeRange = date
+                const index = this.searchSelectValue.findIndex(item => item.id === 'dateRange')
+                if (date.length) {
+                    if (index > -1) {
+                        this.searchSelectValue[index].values = date
+                    } else {
+                        const info = {
+                            id: 'dateRange',
+                            name: '执行时间',
+                            values: date
+                        }
+                        this.searchSelectValue.push(info)
+                        // 添加搜索记录
+                        const searchDom = this.$refs.searchSelect
+                        searchDom && searchDom.addSearchRecord(info)
+                    }
+                } else if (index > -1) {
+                    this.searchSelectValue.splice(index, 1)
                 }
             },
             // 获取当前视图表格头显示字段
@@ -409,7 +430,7 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { selectedProject, category, executeTime, creator, executor, statusSync, taskName } = this.requestData
+                const { selectedProject, category, queryTime, creator, executor, statusSync, taskName, task_id } = this.requestData
                 const filterObj = {
                     limit,
                     selectedProject,
@@ -418,8 +439,9 @@
                     executor,
                     statusSync,
                     page: current,
-                    executeTime: executeTime.every(item => item) ? executeTime.join(',') : '',
-                    keyword: taskName
+                    queryTime: queryTime && queryTime.every(item => item) ? queryTime.join(',') : '',
+                    taskName,
+                    task_id
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {
@@ -430,8 +452,20 @@
                 })
                 this.$router.replace({ name: 'auditHome', query })
             },
-            searchInputhandler (data) {
-                this.requestData.taskName = data
+            handleSearchValueChange (data) {
+                data = data.reduce((acc, cur) => {
+                    if (cur.id === 'dateRange') {
+                        acc['queryTime'] = cur.values
+                    } else if (cur.multiable) {
+                        acc[cur.id] = cur.values.map(item => item.id)
+                    } else {
+                        const value = cur.values[0]
+                        acc[cur.id] = cur.children ? value.id : value
+                    }
+                    return acc
+                }, {})
+                this.dateTimeRange = data['queryTime'] || []
+                this.requestData = data
                 this.pagination.current = 1
                 this.updateUrl()
                 this.loadAuditTask()
@@ -441,27 +475,19 @@
                 try {
                     const businessData = await this.loadUserProjectList()
                     this.business.list = businessData.results
-                    const form = this.searchForm.find(item => item.key === 'selectedProject')
-                    form.list = this.business.list.map(m => ({ name: m.name, value: m.id }))
-                    form.loading = false
+                    const form = this.searchList.find(item => item.id === 'selectedProject')
+                    form.children = this.business.list.map(m => ({ name: m.name, id: m.id }))
+                    // 因为项目所属列表是通过接口获取的，所以需要把路径上的标签添加进去
+                    const project_id = this.$route.query['selectedProject']
+                    if (project_id) {
+                        const { id, name, children } = form
+                        const values = children.filter(item => String(project_id) === String(item.id))
+                        this.searchSelectValue.push({ id, name, values })
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.business.loading = false
-                }
-            },
-            async getProjectBaseInfo () {
-                this.taskBasicInfoLoading = true
-                try {
-                    const res = await this.loadProjectBaseInfo()
-                    this.taskCategory = res.data.task_categories.map(m => ({ name: m.name, value: m.value }))
-                    const form = this.searchForm.find(item => item.key === 'category')
-                    form.list = this.taskCategory
-                    form.loading = false
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.taskBasicInfoLoading = false
                 }
             },
             onClearCategory () {
@@ -484,12 +510,6 @@
                     }
                     this.applyForPermission(['task_view'], task.auth_actions, resourceData)
                 }
-            },
-            onSearchFormSubmit (data) {
-                this.requestData = Object.assign({}, this.requestData, data)
-                this.pagination.current = 1
-                this.updateUrl()
-                this.loadAuditTask()
             }
         }
     }
@@ -508,6 +528,10 @@
 .bk-select-inline,.bk-input-inline {
     display: inline-block;
     width: 260px;
+}
+.search-wrapper {
+    position: relative;
+    height: 32px;
 }
 .list-wrapper {
     .advanced-search {

@@ -2,25 +2,26 @@
     <div class="clocked-container">
         <skeleton :loading="firstLoading" loader="taskList">
             <div class="list-wrapper">
-                <advance-search-form
-                    id="clockedList"
-                    :open="isSearchFormOpen"
-                    :search-config="{ placeholder: $t('请输入任务名称'), value: requestData.taskName }"
-                    :search-form="searchForm"
-                    @onSearchInput="onSearchInput"
-                    @submit="onSearchFormSubmit">
-                    <template v-if="!adminView" v-slot:operation>
-                        <bk-button
-                            ref="childComponent"
-                            theme="primary"
-                            size="normal"
-                            style="min-width: 120px;"
-                            data-test-id="clockedList_form_createTask"
-                            @click="onCreateClockedTask">
-                            {{$t('新建')}}
-                        </bk-button>
-                    </template>
-                </advance-search-form>
+                <div class="search-wrapper mb20">
+                    <bk-button
+                        v-if="!adminView"
+                        ref="childComponent"
+                        theme="primary"
+                        size="normal"
+                        style="min-width: 120px;"
+                        data-test-id="clockedList_form_createTask"
+                        @click="onCreateClockedTask">
+                        {{$t('新建')}}
+                    </bk-button>
+                    <search-select
+                        ref="searchSelect"
+                        id="periodicList"
+                        :placeholder="$t('ID/任务名/创建人/更新人/状态')"
+                        v-model="searchSelectValue"
+                        :search-list="searchList"
+                        @change="handleSearchValueChange">
+                    </search-select>
+                </div>
                 <div class="clocked-table-content" data-test-id="clockedList_table_taskList">
                     <bk-table
                         :data="clockedList"
@@ -35,6 +36,7 @@
                             :label="item.label"
                             :prop="item.id"
                             :width="item.width"
+                            :render-header="renderTableHeader"
                             :min-width="item.min_width">
                             <template slot-scope="{ row }">
                                 <!--流程模板-->
@@ -176,27 +178,40 @@
     import toolsUtils from '@/utils/tools.js'
     import permission from '@/mixins/permission.js'
     import Skeleton from '@/components/skeleton/index.vue'
-    import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import { mapActions, mapState } from 'vuex'
     import moment from 'moment-timezone'
     import NoData from '@/components/common/base/NoData.vue'
     import TaskCreateDialog from '../../task/TaskList/TaskCreateDialog.vue'
     import EditClockedTask from './EditClockedTask.vue'
     import DeleteClockedDialog from './DeleteClockedDialog.vue'
-    const SEARCH_FORM = [
+    import SearchSelect from '@/components/common/searchSelect/index.vue'
+    import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
+    const SEARCH_LIST = [
         {
-            type: 'input',
-            key: 'creator',
-            label: i18n.t('创建人'),
-            placeholder: i18n.t('请输入创建人'),
-            value: ''
+            id: 'task_id',
+            name: 'ID'
         },
         {
-            type: 'dateRange',
-            key: 'executeTime',
-            label: i18n.t('启动时间'),
-            placeholder: i18n.t('如：2019-01-30 至 2019-02-30'),
-            value: ['', '']
+            id: 'taskName',
+            name: i18n.t('任务名'),
+            isDefaultOption: true
+        },
+        {
+            id: 'creator',
+            name: i18n.t('创建人')
+        },
+        {
+            id: 'editor',
+            name: i18n.t('更新人')
+        },
+        {
+            id: 'state',
+            name: i18n.t('状态'),
+            children: [
+                { id: 'not_started', name: i18n.t('未执行') },
+                { id: 'started', name: i18n.t('已执行') },
+                { id: 'start_failed', name: i18n.t('启动失败') }
+            ]
         }
     ]
     const TABLE_FIELDS = [
@@ -248,8 +263,8 @@
         name: 'ClockedList',
         components: {
             Skeleton,
-            AdvanceSearchForm,
             NoData,
+            SearchSelect,
             TaskCreateDialog,
             EditClockedTask,
             DeleteClockedDialog
@@ -265,28 +280,47 @@
             }
         },
         data () {
-            const { page = 1, limit = 15, creator = '', executeTime = '', keyword = '' } = this.$route.query
-            const searchForm = SEARCH_FORM.map(item => {
-                if (this.$route.query[item.key]) {
-                    if (Array.isArray(item.value)) {
-                        item.value = this.$route.query[item.key].split(',')
-                    } else {
-                        item.value = this.$route.query[item.key]
+            const {
+                page = 1,
+                limit = 15,
+                creator = '',
+                editor = '',
+                queryTime = '',
+                taskName = '',
+                task_id = '',
+                state = ''
+            } = this.$route.query
+            const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
+                const values_text = this.$route.query[cur.id]
+                if (values_text) {
+                    const { id, name, children } = cur
+                    let values = []
+                    if (!children) {
+                        values = [values_text]
+                        acc.push({ id, name, values })
+                    } else if (children.length) {
+                        const ids = values_text.split(',')
+                        values = children.filter(item => ids.includes(String(item.id)))
+                        acc.push({ id, name, values })
                     }
                 }
-                return item
-            })
-            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
+                return acc
+            }, [])
+            if (queryTime) {
+                const values = queryTime.split(',')
+                searchSelectValue.push({ id: 'dateRange', name: '创建时间', values })
+            }
             return {
                 firstLoading: true,
                 clockedList: [],
                 listLoading: false,
-                isSearchFormOpen,
-                searchForm,
                 requestData: {
                     creator,
-                    executeTime: executeTime ? executeTime.split(',') : ['', ''],
-                    taskName: keyword
+                    editor,
+                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
+                    taskName,
+                    task_id,
+                    state
                 },
                 pagination: {
                     current: Number(page),
@@ -309,7 +343,10 @@
                 deleting: false,
                 curRow: {},
                 sideSliderType: '',
-                isShowSideslider: false
+                isShowSideslider: false,
+                searchList: toolsUtils.deepClone(SEARCH_LIST),
+                searchSelectValue,
+                dateTimeRange: queryTime ? queryTime.split(',') : []
             }
         },
         computed: {
@@ -326,7 +363,6 @@
         async created () {
             this.getFields()
             this.getBizBaseInfo()
-            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             await this.getClockedTaskList()
             this.firstLoading = false
         },
@@ -346,19 +382,22 @@
             async getClockedTaskList () {
                 try {
                     this.listLoading = true
-                    const { creator, executeTime, taskName } = this.requestData
+                    const { creator, queryTime, taskName, task_id, editor, state } = this.requestData
                     const params = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         creator: creator || undefined,
-                        task_name__contains: taskName || undefined
+                        task_name__icontains: taskName || undefined,
+                        id: task_id || undefined,
+                        editor: editor || undefined,
+                        state: state || undefined
                     }
                     if (!this.admin) {
                         params.project_id = this.project_id
                     }
-                    if (executeTime[0] && executeTime[1]) {
-                        params['plan_start_time__gte'] = moment.tz(executeTime[0], this.timeZone).format('YYYY-MM-DD hh:mm:ss')
-                        params['plan_start_time__lte'] = moment.tz(executeTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD hh:mm:ss')
+                    if (queryTime && queryTime[0] && queryTime[1]) {
+                        params['plan_start_time__gte'] = moment.tz(queryTime[0], this.timeZone).format('YYYY-MM-DD hh:mm:ss')
+                        params['plan_start_time__lte'] = moment.tz(queryTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD hh:mm:ss')
                     }
                     const resp = await this.loadClockedList(params)
                     this.pagination.count = resp.data.count
@@ -409,15 +448,20 @@
             onCreateTaskCancel () {
                 this.isNewTaskDialogShow = false
             },
-            searchInputhandler (data) {
-                this.requestData.taskName = data
-                this.pagination.current = 1
-                this.updateUrl()
-                this.getClockedTaskList()
-            },
-            // 高级搜索提交
-            onSearchFormSubmit (data) {
-                this.requestData = Object.assign({}, this.requestData, data)
+            handleSearchValueChange (data) {
+                data = data.reduce((acc, cur) => {
+                    if (cur.id === 'dateRange') {
+                        acc['queryTime'] = cur.values
+                    } else if (cur.multiable) {
+                        acc[cur.id] = cur.values.map(item => item.id)
+                    } else {
+                        const value = cur.values[0]
+                        acc[cur.id] = cur.children ? value.id : value
+                    }
+                    return acc
+                }, {})
+                this.dateTimeRange = data['queryTime'] || []
+                this.requestData = data
                 this.pagination.current = 1
                 this.updateUrl()
                 this.getClockedTaskList()
@@ -435,6 +479,39 @@
                 this.updateUrl()
                 this.getClockedTaskList()
             },
+            renderTableHeader (h, { column, $index }) {
+                if (column.property === 'create_time') {
+                    return <TableRenderHeader
+                        name={ column.label }
+                        orderShow = { false }
+                        dateValue={ this.dateTimeRange }
+                        onDateChange={ data => this.handleDateTimeFilter(data) }>
+                    </TableRenderHeader>
+                } else {
+                    return column.label
+                }
+            },
+            handleDateTimeFilter (date = []) {
+                this.dateTimeRange = date
+                const index = this.searchSelectValue.findIndex(item => item.id === 'dateRange')
+                if (date.length) {
+                    if (index > -1) {
+                        this.searchSelectValue[index].values = date
+                    } else {
+                        const info = {
+                            id: 'dateRange',
+                            name: '创建时间',
+                            values: date
+                        }
+                        this.searchSelectValue.push(info)
+                        // 添加搜索记录
+                        const searchDom = this.$refs.searchSelect
+                        searchDom && searchDom.addSearchRecord(info)
+                    }
+                } else if (index > -1) {
+                    this.searchSelectValue.splice(index, 1)
+                }
+            },
             // 表格功能选项
             handleSettingChange ({ fields, size }) {
                 this.setting.size = size
@@ -448,13 +525,16 @@
             // 更新路径
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { creator, executeTime, taskName } = this.requestData
+                const { creator, queryTime, taskName, task_id, state, editor } = this.requestData
                 const filterObj = {
                     limit,
                     creator,
-                    executeTime: executeTime.every(item => item) ? executeTime.join(',') : '',
+                    queryTime: queryTime && queryTime.every(item => item) ? queryTime.join(',') : '',
                     page: current,
-                    keyword: taskName
+                    taskName,
+                    task_id,
+                    state,
+                    editor
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {
@@ -591,6 +671,11 @@
     height: 100%;
     overflow: auto;
     @include scrollbar;
+}
+.search-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
 }
 .list-wrapper {
     min-height: calc(100vh - 300px);
