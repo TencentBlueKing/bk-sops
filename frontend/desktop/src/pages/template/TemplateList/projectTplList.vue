@@ -68,7 +68,7 @@
                         ref="searchSelect"
                         id="templateList"
                         placeholder="ID/流程名称/标签/更新人/创建人/子流程更新"
-                        :value="searchSelectValue"
+                        v-model="searchSelectValue"
                         :search-list="searchList"
                         @change="handleSearchValueChange">
                     </search-select>
@@ -311,11 +311,11 @@
 
     const SEARCH_LIST = [
         {
-            id: 'id',
+            id: 'template_id',
             name: 'ID'
         },
         {
-            id: 'keyword',
+            id: 'flowName',
             name: i18n.t('流程名'),
             isDefaultOption: true
         },
@@ -420,29 +420,25 @@
                 subprocessUpdateVal = '',
                 creator = '',
                 editor = '',
-                keyword = '',
+                flowName = '',
                 label_ids = '',
                 template_id = ''
             } = this.$route.query
             const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
                 const values_text = this.$route.query[cur.id]
                 if (values_text) {
-                    const { id, name, children } = cur
                     let values = []
-                    if (!children) {
+                    if (!cur.children) {
                         values = [values_text]
-                        acc.push({ id, name, values })
-                    } else if (children.length) {
+                        acc.push({ ...cur, values })
+                    } else if (cur.children.length) {
                         const ids = values_text.split(',')
-                        values = children.filter(item => ids.includes(String(item.id)))
-                        acc.push({ id, name, values })
+                        values = cur.children.filter(item => ids.includes(String(item.id)))
+                        acc.push({ ...cur, values })
                     }
                 }
                 return acc
             }, [])
-            if (template_id) {
-                searchSelectValue.push({ id: 'id', name: 'ID', values: [template_id] })
-            }
             if (queryTime) {
                 const values = queryTime.split(',')
                 searchSelectValue.push({ id: 'dateRange', name: '创建时间', values })
@@ -512,8 +508,8 @@
                     subprocessUpdateVal: subprocessUpdateVal !== '' ? Number(subprocessUpdateVal) : '',
                     queryTime: queryTime ? queryTime.split(',') : ['', ''],
                     label_ids: label_ids ? label_ids.split(',') : [],
-                    flowName: keyword,
-                    id: template_id
+                    flowName,
+                    template_id
                 },
                 isInit: true, // 避免default-sort在初始化时去触发table的sort-change事件
                 totalPage: 1,
@@ -536,7 +532,7 @@
                 categoryTips,
                 searchList: tools.deepClone(SEARCH_LIST),
                 searchSelectValue,
-                dateTimeRange: queryTime.split(',')
+                dateTimeRange: queryTime ? queryTime.split(',') : []
             }
         },
         computed: {
@@ -659,7 +655,7 @@
                 }
             },
             getQueryData () {
-                const { subprocessUpdateVal, creator, queryTime, flowName, label_ids, id, editor } = this.requestData
+                const { subprocessUpdateVal, creator, queryTime, flowName, label_ids, template_id, editor } = this.requestData
 
                 /**
                  * 无子流程 has_subprocess=false
@@ -673,14 +669,14 @@
                     limit: this.pagination.limit,
                     offset: (this.pagination.current - 1) * this.pagination.limit,
                     pipeline_template__name__icontains: flowName || undefined,
-                    pipeline_template__creator__contains: creator || undefined,
+                    pipeline_template__creator: creator || undefined,
                     label_ids: label_ids && label_ids.length ? label_ids.join(',') : undefined,
                     subprocess_has_update__exact: subprocess_has_update,
-                    has_subprocess,
+                    pipeline_template__has_subprocess: has_subprocess,
                     project__id: this.project_id,
                     new: true,
-                    id,
-                    editor
+                    id: template_id || undefined,
+                    pipeline_template__editor: editor || undefined
                 }
                 const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
                 if (keys.includes(this.ordering)) {
@@ -732,9 +728,8 @@
                     // 因为标签列表是通过接口获取的，所以需要把路径上的标签添加进去
                     const ids = this.$route.query['label_ids']
                     if (ids) {
-                        const { id, name, children } = form
-                        const values = children.filter(item => ids.includes(String(item.id)))
-                        this.searchSelectValue.push({ id, name, values })
+                        const values = form.children.filter(item => ids.includes(String(item.id)))
+                        this.searchSelectValue.push({ ...form, values })
                     }
                 } catch (e) {
                     console.log(e)
@@ -769,12 +764,11 @@
                 data = data.reduce((acc, cur) => {
                     if (cur.id === 'dateRange') {
                         acc['queryTime'] = cur.values
-                    } else if (cur.id === 'keyword') {
-                        acc['flowName'] = cur.values[0]
-                    } else if (cur.values.length > 1) {
+                    } else if (cur.multiable) {
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
-                        acc[cur.id] = cur.values[0].id || cur.values[0]
+                        const value = cur.values[0]
+                        acc[cur.id] = cur.children ? value.id : value
                     }
                     return acc
                 }, {})
@@ -1080,22 +1074,22 @@
             handleDateTimeFilter (date = []) {
                 this.dateTimeRange = date
                 const index = this.searchSelectValue.findIndex(item => item.id === 'dateRange')
-                if (index > -1) {
-                    if (date.length) {
+                if (date.length) {
+                    if (index > -1) {
                         this.searchSelectValue[index].values = date
                     } else {
-                        this.searchSelectValue.splice(index, 1)
+                        const info = {
+                            id: 'dateRange',
+                            name: '创建时间',
+                            values: date
+                        }
+                        this.searchSelectValue.push(info)
+                        // 添加搜索记录
+                        const searchDom = this.$refs.searchSelect
+                        searchDom && searchDom.addSearchRecord(info)
                     }
-                } else {
-                    const info = {
-                        id: 'dateRange',
-                        name: '创建时间',
-                        values: date
-                    }
-                    this.searchSelectValue.push(info)
-                    // 添加搜索记录
-                    const searchDom = this.$refs.searchSelect
-                    searchDom && searchDom.addSearchRecord(info)
+                } else if (index > -1) {
+                    this.searchSelectValue.splice(index, 1)
                 }
             },
             onPageChange (page) {
@@ -1111,7 +1105,7 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { category, queryTime, subprocessUpdateVal, creator, label_ids, flowName, id, editor } = this.requestData
+                const { category, queryTime, subprocessUpdateVal, creator, label_ids, flowName, template_id, editor } = this.requestData
                 const filterObj = {
                     limit,
                     category,
@@ -1120,8 +1114,8 @@
                     page: current,
                     queryTime: queryTime && queryTime.every(item => item) ? queryTime.join(',') : '',
                     label_ids: label_ids && label_ids.length ? label_ids.join(',') : '',
-                    keyword: flowName,
-                    template_id: id,
+                    flowName: flowName,
+                    template_id,
                     editor
                 }
                 const query = {}

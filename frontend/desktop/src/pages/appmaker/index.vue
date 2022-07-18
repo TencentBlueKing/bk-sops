@@ -25,7 +25,7 @@
                         ref="searchSelect"
                         id="appList"
                         placeholder="应用名/创建人"
-                        :value="searchSelectValue"
+                        v-model="searchSelectValue"
                         :search-list="searchList"
                         @change="handleSearchValueChange">
                     </search-select>
@@ -102,8 +102,9 @@
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     const SEARCH_LIST = [
         {
-            id: 'keyword',
-            name: '应用名'
+            id: 'flowName',
+            name: '应用名',
+            isDefaultOption: true
         },
         {
             id: 'editor',
@@ -121,7 +122,7 @@
         },
         props: ['project_id', 'common'],
         data () {
-            const { editor = '', keyword = '' } = this.$route.query
+            const { editor = '', flowName = '' } = this.$route.query
             const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
                 const values_text = this.$route.query[cur.id]
                 if (values_text) {
@@ -137,7 +138,7 @@
                 contentWidth: 0,
                 appList: [],
                 collectedList: [],
-                searchMode: editor || keyword || false,
+                searchMode: false,
                 currentAppData: undefined,
                 isCreateNewApp: false,
                 isEditDialogShow: false,
@@ -148,7 +149,7 @@
                 },
                 requestData: {
                     editor,
-                    flowName: keyword
+                    flowName
                 },
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
                 searchSelectValue
@@ -188,7 +189,7 @@
                     const data = {
                         editor: editor || undefined,
                         project__id: this.project_id,
-                        flowName: flowName || undefined
+                        name__icontains: flowName || undefined
                     }
                     const resp = await this.loadAppmaker(data)
                     // logo_url相同会造成浏览器缓存,兼容不同环境下接口返回的logo_url
@@ -298,12 +299,11 @@
             },
             handleSearchValueChange (data) {
                 data = data.reduce((acc, cur) => {
-                    const key = cur.id === 'keyword' ? 'flowName' : cur.id
-                    acc[key] = cur.values[0]
+                    acc[cur.id] = cur.values[0]
                     return acc
                 }, {})
                 this.requestData = data
-                this.searchMode = true
+                this.searchMode = !!Object.keys(data).length
                 this.updateUrl()
                 this.loadData()
             },
@@ -311,7 +311,7 @@
                 const { editor, flowName } = this.requestData
                 const filterObj = {
                     editor,
-                    keyword: flowName
+                    flowName: flowName
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {

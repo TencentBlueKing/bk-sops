@@ -4,6 +4,7 @@
             class="search-input"
             :style="{ maxHeight: (shrink ? (input.focus ? maxHeight : minHeight) : maxHeight) + 'px' }">
             <template v-if="searchSelectValue.length">
+                <!-- 已经选中的tag列表 -->
                 <div
                     v-for="(item, index) in searchSelectValue"
                     :key="index"
@@ -15,9 +16,9 @@
                         ext-cls="select-list-popover"
                         trigger="manual"
                         theme="light"
-                        :disabled="item.id === 'dateRange' || !item.values"
+                        :disabled="!item.multiable || !item.values || item.values.length <= 1"
                         :allow="false">
-                        <span>{{ item.values ? item.name + '：' : item.name }}</span>
+                        <span>{{ item.name + '：' }}</span>
                         <span class="val-item" v-for="(val, idx) in item.values" :key="idx">
                             {{ val.name || val }}
                             <template v-if="idx !== item.values.length - 1">
@@ -71,31 +72,31 @@
                         <!-- 搜索匹配列表 -->
                         <template v-if="input.value && !selectInfo.id">
                             <ul class="search-list-menu">
-                                <template v-if="searchResultList.length">
+                                <template v-if="optionList.length">
                                     <li
-                                        v-for="(item, index) in searchResultList"
+                                        v-for="(option, index) in optionList"
                                         :key="index"
                                         class="menu-item search-menu-item"
-                                        :class="{ 'default-menu-item': item.isDefaultOption }"
-                                        @click="handleResultOptionSelect(item)">
-                                        <span class="search-menu-label">{{ item.name + '：' }}</span>
+                                        :class="{ 'default-menu-item': option.isDefaultOption, 'is-hover': hoverId === option.id }"
+                                        @click="handleResultOptionSelect(option)">
+                                        <span class="search-menu-label">{{ option.name + '：' }}</span>
                                         <span class="value-text" v-bk-overflow-tips>{{ input.value }}</span>
                                     </li>
                                 </template>
-                                <li v-else class="menu-item no-data">{{ '查询无数据' }}</li>
+                                <li v-else class="menu-item no-search-data">{{ '查询无数据' }}</li>
                             </ul>
                         </template>
                         <!-- 默认列表 -->
-                        <template v-else>
+                        <template v-else-if="optionList.length">
                             <ul class="search-list-menu">
-                                <template v-for="(item, index) in optionList">
+                                <template v-for="option in optionList">
                                     <li
-                                        v-if="judgeOptionShow(item)"
-                                        :key="index"
+                                        :key="option.id"
                                         class="menu-item"
-                                        @click="handleOptionSelect(item)">
-                                        {{ item.name }}
-                                        <i class="bk-icon icon-check-1" v-if="selectInfo.multiable && item.isActive"></i>
+                                        :class="{ 'is-hover': hoverId === option.id }"
+                                        @click="handleOptionSelect(option)">
+                                        {{ option.name }}
+                                        <i class="bk-icon icon-check-1" v-if="selectInfo.multiable && option.isActive"></i>
                                     </li>
                                 </template>
                             </ul>
@@ -104,6 +105,7 @@
                                 <span class="footer-btn" @click="selectOptionCancel">取消</span>
                             </div>
                         </template>
+                        <p v-else class="no-search-data">{{ '查询无数据' }}</p>
                         <!-- 最近搜索 -->
                         <dl class="recent-search-list" v-if="!selectInfo.children && recordsData.length">
                             <dt>
@@ -134,6 +136,10 @@
     import tools from '@/utils/tools.js'
     import { random4 } from '@/utils/uuid.js'
     export default {
+        model: {
+            prop: 'values',
+            event: 'change'
+        },
         props: {
             placeholder: {
                 type: String,
@@ -145,7 +151,7 @@
                     return []
                 }
             },
-            value: {
+            values: {
                 type: Array,
                 default: () => []
             },
@@ -173,7 +179,7 @@
         data () {
             return {
                 isInit: false,
-                optionList: [],
+                list: [],
                 selectInfo: {},
                 input: {
                     value: '',
@@ -184,7 +190,8 @@
                 searchSelectValue: [],
                 selectTagList: [],
                 isVisible: false, // 输入框是否获取焦点
-                records: []
+                records: [],
+                hoverId: ''
             }
         },
         computed: {
@@ -196,22 +203,45 @@
                     && !this.input.value.length
                     && !Object.keys(this.selectInfo).length
             },
-            searchResultList () { // 搜索匹配列表
-                const inputOptions = this.optionList.filter(item => !item.children) || []
+            optionList () {
+                const list = this.list.filter(option => {
+                    if (option.multiable) return true
+                    return !this.searchSelectValue.some(item => item.id === option.id)
+                })
+                const { id, children, multiable } = this.selectInfo
+                if (id) {
+                    if (multiable) {
+                        return children
+                    } else if (children) {
+                        const text = this.input.value
+                        if (text) {
+                            return children.filter(item => item.name.indexOf(text) > -1)
+                        } else {
+                            return children
+                        }
+                    } else {
+                        return list
+                    }
+                } else if (this.input.value) {
+                    const inputOptions = this.list.filter(item => !item.children) || []
                 
-                return inputOptions.filter(option => {
-                    const isMatch = this.searchSelectValue.some(item => item.id === option.id)
-                    return !isMatch
-                }) || []
+                    return inputOptions.filter(option => {
+                        const isMatch = this.searchSelectValue.some(item => item.id === option.id)
+                        return !isMatch
+                    }) || []
+                } else {
+                    return list
+                }
             },
             isOptionShowAll () {
+                if (this.input.value && !this.selectInfo.id) {
+                    return !this.optionList.length
+                }
                 const isMultiable = this.optionList.some(item => item.multiable)
                 if (isMultiable) {
                     return false
                 }
-                return this.optionList.every(item => {
-                    return this.searchSelectValue.find(value => value.id === item.id)
-                })
+                return !this.optionList.length
             },
             recordsData () {
                 const isOld = this.records.some(item => item.id && item.form)
@@ -238,16 +268,18 @@
             }
         },
         watch: {
-            value: {
+            values: {
                 handler (val) {
-                    this.searchSelectValue = tools.deepClone(val)
+                    if (!tools.isDataEqual(val, this.searchSelectValue)) {
+                        this.searchSelectValue = [...val]
+                    }
                 },
                 deep: true,
                 immediate: true
             },
             searchList: {
                 handler (val) {
-                    this.optionList = tools.deepClone(val)
+                    this.list = tools.deepClone(val)
                 },
                 deep: true,
                 immediate: true
@@ -349,8 +381,7 @@
             },
             // 确认按钮
             selectOptionConfirm () {
-                const { id, name, isDefaultOption } = this.selectInfo
-                const searchContent = this.searchSelectValue.find(item => item.id === id)
+                const searchContent = this.searchSelectValue.find(item => item.id === this.selectInfo.id)
                 let values = []
                 if (searchContent) {
                     const duplicateObj = {}
@@ -366,29 +397,26 @@
                 } else {
                     values = [...this.selectTagList]
                     this.searchSelectValue.push({
-                        id,
-                        name,
+                        ...this.selectInfo,
                         values
                     })
                 }
-                this.resetPopover()
                 // 添加搜索记录
-                this.addSearchRecord({ id, name, values, isDefaultOption })
+                this.addSearchRecord({ ...this.selectInfo, values })
+                this.resetPopover()
             },
             // 取消按钮
             selectOptionCancel () {
                 this.isVisible = false
                 this.selectTagList = []
-                let text = this.$refs.input.innerText
-                text = text.split('：')[0] + '：'
-                this.input.value = text
-                this.$refs.input.innerText = text
+                this.input.value = ''
+                this.$refs.input.innerText = this.selectInfo.name + '：'
                 this.setInputFocus()
             },
             // 选择搜索结果匹配下拉项
-            handleResultOptionSelect (item) {
+            handleResultOptionSelect (option) {
                 const selectInfo = {
-                    ...item,
+                    ...option,
                     values: [this.input.value]
                 }
                 this.searchSelectValue.push(selectInfo)
@@ -408,23 +436,21 @@
                     val.isActive = !val.isActive
                     if (this.selectInfo.multiable) {
                         let text = this.selectTagList.map(item => item.name).join(' | ')
+                        this.input.value = text
                         text = this.selectInfo.name + '：' + text
                         this.$refs.input.innerText = text
-                        this.input.value = text
                     } else {
                         this.selectOptionConfirm()
-                        this.optionList = tools.deepClone(this.searchList)
                     }
                 } else {
                     this.selectInfo = tools.deepClone(val)
                     const inputDom = this.$refs.input
                     inputDom.innerText = val.name + '：'
-                    this.input.value = val.name + '：'
+                    this.input.value = this.selectInfo.id ? '' : val.name + '：'
                     // 输入框获取焦点
                     inputDom.focus()
                     if (val.children) {
                         this.selectTagList = []
-                        this.optionList = val.children
                     } else {
                         // 收起popover
                         const popover = this.getPopoverInstance()
@@ -476,6 +502,7 @@
             handleInputChange (e) {
                 const text = e.target.innerText
                 this.input.value = this.selectInfo.id ? text.slice(text.indexOf('：') + 1) : text.trim()
+                this.hoverId = ''
                 if (this.selectInfo.id) {
                     // 不包含：标识符默认为自定义搜索条件
                     if (text.indexOf('：') === -1) {
@@ -485,14 +512,12 @@
                     this.selectInfo = {}
                 }
                 if (!text && !this.searchSelectValue.length) { // 没有自定义搜索条件和已选中条件，重置searchPopover
-                    this.optionList = tools.deepClone(this.searchList)
-                    this.isVisible = true
-                } else if (!this.input.value || this.selectInfo.children) { // 没有搜索值和搜索项包含子项时，显示searchPopover
                     this.isVisible = true
                 }
             },
             // 文本框按键事件
             handleInputKeyup (e) {
+                console.log(e.code)
                 switch (e.code) {
                     case 'Enter':
                     case 'NumpadEnter':
@@ -504,6 +529,7 @@
                     case 'ArrowDown':
                     case 'ArrowUp':
                         e.preventDefault()
+                        this.handleDocumentKeydown(e)
                         break
                     default:
                         if (this.selectTagList.length) {
@@ -518,17 +544,34 @@
                 e.preventDefault()
                 // setTimeout用在使用中文输入法不空格直接回车时，生成的tag和input.value会同时存在
                 setTimeout(() => {
-                    if (!this.input.value) return
+                    if (this.hoverId) {
+                        const option = this.optionList.find(item => item.id === this.hoverId)
+                        if (!this.selectInfo.multiable) {
+                            this.hoverId = ''
+                        }
+                        if (this.selectInfo.id) {
+                            this.handleOptionSelect(option)
+                        } else {
+                            this.handleResultOptionSelect(option)
+                        }
+                        this.handleInputFocus()
+                        return
+                    }
+                    if (!this.input.value) {
+                        return
+                    }
                     let info = {}
-                    if (this.selectInfo.id) {
-                        const index = this.searchSelectValue.findIndex(item => item.id === this.selectInfo.id)
-                        if (index > -1) {
+                    const { id, children } = this.selectInfo
+                    if (id) {
+                        const index = this.searchSelectValue.findIndex(item => item.id === id)
+                        if (index > -1) { // 多选
                             const selectContent = this.searchSelectValue[index]
                             const isMatch = selectContent.values.some(item => item === this.input.value)
                             if (!isMatch) {
                                 selectContent.values.push(this.input.value)
                             }
                         } else {
+                            if (children && !this.optionList.length) return // 当包含子项时，如果输入匹配列表为空时，回车禁止选中
                             info = {
                                 ...this.selectInfo,
                                 values: [this.input.value]
@@ -538,7 +581,7 @@
                     } else {
                         const isMatch = this.searchSelectValue.some(item => item.isDefaultOption)
                         if (!isMatch) {
-                            const defaultOption = this.searchList.find(item => item.isDefaultOption) || {}
+                            const defaultOption = this.list.find(item => item.isDefaultOption) || {}
                             info = {
                                 ...defaultOption,
                                 values: [this.input.value]
@@ -551,11 +594,11 @@
                     // 添加搜索记录
                     this.addSearchRecord(info)
 
+                    this.hoverId = ''
                     this.input.value = ''
                     this.$refs.input.innerText = ''
                     this.selectInfo = {}
                     this.isVisible = true
-                    this.optionList = tools.deepClone(this.searchList)
                 }, 0)
             },
             // 清空按键
@@ -570,11 +613,6 @@
                     this.handleInputFocus()
                 } else if (!this.$refs.input.innerText && this.searchSelectValue.length) {
                     this.searchSelectValue.pop()
-                } else if (this.selectInfo.id) {
-                    const text = this.$refs.input.innerText
-                    if (text !== this.selectInfo.name) {
-                        this.optionList = tools.deepClone(this.searchList)
-                    }
                 }
             },
             // 快速清空
@@ -593,7 +631,6 @@
                 this.input.value = ''
                 this.selectInfo = {}
                 this.setInputFocus()
-                this.optionList = tools.deepClone(this.searchList)
             },
             // 添加搜索记录
             addSearchRecord (data) {
@@ -610,24 +647,15 @@
                 }
 
                 const list = records[this.username][this.id]
-                const { id, name, values, isDefaultOption } = data
                 const cid = random4()
                 if (list.length) {
-                    const match = list.every(item => item.id !== id || !tools.isDataEqual(item.values, values))
+                    const match = list.every(item => item.id !== data.id || !tools.isDataEqual(item.values, data.values))
                     if (match) {
-                        const info = { id, name, values, cid }
-                        if (isDefaultOption) {
-                            info['isDefaultOption'] = true
-                        }
-                        list.unshift(info)
+                        list.unshift({ ...data, cid })
                     }
                     records[this.username][this.id] = list.splice(0, 7)
                 } else {
-                    const info = { id, name, values, cid }
-                    if (isDefaultOption) {
-                        info['isDefaultOption'] = true
-                    }
-                    records[this.username][this.id] = [info]
+                    records[this.username][this.id] = [{ ...data, cid }]
                 }
                 this.records = records[this.username][this.id]
 
@@ -669,6 +697,24 @@
 
                 const index = this.records.findIndex(item => item.cid === record.cid)
                 this.records.splice(index, 1)
+            },
+            handleDocumentKeydown (e) {
+                const len = this.optionList.filter(option => {
+                    return this.judgeOptionShow(option)
+                }).length
+                if (['ArrowDown', 'ArrowUp'].includes(e.code) && len) {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    this.setInputFocus()
+                    this.hasFocus = true
+                    let curIndex = this.optionList.findIndex(set => set.id === this.hoverId)
+                    curIndex = e.code === 'ArrowDown' ? curIndex + 1 : curIndex - 1
+                    curIndex = curIndex > len - 1 ? 0 : (curIndex < 0 ? len - 1 : curIndex)
+                    const option = this.optionList[curIndex]
+                    if (option) {
+                        this.hoverId = option.id
+                    }
+                }
             }
         }
     }
@@ -823,7 +869,21 @@
             .recent-search-list {
                 margin-top: 0;
                 &::before {
-                    display: none;
+                    width: 100%;
+                    left: 0;
+                }
+            }
+            .no-search-data {
+                height: 46px;
+                width: 238px !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #63656e;
+                cursor: default;
+                &:hover {
+                    color: #63656e;
+                    background: none;
                 }
             }
         }
@@ -850,14 +910,16 @@
             cursor: pointer;
             font-size: 12px;
             &:hover {
-                background: #f5f7fa;
+                color: #3a84ff;
+                background: #eaf3ff;
             }
             .icon-check-1 {
                 font-size: 22px;
                 color: #3a84ff;
             }
-            &.no-data {
-                justify-content: center;
+            &.is-hover {
+                background: #eaf3ff;
+                color: #3a84ff;
             }
         }
         .search-menu-item {

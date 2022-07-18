@@ -35,7 +35,7 @@
                             ref="searchSelect"
                             id="taskList"
                             placeholder="ID/任务名/创建人/执行人/任务类型/状态"
-                            :value="searchSelectValue"
+                            v-model="searchSelectValue"
                             :search-list="searchList"
                             @change="handleSearchValueChange">
                         </search-select>
@@ -230,7 +230,7 @@
             name: 'ID'
         },
         {
-            id: 'keyword',
+            id: 'taskName',
             name: i18n.t('任务名'),
             isDefaultOption: true
         },
@@ -345,34 +345,30 @@
                 template_source = '',
                 create_info = '',
                 category = '',
-                executeTime = '',
+                queryTime = '',
                 creator = '',
                 executor = '',
                 statusSync = '',
-                keyword = '',
+                taskName = '',
                 task_id = ''
             } = this.$route.query
             const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
                 const values_text = this.$route.query[cur.id]
                 if (values_text) {
-                    const { id, name, children } = cur
                     let values = []
-                    if (!children) {
+                    if (!cur.children) {
                         values = [values_text]
-                        acc.push({ id, name, values })
-                    } else if (children.length) {
+                        acc.push({ ...cur, values })
+                    } else if (cur.children.length) {
                         const ids = values_text.split(',')
-                        values = children.filter(item => ids.includes(String(item.id)))
-                        acc.push({ id, name, values })
+                        values = cur.children.filter(item => ids.includes(String(item.id)))
+                        acc.push({ ...cur, values })
                     }
                 }
                 return acc
             }, [])
-            if (task_id) {
-                searchSelectValue.push({ id: 'id', name: 'ID', values: [task_id] })
-            }
-            if (executeTime) {
-                const values = executeTime.split(',')
+            if (queryTime) {
+                const values = queryTime.split(',')
                 searchSelectValue.push({ id: 'dateRange', name: '创建时间', values })
             }
             return {
@@ -401,12 +397,12 @@
                 createInfo: create_info,
                 templateSource: template_source,
                 requestData: {
-                    executeTime: executeTime ? executeTime.split(',') : ['', ''],
+                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
                     category,
                     creator,
                     executor,
                     statusSync,
-                    taskName: keyword,
+                    taskName,
                     id: task_id
                 },
                 pagination: {
@@ -435,7 +431,7 @@
                 selectedRow: {},
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
                 searchSelectValue,
-                dateTimeRange: executeTime.split(',')
+                dateTimeRange: queryTime.split(',')
             }
         },
         computed: {
@@ -476,7 +472,7 @@
                 this.listLoading = true
                 this.executeStatus = []
                 try {
-                    const { executeTime, category, creator, executor, statusSync, taskName, id } = this.requestData
+                    const { queryTime, category, creator, executor, statusSync, taskName, id } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
                     let pipeline_instance__is_revoked
@@ -514,13 +510,13 @@
                         id: id || undefined
                     }
 
-                    if (executeTime && executeTime[0] && executeTime[1]) {
+                    if (queryTime && queryTime[0] && queryTime[1]) {
                         if (this.template_source === 'common') {
-                            data['pipeline_template__start_time__gte'] = moment(executeTime[0]).format('YYYY-MM-DD')
-                            data['pipeline_template__start_time__lte'] = moment(executeTime[1]).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__gte'] = moment(queryTime[0]).format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__lte'] = moment(queryTime[1]).add('1', 'd').format('YYYY-MM-DD')
                         } else {
-                            data['pipeline_instance__start_time__gte'] = moment.tz(executeTime[0], this.timeZone).format('YYYY-MM-DD')
-                            data['pipeline_instance__start_time__lte'] = moment.tz(executeTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__gte'] = moment.tz(queryTime[0], this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(queryTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                         }
                     }
                     const taskListData = await this.loadTaskList(data)
@@ -555,9 +551,8 @@
                     // 因为任务类型列表是通过接口获取的，所以需要把路径上的类型添加进去
                     const ids = this.$route.query['category']
                     if (ids) {
-                        const { id, name, children } = form
-                        const values = children.filter(item => ids.includes(item.id))
-                        this.searchSelectValue.push({ id, name, values })
+                        const values = form.children.filter(item => ids.includes(item.id))
+                        this.searchSelectValue.push({ ...form, values })
                     }
                 } catch (e) {
                     console.log(e)
@@ -755,22 +750,22 @@
             handleDateTimeFilter (date = []) {
                 this.dateTimeRange = date
                 const index = this.searchSelectValue.findIndex(item => item.id === 'dateRange')
-                if (index > -1) {
-                    if (date.length) {
+                if (date.length) {
+                    if (index > -1) {
                         this.searchSelectValue[index].values = date
                     } else {
-                        this.searchSelectValue.splice(index, 1)
+                        const info = {
+                            id: 'dateRange',
+                            name: '创建时间',
+                            values: date
+                        }
+                        this.searchSelectValue.push(info)
+                        // 添加搜索记录
+                        const searchDom = this.$refs.searchSelect
+                        searchDom && searchDom.addSearchRecord(info)
                     }
-                } else {
-                    const info = {
-                        id: 'dateRange',
-                        name: '创建时间',
-                        values: date
-                    }
-                    this.searchSelectValue.push(info)
-                    // 添加搜索记录
-                    const searchDom = this.$refs.searchSelect
-                    searchDom && searchDom.addSearchRecord(info)
+                } else if (index > -1) {
+                    this.searchSelectValue.splice(index, 1)
                 }
             },
             onPageChange (page) {
@@ -786,7 +781,7 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { category, executeTime, creator, executor, statusSync, taskName, id } = this.requestData
+                const { category, queryTime, creator, executor, statusSync, taskName, id } = this.requestData
                 const filterObj = {
                     limit,
                     category,
@@ -794,8 +789,8 @@
                     executor,
                     statusSync,
                     page: current,
-                    executeTime: executeTime && executeTime.every(item => item) ? executeTime.join(',') : '',
-                    keyword: taskName,
+                    queryTime: queryTime && queryTime.every(item => item) ? queryTime.join(',') : '',
+                    taskName,
                     task_id: id
                 }
                 const query = {}
@@ -840,13 +835,12 @@
             handleSearchValueChange (data) {
                 data = data.reduce((acc, cur) => {
                     if (cur.id === 'dateRange') {
-                        acc['executeTime'] = cur.values
-                    } else if (cur.id === 'keyword') {
-                        acc['taskName'] = cur.values[0]
-                    } else if (cur.values.length > 1) {
+                        acc['queryTime'] = cur.values
+                    } else if (cur.multiable) {
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
-                        acc[cur.id] = cur.values[0].id || cur.values[0]
+                        const value = cur.values[0]
+                        acc[cur.id] = cur.children ? value.id : value
                     }
                     return acc
                 }, {})

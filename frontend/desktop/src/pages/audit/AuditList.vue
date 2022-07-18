@@ -18,7 +18,7 @@
                         ref="searchSelect"
                         id="auditList"
                         placeholder="ID/任务名/所属项目/创建人/执行人/状态"
-                        :value="searchSelectValue"
+                        v-model="searchSelectValue"
                         :search-list="searchList"
                         @change="handleSearchValueChange">
                     </search-select>
@@ -126,11 +126,11 @@
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     const SEARCH_LIST = [
         {
-            id: 'id',
+            id: 'task_id',
             name: 'ID'
         },
         {
-            id: 'keyword',
+            id: 'taskName',
             name: i18n.t('任务名'),
             isDefaultOption: true
         },
@@ -213,11 +213,11 @@
                 limit = 15,
                 selectedProject = '',
                 category = '',
-                executeTime = '',
+                queryTime = '',
                 creator = '',
                 executor = '',
                 statusSync = '',
-                keyword = '',
+                taskName = '',
                 task_id = ''
             } = this.$route.query
             const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
@@ -236,11 +236,8 @@
                 }
                 return acc
             }, [])
-            if (task_id) {
-                searchSelectValue.push({ id: 'id', name: 'ID', values: [task_id] })
-            }
-            if (executeTime) {
-                const values = executeTime.split(',')
+            if (queryTime) {
+                const values = queryTime.split(',')
                 searchSelectValue.push({ id: 'dateRange', name: '执行时间', values })
             }
             return {
@@ -262,8 +259,9 @@
                     creator,
                     executor,
                     statusSync,
-                    executeTime: executeTime ? executeTime.split(',') : ['', ''],
-                    taskName: keyword
+                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
+                    taskName,
+                    task_id
                 },
                 pagination: {
                     current: Number(page),
@@ -279,7 +277,7 @@
                 },
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
                 searchSelectValue,
-                dateTimeRange: executeTime.split(',')
+                dateTimeRange: queryTime ? queryTime.split(',') : []
             }
         },
         computed: {
@@ -303,7 +301,7 @@
             async loadAuditTask () {
                 this.listLoading = true
                 try {
-                    const { selectedProject, executeTime, category, creator, executor, statusSync, taskName, id } = this.requestData
+                    const { selectedProject, queryTime, category, creator, executor, statusSync, taskName, task_id } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
                     let pipeline_instance__is_revoked
@@ -336,15 +334,15 @@
                         pipeline_instance__is_revoked,
                         pipeline_instance__creator__contains: creator || undefined,
                         pipeline_instance__executor__contains: executor || undefined,
-                        id: id || undefined
+                        id: task_id || undefined
                     }
-                    if (executeTime && executeTime[0] && executeTime[1]) {
+                    if (queryTime && queryTime[0] && queryTime[1]) {
                         if (this.common) {
-                            data['pipeline_template__start_time__gte'] = moment(executeTime[0]).format('YYYY-MM-DD')
-                            data['pipeline_template__start_time__lte'] = moment(executeTime[1]).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__gte'] = moment(queryTime[0]).format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__lte'] = moment(queryTime[1]).add('1', 'd').format('YYYY-MM-DD')
                         } else {
-                            data['pipeline_instance__start_time__gte'] = moment.tz(executeTime[0], this.timeZone).format('YYYY-MM-DD')
-                            data['pipeline_instance__start_time__lte'] = moment.tz(executeTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__gte'] = moment.tz(queryTime[0], this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(queryTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                         }
                     }
                     const auditListData = await this.loadAuditTaskList(data)
@@ -375,22 +373,22 @@
             handleDateTimeFilter (date = []) {
                 this.dateTimeRange = date
                 const index = this.searchSelectValue.findIndex(item => item.id === 'dateRange')
-                if (index > -1) {
-                    if (date.length) {
+                if (date.length) {
+                    if (index > -1) {
                         this.searchSelectValue[index].values = date
                     } else {
-                        this.searchSelectValue.splice(index, 1)
+                        const info = {
+                            id: 'dateRange',
+                            name: '执行时间',
+                            values: date
+                        }
+                        this.searchSelectValue.push(info)
+                        // 添加搜索记录
+                        const searchDom = this.$refs.searchSelect
+                        searchDom && searchDom.addSearchRecord(info)
                     }
-                } else {
-                    const info = {
-                        id: 'dateRange',
-                        name: '执行时间',
-                        values: date
-                    }
-                    this.searchSelectValue.push(info)
-                    // 添加搜索记录
-                    const searchDom = this.$refs.searchSelect
-                    searchDom && searchDom.addSearchRecord(info)
+                } else if (index > -1) {
+                    this.searchSelectValue.splice(index, 1)
                 }
             },
             // 获取当前视图表格头显示字段
@@ -432,7 +430,7 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { selectedProject, category, executeTime, creator, executor, statusSync, taskName, id } = this.requestData
+                const { selectedProject, category, queryTime, creator, executor, statusSync, taskName, task_id } = this.requestData
                 const filterObj = {
                     limit,
                     selectedProject,
@@ -441,9 +439,9 @@
                     executor,
                     statusSync,
                     page: current,
-                    executeTime: executeTime && executeTime.every(item => item) ? executeTime.join(',') : '',
-                    keyword: taskName,
-                    task_id: id
+                    queryTime: queryTime && queryTime.every(item => item) ? queryTime.join(',') : '',
+                    taskName,
+                    task_id
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {
@@ -457,17 +455,16 @@
             handleSearchValueChange (data) {
                 data = data.reduce((acc, cur) => {
                     if (cur.id === 'dateRange') {
-                        acc['executeTime'] = cur.values
-                    } else if (cur.id === 'keyword') {
-                        acc['taskName'] = cur.values[0]
-                    } else if (cur.values.length > 1) {
+                        acc['queryTime'] = cur.values
+                    } else if (cur.multiable) {
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
-                        acc[cur.id] = cur.values[0].id || cur.values[0]
+                        const value = cur.values[0]
+                        acc[cur.id] = cur.children ? value.id : value
                     }
                     return acc
                 }, {})
-                this.dateTimeRange = data['executeTime'] || []
+                this.dateTimeRange = data['queryTime'] || []
                 this.requestData = data
                 this.pagination.current = 1
                 this.updateUrl()
@@ -513,12 +510,6 @@
                     }
                     this.applyForPermission(['task_view'], task.auth_actions, resourceData)
                 }
-            },
-            onSearchFormSubmit (data) {
-                this.requestData = Object.assign({}, this.requestData, data)
-                this.pagination.current = 1
-                this.updateUrl()
-                this.loadAuditTask()
             }
         }
     }

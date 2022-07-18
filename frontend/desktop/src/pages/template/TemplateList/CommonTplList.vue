@@ -18,7 +18,7 @@
                         ref="searchSelect"
                         id="commonTplList"
                         placeholder="ID/流程名/创建人/更新人"
-                        :value="searchSelectValue"
+                        v-model="searchSelectValue"
                         :search-list="searchList"
                         @change="handleSearchValueChange">
                     </search-select>
@@ -130,11 +130,11 @@
 
     const SEARCH_LIST = [
         {
-            id: 'id',
+            id: 'template_id',
             name: 'ID'
         },
         {
-            id: 'keyword',
+            id: 'flowName',
             name: i18n.t('流程名'),
             isDefaultOption: true
         },
@@ -205,7 +205,8 @@
                 limit = 15,
                 queryTime = '',
                 creator = '',
-                keyword = '',
+                editor = '',
+                flowName = '',
                 template_id = ''
             } = this.$route.query
             const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
@@ -224,9 +225,6 @@
                 }
                 return acc
             }, [])
-            if (template_id) {
-                searchSelectValue.push({ id: 'id', name: 'ID', values: [template_id] })
-            }
             if (queryTime) {
                 const values = queryTime.split(',')
                 searchSelectValue.push({ id: 'dateRange', name: '创建时间', values })
@@ -240,13 +238,13 @@
                 sortableCols: [],
                 isSelectProjectShow: false,
                 templateCategoryList: [],
-                category: undefined,
                 editEndTime: undefined,
                 requestData: {
                     creator,
+                    editor,
                     queryTime: queryTime ? queryTime.split(',') : ['', ''],
-                    flowName: keyword,
-                    id: template_id
+                    flowName,
+                    template_id
                 },
                 totalPage: 1,
                 pagination: {
@@ -273,7 +271,7 @@
                 categoryTips: i18n.t('模板分类即将下线，建议使用标签'),
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
                 searchSelectValue,
-                dateTimeRange: queryTime.split(',')
+                dateTimeRange: queryTime ? queryTime.split(',') : []
             }
         },
         computed: {
@@ -366,16 +364,17 @@
                 }
             },
             getQueryData () {
-                const { creator, queryTime, flowName, id } = this.requestData
+                const { creator, queryTime, flowName, template_id, editor } = this.requestData
                 const data = {
                     limit: this.pagination.limit,
                     offset: (this.pagination.current - 1) * this.pagination.limit,
                     common: '1',
                     pipeline_template__name__icontains: flowName || undefined,
-                    pipeline_template__creator__contains: creator || undefined,
+                    pipeline_template__creator: creator || undefined,
+                    pipeline_template__editor: editor || undefined,
                     project__id: this.project_id,
                     new: true,
-                    id
+                    id: template_id
                 }
                 const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
                 if (keys.includes(this.ordering)) {
@@ -421,12 +420,11 @@
                 data = data.reduce((acc, cur) => {
                     if (cur.id === 'dateRange') {
                         acc['queryTime'] = cur.values
-                    } else if (cur.id === 'keyword') {
-                        acc['flowName'] = cur.values[0]
-                    } else if (cur.values.length > 1) {
+                    } if (cur.multiable) {
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
-                        acc[cur.id] = cur.values[0].id || cur.values[0]
+                        const value = cur.values[0]
+                        acc[cur.id] = cur.children ? value.id : value
                     }
                     return acc
                 }, {})
@@ -492,22 +490,22 @@
             handleDateTimeFilter (date = []) {
                 this.dateTimeRange = date
                 const index = this.searchSelectValue.findIndex(item => item.id === 'dateRange')
-                if (index > -1) {
-                    if (date.length) {
+                if (date.length) {
+                    if (index > -1) {
                         this.searchSelectValue[index].values = date
                     } else {
-                        this.searchSelectValue.splice(index, 1)
+                        const info = {
+                            id: 'dateRange',
+                            name: '创建时间',
+                            values: date
+                        }
+                        this.searchSelectValue.push(info)
+                        // 添加搜索记录
+                        const searchDom = this.$refs.searchSelect
+                        searchDom && searchDom.addSearchRecord(info)
                     }
-                } else {
-                    const info = {
-                        id: 'dateRange',
-                        name: '创建时间',
-                        values: date
-                    }
-                    this.searchSelectValue.push(info)
-                    // 添加搜索记录
-                    const searchDom = this.$refs.searchSelect
-                    searchDom && searchDom.addSearchRecord(info)
+                } else if (index > -1) {
+                    this.searchSelectValue.splice(index, 1)
                 }
             },
             onPageChange (page) {
@@ -539,15 +537,15 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { category, queryTime, creator, flowName, id } = this.requestData
+                const { queryTime, creator, flowName, template_id, editor } = this.requestData
                 const filterObj = {
                     limit,
-                    category,
                     creator,
+                    editor,
                     page: current,
                     queryTime: queryTime && queryTime.every(item => item) ? queryTime.join(',') : '',
-                    keyword: flowName,
-                    id
+                    flowName,
+                    template_id
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {

@@ -17,7 +17,7 @@
                         ref="searchSelect"
                         id="periodicList"
                         placeholder="ID/任务名/创建人/更新人/状态"
-                        :value="searchSelectValue"
+                        v-model="searchSelectValue"
                         :search-list="searchList"
                         @change="handleSearchValueChange">
                     </search-select>
@@ -188,11 +188,11 @@
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     const SEARCH_LIST = [
         {
-            id: 'id',
+            id: 'task_id',
             name: 'ID'
         },
         {
-            id: 'keyword',
+            id: 'taskName',
             name: i18n.t('任务名'),
             isDefaultOption: true
         },
@@ -285,8 +285,8 @@
                 limit = 15,
                 creator = '',
                 editor = '',
-                executeTime = '',
-                keyword = '',
+                queryTime = '',
+                taskName = '',
                 task_id = '',
                 state = ''
             } = this.$route.query
@@ -306,11 +306,8 @@
                 }
                 return acc
             }, [])
-            if (task_id) {
-                searchSelectValue.push({ id: 'id', name: 'ID', values: [task_id] })
-            }
-            if (executeTime) {
-                const values = executeTime.split(',')
+            if (queryTime) {
+                const values = queryTime.split(',')
                 searchSelectValue.push({ id: 'dateRange', name: '创建时间', values })
             }
             return {
@@ -320,9 +317,9 @@
                 requestData: {
                     creator,
                     editor,
-                    executeTime: executeTime ? executeTime.split(',') : ['', ''],
-                    taskName: keyword,
-                    id: task_id,
+                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
+                    taskName,
+                    task_id,
                     state
                 },
                 pagination: {
@@ -349,7 +346,7 @@
                 isShowSideslider: false,
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
                 searchSelectValue,
-                dateTimeRange: executeTime.split(',')
+                dateTimeRange: queryTime ? queryTime.split(',') : []
             }
         },
         computed: {
@@ -385,22 +382,22 @@
             async getClockedTaskList () {
                 try {
                     this.listLoading = true
-                    const { creator, executeTime, taskName, id, editor, state } = this.requestData
+                    const { creator, queryTime, taskName, task_id, editor, state } = this.requestData
                     const params = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         creator: creator || undefined,
-                        task_name__contains: taskName || undefined,
-                        id: id || undefined,
+                        task_name__icontains: taskName || undefined,
+                        id: task_id || undefined,
                         editor: editor || undefined,
                         state: state || undefined
                     }
                     if (!this.admin) {
                         params.project_id = this.project_id
                     }
-                    if (executeTime && executeTime[0] && executeTime[1]) {
-                        params['plan_start_time__gte'] = moment.tz(executeTime[0], this.timeZone).format('YYYY-MM-DD hh:mm:ss')
-                        params['plan_start_time__lte'] = moment.tz(executeTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD hh:mm:ss')
+                    if (queryTime && queryTime[0] && queryTime[1]) {
+                        params['plan_start_time__gte'] = moment.tz(queryTime[0], this.timeZone).format('YYYY-MM-DD hh:mm:ss')
+                        params['plan_start_time__lte'] = moment.tz(queryTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD hh:mm:ss')
                     }
                     const resp = await this.loadClockedList(params)
                     this.pagination.count = resp.data.count
@@ -454,13 +451,12 @@
             handleSearchValueChange (data) {
                 data = data.reduce((acc, cur) => {
                     if (cur.id === 'dateRange') {
-                        acc['executeTime'] = cur.values
-                    } else if (cur.id === 'keyword') {
-                        acc['taskName'] = cur.values[0]
-                    } else if (cur.values.length > 1) {
+                        acc['queryTime'] = cur.values
+                    } else if (cur.multiable) {
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
-                        acc[cur.id] = cur.values[0].id || cur.values[0]
+                        const value = cur.values[0]
+                        acc[cur.id] = cur.children ? value.id : value
                     }
                     return acc
                 }, {})
@@ -498,22 +494,22 @@
             handleDateTimeFilter (date = []) {
                 this.dateTimeRange = date
                 const index = this.searchSelectValue.findIndex(item => item.id === 'dateRange')
-                if (index > -1) {
-                    if (date.length) {
+                if (date.length) {
+                    if (index > -1) {
                         this.searchSelectValue[index].values = date
                     } else {
-                        this.searchSelectValue.splice(index, 1)
+                        const info = {
+                            id: 'dateRange',
+                            name: '创建时间',
+                            values: date
+                        }
+                        this.searchSelectValue.push(info)
+                        // 添加搜索记录
+                        const searchDom = this.$refs.searchSelect
+                        searchDom && searchDom.addSearchRecord(info)
                     }
-                } else {
-                    const info = {
-                        id: 'dateRange',
-                        name: '创建时间',
-                        values: date
-                    }
-                    this.searchSelectValue.push(info)
-                    // 添加搜索记录
-                    const searchDom = this.$refs.searchSelect
-                    searchDom && searchDom.addSearchRecord(info)
+                } else if (index > -1) {
+                    this.searchSelectValue.splice(index, 1)
                 }
             },
             // 表格功能选项
@@ -529,14 +525,14 @@
             // 更新路径
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { creator, executeTime, taskName, id, state, editor } = this.requestData
+                const { creator, queryTime, taskName, task_id, state, editor } = this.requestData
                 const filterObj = {
                     limit,
                     creator,
-                    executeTime: executeTime && executeTime.every(item => item) ? executeTime.join(',') : '',
+                    queryTime: queryTime && queryTime.every(item => item) ? queryTime.join(',') : '',
                     page: current,
-                    keyword: taskName,
-                    task_id: id,
+                    taskName,
+                    task_id,
                     state,
                     editor
                 }

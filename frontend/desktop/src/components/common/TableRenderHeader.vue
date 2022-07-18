@@ -37,6 +37,7 @@
 
 <script>
     export default {
+        name: 'TableRenderHeader',
         props: {
             name: {
                 type: String,
