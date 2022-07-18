@@ -255,7 +255,10 @@
                     if (this.$refs.TaskParamEdit) {
                         const variables = await this.$refs.TaskParamEdit.getVariableData()
                         for (const key in variables) {
-                            formData[key] = variables[key].value
+                            const value = variables[key]
+                            if (value.source_type !== 'component_outputs' && value.show_type === 'show') {
+                                formData[key] = value.value
+                            }
                         }
                     }
                     const data = {

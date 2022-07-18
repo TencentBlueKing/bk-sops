@@ -143,6 +143,9 @@
                             <p v-if="formData.is_latest === null" class="schema-disable-tip">
                                 {{ $t('当前任务为旧数据，仅记录已选节点，强制更新后可选执行方案并获得提示更新能力') }}
                             </p>
+                            <p v-if="hasDeleteScheme" class="schema-disable-tip">
+                                {{ $t('选中的执行方案被删除，请重新选择执行方案') }}
+                            </p>
                         </bk-form-item>
                         <p class="title">{{$t('任务信息')}}</p>
                         <bk-form-item :label="$t('任务名称')" :required="true" property="taskName" data-test-id="periodicEdit_form_taskName">
@@ -349,7 +352,8 @@
                     limit: 15
                 },
                 flowName: '',
-                isTplDeleted: false // 旧数据模板是否被删除
+                isTplDeleted: false, // 旧数据模板是否被删除
+                hasDeleteScheme: false // 是否存在执行方案被删除
             }
         },
         computed: {
@@ -369,6 +373,9 @@
                 return this.isEdit ? i18n.t('编辑周期任务') : i18n.t('创建周期任务')
             },
             previewScheme () {
+                if (this.formData.is_latest === null) {
+                    return ''
+                }
                 const schemeId = this.formData.schemeId
                 if (!schemeId.length) return ''
                 const schemeNames = this.schemeList.reduce((acc, cur) => {
@@ -399,7 +406,7 @@
             if (this.isEdit) {
                 this.periodicConstants = tools.deepClone(this.constants)
                 const id = this.curRow.template_id
-                this.onSelectTemplate(id)
+                this.getTemplateDate(id)
             } else {
                 this.templateLoading = true
                 this.getTemplateList()
@@ -485,7 +492,7 @@
                 this.schemeList = []
                 this.constants = {}
             },
-            async onSelectTemplate (id) {
+            async getTemplateDate (id) {
                 // 获取模板详情
                 try {
                     this.templateDataLoading = true
@@ -528,6 +535,10 @@
                     this.templateDataLoading = false
                 }
             },
+            onSelectTemplate (id) {
+                this.formData.schemeId = []
+                this.getTemplateDate(id)
+            },
             async getTemplateScheme () {
                 this.schemeLoading = true
                 try {
@@ -560,9 +571,11 @@
             // 获取默认方案列表
             async loadDefaultSchemeList () {
                 try {
+                    const common = this.curRow.template_source === 'common'
                     const resp = await this.getDefaultTaskScheme({
                         project_id: this.project_id,
-                        template_id: this.formData.template_id
+                        template_id: this.formData.template_id,
+                        template_type: common ? 'common' : undefined
                     })
                     if (resp.data.length) {
                         const { scheme_ids: schemeIds } = resp.data[0]
@@ -579,6 +592,9 @@
                 const lastId = options.length ? options[options.length - 1].id : undefined
                 ids = lastId === 0 ? [0] : lastId ? ids.filter(id => id) : ids
                 this.formData.schemeId = ids
+                if (options.length) {
+                    this.hasDeleteScheme = false // 清除执行方案被删除提示
+                }
                 if (ids.length) {
                     const nodeList = this.schemeList.reduce((acc, cur) => {
                         if (ids.includes(cur.id)) {
@@ -1012,6 +1028,7 @@
         display: -webkit-box;
         -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
+        white-space: nowrap;
     }
     .scheme-wrapper {
         display: flex;

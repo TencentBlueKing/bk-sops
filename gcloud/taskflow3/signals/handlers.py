@@ -77,11 +77,8 @@ def _send_node_fail_message(node_id, pipeline_id):
 
     try:
         activity = taskflow.get_act_web_info(node_id)
-        # is not activity
-        if not activity:
-            return
-        activity_name = activity["name"]
-        send_taskflow_message.delay(task_id=taskflow.id, msg_type=ATOM_FAILED, node_name=activity_name)
+        node_name = activity["name"] if activity else node_id
+        send_taskflow_message.delay(task_id=taskflow.id, msg_type=ATOM_FAILED, node_name=node_name)
     except Exception as e:
         logger.exception("pipeline_fail_handler[taskflow_id=%s] task delay error: %s" % (taskflow.id, e))
 

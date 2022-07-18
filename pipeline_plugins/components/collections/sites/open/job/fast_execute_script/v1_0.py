@@ -228,8 +228,10 @@ class JobFastExecuteScriptService(JobService):
 
             if not selected_script:
                 api_name = "jobv3.get_script_list" if script_source == "general" else "jobv3.get_public_script_list"
-                message = job_handle_api_error(api_name, job_kwargs, script_list)
-                message += "Data validation error: can not find a script exactly named {}".format(script_name)
+                message = (
+                    f"Data validation error: can not find a script exactly named "
+                    f"{script_name} in {[script['name'] for script in script_list]} via api {api_name}"
+                )
                 self.logger.error(message)
                 data.outputs.ex_data = message
                 return False

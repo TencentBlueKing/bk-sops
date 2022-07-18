@@ -4,23 +4,24 @@ Get functionalization task list, support filtering with functionalization task s
 
 #### Request Parameters
 
-| Field         | Type   | Required | Description                                                  |
-| ------------- | ------ | -------- | ------------------------------------------------------------ |
-| bk_app_code   | string | YES      | APP ID                                                       |
+| Field         | Type   | Required | Description                                                                                         |
+|---------------|--------|----------|-----------------------------------------------------------------------------------------------------|
+| bk_app_code   | string | YES      | APP ID                                                                                              |
 | bk_app_secret | string | YES      | APP Secret(APP TOKEN), which can be got via BlueKing Developer Center -> Click APP ID -> Basic Info |
-| bk_token      | string | NO       | Current user login token, bk_token or bk_username must be valid, bk_token can be got by Cookie |
-| bk_username   | string | NO       | Current user username, APP in the white list, can use this field to specify the current user |
+| bk_token      | string | NO       | Current user login token, bk_token or bk_username must be valid, bk_token can be got by Cookie      |
+| bk_username   | string | NO       | Current user username, APP in the white list, can use this field to specify the current user        |
 
 #### Interface Parameters
 
-| Field      | Type   | Required | Description                                                  |
-| ---------- | ------ | -------- | ------------------------------------------------------------ |
-| status     | string | NO       | functionalization task status. (submitted, claimed, rejected, executed, finished) |
-| id_in      | string | NO       | functionalization task id list for filtering, separated by `,` |
-| task_id_in | string | NO       | original task id list for filtering, separated by `,`（corresponding to "Task ID" in the web page） |
-| expected_timezone | string | NO | expected timezone of time related field in response, e.g. Asia/Shanghai |
-| limit      | int    | NO       | pagination, the number of tasks in the task list in each result. default is 100 |
-| offset     | int    | NO       | pagination, the start index of task in the task list in each result. default is 0 |
+| Field             | Type   | Required | Description                                                                                       |
+|-------------------|--------|----------|---------------------------------------------------------------------------------------------------|
+| status            | string | NO       | functionalization task status. (submitted, claimed, rejected, executed, finished)                 |
+| id_in             | string | NO       | functionalization task id list for filtering, separated by `,`                                    |
+| task_id_in        | string | NO       | original task id list for filtering, separated by `,`（corresponding to "Task ID" in the web page） |
+| expected_timezone | string | NO       | expected timezone of time related field in response, e.g. Asia/Shanghai                           |
+| project_id        | int    | NO       | project id for filtering, only support sops project id, not ccid                                  |
+| limit             | int    | NO       | pagination, the number of tasks in the task list in each result. default is 100                   |
+| offset            | int    | NO       | pagination, the start index of task in the task list in each result. default is 0                 |
 
 ### Request Parameters Example
 

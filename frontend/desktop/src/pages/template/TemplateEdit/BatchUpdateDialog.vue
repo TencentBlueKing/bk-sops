@@ -93,6 +93,7 @@
                             <div class="outputs-wrapper">
                                 <output-params
                                     v-if="subflow.latestForm.outputs.length"
+                                    ref="outputParams"
                                     :constants="localConstants"
                                     :params="subflow.latestForm.outputs"
                                     :version="subflow.latestForm.version"
@@ -126,6 +127,19 @@
                 <bk-button @click="onCloseDialog(false)">{{ $t('取消') }}</bk-button>
             </div>
         </div>
+        <bk-dialog
+            width="480"
+            ext-cls="cancel-global-variable-dialog"
+            header-position="left"
+            :mask-close="false"
+            :value="isCancelGloVarDialogShow"
+            :title="$t('取消变量引用')">
+            <p style="word-break: break-all;">{{ $t('全局变量【 x 】的引用数已为 0。如果不再使用，可立即删除变量; 也可以稍后在全局变量面板中删除', { key: unhookingVarForm.key })}}</p>
+            <template slot="footer">
+                <bk-button theme="primary" @click="varReferenceDialogClick(true)">{{ $t('删除变量') }}</bk-button>
+                <bk-button @click="varReferenceDialogClick(false)">{{ $t('以后再说') }}</bk-button>
+            </template>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -161,14 +175,18 @@
             return {
                 subflowFormsLoading: false,
                 subflowForms: [],
-                localConstants: tools.deepClone(this.$store.state.template.constants) // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
+                localConstants: tools.deepClone(this.$store.state.template.constants), // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
+                isCancelGloVarDialogShow: false,
+                variableCited: {},
+                unhookingVarForm: {} // 正被取消勾选的表单配置
             }
         },
         computed: {
             ...mapState({
                 'activities': state => state.template.activities,
                 'constants': state => state.template.constants,
-                'internalVariable': state => state.template.internalVariable.variables,
+                'gateways': state => state.template.gateways,
+                'internalVariable': state => state.template.internalVariable,
                 'pluginConfigs': state => state.atomForm.config
             }),
             expiredTplNum () {
@@ -189,7 +207,8 @@
                 'setSubprocessUpdated'
             ]),
             ...mapActions('template', [
-                'getBatchForms'
+                'getBatchForms',
+                'getVariableCite'
             ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig',
@@ -221,12 +240,14 @@
 
                         for (const key in latestForm.form) {
                             const latestFormItem = latestForm.form[key]
+                            latestFormItem.id = id
                             if (!currentForm.form.hasOwnProperty(key) || latestFormItem.version !== currentForm.form[key].version) {
                                 latestFormItem.status = 'added' // 标记最新版本子流程输入参数表单项是否为新增
                             }
                         }
                         latestForm.outputs.forEach(latestFormItem => {
                             const currentFormItem = currentForm.outputs.find(item => item.key === latestFormItem.key && item.version === latestFormItem.version)
+                            latestFormItem.id = id
                             if (!currentFormItem) {
                                 latestFormItem.status = 'added' // 标记最新版本子流程输出参数表单项是否为新增
                             }
@@ -428,8 +449,8 @@
                 }
             },
             // 更新全局变量的 source_info
-            setVariableSourceInfo (data) {
-                const { type, id, key, tagCode } = data
+            async setVariableSourceInfo (data) {
+                const { type, id, key, tagCode, source } = data
                 const constant = this.localConstants[key]
                 if (!constant) return
                 const sourceInfo = constant.source_info
@@ -440,35 +461,71 @@
                         this.$set(sourceInfo, id, [tagCode])
                     }
                 } else if (type === 'delete') {
-                    if (sourceInfo[id].length <= 1) {
-                        this.$delete(sourceInfo, id)
-                    } else {
-                        let atomIndex
-                        sourceInfo[id].some((item, index) => {
-                            if (item === tagCode) {
-                                atomIndex = index
-                                return true
-                            }
-                        })
-                        sourceInfo[id].splice(atomIndex, 1)
+                    this.unhookingVarForm = { ...data, value: constant.value }
+                    if (!Object.keys(this.variableCited).length) {
+                        this.variableCited = await this.getVariableCitedData(id) || {}
                     }
-                    if (!Object.keys(sourceInfo).length) {
-                        this.deleteVariable(key)
+                    const { activities, conditions, constants } = this.variableCited[key]
+                    const citedNum = activities.length + conditions.length + constants.length
+                    if (citedNum <= 1) {
+                        this.isCancelGloVarDialogShow = true
+                    } else {
+                        if (sourceInfo[id].length <= 1) {
+                            this.$delete(sourceInfo, id)
+                        } else {
+                            let atomIndex
+                            sourceInfo[id].some((item, index) => {
+                                if (item === tagCode) {
+                                    atomIndex = index
+                                    return true
+                                }
+                            })
+                            sourceInfo[id].splice(atomIndex, 1)
+                        }
+                        const index = this.subflowForms.findIndex(item => item.id === id)
+                        const refDoms = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
+                        refDoms && refDoms[index].setFromData()
                     }
                 }
             },
-            // 删除全局变量
-            deleteVariable (key) {
-                const constant = this.localConstants[key]
-
-                for (const key in this.localConstants) {
-                    const varItem = this.localConstants[key]
-                    if (varItem.index > constant.index) {
-                        varItem.index = varItem.index - 1
+            async getVariableCitedData (nodeId) {
+                try {
+                    const nodeConfig = tools.deepClone(this.activities[nodeId])
+                    const nodeForm = this.subflowForms.find(item => item.id === nodeId)
+                    nodeConfig['constants'] = nodeForm.latestForm.form
+                    const activities = Object.assign({}, this.activities, { [nodeId]: nodeConfig })
+                    const data = {
+                        activities,
+                        gateways: this.gateways,
+                        constants: { ...this.internalVariable, ...this.localConstants }
                     }
+                    const resp = await this.getVariableCite(data)
+                    if (resp.result) {
+                        return resp.data.defined
+                    }
+                } catch (e) {
+                    console.log(e)
                 }
-
-                this.$delete(this.localConstants, key)
+            },
+            varReferenceDialogClick (confirm) {
+                const { key, source, id } = this.unhookingVarForm
+                if (confirm) {
+                    const constant = this.localConstants[key]
+                    for (const key in this.localConstants) {
+                        const varItem = this.localConstants[key]
+                        if (varItem.index > constant.index) {
+                            varItem.index = varItem.index - 1
+                        }
+                    }
+                    this.$delete(this.localConstants, key)
+                } else {
+                    const constant = this.localConstants[key]
+                    constant.source_info = {}
+                }
+                const index = this.subflowForms.findIndex(item => item.id === id)
+                const refDoms = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
+                refDoms && refDoms[index].setFromData({ ...this.unhookingVarForm })
+                this.isCancelGloVarDialogShow = false
             },
             updateInputsValue (subflowId, value) {
                 const subflow = this.subflowForms.find(item => item.id === subflowId)
@@ -819,6 +876,17 @@
         }
         .bk-dialog-body {
             padding: 0;
+        }
+    }
+    .cancel-global-variable-dialog {
+        .bk-dialog-header {
+            padding-bottom: 18px;
+            .bk-dialog-header-inner {
+                font-size: 20px;
+            }
+        }
+        .bk-dialog-body {
+            line-height: 24px;
         }
     }
 </style>

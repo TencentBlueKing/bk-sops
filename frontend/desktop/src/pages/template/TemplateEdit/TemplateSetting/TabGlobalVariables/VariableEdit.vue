@@ -81,7 +81,7 @@
                 </div>
                 <!-- 显示/隐藏 -->
                 <div class="form-item clearfix" v-if="!isInternalVal">
-                    <label>{{ $t('显示')}}</label>
+                    <label>{{ $t('执行时必填')}}</label>
                     <div class="form-content">
                         <bk-select
                             v-model="theEditingData.show_type"
@@ -99,10 +99,8 @@
                 </div>
                 <!-- 自动隐藏 -->
                 <div class="form-item clearfix" v-if="theEditingData.show_type === 'show' && !isInternalVal">
-                    <label
-                        class="form-label condition-tip"
-                        v-bk-tooltips.top="$t('满足触发条件的变量，在任务执行填参页面将自动隐藏。可用来实现特定条件下忽略必填参数')">
-                        {{ $t('自动隐藏')}}
+                    <label class="form-label ">
+                        <span v-bk-tooltips.top="$t('满足触发条件的变量，在任务执行填参页面将自动隐藏。可实现特定条件忽略必填参数')" class="condition-tip">{{ $t('条件隐藏')}}</span>
                     </label>
                     <div class="form-content">
                         <bk-select
@@ -110,8 +108,8 @@
                             :disabled="isViewMode || theEditingData.source_type === 'component_outputs'"
                             :clearable="false"
                             @change="onToggleHideCond">
-                            <bk-option id="true" :name="$t('是')"></bk-option>
-                            <bk-option id="false" :name="$t('否')"></bk-option>
+                            <bk-option id="true" :name="$t('开启')"></bk-option>
+                            <bk-option id="false" :name="$t('关闭')"></bk-option>
                         </bk-select>
                     </div>
                 </div>
@@ -119,10 +117,8 @@
                 <div
                     class="form-item clearfix"
                     v-if="theEditingData.show_type === 'show' && theEditingData.is_condition_hide === 'true'">
-                    <label
-                        class="form-label condition-tip"
-                        v-bk-tooltips.top="$t('所有变量值都会以字符串类型进行记录和判断，会忽略类型差异')">
-                        {{ $t('触发条件')}}
+                    <label class="form-label">
+                        <span v-bk-tooltips.top="$t('所有变量值都会以字符串类型进行记录和判断，会忽略类型差异')" class="condition-tip">{{ $t('触发条件')}}</span>
                     </label>
                     <div class="trigger-condition" @click="isShowErrorMsg = false">
                         <div class="condition-item" v-for="(item, index) in hideConditionList" :key="index">
@@ -160,10 +156,8 @@
                 </div>
                 <!-- 模板预渲染 -->
                 <div class="form-item clearfix" v-if="!isInternalVal">
-                    <label
-                        class="form-label condition-tip"
-                        v-bk-tooltips.top="$t('开启模板预渲染的变量在任务执行初始完成渲染，后续变量值保存不变，且不可引用输出变量')">
-                        {{ $t('模板预渲染')}}
+                    <label class="form-label">
+                        <span v-bk-tooltips.top="$t('设置为常量表示在任务执行最开始完成值的渲染，后续执行过程中值保存不变')" class="condition-tip">{{ $t('常量')}}</span>
                     </label>
                     <div class="form-content">
                         <bk-select
@@ -254,8 +248,8 @@
                 isHookedVar, // 是否为勾选生成的变量
                 currentValType,
                 showTypeList: [
-                    { id: 'show', name: i18n.t('显示') },
-                    { id: 'hide', name: i18n.t('隐藏') }
+                    { id: 'show', name: i18n.t('是') },
+                    { id: 'hide', name: i18n.t('否') }
                 ],
                 hideConditionList,
                 isShowErrorMsg: false,
@@ -642,8 +636,11 @@
             },
             // 变量类型切换
             onValTypeChange (val, oldValue) {
-                // 将上一个类型的填写的数据存起来
-                Object.assign(this.varTypeData, tools.deepClone(this.renderData))
+                // 将上一个类型的填写的数据存起来("集群模块IP选择器"的code与"ip选择器"code相同,需要单独处理)
+                const valData = oldValue === 'set_module_ip_selector'
+                    ? { set_module_ip_selector: tools.deepClone(this.renderData['ip_selector']) }
+                    : tools.deepClone(this.renderData)
+                Object.assign(this.varTypeData, valData)
                 // 将input textarea类型正则存起来
                 if (['input', 'textarea'].includes(oldValue)) {
                     this.inputRegexp = this.theEditingData.validation
@@ -658,7 +655,7 @@
                 })
                 if (val in this.varTypeData) {
                     const value = this.varTypeData[val]
-                    this.renderData = { [val]: value }
+                    this.renderData = { [val === 'set_module_ip_selector' ? 'ip_selector' : val]: value }
                 } else {
                     this.renderData = {}
                 }
@@ -935,14 +932,15 @@
         }
     }
     .condition-tip {
+        position: relative;
         line-height: 21px;
         &::after {
             content: '';
             position: absolute;
-            left: 10px;
-            bottom: 0;
+            left: 0;
+            bottom: -3px;
             border-top: 1px dashed #979ba5;
-            width: 50px;
+            width: 100%
         }
     }
     .trigger-condition {

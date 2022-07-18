@@ -100,7 +100,7 @@
                 <i
                     :class="['common-icon-render-skip render-skip-icon', { actived: !render, disabled: !option.formEdit || hook }]"
                     v-bk-tooltips="{
-                        content: !render ? $t('取消变量豁免') : $t('变量豁免'),
+                        content: !render ? $t('取消变量免渲染') : $t('变量免渲染'),
                         placement: 'bottom',
                         zIndex: 3000
                     }"
@@ -214,7 +214,7 @@
                 formValue,
                 i18n: {
                     hooked: gettext('取消变量引用'),
-                    cancelHook: gettext('变量引用')
+                    cancelHook: gettext('设置为变量')
                 }
             }
         },

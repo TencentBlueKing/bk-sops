@@ -121,8 +121,13 @@
                                             v-cursor="{ active: !hasPermission(getEditPerm(props.row), props.row.auth_actions) }"
                                             href="javascript:void(0);"
                                             :class="['periodic-bk-btn', {
+                                                'clocked-bk-disable': judgeOldCommonPeriodic(props.row),
                                                 'text-permission-disable': !hasPermission(getEditPerm(props.row), props.row.auth_actions)
                                             }]"
+                                            v-bk-tooltips.top="{
+                                                content: $t('不再支持周期任务使用公共流程，请使用项目流程'),
+                                                disabled: !hasPermission(getEditPerm(props.row), props.row.auth_actions) || !judgeOldCommonPeriodic(props.row)
+                                            }"
                                             data-test-id="periodicList_table_editBtn"
                                             @click="onModifyCronPeriodic(props.row, $event)">
                                             {{ $t('编辑') }}
@@ -642,10 +647,16 @@
                     console.log(e)
                 }
             },
+            judgeOldCommonPeriodic (row) {
+                return row.is_latest === null && row.template_source === 'common'
+            },
             async onModifyCronPeriodic (item) {
-                const { id: taskId, cron } = item
+                const { id: taskId, cron, is_latest, template_source } = item
                 if (!this.hasPermission(this.getEditPerm(item), item.auth_actions)) {
                     this.onPeriodicPermissonCheck(this.getEditPerm(item), item)
+                    return
+                }
+                if (is_latest === null && template_source === 'common') {
                     return
                 }
                 this.curRow = item
@@ -875,6 +886,10 @@
         padding: 5px;
         &.periodic-bk-disable {
             color:#cccccc;
+            cursor: not-allowed;
+        }
+        &.clocked-bk-disable {
+            color:#cccccc !important;
             cursor: not-allowed;
         }
     }

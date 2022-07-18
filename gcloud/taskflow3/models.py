@@ -961,19 +961,29 @@ class TaskFlowInstance(models.Model):
 
     def task_claim(self, username, constants, name):
         if self.flow_type != "common_func":
-            return {"result": False, "message": "task is not functional"}
+            return {"result": False, "message": "task is not functional", "data": None}
         elif self.current_flow != "func_claim":
-            return {"result": False, "message": "task with current_flow:%s cannot be claimed" % self.current_flow}
+            return {
+                "result": False,
+                "message": "task with current_flow:%s cannot be claimed" % self.current_flow,
+                "data": None,
+            }
 
-        with transaction.atomic():
-            if name:
-                self.pipeline_instance.name = name
-            self.set_task_constants(constants)
-            result = self.function_task.get(task=self).claim_task(username)
-            if result["result"]:
+        try:
+            with transaction.atomic():
+                if name:
+                    self.pipeline_instance.name = name
+                set_constants_result = self.set_task_constants(constants)
+                if not set_constants_result["result"]:
+                    raise Exception(set_constants_result["message"])
+                result = self.function_task.get(task=self).claim_task(username)
+                if not result["result"]:
+                    raise Exception(result["message"])
                 self.current_flow = "execute_task"
                 self.pipeline_instance.save()
                 self.save()
+        except Exception as e:
+            return {"result": False, "message": str(e), "data": None}
 
         return result
 
