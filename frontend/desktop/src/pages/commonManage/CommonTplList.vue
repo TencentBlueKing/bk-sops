@@ -64,7 +64,7 @@
                     <search-select
                         ref="searchSelect"
                         id="commonTplList"
-                        placeholder="ID/流程名称/标签/子流程更新/创建人/更新人"
+                        :placeholder="$t('ID/流程名称/标签/子流程更新/创建人/更新人')"
                         v-model="searchSelectValue"
                         :search-list="searchList"
                         @change="handleSearchValueChange">

@@ -39,8 +39,8 @@
                                 </li>
                             </ul>
                             <div class="popover-footer">
-                                <span class="footer-btn" @click="handleConfirm(item.id)">确定</span>
-                                <span class="footer-btn" @click="handleSelectPopHidden(item.id)">取消</span>
+                                <span class="footer-btn" @click="handleConfirm(item.id)">{{ $t('确定') }}</span>
+                                <span class="footer-btn" @click="handleSelectPopHidden(item.id)">{{ $t('取消') }}</span>
                             </div>
                         </div>
                     </bk-popover>
@@ -101,16 +101,16 @@
                                 </template>
                             </ul>
                             <div class="popover-footer" v-show="selectInfo.children && selectInfo.multiable">
-                                <span class="footer-btn" @click="selectOptionConfirm">确定</span>
-                                <span class="footer-btn" @click="selectOptionCancel">取消</span>
+                                <span class="footer-btn" @click="selectOptionConfirm">{{ $t('确定') }}</span>
+                                <span class="footer-btn" @click="selectOptionCancel">{{ $t('取消') }}</span>
                             </div>
                         </template>
                         <p v-else class="no-search-data">{{ '查询无数据' }}</p>
                         <!-- 最近搜索 -->
                         <dl class="recent-search-list" v-if="!selectInfo.children && recordsData.length">
                             <dt>
-                                <span class="label">最近搜索</span>
-                                <span class="clear" @click="onEmptyRecord">清空</span>
+                                <span class="label">{{ $t('最近搜索') }}</span>
+                                <span class="clear" @click="onEmptyRecord">{{ $t('清空') }}</span>
                             </dt>
                             <dd
                                 class="search-item"

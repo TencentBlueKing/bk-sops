@@ -17,7 +17,7 @@
                     <search-select
                         ref="searchSelect"
                         id="commonTplList"
-                        placeholder="ID/流程名/创建人/更新人"
+                        :placeholder="$('ID/流程名/创建人/更新人')"
                         v-model="searchSelectValue"
                         :search-list="searchList"
                         @change="handleSearchValueChange">

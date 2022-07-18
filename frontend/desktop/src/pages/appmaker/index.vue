@@ -24,7 +24,7 @@
                     <search-select
                         ref="searchSelect"
                         id="appList"
-                        placeholder="应用名/创建人"
+                        :placeholder="$t('应用名/创建人')"
                         v-model="searchSelectValue"
                         :search-list="searchList"
                         @change="handleSearchValueChange">
@@ -103,7 +103,7 @@
     const SEARCH_LIST = [
         {
             id: 'flowName',
-            name: '应用名',
+            name: i18n.t('应用名'),
             isDefaultOption: true
         },
         {

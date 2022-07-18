@@ -34,7 +34,7 @@
                         <search-select
                             ref="searchSelect"
                             id="taskList"
-                            placeholder="ID/任务名/创建人/执行人/任务类型/状态"
+                            :placeholder="$t('ID/任务名/创建人/执行人/任务类型/状态')"
                             v-model="searchSelectValue"
                             :search-list="searchList"
                             @change="handleSearchValueChange">

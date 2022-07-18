@@ -67,7 +67,7 @@
                     <search-select
                         ref="searchSelect"
                         id="templateList"
-                        placeholder="ID/流程名称/标签/更新人/创建人/子流程更新"
+                        :placeholder="$t('ID/流程名称/标签/更新人/创建人/子流程更新')"
                         v-model="searchSelectValue"
                         :search-list="searchList"
                         @change="handleSearchValueChange">

@@ -17,7 +17,7 @@
                     <search-select
                         ref="searchSelect"
                         id="auditList"
-                        placeholder="ID/任务名/所属项目/创建人/执行人/状态"
+                        :placeholder="$t('ID/任务名/所属项目/创建人/执行人/状态')"
                         v-model="searchSelectValue"
                         :search-list="searchList"
                         @change="handleSearchValueChange">
