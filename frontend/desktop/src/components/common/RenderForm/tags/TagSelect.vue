@@ -283,28 +283,12 @@
             if (this.multiple) {
                 this.selectInputDom = document.querySelector('.el-select .el-select__input')
                 if (!this.selectInputDom) return
-                this.selectInputDom.addEventListener('paste', (event) => {
-                    event.preventDefault()
-                    let paste = (event.clipboardData || window.clipboardData).getData('text')
-                    paste = paste.replace(/\\(t|s)/g, ' ')
-                    const selection = window.getSelection()
-                    if (!selection.rangeCount) return false
-                    paste = paste.split(/,|;|\s+/).filter(item => item)
-                    const matchVal = []
-                    this.items.forEach(item => {
-                        if (paste.includes(item.text)) {
-                            matchVal.push(item.value)
-                        }
-                    })
-                    const setArr = [...this.value, ...matchVal]
-                    this.updateForm([...new Set(setArr)])
-                    this.$refs.selectComp.blur()
-                })
+                this.selectInputDom.addEventListener('paste', this.handleSelectPaste)
             }
         },
         beforeDestroy () {
             if (this.selectInputDom) {
-                this.selectInputDom.removeEventListener('paste')
+                this.selectInputDom.removeEventListener('paste', this.handleSelectPaste)
             }
         },
         methods: {
@@ -366,6 +350,37 @@
             },
             onClear () {
                 this.updateForm([])
+            },
+            handleSelectPaste (event) {
+                let paste = (event.clipboardData || window.clipboardData).getData('text')
+                paste = paste.replace(/\\(t|s)/g, ' ')
+                const selection = window.getSelection()
+                if (!selection.rangeCount) return false
+                paste = paste.split(/,|;|\s+/).filter(item => item)
+                if (paste.length > 1) { // 粘贴多个时才禁用默认行为
+                    event.preventDefault()
+                }
+                const matchVal = []
+                // 粘贴时先判断是否完全匹配，再忽略大小写匹配
+                const texts = this.items.map(option => option.text)
+                paste.forEach(item => {
+                    const iaMatch = texts.includes(item)
+                    const option = this.items.find(option => {
+                        return iaMatch ? option.text === item : item.toLowerCase() === option.text.toLowerCase()
+                    })
+                    if (option) {
+                        matchVal.push(option.value)
+                    }
+                })
+                // 单个场景，完全匹配的直接填上，否则执行搜索逻辑
+                if (paste.length === 1 && matchVal.length === 0) {
+                    return
+                }
+                if (this.multiple) {
+                    const setArr = [...this.value, ...matchVal]
+                    this.updateForm([...new Set(setArr)])
+                }
+                this.$refs.selectComp.blur()
             }
         }
     }

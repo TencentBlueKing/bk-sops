@@ -686,6 +686,7 @@
                 this.loadNodeInfo()
             },
             onSelectNode (nodeHeirarchy, selectNodeId, nodeType) {
+                this.editScrollDom = null
                 this.$emit('onClickTreeNode', nodeHeirarchy, selectNodeId, nodeType)
             },
             onRetryClick () {

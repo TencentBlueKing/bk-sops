@@ -183,6 +183,7 @@ if env.BKAPP_PYINSTRUMENT_ENABLE:
     MIDDLEWARE += ("pyinstrument.middleware.ProfilerMiddleware",)
 
 MIDDLEWARE = (
+    "gcloud.core.middlewares.HttpRedirectMiddleware",
     "gcloud.core.middlewares.TraceIDInjectMiddleware",
     "weixin.core.middlewares.WeixinProxyPatchMiddleware",
 ) + MIDDLEWARE
@@ -199,7 +200,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.24.0"
+STATIC_VERSION = "3.24.4"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -737,3 +738,9 @@ PAASV3_APIGW_API_TOKEN = env.PAASV3_APIGW_API_TOKEN
 
 # requests请求尝试重试次数
 REQUEST_RETRY_NUMBER = env.REQUEST_RETRY_NUMBER
+
+# 请求默认重定向配置
+NEED_HTTP_REDIRECT = env.NEED_HTTP_REDIRECT
+DEFAULT_REDIRECT_HOST = env.DEFAULT_REDIRECT_HOST
+REDIRECT_HOSTS = env.REDIRECT_HOSTS.split(",") if env.REDIRECT_HOSTS else []
+NOT_REDIRECT_HOSTS = env.NOT_REDIRECT_HOSTS.split(",") if env.NOT_REDIRECT_HOSTS else []

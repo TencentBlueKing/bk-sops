@@ -575,7 +575,7 @@
                         }
                     })
                     this.atomList = this.handleAtomVersionOrder(atomList)
-                    this.handleAtomGroup(atomList)
+                    this.handleAtomGroup(tools.deepClone(this.atomList))
                     this.markNodesPhase()
                 } catch (e) {
                     console.log(e)
@@ -609,7 +609,18 @@
                     if (this.type === 'clone') {
                         templateData.name = templateData.name.slice(0, STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH - 6) + '_clone'
                     }
-                    this.setTemplateData(templateData)
+                    // 登录成功后，使用最新的快照模板
+                    if (localStorage.getItem('useSnapshot') && this.snapshoots.length) {
+                        localStorage.removeItem('useSnapshot')
+                        const data = this.snapshoots[0]
+                        this.replaceTemplate(data.template)
+                        this.$bkMessage({
+                            'message': i18n.t('存在未保存内容，已自动载入'),
+                            'theme': 'success'
+                        })
+                    } else {
+                        this.setTemplateData(templateData)
+                    }
                 } catch (e) {
                     if (e.status === 404) {
                         this.$router.push({ name: 'notFoundPage' })
@@ -879,7 +890,7 @@
              */
             handleAtomVersionOrder (atomList) {
                 return atomList.map(atom => {
-                    const index = atom.list.find(item => item.version === 'legacy')
+                    const index = atom.list.findIndex(item => item.version === 'legacy')
                     const list = atom.list.slice(0)
                     const legacyList = []
                     if (index > -1) {

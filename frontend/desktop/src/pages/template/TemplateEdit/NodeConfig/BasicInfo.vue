@@ -49,7 +49,7 @@
             <bk-form-item :label="$t('步骤名称')" data-test-id="templateEdit_form_stageName" property="stageName">
                 <bk-input :readonly="isViewMode" v-model="formData.stageName" @change="updateData"></bk-input>
             </bk-form-item>
-            <bk-form-item :label="$t('节点标签')" data-test-id="templateEdit_form_nodeLabel" property="label">
+            <!-- <bk-form-item :label="$t('节点标签')" data-test-id="templateEdit_form_nodeLabel" property="label">
                 <bk-search-select
                     primary-key="code"
                     :ext-cls="isViewMode ? 'disabled-search' : ''"
@@ -62,7 +62,7 @@
                     @change="onLabelChange"
                     @clear="onLabelClear">
                 </bk-search-select>
-            </bk-form-item>
+            </bk-form-item> -->
             <bk-form-item :label="$t('失败处理')">
                 <div class="error-handle">
                     <bk-checkbox

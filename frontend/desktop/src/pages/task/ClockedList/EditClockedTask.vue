@@ -123,6 +123,9 @@
                             <p v-if="type === 'clone' && ('exclude_task_nodes_id' in curRow.task_parameters)" class="schema-disable-tip">
                                 {{ $t('旧数据计划任务克隆，不再记录已排除节点，请重选执行方案') }}
                             </p>
+                            <p v-if="hasDeleteScheme" class="schema-disable-tip">
+                                {{ $t('选中的执行方案被删除，请重新选择执行方案') }}
+                            </p>
                         </bk-form-item>
                         <p class="title">{{$t('任务信息')}}</p>
                         <bk-form-item :label="$t('计划名称')" :required="true" property="taskName" data-test-id="clockedEdit_form_taskName">
@@ -356,7 +359,8 @@
                 },
                 locTimeZone: '', // 本地时区
                 flowName: '',
-                isTplDeleted: false // 旧数据模板是否被删除
+                isTplDeleted: false, // 旧数据模板是否被删除
+                hasDeleteScheme: false // 是否存在执行方案被删除
             }
         },
         computed: {
@@ -419,6 +423,7 @@
             if (this.type !== 'create') {
                 const id = this.curRow.template_id
                 this.onSelectTemplate(id)
+                this.getTemplateData(id)
             } else {
                 this.templateLoading = true
                 this.getTemplateList()
@@ -501,7 +506,7 @@
                 this.schemeList = []
                 this.constants = {}
             },
-            async onSelectTemplate (id) {
+            async getTemplateData (id) {
                 // 获取模板详情
                 try {
                     this.templateDataLoading = true
@@ -516,14 +521,8 @@
                     this.templateData = Object.assign({}, templateData, { pipeline_tree: pipelineDate })
                     // 获取模板对应的执行方案
                     await this.getTemplateScheme()
-                    if (this.formData.schemeId.length) {
-                        this.onSelectScheme(this.formData.schemeId, [])
-                    } else {
-                        this.selectedNodes = Object.keys(pipelineDate.activities)
-                        // 新建模式拉取预览数据
-                        const templateInfo = this.templateList.find(item => item.id === id)
-                        this.getPreviewNodeData(id, templateInfo.version, true)
-                    }
+                    // 根据执行方案获取预览数据
+                    this.onSelectScheme(this.formData.schemeId)
                 } catch (e) {
                     // 判断模板是否为删除
                     if (e.status === 404) {
@@ -549,6 +548,10 @@
                     this.templateDataLoading = false
                 }
             },
+            onSelectTemplate (id) {
+                this.formData.schemeId = []
+                this.getTemplateData(id)
+            },
             async getTemplateScheme () {
                 this.schemeLoading = true
                 try {
@@ -570,8 +573,19 @@
                         idDefault: false,
                         name: '<' + i18n.t('不使用执行方案') + '>'
                     })
-                    if (this.type === 'create' && !this.formData.schemeId.length) {
+                    if (this.type === 'create') {
                         this.formData.schemeId = [0]
+                    } else if (this.formData.schemeId.length) {
+                        // 执行方案被删除逻辑
+                        this.hasDeleteScheme = false
+                        this.formData.schemeId = this.formData.schemeId.filter(id => {
+                            const isMatch = this.schemeList.some(item => item.id === Number(id))
+                            if (isMatch) {
+                                return true
+                            } else {
+                                this.hasDeleteScheme = true
+                            }
+                        })
                     }
                 } catch (e) {
                     console.log(e)
@@ -600,11 +614,14 @@
                 const { id: templateId, version } = this.templateData
                 this.getPreviewNodeData(templateId, version, true)
             },
-            onSelectScheme (ids, options) {
+            onSelectScheme (ids, options = []) {
                 // 切换执行方案时取消<不使用执行方案>
                 const lastId = options.length ? options[options.length - 1].id : undefined
                 ids = lastId === 0 ? [0] : lastId ? ids.filter(id => id) : ids
                 this.formData.schemeId = ids
+                if (options.length) {
+                    this.hasDeleteScheme = false // 清除执行方案被删除提示
+                }
                 if (ids.length) {
                     const nodeList = this.schemeList.reduce((acc, cur) => {
                         if (ids.includes(cur.id)) {
