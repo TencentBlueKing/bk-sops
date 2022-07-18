@@ -267,6 +267,7 @@
                     params: { ...params, type: 'edit' },
                     query
                 })
+                this.$parent.routerCount++
             },
             /**
              * 保存按钮，新建/保存并新建任务按钮点击
@@ -359,7 +360,7 @@
             goBackTplList () {
                 if (this.isTemplateDataChanged && this.type === 'edit') {
                     this.$emit('goBackViewMode') // 编辑态下返回上一个路由时先保存再back
-                } else if (window.history.length <= 1 || (this.type === 'view' && !this.saveAndCreate)) {
+                } else if (window.history.length <= 1) {
                     const { name } = this.$route
                     const url = name === 'projectCommonTemplatePanel'
                         ? { name: 'processCommon', params: { project_id: this.project_id } }
@@ -367,8 +368,11 @@
                             ? { name: 'commonProcessList' }
                             : { name: 'processHome', params: { project_id: this.project_id } }
                     this.$router.push(url)
+                } else if (['new', 'clone'].includes(this.$parent.initType) && this.$parent.routerCount === 1) {
+                    this.$router.go(-2)
                 } else {
                     this.$router.back() // 由模板页跳转进入需要保留分页参数
+                    this.$parent.routerCount--
                 }
             },
             goBackToTplEdit () {
