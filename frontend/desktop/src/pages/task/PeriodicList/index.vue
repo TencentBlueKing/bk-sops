@@ -538,12 +538,6 @@
                 }
                 return ['flow_view', 'periodic_task_edit']
             },
-            getEditPerm (row) {
-                if (row.template_source === 'common') {
-                    return ['common_flow_view', 'periodic_task_edit']
-                }
-                return ['flow_view', 'periodic_task_edit']
-            },
             /**
              * 单个周期任务操作项点击时校验
              * @params {Array} required 需要的权限
