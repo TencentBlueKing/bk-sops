@@ -102,7 +102,7 @@
                             :sortable="sortableCols.find(col => col.value !== 'pipeline_template__create_time' && col.value === (item.key || item.id)) ? 'custom' : false">
                             <template slot-scope="{ row }">
                                 <!--流程名称-->
-                                <div v-if="item.id === 'name'">
+                                <div v-if="item.id === 'name'" class="flow-name-column">
                                     <a
                                         data-test-id="process_table_collectBtn"
                                         v-cursor="{ active: !hasPermission(['flow_view'], row.auth_actions) }"
@@ -132,19 +132,53 @@
                                         </router-link>
                                     </template>
                                 </div>
-                                <div v-else-if="item.id === 'label'" class="label-column">
-                                    <template v-if="row.template_labels && row.template_labels.length > 0">
-                                        <span
-                                            v-for="label in row.template_labels"
-                                            class="label-name"
-                                            :key="label.id"
-                                            :style="{ background: label.color, color: darkColorList.includes(label.color) ? '#fff' : '#262e4f' }"
-                                            @click="onSearchLabel(label.label_id)">
-                                            {{ label.name }}
-                                        </span>
-                                    </template>
-                                    <span v-else>--</span>
-                                </div>
+                                <template v-else-if="item.id === 'label'">
+                                    <div
+                                        v-if="row.isSelectShow"
+                                        class="label-select"
+                                        v-bkloading="{ isLoading: row.labelLoading }"
+                                        v-bk-clickoutside="handleClickOutSide">
+                                        <bk-select
+                                            ref="labelSelect"
+                                            v-model="row.labelIds"
+                                            ext-popover-cls="label-select-popover"
+                                            :display-tag="true"
+                                            :multiple="true"
+                                            ext-cls="label-select"
+                                            @toggle="onToggleTplLabel">
+                                            <bk-option
+                                                v-for="(label, index) in templateLabels"
+                                                :key="index"
+                                                :id="label.id"
+                                                :name="label.name">
+                                                <div class="label-select-option">
+                                                    <span
+                                                        class="label-select-color"
+                                                        :style="{ background: label.color }">
+                                                    </span>
+                                                    <span>{{label.name}}</span>
+                                                    <i v-if="row.labelIds.includes(label.id)" class="bk-option-icon bk-icon icon-check-1"></i>
+                                                </div>
+                                            </bk-option>
+                                            <div slot="extension" @click="onEditLabel" class="label-select-extension" data-test-id="process_list__editLabel">
+                                                <i class="bk-icon icon-plus-circle"></i>
+                                                <span>{{ $t('编辑标签') }}</span>
+                                            </div>
+                                        </bk-select>
+                                    </div>
+                                    <div v-else class="label-column" @click="handleTempLabelClick(row)">
+                                        <template v-if="row.template_labels && row.template_labels.length > 0">
+                                            <span
+                                                v-for="label in row.template_labels"
+                                                class="label-name"
+                                                :key="label.id"
+                                                :style="{ background: label.color, color: darkColorList.includes(label.color) ? '#fff' : '#262e4f' }">
+                                                {{ label.name }}
+                                            </span>
+                                        </template>
+                                        <span v-else>--</span>
+                                    </div>
+                                </template>
                                 <!--子流程更新-->
                                 <div v-else-if="item.id === 'subprocess_has_update'" :class="['subflow-update', { 'subflow-has-update': row.subprocess_has_update }]">
                                     {{getSubflowContent(row)}}
@@ -287,13 +321,60 @@
                 {{$t('确认删除') + '"' + deleteTemplateName + '"' + '?' }}
             </div>
         </bk-dialog>
+        <bk-dialog
+            width="480"
+            ext-cls="common-dialog label-dialog"
+            header-position="left"
+            render-directive="if"
+            :mask-close="false"
+            :auto-close="false"
+            :title="$t('新建标签')"
+            :loading="labelLoading"
+            :value="labelDialogShow"
+            @confirm="editLabelConfirm"
+            @cancel="labelDialogShow = false">
+            <bk-form ref="labelForm" :model="labelDetail" :rules="labelRules">
+                <bk-form-item property="name" :label="$t('标签名称')" :required="true">
+                    <bk-input v-model="labelDetail.name"></bk-input>
+                </bk-form-item>
+                <bk-form-item property="color" :label="$t('标签颜色')" :required="true">
+                    <bk-dropdown-menu
+                        ref="dropdown"
+                        trigger="click"
+                        class="color-dropdown"
+                        @show="colorDropdownShow = true"
+                        @hide="colorDropdownShow = false">
+                        <div class="dropdown-trigger-btn" slot="dropdown-trigger">
+                            <span class="color-block" :style="{ background: labelDetail.color }"></span>
+                            <i :class="['bk-icon icon-angle-down',{ 'icon-flip': colorDropdownShow }]"></i>
+                        </div>
+                        <div class="color-list" slot="dropdown-content">
+                            <div class="tip">{{ $t('选择颜色') }}</div>
+                            <div>
+                                <span
+                                    v-for="color in colorList"
+                                    :key="color"
+                                    class="color-item color-block"
+                                    :style="{ background: color }"
+                                    @click="labelDetail.color = color">
+                                </span>
+                            </div>
+                        </div>
+                    </bk-dropdown-menu>
+                </bk-form-item>
+                <bk-form-item :label="$t('标签描述')">
+                    <bk-input type="textarea" v-model="labelDetail.description"></bk-input>
+                </bk-form-item>
+            </bk-form>
+        </bk-dialog>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
-    import { DARK_COLOR_LIST } from '@/constants/index.js'
+    import { DARK_COLOR_LIST, LABEL_COLOR_LIST } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
+    import dom from '@/utils/dom.js'
     import Skeleton from '@/components/skeleton/index.vue'
     import ImportDatTplDialog from './ImportDatTplDialog.vue'
     import ImportYamlTplDialog from './ImportYamlTplDialog.vue'
@@ -530,6 +611,34 @@
                     size: 'small'
                 },
                 categoryTips,
+                templateLabels: [],
+                labelDialogShow: false,
+                labelRules: {
+                    color: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    name: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        },
+                        {
+                            max: 50,
+                            message: i18n.t('标签名称不能超过') + 50 + i18n.t('个字符'),
+                            trigger: 'blur'
+                        }
+                    ]
+                },
+                labelDetail: {},
+                colorDropdownShow: false,
+                colorList: LABEL_COLOR_LIST,
+                labelLoading: false,
+                curSelectedRow: {},
                 searchList: tools.deepClone(SEARCH_LIST),
                 searchSelectValue,
                 dateTimeRange: queryTime ? queryTime.split(',') : []
@@ -603,7 +712,8 @@
                 'deleteCollect'
             ]),
             ...mapActions('template/', [
-                'loadProjectBaseInfo'
+                'loadProjectBaseInfo',
+                'saveTemplateData'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList',
@@ -616,10 +726,12 @@
             ...mapActions('project/', [
                 'getProjectLabelsWithDefault',
                 'getUserProjectConfigOptions',
-                'setUserProjectConfig'
+                'setUserProjectConfig',
+                'createTemplateLabel'
             ]),
             ...mapMutations('template/', [
-                'setProjectBaseInfo'
+                'setProjectBaseInfo',
+                'setTemplateData'
             ]),
             async initData () {
                 try {
@@ -639,7 +751,16 @@
                     const data = this.getQueryData()
                     let templateListData = {}
                     templateListData = await this.loadTemplateList(data)
-                    this.templateList = templateListData.results
+                    this.templateList = templateListData.results.map(item => {
+                        item.isSelectShow = false
+                        item.labelLoading = false
+                        if (item.template_labels && item.template_labels.length > 0) {
+                            item.labelIds = item.template_labels.map(label => label.label_id)
+                        } else {
+                            item.labelIds = []
+                        }
+                        return item
+                    })
                     this.pagination.count = templateListData.count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
@@ -723,6 +844,7 @@
                 try {
                     this.templateLabelLoading = true
                     const res = await this.getProjectLabelsWithDefault(this.project_id)
+                    this.templateLabels = res.data
                     
                     form.children = res.data.map(item => Object.assign({}, item, { value: item.id }))
                     // 因为标签列表是通过接口获取的，所以需要把路径上的标签添加进去
@@ -735,6 +857,98 @@
                     console.log(e)
                 } finally {
                     this.templateLabelLoading = false
+                }
+            },
+            onToggleTplLabel (val) {
+                if (val) {
+                    window.reportInfo({
+                        page: 'templateEdit',
+                        zone: 'selectLabel',
+                        event: 'click'
+                    })
+                }
+            },
+            handleTempLabelClick (row) {
+                this.curSelectedRow = tools.deepClone(row)
+                row.isSelectShow = true
+            },
+            handleClickOutSide (e) {
+                if (dom.parentClsContains('label-select-popover', e.target)) {
+                    return
+                }
+                this.saveTemplateLabels()
+            },
+            async saveTemplateLabels () {
+                const curRow = this.templateList.find(item => item.id === this.curSelectedRow.id)
+                const match = tools.isDataEqual(curRow.labelIds, this.curSelectedRow.labelIds)
+                if (match) {
+                    curRow.isSelectShow = false
+                    return
+                }
+                curRow.labelLoading = true
+                try {
+                    const { id, labelIds: template_labels } = curRow
+                    this.setTemplateData({ ...curRow, template_labels })
+                    const resp = await this.saveTemplateData({
+                        templateId: id,
+                        projectId: this.project_id,
+                        common: false
+                    })
+                    if (!resp.result) return
+                    // 前端修改对应模板的labels
+                    curRow.template_labels = this.templateLabels.reduce((acc, cur) => {
+                        const { id, name, color } = cur
+                        if (curRow.labelIds.includes(id)) {
+                            acc.push({ id, name, color })
+                        }
+                        return acc
+                    }, [])
+                    curRow.labelLoading = false
+                    this.$nextTick(() => {
+                        curRow.isSelectShow = false
+                    })
+                    this.$bkMessage({
+                        message: i18n.t('模板标签修改成功'),
+                        theme: 'success'
+                    })
+                } catch (error) {
+                    curRow.labelLoading = false
+                    console.warn(error)
+                }
+            },
+            onEditLabel () {
+                this.labelDetail = { color: '#1c9574', name: '', description: '' }
+                this.labelDialogShow = true
+            },
+            editLabelConfirm () {
+                if (this.labelLoading) {
+                    return
+                }
+                this.labelLoading = true
+                try {
+                    this.$refs.labelForm.validate().then(async result => {
+                        if (result) {
+                            const { project_id } = this.$route.params
+                            const data = {
+                                creator: this.username,
+                                project_id: Number(project_id),
+                                ...this.labelDetail
+                            }
+                            const resp = await this.createTemplateLabel(data)
+                            if (resp.result) {
+                                this.labelDialogShow = false
+                                this.$bkMessage({
+                                    message: i18n.t('标签新建成功'),
+                                    theme: 'success'
+                                })
+                                this.getProjectLabelList()
+                            }
+                        }
+                    })
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.labelLoading = false
                 }
             },
             onShowMoreOperation () {
@@ -1430,9 +1644,12 @@
             height: 42px;
         }
     }
+    .flow-name-column {
+        display: flex;
+        align-items: center;
+    }
     .icon-favorite {
         position: absolute;
-        top: 14px;
         left: -9px;
         font-size: 14px;
         color: #c4c6cc;
@@ -1446,17 +1663,27 @@
         color: $blueDefault;
     }
     .label-column {
-        display: table-cell;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        min-height: 41px;
+        width: 100%;
+        padding-left: 8px;
+        &:hover {
+            cursor: pointer;
+            background: #dcdee5;
+        }
+        .label-name {
+            margin: 4px 0 4px 4px;
+            padding: 2px 6px;
+            font-size: 12px;
+            color: #63656e;
+            border-radius: 8px;
+        }
     }
-    .label-name {
-        display: inline-block;
-        margin: 4px 0 4px 4px;
-        padding: 2px 6px;
-        font-size: 12px;
-        line-height: 1;
-        color: #63656e;
-        border-radius: 8px;
-        cursor: pointer;
+    .label-select {
+        width: 100%;
+        margin: 5px 0 4px;
     }
     .template-operation > .text-permission-disable {
         padding: 5px;

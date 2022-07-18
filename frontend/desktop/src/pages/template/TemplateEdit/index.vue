@@ -132,6 +132,7 @@
                     @modifyTemplateData="modifyTemplateData"
                     @createSnapshoot="onCreateSnapshoot"
                     @useSnapshoot="onUseSnapshoot"
+                    @updateTemplateLabelList="getTemplateLabelList"
                     @updateSnapshoot="onUpdateSnapshoot">
                 </template-setting>
             </div>
