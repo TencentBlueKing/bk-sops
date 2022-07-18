@@ -1415,7 +1415,20 @@ const en = {
     '确认离开当前页面吗？': '确认离开Are you sure to leave the current page?当前页面吗？',
     '离开将会丢失保存信息，建议保存后离开': 'If you leave, you will lose the saved information. It is recommended to save and leave.',
     '留在此页': 'Stay on this page',
-    '直接离开': 'Just leave'
+    '直接离开': 'Just leave',
+    '流程名': 'FlowName',
+    'ID/流程名称/标签/更新人/创建人/子流程更新': 'ID/FlowName/Label/Editor/Creator/SubprocessUpdated',
+    'ID/流程名/创建人/更新人': 'ID/FlowName/Creator/Editor',
+    '任务名': 'TaskName',
+    'ID/任务名/创建人/执行人/任务类型/状态': 'ID/TaskName/Creator/Executor/TaskTypes/Status',
+    'ID/任务名/创建人/更新人/状态': 'ID/TaskName/Creator/Editor/Status',
+    '应用名': 'AppName',
+    '应用名/创建人': 'AppName/Creator',
+    'ID/任务名/所属项目/提单人/认领人/认领状态/执行状态': 'ID/TaskName/Project/Creator/Claimant/ClaimStatus/ExecutionStatus',
+    'ID/任务名/所属项目/创建人/执行人/状态': 'ID/TaskName/Project/Creator/Executor/Status',
+    'ID/流程名称/标签/子流程更新/创建人/更新人': 'ID/FlowName/Label/SubprocessUpdated/Creator/Editor',
+    '最近搜索': 'Recent searches',
+    '查询无数据': 'Query no data'
 }
 
 export default en

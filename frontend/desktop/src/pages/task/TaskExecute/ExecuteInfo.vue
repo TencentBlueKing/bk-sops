@@ -382,6 +382,9 @@
                     // 任务节点需要加载标准插件
                     if (componentCode) {
                         await this.getNodeConfig(componentCode, version, inputs.plugin_version)
+                    } else if (this.location.type === 'subflow') { // 获取子流程配置详情
+                        const constants = this.pipelineData.constants
+                        this.renderConfig = await this.getSubflowInputsConfig(constants)
                     }
                     if (this.adminView) {
                         this.executeInfo = execution_info
@@ -592,6 +595,78 @@
                             theme: 'error'
                         })
                     }
+                }
+            },
+            /**
+             * 加载子流程输入参数表单配置项
+             * 遍历每个非隐藏的全局变量，由 source_tag、coustom_type 字段确定需要加载的标准插件
+             * 同时根据 source_tag 信息获取全局变量对应标准插件的某一个表单配置项
+             *
+             * @return {Array} 每个非隐藏全局变量对应表单配置项组成的数组
+             */
+            async getSubflowInputsConfig (subflowForms) {
+                const inputs = []
+                const variables = Object.keys(subflowForms)
+                    .map(key => subflowForms[key])
+                    .filter(item => item.show_type === 'show')
+                    .sort((a, b) => a.index - b.index)
+
+                await Promise.all(variables.map(async (variable) => {
+                    const { key } = variable
+                    const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
+                    const version = variable.version || 'legacy'
+                    const atomConfig = await this.getAtomConfig({ plugin: atom, version, classify, name })
+                    let formItemConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
+                    if (variable.is_meta || formItemConfig.meta_transform) {
+                        formItemConfig = formItemConfig.meta_transform(variable.meta || variable)
+                        if (!variable.meta) {
+                            variable.meta = tools.deepClone(variable)
+                            variable.value = formItemConfig.attrs.value
+                        }
+                    }
+                    // 特殊处理逻辑，针对子流程节点，如果为自定义类型的下拉框变量，默认开始支持用户创建不存在的选项配置项
+                    if (variable.custom_type === 'select') {
+                        formItemConfig.attrs.allowCreate = true
+                    }
+                    formItemConfig.tag_code = key
+                    formItemConfig.attrs.name = variable.name
+                    // 自定义输入框变量正则校验添加到插件配置项
+                    if (['input', 'textarea'].includes(variable.custom_type) && variable.validation !== '') {
+                        formItemConfig.attrs.validation.push({
+                            type: 'regex',
+                            args: variable.validation,
+                            error_message: i18n.t('默认值不符合正则规则：') + variable.validation
+                        })
+                    }
+                    // 参数填写时为保证每个表单 tag_code 唯一，原表单 tag_code 会被替换为变量 key，导致事件监听不生效
+                    if (formItemConfig.hasOwnProperty('events')) {
+                        formItemConfig.events.forEach(e => {
+                            if (e.source === tagCode) {
+                                e.source = '${' + e.source + '}'
+                            }
+                        })
+                    }
+                    inputs.push(formItemConfig)
+                }))
+                return inputs
+            },
+            /**
+             * 加载标准插件表单配置项文件
+             * 优先取 store 里的缓存
+             */
+            async getAtomConfig (config) {
+                const { plugin, version, classify, name } = config
+                try {
+                    // 先取标准节点缓存的数据
+                    const pluginGroup = this.atomFormConfig[plugin]
+                    if (pluginGroup && pluginGroup[version]) {
+                        return pluginGroup[version]
+                    }
+                    await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id: this.project_id })
+                    const config = $.atoms[plugin]
+                    return config
+                } catch (e) {
+                    console.log(e)
                 }
             },
             transformFailInfo (data) {

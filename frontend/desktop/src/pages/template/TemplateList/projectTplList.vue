@@ -17,37 +17,28 @@
                     :num="expiredSubflowTplList.length"
                     @viewClick="handleSubflowFilter">
                 </list-page-tips-title>
-                <advance-search-form
-                    ref="advanceSearch"
-                    id="templateList"
-                    :open="isSearchFormOpen"
-                    :search-form="searchForm"
-                    :search-config="{ placeholder: $t('请输入流程名称'), value: requestData.flowName }"
-                    @onSearchInput="onSearchInput"
-                    @submit="onSearchFormSubmit">
-                    <template v-slot:operation>
-                        <template>
-                            <bk-button
-                                v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
-                                theme="primary"
-                                :class="['create-template-btn', {
-                                    'btn-permission-disable': !hasPermission(['flow_create'], authActions)
-                                }]"
-                                data-test-id="process_form_creatProcess"
-                                @click="checkCreatePermission">
-                                {{$t('新建')}}
-                            </bk-button>
-                            <bk-dropdown-menu style="margin: 0 14px;">
-                                <div class="import-tpl-btn" slot="dropdown-trigger">
-                                    <span>{{ $t('导入') }}</span>
-                                    <i :class="['bk-icon icon-angle-down']"></i>
-                                </div>
-                                <ul class="import-option-list" slot="dropdown-content">
-                                    <li data-test-id="process_list_importDatFile" @click="isImportDialogShow = true">{{ $t('导入') }}DAT{{ $t('文件') }}</li>
-                                    <li data-test-id="process_list_importYamlFile" @click="isImportYamlDialogShow = true">{{ $t('导入') }}YAML{{ $t('文件') }}</li>
-                                </ul>
-                            </bk-dropdown-menu>
-                        </template>
+                <div class="search-wrapper mb20">
+                    <div class="operation-wrap">
+                        <bk-button
+                            v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
+                            theme="primary"
+                            :class="['create-template-btn', {
+                                'btn-permission-disable': !hasPermission(['flow_create'], authActions)
+                            }]"
+                            data-test-id="process_form_creatProcess"
+                            @click="checkCreatePermission">
+                            {{$t('新建')}}
+                        </bk-button>
+                        <bk-dropdown-menu style="margin: 0 14px;">
+                            <div class="import-tpl-btn" slot="dropdown-trigger">
+                                <span>{{ $t('导入') }}</span>
+                                <i :class="['bk-icon icon-angle-down']"></i>
+                            </div>
+                            <ul class="import-option-list" slot="dropdown-content">
+                                <li data-test-id="process_list_importDatFile" @click="isImportDialogShow = true">{{ $t('导入') }}DAT{{ $t('文件') }}</li>
+                                <li data-test-id="process_list_importYamlFile" @click="isImportYamlDialogShow = true">{{ $t('导入') }}YAML{{ $t('文件') }}</li>
+                            </ul>
+                        </bk-dropdown-menu>
                         <bk-dropdown-menu>
                             <div class="export-tpl-btn" slot="dropdown-trigger">
                                 <span>{{ $t('批量操作') }}</span>
@@ -72,16 +63,16 @@
                             {{ $t('已选择') }}{{ selectedTpls.length }}{{ $t('项') }}
                             <bk-link theme="primary" @click="selectedTpls = []">{{ $t('清空') }}</bk-link>
                         </div>
-                    </template>
-                    <template v-slot:search-extend>
-                        <bk-button
-                            class="my-create-btn"
-                            data-test-id="commonProcess_form_myCreateProcess"
-                            @click="handleMyCreateFilter">
-                            {{$t('我创建的')}}
-                        </bk-button>
-                    </template>
-                </advance-search-form>
+                    </div>
+                    <search-select
+                        ref="searchSelect"
+                        id="templateList"
+                        :placeholder="$t('ID/流程名称/标签/更新人/创建人/子流程更新')"
+                        v-model="searchSelectValue"
+                        :search-list="searchList"
+                        @change="handleSearchValueChange">
+                    </search-select>
+                </div>
                 <div class="template-table-content" data-test-id="process_table_processList">
                     <bk-table
                         ref="templateTable"
@@ -108,7 +99,7 @@
                             :min-width="item.min_width"
                             :render-header="renderTableHeader"
                             :sort-orders="['descending', 'ascending', null]"
-                            :sortable="sortableCols.find(col => col.value === (item.key || item.id)) ? 'custom' : false">
+                            :sortable="sortableCols.find(col => col.value !== 'pipeline_template__create_time' && col.value === (item.key || item.id)) ? 'custom' : false">
                             <template slot-scope="{ row }">
                                 <!--流程名称-->
                                 <div v-if="item.id === 'name'" class="flow-name-column">
@@ -390,7 +381,8 @@
     import ExportTemplateDialog from './ExportTemplateDialog.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
-    import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
+    import SearchSelect from '@/components/common/searchSelect/index.vue'
+    import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     import TableSettingContent from '@/components/common/TableSettingContent.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
@@ -398,53 +390,41 @@
 
     const categoryTips = i18n.t('模板分类即将下线，建议使用标签')
 
-    const SEARCH_FORM = [
+    const SEARCH_LIST = [
         {
-            type: 'select',
-            key: 'label_ids',
-            multiple: true,
-            label: i18n.t('标签'),
-            placeholder: i18n.t('请选择标签'),
-            list: [],
-            value: []
+            id: 'template_id',
+            name: 'ID'
         },
         {
-            type: 'dateRange',
-            key: 'queryTime',
-            placeholder: i18n.t('选择日期时间范围'),
-            label: i18n.t('更新时间'),
-            value: ['', '']
+            id: 'flowName',
+            name: i18n.t('流程名'),
+            isDefaultOption: true
         },
         {
-            type: 'select',
-            label: i18n.t('子流程更新'),
-            key: 'subprocessUpdateVal',
-            placeholder: i18n.t('请选择'),
-            list: [
-                { 'value': 1, name: i18n.t('是') },
-                { 'value': -1, name: i18n.t('否') },
-                { 'value': 0, name: i18n.t('无子流程') }
-            ],
-            value: ''
+            id: 'label_ids',
+            name: i18n.t('标签'),
+            children: [],
+            multiable: true
         },
         {
-            type: 'input',
-            key: 'creator',
-            label: i18n.t('创建人'),
-            placeholder: i18n.t('请输入创建人'),
-            value: ''
+            id: 'subprocessUpdateVal',
+            name: i18n.t('子流程更新'),
+            children: [
+                { id: 1, name: i18n.t('是') },
+                { id: -1, name: i18n.t('否') },
+                { id: 0, name: i18n.t('无子流程') }
+            ]
         },
         {
-            type: 'select',
-            label: i18n.t('分类'),
-            key: 'category',
-            loading: false,
-            placeholder: i18n.t('请选择分类'),
-            tips: categoryTips,
-            list: [],
-            value: ''
+            id: 'creator',
+            name: i18n.t('创建人')
+        },
+        {
+            id: 'editor',
+            name: i18n.t('更新人')
         }
     ]
+
     const TABLE_FIELDS = [
         {
             id: 'id',
@@ -505,7 +485,7 @@
             ImportYamlTplDialog,
             ExportTemplateDialog,
             ListPageTipsTitle,
-            AdvanceSearchForm,
+            SearchSelect,
             TableSettingContent,
             NoData
         },
@@ -517,25 +497,33 @@
             const {
                 page = 1,
                 limit = 15,
-                category = '',
                 queryTime = '',
                 subprocessUpdateVal = '',
                 creator = '',
-                keyword = '',
-                label_ids = ''
+                editor = '',
+                flowName = '',
+                label_ids = '',
+                template_id = ''
             } = this.$route.query
-            const searchForm = SEARCH_FORM.map(item => {
-                if (this.$route.query[item.key]) {
-                    if (Array.isArray(item.value)) {
-                        const value = this.$route.query[item.key].split(',')
-                        item.value = item.key === 'label_ids' ? value.map(v => Number(v)) : value
-                    } else {
-                        item.value = this.$route.query[item.key]
+            const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
+                const values_text = this.$route.query[cur.id]
+                if (values_text) {
+                    let values = []
+                    if (!cur.children) {
+                        values = [values_text]
+                        acc.push({ ...cur, values })
+                    } else if (cur.children.length) {
+                        const ids = values_text.split(',')
+                        values = cur.children.filter(item => ids.includes(String(item.id)))
+                        acc.push({ ...cur, values })
                     }
                 }
-                return item
-            })
-            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
+                return acc
+            }, [])
+            if (queryTime) {
+                const values = queryTime.split(',')
+                searchSelectValue.push({ id: 'dateRange', name: '创建时间', values })
+            }
             // 获取操作列表
             const noViewAuthTip = i18n.t('已选流程模板没有查看权限，请取消选择或申请权限')
             const noEditAuthTip = i18n.t('已选流程模板没有编辑权限，请取消选择或申请权限')
@@ -574,8 +562,6 @@
                 projectInfoLoading: true, // 模板分类信息 loading
                 configLoading: true,
                 searchStr: '',
-                searchForm,
-                isSearchFormOpen, // 高级搜索表单默认展开
                 exportType: 'dat', // 模板导出类型
                 operateList,
                 expiredSubflowTplList: [],
@@ -598,12 +584,13 @@
                 isHasSubprocess: undefined,
                 deleteTemplateName: '',
                 requestData: {
-                    category,
                     creator,
+                    editor,
                     subprocessUpdateVal: subprocessUpdateVal !== '' ? Number(subprocessUpdateVal) : '',
                     queryTime: queryTime ? queryTime.split(',') : ['', ''],
                     label_ids: label_ids ? label_ids.split(',') : [],
-                    flowName: keyword
+                    flowName,
+                    template_id
                 },
                 isInit: true, // 避免default-sort在初始化时去触发table的sort-change事件
                 totalPage: 1,
@@ -651,7 +638,10 @@
                 colorDropdownShow: false,
                 colorList: LABEL_COLOR_LIST,
                 labelLoading: false,
-                curSelectedRow: {}
+                curSelectedRow: {},
+                searchList: tools.deepClone(SEARCH_LIST),
+                searchSelectValue,
+                dateTimeRange: queryTime ? queryTime.split(',') : []
             }
         },
         computed: {
@@ -704,10 +694,8 @@
         },
         async created () {
             this.getFields()
-            this.getProjectBaseInfo()
             this.getProjectLabelList()
             this.getExpiredSubflowData()
-            this.onSearchInput = tools.debounce(this.searchInputHandler, 500)
             await this.initData()
             this.firstLoading = false
         },
@@ -788,7 +776,7 @@
                 }
             },
             getQueryData () {
-                const { subprocessUpdateVal, creator, category, queryTime, flowName, label_ids } = this.requestData
+                const { subprocessUpdateVal, creator, queryTime, flowName, label_ids, template_id, editor } = this.requestData
 
                 /**
                  * 无子流程 has_subprocess=false
@@ -802,13 +790,14 @@
                     limit: this.pagination.limit,
                     offset: (this.pagination.current - 1) * this.pagination.limit,
                     pipeline_template__name__icontains: flowName || undefined,
-                    pipeline_template__creator__contains: creator || undefined,
-                    category: category || undefined,
+                    pipeline_template__creator: creator || undefined,
                     label_ids: label_ids && label_ids.length ? label_ids.join(',') : undefined,
                     subprocess_has_update__exact: subprocess_has_update,
-                    has_subprocess,
+                    pipeline_template__has_subprocess: has_subprocess,
                     project__id: this.project_id,
-                    new: true
+                    new: true,
+                    id: template_id || undefined,
+                    pipeline_template__editor: editor || undefined
                 }
                 const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
                 if (keys.includes(this.ordering)) {
@@ -818,7 +807,7 @@
                 } else {
                     data['order_by'] = this.ordering
                 }
-                if (queryTime[0] && queryTime[1]) {
+                if (queryTime && queryTime[0] && queryTime[1]) {
                     data['pipeline_template__edit_time__gte'] = moment.tz(queryTime[0], this.timeZone).format('YYYY-MM-DD')
                     data['pipeline_template__edit_time__lte'] = moment.tz(queryTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                 }
@@ -840,21 +829,6 @@
                 }
                 this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
             },
-            async getProjectBaseInfo () {
-                this.projectInfoLoading = true
-                this.categoryLoading = true
-                const form = this.searchForm.find(item => item.key === 'category')
-                try {
-                    const res = await this.loadProjectBaseInfo()
-                    this.setProjectBaseInfo(res.data)
-                    form.list = res.data.task_categories
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.projectInfoLoading = false
-                    form.loading = false
-                }
-            },
             async getExpiredSubflowData () {
                 try {
                     const resp = await this.getExpiredSubProcess({ project__id: this.project_id })
@@ -866,17 +840,23 @@
                 }
             },
             async getProjectLabelList () {
-                const form = this.searchForm.find(item => item.key === 'label_ids')
+                const form = this.searchList.find(item => item.id === 'label_ids')
                 try {
                     this.templateLabelLoading = true
                     const res = await this.getProjectLabelsWithDefault(this.project_id)
                     this.templateLabels = res.data
-                    form.list = res.data.map(item => Object.assign({}, item, { value: item.id }))
+                    
+                    form.children = res.data.map(item => Object.assign({}, item, { value: item.id }))
+                    // 因为标签列表是通过接口获取的，所以需要把路径上的标签添加进去
+                    const ids = this.$route.query['label_ids']
+                    if (ids) {
+                        const values = form.children.filter(item => ids.includes(String(item.id)))
+                        this.searchSelectValue.push({ ...form, values })
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.templateLabelLoading = false
-                    form.loading = false
                 }
             },
             onToggleTplLabel (val) {
@@ -994,22 +974,20 @@
                     })
                 }
             },
-            // 我创建的公共流程
-            handleMyCreateFilter () {
-                const username = this.$store.state.username
-                const searchComp = this.$refs.advanceSearch
-                searchComp.onAdvanceOpen(true)
-                searchComp.onChangeFormItem(username, 'creator')
-                searchComp.submit()
-            },
-            onSearchFormSubmit (data) {
-                this.requestData = Object.assign({}, this.requestData, data)
-                this.pagination.current = 1
-                this.updateUrl()
-                this.getTemplateList()
-            },
-            searchInputHandler (data) {
-                this.requestData.flowName = data
+            handleSearchValueChange (data) {
+                data = data.reduce((acc, cur) => {
+                    if (cur.id === 'dateRange') {
+                        acc['queryTime'] = cur.values
+                    } else if (cur.multiable) {
+                        acc[cur.id] = cur.values.map(item => item.id)
+                    } else {
+                        const value = cur.values[0]
+                        acc[cur.id] = cur.children ? value.id : value
+                    }
+                    return acc
+                }, {})
+                this.dateTimeRange = data['queryTime'] || []
+                this.requestData = data
                 this.pagination.current = 1
                 this.updateUrl()
                 this.getTemplateList()
@@ -1263,6 +1241,16 @@
                 } else {
                     this.ordering = ''
                 }
+                // 更新表格头（自定义排序后不会清空其他排序的状态）
+                if (prop === 'pipeline_template__create_time') {
+                    const tableDom = this.$refs.templateTable
+                    const columns = tableDom ? tableDom.store.states.columns : []
+                    columns.forEach(column => {
+                        if (column.sortable && column.property !== prop) {
+                            column.order = null
+                        }
+                    })
+                }
                 this.pagination.current = 1
                 this.updateUrl()
                 this.getTemplateList()
@@ -1271,22 +1259,52 @@
                 }
             },
             renderTableHeader (h, { column, $index }) {
-                if (column.property !== 'category') {
+                if (column.property === 'category') {
+                    return h('span', {
+                        'class': 'category-label'
+                    }, [
+                        column.label,
+                        h('i', {
+                            'class': 'common-icon-info table-header-tips',
+                            directives: [{
+                                name: 'bk-tooltips',
+                                value: this.categoryTips
+                            }]
+                        })
+                    ])
+                } else if (column.property === 'pipeline_template__create_time') {
+                    return <TableRenderHeader
+                        name={ column.label }
+                        property={ column.property }
+                        sortConfig={ this.getDefaultSortConfig }
+                        dateValue={ this.dateTimeRange }
+                        onSortChange={ data => this.handleSortChange(data) }
+                        onDateChange={ data => this.handleDateTimeFilter(data) }>
+                    </TableRenderHeader>
+                } else {
                     return column.label
                 }
-
-                return h('span', {
-                    'class': 'category-label'
-                }, [
-                    column.label,
-                    h('i', {
-                        'class': 'common-icon-info table-header-tips',
-                        directives: [{
-                            name: 'bk-tooltips',
-                            value: this.categoryTips
-                        }]
-                    })
-                ])
+            },
+            handleDateTimeFilter (date = []) {
+                this.dateTimeRange = date
+                const index = this.searchSelectValue.findIndex(item => item.id === 'dateRange')
+                if (date.length) {
+                    if (index > -1) {
+                        this.searchSelectValue[index].values = date
+                    } else {
+                        const info = {
+                            id: 'dateRange',
+                            name: '创建时间',
+                            values: date
+                        }
+                        this.searchSelectValue.push(info)
+                        // 添加搜索记录
+                        const searchDom = this.$refs.searchSelect
+                        searchDom && searchDom.addSearchRecord(info)
+                    }
+                } else if (index > -1) {
+                    this.searchSelectValue.splice(index, 1)
+                }
             },
             onPageChange (page) {
                 this.pagination.current = page
@@ -1301,16 +1319,18 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { category, queryTime, subprocessUpdateVal, creator, label_ids, flowName } = this.requestData
+                const { category, queryTime, subprocessUpdateVal, creator, label_ids, flowName, template_id, editor } = this.requestData
                 const filterObj = {
                     limit,
                     category,
                     subprocessUpdateVal,
                     creator,
                     page: current,
-                    queryTime: queryTime.every(item => item) ? queryTime.join(',') : '',
-                    label_ids: label_ids.length ? label_ids.join(',') : '',
-                    keyword: flowName
+                    queryTime: queryTime && queryTime.every(item => item) ? queryTime.join(',') : '',
+                    label_ids: label_ids && label_ids.length ? label_ids.join(',') : '',
+                    flowName: flowName,
+                    template_id,
+                    editor
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {
@@ -1527,6 +1547,11 @@
     height: 100%;
     overflow: auto;
     @include scrollbar;
+}
+.search-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
 }
 .create-template-btn {
     min-width: 120px;
