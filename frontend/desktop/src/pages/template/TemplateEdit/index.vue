@@ -308,7 +308,8 @@
                 envVariableData: {},
                 validateConnectFailList: [], // 节点校验失败列表
                 isPerspective: false, // 流程是否透视
-                nodeVariableInfo: {} // 节点输入输出变量
+                nodeVariableInfo: {}, // 节点输入输出变量
+                isMultipleTabCount: 0
             }
         },
         computed: {
@@ -413,9 +414,6 @@
             },
             isViewMode () {
                 return this.type === 'view'
-            },
-            isMultipleTabCount () {
-                return tplTabCount.getCount(this.getTplTabData())
             }
         },
         watch: {
@@ -437,6 +435,7 @@
                 } else {
                     tplTabCount.setTab(data, 'del')
                 }
+                this.setMultipleTabCount()
             }
         },
         created () {
@@ -450,6 +449,7 @@
                 const data = this.getTplTabData()
                 tplTabCount.setTab(data, 'add')
             }
+            this.setMultipleTabCount()
         },
         beforeDestroy () {
             if (this.type === 'edit') {
@@ -1806,6 +1806,9 @@
             onCancelSave () {
                 this.isExecuteSchemeDialog = false
                 this.isExecuteScheme = false
+            },
+            setMultipleTabCount () {
+                this.isMultipleTabCount = tplTabCount.getCount(this.getTplTabData())
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
