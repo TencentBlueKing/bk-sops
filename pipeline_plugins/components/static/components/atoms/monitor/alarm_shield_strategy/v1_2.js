@@ -40,42 +40,14 @@
             }
         },
         {
-            tag_code: "bk_alarm_time_type",
-            type: "radio",
-            attrs: {
-                name: gettext("时间选择"),
-                hookable: false,
-                items: [
-                    {name: gettext("手动输入"), value: "0"},
-                    {name: gettext("从当前时间开始，仅输入持续时间"), value: "1"},
-                    {name: gettext("输入开始时间和持续时间"), value: "2"}
-                ],
-                default: "0",
-                validation: [
-                    {
-                        type: "required"
-                    }
-                ],
-                events: [
-                    {
-                        source: "bk_alarm_time_type",
-                        type: "init",
-                        action: function () {
-                            this.emit_event(this.tagCode, "change", this.value)
-                        }
-                    }
-                ]
-            },
-        },
-        {
             tag_code: "bk_dimension_select_type",
             type: "radio",
             attrs: {
                 name: gettext("维度筛选方式"),
                 hookable: false,
                 items: [
-                    {name: gettext("全部满足"), value: "and"},
-                    {name: gettext("单一满足"), value: "or"},
+                    {name: gettext("全部满足(AND)"), value: "and"},
+                    {name: gettext("单一满足(OR)"), value: "or"},
                 ],
                 default: "and",
                 validation: [
@@ -140,6 +112,34 @@
             },
             events: [],
             methods: {}
+        },
+        {
+            tag_code: "bk_alarm_time_type",
+            type: "radio",
+            attrs: {
+                name: gettext("时间选择"),
+                hookable: false,
+                items: [
+                    {name: gettext("手动输入"), value: "0"},
+                    {name: gettext("从当前时间开始，仅输入持续时间"), value: "1"},
+                    {name: gettext("输入开始时间和持续时间"), value: "2"}
+                ],
+                default: "0",
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ],
+                events: [
+                    {
+                        source: "bk_alarm_time_type",
+                        type: "init",
+                        action: function () {
+                            this.emit_event(this.tagCode, "change", this.value)
+                        }
+                    }
+                ]
+            },
         },
         {
             tag_code: "bk_alarm_shield_begin_time",
