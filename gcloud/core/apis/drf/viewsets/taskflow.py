@@ -66,6 +66,7 @@ class TaskFlowFilterSet(FilterSet):
             "pipeline_instance__is_revoked": ["exact"],
             "create_method": ["exact"],
             "create_info": ["exact"],
+            "recorded_executor_proxy": ["exact"],
             "pipeline_instance__start_time": ["gte", "lte"],
         }
 
