@@ -144,6 +144,7 @@
                                             ext-popover-cls="label-select-popover"
                                             :display-tag="true"
                                             :multiple="true"
+                                            searchable
                                             ext-cls="label-select"
                                             @toggle="onToggleTplLabel">
                                             <bk-option
@@ -850,7 +851,7 @@
                     // 因为标签列表是通过接口获取的，所以需要把路径上的标签添加进去
                     const ids = this.$route.query['label_ids']
                     if (ids) {
-                        const values = form.children.filter(item => ids.includes(String(item.id)))
+                        const values = form.children.filter(item => ids.split(',').includes(String(item.id)))
                         this.searchSelectValue.push({ ...form, values })
                     }
                 } catch (e) {
@@ -870,10 +871,16 @@
             },
             handleTempLabelClick (row) {
                 this.curSelectedRow = tools.deepClone(row)
+                row.labelLoading = true
                 row.isSelectShow = true
+                setTimeout(() => {
+                    this.$refs.labelSelect[0].show()
+                    row.labelLoading = false
+                }, 500)
             },
             handleClickOutSide (e) {
-                if (dom.parentClsContains('label-select-popover', e.target)) {
+                if (dom.parentClsContains('label-select-popover', e.target) || dom.parentClsContains('label-dialog', e.target)) {
+                    this.$refs.labelSelect.show()
                     return
                 }
                 this.saveTemplateLabels()
@@ -941,6 +948,9 @@
                                     message: i18n.t('标签新建成功'),
                                     theme: 'success'
                                 })
+                                // 新建标签后自动选上
+                                const curRow = this.templateList.find(item => item.id === this.curSelectedRow.id)
+                                curRow.labelIds.push(resp.data.id)
                                 this.getProjectLabelList()
                             }
                         }
@@ -1274,6 +1284,7 @@
                     ])
                 } else if (column.property === 'pipeline_template__create_time') {
                     return <TableRenderHeader
+                        ref="TableRenderHeader"
                         name={ column.label }
                         property={ column.property }
                         sortConfig={ this.getDefaultSortConfig }

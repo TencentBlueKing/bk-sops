@@ -1422,7 +1422,7 @@ const en = {
     'ID/流程名称/标签/更新人/创建人/子流程更新': 'ID/FlowName/Label/Editor/Creator/SubprocessUpdated',
     'ID/流程名/创建人/更新人': 'ID/FlowName/Creator/Editor',
     '任务名': 'TaskName',
-    'ID/任务名/创建人/执行人/任务类型/状态': 'ID/TaskName/Creator/Executor/TaskTypes/Status',
+    'ID/任务名/创建人/执行人/状态/创建方式/执行代理人': 'ID/TaskName/Creator/Executor/Status/CreateMethod/ExecutiveAgent',
     'ID/任务名/创建人/更新人/状态': 'ID/TaskName/Creator/Editor/Status',
     '应用名': 'AppName',
     '应用名/创建人': 'AppName/Creator',
@@ -1446,7 +1446,8 @@ const en = {
     '取消设置为变量': 'Unset as variable',
     '设置为变量': 'Set as variable',
     '存在未保存内容，已自动载入': 'Unsaved content exists, autoloaded',
-    '开启': 'Open'
+    '开启': 'Open',
+    'ID/CC_ID/项目名称/创建人': 'ID/CC_ID/ProjectName/Creator'
 }
 
 export default en
