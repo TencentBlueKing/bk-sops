@@ -191,7 +191,6 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
 
     def group_by_template_node(self, tasktmpl, filters, page, limit):
         # 按起始时间、业务（可选）、类型（可选）查询各流程模板标准插件节点个数、子流程节点个数、网关节点数
-        total = tasktmpl.count()
         groups = []
 
         task_template_id_list = list(tasktmpl.values_list("id", flat=True))
@@ -199,6 +198,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         # template_id_list = list(tasktmpl.values_list("pipeline_template__template_id", flat=True))
         template_id_list = list(template_id_dict.keys())
         template_in_statistics_data = TemplateStatistics.objects.filter(task_template_id__in=task_template_id_list)
+        total = template_in_statistics_data.count()
         template_id_map = {template.template_id: template.template_id for template in template_in_statistics_data}
         # 计算relationshipTotal, instanceTotal, periodicTotal
         # 查询所有的流程引用，并统计引用数量
