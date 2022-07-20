@@ -155,9 +155,7 @@
             handleKeyEnter () {
                 const isEqual = tools.isDataEqual(this.initValue, this.localValue)
                 const { children, multiable } = this.tagInfo
-                console.log(isEqual)
                 if (isEqual) {
-                    console.log(isEqual)
                     this.isEditing = false
                 } else if (this.hoverId !== '') {
                     if (multiable) {

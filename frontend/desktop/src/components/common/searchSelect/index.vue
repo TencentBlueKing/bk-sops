@@ -538,7 +538,7 @@
                     this.$refs.input.innerText = ''
                     this.selectInfo = {}
                     this.isVisible = true
-                }, 0)
+                }, 100)
             },
             // 清空按键
             handleKeyBackspace (e) {
