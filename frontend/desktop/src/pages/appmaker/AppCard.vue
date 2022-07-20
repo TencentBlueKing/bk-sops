@@ -178,7 +178,7 @@
                 this.$emit('onCardEdit', this.appData)
             },
             onCopyUrl () {
-                this.copyText = this.appData.desktop_url
+                this.copyText = this.appData.link
                 document.addEventListener('copy', this.copyHandler)
                 document.execCommand('copy')
                 document.removeEventListener('copy', this.copyHandler)
