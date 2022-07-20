@@ -632,6 +632,13 @@
                             max: 50,
                             message: i18n.t('标签名称不能超过') + 50 + i18n.t('个字符'),
                             trigger: 'blur'
+                        },
+                        {
+                            validator: (val) => {
+                                return this.templateLabels.every(label => label.name !== val)
+                            },
+                            message: i18n.t('标签已存在，请重新输入'),
+                            trigger: 'blur'
                         }
                     ]
                 },
@@ -880,7 +887,6 @@
             },
             handleClickOutSide (e) {
                 if (dom.parentClsContains('label-select-popover', e.target) || dom.parentClsContains('label-dialog', e.target)) {
-                    this.$refs.labelSelect.show()
                     return
                 }
                 this.saveTemplateLabels()
@@ -1305,7 +1311,7 @@
                     } else {
                         const info = {
                             id: 'dateRange',
-                            name: '创建时间',
+                            name: i18n.t('创建时间'),
                             values: date
                         }
                         this.searchSelectValue.push(info)
@@ -1438,17 +1444,13 @@
             },
             // 标题提示信息，查看子流程更新
             handleSubflowFilter () {
-                const searchComp = this.$refs.advanceSearch
-                searchComp.onAdvanceOpen(true)
-                searchComp.onChangeFormItem(1, 'subprocessUpdateVal')
-                searchComp.submit()
-            },
-            // 筛选包含当前标签的模板
-            onSearchLabel (id) {
-                const searchComp = this.$refs.advanceSearch
-                searchComp.onAdvanceOpen(true)
-                searchComp.onChangeFormItem([id], 'label_ids')
-                searchComp.submit()
+                const subFlowInfo = this.searchSelectValue.find(item => item.id === 'subprocessUpdateVal')
+                if (subFlowInfo) {
+                    subFlowInfo.values = [{ id: 1, name: i18n.t('是') }]
+                } else {
+                    const form = this.searchList.find(item => item.id === 'subprocessUpdateVal')
+                    this.searchSelectValue.push({ ...form, values: [{ id: 1, name: i18n.t('是') }] })
+                }
             },
             // 添加/取消收藏模板
             async onCollectTemplate (template) {

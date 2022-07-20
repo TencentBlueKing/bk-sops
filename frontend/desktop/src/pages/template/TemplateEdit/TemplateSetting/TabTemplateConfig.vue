@@ -262,6 +262,13 @@
                             max: 50,
                             message: i18n.t('标签名称不能超过') + 50 + i18n.t('个字符'),
                             trigger: 'blur'
+                        },
+                        {
+                            validator: (val) => {
+                                return this.templateLabels.every(label => label.name !== val)
+                            },
+                            message: i18n.t('标签已存在，请重新输入'),
+                            trigger: 'blur'
                         }
                     ]
                 },
