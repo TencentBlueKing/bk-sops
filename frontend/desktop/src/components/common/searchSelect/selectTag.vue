@@ -273,7 +273,7 @@
     }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
     .select-tag {
         position: relative;
         display: flex;
