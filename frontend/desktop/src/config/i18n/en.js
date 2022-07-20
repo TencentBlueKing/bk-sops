@@ -1447,7 +1447,8 @@ const en = {
     '设置为变量': 'Set as variable',
     '存在未保存内容，已自动载入': 'Unsaved content exists, autoloaded',
     '开启': 'Open',
-    'ID/CC_ID/项目名称/创建人': 'ID/CC_ID/ProjectName/Creator'
+    'ID/CC_ID/项目名称/创建人': 'ID/CC_ID/ProjectName/Creator',
+    '修改时间实际是强制失败后重试节点，需配置可重试才能修改时间': 'The modification time is actually to retry the node after a forced failure. You need to configure retry to modify the time.'
 }
 
 export default en
