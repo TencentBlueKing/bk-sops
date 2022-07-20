@@ -394,7 +394,7 @@
             }, [])
             if (queryTime) {
                 const values = queryTime.split(',')
-                searchSelectValue.push({ id: 'dateRange', name: '创建时间', values })
+                searchSelectValue.push({ id: 'dateRange', name: i18n.t('创建时间'), values })
             }
             // 获取操作列表
             const noViewAuthTip = i18n.t('已选流程模板没有查看权限，请取消选择或申请权限')
@@ -983,7 +983,7 @@
                     } else {
                         const info = {
                             id: 'dateRange',
-                            name: '创建时间',
+                            name: i18n.t('创建时间'),
                             values: date
                         }
                         this.searchSelectValue.push(info)

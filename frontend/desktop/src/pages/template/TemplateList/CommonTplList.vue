@@ -17,7 +17,7 @@
                     <search-select
                         ref="searchSelect"
                         id="commonTplList"
-                        :placeholder="$('ID/流程名/创建人/更新人')"
+                        :placeholder="$t('ID/流程名/创建人/更新人')"
                         v-model="searchSelectValue"
                         :search-list="searchList"
                         @change="handleSearchValueChange">
@@ -227,7 +227,7 @@
             }, [])
             if (queryTime) {
                 const values = queryTime.split(',')
-                searchSelectValue.push({ id: 'dateRange', name: '创建时间', values })
+                searchSelectValue.push({ id: 'dateRange', name: i18n.t('创建时间'), values })
             }
             // 获取操作列表
             return {
@@ -496,7 +496,7 @@
                     } else {
                         const info = {
                             id: 'dateRange',
-                            name: '创建时间',
+                            name: i18n.t('创建时间'),
                             values: date
                         }
                         this.searchSelectValue.push(info)

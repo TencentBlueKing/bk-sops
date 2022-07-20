@@ -374,7 +374,7 @@
             }, [])
             if (queryTime) {
                 const values = queryTime.split(',')
-                searchSelectValue.push({ id: 'dateRange', name: '创建时间', values })
+                searchSelectValue.push({ id: 'dateRange', name: i18n.t('创建时间'), values })
             }
             return {
                 firstLoading: true,
@@ -746,7 +746,7 @@
                     } else {
                         const info = {
                             id: 'dateRange',
-                            name: '创建时间',
+                            name: i18n.t('创建时间'),
                             values: date
                         }
                         this.searchSelectValue.push(info)
