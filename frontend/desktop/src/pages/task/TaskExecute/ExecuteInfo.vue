@@ -115,13 +115,21 @@
                     @click="onResumeClick">
                     {{ $t('继续执行') }}
                 </bk-button>
-                <bk-button
+                <span
                     v-if="nodeDetailConfig.component_code === 'sleep_timer'"
-                    theme="primary"
-                    data-test-id="taskExcute_form_modifyTimeBtn"
-                    @click="onModifyTimeClick">
-                    {{ $t('修改时间') }}
-                </bk-button>
+                    v-bk-tooltips="{
+                        content: $t('修改时间实际是强制失败后重试节点，需配置可重试才能修改时间'),
+                        disabled: nodeActivity.retryable !== false,
+                        hideOnClick: false
+                    }">
+                    <bk-button
+                        theme="primary"
+                        :disabled="nodeActivity.retryable === false"
+                        data-test-id="taskExcute_form_modifyTimeBtn"
+                        @click="onModifyTimeClick">
+                        {{ $t('修改时间') }}
+                    </bk-button>
+                </span>
                 <bk-button
                     v-if="nodeDetailConfig.component_code === 'bk_approve'"
                     theme="primary"
@@ -322,6 +330,9 @@
                 codeInfo = codeInfo && codeInfo.plugin_code
                 codeInfo = codeInfo.value
                 return codeInfo
+            },
+            nodeActivity () {
+                return this.pipelineData.activities[this.nodeDetailConfig.node_id]
             }
         },
         watch: {

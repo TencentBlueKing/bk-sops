@@ -34,7 +34,7 @@
                         <search-select
                             ref="searchSelect"
                             id="taskList"
-                            :placeholder="$t('ID/任务名/创建人/执行人/任务类型/状态')"
+                            :placeholder="$t('ID/任务名/创建人/执行人/状态/创建方式/执行代理人')"
                             v-model="searchSelectValue"
                             :search-list="searchList"
                             @change="handleSearchValueChange">
@@ -243,11 +243,6 @@
             name: i18n.t('执行人')
         },
         {
-            id: 'category',
-            name: i18n.t('任务类型'),
-            children: []
-        },
-        {
             id: 'statusSync',
             name: i18n.t('状态'),
             children: [
@@ -256,6 +251,15 @@
                 { id: 'revoked', name: i18n.t('撤销') },
                 { id: 'finished', name: i18n.t('完成') }
             ]
+        },
+        {
+            id: 'create_method',
+            name: i18n.t('创建方式'),
+            children: []
+        },
+        {
+            id: 'recorded_executor_proxy',
+            name: i18n.t('执行代理人')
         }
     ]
     const TABLE_FIELDS = [
@@ -344,13 +348,14 @@
                 limit = 15,
                 template_source = '',
                 create_info = '',
-                category = '',
                 queryTime = '',
                 creator = '',
                 executor = '',
                 statusSync = '',
                 taskName = '',
-                task_id = ''
+                task_id = '',
+                create_method = '',
+                recorded_executor_proxy = ''
             } = this.$route.query
             const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
                 const values_text = this.$route.query[cur.id]
@@ -398,12 +403,13 @@
                 templateSource: template_source,
                 requestData: {
                     queryTime: queryTime ? queryTime.split(',') : ['', ''],
-                    category,
                     creator,
                     executor,
                     statusSync,
                     taskName,
-                    id: task_id
+                    id: task_id,
+                    create_method,
+                    recorded_executor_proxy
                 },
                 pagination: {
                     current: Number(page),
@@ -445,7 +451,6 @@
         },
         async created () {
             this.getFields()
-            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             await this.getData()
             this.firstLoading = false
         },
@@ -472,7 +477,7 @@
                 this.listLoading = true
                 this.executeStatus = []
                 try {
-                    const { queryTime, category, creator, executor, statusSync, taskName, id } = this.requestData
+                    const { queryTime, creator, executor, statusSync, taskName, id, create_method, recorded_executor_proxy } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
                     let pipeline_instance__is_revoked
@@ -496,7 +501,6 @@
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
-                        category: category || undefined,
                         template_id: this.templateId || undefined,
                         pipeline_instance__creator__contains: creator || undefined,
                         pipeline_instance__executor__contains: executor || undefined,
@@ -507,7 +511,9 @@
                         create_info: this.createInfo || undefined,
                         project__id: this.project_id,
                         template_source: this.templateSource || undefined,
-                        id: id || undefined
+                        id: id || undefined,
+                        create_method: create_method || undefined,
+                        recorded_executor_proxy: recorded_executor_proxy || undefined
                     }
 
                     if (queryTime && queryTime[0] && queryTime[1]) {
@@ -544,16 +550,6 @@
                     this.taskCategory = res.data.task_categories
                     this.setProjectBaseInfo(res.data)
                     this.taskBasicInfoLoading = false
-                    const form = this.searchList.find(item => item.id === 'category')
-                    form.children = this.taskCategory.map(item => {
-                        return { id: item.value, name: item.name }
-                    })
-                    // 因为任务类型列表是通过接口获取的，所以需要把路径上的类型添加进去
-                    const ids = this.$route.query['category']
-                    if (ids) {
-                        const values = form.children.filter(item => ids.includes(item.id))
-                        this.searchSelectValue.push({ ...form, values })
-                    }
                 } catch (e) {
                     console.log(e)
                 }
@@ -578,12 +574,6 @@
             handleCreateMethodTabClick (method) {
                 this.crtCreateMethodTab = method
                 this.pagination.current = 1
-                this.getTaskList()
-            },
-            searchInputhandler (data) {
-                this.requestData.taskName = data
-                this.pagination.current = 1
-                this.updateUrl()
                 this.getTaskList()
             },
             hasCreateTaskPerm (task) {
@@ -725,7 +715,7 @@
             renderTableHeader (h, { column, $index }) {
                 if (column.property === 'recorded_executor_proxy') {
                     return h('span', {
-                        'class': 'executor_proxy-label'
+                        'class': 'recorded_executor_proxy-label'
                     }, [
                         column.label,
                         h('i', {
@@ -781,17 +771,18 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { category, queryTime, creator, executor, statusSync, taskName, id } = this.requestData
+                const { queryTime, creator, executor, statusSync, taskName, id, create_method, recorded_executor_proxy } = this.requestData
                 const filterObj = {
                     limit,
-                    category,
                     creator,
                     executor,
                     statusSync,
                     page: current,
                     queryTime: queryTime && queryTime.every(item => item) ? queryTime.join(',') : '',
                     taskName,
-                    task_id: id
+                    task_id: id,
+                    create_method,
+                    recorded_executor_proxy
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {
@@ -806,6 +797,16 @@
                 try {
                     const createMethodData = await this.loadCreateMethod()
                     this.taskCreateMethodList = createMethodData.data.map(m => ({ value: m.value, name: m.name }))
+                    const form = this.searchList.find(item => item.id === 'create_method')
+                    form.children = this.taskCreateMethodList.map(item => {
+                        return { id: item.value, name: item.name }
+                    })
+                    // 因为任务类型列表是通过接口获取的，所以需要把路径上的类型添加进去
+                    const ids = this.$route.query['create_method']
+                    if (ids) {
+                        const values = form.children.filter(item => ids.includes(item.id))
+                        this.searchSelectValue.push({ ...form, values })
+                    }
                 } catch (e) {
                     console.log(e)
                 }
