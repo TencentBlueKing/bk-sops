@@ -199,7 +199,6 @@
     import moment from 'moment-timezone'
     import { uuid } from '@/utils/uuid.js'
     import tools from '@/utils/tools.js'
-    import bus from '@/utils/bus.js'
     import atomFilter from '@/utils/atomFilter.js'
     import validatePipeline from '@/utils/validatePipeline.js'
     import TemplateHeader from './TemplateHeader.vue'
@@ -310,6 +309,8 @@
                 validateConnectFailList: [], // 节点校验失败列表
                 isPerspective: false, // 流程是否透视
                 nodeVariableInfo: {}, // 节点输入输出变量
+                initType: '', // 记录最初的流程类型
+                routerCount: 0,
                 isMultipleTabCount: 0
             }
         },
@@ -440,6 +441,7 @@
             }
         },
         created () {
+            this.initType = this.type
             this.initData()
         },
         mounted () {
@@ -850,13 +852,14 @@
 
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
-                    } else if (this.isBackViewMode) {
-                        this.$router.back()
-                    } else { // 保存后需要切到查看模式(查看执行方案时为编辑模式)
-                        this.$router.push({
-                            params: { type: this.isExecuteScheme ? 'edit' : 'view' },
-                            query: { template_id: data.template_id }
-                        })
+                    } else { // 保存后需要切到查看模式(查看执行方案时不需要)
+                        if (!this.isExecuteScheme) {
+                            this.$router.push({
+                                params: { type: 'view' },
+                                query: { template_id: data.template_id }
+                            })
+                            this.routerCount++
+                        }
                     }
                 } catch (e) {
                     console.log(e)
@@ -1424,10 +1427,8 @@
                         // 返回查看模式时初始化数据
                         this.isTemplateDataChanged = false
                         this.isGlobalVariableUpdate = false
-                        this.$router.push({
-                            query: { template_id: this.template_id },
-                            params: { type: 'view' }
-                        })
+                        this.$router.back()
+                        this.routerCount--
                         this.initData()
                     }
                 })
@@ -1549,16 +1550,6 @@
                         }
                     }
                 }
-            },
-            onLeaveConfirm () {
-                this.allowLeave = true
-                this.$router.push({ path: this.leaveToPath })
-            },
-            onLeaveCancel () {
-                this.allowLeave = false
-                this.leaveToPath = ''
-                this.isLeaveDialogShow = false
-                bus.$emit('resetProjectChange', this.project_id)
             },
             // 修改line和location
             onReplaceLineAndLocation (data) {
