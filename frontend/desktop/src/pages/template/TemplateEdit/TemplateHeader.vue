@@ -267,7 +267,6 @@
                     params: { ...params, type: 'edit' },
                     query
                 })
-                this.$parent.routerCount++
             },
             /**
              * 保存按钮，新建/保存并新建任务按钮点击
@@ -368,11 +367,10 @@
                             ? { name: 'commonProcessList' }
                             : { name: 'processHome', params: { project_id: this.project_id } }
                     this.$router.push(url)
-                } else if (['new', 'clone'].includes(this.$parent.initType) && this.$parent.routerCount === 1) {
+                } else if (this.$parent.isRouterPush) {
                     this.$router.go(-2)
                 } else {
                     this.$router.back() // 由模板页跳转进入需要保留分页参数
-                    this.$parent.routerCount--
                 }
             },
             goBackToTplEdit () {
