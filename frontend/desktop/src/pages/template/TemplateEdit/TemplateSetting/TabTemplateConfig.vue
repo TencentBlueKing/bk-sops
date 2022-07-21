@@ -191,6 +191,7 @@
     import { NAME_REG, STRING_LENGTH, TASK_CATEGORIES, LABEL_COLOR_LIST } from '@/constants/index.js'
     import i18n from '@/config/i18n/index.js'
     import NotifyTypeConfig from './NotifyTypeConfig.vue'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'TabTemplateConfig',
@@ -198,6 +199,7 @@
             MemberSelect,
             NotifyTypeConfig
         },
+        mixins: [permission],
         props: {
             projectInfoLoading: Boolean,
             templateLabelLoading: Boolean,
@@ -285,6 +287,8 @@
                 'infoBasicConfig': state => state.infoBasicConfig
             }),
             ...mapState('project', {
+                'projectId': state => state.project_id,
+                'projectName': state => state.projectName,
                 'authActions': state => state.authActions
             })
         },
@@ -338,6 +342,14 @@
                 if (this.isViewMode) return
                 if (this.authActions.includes('project_edit')) {
                     this.$router.push({ name: 'projectConfig', params: { id: this.$route.params.project_id } })
+                } else {
+                    const resourceData = {
+                        project: [{
+                            id: this.projectId,
+                            name: this.projectName
+                        }]
+                    }
+                    this.applyForPermission(['project_edit'], this.authActions, resourceData)
                 }
             },
             onSelectNotifyConfig (formData) {
