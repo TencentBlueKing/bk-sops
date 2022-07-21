@@ -50,7 +50,12 @@
                                     <i class="bk-option-icon bk-icon icon-check-1"></i>
                                 </div>
                             </bk-option>
-                            <div slot="extension" @click="onEditLabel" class="label-select-extension" data-test-id="tabTemplateConfig_form_editLabel">
+                            <div
+                                slot="extension"
+                                class="label-select-extension"
+                                data-test-id="tabTemplateConfig_form_editLabel"
+                                v-cursor="!hasPermission(['project_edit'], authActions)"
+                                @click="onEditLabel">
                                 <i class="bk-icon icon-plus-circle"></i>
                                 <span>{{ $t('编辑标签') }}</span>
                             </div>
@@ -321,6 +326,16 @@
                 }
             },
             onEditLabel () {
+                if (!this.hasPermission(['project_edit'], this.authActions)) {
+                    const resourceData = {
+                        project: [{
+                            id: this.projectId,
+                            name: this.projectName
+                        }]
+                    }
+                    this.applyForPermission(['project_edit'], this.authActions, resourceData)
+                    return
+                }
                 this.labelDetail = { color: '#1c9574', name: '', description: '' }
                 this.labelDialogShow = true
                 this.colorDropdownShow = false

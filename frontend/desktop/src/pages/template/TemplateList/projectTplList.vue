@@ -161,13 +161,23 @@
                                                     <i v-if="row.labelIds.includes(label.id)" class="bk-option-icon bk-icon icon-check-1"></i>
                                                 </div>
                                             </bk-option>
-                                            <div slot="extension" @click="onEditLabel" class="label-select-extension" data-test-id="process_list__editLabel">
+                                            <div
+                                                slot="extension"
+                                                v-cursor="!hasPermission(['project_edit'], authActions)"
+                                                class="label-select-extension"
+                                                :class="{ 'text-permission-disable': !hasPermission(['project_edit'], authActions) }"
+                                                data-test-id="process_list__editLabel"
+                                                @click="onEditLabel">
                                                 <i class="bk-icon icon-plus-circle"></i>
                                                 <span>{{ $t('编辑标签') }}</span>
                                             </div>
                                         </bk-select>
                                     </div>
-                                    <div v-else class="label-column" @click="handleTempLabelClick(row)">
+                                    <div
+                                        v-else
+                                        class="label-column"
+                                        v-cursor="{ active: !hasPermission(['flow_edit'], row.auth_actions) }"
+                                        @click="handleTempLabelClick(row)">
                                         <template v-if="row.template_labels && row.template_labels.length > 0">
                                             <span
                                                 v-for="label in row.template_labels"
@@ -877,6 +887,10 @@
                 }
             },
             handleTempLabelClick (row) {
+                if (!this.hasPermission(['flow_edit'], row.auth_actions)) {
+                    this.onTemplatePermissionCheck(['flow_edit'], row)
+                    return
+                }
                 this.curSelectedRow = tools.deepClone(row)
                 row.labelLoading = true
                 row.isSelectShow = true
@@ -886,7 +900,10 @@
                 }, 500)
             },
             handleClickOutSide (e) {
-                if (dom.parentClsContains('label-select-popover', e.target) || dom.parentClsContains('label-dialog', e.target)) {
+                if (dom.parentClsContains('label-select-popover', e.target)
+                    || dom.parentClsContains('label-dialog', e.target)
+                    || dom.parentClsContains('permission-dialog', e.target)
+                ) {
                     return
                 }
                 this.saveTemplateLabels()
@@ -930,6 +947,16 @@
                 }
             },
             onEditLabel () {
+                if (!this.hasPermission(['project_edit'], this.authActions)) {
+                    const resourceData = {
+                        project: [{
+                            id: this.project_id,
+                            name: this.projectName
+                        }]
+                    }
+                    this.applyForPermission(['project_edit'], this.authActions, resourceData)
+                    return
+                }
                 this.labelDetail = { color: '#1c9574', name: '', description: '' }
                 this.labelDialogShow = true
             },
