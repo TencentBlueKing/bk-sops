@@ -1450,7 +1450,11 @@ const en = {
     'ID/CC_ID/项目名称/创建人': 'ID/CC_ID/ProjectName/Creator',
     '修改时间实际是强制失败后重试节点，需配置可重试才能修改时间': 'The modification time is actually to retry the node after a forced failure. You need to configure retry to modify the time.',
     '执行时间': 'Execution time',
-    '标签已存在，请重新输入': 'Label already exists, please re-enter'
+    '标签已存在，请重新输入': 'Label already exists, please re-enter',
+    '今天': 'Today',
+    '近7天': 'Last 7 days',
+    '近15天': 'Last 15 days',
+    '近30天': 'Last 30 days'
 }
 
 export default en

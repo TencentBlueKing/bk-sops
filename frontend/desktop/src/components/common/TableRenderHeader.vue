@@ -36,6 +36,7 @@
 </template>
 
 <script>
+    import i18n from '@/config/i18n/index.js'
     export default {
         name: 'TableRenderHeader',
         props: {
@@ -67,7 +68,7 @@
                 isDateOpen: false,
                 shortcuts: [
                     {
-                        text: '今天',
+                        text: i18n.t('今天'),
                         value () {
                             const end = new Date()
                             const start = new Date(end.getFullYear(), end.getMonth(), end.getDate())
@@ -78,7 +79,7 @@
                         }
                     },
                     {
-                        text: '近7天',
+                        text: i18n.t('近7天'),
                         value () {
                             const end = new Date()
                             const start = new Date()
@@ -87,7 +88,7 @@
                         }
                     },
                     {
-                        text: '近15天',
+                        text: i18n.t('近15天'),
                         value () {
                             const end = new Date()
                             const start = new Date()
@@ -96,7 +97,7 @@
                         }
                     },
                     {
-                        text: '近30天',
+                        text: i18n.t('近30天'),
                         value () {
                             const end = new Date()
                             const start = new Date()
