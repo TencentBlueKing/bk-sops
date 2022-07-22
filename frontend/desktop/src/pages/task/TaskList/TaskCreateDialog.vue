@@ -8,6 +8,7 @@
         :header-position="'left'"
         :title="$t('新建任务')"
         :value="isNewTaskDialogShow"
+        render-directive="if"
         :auto-close="false"
         :on-close="onCancel"
         @value-change="toggleShow">
@@ -254,6 +255,7 @@
         watch: {
             isNewTaskDialogShow (val) {
                 if (!val) {
+                    this.currentPage = 0
                     this.templateList = []
                     this.publicList = []
                 }
