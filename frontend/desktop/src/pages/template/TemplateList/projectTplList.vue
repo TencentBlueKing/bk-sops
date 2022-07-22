@@ -163,7 +163,7 @@
                                             </bk-option>
                                             <div
                                                 slot="extension"
-                                                v-cursor="!hasPermission(['project_edit'], authActions)"
+                                                v-cursor="{ active: !hasPermission(['project_edit'], authActions) }"
                                                 class="label-select-extension"
                                                 :class="{ 'text-permission-disable': !hasPermission(['project_edit'], authActions) }"
                                                 data-test-id="process_list__editLabel"

@@ -54,7 +54,7 @@
                                 slot="extension"
                                 class="label-select-extension"
                                 data-test-id="tabTemplateConfig_form_editLabel"
-                                v-cursor="!hasPermission(['project_edit'], authActions)"
+                                v-cursor="{ active: !hasPermission(['project_edit'], authActions) }"
                                 @click="onEditLabel">
                                 <i class="bk-icon icon-plus-circle"></i>
                                 <span>{{ $t('编辑标签') }}</span>
@@ -438,6 +438,7 @@
                             if (resp.result) {
                                 this.$emit('updateTemplateLabelList')
                                 this.labelDialogShow = false
+                                this.formData.labels.push(resp.data.id)
                                 this.$bkMessage({
                                     message: i18n.t('标签新建成功'),
                                     theme: 'success'
