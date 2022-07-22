@@ -11,7 +11,8 @@
 */
 <template>
     <div class="tag-set-allocation">
-        <div class="tag-set-allocation-wrap">
+        <span v-if="constants.subflow_detail_var" class="rf-view-value">{{ constants[tagCode] }}</span>
+        <div class="tag-set-allocation-wrap" v-else>
             <set-allocation
                 ref="setAllocation"
                 :editable="editable && !disabled"

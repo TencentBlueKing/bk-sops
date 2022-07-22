@@ -11,8 +11,10 @@
             <div v-if="!isShowInputOrigin">
                 <RenderForm
                     v-if="!isEmptyParams && !loading"
+                    :key="renderKey"
                     :scheme="renderConfig"
                     :form-option="renderOption"
+                    :constants="constants"
                     v-model="inputRenderDate">
                 </RenderForm>
                 <NoData v-else></NoData>
@@ -55,6 +57,10 @@
                 type: Array,
                 default: () => ([])
             },
+            constants: {
+                type: Object,
+                default: () => ({})
+            },
             renderData: {
                 type: Object,
                 default: () => ({})
@@ -71,6 +77,7 @@
                     formEdit: false,
                     formMode: false
                 },
+                renderKey: null,
                 inputRenderDate: {}
             }
         },
@@ -88,6 +95,7 @@
             },
             renderData: {
                 handler (val) {
+                    this.renderKey = new Date().getTime()
                     this.inputRenderDate = tools.deepClone(val)
                 },
                 immediate: true
@@ -96,9 +104,10 @@
         methods: {
             inputSwitcher () {
                 if (!this.isShowInputOrigin) {
-                    this.inputsInfo = JSON.parse(this.inputsInfo)
+                    this.inputsInfo = this.constants.subflow_detail_var ? tools.deepClone(this.inputs) : JSON.parse(this.inputsInfo)
                 } else {
-                    this.inputsInfo = JSON.stringify(this.inputsInfo, null, 4)
+                    const info = this.constants.subflow_detail_var ? this.constants : this.inputs
+                    this.inputsInfo = JSON.stringify(info, null, 4)
                 }
             }
         }
