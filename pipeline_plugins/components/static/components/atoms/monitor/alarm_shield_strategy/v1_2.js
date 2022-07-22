@@ -40,25 +40,6 @@
             }
         },
         {
-            tag_code: "bk_dimension_select_type",
-            type: "radio",
-            attrs: {
-                name: gettext("维度筛选方式"),
-                hookable: false,
-                items: [
-                    {name: gettext("全部满足(AND)"), value: "and"},
-                    {name: gettext("单一满足(OR)"), value: "or"},
-                ],
-                default: "and",
-                validation: [
-                    {
-                        type: "required"
-                    }
-                ],
-                events: []
-            },
-        },
-        {
             tag_code: "bk_dimension_list",
             type: "datatable",
             attrs: {
@@ -112,6 +93,25 @@
             },
             events: [],
             methods: {}
+        },
+        {
+            tag_code: "bk_dimension_select_type",
+            type: "radio",
+            attrs: {
+                name: gettext("维度筛选方式"),
+                hookable: false,
+                items: [
+                    {name: gettext("全部满足(AND)"), value: "and"},
+                    {name: gettext("单一满足(OR)"), value: "or"},
+                ],
+                default: "and",
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ],
+                events: []
+            },
         },
         {
             tag_code: "bk_alarm_time_type",
