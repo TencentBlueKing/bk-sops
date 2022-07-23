@@ -1,19 +1,52 @@
 // 接口异常通知提示，出现在页面右上角，10s后自动关闭，鼠标hover时暂停计时
+import i18n from '@/config/i18n/index.js'
 export default class ErrorNotify {
     constructor (msg, type = 'error', traceId, vueInstance) {
+        const h = vueInstance.$createElement
+        this.showMore = false
         this.notify = vueInstance.$bkNotify({
             theme: type,
             offsetY: 80,
             limit: 5,
             limitLine: 0,
             delay: 0,
-            title: traceId ? `trace_id: ${traceId}` : '',
-            message: msg
+            title: '请求外部系统错误',
+            message: h('div',
+                [
+                    h('p', {
+                        style: { position: 'absolute', top: '24px', right: '60px', color: '#3a84ff', cursor: 'pointer' },
+                        on: {
+                            click: () => {
+                                this.toggleShowMore()
+                            }
+                        }
+                    }, [i18n.t('查看更多')]),
+                    h('div', {
+                        class: 'content-text',
+                        style: { display: 'none' }
+                    }, [
+                        h('p', [`trace_id：${traceId}`]),
+                        h('p', [msg]),
+                        h('bk-button', {
+                            style: {
+                                display: 'block',
+                                position: 'relative',
+                                margin: '10px 0 0 auto'
+                            },
+                            on: {
+                                click: () => {
+                                    console.log(`trace_id：${traceId}\n${msg}`)
+                                    this.handleCopy(vueInstance, `trace_id：${traceId}\n${msg}`)
+                                }
+                            }
+                        }, [i18n.t('复制')])
+                    ])
+                ]
+            )
         })
 
         // 内容区域及进度条样式处理
-        this.notify.$el.style.width = '580px'
-        this.notify.$el.querySelector('.bk-notify-content-text').style.cssText = 'max-height: 140px; overflow: auto;'
+        this.notify.$el.style.width = '450px'
         const progressWrap = document.createElement('div')
         const bar = document.createElement('div')
         progressWrap.style.cssText = 'position: absolute; left: 0; bottom: 0; width: 100%; height: 4px; background: #f0f1f5;'
@@ -55,5 +88,25 @@ export default class ErrorNotify {
     handleMouseEvent () {
         this.notify.$el.addEventListener('mouseenter', this.stopTimeCountDown.bind(this), false)
         this.notify.$el.addEventListener('mouseleave', this.startTimeCountDown.bind(this), false)
+    }
+    toggleShowMore () {
+        this.showMore = !this.showMore
+        this.notify.$el.style.zIndex = this.showMore ? 2501 : 2500
+        this.notify.$el.querySelector('.content-text').style.display = this.showMore ? 'block' : 'none'
+    }
+    handleCopy (vueInstance, msg) {
+        const textarea = document.createElement('textarea')
+        document.body.appendChild(textarea)
+        textarea.style.position = 'fixed'
+        textarea.style.clip = 'rect(0 0 0 0)'
+        textarea.style.top = '10px'
+        textarea.value = msg
+        textarea.select()
+        document.execCommand('copy', true)
+        document.body.removeChild(textarea)
+        vueInstance.$bkMessage({
+            theme: 'success',
+            message: i18n.t('复制成功')
+        })
     }
 }

@@ -1454,7 +1454,8 @@ const en = {
     '今天': 'Today',
     '近7天': 'Last 7 days',
     '近15天': 'Last 15 days',
-    '近30天': 'Last 30 days'
+    '近30天': 'Last 30 days',
+    '查看更多': 'See more'
 }
 
 export default en
