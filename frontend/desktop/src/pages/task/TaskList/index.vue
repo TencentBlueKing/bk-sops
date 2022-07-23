@@ -348,7 +348,9 @@
                 limit = 15,
                 template_source = '',
                 create_info = '',
-                queryTime = '',
+                start_time = '',
+                create_time = '',
+                finish_time = '',
                 creator = '',
                 executor = '',
                 statusSync = '',
@@ -357,12 +359,18 @@
                 create_method = '',
                 recorded_executor_proxy = ''
             } = this.$route.query
-            const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
+            const searchList = [
+                ...SEARCH_LIST,
+                { id: 'start_time', name: i18n.t('执行时间'), type: 'dateRange' },
+                { id: 'create_time', name: i18n.t('创建时间'), type: 'dateRange' },
+                { id: 'finish_time', name: i18n.t('结束时间'), type: 'dateRange' }
+            ]
+            const searchSelectValue = searchList.reduce((acc, cur) => {
                 const values_text = this.$route.query[cur.id]
                 if (values_text) {
                     let values = []
                     if (!cur.children) {
-                        values = [values_text]
+                        values = cur.type === 'dateRange' ? values_text.split(',') : [values_text]
                         acc.push({ ...cur, values })
                     } else if (cur.children.length) {
                         const ids = values_text.split(',')
@@ -372,10 +380,6 @@
                 }
                 return acc
             }, [])
-            if (queryTime) {
-                const values = queryTime.split(',')
-                searchSelectValue.push({ id: 'dateRange', name: i18n.t('创建时间'), values })
-            }
             return {
                 firstLoading: true,
                 listLoading: false,
@@ -402,7 +406,9 @@
                 createInfo: create_info,
                 templateSource: template_source,
                 requestData: {
-                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
+                    start_time: start_time ? start_time.split(',') : ['', ''],
+                    create_time: create_time ? create_time.split(',') : ['', ''],
+                    finish_time: finish_time ? finish_time.split(',') : ['', ''],
                     creator,
                     executor,
                     statusSync,
@@ -436,8 +442,7 @@
                 paramsType: 'default',
                 selectedRow: {},
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
-                searchSelectValue,
-                dateTimeRange: queryTime.split(',')
+                searchSelectValue
             }
         },
         computed: {
@@ -477,7 +482,7 @@
                 this.listLoading = true
                 this.executeStatus = []
                 try {
-                    const { queryTime, creator, executor, statusSync, taskName, id, create_method, recorded_executor_proxy } = this.requestData
+                    const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, id, create_method, recorded_executor_proxy } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
                     let pipeline_instance__is_revoked
@@ -516,13 +521,31 @@
                         recorded_executor_proxy: recorded_executor_proxy || undefined
                     }
 
-                    if (queryTime && queryTime[0] && queryTime[1]) {
+                    if (start_time && start_time[0] && start_time[1]) {
                         if (this.template_source === 'common') {
-                            data['pipeline_template__start_time__gte'] = moment(queryTime[0]).format('YYYY-MM-DD')
-                            data['pipeline_template__start_time__lte'] = moment(queryTime[1]).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__gte'] = moment(start_time[0]).format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__lte'] = moment(start_time[1]).add('1', 'd').format('YYYY-MM-DD')
                         } else {
-                            data['pipeline_instance__start_time__gte'] = moment.tz(queryTime[0], this.timeZone).format('YYYY-MM-DD')
-                            data['pipeline_instance__start_time__lte'] = moment.tz(queryTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__gte'] = moment.tz(start_time[0], this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(start_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                        }
+                    }
+                    if (create_time && create_time[0] && create_time[1]) {
+                        if (this.template_source === 'common') {
+                            data['pipeline_template__start_time__gte'] = moment(create_time[0]).format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__lte'] = moment(create_time[1]).add('1', 'd').format('YYYY-MM-DD')
+                        } else {
+                            data['pipeline_instance__start_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                        }
+                    }
+                    if (finish_time && finish_time[0] && finish_time[1]) {
+                        if (this.template_source === 'common') {
+                            data['pipeline_template__start_time__gte'] = moment(finish_time[0]).format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__lte'] = moment(finish_time[1]).add('1', 'd').format('YYYY-MM-DD')
+                        } else {
+                            data['pipeline_instance__start_time__gte'] = moment.tz(finish_time[0], this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(finish_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                         }
                     }
                     const taskListData = await this.loadTaskList(data)
@@ -726,27 +749,29 @@
                             }]
                         })
                     ])
-                } else if (column.property === 'create_time') {
+                } else if (['start_time', 'create_time', 'finish_time'].includes(column.property)) {
+                    const id = this.setting.selectedFields[$index].id
+                    const date = this.requestData[id]
                     return <TableRenderHeader
                         name={ column.label }
                         orderShow = { false }
-                        dateValue={ this.dateTimeRange }
-                        onDateChange={ data => this.handleDateTimeFilter(data) }>
+                        dateValue={ date }
+                        onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
                 } else {
                     return column.label
                 }
             },
-            handleDateTimeFilter (date = []) {
-                this.dateTimeRange = date
-                const index = this.searchSelectValue.findIndex(item => item.id === 'dateRange')
+            handleDateTimeFilter (date = [], id) {
+                const index = this.searchSelectValue.findIndex(item => item.id === id)
                 if (date.length) {
                     if (index > -1) {
                         this.searchSelectValue[index].values = date
                     } else {
                         const info = {
-                            id: 'dateRange',
-                            name: i18n.t('创建时间'),
+                            id,
+                            type: 'dateRange',
+                            name: id === 'start_time' ? i18n.t('执行时间') : id === 'create_time' ? i18n.t('创建时间') : i18n.t('结束时间'),
                             values: date
                         }
                         this.searchSelectValue.push(info)
@@ -771,14 +796,16 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { queryTime, creator, executor, statusSync, taskName, id, create_method, recorded_executor_proxy } = this.requestData
+                const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, id, create_method, recorded_executor_proxy } = this.requestData
                 const filterObj = {
                     limit,
                     creator,
                     executor,
                     statusSync,
                     page: current,
-                    queryTime: queryTime && queryTime.every(item => item) ? queryTime.join(',') : '',
+                    start_time: start_time && start_time.every(item => item) ? start_time.join(',') : '',
+                    create_time: create_time && create_time.every(item => item) ? create_time.join(',') : '',
+                    finish_time: finish_time && finish_time.every(item => item) ? finish_time.join(',') : '',
                     taskName,
                     task_id: id,
                     create_method,
@@ -835,8 +862,8 @@
             },
             handleSearchValueChange (data) {
                 data = data.reduce((acc, cur) => {
-                    if (cur.id === 'dateRange') {
-                        acc['queryTime'] = cur.values
+                    if (cur.type === 'dateRange') {
+                        acc[cur.id] = cur.values
                     } else if (cur.multiable) {
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
@@ -845,7 +872,6 @@
                     }
                     return acc
                 }, {})
-                this.dateTimeRange = data['queryTime'] || []
                 this.requestData = data
                 this.pagination.current = 1
                 // 搜索时，清空 createInfo、templateId、templateSource 筛选条件

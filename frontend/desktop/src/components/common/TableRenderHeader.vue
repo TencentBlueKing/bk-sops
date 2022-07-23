@@ -29,7 +29,7 @@
                 slot="trigger"
                 class="bk-table-column-filter-trigger bk-icon icon-funnel"
                 :class="{ 'is-filtered': isFiltered, 'is-open': isDateOpen }"
-                @click="isDateOpen = !isDateOpen">
+                @click.stop="isDateOpen = !isDateOpen">
             </i>
         </bk-date-picker>
     </section>
@@ -110,8 +110,8 @@
         },
         computed: {
             isFiltered () {
-                return this.dateTimeRange.length
-                    ? this.dateTimeRange.every(date => date)
+                return this.dateValue.length
+                    ? this.dateValue.every(date => date)
                     : false
             }
         },
