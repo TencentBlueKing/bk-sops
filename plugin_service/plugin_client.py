@@ -55,14 +55,12 @@ class PluginServiceApiClient:
         # 上传文件的情况
         if any([isinstance(data, InMemoryUploadedFile) for data in request_params["data"].values()]):
             headers.pop("Content-Type")
-            files = dict(
-                [
-                    (key, (value.name, value.file.getvalue()))
-                    for key, value in request_params["data"].items()
-                    if isinstance(value, InMemoryUploadedFile)
-                ]
-            )
-            request_params.pop("data")
+            files = {}
+            for key in request_params["data"].keys():
+                value = request_params["data"][key]
+                if isinstance(value, InMemoryUploadedFile):
+                    files[key] = (value.name, value.file.getvalue())
+                    request_params["data"].pop(key)
             return PluginServiceApiClient._request_api_and_error_retry(
                 url, method="post", data=request_params, headers=headers, files=files
             )
