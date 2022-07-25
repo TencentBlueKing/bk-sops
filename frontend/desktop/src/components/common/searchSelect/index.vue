@@ -661,7 +661,7 @@
 <style lang="scss" scoped>
     @import '@/scss/mixins/scrollbar.scss';
     .search-select {
-        position: relative;
+        position: absolute;
         right: 0;
         z-index: 666;
         background: #fff;

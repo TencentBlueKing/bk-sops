@@ -596,11 +596,11 @@
                     }
                     if (claim_time && claim_time[0] && claim_time[1]) {
                         if (this.common) {
-                            data['pipeline_template__start_time__gte'] = moment(claim_time[0]).format('YYYY-MM-DD') + ' 00:00:00'
-                            data['pipeline_template__start_time__lte'] = moment(claim_time[1]).add('1', 'd').format('YYYY-MM-DD') + ' 23:59:59'
+                            data['pipeline_template__claim_time__gte'] = moment(claim_time[0]).format('YYYY-MM-DD') + ' 00:00:00'
+                            data['pipeline_template__claim_time__lte'] = moment(claim_time[1]).add('1', 'd').format('YYYY-MM-DD') + ' 23:59:59'
                         } else {
-                            data['create_time__gte'] = moment.tz(claim_time[0], this.timeZone).format('YYYY-MM-DD') + ' 00:00:00'
-                            data['create_time__lte'] = moment.tz(claim_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD') + ' 23:59:59'
+                            data['claim_time__gte'] = moment.tz(claim_time[0], this.timeZone).format('YYYY-MM-DD') + ' 00:00:00'
+                            data['claim_time__lte'] = moment.tz(claim_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD') + ' 23:59:59'
                         }
                     }
                     const functorListData = await this.loadFunctionTaskList(data)
@@ -1169,7 +1169,6 @@
 .search-wrapper {
     position: relative;
     display: flex;
-    align-items: center;
     justify-content: space-between;
     .operate-wrap {
         position: absolute;

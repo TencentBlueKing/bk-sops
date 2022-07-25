@@ -644,8 +644,8 @@
                     data['order_by'] = this.ordering
                 }
                 if (create_time && create_time[0] && create_time[1]) {
-                    data['pipeline_template__edit_time__gte'] = moment(create_time[0]).format('YYYY-MM-DD')
-                    data['pipeline_template__edit_time__lte'] = moment(create_time[1]).add('1', 'd').format('YYYY-MM-DD')
+                    data['pipeline_template__create_time__gte'] = moment(create_time[0]).format('YYYY-MM-DD')
+                    data['pipeline_template__create_time__lte'] = moment(create_time[1]).add('1', 'd').format('YYYY-MM-DD')
                 }
                 if (edit_time && edit_time[0] && edit_time[1]) {
                     data['pipeline_template__edit_time__gte'] = moment(edit_time[0]).format('YYYY-MM-DD')

@@ -835,8 +835,8 @@
                     data['order_by'] = this.ordering
                 }
                 if (create_time && create_time[0] && create_time[1]) {
-                    data['pipeline_template__edit_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD')
-                    data['pipeline_template__edit_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                    data['pipeline_template__create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD')
+                    data['pipeline_template__create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                 }
                 if (edit_time && edit_time[0] && edit_time[1]) {
                     data['pipeline_template__edit_time__gte'] = moment.tz(edit_time[0], this.timeZone).format('YYYY-MM-DD')

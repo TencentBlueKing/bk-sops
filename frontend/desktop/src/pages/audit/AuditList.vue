@@ -348,11 +348,11 @@
                     }
                     if (finish_time && finish_time[0] && finish_time[1]) {
                         if (this.common) {
-                            data['pipeline_template__start_time__gte'] = moment(finish_time[0]).format('YYYY-MM-DD')
-                            data['pipeline_template__start_time__lte'] = moment(finish_time[1]).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_template__finish_time__gte'] = moment(finish_time[0]).format('YYYY-MM-DD')
+                            data['pipeline_template__finish_time__lte'] = moment(finish_time[1]).add('1', 'd').format('YYYY-MM-DD')
                         } else {
-                            data['pipeline_instance__start_time__gte'] = moment.tz(finish_time[0], this.timeZone).format('YYYY-MM-DD')
-                            data['pipeline_instance__start_time__lte'] = moment.tz(finish_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_instance__finish_time__gte'] = moment.tz(finish_time[0], this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__finish_time__lte'] = moment.tz(finish_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                         }
                     }
                     const auditListData = await this.loadAuditTaskList(data)
@@ -542,8 +542,8 @@
     width: 260px;
 }
 .search-wrapper {
-    display: flex;
-    justify-content: flex-end;
+    position: relative;
+    height: 32px;
 }
 .list-wrapper {
     .advanced-search {

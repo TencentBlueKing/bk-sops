@@ -691,7 +691,8 @@
         align-items: center;
         justify-content: flex-end;
         .bk-form-checkbox {
-            margin-right: 15px;
+            position: relative;
+            right: 495px;
         }
     }
     .project-table {
