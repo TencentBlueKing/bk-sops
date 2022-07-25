@@ -37,6 +37,8 @@ class ClockedTaskViewSet(ApiMixin, IAMMixin, viewsets.ModelViewSet):
         "creator": ["exact"],
         "editor": ["exact"],
         "plan_start_time": ["gte", "lte"],
+        "edit_time": ["gte", "lte"],
+        "create_time": ["gte", "lte"],
         "task_name": ["exact", "icontains", "contains"],
         "project_id": ["exact"],
         "state": ["exact"],
