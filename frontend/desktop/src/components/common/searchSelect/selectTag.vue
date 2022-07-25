@@ -26,6 +26,18 @@
                     @click="showPopover"
                     @keydown="handleKeydown"
                     @input="handleTagInput" />
+                <bk-date-picker
+                    v-if="tagInfo.type === 'dateRange'"
+                    :value="dateTimeRange"
+                    :open="isDateOpen"
+                    :type="'datetimerange'"
+                    :transfer="true"
+                    ext-popover-cls="date-time-range-popover"
+                    @change="handleChange"
+                    @clear="handleDateClear"
+                    @pick-success="handleDatePickSuccess">
+                    <div slot="trigger" class="hidden-value">{{ localValue }}</div>
+                </bk-date-picker>
             </template>
             
             <div slot="content">
@@ -49,6 +61,7 @@
                 <p v-else class="option-none no-search-data">{{ '查询无数据' }}</p>
             </div>
         </bk-popover>
+        
     </div>
 </template>
 
@@ -72,7 +85,9 @@
                 localValue: '',
                 checkedIdList: [],
                 isEditing: false,
-                hoverId: ''
+                hoverId: '',
+                dateTimeRange: [],
+                isDateOpen: false
             }
         },
         computed: {
@@ -90,8 +105,8 @@
         watch: {
             tagInfo: {
                 handler (val) {
-                    const { id, values, children } = this.tagInfo
-                    const symbol = id === 'dateRange' ? ' ~ ' : ' | '
+                    const { type, values, children } = this.tagInfo
+                    const symbol = type === 'dateRange' ? ' ~ ' : ' | '
                     const value = values.map(item => children ? item.name : item).join(symbol)
                     this.initValue = value
                     this.localValue = value
@@ -119,11 +134,17 @@
                 this.$emit('handleTagClear', this.tagInfo.id)
             },
             toggleEditMode () {
-                this.checkedIdList = this.tagInfo.values.map(item => item.id)
+                if (this.tagInfo.type === 'dateRange') {
+                    this.dateTimeRange = this.localValue.split(' ~ ')
+                    this.isDateOpen = true
+                } else {
+                    this.checkedIdList = this.tagInfo.values.map(item => item.id)
+                }
                 this.isEditing = true
                 setTimeout(() => {
                     this.$refs.textarea.focus()
-                    this.$refs.textarea.select()
+                    this.$refs.textarea.selectionStart = 0
+                    this.$refs.textarea.selectionEnd = this.localValue.length
                 })
                 if (this.tagInfo.children) {
                     this.showPopover()
@@ -157,6 +178,7 @@
                 const { children, multiable } = this.tagInfo
                 if (isEqual) {
                     this.isEditing = false
+                    this.isDateOpen = false
                 } else if (this.hoverId !== '') {
                     if (multiable) {
                         this.handleMenuClick(this.hoverId)
@@ -184,6 +206,7 @@
                     this.$emit('updateSelectTag', { ...this.tagInfo, values: [this.localValue] })
                 }
                 this.isEditing = false
+                this.isDateOpen = false
                 this.hidePopover()
             },
             handleRemove (event) {
@@ -213,7 +236,7 @@
             },
             handleTagInput (event) {
                 this.localValue = event.target.value.replace(/\n/, '')
-                const { children, multiable } = this.tagInfo
+                const { children, multiable, type } = this.tagInfo
                 if (children) {
                     if (!this.localValue) {
                         this.checkedIdList = []
@@ -226,17 +249,26 @@
                         }
                         return acc
                     }, [])
+                } else if (type === 'dateRange' && !this.localValue) {
+                    // 当时间被清空后导致输入框换行时更新date选择器
+                    this.isDateOpen = false
+                    this.dateTimeRange = []
+                    this.$nextTick(() => {
+                        this.isDateOpen = true
+                    })
                 }
                 if (!multiable) {
                     this.hoverId = ''
                 }
             },
             handleInputOutSide (e) {
-                if (dom.parentClsContains('select-list-popover', e.target)) {
+                if (dom.parentClsContains('select-list-popover', e.target) || dom.parentClsContains('date-time-range-popover', e.target)) {
+                    this.handleTagClick()
                     return
                 }
                 this.localValue = this.initValue
                 this.isEditing = false
+                this.isDateOpen = false
             },
             handleMenuClick (id) {
                 const index = this.checkedIdList.findIndex(item => item === id)
@@ -265,7 +297,22 @@
             handleSelectTagCancel () {
                 this.$emit('handleSelectTagCancel')
                 this.isEditing = false
+                this.localValue = this.initValue
                 this.hidePopover()
+            },
+            handleChange (date) {
+                this.dateTimeRange = date
+            },
+            handleDateClear () {
+                this.dateTimeRange = []
+                this.isEditing = false
+                this.isDateOpen = false
+                this.handleTagClear()
+            },
+            handleDatePickSuccess () {
+                this.isEditing = false
+                this.isDateOpen = false
+                this.$emit('updateSelectTag', { ...this.tagInfo, values: this.dateTimeRange })
             }
         }
     }
@@ -275,7 +322,7 @@
     .select-tag {
         position: relative;
         display: flex;
-        margin: 4px 0 5px 5px;
+        margin: 4px 0 4px 5px;
         padding: 0 5px;
         min-height: 22px;
         line-height: 22px;
@@ -310,14 +357,25 @@
             word-break: break-all;
             visibility: hidden;
         }
+        .bk-date-picker {
+            position: absolute;
+            top: 0;
+            z-index: 1;
+            width: 100%;
+            visibility: hidden;
+            .bk-date-picker-rel {
+                display: inline-block;
+            }
+        }
         .tag-value-edit {
             position: absolute;
             top: 0;
+            z-index: 2;
             width: 100%;
             height: 100%;
             padding: 0;
             font-size: inherit;
-            line-height: inherit;
+            line-height: 22px;
             color: inherit;
             background: transparent;
             border: none;

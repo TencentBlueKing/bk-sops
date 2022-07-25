@@ -745,7 +745,6 @@
         }
     }
     .close-icon {
-        top: 9px;
         font-size: 14px;
         &:hover {
             color: #979ba5;
