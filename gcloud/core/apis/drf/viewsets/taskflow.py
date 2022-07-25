@@ -68,6 +68,8 @@ class TaskFlowFilterSet(FilterSet):
             "create_info": ["exact"],
             "recorded_executor_proxy": ["exact"],
             "pipeline_instance__start_time": ["gte", "lte"],
+            "pipeline_instance__finish_time": ["gte", "lte"],
+            "pipeline_instance__create_time": ["gte", "lte"],
         }
 
 
