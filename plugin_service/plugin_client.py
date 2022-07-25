@@ -56,7 +56,7 @@ class PluginServiceApiClient:
         if any([isinstance(data, InMemoryUploadedFile) for data in request_params["data"].values()]):
             headers.pop("Content-Type")
             files = {}
-            for key in request_params["data"].keys():
+            for key in list(request_params["data"].keys()):
                 value = request_params["data"][key]
                 if isinstance(value, InMemoryUploadedFile):
                     files[key] = (value.name, value.file.getvalue())
