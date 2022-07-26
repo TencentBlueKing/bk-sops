@@ -61,6 +61,12 @@
                             <bk-link theme="primary" @click="selectedTpls = []">{{ $t('清空') }}</bk-link>
                         </div>
                     </div>
+                    <bk-button
+                        class="my-create-btn"
+                        data-test-id="commonProcess_form_myCreateProcess"
+                        @click="handleMyCreateFilter">
+                        {{$t('我创建的')}}
+                    </bk-button>
                     <search-select
                         ref="searchSelect"
                         id="commonTplList"
@@ -94,9 +100,10 @@
                             :prop="item.key || item.id"
                             :width="item.width"
                             :min-width="item.min_width"
+                            :class-name="item.id.replace(/_/g, '-')"
                             :render-header="renderTableHeader"
                             :sort-orders="['descending', 'ascending', null]"
-                            :sortable="sortableCols.find(col => col.value !== 'pipeline_template__create_time' && col.value === (item.key || item.id)) ? 'custom' : false">
+                            :sortable="sortableCols.find(col => col.value === (item.key || item.id)) ? 'custom' : false">
                             <template slot-scope="{ row }">
                                 <!--流程名称-->
                                 <div v-if="item.id === 'name'" class="name-column">
@@ -324,13 +331,13 @@
             width: 200
         },
         {
+            key: 'pipeline_template__edit_time',
             id: 'edit_time',
             label: i18n.t('更新时间'),
             sortable: 'custom',
             width: 200
         },
         {
-            key: 'pipeline_template__edit_time',
             id: 'subprocess_has_update',
             label: i18n.t('子流程更新'),
             width: 200
@@ -369,33 +376,34 @@
             const {
                 page = 1,
                 limit = 15,
-                queryTime = '',
+                create_time = '',
+                edit_time = '',
                 subprocessUpdateVal = '',
                 creator = '',
                 editor = '',
                 flowName = '',
                 template_id = ''
             } = this.$route.query
-            const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
+            const searchList = [
+                ...SEARCH_LIST,
+                { id: 'create_time', name: i18n.t('创建时间'), type: 'dateRange' },
+                { id: 'edit_time', name: i18n.t('更新时间'), type: 'dateRange' }
+            ]
+            const searchSelectValue = searchList.reduce((acc, cur) => {
                 const values_text = this.$route.query[cur.id]
                 if (values_text) {
-                    const { id, name, children } = cur
                     let values = []
-                    if (!children) {
-                        values = [values_text]
-                        acc.push({ id, name, values })
-                    } else if (children.length) {
+                    if (!cur.children) {
+                        values = cur.type === 'dateRange' ? values_text.split(',') : [values_text]
+                        acc.push({ ...cur, values })
+                    } else if (cur.children.length) {
                         const ids = values_text.split(',')
-                        values = children.filter(item => ids.includes(String(item.id)))
-                        acc.push({ id, name, values })
+                        values = cur.children.filter(item => ids.includes(String(item.id)))
+                        acc.push({ ...cur, values })
                     }
                 }
                 return acc
             }, [])
-            if (queryTime) {
-                const values = queryTime.split(',')
-                searchSelectValue.push({ id: 'dateRange', name: '创建时间', values })
-            }
             // 获取操作列表
             const noViewAuthTip = i18n.t('已选流程模板没有查看权限，请取消选择或申请权限')
             const noEditAuthTip = i18n.t('已选流程模板没有编辑权限，请取消选择或申请权限')
@@ -453,7 +461,8 @@
                 requestData: {
                     subprocessUpdateVal: subprocessUpdateVal !== '' ? Number(subprocessUpdateVal) : '',
                     creator,
-                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
+                    create_time: create_time ? create_time.split(',') : ['', ''],
+                    edit_time: edit_time ? edit_time.split(',') : ['', ''],
                     flowName,
                     template_id,
                     editor
@@ -482,8 +491,7 @@
                 isInit: true, // 避免default-sort在初始化时去触发table的sort-change事件
                 categoryTips: i18n.t('模板分类即将下线，建议使用标签'),
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
-                searchSelectValue,
-                dateTimeRange: queryTime ? queryTime.split(',') : []
+                searchSelectValue
             }
         },
         computed: {
@@ -606,7 +614,7 @@
                 }
             },
             getQueryData () {
-                const { subprocessUpdateVal, creator, queryTime, flowName, template_id, editor } = this.requestData
+                const { subprocessUpdateVal, creator, create_time, edit_time, flowName, template_id, editor } = this.requestData
                 /**
                  * 无子流程 has_subprocess=false
                  * 有子流程，需要更新 has_subprocess=true&subprocess_has_update=true
@@ -635,9 +643,13 @@
                 } else {
                     data['order_by'] = this.ordering
                 }
-                if (queryTime && queryTime[0] && queryTime[1]) {
-                    data['pipeline_template__edit_time__gte'] = moment(queryTime[0]).format('YYYY-MM-DD')
-                    data['pipeline_template__edit_time__lte'] = moment(queryTime[1]).add('1', 'd').format('YYYY-MM-DD')
+                if (create_time && create_time[0] && create_time[1]) {
+                    data['pipeline_template__create_time__gte'] = moment(create_time[0]).format('YYYY-MM-DD')
+                    data['pipeline_template__create_time__lte'] = moment(create_time[1]).add('1', 'd').format('YYYY-MM-DD')
+                }
+                if (edit_time && edit_time[0] && edit_time[1]) {
+                    data['pipeline_template__edit_time__gte'] = moment(edit_time[0]).format('YYYY-MM-DD')
+                    data['pipeline_template__edit_time__lte'] = moment(edit_time[1]).add('1', 'd').format('YYYY-MM-DD')
                 }
                 return data
             },
@@ -681,10 +693,26 @@
                     })
                 }
             },
+            // 我创建的
+            handleMyCreateFilter () {
+                const creatorInfo = this.searchSelectValue.find(item => item.id === 'creator')
+                let info = {}
+                if (creatorInfo) {
+                    creatorInfo.values = [this.username]
+                    info = creatorInfo
+                } else {
+                    const form = this.searchList.find(item => item.id === 'creator')
+                    info = { ...form, values: [this.username] }
+                    this.searchSelectValue.push(info)
+                }
+                // 添加搜索记录
+                const searchDom = this.$refs.searchSelect
+                searchDom && searchDom.addSearchRecord(info)
+            },
             handleSearchValueChange (data) {
                 data = data.reduce((acc, cur) => {
-                    if (cur.id === 'dateRange') {
-                        acc['queryTime'] = cur.values
+                    if (cur.type === 'dateRange') {
+                        acc[cur.id] = cur.values
                     } else if (cur.multiable) {
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
@@ -693,7 +721,6 @@
                     }
                     return acc
                 }, {})
-                this.dateTimeRange = data['queryTime'] || []
                 this.requestData = data
                 this.pagination.current = 1
                 this.updateUrl()
@@ -961,29 +988,31 @@
                             }]
                         })
                     ])
-                } else if (column.property === 'pipeline_template__create_time') {
+                } else if (['pipeline_template__create_time', 'pipeline_template__edit_time'].includes(column.property)) {
+                    const id = this.setting.selectedFields[$index - 1].id
+                    const date = this.requestData[id]
                     return <TableRenderHeader
                         name={ column.label }
                         property={ column.property }
                         sortConfig={ this.getDefaultSortConfig }
-                        dateValue={ this.dateTimeRange }
+                        dateValue={ date }
                         onSortChange={ data => this.handleSortChange(data) }
-                        onDateChange={ data => this.handleDateTimeFilter(data) }>
+                        onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
                 } else {
                     return column.label
                 }
             },
-            handleDateTimeFilter (date = []) {
-                this.dateTimeRange = date
-                const index = this.searchSelectValue.findIndex(item => item.id === 'dateRange')
+            handleDateTimeFilter (date = [], id) {
+                const index = this.searchSelectValue.findIndex(item => item.id === id)
                 if (date.length) {
                     if (index > -1) {
                         this.searchSelectValue[index].values = date
                     } else {
                         const info = {
-                            id: 'dateRange',
-                            name: '创建时间',
+                            id,
+                            type: 'dateRange',
+                            name: id === 'create_time' ? i18n.t('创建时间') : i18n.t('更新时间'),
                             values: date
                         }
                         this.searchSelectValue.push(info)
@@ -1024,13 +1053,14 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { queryTime, subprocessUpdateVal, creator, flowName, template_id, editor } = this.requestData
+                const { create_time, edit_time, subprocessUpdateVal, creator, flowName, template_id, editor } = this.requestData
                 const filterObj = {
                     limit,
                     subprocessUpdateVal,
                     creator,
                     page: current,
-                    queryTime: queryTime && queryTime.every(item => item) ? queryTime.join(',') : '',
+                    create_time: create_time && create_time.every(item => item) ? create_time.join(',') : '',
+                    edit_time: edit_time && edit_time.every(item => item) ? edit_time.join(',') : '',
                     flowName,
                     template_id,
                     editor
@@ -1254,6 +1284,13 @@
     position: relative;
     display: flex;
     justify-content: space-between;
+    .operation-wrap {
+        display: flex;
+    }
+    .my-create-btn {
+        position: absolute;
+        right: 495px;
+    }
 }
 a {
     cursor: pointer;
@@ -1329,10 +1366,6 @@ a {
         line-height: 1;
     }
 }
-.my-create-btn {
-    padding: 0 10px;
-    margin: 0 -15px 0 10px;
-}
 .template-table-content {
     background: #ffffff;
     .bk-table-row.hover-row {
@@ -1402,6 +1435,12 @@ a {
         font-size: 14px;
         color: #c4c6cc;
         cursor: pointer;
+    }
+    /deep/.edit-time,
+    /deep/.create-time {
+        .bk-table-caret-wrapper {
+            display: none;
+        }
     }
 }
 </style>

@@ -504,14 +504,8 @@
             },
             handleSearchValueChange (data) {
                 data = data.reduce((acc, cur) => {
-                    if (cur.id === 'dateRange') {
-                        acc['queryTime'] = cur.values
-                    } else if (cur.multiable) {
-                        acc[cur.id] = cur.values.map(item => item.id)
-                    } else {
-                        const value = cur.values[0]
-                        acc[cur.id] = cur.children ? value.id : value
-                    }
+                    const value = cur.values[0]
+                    acc[cur.id] = cur.children ? value.id : value
                     return acc
                 }, {})
                 this.requestData = data
@@ -698,7 +692,7 @@
         justify-content: flex-end;
         .bk-form-checkbox {
             position: relative;
-            right: 500px;
+            right: 495px;
         }
     }
     .project-table {

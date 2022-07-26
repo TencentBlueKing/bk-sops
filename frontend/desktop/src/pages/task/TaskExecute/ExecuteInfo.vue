@@ -61,6 +61,7 @@
                         :admin-view="adminView"
                         :inputs="inputsInfo"
                         :render-config="renderConfig"
+                        :constants="subFlowConstants"
                         :render-data="renderData">
                     </InputParams>
                     <OutputParams
@@ -255,6 +256,7 @@
                     formMode: true
                 },
                 renderData: {},
+                subFlowConstants: {}, // 子流程constants
                 loop: 1,
                 theExecuteTime: undefined,
                 isReadyStatus: true,
@@ -331,6 +333,9 @@
                 codeInfo = codeInfo.value
                 return codeInfo
             },
+            isSubFlow () {
+                return this.location.type === 'subflow'
+            },
             nodeActivity () {
                 return this.pipelineData.activities[this.nodeDetailConfig.node_id]
             }
@@ -375,6 +380,8 @@
                         this.executeInfo = {}
                         this.outputsInfo = []
                         this.inputsInfo = {}
+                        this.subFlowConstants = {}
+                        this.renderData = {}
                         this.logInfo = ''
                         return
                     }
@@ -417,7 +424,18 @@
                         })
                     } else {
                         this.executeInfo = respData
-                        this.inputsInfo = inputs
+                        if (this.isSubFlow) { // 获取子流程输入参数 (subflow_detail_var 标识当前为子流程节点详情)
+                            this.subFlowConstants = { subflow_detail_var: true, ...inputs }
+                            this.inputsInfo = Object.values(this.pipelineData.constants).reduce((acc, cur) => {
+                                if (cur.show_type === 'show') {
+                                    acc[cur.key] = cur.value
+                                }
+                                return acc
+                            }, {})
+                        } else {
+                            this.subFlowConstants = {}
+                            this.inputsInfo = inputs
+                        }
                         if (respData.histories) {
                             this.historyInfo = respData.histories.map(item => {
                                 this.$set(item, 'historyLogTab', 'build_in_plugin')
@@ -427,6 +445,7 @@
                                 return item
                             })
                         }
+                        this.renderData = {}
                         for (const key in this.inputsInfo) {
                             this.$set(this.renderData, key, this.inputsInfo[key])
                         }
@@ -471,6 +490,13 @@
                                         outputsInfo.push(info)
                                     }
                                 })
+                            } else if (this.isSubFlow) {
+                                outputsInfo = outputs.map(item => {
+                                    const { value, key } = item
+                                    const constants = this.nodeActivity.pipeline.constants
+                                    const name = constants[key] ? constants[key].name : key
+                                    return { value, name }
+                                })
                             } else { // 普通插件展示 preset 为 true 的输出参数
                                 outputsInfo = outputs.filter(output => output.preset)
                             }
@@ -508,7 +534,7 @@
                     if (this.executeInfo.state === 'FAILED') {
                         const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
                         this.isShowSkipBtn = this.location.type === 'tasknode' && activity.skippable
-                        this.isShowRetryBtn = this.location.type === 'tasknode' ? activity.retryable : this.location.type === 'subflow'
+                        this.isShowRetryBtn = this.location.type === 'tasknode' ? activity.retryable : this.isSubFlow
                     } else {
                         this.isShowSkipBtn = false
                         this.isShowRetryBtn = false
@@ -626,7 +652,8 @@
                     const { key } = variable
                     const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
                     const version = variable.version || 'legacy'
-                    const atomConfig = await this.getAtomConfig({ plugin: atom, version, classify, name })
+                    const isThird = Boolean(variable.plugin_code)
+                    const atomConfig = await this.getAtomConfig({ plugin: atom, version, classify, name, isThird })
                     let formItemConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                     if (variable.is_meta || formItemConfig.meta_transform) {
                         formItemConfig = formItemConfig.meta_transform(variable.meta || variable)

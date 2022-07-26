@@ -230,7 +230,7 @@
                     list = this.records.map(recordItem => {
                         if (Array.isArray(recordItem.values)) {
                             const values = recordItem.values.map(item => item.name || item)
-                            recordItem.text_value = values.join(recordItem.id === 'dateRange' ? ' - ' : ',')
+                            recordItem.text_value = values.join(recordItem.type === 'dateRange' ? ' - ' : ',')
                         } else {
                             recordItem.text_value = recordItem.values
                         }
@@ -538,7 +538,7 @@
                     this.$refs.input.innerText = ''
                     this.selectInfo = {}
                     this.isVisible = true
-                }, 0)
+                }, 100)
             },
             // 清空按键
             handleKeyBackspace (e) {
@@ -592,7 +592,7 @@
                     if (match) {
                         list.unshift({ ...data, cid })
                     }
-                    records[this.username][this.id] = list.splice(0, 7)
+                    records[this.username][this.id] = list.splice(0, 10)
                 } else {
                     records[this.username][this.id] = [{ ...data, cid }]
                 }
@@ -694,7 +694,7 @@
         overflow: visible;
         display: flex;
         flex-wrap: wrap;
-        min-height: 32px;
+        min-height: 30px;
         transition: max-height .3s cubic-bezier(0.4, 0, 0.2, 1);
 
         .search-input-input {
@@ -708,7 +708,7 @@
             align-items: center;
             .div-input {
                 width: 100%;
-                line-height: 32px;
+                line-height: 30px;
                 word-break: break-all;
                 position: relative;
                 border: none;
@@ -745,7 +745,6 @@
         }
     }
     .close-icon {
-        top: 9px;
         font-size: 14px;
         &:hover {
             color: #979ba5;

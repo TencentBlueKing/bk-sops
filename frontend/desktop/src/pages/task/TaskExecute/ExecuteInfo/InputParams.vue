@@ -11,8 +11,10 @@
             <div v-if="!isShowInputOrigin">
                 <RenderForm
                     v-if="!isEmptyParams && !loading"
+                    :key="renderKey"
                     :scheme="renderConfig"
                     :form-option="renderOption"
+                    :constants="constants"
                     v-model="inputRenderDate">
                 </RenderForm>
                 <NoData v-else></NoData>
@@ -55,6 +57,10 @@
                 type: Array,
                 default: () => ([])
             },
+            constants: {
+                type: Object,
+                default: () => ({})
+            },
             renderData: {
                 type: Object,
                 default: () => ({})
@@ -71,6 +77,7 @@
                     formEdit: false,
                     formMode: false
                 },
+                renderKey: null,
                 inputRenderDate: {}
             }
         },
@@ -88,17 +95,35 @@
             },
             renderData: {
                 handler (val) {
-                    this.inputRenderDate = tools.deepClone(val)
+                    this.renderKey = new Date().getTime()
+                    const data = tools.deepClone(val)
+                    // 处理值可能为变量的情况
+                    if (this.constants.subflow_detail_var) {
+                        Object.keys(this.constants).forEach(key => {
+                            const value = this.constants[key]
+                            if (key in data) {
+                                data[key] = value
+                            } else if (('${' + key + '}') in data) {
+                                data['${' + key + '}'] = value
+                            }
+                        })
+                    }
+                    this.inputRenderDate = data
                 },
-                immediate: true
+                deep: true
             }
         },
         methods: {
             inputSwitcher () {
                 if (!this.isShowInputOrigin) {
-                    this.inputsInfo = JSON.parse(this.inputsInfo)
+                    this.inputsInfo = this.constants.subflow_detail_var ? tools.deepClone(this.inputs) : JSON.parse(this.inputsInfo)
                 } else {
-                    this.inputsInfo = JSON.stringify(this.inputsInfo, null, 4)
+                    let info = this.inputs
+                    if (this.constants.subflow_detail_var) {
+                        info = tools.deepClone(this.constants)
+                        this.$delete(info, 'subflow_detail_var')
+                    }
+                    this.inputsInfo = JSON.stringify(info, null, 4)
                 }
             }
         }

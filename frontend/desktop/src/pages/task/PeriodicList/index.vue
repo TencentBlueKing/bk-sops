@@ -48,6 +48,7 @@
                                 :label="item.label"
                                 :prop="item.id"
                                 :width="item.width"
+                                :render-header="renderTableHeader"
                                 :min-width="item.min_width">
                                 <template slot-scope="{ row }">
                                     <!--任务-->
@@ -249,6 +250,8 @@
     import BootRecordDialog from './BootRecordDialog.vue'
     import DeletePeriodicDialog from './DeletePeriodicDialog.vue'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
+    import moment from 'moment-timezone'
+    import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     const SEARCH_LIST = [
         {
             id: 'task_id',
@@ -361,14 +364,23 @@
                 enabled = '',
                 taskName = '',
                 editor = '',
-                task_id = ''
+                task_id = '',
+                last_run_at = '',
+                create_time = '',
+                edit_time = ''
             } = this.$route.query
-            const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
+            const searchList = [
+                ...SEARCH_LIST,
+                { id: 'last_run_at', name: i18n.t('上次运行时间'), type: 'dateRange' },
+                { id: 'create_time', name: i18n.t('创建时间'), type: 'dateRange' },
+                { id: 'edit_time', name: i18n.t('更新时间'), type: 'dateRange' }
+            ]
+            const searchSelectValue = searchList.reduce((acc, cur) => {
                 const values_text = this.$route.query[cur.id]
                 if (values_text) {
                     let values = []
                     if (!cur.children) {
-                        values = [values_text]
+                        values = cur.type === 'dateRange' ? values_text.split(',') : [values_text]
                         acc.push({ ...cur, values })
                     } else if (cur.children.length) {
                         const ids = values_text.split(',')
@@ -404,7 +416,10 @@
                     enabled,
                     taskName,
                     editor,
-                    task_id
+                    task_id,
+                    last_run_at: last_run_at ? last_run_at.split(',') : ['', ''],
+                    create_time: create_time ? create_time.split(',') : ['', ''],
+                    edit_time: edit_time ? edit_time.split(',') : ['', '']
                 },
                 pagination: {
                     current: Number(page),
@@ -461,7 +476,7 @@
             async getPeriodicList () {
                 this.listLoading = true
                 try {
-                    const { creator, enabled, taskName, task_id, editor } = this.requestData
+                    const { creator, enabled, taskName, task_id, editor, last_run_at, create_time, edit_time } = this.requestData
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
@@ -470,6 +485,19 @@
                         task__name__icontains: taskName || undefined,
                         id: task_id || undefined,
                         editor: editor || undefined
+                    }
+
+                    if (last_run_at && last_run_at[0] && last_run_at[1]) {
+                        data['task__last_run_at__gte'] = moment.tz(last_run_at[0], this.timeZone).format('YYYY-MM-DD hh:mm:ss')
+                        data['task__last_run_at__lte'] = moment.tz(last_run_at[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD hh:mm:ss')
+                    }
+                    if (create_time && create_time[0] && create_time[1]) {
+                        data['create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD hh:mm:ss')
+                        data['create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD hh:mm:ss')
+                    }
+                    if (edit_time && edit_time[0] && edit_time[1]) {
+                        data['edit_time__gte'] = moment.tz(edit_time[0], this.timeZone).format('YYYY-MM-DD hh:mm:ss')
+                        data['edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD hh:mm:ss')
                     }
 
                     if (!this.admin) {
@@ -589,9 +617,46 @@
                 this.updateUrl()
                 this.getPeriodicList()
             },
+            renderTableHeader (h, { column, $index }) {
+                if (['last_run_at', 'create_time', 'edit_time'].includes(column.property)) {
+                    const id = this.setting.selectedFields[$index].id
+                    const date = this.requestData[id]
+                    return <TableRenderHeader
+                        name={ column.label }
+                        orderShow = { false }
+                        dateValue={ date }
+                        onDateChange={ data => this.handleDateTimeFilter(data, id) }>
+                    </TableRenderHeader>
+                } else {
+                    return column.label
+                }
+            },
+            handleDateTimeFilter (date = [], id) {
+                const index = this.searchSelectValue.findIndex(item => item.id === id)
+                if (date.length) {
+                    if (index > -1) {
+                        this.searchSelectValue[index].values = date
+                    } else {
+                        const info = {
+                            id,
+                            type: 'dateRange',
+                            name: id === 'last_run_at' ? i18n.t('上次运行时间') : id === 'create_time' ? i18n.t('创建时间') : i18n.t('更新时间'),
+                            values: date
+                        }
+                        this.searchSelectValue.push(info)
+                        // 添加搜索记录
+                        const searchDom = this.$refs.searchSelect
+                        searchDom && searchDom.addSearchRecord(info)
+                    }
+                } else if (index > -1) {
+                    this.searchSelectValue.splice(index, 1)
+                }
+            },
             handleSearchValueChange (data) {
                 data = data.reduce((acc, cur) => {
-                    if (cur.multiable) {
+                    if (cur.type === 'dateRange') {
+                        acc[cur.id] = cur.values
+                    } else if (cur.multiable) {
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
                         const value = cur.values[0]
@@ -606,14 +671,17 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { creator, enabled, taskName, task_id } = this.requestData
+                const { creator, enabled, taskName, task_id, last_run_at, create_time, edit_time } = this.requestData
                 const filterObj = {
                     limit,
                     creator,
                     enabled,
                     page: current,
                     taskName,
-                    task_id
+                    task_id,
+                    last_run_at: last_run_at && last_run_at.every(item => item) ? last_run_at.join(',') : '',
+                    create_time: create_time && create_time.every(item => item) ? create_time.join(',') : '',
+                    edit_time: edit_time && edit_time.every(item => item) ? edit_time.join(',') : ''
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {

@@ -64,6 +64,12 @@
                             <bk-link theme="primary" @click="selectedTpls = []">{{ $t('清空') }}</bk-link>
                         </div>
                     </div>
+                    <bk-button
+                        class="my-create-btn"
+                        data-test-id="process_form_myCreateProcess"
+                        @click="handleMyCreateFilter">
+                        {{$t('我创建的')}}
+                    </bk-button>
                     <search-select
                         ref="searchSelect"
                         id="templateList"
@@ -97,9 +103,10 @@
                             :prop="item.key || item.id"
                             :width="item.width"
                             :min-width="item.min_width"
+                            :class-name="item.id.replace(/_/g, '-')"
                             :render-header="renderTableHeader"
                             :sort-orders="['descending', 'ascending', null]"
-                            :sortable="sortableCols.find(col => col.value !== 'pipeline_template__create_time' && col.value === (item.key || item.id)) ? 'custom' : false">
+                            :sortable="sortableCols.find(col => col.value === (item.key || item.id)) ? 'custom' : false">
                             <template slot-scope="{ row }">
                                 <!--流程名称-->
                                 <div v-if="item.id === 'name'" class="flow-name-column">
@@ -161,13 +168,23 @@
                                                     <i v-if="row.labelIds.includes(label.id)" class="bk-option-icon bk-icon icon-check-1"></i>
                                                 </div>
                                             </bk-option>
-                                            <div slot="extension" @click="onEditLabel" class="label-select-extension" data-test-id="process_list__editLabel">
+                                            <div
+                                                slot="extension"
+                                                v-cursor="{ active: !hasPermission(['project_edit'], authActions) }"
+                                                class="label-select-extension"
+                                                :class="{ 'text-permission-disable': !hasPermission(['project_edit'], authActions) }"
+                                                data-test-id="process_list__editLabel"
+                                                @click="onEditLabel">
                                                 <i class="bk-icon icon-plus-circle"></i>
                                                 <span>{{ $t('编辑标签') }}</span>
                                             </div>
                                         </bk-select>
                                     </div>
-                                    <div v-else class="label-column" @click="handleTempLabelClick(row)">
+                                    <div
+                                        v-else
+                                        class="label-column"
+                                        v-cursor="{ active: !hasPermission(['flow_edit'], row.auth_actions) }"
+                                        @click="handleTempLabelClick(row)">
                                         <template v-if="row.template_labels && row.template_labels.length > 0">
                                             <span
                                                 v-for="label in row.template_labels"
@@ -498,7 +515,8 @@
             const {
                 page = 1,
                 limit = 15,
-                queryTime = '',
+                create_time = '',
+                edit_time = '',
                 subprocessUpdateVal = '',
                 creator = '',
                 editor = '',
@@ -506,12 +524,17 @@
                 label_ids = '',
                 template_id = ''
             } = this.$route.query
-            const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
+            const searchList = [
+                ...SEARCH_LIST,
+                { id: 'create_time', name: i18n.t('创建时间'), type: 'dateRange' },
+                { id: 'edit_time', name: i18n.t('更新时间'), type: 'dateRange' }
+            ]
+            const searchSelectValue = searchList.reduce((acc, cur) => {
                 const values_text = this.$route.query[cur.id]
                 if (values_text) {
                     let values = []
                     if (!cur.children) {
-                        values = [values_text]
+                        values = cur.type === 'dateRange' ? values_text.split(',') : [values_text]
                         acc.push({ ...cur, values })
                     } else if (cur.children.length) {
                         const ids = values_text.split(',')
@@ -521,10 +544,6 @@
                 }
                 return acc
             }, [])
-            if (queryTime) {
-                const values = queryTime.split(',')
-                searchSelectValue.push({ id: 'dateRange', name: '创建时间', values })
-            }
             // 获取操作列表
             const noViewAuthTip = i18n.t('已选流程模板没有查看权限，请取消选择或申请权限')
             const noEditAuthTip = i18n.t('已选流程模板没有编辑权限，请取消选择或申请权限')
@@ -588,7 +607,8 @@
                     creator,
                     editor,
                     subprocessUpdateVal: subprocessUpdateVal !== '' ? Number(subprocessUpdateVal) : '',
-                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
+                    create_time: create_time ? create_time.split(',') : ['', ''],
+                    edit_time: edit_time ? edit_time.split(',') : ['', ''],
                     label_ids: label_ids ? label_ids.split(',') : [],
                     flowName,
                     template_id
@@ -632,6 +652,13 @@
                             max: 50,
                             message: i18n.t('标签名称不能超过') + 50 + i18n.t('个字符'),
                             trigger: 'blur'
+                        },
+                        {
+                            validator: (val) => {
+                                return this.templateLabels.every(label => label.name !== val)
+                            },
+                            message: i18n.t('标签已存在，请重新输入'),
+                            trigger: 'blur'
                         }
                     ]
                 },
@@ -641,8 +668,7 @@
                 labelLoading: false,
                 curSelectedRow: {},
                 searchList: tools.deepClone(SEARCH_LIST),
-                searchSelectValue,
-                dateTimeRange: queryTime ? queryTime.split(',') : []
+                searchSelectValue
             }
         },
         computed: {
@@ -777,7 +803,7 @@
                 }
             },
             getQueryData () {
-                const { subprocessUpdateVal, creator, queryTime, flowName, label_ids, template_id, editor } = this.requestData
+                const { subprocessUpdateVal, creator, create_time, edit_time, flowName, label_ids, template_id, editor } = this.requestData
 
                 /**
                  * 无子流程 has_subprocess=false
@@ -808,9 +834,13 @@
                 } else {
                     data['order_by'] = this.ordering
                 }
-                if (queryTime && queryTime[0] && queryTime[1]) {
-                    data['pipeline_template__edit_time__gte'] = moment.tz(queryTime[0], this.timeZone).format('YYYY-MM-DD')
-                    data['pipeline_template__edit_time__lte'] = moment.tz(queryTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                if (create_time && create_time[0] && create_time[1]) {
+                    data['pipeline_template__create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD')
+                    data['pipeline_template__create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                }
+                if (edit_time && edit_time[0] && edit_time[1]) {
+                    data['pipeline_template__edit_time__gte'] = moment.tz(edit_time[0], this.timeZone).format('YYYY-MM-DD')
+                    data['pipeline_template__edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                 }
                 return data
             },
@@ -870,6 +900,10 @@
                 }
             },
             handleTempLabelClick (row) {
+                if (!this.hasPermission(['flow_edit'], row.auth_actions)) {
+                    this.onTemplatePermissionCheck(['flow_edit'], row)
+                    return
+                }
                 this.curSelectedRow = tools.deepClone(row)
                 row.labelLoading = true
                 row.isSelectShow = true
@@ -879,8 +913,10 @@
                 }, 500)
             },
             handleClickOutSide (e) {
-                if (dom.parentClsContains('label-select-popover', e.target) || dom.parentClsContains('label-dialog', e.target)) {
-                    this.$refs.labelSelect.show()
+                if (dom.parentClsContains('label-select-popover', e.target)
+                    || dom.parentClsContains('label-dialog', e.target)
+                    || dom.parentClsContains('permission-dialog', e.target)
+                ) {
                     return
                 }
                 this.saveTemplateLabels()
@@ -924,6 +960,16 @@
                 }
             },
             onEditLabel () {
+                if (!this.hasPermission(['project_edit'], this.authActions)) {
+                    const resourceData = {
+                        project: [{
+                            id: this.project_id,
+                            name: this.projectName
+                        }]
+                    }
+                    this.applyForPermission(['project_edit'], this.authActions, resourceData)
+                    return
+                }
                 this.labelDetail = { color: '#1c9574', name: '', description: '' }
                 this.labelDialogShow = true
             },
@@ -984,10 +1030,26 @@
                     })
                 }
             },
+            // 我创建的
+            handleMyCreateFilter () {
+                const creatorInfo = this.searchSelectValue.find(item => item.id === 'creator')
+                let info = {}
+                if (creatorInfo) {
+                    creatorInfo.values = [this.username]
+                    info = creatorInfo
+                } else {
+                    const form = this.searchList.find(item => item.id === 'creator')
+                    info = { ...form, values: [this.username] }
+                    this.searchSelectValue.push(info)
+                }
+                // 添加搜索记录
+                const searchDom = this.$refs.searchSelect
+                searchDom && searchDom.addSearchRecord(info)
+            },
             handleSearchValueChange (data) {
                 data = data.reduce((acc, cur) => {
-                    if (cur.id === 'dateRange') {
-                        acc['queryTime'] = cur.values
+                    if (cur.type === 'dateRange') {
+                        acc[cur.id] = cur.values
                     } else if (cur.multiable) {
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
@@ -996,7 +1058,6 @@
                     }
                     return acc
                 }, {})
-                this.dateTimeRange = data['queryTime'] || []
                 this.requestData = data
                 this.pagination.current = 1
                 this.updateUrl()
@@ -1282,30 +1343,32 @@
                             }]
                         })
                     ])
-                } else if (column.property === 'pipeline_template__create_time') {
+                } else if (['pipeline_template__create_time', 'pipeline_template__edit_time'].includes(column.property)) {
+                    const id = this.setting.selectedFields[$index - 1].id
+                    const date = this.requestData[id]
                     return <TableRenderHeader
                         ref="TableRenderHeader"
                         name={ column.label }
                         property={ column.property }
                         sortConfig={ this.getDefaultSortConfig }
-                        dateValue={ this.dateTimeRange }
+                        dateValue={ date }
                         onSortChange={ data => this.handleSortChange(data) }
-                        onDateChange={ data => this.handleDateTimeFilter(data) }>
+                        onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
                 } else {
                     return column.label
                 }
             },
-            handleDateTimeFilter (date = []) {
-                this.dateTimeRange = date
-                const index = this.searchSelectValue.findIndex(item => item.id === 'dateRange')
+            handleDateTimeFilter (date = [], id) {
+                const index = this.searchSelectValue.findIndex(item => item.id === id)
                 if (date.length) {
                     if (index > -1) {
                         this.searchSelectValue[index].values = date
                     } else {
                         const info = {
-                            id: 'dateRange',
-                            name: '创建时间',
+                            id,
+                            type: 'dateRange',
+                            name: id === 'create_time' ? i18n.t('创建时间') : i18n.t('更新时间'),
                             values: date
                         }
                         this.searchSelectValue.push(info)
@@ -1330,14 +1393,15 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { category, queryTime, subprocessUpdateVal, creator, label_ids, flowName, template_id, editor } = this.requestData
+                const { category, create_time, edit_time, subprocessUpdateVal, creator, label_ids, flowName, template_id, editor } = this.requestData
                 const filterObj = {
                     limit,
                     category,
                     subprocessUpdateVal,
                     creator,
                     page: current,
-                    queryTime: queryTime && queryTime.every(item => item) ? queryTime.join(',') : '',
+                    create_time: create_time && create_time.every(item => item) ? create_time.join(',') : '',
+                    edit_time: edit_time && edit_time.every(item => item) ? edit_time.join(',') : '',
                     label_ids: label_ids && label_ids.length ? label_ids.join(',') : '',
                     flowName: flowName,
                     template_id,
@@ -1438,17 +1502,13 @@
             },
             // 标题提示信息，查看子流程更新
             handleSubflowFilter () {
-                const searchComp = this.$refs.advanceSearch
-                searchComp.onAdvanceOpen(true)
-                searchComp.onChangeFormItem(1, 'subprocessUpdateVal')
-                searchComp.submit()
-            },
-            // 筛选包含当前标签的模板
-            onSearchLabel (id) {
-                const searchComp = this.$refs.advanceSearch
-                searchComp.onAdvanceOpen(true)
-                searchComp.onChangeFormItem([id], 'label_ids')
-                searchComp.submit()
+                const subFlowInfo = this.searchSelectValue.find(item => item.id === 'subprocessUpdateVal')
+                if (subFlowInfo) {
+                    subFlowInfo.values = [{ id: 1, name: i18n.t('是') }]
+                } else {
+                    const form = this.searchList.find(item => item.id === 'subprocessUpdateVal')
+                    this.searchSelectValue.push({ ...form, values: [{ id: 1, name: i18n.t('是') }] })
+                }
             },
             // 添加/取消收藏模板
             async onCollectTemplate (template) {
@@ -1563,6 +1623,14 @@
     position: relative;
     display: flex;
     justify-content: space-between;
+    .operation-wrap {
+        display: flex;
+        align-items: center;
+    }
+    .my-create-btn {
+        position: absolute;
+        right: 495px;
+    }
 }
 .create-template-btn {
     min-width: 120px;
@@ -1638,10 +1706,6 @@
 .dialog-content {
     padding: 30px;
     word-break: break-all;
-}
-.my-create-btn {
-    padding: 0 10px;
-    margin: 0 -15px 0 10px;
 }
 .template-table-content {
     background: #ffffff;
@@ -1753,6 +1817,12 @@
         font-size: 14px;
         color: #c4c6cc;
         cursor: pointer;
+    }
+    /deep/.edit-time,
+    /deep/.create-time {
+        .bk-table-caret-wrapper {
+            display: none;
+        }
     }
 }
 </style>

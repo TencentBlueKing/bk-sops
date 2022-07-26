@@ -1156,6 +1156,7 @@
                         instance_id: this.instance_id,
                         subprocess_stack: JSON.stringify(subprocessStack)
                     }
+                    this.nodePipelineData = { ...this.pipelineData }
                 }
                 if (type === 'templateData') {
                     this.templateData = JSON.stringify(this.pipelineData, null, 4)

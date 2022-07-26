@@ -14,10 +14,16 @@
         <skeleton :loading="firstLoading" loader="templateList">
             <div class="list-wrapper">
                 <div class="search-wrapper mb20">
+                    <bk-button
+                        class="my-create-btn"
+                        data-test-id="process_form_myCreateProcess"
+                        @click="handleMyCreateFilter">
+                        {{$t('我创建的')}}
+                    </bk-button>
                     <search-select
                         ref="searchSelect"
                         id="commonTplList"
-                        :placeholder="$('ID/流程名/创建人/更新人')"
+                        :placeholder="$t('ID/流程名/创建人/更新人')"
                         v-model="searchSelectValue"
                         :search-list="searchList"
                         @change="handleSearchValueChange">
@@ -42,9 +48,10 @@
                             :prop="item.key || item.id"
                             :width="item.width"
                             :min-width="item.min_width"
+                            :class-name="item.id.replace(/_/g, '-')"
                             :render-header="renderTableHeader"
                             :sort-orders="['descending', 'ascending', null]"
-                            :sortable="sortableCols.find(col => col.value !== 'pipeline_template__create_time' && col.value === (item.key || item.id)) ? 'custom' : false">
+                            :sortable="sortableCols.find(col => col.value === (item.key || item.id)) ? 'custom' : false">
                             <template slot-scope="{ row }">
                                 <!--流程名称-->
                                 <div v-if="item.id === 'name'" class="name-column">
@@ -203,32 +210,33 @@
             const {
                 page = 1,
                 limit = 15,
-                queryTime = '',
+                create_time = '',
+                edit_time = '',
                 creator = '',
                 editor = '',
                 flowName = '',
                 template_id = ''
             } = this.$route.query
-            const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
+            const searchList = [
+                ...SEARCH_LIST,
+                { id: 'create_time', name: i18n.t('创建时间'), type: 'dateRange' },
+                { id: 'edit_time', name: i18n.t('更新时间'), type: 'dateRange' }
+            ]
+            const searchSelectValue = searchList.reduce((acc, cur) => {
                 const values_text = this.$route.query[cur.id]
                 if (values_text) {
-                    const { id, name, children } = cur
                     let values = []
-                    if (!children) {
-                        values = [values_text]
-                        acc.push({ id, name, values })
-                    } else if (children.length) {
+                    if (!cur.children) {
+                        values = cur.type === 'dateRange' ? values_text.split(',') : [values_text]
+                        acc.push({ ...cur, values })
+                    } else if (cur.children.length) {
                         const ids = values_text.split(',')
-                        values = children.filter(item => ids.includes(String(item.id)))
-                        acc.push({ id, name, values })
+                        values = cur.children.filter(item => ids.includes(String(item.id)))
+                        acc.push({ ...cur, values })
                     }
                 }
                 return acc
             }, [])
-            if (queryTime) {
-                const values = queryTime.split(',')
-                searchSelectValue.push({ id: 'dateRange', name: '创建时间', values })
-            }
             // 获取操作列表
             return {
                 firstLoading: true,
@@ -242,7 +250,8 @@
                 requestData: {
                     creator,
                     editor,
-                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
+                    create_time: create_time ? create_time.split(',') : ['', ''],
+                    edit_time: edit_time ? edit_time.split(',') : ['', ''],
                     flowName,
                     template_id
                 },
@@ -270,8 +279,7 @@
                 isInit: true, // 避免default-sort在初始化时去触发table的sort-change事件
                 categoryTips: i18n.t('模板分类即将下线，建议使用标签'),
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
-                searchSelectValue,
-                dateTimeRange: queryTime ? queryTime.split(',') : []
+                searchSelectValue
             }
         },
         computed: {
@@ -364,7 +372,7 @@
                 }
             },
             getQueryData () {
-                const { creator, queryTime, flowName, template_id, editor } = this.requestData
+                const { creator, create_time, edit_time, flowName, template_id, editor } = this.requestData
                 const data = {
                     limit: this.pagination.limit,
                     offset: (this.pagination.current - 1) * this.pagination.limit,
@@ -384,9 +392,13 @@
                 } else {
                     data['order_by'] = this.ordering
                 }
-                if (queryTime && queryTime[0] && queryTime[1]) {
-                    data['pipeline_template__edit_time__gte'] = moment(queryTime[0]).format('YYYY-MM-DD')
-                    data['pipeline_template__edit_time__lte'] = moment(queryTime[1]).add('1', 'd').format('YYYY-MM-DD')
+                if (create_time && create_time[0] && create_time[1]) {
+                    data['pipeline_template__create_time__gte'] = moment(create_time[0]).format('YYYY-MM-DD')
+                    data['pipeline_template__create_time__lte'] = moment(create_time[1]).add('1', 'd').format('YYYY-MM-DD')
+                }
+                if (edit_time && edit_time[0] && edit_time[1]) {
+                    data['pipeline_template__edit_time__gte'] = moment(edit_time[0]).format('YYYY-MM-DD')
+                    data['pipeline_template__edit_time__lte'] = moment(edit_time[1]).add('1', 'd').format('YYYY-MM-DD')
                 }
                 return data
             },
@@ -416,11 +428,27 @@
                     })
                 }
             },
+            // 我创建的
+            handleMyCreateFilter () {
+                const creatorInfo = this.searchSelectValue.find(item => item.id === 'creator')
+                let info = {}
+                if (creatorInfo) {
+                    creatorInfo.values = [this.username]
+                    info = creatorInfo
+                } else {
+                    const form = this.searchList.find(item => item.id === 'creator')
+                    info = { ...form, values: [this.username] }
+                    this.searchSelectValue.push(info)
+                }
+                // 添加搜索记录
+                const searchDom = this.$refs.searchSelect
+                searchDom && searchDom.addSearchRecord(info)
+            },
             handleSearchValueChange (data) {
                 data = data.reduce((acc, cur) => {
-                    if (cur.id === 'dateRange') {
-                        acc['queryTime'] = cur.values
-                    } if (cur.multiable) {
+                    if (cur.type === 'dateRange') {
+                        acc[cur.id] = cur.values
+                    } else if (cur.multiable) {
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
                         const value = cur.values[0]
@@ -428,7 +456,6 @@
                     }
                     return acc
                 }, {})
-                this.dateTimeRange = data['queryTime'] || []
                 this.requestData = data
                 this.pagination.current = 1
                 this.updateUrl()
@@ -474,29 +501,31 @@
                             }]
                         })
                     ])
-                } else if (column.property === 'pipeline_template__create_time') {
+                } else if (['pipeline_template__create_time', 'pipeline_template__edit_time'].includes(column.property)) {
+                    const id = this.setting.selectedFields[$index].id
+                    const date = this.requestData[id]
                     return <TableRenderHeader
                         name={ column.label }
                         property={ column.property }
                         sortConfig={ this.getDefaultSortConfig }
-                        dateValue={ this.dateTimeRange }
+                        dateValue={ date }
                         onSortChange={ data => this.handleSortChange(data) }
-                        onDateChange={ data => this.handleDateTimeFilter(data) }>
+                        onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
                 } else {
                     return column.label
                 }
             },
-            handleDateTimeFilter (date = []) {
-                this.dateTimeRange = date
-                const index = this.searchSelectValue.findIndex(item => item.id === 'dateRange')
+            handleDateTimeFilter (date = [], id) {
+                const index = this.searchSelectValue.findIndex(item => item.id === id)
                 if (date.length) {
                     if (index > -1) {
                         this.searchSelectValue[index].values = date
                     } else {
                         const info = {
-                            id: 'dateRange',
-                            name: '创建时间',
+                            id,
+                            type: 'dateRange',
+                            name: id === 'create_time' ? i18n.t('创建时间') : i18n.t('更新时间'),
                             values: date
                         }
                         this.searchSelectValue.push(info)
@@ -537,13 +566,14 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { queryTime, creator, flowName, template_id, editor } = this.requestData
+                const { create_time, edit_time, creator, flowName, template_id, editor } = this.requestData
                 const filterObj = {
                     limit,
                     creator,
                     editor,
                     page: current,
-                    queryTime: queryTime && queryTime.every(item => item) ? queryTime.join(',') : '',
+                    create_time: create_time && create_time.every(item => item) ? create_time.join(',') : '',
+                    edit_time: edit_time && edit_time.every(item => item) ? edit_time.join(',') : '',
                     flowName,
                     template_id
                 }
@@ -675,8 +705,11 @@
     @include scrollbar;
 }
 .search-wrapper {
-    position: relative;
-    height: 32px;
+    display: flex;
+    justify-content: flex-end;
+    .my-create-btn {
+        margin-right: 15px;
+    }
 }
 a {
     cursor: pointer;
@@ -752,10 +785,6 @@ a {
         line-height: 1;
     }
 }
-.my-create-btn {
-    padding: 0 10px;
-    margin: 0 -15px 0 10px;
-}
 .template-table-content {
     background: #ffffff;
     .bk-table-row.hover-row {
@@ -825,6 +854,12 @@ a {
         font-size: 14px;
         color: #c4c6cc;
         cursor: pointer;
+    }
+    /deep/.edit-time,
+    /deep/.create-time {
+        .bk-table-caret-wrapper {
+            display: none;
+        }
     }
 }
 </style>

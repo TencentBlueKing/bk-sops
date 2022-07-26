@@ -38,7 +38,8 @@ axios.interceptors.response.use(
             if (!response.data.result) {
                 const info = {
                     message: response.data,
-                    traceId: response.headers['sops-trace-id']
+                    traceId: response.headers['sops-trace-id'],
+                    errorSource: 'result'
                 }
                 bus.$emit('showErrMessage', info)
             }

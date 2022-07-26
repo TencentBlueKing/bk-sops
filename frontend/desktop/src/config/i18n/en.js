@@ -1448,7 +1448,16 @@ const en = {
     '存在未保存内容，已自动载入': 'Unsaved content exists, autoloaded',
     '开启': 'Open',
     'ID/CC_ID/项目名称/创建人': 'ID/CC_ID/ProjectName/Creator',
-    '修改时间实际是强制失败后重试节点，需配置可重试才能修改时间': 'The modification time is actually to retry the node after a forced failure. You need to configure retry to modify the time.'
+    '修改时间实际是强制失败后重试节点，需配置可重试才能修改时间': 'The modification time is actually to retry the node after a forced failure. You need to configure retry to modify the time.',
+    '执行时间': 'Execution time',
+    '标签已存在，请重新输入': 'Label already exists, please re-enter',
+    '今天': 'Today',
+    '近7天': 'Last 7 days',
+    '近15天': 'Last 15 days',
+    '近30天': 'Last 30 days',
+    '查看更多': 'See more',
+    '请求异常（外部系统错误或非法操作）': 'Request exception (external system error or illegal operation)',
+    '请求异常（内部系统发生未知错误）': 'Request exception (an unknown error occurred in the internal system)'
 }
 
 export default en

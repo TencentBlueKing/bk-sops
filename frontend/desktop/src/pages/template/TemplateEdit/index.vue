@@ -310,8 +310,8 @@
                 isPerspective: false, // 流程是否透视
                 nodeVariableInfo: {}, // 节点输入输出变量
                 initType: '', // 记录最初的流程类型
-                routerCount: 0,
-                isMultipleTabCount: 0
+                isMultipleTabCount: 0,
+                isRouterPush: false
             }
         },
         computed: {
@@ -853,12 +853,17 @@
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
                     } else { // 保存后需要切到查看模式(查看执行方案时不需要)
-                        if (!this.isExecuteScheme) {
+                        if (this.isExecuteScheme) return
+                        if (this.initType === 'view') {
+                            this.$router.back()
+                            this.initData()
+                        } else {
                             this.$router.push({
                                 params: { type: 'view' },
                                 query: { template_id: data.template_id }
                             })
-                            this.routerCount++
+                            this.isRouterPush = true
+                            this.initType = 'view'
                         }
                     }
                 } catch (e) {
@@ -1428,7 +1433,6 @@
                         this.isTemplateDataChanged = false
                         this.isGlobalVariableUpdate = false
                         this.$router.back()
-                        this.routerCount--
                         this.initData()
                     }
                 })
