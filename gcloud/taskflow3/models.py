@@ -394,13 +394,12 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         @return:
         """
         # 查询出有序的taskflow统计数据
-        total = taskflow.count()
         task_instance_id_list = taskflow.values_list("id", flat=True)
         order_by = filters.get("order_by", "-create_time")
+        taskflow_statistics_queryset = TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)
+        total = taskflow_statistics_queryset.count()
         taskflow_statistics_data = list(
-            TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)
-            .order_by(order_by)[(page - 1) * limit : page * limit]
-            .values(
+            taskflow_statistics_queryset.order_by(order_by)[(page - 1) * limit : page * limit].values(
                 "instance_id",
                 "task_instance_id",
                 "project_id",
