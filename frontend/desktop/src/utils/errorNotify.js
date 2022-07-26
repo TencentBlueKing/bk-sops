@@ -1,7 +1,8 @@
 // 接口异常通知提示，出现在页面右上角，10s后自动关闭，鼠标hover时暂停计时
 import i18n from '@/config/i18n/index.js'
 export default class ErrorNotify {
-    constructor (msg, type = 'error', traceId, vueInstance) {
+    constructor (errorInfo, vueInstance) {
+        const { msg, type, traceId, errorSource } = errorInfo
         const h = vueInstance.$createElement
         this.showMore = false
         this.notify = vueInstance.$bkNotify({
@@ -10,37 +11,33 @@ export default class ErrorNotify {
             limit: 5,
             limitLine: 0,
             delay: 0,
-            title: '请求外部系统错误',
+            title: errorSource === 'result' ? i18n.t('请求异常（外部系统错误或非法操作）') : i18n.t('请求异常（内部系统发生未知错误）'),
             message: h('div',
                 [
-                    h('p', {
+                    traceId || msg ? h('p', {
                         style: { position: 'absolute', top: '24px', right: '60px', color: '#3a84ff', cursor: 'pointer' },
                         on: {
                             click: () => {
                                 this.toggleShowMore()
                             }
                         }
-                    }, [i18n.t('查看更多')]),
+                    }, [i18n.t('查看更多')]) : '',
                     h('div', {
-                        class: 'content-text',
-                        style: { display: 'none' }
+                        class: 'bk-notify-content-text',
+                        style: { display: 'none', maxHeight: '300px', overflow: 'auto' }
                     }, [
-                        h('p', [`trace_id：${traceId}`]),
-                        h('p', [msg]),
-                        h('bk-button', {
-                            style: {
-                                display: 'block',
-                                position: 'relative',
-                                margin: '10px 0 0 auto'
-                            },
-                            on: {
-                                click: () => {
-                                    console.log(`trace_id：${traceId}\n${msg}`)
-                                    this.handleCopy(vueInstance, `trace_id：${traceId}\n${msg}`)
-                                }
+                        traceId ? h('p', [`trace_id：${traceId}`]) : '',
+                        msg ? h('p', [msg]) : ''
+                    ]),
+                    h('bk-button', {
+                        class: 'copy-btn',
+                        style: { display: 'none', position: 'relative', margin: '10px 10px 0 auto' },
+                        on: {
+                            click: () => {
+                                this.handleCopy(vueInstance, `trace_id：${traceId}\n${msg}`)
                             }
-                        }, [i18n.t('复制')])
-                    ])
+                        }
+                    }, [i18n.t('复制')])
                 ]
             )
         })
@@ -92,7 +89,8 @@ export default class ErrorNotify {
     toggleShowMore () {
         this.showMore = !this.showMore
         this.notify.$el.style.zIndex = this.showMore ? 2501 : 2500
-        this.notify.$el.querySelector('.content-text').style.display = this.showMore ? 'block' : 'none'
+        this.notify.$el.querySelector('.bk-notify-content-text').style.display = this.showMore ? 'block' : 'none'
+        this.notify.$el.querySelector('.copy-btn').style.display = this.showMore ? 'block' : 'none'
     }
     handleCopy (vueInstance, msg) {
         const textarea = document.createElement('textarea')

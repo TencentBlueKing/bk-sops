@@ -143,8 +143,6 @@
                 this.isEditing = true
                 setTimeout(() => {
                     this.$refs.textarea.focus()
-                    this.$refs.textarea.selectionStart = 0
-                    this.$refs.textarea.selectionEnd = this.localValue.length
                 })
                 if (this.tagInfo.children) {
                     this.showPopover()

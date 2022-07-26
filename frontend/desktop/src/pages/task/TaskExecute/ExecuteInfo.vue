@@ -380,6 +380,8 @@
                         this.executeInfo = {}
                         this.outputsInfo = []
                         this.inputsInfo = {}
+                        this.subFlowConstants = {}
+                        this.renderData = {}
                         this.logInfo = ''
                         return
                     }
@@ -443,6 +445,7 @@
                                 return item
                             })
                         }
+                        this.renderData = {}
                         for (const key in this.inputsInfo) {
                             this.$set(this.renderData, key, this.inputsInfo[key])
                         }

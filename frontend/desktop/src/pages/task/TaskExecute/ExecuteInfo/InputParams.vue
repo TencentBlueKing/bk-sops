@@ -96,9 +96,21 @@
             renderData: {
                 handler (val) {
                     this.renderKey = new Date().getTime()
-                    this.inputRenderDate = tools.deepClone(val)
+                    const data = tools.deepClone(val)
+                    // 处理值可能为变量的情况
+                    if (this.constants.subflow_detail_var) {
+                        Object.keys(this.constants).forEach(key => {
+                            const value = this.constants[key]
+                            if (key in data) {
+                                data[key] = value
+                            } else if (('${' + key + '}') in data) {
+                                data['${' + key + '}'] = value
+                            }
+                        })
+                    }
+                    this.inputRenderDate = data
                 },
-                immediate: true
+                deep: true
             }
         },
         methods: {
@@ -106,7 +118,11 @@
                 if (!this.isShowInputOrigin) {
                     this.inputsInfo = this.constants.subflow_detail_var ? tools.deepClone(this.inputs) : JSON.parse(this.inputsInfo)
                 } else {
-                    const info = this.constants.subflow_detail_var ? this.constants : this.inputs
+                    let info = this.inputs
+                    if (this.constants.subflow_detail_var) {
+                        info = tools.deepClone(this.constants)
+                        this.$delete(info, 'subflow_detail_var')
+                    }
                     this.inputsInfo = JSON.stringify(info, null, 4)
                 }
             }
