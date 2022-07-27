@@ -32,5 +32,5 @@ class GetFunctionalizationTaskListForm(forms.Form):
     def clean_id_in(self):
         return self._list_field_validate("id_in")
 
-    def clean_task_id_id(self):
+    def clean_task_id_in(self):
         return self._list_field_validate("task_id_in")
