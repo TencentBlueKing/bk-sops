@@ -437,7 +437,6 @@
                 } else {
                     tplTabCount.setTab(data, 'del')
                 }
-                this.setMultipleTabCount()
             }
         },
         created () {
@@ -452,7 +451,6 @@
                 const data = this.getTplTabData()
                 tplTabCount.setTab(data, 'add')
             }
-            this.setMultipleTabCount()
         },
         beforeDestroy () {
             if (this.type === 'edit') {
@@ -1490,6 +1488,7 @@
                 }
                 this.saveAndCreate = saveAndCreate
                 this.pid = pid
+                this.isMultipleTabCount = tplTabCount.getCount(this.getTplTabData())
                 if (this.type === 'edit' && this.isMultipleTabCount > 1) {
                     if (!this.isExecuteScheme) {
                         this.multipleTabDialogShow = true
@@ -1813,9 +1812,6 @@
             onCancelSave () {
                 this.isExecuteSchemeDialog = false
                 this.isExecuteScheme = false
-            },
-            setMultipleTabCount () {
-                this.isMultipleTabCount = tplTabCount.getCount(this.getTplTabData())
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
