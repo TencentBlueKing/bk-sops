@@ -323,6 +323,8 @@
                 'lines': state => state.template.line,
                 'constants': state => state.template.constants,
                 'gateways': state => state.template.gateways,
+                'start_event': state => state.template.start_event,
+                'end_event': state => state.template.end_event,
                 'internalVariable': state => state.template.internalVariable,
                 'category': state => state.template.category,
                 'subprocess_info': state => state.template.subprocess_info,
@@ -368,6 +370,7 @@
                                 }
                             }
                         }
+                        this.validateConnectFailList = [...new Set(this.validateConnectFailList)]
                         const status = this.validateConnectFailList.includes(location.id) ? 'FAILED' : ''
 
                         const data = { ...location, mode: 'edit', icon, group, code, status }
@@ -1026,6 +1029,7 @@
              */
             validateAtomNode () {
                 let isAllValid = true
+                const errorId = []
                 this.typeOfNodeNameEmpty = ''
                 Object.keys(this.activities).forEach(id => {
                     let isNodeValid = true
@@ -1050,6 +1054,7 @@
                     }
                     if (!isNodeValid) {
                         isAllValid = false
+                        errorId.push(node.id)
                         this.markInvalidNode(id)
                     }
                 })
@@ -1057,6 +1062,9 @@
                     let message = i18n.t('任务节点参数错误，请点击错误节点查看详情')
                     if (this.typeOfNodeNameEmpty) {
                         message = this.typeOfNodeNameEmpty === 'serviceActivity' ? i18n.t('请选择节点的插件类型') : i18n.t('请选择节点的子流程')
+                    }
+                    if (errorId.length) {
+                        this.validateConnectFailList.push(...errorId)
                     }
                     this.$bkMessage({
                         message,
@@ -1179,12 +1187,18 @@
                         atom = this.atomList.find(item => item.code === nodeConfig.component.code)
                     }
                     if (!atom) {
+                        this.validateConnectFailList.push(nodeConfig.id)
                         this.$bkMessage({
                             message: '该节点配置的插件不存在，请检查流程数据',
                             theme: 'error'
                         })
                         return
                     }
+                }
+                // 点击节点时，清除校验异常状态
+                const index = this.validateConnectFailList.findIndex(val => val === id)
+                if (index > -1) {
+                    this.validateConnectFailList.splice(index, 1)
                 }
                 const location = this.locations.find(item => item.id === id)
                 if (['tasknode', 'subflow'].includes(location.type)) {
@@ -1231,6 +1245,9 @@
                 })
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
+                    if (validateMessage.errorId) {
+                        this.validateConnectFailList.push(...validateMessage.errorId)
+                    }
                     this.$bkMessage({
                         message: validateMessage.message,
                         theme: 'error',
@@ -1354,9 +1371,11 @@
                     const nodeList = this.validateConnectFailList.filter(val => idList.includes(val))
                     if (!nodeList || !nodeList.length) return
                     nodeList.forEach(node => {
-                        const nodeInfo = this.activities[node] || this.gateways[node]
-                        const outgoing = Array.isArray(nodeInfo.outgoing) ? nodeInfo.outgoing.length : nodeInfo.outgoing
-                        if (nodeInfo.incoming.length && outgoing) {
+                        let nodeInfo = this.activities[node] || this.locations[node]
+                        if (!nodeInfo) {
+                            nodeInfo = node === this.start_event.id ? this.start_event : node === this.end_event.id ? this.end_event : {}
+                        }
+                        if (nodeInfo.id) {
                             const index = this.validateConnectFailList.findIndex(val => val === node)
                             this.validateConnectFailList.splice(index, 1)
                         }
@@ -1506,6 +1525,9 @@
                 if (!validateMessage.result) {
                     // 获取检验不合格节点
                     const validateConnectFailList = []
+                    if (validateMessage.errorId) {
+                        validateConnectFailList.push(...validateMessage.errorId)
+                    }
                     const nodeObject = Object.assign({}, this.activities, this.gateways)
                     Object.values(nodeObject).forEach(node => {
                         const outgoing = Array.isArray(node.outgoing) ? node.outgoing.length : node.outgoing

@@ -183,6 +183,7 @@ const validatePipeline = {
         let message
         let tasknode = 0
         let subflow = 0
+        const errorId = []
         const isLineNumValid = data.locations.every((loc) => {
             const rule = NODE_RULE[loc.type]
             const name = loc.name || NODE_DICT[loc.type]
@@ -205,18 +206,20 @@ const validatePipeline = {
             if (sourceLinesLinked < rule.min_in) {
                 const i18n_text2 = i18n.t('条输入连线')
                 message = `${name}${i18n_text1}${rule.min_in}${i18n_text2}`
+                errorId.push(loc.id)
                 return false
             }
             if (targetLinesLinked < rule.min_out) {
                 const i18n_text2 = i18n.t('条输出连线')
                 message = `${name}${i18n_text1}${rule.min_out}${i18n_text2}`
+                errorId.push(loc.id)
                 return false
             }
             return true
         })
 
         if (!isLineNumValid) {
-            return this.getMessage(false, message)
+            return this.getMessage(false, message, errorId)
         }
 
         if ((tasknode + subflow) === 0) {
@@ -269,7 +272,10 @@ const validatePipeline = {
             const nodeReg = /^\.activities\['(\w+)'\]/
             const matchResult = error.dataPath.match(nodeReg)
             if (matchResult) {
-                nodeName = activities[matchResult[1]] ? activities[matchResult[1]].name : ''
+                const activity = activities[matchResult[1]]
+                if (activity) {
+                    nodeName = activity.name
+                }
             }
             message = `${nodeName} ${error.dataPath} ${error.message}`
             return this.getMessage(valid, message)
@@ -293,8 +299,8 @@ const validatePipeline = {
 
         return this.getMessage(valid, message)
     },
-    getMessage (result = true, message = '') {
-        return { result, message }
+    getMessage (result = true, message = '', errorId) {
+        return { result, message, errorId }
     }
 }
 
