@@ -705,10 +705,12 @@
     @include scrollbar;
 }
 .search-wrapper {
+    position: relative;
     display: flex;
     justify-content: flex-end;
     .my-create-btn {
-        margin-right: 15px;
+        position: relative;
+        right: 495px;
     }
 }
 a {
