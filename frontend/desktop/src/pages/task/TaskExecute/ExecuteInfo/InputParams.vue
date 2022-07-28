@@ -9,15 +9,25 @@
         </div>
         <div v-if="!adminView">
             <div v-if="!isShowInputOrigin">
-                <RenderForm
-                    v-if="!isEmptyParams && !loading"
-                    :key="renderKey"
-                    :scheme="renderConfig"
-                    :form-option="renderOption"
-                    :constants="inputConstants"
-                    v-model="inputRenderDate">
-                </RenderForm>
-                <NoData v-else></NoData>
+                <template v-if="Array.isArray(renderConfig)">
+                    <RenderForm
+                        v-if="!isEmptyParams && !loading"
+                        :key="renderKey"
+                        :scheme="renderConfig"
+                        :form-option="renderOption"
+                        :constants="inputConstants"
+                        v-model="inputRenderDate">
+                    </RenderForm>
+                    <NoData v-else></NoData>
+                </template>
+                <template v-else>
+                    <jsonschema-form
+                        v-if="renderConfig.properties && Object.keys(renderConfig.properties).length > 0"
+                        :schema="renderConfig"
+                        :value="inputRenderDate">
+                    </jsonschema-form>
+                    <no-data v-else></no-data>
+                </template>
             </div>
             <full-code-editor v-else :value="inputsInfo"></full-code-editor>
         </div>
@@ -31,6 +41,7 @@
     import VueJsonPretty from 'vue-json-pretty'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
+    import JsonschemaForm from './JsonschemaForm.vue'
     import FullCodeEditor from '../FullCodeEditor.vue'
     import tools from '@/utils/tools.js'
     export default {
@@ -38,6 +49,7 @@
             VueJsonPretty,
             NoData,
             RenderForm,
+            JsonschemaForm,
             FullCodeEditor
         },
         props: {

@@ -196,26 +196,37 @@
                                     </p>
                                     <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading, zIndex: 100 }">
                                         <template v-if="!inputLoading">
-                                            <input-params
-                                                v-if="inputs.length > 0"
-                                                ref="inputParams"
-                                                :node-id="nodeId"
-                                                :scheme="inputs"
-                                                :plugin="basicInfo.plugin"
-                                                :version="basicInfo.version"
-                                                :subflow-forms="subflowForms"
-                                                :forms-not-referred="formsNotReferred"
-                                                :value="inputsParamValue"
-                                                :render-config="inputsRenderConfig"
-                                                :is-subflow="isSubflow"
-                                                :is-view-mode="isViewMode"
-                                                :constants="localConstants"
-                                                :third-party-code="isThirdParty ? basicInfo.plugin : ''"
-                                                @hookChange="onHookChange"
-                                                @renderConfigChange="onRenderConfigChange"
-                                                @update="updateInputsValue">
-                                            </input-params>
-                                            <no-data v-else></no-data>
+                                            <template v-if="Array.isArray(inputs)">
+                                                <input-params
+                                                    v-if="inputs.length > 0"
+                                                    ref="inputParams"
+                                                    :node-id="nodeId"
+                                                    :scheme="inputs"
+                                                    :plugin="basicInfo.plugin"
+                                                    :version="basicInfo.version"
+                                                    :subflow-forms="subflowForms"
+                                                    :forms-not-referred="formsNotReferred"
+                                                    :value="inputsParamValue"
+                                                    :render-config="inputsRenderConfig"
+                                                    :is-subflow="isSubflow"
+                                                    :is-view-mode="isViewMode"
+                                                    :constants="localConstants"
+                                                    :third-party-code="isThirdParty ? basicInfo.plugin : ''"
+                                                    @hookChange="onHookChange"
+                                                    @renderConfigChange="onRenderConfigChange"
+                                                    @update="updateInputsValue">
+                                                </input-params>
+                                                <no-data v-else></no-data>
+                                            </template>
+                                            <template v-else>
+                                                <jsonschema-input-params
+                                                    v-if="inputs.properties && Object.keys(inputs.properties).length > 0"
+                                                    :inputs="inputs"
+                                                    :value="inputsParamValue"
+                                                    @update="updateInputsValue">
+                                                </jsonschema-input-params>
+                                                <no-data v-else></no-data>
+                                            </template>
                                         </template>
                                     </div>
                                 </section>
@@ -283,6 +294,7 @@
     import tools from '@/utils/tools.js'
     import BasicInfo from './BasicInfo.vue'
     import InputParams from './InputParams.vue'
+    import JsonschemaInputParams from './JsonschemaInputParams.vue'
     import OutputParams from './OutputParams.vue'
     import SelectPanel from './SelectPanel/index.vue'
     import VariableEdit from '../TemplateSetting/TabGlobalVariables/VariableEdit.vue'
@@ -290,11 +302,13 @@
     import NoData from '@/components/common/base/NoData.vue'
     import bus from '@/utils/bus.js'
     import permission from '@/mixins/permission.js'
+
     export default {
         name: 'NodeConfig',
         components: {
             BasicInfo,
             InputParams,
+            JsonschemaInputParams,
             OutputParams,
             SelectPanel,
             VariableEdit,
@@ -605,7 +619,7 @@
                         })
                         if (!resp.result) return
                         // 获取参数
-                        const { outputs: respsOutputs, forms } = resp.data
+                        const { outputs: respsOutputs, forms, inputs } = resp.data
                         // 获取不同版本的描述
                         let desc = resp.data.desc || ''
                         if (desc && desc.includes('\n')) {
@@ -613,37 +627,43 @@
                             desc = descList.join('<br>')
                         }
                         this.updateBasicInfo({ desc })
-                        if (!this.isSubflow) {
-                            // 获取第三方插件公共输出参数
-                            if (!this.pluginOutput['remote_plugin']) {
-                                await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
+                        if (forms.renderFrom) {
+                            if (!this.isSubflow) {
+                                // 获取第三方插件公共输出参数
+                                if (!this.pluginOutput['remote_plugin']) {
+                                    await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
+                                }
+                                // 输出参数
+                                const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
+                                const outputs = []
+                                for (const [key, val] of Object.entries(respsOutputs.properties)) {
+                                    outputs.push({
+                                        name: val.title,
+                                        key,
+                                        type: val.type,
+                                        schema: { description: val.description || '--' }
+                                    })
+                                }
+                                this.outputs = [...storeOutputs, ...outputs]
                             }
-                            // 输出参数
-                            const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
-                            const outputs = []
-                            for (const [key, val] of Object.entries(respsOutputs.properties)) {
-                                outputs.push({
-                                    name: val.title,
-                                    key,
-                                    type: val.type,
-                                    schema: { description: val.description || '--' }
-                                })
-                            }
-                            this.outputs = [...storeOutputs, ...outputs]
+                            // 获取host
+                            const { origin } = window.location
+                            const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${plugin}/`
+                            $.context.bk_plugin_api_host[plugin] = hostUrl
+                            // 输入参数
+                            $.atoms[plugin] = {}
+                            const renderFrom = forms.renderform
+                            /* eslint-disable-next-line */
+                            eval(renderFrom)
+                        } else {
+                            $.atoms[plugin] = inputs
+                            this.outputs = [] // jsonschema form输出参数
                         }
-                        // 获取host
-                        const { origin } = window.location
-                        const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${plugin}/`
-                        $.context.bk_plugin_api_host[plugin] = hostUrl
-                        // 输入参数
-                        $.atoms[plugin] = {}
-                        const renderFrom = forms.renderform
-                        /* eslint-disable-next-line */
-                        eval(renderFrom)
                     } else {
                         await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id })
                     }
                     const config = $.atoms[plugin]
+                    console.log(config)
                     return config
                 } catch (e) {
                     console.log(e)
