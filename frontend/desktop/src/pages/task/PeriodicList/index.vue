@@ -217,7 +217,7 @@
             :cron="selectedCron"
             :task-id="selectedPeriodicId"
             :is-modify-dialog-show="isModifyDialogShow"
-            :project_id="project_id"
+            :project_id="curRow.project.id"
             :cur-row="curRow"
             :is-edit="editTask"
             @onUpdateTask="onUpdateTask"
@@ -619,7 +619,8 @@
             },
             renderTableHeader (h, { column, $index }) {
                 if (['last_run_at', 'create_time', 'edit_time'].includes(column.property)) {
-                    const id = this.setting.selectedFields[$index].id
+                    const index = this.adminView ? $index : $index + 1
+                    const id = this.setting.selectedFields[index].id
                     const date = this.requestData[id]
                     return <TableRenderHeader
                         name={ column.label }
@@ -874,6 +875,7 @@
 }
 .search-wrapper {
     position: relative;
+    height: 32px;
     display: flex;
     justify-content: space-between;
 }

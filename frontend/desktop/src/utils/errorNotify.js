@@ -39,11 +39,13 @@ export default class ErrorNotify {
                         }
                     }, [i18n.t('复制')])
                 ]
-            )
+            ),
+            onClose: this.handleClose
         })
 
         // 内容区域及进度条样式处理
         this.notify.$el.style.width = '450px'
+        this.notify.$el.style.zIndex = '2500'
         const progressWrap = document.createElement('div')
         const bar = document.createElement('div')
         progressWrap.style.cssText = 'position: absolute; left: 0; bottom: 0; width: 100%; height: 4px; background: #f0f1f5;'
@@ -54,6 +56,7 @@ export default class ErrorNotify {
 
         this.remainingTime = 10000 // 倒数10s
         this.timer = null // 定时器示例
+        this.errorMsg = msg // 来自window.msg_list的错误信息
         this.startTimeCountDown(this.remainingTime)
         this.handleMouseEvent()
     }
@@ -68,7 +71,7 @@ export default class ErrorNotify {
                 this.notify.$el.querySelector('.progress-bar').style.width = `${(this.remainingTime / 10000) * 100}%`
                 this.startTimeCountDown()
             } else {
-                const index = window.msg_list.findIndex(item => item.msg === this.notify.message)
+                const index = window.msg_list.findIndex(item => item.msg === this.errorMsg)
                 if (index > -1) {
                     window.msg_list.splice(index, 1)
                 }
@@ -88,9 +91,20 @@ export default class ErrorNotify {
     }
     toggleShowMore () {
         this.showMore = !this.showMore
-        this.notify.$el.style.zIndex = this.showMore ? 2501 : 2500
+        // 计算当前展开的notify最大层级
+        const notifyErrorDoms = document.querySelectorAll('.bk-notify')
+        const zIndexList = [2500] // 默认层级2500
+        if (notifyErrorDoms) {
+            notifyErrorDoms.forEach(dom => {
+                zIndexList.push(Number(dom.style.zIndex))
+            })
+        }
+        this.notify.$el.style.zIndex = this.showMore ? Math.max(...zIndexList) + 1 : 2500
         this.notify.$el.querySelector('.bk-notify-content-text').style.display = this.showMore ? 'block' : 'none'
         this.notify.$el.querySelector('.copy-btn').style.display = this.showMore ? 'block' : 'none'
+    }
+    handleClose (instance) {
+        instance.$el.querySelector('.bk-notify-content-text').style.display = 'none'
     }
     handleCopy (vueInstance, msg) {
         const textarea = document.createElement('textarea')

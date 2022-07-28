@@ -91,7 +91,8 @@
             isViewMode: {
                 type: Boolean,
                 default: false
-            }
+            },
+            project_id: [String, Number]
         },
         data () {
             return {
@@ -199,7 +200,7 @@
                         const resp = await this.loadProjectBaseInfo()
                         this.setProjectBaseInfo(resp.data)
                     }
-                    const res = await this.getNotifyGroup({ project_id: this.$route.params.project_id })
+                    const res = await this.getNotifyGroup({ project_id: this.project_id })
                     this.projectNotifyGroup = res.data
                 } catch (e) {
                     console.log(e)

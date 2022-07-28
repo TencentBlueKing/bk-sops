@@ -98,6 +98,7 @@
                         :notify-type="formData.notifyType"
                         :notify-type-list="[{ text: $t('任务状态') }]"
                         :receiver-group="formData.receiverGroup"
+                        :project_id="projectId"
                         :common="common"
                         :is-view-mode="isViewMode"
                         @change="onSelectNotifyConfig">
