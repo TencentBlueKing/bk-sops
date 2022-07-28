@@ -1,16 +1,18 @@
 <template>
     <div class="jsonschema-input-params">
         <bkui-form
-            :value="formData"
             form-type="horizontal"
+            readonly
+            :value="formData"
             :schema="schema"
-            :layout="[]">
+            :layout="{ group: [], container: { gap: '10px' } }">
         </bkui-form>
     </div>
 </template>
 
 <script>
     import createForm from '@blueking/bkui-form'
+    import '@blueking/bkui-form/dist/bkui-form.css'
     import tools from '@/utils/tools.js'
 
     const BkuiForm = createForm()
