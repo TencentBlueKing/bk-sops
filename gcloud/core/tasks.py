@@ -12,13 +12,16 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+import time
 import traceback
 from contextlib import contextmanager
 
+from django.contrib.sessions.models import Session
 from django.core.cache import cache
 from celery import task
 from celery.five import monotonic
 from celery.task import periodic_task
+from django.utils import timezone
 
 from gcloud import exceptions
 from gcloud.conf import settings
@@ -28,7 +31,7 @@ from pipeline.engine.core.data.api import _backend, _candidate_backend
 from pipeline.engine.core.data.redis_backend import RedisDataBackend
 from pipeline.contrib.periodic_task.djcelery.tzcrontab import TzAwareCrontab
 
-loggger = logging.getLogger("celery")
+logger = logging.getLogger("celery")
 
 LOCK_EXPIRE = 60 * 10
 LOCK_ID = "cmdb_business_sync_lock"
@@ -56,17 +59,36 @@ def cmdb_business_sync_task():
     task_id = cmdb_business_sync_task.request.id
     with redis_lock(LOCK_ID, task_id) as acquired:
         if acquired:
-            loggger.info("Start sync business from cmdb...")
+            logger.info("Start sync business from cmdb...")
             try:
                 sync_projects_from_cmdb(username=settings.SYSTEM_USE_API_ACCOUNT, use_cache=False)
             except exceptions.APIError as e:
-                loggger.error(
+                logger.error(
                     "An error occurred when sync cmdb business, message: {msg}, trace: {trace}".format(
                         msg=str(e), trace=traceback.format_exc()
                     )
                 )
         else:
-            loggger.info("Can not get sync_business lock, sync operation abandon")
+            logger.info("Can not get sync_business lock, sync operation abandon")
+
+
+@periodic_task(run_every=TzAwareCrontab(hour=settings.EXPIRED_SESSION_CLEAN_HOUR_CRON))
+def clean_django_sessions():
+    """
+    Clean expired sessions from the database.
+    采用小批量删除方式，防止存量数据过大的情况
+    """
+    logger.info("Start clean django sessions...")
+    start_time = time.time()
+    try:
+        max_clean_num = settings.MAX_EXPIRED_SESSION_CLEAN_NUM
+        session_keys = list(
+            Session.objects.filter(expire_date__lt=timezone.now()).values_list("session_key", flat=True)[:max_clean_num]
+        )
+        result = Session.objects.filter(session_key__in=session_keys).delete()
+        logger.info(f"Clean django sessions result: {result}, cost time: {time.time() - start_time}")
+    except Exception as e:
+        logger.exception(f"Clean django sessions error: {e}")
 
 
 @task
@@ -75,11 +97,11 @@ def migrate_pipeline_parent_data_task():
     将 pipeline 的 schedule_parent_data 从 _backend(redis) 迁移到 _candidate_backend(mysql)
     """
     if not isinstance(_backend, RedisDataBackend):
-        loggger.error("[migrate_pipeline_parent_data] _backend should be RedisDataBackend")
+        logger.error("[migrate_pipeline_parent_data] _backend should be RedisDataBackend")
         return
 
     if _candidate_backend is None:
-        loggger.error(
+        logger.error(
             "[migrate_pipeline_parent_data]_candidate_backend is None, "
             "please set env variable(BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND) first"
         )
@@ -88,14 +110,14 @@ def migrate_pipeline_parent_data_task():
     r = settings.redis_inst
     pipeline_data_keys = list(r.scan_iter("*_schedule_parent_data"))
     keys_len = len(pipeline_data_keys)
-    loggger.info("[migrate_pipeline_parent_data] start to migrate {} keys.".format(keys_len))
+    logger.info("[migrate_pipeline_parent_data] start to migrate {} keys.".format(keys_len))
     for i, key in enumerate(pipeline_data_keys, 1):
         try:
-            loggger.info("[migrate_pipeline_parent_data] process[{}/{}]".format(i, keys_len))
+            logger.info("[migrate_pipeline_parent_data] process[{}/{}]".format(i, keys_len))
             value = _backend.get_object(key)
             _candidate_backend.set_object(key, value)
             r.expire(key, 60 * 60 * 24)  # expire in 1 day
         except Exception:
-            loggger.exception("[migrate_pipeline_parent_data] {} key migrate err.".format(i))
+            logger.exception("[migrate_pipeline_parent_data] {} key migrate err.".format(i))
 
-    loggger.info("[migrate_pipeline_parent_data] migrate done!")
+    logger.info("[migrate_pipeline_parent_data] migrate done!")
