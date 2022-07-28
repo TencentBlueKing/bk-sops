@@ -192,6 +192,14 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             obj["collection_id"] = collection_id_template_id_map.get(obj["id"], -1)
         return self.get_paginated_response(data) if page is not None else Response(data)
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        data = self.injection_auth_actions(request, serializer.data, instance)
+        labels = TemplateLabelRelation.objects.fetch_templates_labels([instance.id]).get(instance.id, [])
+        data["template_labels"] = [label["label_id"] for label in labels]
+        return Response(data)
+
     def create(self, request, *args, **kwargs):
         serializer = CreateTaskTemplateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

@@ -15,7 +15,7 @@
                         :key="renderKey"
                         :scheme="renderConfig"
                         :form-option="renderOption"
-                        :constants="constants"
+                        :constants="inputConstants"
                         v-model="inputRenderDate">
                     </RenderForm>
                     <NoData v-else></NoData>
@@ -90,6 +90,7 @@
                     formMode: false
                 },
                 renderKey: null,
+                inputConstants: {},
                 inputRenderDate: {}
             }
         },
@@ -105,22 +106,39 @@
                 },
                 immediate: true
             },
-            renderData: {
+            constants: {
                 handler (val) {
-                    this.renderKey = new Date().getTime()
-                    const data = tools.deepClone(val)
-                    // 处理值可能为变量的情况
-                    if (this.constants.subflow_detail_var) {
-                        Object.keys(this.constants).forEach(key => {
-                            const value = this.constants[key]
-                            if (key in data) {
-                                data[key] = value
-                            } else if (('${' + key + '}') in data) {
-                                data['${' + key + '}'] = value
+                    const constants = tools.deepClone(val)
+                    if (constants.subflow_detail_var) {
+                        // 兼容接口返回的key值和form配置的key不同
+                        Object.keys(this.inputs).forEach(key => {
+                            if (!(key in constants) && /^\${[^${}]+}$/.test(key)) {
+                                const varKey = key.split('').slice(2, -1).join('')
+                                if (varKey in constants) {
+                                    constants[key] = constants[varKey]
+                                    this.$delete(constants, varKey)
+                                }
                             }
                         })
                     }
-                    this.inputRenderDate = data
+                    this.inputConstants = constants
+                },
+                deep: true
+            },
+            renderData: {
+                handler (val) {
+                    this.renderKey = new Date().getTime()
+                    const renderData = tools.deepClone(val)
+                    // 兼容form配置的key为变量的情况
+                    if (this.constants.subflow_detail_var) {
+                        Object.keys(this.renderData).forEach(key => {
+                            const value = this.renderData[key]
+                            if (/^\${[^${}]+}$/.test(value) && key in this.inputConstants) {
+                                this.renderData[key] = this.inputConstants[key]
+                            }
+                        })
+                    }
+                    this.inputRenderDate = renderData
                 },
                 deep: true
             }
