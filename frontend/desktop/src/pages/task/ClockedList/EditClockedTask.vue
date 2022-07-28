@@ -174,6 +174,7 @@
                             :label-width="87"
                             :table-width="570"
                             :notify-type="notifyType"
+                            :project_id="project_id"
                             :is-view-mode="true"
                             :notify-type-list="[{ text: $t('任务状态') }]"
                             :receiver-group="receiverGroup">
