@@ -595,7 +595,7 @@
                                 with_app_detail: true
                             })
                             if (!resp.result) return
-                            const { outputs: respsOutputs, forms } = resp.data
+                            const { outputs: respsOutputs, forms, inputs } = resp.data
                             // 输出参数
                             const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
                             const outputs = []
@@ -609,16 +609,22 @@
                             }
                             this.pluginOutputs = outputs
                             this.outputRenderConfig = [...storeOutputs, ...outputs]
-                            // 设置host
-                            const { origin } = window.location
-                            const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${this.thirdPartyNodeCode}/`
-                            $.context.bk_plugin_api_host[this.thirdPartyNodeCode] = hostUrl
-                            // 输入参数
-                            const renderFrom = forms.renderform
-                            /* eslint-disable-next-line */
-                            eval(renderFrom)
-                            const config = $.atoms[this.thirdPartyNodeCode]
-                            this.renderConfig = config || []
+                            if (forms.renderform) {
+                                // 设置host
+                                const { origin } = window.location
+                                const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${this.thirdPartyNodeCode}/`
+                                $.context.bk_plugin_api_host[this.thirdPartyNodeCode] = hostUrl
+                                // 输入参数
+                                const renderFrom = forms.renderform
+                                /* eslint-disable-next-line */
+                                eval(renderFrom)
+                                const config = $.atoms[this.thirdPartyNodeCode]
+                                this.renderConfig = config || []
+                            } else {
+                                $.atoms[this.thirdPartyNodeCode] = inputs
+                                this.renderConfig = inputs || {}
+                                this.outputs = [] // jsonschema form输出参数
+                            }
                             return
                         }
                         this.renderConfig = this.atomFormConfig[type] && this.atomFormConfig[type][version]
