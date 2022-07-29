@@ -50,6 +50,7 @@ constant value, the type of value should be same with data from API[get_template
     "execute_task_nodes_id": [1, 2, 3],
     "exclude_task_nodes_id": [4, 5, 6],
     "scope": "cmdb_biz",
+    "callback_url": "http://xxx.com"
 }
 ```
 

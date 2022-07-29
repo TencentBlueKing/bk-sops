@@ -209,15 +209,17 @@
 | constants_not_referred | dict | 流程模板中未引用的全局变量，数据结构同pepeline[constants] |
 
 ##### data.pipeline_tree
-|   名称   |  类型  |           说明             |
-| ------------ | ---------- | ------------------------------ |
-|  start_event      |    dict    |      开始节点信息     |
-|  end_event      |    dict    |      结束节点信息    |
-|  activities      |    dict    |      任务节点（原子和子流程）信息    |
-|  gateways      |    dict    |      网关节点（并行网关、分支网关和汇聚网关）信息    |
-|  flows      |    dict    |     顺序流（节点连线）信息    |
-|  constants      |    dict    |  全局变量信息，详情见下面    |
-|  outputs      |    list    |  模板输出信息，标记 constants 中的输出字段    |
+| 名称          | 类型   | 说明                         |
+|-------------|------|----------------------------|
+| start_event | dict | 开始节点信息                     |
+| end_event   | dict | 结束节点信息                     |
+| activities  | dict | 任务节点（原子和子流程）信息             |
+| gateways    | dict | 网关节点（并行网关、分支网关和汇聚网关）信息     |
+| flows       | dict | 顺序流（节点连线）信息                |
+| constants   | dict | 全局变量信息，详情见下面               |
+| line        | list | 连线信息                       |
+| location    | list | 节点位置信息                     |
+| outputs     | list | 模板输出信息，标记 constants 中的输出字段 |
 
 ###### data.pipeline_tree.constants.KEY
 
