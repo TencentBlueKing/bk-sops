@@ -72,7 +72,7 @@ def cmdb_business_sync_task():
             logger.info("Can not get sync_business lock, sync operation abandon")
 
 
-@periodic_task(run_every=TzAwareCrontab(hour=settings.EXPIRED_SESSION_CLEAN_HOUR_CRON))
+@periodic_task(run_every=TzAwareCrontab(**settings.EXPIRED_SESSION_CLEAN_CRON))
 def clean_django_sessions():
     """
     Clean expired sessions from the database.
