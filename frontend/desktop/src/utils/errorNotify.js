@@ -34,7 +34,7 @@ export default class ErrorNotify {
                         style: { display: 'none', position: 'relative', margin: '10px 10px 0 auto' },
                         on: {
                             click: () => {
-                                this.handleCopy(vueInstance, `trace_id：${traceId}\n${msg}`)
+                                this.handleCopy(vueInstance, traceId ? `trace_id：${traceId}\n${msg}` : msg)
                             }
                         }
                     }, [i18n.t('复制')])
