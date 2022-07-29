@@ -31,6 +31,9 @@ logger = logging.getLogger("root")
 
 class TimezoneMiddleware(MiddlewareMixin):
     def process_view(self, request, view_func, view_args, view_kwargs):
+        if getattr(view_func, "login_exempt", False):
+            return None
+
         project_id = view_kwargs.get("project_id")
         if project_id:
             try:
