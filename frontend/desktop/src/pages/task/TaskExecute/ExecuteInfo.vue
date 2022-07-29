@@ -83,13 +83,6 @@
                         </RenderForm>
                     </div>
                 </section>
-                <NodeLog
-                    ref="nodeLog"
-                    :node-detail-config="nodeDetailConfig"
-                    :execute-info="executeInfo"
-                    :third-party-node-code="thirdPartyNodeCode"
-                    :engine-ver="engineVer">
-                </NodeLog>
                 <section class="info-section" data-test-id="taskExcute_form_exceptionInfo" v-if="executeInfo.ex_data">
                     <h4 class="common-section-title">{{ $t('异常信息') }}</h4>
                     <div v-html="failInfo"></div>
@@ -99,6 +92,13 @@
                         :node-info="executeInfo">
                     </IpLogContent>
                 </section>
+                <NodeLog
+                    ref="nodeLog"
+                    :node-detail-config="nodeDetailConfig"
+                    :execute-info="executeInfo"
+                    :third-party-node-code="thirdPartyNodeCode"
+                    :engine-ver="engineVer">
+                </NodeLog>
                 <ExecuteLog
                     :admin-view="adminView"
                     :history-info="historyInfo"
