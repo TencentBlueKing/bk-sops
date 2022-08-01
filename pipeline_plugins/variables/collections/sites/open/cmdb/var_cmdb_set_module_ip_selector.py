@@ -326,6 +326,7 @@ def get_ip_result_by_input_method(
     # 集群全选，筛选条件不为空则调接口获取集群id列表
     if ALL_SELECTED_STR not in select_method[set_input_method]:
         selected_set_names = select_method[set_input_method]
+        logger.info(f"[get_ip_result_by_input_method]selected_set_names: {selected_set_names}")
         # 根据选中的集群名称获取选中的集群列表
         set_list = get_list_by_selected_names(selected_set_names, set_list)
     # 获取全部服务模板列表
@@ -333,6 +334,9 @@ def get_ip_result_by_input_method(
     # 服务模板全选，则调接口获取服务模板列表
     if ALL_SELECTED_STR not in select_method[module_input_method]:
         selected_service_template_names = select_method[module_input_method]
+        logger.info(
+            f"[get_ip_result_by_input_method]selected_service_template_names: {selected_service_template_names}"
+        )
         # 通过选中的或输入的集群模板获取集群模板列表
         service_template_list = get_service_template_list_by_names(
             selected_service_template_names, service_template_list
