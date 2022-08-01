@@ -46,94 +46,30 @@
                     </div>
                 </div>
             </div>
-            <div class="scroll-area">
-                <section class="info-section" data-test-id="taskExcute_form_excuteInfo">
-                    <h4 class="common-section-title">{{ $t('执行信息') }}</h4>
-                    <table class="operation-table" v-if="executeCols && isReadyStatus">
-                        <tr v-for="col in executeCols" :key="col.id">
-                            <th>{{ col.title }}</th>
-                            <td>
-                                <template v-if="typeof executeInfo[col.id] === 'boolean'">
-                                    {{executeInfo[col.id] ? $t('是') : $t('否')}}
-                                </template>
-                                <template v-else-if="col.id === 'elapsed_time'">
-                                    {{getLastTime(executeInfo.elapsed_time)}}
-                                </template>
-                                <template v-else-if="col.id === 'callback_data'">
-                                    <div class="code-block-wrap">
-                                        <VueJsonPretty :data="executeInfo.callback_data"></VueJsonPretty>
-                                    </div>
-                                </template>
-                                <template v-else>
-                                    {{ executeInfo[col.id] }}
-                                </template>
-                            </td>
-                        </tr>
-                    </table>
-                    <NoData v-else></NoData>
-                </section>
+            <div class="scroll-area" :key="randomKey">
+                <ExecuteInfoForm
+                    :is-ready-status="isReadyStatus"
+                    :admin-view="adminView"
+                    :execute-info="executeInfo">
+                </ExecuteInfoForm>
                 <section class="info-section" data-test-id="taskExcute_form_operatFlow" v-if="executeInfo.id && location.type !== 'subflow'">
                     <h4 class="common-section-title">{{ $t('操作流水') }}</h4>
                     <OperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></OperationFlow>
                 </section>
-                <section class="info-section" data-test-id="taskExcute_form_inputParams" v-if="nodeDetailConfig.component_code">
-                    <div class="common-section-title input-parameter">
-                        <div class="input-title">{{ $t('输入参数') }}</div>
-                        <div class="origin-value" v-if="!adminView">
-                            <bk-switcher @change="inputSwitcher" v-model="isShowInputOrigin"></bk-switcher>
-                            {{ $t('原始值') }}
-                        </div>
-                    </div>
-                    <div v-if="!adminView">
-                        <div v-if="!isShowInputOrigin">
-                            <RenderForm
-                                v-if="!isEmptyParams && !loading"
-                                :scheme="renderConfig"
-                                :form-option="renderOption"
-                                v-model="renderData">
-                            </RenderForm>
-                            <NoData v-else></NoData>
-                        </div>
-                        <full-code-editor v-else :value="inputsInfo"></full-code-editor>
-                    </div>
-                    <div class="code-block-wrap" v-else>
-                        <VueJsonPretty :data="inputsInfo"></VueJsonPretty>
-                    </div>
-                </section>
-                <section class="info-section" data-test-id="taskExcute_form_outputParams" v-if="['tasknode', 'subflow'].includes(location.type)">
-                    <div class="common-section-title output-parameter">
-                        <div class="output-title">{{ $t('输出参数') }}</div>
-                        <div class="origin-value" v-if="!adminView">
-                            <bk-switcher @change="outputSwitcher" v-model="isShowOutputOrigin"></bk-switcher>
-                            {{ $t('原始值') }}
-                        </div>
-                    </div>
-                    <div v-if="!adminView">
-                        <table class="operation-table outputs-table" v-if="!isShowOutputOrigin">
-                            <thead>
-                                <tr>
-                                    <th class="output-name">{{ $t('参数名') }}</th>
-                                    <th class="output-value">{{ $t('参数值') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="output in outputsInfo" :key="output.name">
-                                    <td class="output-name">{{getOutputName(output)}}</td>
-                                    <td v-if="isUrl(output.value)" class="output-value" v-html="getOutputValue(output)"></td>
-                                    <td v-else class="output-value">{{ getOutputValue(output) }}</td>
-                                </tr>
-                                <tr v-if="Object.keys(outputsInfo).length === 0">
-                                    <td colspan="2"><no-data></no-data></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <full-code-editor v-else :value="outputsInfo"></full-code-editor>
-                    </div>
-                    <div class="code-block-wrap" v-else>
-                        <VueJsonPretty :data="outputsInfo" v-if="outputsInfo"></VueJsonPretty>
-                        <NoData v-else></NoData>
-                    </div>
-                </section>
+                <template v-if="['tasknode', 'subflow'].includes(location.type)">
+                    <InputParams
+                        :admin-view="adminView"
+                        :inputs="inputsInfo"
+                        :render-config="renderConfig"
+                        :constants="subFlowConstants"
+                        :render-data="renderData">
+                    </InputParams>
+                    <OutputParams
+                        :admin-view="adminView"
+                        :outputs="outputsInfo"
+                        :node-detail-config="nodeDetailConfig">
+                    </OutputParams>
+                </template>
                 <section
                     class="info-section"
                     data-test-id="taskExcute_form_outputFrom"
@@ -156,102 +92,21 @@
                         :node-info="executeInfo">
                     </IpLogContent>
                 </section>
-                <section class="info-section log-info" data-test-id="taskExcute_form_nodeLog">
-                    <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
-                    <!-- 内置插件/第三方插件tab -->
-                    <bk-tab v-if="isThirdPartyNode" :active.sync="curPluginTab" type="unborder-card">
-                        <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('节点日志') }"></bk-tab-panel>
-                        <bk-tab-panel
-                            v-bind="{ name: 'third_party_plugin', label: $t('第三方节点日志') }">
-                        </bk-tab-panel>
-                    </bk-tab>
-                    <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
-                        <full-code-editor
-                            v-if="curPluginTab === 'build_in_plugin' ? logInfo : executeInfo.thirdPartyNodeLog"
-                            class="scroll-editor"
-                            :key="curPluginTab"
-                            :value="curPluginTab === 'build_in_plugin' ? logInfo : executeInfo.thirdPartyNodeLog">
-                        </full-code-editor>
-                        <NoData v-else></NoData>
-                    </div>
-                </section>
-                <section class="info-section" data-test-id="taskExcute_form_excuteLog" v-if="historyInfo && historyInfo.length">
-                    <h4 class="common-section-title">{{ $t('执行记录') }}</h4>
-                    <bk-table
-                        class="retry-table"
-                        :data="historyInfo"
-                        @expand-change="onHistoyExpand">
-                        <bk-table-column type="expand" :width="30">
-                            <template slot-scope="props">
-                                <div class="common-form-item">
-                                    <label>{{ $t('输入参数') }}</label>
-                                    <div class="common-form-content">
-                                        <div class="code-block-wrap">
-                                            <VueJsonPretty :data="props.row.inputs"></VueJsonPretty>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="common-form-item">
-                                    <label>{{ $t('输出参数') }}</label>
-                                    <div class="common-form-content">
-                                        <div class="code-block-wrap">
-                                            <VueJsonPretty :data="props.row.outputs"></VueJsonPretty>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="common-form-item" v-if="props.row.ex_data">
-                                    <label>{{ $t('异常信息') }}</label>
-                                    <div class="common-form-content">
-                                        <div v-html="props.row.ex_data"></div>
-                                    </div>
-                                </div>
-                                <div class="common-form-item executeLog">
-                                    <label>{{ $t('日志') }}</label>
-                                    <!-- 内置插件/第三方插件tab -->
-                                    <bk-tab
-                                        v-if="isThirdPartyNode"
-                                        :active.sync="props.row.historyLogTab"
-                                        type="unborder-card">
-                                        <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('节点日志') }"></bk-tab-panel>
-                                        <bk-tab-panel
-                                            v-bind="{ name: 'third_party_plugin', label: $t('第三方节点日志') }">
-                                        </bk-tab-panel>
-                                    </bk-tab>
-                                    <div class="perform-log" v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1, zIndex: 100 }">
-                                        <div v-show="getHistoryLogData(props.row)">
-                                            <VueJsonPretty
-                                                v-show="adminView"
-                                                :data="getHistoryLogData(props.row)">
-                                            </VueJsonPretty>
-                                            <full-code-editor
-                                                v-show="!adminView"
-                                                :class="[
-                                                    `history-editor-${props.row.history_id}`
-                                                ]"
-                                                :value="getHistoryLogData(props.row)">
-                                            </full-code-editor>
-                                        </div>
-                                        <NoData v-show="!getHistoryLogData(props.row)"></NoData>
-                                    </div>
-
-                                </div>
-                            </template>
-                        </bk-table-column>
-                        <bk-table-column :label="$t('序号')" :width="60">
-                            <template slot-scope="props">
-                                {{props.$index + 1}}
-                            </template>
-                        </bk-table-column>
-                        <bk-table-column :label="$t('执行次数')" :width="100" prop="loop"></bk-table-column>
-                        <bk-table-column
-                            v-for="col in historyCols"
-                            show-overflow-tooltip
-                            :key="col.id"
-                            :label="col.title"
-                            :prop="col.id">
-                        </bk-table-column>
-                    </bk-table>
-                </section>
+                <NodeLog
+                    ref="nodeLog"
+                    :node-detail-config="nodeDetailConfig"
+                    :execute-info="executeInfo"
+                    :third-party-node-code="thirdPartyNodeCode"
+                    :engine-ver="engineVer">
+                </NodeLog>
+                <ExecuteLog
+                    :admin-view="adminView"
+                    :history-info="historyInfo"
+                    :is-third-party-node="isThirdPartyNode"
+                    :third-party-node-code="thirdPartyNodeCode"
+                    :node-detail-config="nodeDetailConfig"
+                    :engine-ver="engineVer">
+                </ExecuteLog>
             </div>
             <div v-if="executeInfo.state === 'RUNNING'" class="action-wrapper">
                 <bk-button
@@ -261,13 +116,21 @@
                     @click="onResumeClick">
                     {{ $t('继续执行') }}
                 </bk-button>
-                <bk-button
+                <span
                     v-if="nodeDetailConfig.component_code === 'sleep_timer'"
-                    theme="primary"
-                    data-test-id="taskExcute_form_modifyTimeBtn"
-                    @click="onModifyTimeClick">
-                    {{ $t('修改时间') }}
-                </bk-button>
+                    v-bk-tooltips="{
+                        content: $t('修改时间实际是强制失败后重试节点，需配置可重试才能修改时间'),
+                        disabled: nodeActivity.retryable !== false,
+                        hideOnClick: false
+                    }">
+                    <bk-button
+                        theme="primary"
+                        :disabled="nodeActivity.retryable === false"
+                        data-test-id="taskExcute_form_modifyTimeBtn"
+                        @click="onModifyTimeClick">
+                        {{ $t('修改时间') }}
+                    </bk-button>
+                </span>
                 <bk-button
                     v-if="nodeDetailConfig.component_code === 'bk_approve'"
                     theme="primary"
@@ -304,183 +167,31 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
-    import VueJsonPretty from 'vue-json-pretty'
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
-    import { URL_REG, TASK_STATE_DICT, NODE_DICT } from '@/constants/index.js'
-    import NoData from '@/components/common/base/NoData.vue'
+    import { TASK_STATE_DICT, NODE_DICT } from '@/constants/index.js'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
     import NodeTree from './NodeTree'
-    import FullCodeEditor from './FullCodeEditor.vue'
     import OperationFlow from './OperationFlow.vue'
-
-    const EXECUTE_INFO_COL = [
-        {
-            title: i18n.t('开始时间'),
-            id: 'start_time'
-        },
-        {
-            title: i18n.t('结束时间'),
-            id: 'finish_time'
-        },
-        {
-            title: i18n.t('耗时'),
-            id: 'elapsed_time'
-        },
-        {
-            title: i18n.t('失败后跳过'),
-            id: 'skip'
-        },
-        {
-            title: i18n.t('失败后自动忽略'),
-            id: 'error_ignored'
-        },
-        {
-            title: i18n.t('重试次数'),
-            id: 'retry'
-        },
-        {
-            title: i18n.t('插件版本'),
-            id: 'plugin_version'
-        },
-        {
-            title: i18n.t('插件名称'),
-            id: 'plugin_name'
-        },
-        {
-            title: i18n.t('节点ID'),
-            id: 'id'
-        }
-    ]
-
-    const ADMIN_EXECUTE_INFO_COL = [
-        {
-            title: i18n.t('开始时间'),
-            id: 'start_time'
-        },
-        {
-            title: i18n.t('结束时间'),
-            id: 'archive_time'
-        },
-        {
-            title: i18n.t('耗时'),
-            id: 'elapsed_time'
-        },
-        {
-            title: i18n.t('失败后跳过'),
-            id: 'skip'
-        },
-        {
-            title: i18n.t('失败后自动忽略'),
-            id: 'error_ignored'
-        },
-        {
-            title: i18n.t('重试次数'),
-            id: 'retry_times'
-        },
-        {
-            title: i18n.t('ID'),
-            id: 'id'
-        },
-        {
-            title: i18n.t('状态'),
-            id: 'state'
-        },
-        {
-            title: i18n.t('循环次数'),
-            id: 'loop'
-        },
-        {
-            title: i18n.t('创建时间'),
-            id: 'create_time'
-        },
-        {
-            title: i18n.t('调度ID'),
-            id: 'schedule_id'
-        },
-        {
-            title: i18n.t('正在被调度'),
-            id: 'is_scheduling'
-        },
-        {
-            title: i18n.t('调度次数'),
-            id: 'schedule_times'
-        },
-        {
-            title: i18n.t('等待回调'),
-            id: 'wait_callback'
-        },
-        {
-            title: i18n.t('完成调度'),
-            id: 'is_finished'
-        },
-        {
-            title: i18n.t('调度节点版本'),
-            id: 'schedule_version'
-        },
-        {
-            title: i18n.t('执行版本'),
-            id: 'version'
-        },
-        {
-            title: i18n.t('回调数据'),
-            id: 'callback_data'
-        },
-        {
-            title: i18n.t('插件版本'),
-            id: 'plugin_version'
-        },
-        {
-            title: i18n.t('插件名称'),
-            id: 'plugin_name'
-        },
-        {
-            title: i18n.t('节点ID'),
-            id: 'id'
-        }
-    ]
-
-    const HISTORY_COLS = [
-        {
-            title: i18n.t('开始时间'),
-            id: 'start_time'
-        },
-        {
-            title: i18n.t('结束时间'),
-            id: 'finish_time'
-        },
-        {
-            title: i18n.t('耗时'),
-            id: 'last_time'
-        }
-    ]
-
-    const ADMIN_HISTORY_COLS = [
-        {
-            title: i18n.t('开始时间'),
-            id: 'started_time'
-        },
-        {
-            title: i18n.t('结束时间'),
-            id: 'finished_time'
-        },
-        {
-            title: i18n.t('耗时'),
-            id: 'elapsed_time'
-        }
-    ]
+    import ExecuteInfoForm from './ExecuteInfo/ExecuteInfoForm.vue'
+    import InputParams from './ExecuteInfo/InputParams.vue'
+    import OutputParams from './ExecuteInfo/OutputParams.vue'
+    import NodeLog from './ExecuteInfo/NodeLog.vue'
+    import ExecuteLog from './ExecuteInfo/ExecuteLog.vue'
 
     export default {
         name: 'ExecuteInfo',
         components: {
-            VueJsonPretty,
             RenderForm,
-            NoData,
             IpLogContent,
             NodeTree,
-            FullCodeEditor,
-            OperationFlow
+            OperationFlow,
+            ExecuteInfoForm,
+            InputParams,
+            OutputParams,
+            NodeLog,
+            ExecuteLog
         },
         props: {
             adminView: {
@@ -524,11 +235,7 @@
         },
         data () {
             return {
-                curPluginTab: 'build_in_plugin',
-                isLogLoading: false,
-                isShowInputOrigin: false,
-                isShowOutputOrigin: false,
-                readOnly: true,
+                randomKey: '',
                 loading: true,
                 isRenderOutputForm: false,
                 executeInfo: {},
@@ -537,17 +244,7 @@
                 outputsInfo: [],
                 logInfo: '',
                 historyInfo: [],
-                historyLog: {},
-                thirdHistoryLog: {},
-                historyLogLoading: {},
                 failInfo: '',
-                renderOption: {
-                    showGroup: false,
-                    showLabel: true,
-                    showHook: false,
-                    formEdit: false,
-                    formMode: false
-                },
                 renderConfig: [],
                 outputRenderData: {},
                 outputRenderConfig: [],
@@ -559,15 +256,12 @@
                     formMode: true
                 },
                 renderData: {},
+                subFlowConstants: {}, // 子流程constants
                 loop: 1,
                 theExecuteTime: undefined,
                 isReadyStatus: true,
                 isShowSkipBtn: false,
-                isShowRetryBtn: false,
-                scrollId: '',
-                observer: null,
-                editScrollDom: null,
-                nodeLogPageInfo: null
+                isShowRetryBtn: false
             }
         },
         computed: {
@@ -580,9 +274,6 @@
             ...mapState('project', {
                 project_id: state => state.project_id
             }),
-            isEmptyParams () {
-                return this.renderConfig && this.renderConfig.length === 0
-            },
             noDataMessage () {
                 return i18n.t('请点击标准插件节点查看参数')
             },
@@ -618,12 +309,6 @@
 
                 return times
             },
-            executeCols () {
-                return this.adminView ? ADMIN_EXECUTE_INFO_COL : EXECUTE_INFO_COL
-            },
-            historyCols () {
-                return this.adminView ? ADMIN_HISTORY_COLS : HISTORY_COLS
-            },
             currentNode () {
                 return this.selectedFlowPath.slice(-1)[0].id
             },
@@ -640,11 +325,19 @@
                 return compCode && compCode === 'remote_plugin'
             },
             thirdPartyNodeCode () {
+                if (!this.isThirdPartyNode) return ''
                 const nodeInfo = this.pipelineData.activities[this.nodeDetailConfig.node_id]
+                if (!nodeInfo) return ''
                 let codeInfo = nodeInfo.component.data
                 codeInfo = codeInfo && codeInfo.plugin_code
                 codeInfo = codeInfo.value
                 return codeInfo
+            },
+            isSubFlow () {
+                return this.location.type === 'subflow'
+            },
+            nodeActivity () {
+                return this.pipelineData.activities[this.nodeDetailConfig.node_id]
             }
         },
         watch: {
@@ -656,69 +349,39 @@
                     this.outputsInfo = []
                     this.logInfo = ''
                     this.historyInfo = []
-                    this.historyLog = {}
-                    this.thirdHistoryLog = {}
-                    this.historyLogLoading = {}
                     this.failInfo = ''
+                    this.randomKey = new Date().getTime()
                     this.loadNodeInfo()
-                }
-            },
-            curPluginTab (val) {
-                this.editScrollDom = null
-                if (val === 'third_party_plugin' || this.nodeLogPageInfo) {
-                    this.watchEditorScroll()
                 }
             }
         },
         mounted () {
             this.loadNodeInfo()
         },
-        beforeDestroy () {
-            if (this.observer) {
-                this.observer.disconnect()
-                this.observer.takeRecords()
-                this.observer = null
-            }
-            if (this.historyInfo.length) {
-                this.historyInfo.forEach(item => {
-                    if (item.observe) {
-                        item.observer.disconnect()
-                        item.observer.takeRecords()
-                        item.observer = null
-                    }
-                })
-            }
-        },
         methods: {
             ...mapActions('task/', [
-                'getNodeActInfo',
-                'getNodeActDetail',
-                'getEngineVerNodeLog',
-                'getNodeExecutionRecordLog'
+                'getNodeActDetail'
             ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig',
                 'loadPluginServiceDetail',
-                'loadPluginServiceLog',
                 'loadPluginServiceAppDetail'
             ]),
             ...mapActions('admin/', [
-                'taskflowNodeDetail',
-                'taskflowHistroyLog'
+                'taskflowNodeDetail'
             ]),
             async loadNodeInfo () {
                 this.loading = true
                 try {
-                    this.isShowInputOrigin = false
-                    this.isShowOutputOrigin = false
-                    this.curPluginTab = 'build_in_plugin'
-                    this.scrollId = ''
+                    this.renderConfig = []
                     const respData = await this.getTaskNodeDetail()
                     if (!respData) {
                         this.isReadyStatus = false
                         this.executeInfo = {}
                         this.outputsInfo = []
                         this.inputsInfo = {}
+                        this.subFlowConstants = {}
+                        this.renderData = {}
                         this.logInfo = ''
                         return
                     }
@@ -737,6 +400,9 @@
                     // 任务节点需要加载标准插件
                     if (componentCode) {
                         await this.getNodeConfig(componentCode, version, inputs.plugin_version)
+                    } else if (this.location.type === 'subflow') { // 获取子流程配置详情
+                        const constants = this.pipelineData.constants
+                        this.renderConfig = await this.getSubflowInputsConfig(constants)
                     }
                     if (this.adminView) {
                         this.executeInfo = execution_info
@@ -758,7 +424,18 @@
                         })
                     } else {
                         this.executeInfo = respData
-                        this.inputsInfo = inputs
+                        if (this.isSubFlow) { // 获取子流程输入参数 (subflow_detail_var 标识当前为子流程节点详情)
+                            this.subFlowConstants = { subflow_detail_var: true, ...inputs }
+                            this.inputsInfo = Object.values(this.pipelineData.constants).reduce((acc, cur) => {
+                                if (cur.show_type === 'show') {
+                                    acc[cur.key] = cur.value
+                                }
+                                return acc
+                            }, {})
+                        } else {
+                            this.subFlowConstants = {}
+                            this.inputsInfo = inputs
+                        }
                         if (respData.histories) {
                             this.historyInfo = respData.histories.map(item => {
                                 this.$set(item, 'historyLogTab', 'build_in_plugin')
@@ -768,6 +445,7 @@
                                 return item
                             })
                         }
+                        this.renderData = {}
                         for (const key in this.inputsInfo) {
                             this.$set(this.renderData, key, this.inputsInfo[key])
                         }
@@ -776,7 +454,8 @@
                                 history_id: respData.history_id,
                                 version: respData.version
                             })
-                            this.getPerformLog(query)
+                            const nodeLogDom = this.$refs.nodeLog
+                            nodeLogDom && nodeLogDom.getPerformLog(query)
                         }
 
                         // 兼容 JOB 执行作业输出参数
@@ -811,6 +490,13 @@
                                         outputsInfo.push(info)
                                     }
                                 })
+                            } else if (this.isSubFlow) {
+                                outputsInfo = outputs.map(item => {
+                                    const { value, key } = item
+                                    const constants = this.nodeActivity.pipeline.constants
+                                    const name = constants[key] ? constants[key].name : key
+                                    return { value, name }
+                                })
                             } else { // 普通插件展示 preset 为 true 的输出参数
                                 outputsInfo = outputs.filter(output => output.preset)
                             }
@@ -836,7 +522,7 @@
                     }
                     if (this.historyInfo) {
                         this.historyInfo.forEach(item => {
-                            item.last_time = this.getLastTime(item.elapsed_time)
+                            item.last_time = tools.timeTransform(item.elapsed_time)
                         })
                     }
                     if (this.executeInfo.ex_data && this.executeInfo.ex_data.show_ip_log) {
@@ -848,7 +534,7 @@
                     if (this.executeInfo.state === 'FAILED') {
                         const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
                         this.isShowSkipBtn = this.location.type === 'tasknode' && activity.skippable
-                        this.isShowRetryBtn = this.location.type === 'tasknode' ? activity.retryable : this.location.type === 'subflow'
+                        this.isShowRetryBtn = this.location.type === 'tasknode' ? activity.retryable : this.isSubFlow
                     } else {
                         this.isShowSkipBtn = false
                         this.isShowRetryBtn = false
@@ -856,7 +542,8 @@
                     // 获取第三方插件节点日志
                     const traceId = outputs.length && outputs[0].value
                     if (this.isThirdPartyNode && traceId) {
-                        this.handleTabChange(traceId)
+                        const nodeLogDom = this.$refs.nodeLog
+                        nodeLogDom && nodeLogDom.handleTabChange(traceId)
                     }
                 } catch (e) {
                     console.log(e)
@@ -889,72 +576,6 @@
                     console.log(e)
                 }
             },
-            // 非admin 用户执行记录
-            async getPerformLog (query) {
-                try {
-                    this.isLogLoading = true
-                    let performLog = {}
-                    // 不同引擎版本的任务调用不同的接口
-                    if (this.engineVer === 1) {
-                        performLog = await this.getNodeExecutionRecordLog(query)
-                    } else if (this.engineVer === 2) {
-                        performLog = await this.getEngineVerNodeLog(query)
-                    }
-                    this.logInfo = this.logInfo + (this.logInfo ? '\n' : '') + performLog.data
-                    this.nodeLogPageInfo = performLog.page
-                    if (this.nodeLogPageInfo && !this.editScrollDom) {
-                        this.watchEditorScroll()
-                    }
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.isLogLoading = false
-                }
-            },
-            watchEditorScroll () {
-                // 第三方日志滚动加载
-                this.$nextTick(() => {
-                    // 滚动dom
-                    const editScrollDom = document.querySelector('.scroll-editor .code-editor .vertical .slider')
-                    if (!editScrollDom) return
-                    // 编辑器dom
-                    const editDom = document.querySelector('.scroll-editor .monaco-editor')
-                    const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
-
-                    // 监听滚动dom
-                    this.observer = new MutationObserver(mutation => {
-                        const { height } = editScrollDom.getBoundingClientRect()
-                        const { height: editHeight } = editDom && editDom.getBoundingClientRect()
-                        const top = editScrollDom.offsetTop
-                        const offsetBottom = editHeight > 300 ? 180 : 80
-                        if (this.curPluginTab === 'third_party_plugin') {
-                            if (editHeight - height - top < offsetBottom && !this.isLogLoading && this.scrollId) {
-                                const { outputs } = this.executeInfo
-                                const traceId = outputs.length && outputs[0].value
-                                this.handleTabChange(traceId)
-                            }
-                        } else if (this.nodeLogPageInfo) {
-                            const { page, total, page_size } = this.nodeLogPageInfo
-                            if (editHeight - height - top < offsetBottom && !this.isLogLoading && page < Math.ceil(total / page_size)) {
-                                const { history_id, version } = this.executeInfo
-                                const query = Object.assign({}, this.nodeDetailConfig, {
-                                    page: page + 1,
-                                    history_id,
-                                    version
-                                })
-                                this.getPerformLog(query)
-                            }
-                        }
-                    })
-                    this.observer.observe(editScrollDom, {
-                        childList: true,
-                        attributes: true,
-                        characterData: true,
-                        subtree: true
-                    })
-                    this.editScrollDom = editScrollDom
-                })
-            },
             async getNodeConfig (type, version, pluginVersion) {
                 if (
                     atomFilter.isConfigExists(type, version, this.atomFormConfig)
@@ -974,7 +595,7 @@
                                 with_app_detail: true
                             })
                             if (!resp.result) return
-                            const { outputs: respsOutputs, forms } = resp.data
+                            const { outputs: respsOutputs, forms, inputs } = resp.data
                             // 输出参数
                             const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
                             const outputs = []
@@ -988,16 +609,22 @@
                             }
                             this.pluginOutputs = outputs
                             this.outputRenderConfig = [...storeOutputs, ...outputs]
-                            // 设置host
-                            const { origin } = window.location
-                            const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${this.thirdPartyNodeCode}/`
-                            $.context.bk_plugin_api_host[this.thirdPartyNodeCode] = hostUrl
-                            // 输入参数
-                            const renderFrom = forms.renderform
-                            /* eslint-disable-next-line */
-                            eval(renderFrom)
-                            const config = $.atoms[this.thirdPartyNodeCode]
-                            this.renderConfig = config || []
+                            if (forms.renderform) {
+                                // 设置host
+                                const { origin } = window.location
+                                const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${this.thirdPartyNodeCode}/`
+                                $.context.bk_plugin_api_host[this.thirdPartyNodeCode] = hostUrl
+                                // 输入参数
+                                const renderFrom = forms.renderform
+                                /* eslint-disable-next-line */
+                                eval(renderFrom)
+                                const config = $.atoms[this.thirdPartyNodeCode]
+                                this.renderConfig = config || []
+                            } else {
+                                $.atoms[this.thirdPartyNodeCode] = inputs
+                                this.renderConfig = inputs || {}
+                                this.outputs = [] // jsonschema form输出参数
+                            }
                             return
                         }
                         this.renderConfig = this.atomFormConfig[type] && this.atomFormConfig[type][version]
@@ -1013,140 +640,77 @@
                     }
                 }
             },
-            async handleTabChange (traceId) {
-                try {
-                    this.isLogLoading = true
-                    const resp = await this.loadPluginServiceLog({
-                        plugin_code: this.thirdPartyNodeCode,
-                        trace_id: traceId,
-                        scroll_id: this.scrollId || undefined
-                    })
-                    if (!resp.result) {
-                        this.scrollId = ''
-                        return
+            /**
+             * 加载子流程输入参数表单配置项
+             * 遍历每个非隐藏的全局变量，由 source_tag、coustom_type 字段确定需要加载的标准插件
+             * 同时根据 source_tag 信息获取全局变量对应标准插件的某一个表单配置项
+             *
+             * @return {Array} 每个非隐藏全局变量对应表单配置项组成的数组
+             */
+            async getSubflowInputsConfig (subflowForms) {
+                const inputs = []
+                const variables = Object.keys(subflowForms)
+                    .map(key => subflowForms[key])
+                    .filter(item => item.show_type === 'show')
+                    .sort((a, b) => a.index - b.index)
+
+                await Promise.all(variables.map(async (variable) => {
+                    const { key } = variable
+                    const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
+                    const version = variable.version || 'legacy'
+                    const isThird = Boolean(variable.plugin_code)
+                    const atomConfig = await this.getAtomConfig({ plugin: atom, version, classify, name, isThird })
+                    let formItemConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
+                    if (variable.is_meta || formItemConfig.meta_transform) {
+                        formItemConfig = formItemConfig.meta_transform(variable.meta || variable)
+                        if (!variable.meta) {
+                            variable.meta = tools.deepClone(variable)
+                            variable.value = formItemConfig.attrs.value
+                        }
                     }
-                    const { logs, scroll_id } = resp.data
-                    const thirdPartyLogs = this.executeInfo.thirdPartyNodeLog || ''
-                    this.executeInfo.thirdPartyNodeLog = thirdPartyLogs + logs
-                    this.scrollId = logs && scroll_id ? scroll_id : ''
-                } catch (error) {
-                    console.warn(error)
-                } finally {
-                    this.isLogLoading = false
-                }
+                    // 特殊处理逻辑，针对子流程节点，如果为自定义类型的下拉框变量，默认开始支持用户创建不存在的选项配置项
+                    if (variable.custom_type === 'select') {
+                        formItemConfig.attrs.allowCreate = true
+                    }
+                    formItemConfig.tag_code = key
+                    formItemConfig.attrs.name = variable.name
+                    // 自定义输入框变量正则校验添加到插件配置项
+                    if (['input', 'textarea'].includes(variable.custom_type) && variable.validation !== '') {
+                        formItemConfig.attrs.validation.push({
+                            type: 'regex',
+                            args: variable.validation,
+                            error_message: i18n.t('默认值不符合正则规则：') + variable.validation
+                        })
+                    }
+                    // 参数填写时为保证每个表单 tag_code 唯一，原表单 tag_code 会被替换为变量 key，导致事件监听不生效
+                    if (formItemConfig.hasOwnProperty('events')) {
+                        formItemConfig.events.forEach(e => {
+                            if (e.source === tagCode) {
+                                e.source = '${' + e.source + '}'
+                            }
+                        })
+                    }
+                    inputs.push(formItemConfig)
+                }))
+                return inputs
             },
-            async getHistoryLog (id, row) {
+            /**
+             * 加载标准插件表单配置项文件
+             * 优先取 store 里的缓存
+             */
+            async getAtomConfig (config) {
+                const { plugin, version, classify, name } = config
                 try {
-                    this.$set(this.historyLogLoading, id, true)
-                    const data = {
-                        page: row.pageInfo ? (row.pageInfo.page + 1) : 1,
-                        node_id: this.nodeDetailConfig.node_id,
-                        history_id: id,
-                        instance_id: this.nodeDetailConfig.instance_id,
-                        version: row.version
+                    // 先取标准节点缓存的数据
+                    const pluginGroup = this.atomFormConfig[plugin]
+                    if (pluginGroup && pluginGroup[version]) {
+                        return pluginGroup[version]
                     }
-                    let resp = null
-                    if (this.adminView) {
-                        resp = await this.taskflowHistroyLog(data)
-                    } else if (this.engineVer === 1) {
-                        resp = await this.getNodeExecutionRecordLog(data)
-                    } else if (this.engineVer === 2) {
-                        resp = await this.getEngineVerNodeLog(data)
-                    }
-                    if (resp.result) {
-                        const respData = this.adminView ? resp.data.log : resp.data
-                        row.pageInfo = this.adminView ? resp.data.page : resp.page
-                        const curLog = this.historyLog[id] || ''
-                        this.$set(this.historyLog, id, curLog + (curLog ? '\n' : '') + respData)
-                    }
+                    await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id: this.project_id })
+                    const config = $.atoms[plugin]
+                    return config
                 } catch (e) {
                     console.log(e)
-                } finally {
-                    this.historyLogLoading[id] = false
-                }
-            },
-            // 设置第三方节点历史日志
-            setHistoryLogWatch (row) {
-                try {
-                    // 滚动dom
-                    const editorDom = document.querySelector(`.history-editor-${row.history_id}`)
-                    const scrollDom = editorDom && editorDom.querySelector('.code-editor .vertical .slider')
-                    if (!scrollDom) return
-                    // 编辑器dom
-                    const editDom = editorDom && editorDom.querySelector('.monaco-editor')
-                    const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
-                    // 监听滚动dom
-                    row.observer = new MutationObserver(async mutation => {
-                        const { height } = scrollDom.getBoundingClientRect()
-                        const { height: editHeight } = editDom && editDom.getBoundingClientRect()
-                        const top = scrollDom.offsetTop
-                        const offsetBottom = editHeight > 300 ? 180 : 100
-                        if (row.historyLogTab === 'third_party_plugin') {
-                            if (editHeight - height - top < offsetBottom && !this.historyLogLoading[row.history_id] && row.scrollId) {
-                                this.historyLogLoading[row.history_id] = true
-                                // 设置第三方节点历史日志
-                                await this.setThirdHistoryLog(row)
-                            }
-                        } else if (row.nodeInfo) {
-                            const { page, total, page_size } = row.nodeInfo
-                            if (editHeight - height - top < offsetBottom && !this.this.historyLogLoading[row.history_id] && page < Math.ceil(total / page_size)) {
-                                const id = Number(row.history_id)
-                                this.getHistoryLog(id, row)
-                            }
-                        }
-                    })
-                    row.observer.observe(scrollDom, {
-                        childList: true,
-                        attributes: true,
-                        characterData: true,
-                        subtree: true
-                    })
-                } catch (error) {
-                    console.warn(error)
-                } finally {
-                    this.historyLogLoading[row.history_id] = false
-                }
-            },
-            // 设置第三方节点历史日志
-            async setThirdHistoryLog (row) {
-                try {
-                    const id = Number(row.history_id)
-                    const traceId = row.outputs.trace_id
-                    const thirdLogsResp = await this.loadPluginServiceLog({
-                        plugin_code: this.thirdPartyNodeCode,
-                        trace_id: traceId,
-                        scroll_id: row.scrollId || undefined
-                    })
-                    if (thirdLogsResp.result) {
-                        const { logs, scroll_id } = thirdLogsResp.data
-                        const thirdPartyLogs = this.thirdHistoryLog[id] || ''
-                        this.$set(this.thirdHistoryLog, id, thirdPartyLogs + logs)
-                        row.scrollId = logs && scroll_id ? scroll_id : ''
-                    } else {
-                        row.scrollId = ''
-                    }
-                } catch (error) {
-                    console.warn(error)
-                } finally {
-                    this.historyLogLoading[row.history_id] = false
-                }
-            },
-            getHistoryLogData (row) {
-                return row.historyLogTab === 'build_in_plugin' ? this.historyLog[row.history_id] : this.thirdHistoryLog[row.history_id]
-            },
-            isUrl (val) {
-                return typeof val === 'string' && URL_REG.test(val)
-            },
-            getOutputValue (output) {
-                if (output.value === 'undefined' || output.value === '') {
-                    return '--'
-                } else if (!output.preset && this.nodeDetailConfig.component_code === 'job_execute_task') {
-                    return output.value
-                } else {
-                    if (this.isUrl(output.value)) {
-                        return `<a class="info-link" target="_blank" href="${output.value}">${output.value}</a>`
-                    }
-                    return output.value
                 }
             },
             transformFailInfo (data) {
@@ -1160,57 +724,14 @@
                     return data
                 }
             },
-            getLastTime (time) {
-                return tools.timeTransform(time)
-            },
-            getOutputName (output) {
-                if (this.nodeDetailConfig.component_code === 'job_execute_task' && output.perset) {
-                    return output.key
-                }
-                return output.name
-            },
             onSelectExecuteTime (val) {
                 this.theExecuteTime = val
+                this.randomKey = new Date().getTime()
                 this.loadNodeInfo()
-            },
-            async onHistoyExpand (row, expended) {
-                const id = Number(row.history_id)
-                if (expended && !this.historyLog.hasOwnProperty(id)) {
-                    // 获取普通节点历史日志
-                    await this.getHistoryLog(id, row)
-                    // 获取第三方插件的执行历史日志
-                    const traceId = row.outputs.trace_id
-                    if (traceId) {
-                        // 设置第三方节点历史日志
-                        await this.setThirdHistoryLog(row)
-                    } else {
-                        this.$set(this.thirdHistoryLog, id, i18n.t('输出参数中不包含trace_id，无法查看第三方节点日志'))
-                    }
-                }
-                if (row && !row.observer) {
-                    this.$nextTick(() => {
-                        // 给历史日志设置监听事件
-                        this.setHistoryLogWatch(row)
-                    })
-                }
             },
             onSelectNode (nodeHeirarchy, selectNodeId, nodeType) {
                 this.editScrollDom = null
                 this.$emit('onClickTreeNode', nodeHeirarchy, selectNodeId, nodeType)
-            },
-            inputSwitcher () {
-                if (!this.isShowInputOrigin) {
-                    this.inputsInfo = JSON.parse(this.inputsInfo)
-                } else {
-                    this.inputsInfo = JSON.stringify(this.inputsInfo, null, 4)
-                }
-            },
-            outputSwitcher () {
-                if (!this.isShowOutputOrigin) {
-                    this.outputsInfo = JSON.parse(this.outputsInfo)
-                } else {
-                    this.outputsInfo = JSON.stringify(this.outputsInfo, null, 4)
-                }
             },
             onRetryClick () {
                 this.$emit('onRetryClick', this.nodeDetailConfig.node_id)
@@ -1338,13 +859,13 @@
             color: #4b9aff;
         }
     }
-    .common-section-title {
+    /deep/.common-section-title {
         color: #313238;
         font-size: 14px;
         margin-bottom: 20px;
     }
-    .input-parameter,
-    .output-parameter {
+    /deep/.input-parameter,
+    /deep/.output-parameter {
         height: 20px;
         line-height: 20px;
         display: flex;
@@ -1363,7 +884,7 @@
             }
         }
     }
-    .operation-table {
+    /deep/.operation-table {
         font-size: 12px;
         table-layout: fixed;
         .output-name {
@@ -1376,36 +897,6 @@
         }
         td {
             color: #313238;
-        }
-    }
-    .retry-table {
-        font-size: 12px;
-        .common-form-item {
-            & > label {
-                margin-top: 0;
-                width: 60px;
-                font-size: 12px;
-            }
-            .commont-form-content {
-                margin-left: 100px;
-                font-size: 12px;
-            }
-        }
-        .executeLog {
-            /deep/.bk-tab {
-                position: relative;
-                top: -16px;
-                margin-left: 120px;
-                .bk-tab-section {
-                    padding: 0;
-                }
-            }
-            .perform-log {
-                margin-left: 120px;
-                .no-data-wrapper {
-                    margin: 20px 0;
-                }
-            }
         }
     }
     .ex-data-wrap {

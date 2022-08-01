@@ -9,7 +9,7 @@ const COMMON_ROUTE_LIST = [
             url: '/home/'
         },
         {
-            id: 'process',
+            id: 'processHome',
             name: i18n.t('流程'),
             icon: 'icon-sitemap-shape',
             hasProjectId: true,

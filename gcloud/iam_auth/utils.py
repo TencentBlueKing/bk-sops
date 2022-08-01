@@ -10,9 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import logging
 
 from iam import Request, MultiActionRequest, Subject, Action
-from iam.exceptions import MultiAuthFailedException, AuthFailedException
+from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
+from iam.exceptions import MultiAuthFailedException, AuthFailedException, RawAuthFailedException
 from iam.shortcuts import allow_or_raise_auth_failed
 
 from gcloud.core.models import Project
@@ -21,6 +23,8 @@ from . import res_factory
 from .conf import IAMMeta
 from .shortcuts import get_iam_client
 
+
+logger = logging.getLogger("root")
 iam = get_iam_client()
 
 
@@ -154,3 +158,9 @@ def check_project_or_admin_view_action_for_user(project_id, username):
         action=action,
         resources=resources,
     )
+
+
+def check_and_raise_raw_auth_fail_exception(result: dict, message=None):
+    if result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
+        logger.warning(message or result.get("message", "[check_and_raise_raw_auth_fail_exception]"))
+        raise RawAuthFailedException(permissions=result.get("permission", {}))

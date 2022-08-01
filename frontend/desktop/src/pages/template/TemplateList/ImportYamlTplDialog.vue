@@ -103,7 +103,7 @@
                     :limit-list="[5]"
                     :limit="5"
                     :show-limit="false"
-                    @change="onPageChange">
+                    @change="onTopFlowPageChange">
                 </bk-pagination>
                 <template v-if="subFlowList.length > 0">
                     <p class="tpl-type-title">{{ $t('子流程（n）', { n: subFlowList.length }) }}</p>
@@ -172,7 +172,7 @@
                         :limit-list="[5]"
                         :limit="5"
                         :show-limit="false"
-                        @change="onPageChange">
+                        @change="onSubFlowPageChange">
                     </bk-pagination>
                 </template>
                 <div class="check-msg-title" id="checkMsgTitle">{{ $t('合法性检测结果') }}</div>
@@ -439,8 +439,11 @@
                     this.handleUpload({ fileObj: { origin: file } })
                 }
             },
-            onPageChange (val) {
+            onTopFlowPageChange (val) {
                 this.topFlowPagination.current = val
+            },
+            onSubFlowPageChange (val) {
+                this.subFlowPagination.current = val
             },
             // 切换顶层流程覆盖选项
             handleTopFlowOverriver (val, tpl) {

@@ -102,7 +102,7 @@ export function setJqueryAjaxConfig () {
 
     $(document).ajaxSuccess(function (event, xhr) {
         if (xhr.responseJSON && xhr.responseJSON.result === false) {
-            bus.$emit('showErrMessage', { traceId: xhr.getResponseHeader('sops-trace-id'), message: xhr.responseJSON.message })
+            bus.$emit('showErrMessage', { traceId: xhr.getResponseHeader('sops-trace-id'), message: xhr.responseJSON.message, errorSource: 'result' })
         }
     })
 

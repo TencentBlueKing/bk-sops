@@ -31,4 +31,10 @@ CELERY_QUEUES = [
         routing_key="timeout_nodes_record",
         queue_arguments={"x-max-priority": 255},
     ),
+    Queue(
+        "task_callback",
+        Exchange("default", type="direct"),
+        routing_key="task_callback",
+        queue_arguments={"x-max-priority": 255},
+    ),
 ]

@@ -83,7 +83,8 @@ class TaskTemplateFilter(PropertyFilterSet):
         fields = {
             "id": ["exact"],
             "pipeline_template__name": ["icontains"],
-            "pipeline_template__creator": ["contains"],
+            "pipeline_template__creator": ["exact"],
+            "pipeline_template__editor": ["exact"],
             "category": ["exact"],
             "pipeline_template__has_subprocess": ["exact"],
             "pipeline_template__edit_time": ["gte", "lte"],
@@ -190,6 +191,14 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             obj["is_collected"] = 1 if obj["id"] in collection_template_ids else 0
             obj["collection_id"] = collection_id_template_id_map.get(obj["id"], -1)
         return self.get_paginated_response(data) if page is not None else Response(data)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        data = self.injection_auth_actions(request, serializer.data, instance)
+        labels = TemplateLabelRelation.objects.fetch_templates_labels([instance.id]).get(instance.id, [])
+        data["template_labels"] = [label["label_id"] for label in labels]
+        return Response(data)
 
     def create(self, request, *args, **kwargs):
         serializer = CreateTaskTemplateSerializer(data=request.data)

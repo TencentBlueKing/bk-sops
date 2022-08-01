@@ -82,7 +82,6 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         # 查询不同原子引用的个数
         total = ComponentModel.objects.count()
         comp_name_dict = dict(ComponentModel.objects.values_list("code", "name"))
-        groups = []
         task_template_id_list = tasktmpl.values_list("id", flat=True)
         # 查询出符合条件的不同原子引用
         template_node_template_data = list(
@@ -104,6 +103,10 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         component_code = filters.get("component_code")
         version = filters.get("version")
         is_remote = filters.get("is_remote", False)
+        order_by = filters.get("order_by", "-template_create_time")
+        # 对创建时间做一层转换
+        if order_by.replace("-", "") == "create_time":
+            order_by = order_by.replace("create_time", "template_create_time")
         # 获取到组件code对应的template_id_list
         if component_code:
             template_node_template_data = TemplateNodeStatistics.objects.filter(
@@ -111,11 +114,11 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                 component_code=component_code,
                 version=version,
                 is_remote=is_remote,
-            )
+            ).order_by(order_by)
         else:
             template_node_template_data = TemplateNodeStatistics.objects.filter(
                 task_template_id__in=tasktmpl_id_list,
-            )
+            ).order_by(order_by)
         total = template_node_template_data.count()
         atom_template_data = template_node_template_data.values(
             "template_id",
@@ -144,14 +147,6 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                     "creator": data["template_creator"],
                 }
             )
-        # order_by字段错误的情况默认使用-template_d排序
-        order_by = filters.get("order_by", "-template_id")
-        if order_by.startswith("-"):
-            # 需要去除负号
-            order_by = order_by[1:]
-            groups = sorted(groups, key=lambda group: group.get(order_by), reverse=True)
-        else:
-            groups = sorted(groups, key=lambda group: group.get(order_by), reverse=False)
         return total, groups
 
     def group_by_atom_execute(self, tasktmpl, filters, page, limit):
@@ -194,15 +189,13 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         return total, groups
 
     def group_by_template_node(self, tasktmpl, filters, page, limit):
-        # 按起始时间、业务（可选）、类型（可选）查询各流程模板标准插件节点个数、子流程节点个数、网关节点数
-        total = tasktmpl.count()
         groups = []
 
         task_template_id_list = list(tasktmpl.values_list("id", flat=True))
         template_id_dict = dict(tasktmpl.values_list("pipeline_template__template_id", "id"))
-        # template_id_list = list(tasktmpl.values_list("pipeline_template__template_id", flat=True))
         template_id_list = list(template_id_dict.keys())
         template_in_statistics_data = TemplateStatistics.objects.filter(task_template_id__in=task_template_id_list)
+        total = template_in_statistics_data.count()
         template_id_map = {template.template_id: template.template_id for template in template_in_statistics_data}
         # 计算relationshipTotal, instanceTotal, periodicTotal
         # 查询所有的流程引用，并统计引用数量

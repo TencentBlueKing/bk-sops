@@ -73,7 +73,7 @@
                     :engine-ver="engineVer"
                     :selected-flow-path="selectedFlowPath"
                     :admin-view="adminView"
-                    :pipeline-data="pipelineData"
+                    :pipeline-data="nodePipelineData"
                     :default-active-id="defaultActiveId"
                     :node-detail-config="nodeDetailConfig"
                     @onRetryClick="onRetryClick"
@@ -209,23 +209,6 @@
                     <bk-input v-model="approval.message" type="textarea" :row="4"></bk-input>
                 </bk-form-item>
             </bk-form>
-        </bk-dialog>
-        <bk-dialog
-            width="400"
-            ext-cls="task-operation-dialog"
-            :theme="'primary'"
-            :mask-close="false"
-            :show-footer="false"
-            :value="isShowDialog"
-            data-test-id="taskExcute_dialog_confirmSaveDialog"
-            @cancel="isShowDialog = false">
-            <div class="task-operation-confirm-dialog-content">
-                <div class="leave-tips">{{ $t('保存已修改的信息吗？') }}</div>
-                <div class="action-wrapper">
-                    <bk-button theme="primary" :loading="isSaveLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
-                    <bk-button theme="default" :disabled="isSaveLoading" @click="onCancelClick">{{ $t('不保存') }}</bk-button>
-                </div>
-            </div>
         </bk-dialog>
     </div>
 </template>
@@ -371,8 +354,6 @@
                 pollErrorTimes: 0, // 任务状态查询异常连续三次后，停止轮询
                 isShowConditionEdit: false, // 条件分支侧栏
                 conditionData: {},
-                isShowDialog: false,
-                isSaveLoading: false,
                 tabIconState: '',
                 approval: { // 节点审批
                     id: '',
@@ -390,13 +371,15 @@
                             trigger: 'blur'
                         }]
                     }
-                }
+                },
+                nodePipelineData: {}
             }
         },
         computed: {
             ...mapState({
                 view_mode: state => state.view_mode,
-                hasAdminPerm: state => state.hasAdminPerm
+                hasAdminPerm: state => state.hasAdminPerm,
+                infoBasicConfig: state => state.infoBasicConfig
             }),
             ...mapState('project', {
                 projectId: state => state.project_id,
@@ -1173,6 +1156,7 @@
                         instance_id: this.instance_id,
                         subprocess_stack: JSON.stringify(subprocessStack)
                     }
+                    this.nodePipelineData = { ...this.pipelineData }
                 }
                 if (type === 'templateData') {
                     this.templateData = JSON.stringify(this.pipelineData, null, 4)
@@ -1230,6 +1214,12 @@
                         this.updateNodeActived(this.nodeDetailConfig.node_id, false)
                     }
                     this.updateNodeActived(id, true)
+                    // 如果为子流程节点则需要重置pipelineData的constants
+                    this.nodePipelineData = { ...this.pipelineData }
+                    if (type === 'subflowDetail') {
+                        const { constants } = this.pipelineData.activities[id].pipeline
+                        this.nodePipelineData['constants'] = constants
+                    }
                     this.openNodeInfoPanel('executeInfo', i18n.t('节点参数'))
                 }
             },
@@ -1336,6 +1326,12 @@
                 }
 
                 this.setNodeDetailConfig(selectNodeId, !nodeHeirarchy)
+                // 节点树切换时，如果为子流程节点则需要重置pipelineData的constants
+                this.nodePipelineData = { ...this.pipelineData }
+                if (nodeType === 'subflow') {
+                    const { constants } = this.pipelineData.activities[selectNodeId].pipeline
+                    this.nodePipelineData['constants'] = constants
+                }
                 this.updateNodeActived(selectNodeId, true)
             },
             // 切换画布视图
@@ -1486,43 +1482,20 @@
             onBeforeClose () {
                 // 除修改参数/修改时间/重试外  其余侧滑没有操作修改功能，支持自动关闭
                 if (!['modifyParams', 'modifyTime', 'retryNode'].includes(this.nodeInfoType)) {
-                    this.isShowDialog = false
                     this.isNodeInfoPanelShow = false
                 } else {
                     const isEqual = this.$refs[this.nodeInfoType].judgeDataEqual()
                     if (isEqual === true) {
                         this.isNodeInfoPanelShow = false
                     } else if (isEqual === false) {
-                        this.isShowDialog = true
+                        this.$bkInfo({
+                            ...this.infoBasicConfig,
+                            cancelFn: () => {
+                                this.isNodeInfoPanelShow = false
+                            }
+                        })
                     }
                 }
-            },
-            async onConfirmClick () {
-                this.isSaveLoading = true
-                try {
-                    let result = true
-                    if (this.nodeInfoType === 'modifyParams') {
-                        result = await this.$refs.modifyParams.onModifyParams()
-                    }
-                    if (this.nodeInfoType === 'modifyTime') {
-                        result = await this.$refs.modifyTime.onModifyTime()
-                    }
-                    if (this.nodeInfoType === 'retryNode') {
-                        result = await this.$refs.retryNode.onRetryTask()
-                    }
-                    this.isSaveLoading = false
-                    this.isShowDialog = false
-                    if (result) {
-                        this.isNodeInfoPanelShow = false
-                    }
-                } catch (error) {
-                    console.warn(error)
-                    this.isSaveLoading = false
-                }
-            },
-            onCancelClick () {
-                this.isShowDialog = false
-                this.isNodeInfoPanelShow = false
             },
             onHiddenSideslider () {
                 this.nodeInfoType = ''
@@ -1594,17 +1567,6 @@
         padding: 20px 30px;
     }
 }
-.task-operation-confirm-dialog-content {
-    padding: 40px 0;
-    text-align: center;
-    .leave-tips {
-        font-size: 24px;
-        margin-bottom: 20px;
-    }
-    .action-wrapper .bk-button {
-        margin-right: 6px;
-    }
-}
 .approval-dialog-content {
     /deep/ .bk-form-radio {
         margin-right: 10px;
@@ -1616,7 +1578,7 @@
 .task-operation {
     .operation-table {
         width: 100%;
-        font-size: 14px;
+        font-size: 12px;
         border: 1px solid #ebebeb;
         border-collapse: collapse;
         th {

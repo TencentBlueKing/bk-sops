@@ -78,8 +78,7 @@ MONITOR_CLIENT = (
 )
 CMDB_GET_BIZ_HOST = "gcloud.utils.cmdb.get_business_host"
 BIZ_MODEL_SUPPLIER_ACCOUNT_FOR_BIZ = (
-    "pipeline_plugins.components.collections.sites.open.monitor."
-    "alarm_shield_strategy.v1_0.Business.objects.supplier_account_for_business"
+    "pipeline_plugins.components.collections.sites.open.monitor.base.Business.objects.supplier_account_for_business"
 )
 
 # mock client
@@ -119,7 +118,7 @@ CREATE_SHIELD_FAIL_CASE = ComponentTestCase(
         success=False,
         outputs={
             "shield_id": "",
-            "message": '调用监控平台(Monitor)接口monitor.add_shield返回失败, params={"begin_time":"2019-11-04 00:00:00",'
+            "message": '调用监控平台(Monitor)接口monitor.create_shield返回失败, params={"begin_time":"2019-11-04 00:00:00",'
             '"bk_biz_id":2,"category":"strategy","cycle_config":{"begin_time":"","end_time":"","day_list":'
             '[],"week_list":[],"type":1},"description":"shield by bk_sops","dimension_config":{"id":"123",'
             '"scope_type":"ip","target":[{"ip":"127.0.0.1","bk_cloud_id":0},{"ip":"127.0.0.2",'

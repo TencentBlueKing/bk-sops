@@ -33,9 +33,15 @@ from pipeline.engine.signals import pipeline_end, pipeline_revoke
 from bk_monitor_report.reporter import MonitorReporter
 
 import env
-from gcloud.taskflow3.models import TaskFlowInstance, AutoRetryNodeStrategy, EngineConfig, TimeoutNodeConfig
+from gcloud.taskflow3.models import (
+    TaskFlowInstance,
+    AutoRetryNodeStrategy,
+    EngineConfig,
+    TimeoutNodeConfig,
+    TaskCallBackRecord,
+)
 from gcloud.taskflow3.signals import taskflow_finished, taskflow_revoked
-from gcloud.taskflow3.celery.tasks import send_taskflow_message, auto_retry_node
+from gcloud.taskflow3.celery.tasks import send_taskflow_message, auto_retry_node, task_callback
 from gcloud.shortcuts.message import ATOM_FAILED, TASK_FINISHED
 
 logger = logging.getLogger("celery")
@@ -51,6 +57,7 @@ def _finish_taskflow_and_send_signal(instance_id, sig, task_success=False):
 
     TaskFlowInstance.objects.filter(id=task_id).update(current_flow="finished")
     sig.send(TaskFlowInstance, task_id=task_id)
+    _check_and_callback(task_id, task_success=task_success)
 
     if task_success:
         try:
@@ -66,12 +73,25 @@ def _send_node_fail_message(node_id, pipeline_id):
         logger.error("pipeline finished handler get taskflow error, pipeline_instance_id=%s" % pipeline_id)
         return
 
+    _check_and_callback(taskflow.id, task_success=False)
+
     try:
         activity = taskflow.get_act_web_info(node_id)
         node_name = activity["name"] if activity else node_id
         send_taskflow_message.delay(task_id=taskflow.id, msg_type=ATOM_FAILED, node_name=node_name)
     except Exception as e:
         logger.exception("pipeline_fail_handler[taskflow_id=%s] task delay error: %s" % (taskflow.id, e))
+
+
+def _check_and_callback(taskflow_id, *args, **kwargs):
+    if not TaskCallBackRecord.objects.filter(task_id=taskflow_id).exists():
+        return
+    try:
+        task_callback.apply_async(
+            kwargs=dict(task_id=taskflow_id, **kwargs), queue="task_callback", routing_key="task_callback",
+        )
+    except Exception as e:
+        logger.exception(f"[_check_and_callback] task_callback delay error: {e}")
 
 
 def _dispatch_auto_retry_node_task(root_pipeline_id, node_id, engine_ver):

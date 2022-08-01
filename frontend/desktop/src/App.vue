@@ -99,6 +99,7 @@
             }
         },
         created () {
+            window.msg_list = []
             bus.$on('showLoginModal', args => {
                 const { has_plain, login_url, width, height, method } = args
                 if (has_plain) {
@@ -123,7 +124,8 @@
                 this.$refs.permissionModal.show(data)
             })
             bus.$on('showErrMessage', info => {
-                window.show_msg(info.message, 'error', info.traceId)
+                const msg = JSON.stringify(info.message)
+                window.show_msg(msg, 'error', info.traceId, info.errorSource)
             })
             // 登录成功后使用快照
             bus.$on('useSnapshot', data => {
@@ -133,10 +135,24 @@
             /**
              * 兼容标准插件配置项里，异步请求用到的全局弹窗提示
              */
-            window.show_msg = (msg, type = 'error', traceId) => {
-                this.$nextTick(() => {
-                    /* eslint-disable-next-line */
-                    new ErrorNotify(msg, type, traceId, this)
+            window.show_msg = (msg, type = 'error', traceId, errorSource = '') => {
+                const index = window.msg_list.findIndex(item => item.msg === msg)
+                if (index > -1) {
+                    if (traceId && !window.msg_list[index].traceId) {
+                        window.msg_list[index] = { msg, type, traceId, errorSource }
+                    } else {
+                        return
+                    }
+                } else {
+                    window.msg_list.push({ msg, type, traceId, errorSource })
+                }
+                setTimeout(() => { // 异步执行,可以把前端报错的trace_id同步上
+                    const info = window.msg_list.find(item => item.msg === msg && item.traceId === traceId)
+                    if (!info) return
+                    this.$nextTick(() => {
+                        /* eslint-disable-next-line */
+                        new ErrorNotify(info, this)
+                    })
                 })
             }
             this.getPageFooter()

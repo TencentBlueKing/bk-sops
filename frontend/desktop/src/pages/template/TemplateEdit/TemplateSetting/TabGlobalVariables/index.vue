@@ -545,7 +545,11 @@
              * @param {String} key 变量key值
              */
             onEditVariable (key) {
-                this.variableData = tools.deepClone(this.constants[key] || this.internalVariable[key])
+                const variableData = tools.deepClone(this.constants[key] || this.internalVariable[key])
+                if (!('is_condition_hide' in variableData)) { // 添加自动隐藏默认值
+                    variableData.is_condition_hide = 'false'
+                }
+                this.variableData = variableData
                 this.newCloneKeys = []
             },
             onCitedNodeClick (data) {
@@ -645,7 +649,15 @@
             },
             // 垮流程克隆变量
             onCloneVarConfirm (constants = []) {
-                constants.forEach(item => {
+                const indexList = []
+                const variableKeys = this.variableList.map(item => {
+                    indexList.push(item.index)
+                    return item.key
+                })
+                const maxIndex = Math.max(...indexList)
+                constants.forEach((item, index) => {
+                    item.key = this.setCloneKey(item.key, variableKeys)
+                    item.index = maxIndex + index + 1
                     this.newCloneKeys.push(item.key)
                     this.addVariable(item)
                 })

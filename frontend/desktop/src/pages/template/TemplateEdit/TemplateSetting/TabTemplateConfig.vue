@@ -31,7 +31,7 @@
                     <bk-form-item v-if="!common" :label="$t('标签')" data-test-id="tabTemplateConfig_form_label">
                         <bk-select
                             v-model="formData.labels"
-                            ext-popover-cls="label-select"
+                            ext-popover-cls="label-select-popover"
                             :display-tag="true"
                             :multiple="true"
                             :disabled="isViewMode"
@@ -50,8 +50,13 @@
                                     <i class="bk-option-icon bk-icon icon-check-1"></i>
                                 </div>
                             </bk-option>
-                            <div slot="extension" @click="onEditLabel" class="label-select-extension" data-test-id="tabTemplateConfig_form_editLabel">
-                                <i class="common-icon-edit"></i>
+                            <div
+                                slot="extension"
+                                class="label-select-extension"
+                                data-test-id="tabTemplateConfig_form_editLabel"
+                                v-cursor="{ active: !hasPermission(['project_edit'], authActions) }"
+                                @click="onEditLabel">
+                                <i class="bk-icon icon-plus-circle"></i>
                                 <span>{{ $t('编辑标签') }}</span>
                             </div>
                         </bk-select>
@@ -93,6 +98,7 @@
                         :notify-type="formData.notifyType"
                         :notify-type-list="[{ text: $t('任务状态') }]"
                         :receiver-group="formData.receiverGroup"
+                        :project_id="projectId"
                         :common="common"
                         :is-view-mode="isViewMode"
                         @change="onSelectNotifyConfig">
@@ -135,33 +141,63 @@
                 <bk-button theme="default" data-test-id="tabTemplateConfig_form_cancelBtn" @click="closeTab">{{ isViewMode ? $t('关闭') : $t('取消') }}</bk-button>
             </div>
             <bk-dialog
-                width="400"
-                ext-cls="common-dialog"
-                :theme="'primary'"
+                width="600"
+                ext-cls="common-dialog label-dialog"
+                header-position="left"
+                render-directive="if"
                 :mask-close="false"
-                :show-footer="false"
-                :value="isSaveConfirmDialogShow"
-                data-test-id="tabTemplateConfig_dialog_confirmDialog"
-                @cancel="isSaveConfirmDialogShow = false">
-                <div class="template-config-dialog-content">
-                    <div class="leave-tips">{{ $t('保存已修改的配置信息吗？') }}</div>
-                    <div class="action-wrapper">
-                        <bk-button theme="primary" data-test-id="tabTemplateConfig_form_saveBtn" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
-                        <bk-button theme="default" data-test-id="tabTemplateConfig_form_cancelBtn" @click="closeTab">{{ $t('不保存') }}</bk-button>
-                    </div>
-                </div>
+                :auto-close="false"
+                :title="$t('新建标签')"
+                :loading="labelLoading"
+                :value="labelDialogShow"
+                @confirm="editLabelConfirm"
+                @cancel="labelDialogShow = false">
+                <bk-form ref="labelForm" :model="labelDetail" :rules="labelRules">
+                    <bk-form-item property="name" :label="$t('标签名称')" :required="true">
+                        <bk-input v-model="labelDetail.name"></bk-input>
+                    </bk-form-item>
+                    <bk-form-item property="color" :label="$t('标签颜色')" :required="true">
+                        <bk-dropdown-menu
+                            ref="dropdown"
+                            trigger="click"
+                            class="color-dropdown"
+                            @show="colorDropdownShow = true"
+                            @hide="colorDropdownShow = false">
+                            <div class="dropdown-trigger-btn" slot="dropdown-trigger">
+                                <span class="color-block" :style="{ background: labelDetail.color }"></span>
+                                <i :class="['bk-icon icon-angle-down',{ 'icon-flip': colorDropdownShow }]"></i>
+                            </div>
+                            <div class="color-list" slot="dropdown-content">
+                                <div class="tip">{{ $t('选择颜色') }}</div>
+                                <div>
+                                    <span
+                                        v-for="color in colorList"
+                                        :key="color"
+                                        class="color-item color-block"
+                                        :style="{ background: color }"
+                                        @click="labelDetail.color = color">
+                                    </span>
+                                </div>
+                            </div>
+                        </bk-dropdown-menu>
+                    </bk-form-item>
+                    <bk-form-item :label="$t('标签描述')">
+                        <bk-input type="textarea" v-model="labelDetail.description"></bk-input>
+                    </bk-form-item>
+                </bk-form>
             </bk-dialog>
         </div>
     </bk-sideslider>
 </template>
 
 <script>
-    import { mapState, mapMutations } from 'vuex'
+    import { mapState, mapMutations, mapActions } from 'vuex'
     import MemberSelect from '@/components/common/Individualization/MemberSelect.vue'
     import tools from '@/utils/tools.js'
-    import { NAME_REG, STRING_LENGTH, TASK_CATEGORIES } from '@/constants/index.js'
+    import { NAME_REG, STRING_LENGTH, TASK_CATEGORIES, LABEL_COLOR_LIST } from '@/constants/index.js'
     import i18n from '@/config/i18n/index.js'
     import NotifyTypeConfig from './NotifyTypeConfig.vue'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'TabTemplateConfig',
@@ -169,6 +205,7 @@
             MemberSelect,
             NotifyTypeConfig
         },
+        mixins: [permission],
         props: {
             projectInfoLoading: Boolean,
             templateLabelLoading: Boolean,
@@ -194,7 +231,6 @@
                     labels: template_labels,
                     defaultFlowType: default_flow_type
                 },
-                isSaveConfirmDialogShow: false,
                 rules: {
                     name: [
                         {
@@ -214,14 +250,51 @@
                         }
                     ]
                 },
-                taskCategories: TASK_CATEGORIES
+                taskCategories: TASK_CATEGORIES,
+                labelDialogShow: false,
+                labelRules: {
+                    color: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    name: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        },
+                        {
+                            max: 50,
+                            message: i18n.t('标签名称不能超过') + 50 + i18n.t('个字符'),
+                            trigger: 'blur'
+                        },
+                        {
+                            validator: (val) => {
+                                return this.templateLabels.every(label => label.name !== val)
+                            },
+                            message: i18n.t('标签已存在，请重新输入'),
+                            trigger: 'blur'
+                        }
+                    ]
+                },
+                labelDetail: {},
+                colorDropdownShow: false,
+                colorList: LABEL_COLOR_LIST,
+                labelLoading: false
             }
         },
         computed: {
             ...mapState({
-                'timeout': state => state.template.time_out
+                'username': state => state.username,
+                'timeout': state => state.template.time_out,
+                'infoBasicConfig': state => state.infoBasicConfig
             }),
             ...mapState('project', {
+                'projectId': state => state.project_id,
+                'projectName': state => state.projectName,
                 'authActions': state => state.authActions
             })
         },
@@ -231,6 +304,9 @@
         methods: {
             ...mapMutations('template/', [
                 'setTplConfig'
+            ]),
+            ...mapActions('project', [
+                'createTemplateLabel'
             ]),
             onSelectCategory (val) {
                 if (val) {
@@ -251,8 +327,19 @@
                 }
             },
             onEditLabel () {
-                const { href } = this.$router.resolve({ name: 'projectConfig', params: { id: this.$route.params.project_id } })
-                window.open(href, '_blank')
+                if (!this.hasPermission(['project_edit'], this.authActions)) {
+                    const resourceData = {
+                        project: [{
+                            id: this.projectId,
+                            name: this.projectName
+                        }]
+                    }
+                    this.applyForPermission(['project_edit'], this.authActions, resourceData)
+                    return
+                }
+                this.labelDetail = { color: '#1c9574', name: '', description: '' }
+                this.labelDialogShow = true
+                this.colorDropdownShow = false
             },
             getTemplateConfig () {
                 const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType } = this.formData
@@ -271,6 +358,14 @@
                 if (this.isViewMode) return
                 if (this.authActions.includes('project_edit')) {
                     this.$router.push({ name: 'projectConfig', params: { id: this.$route.params.project_id } })
+                } else {
+                    const resourceData = {
+                        project: [{
+                            id: this.projectId,
+                            name: this.projectName
+                        }]
+                    }
+                    this.applyForPermission(['project_edit'], this.authActions, resourceData)
                 }
             },
             onSelectNotifyConfig (formData) {
@@ -289,10 +384,6 @@
                     this.closeTab()
                     this.$emit('templateDataChanged')
                 })
-            },
-            onConfirmClick () {
-                this.isSaveConfirmDialogShow = false
-                this.onSaveConfig()
             },
             beforeClose () {
                 if (this.isViewMode) {
@@ -315,12 +406,52 @@
                     this.closeTab()
                     return true
                 } else {
-                    this.isSaveConfirmDialogShow = true
+                    this.$bkInfo({
+                        ...this.infoBasicConfig,
+                        cancelFn: () => {
+                            this.closeTab()
+                        }
+                    })
                     return false
                 }
             },
             closeTab () {
                 this.$emit('closeTab')
+            },
+            editLabelConfirm () {
+                if (this.labelLoading) {
+                    return
+                }
+                this.labelLoading = true
+                try {
+                    this.$refs.labelForm.validate().then(async result => {
+                        if (result) {
+                            const { color, name, description } = this.labelDetail
+                            const { project_id } = this.$route.params
+                            const data = {
+                                creator: this.username,
+                                project_id: Number(project_id),
+                                color,
+                                name,
+                                description
+                            }
+                            const resp = await this.createTemplateLabel(data)
+                            if (resp.result) {
+                                this.$emit('updateTemplateLabelList')
+                                this.labelDialogShow = false
+                                this.formData.labels.push(resp.data.id)
+                                this.$bkMessage({
+                                    message: i18n.t('标签新建成功'),
+                                    theme: 'success'
+                                })
+                            }
+                        }
+                    })
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.labelLoading = false
+                }
             }
         }
     }
@@ -380,17 +511,6 @@
         &:hover {
             color: #f4aa1a;
         }
-    }
-}
-/deep/ .template-config-dialog-content {
-    padding: 40px 0;
-    text-align: center;
-    .leave-tips {
-        font-size: 24px;
-        margin-bottom: 20px;
-    }
-    .action-wrapper .bk-button {
-        margin-right: 6px;
     }
 }
 .executor-proxy-desc {
