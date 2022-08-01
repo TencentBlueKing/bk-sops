@@ -442,7 +442,8 @@
                 paramsType: 'default',
                 selectedRow: {},
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
-                searchSelectValue
+                searchSelectValue,
+                isInitCreateMethod: false
             }
         },
         computed: {
@@ -831,6 +832,7 @@
                     // 因为任务类型列表是通过接口获取的，所以需要把路径上的类型添加进去
                     const ids = this.$route.query['create_method']
                     if (ids) {
+                        this.isInitCreateMethod = true
                         const values = form.children.filter(item => ids.includes(item.id))
                         this.searchSelectValue.push({ ...form, values })
                     }
@@ -874,6 +876,11 @@
                 }, {})
                 this.requestData = data
                 this.pagination.current = 1
+                // 当拉取创建方式列表时，不需要更新任务列表
+                if (this.isInitCreateMethod) {
+                    this.isInitCreateMethod = false
+                    return
+                }
                 // 搜索时，清空 createInfo、templateId、templateSource 筛选条件
                 this.createInfo = ''
                 this.templateId = ''
