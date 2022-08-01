@@ -205,15 +205,17 @@ Get task tree after node exclude
 | constants_not_referred | dict | not referred constants in template, same as pepeline[constants] |
 
 ##### data.pipeline_tree
-| Field      | Type      | Description      |
-|-----------|----------|-----------|
-|  start_event      |    dict    |      start node     |
-|  end_event      |    dict    |      end node    |
-|  activities      |    dict    |      task node（atoms or subprocess）info    |
-|  gateways      |    dict    |      gateways（parallel gateway、exclusive gateway、exclusive gateway）info    |
-|  flows      |    dict    |      sequenceFlow（the line between nodes）info    |
-|  constants      |    dict    |  global variables, details are described below    |
-|  outputs      |    list    |    outputs info, indicate outputs field of global  |
+| Field       | Type | Description                                                        |
+|-------------|------|--------------------------------------------------------------------|
+| start_event | dict | start node                                                         |
+| end_event   | dict | end node                                                           |
+| activities  | dict | task node（atoms or subprocess）info                                 |
+| gateways    | dict | gateways（parallel gateway、exclusive gateway、exclusive gateway）info |
+| flows       | dict | sequenceFlow（the line between nodes）info                           |
+| constants   | dict | global variables, details are described below                      |
+| line        | list | line（the line between nodes）info                                   |
+| location    | list | location（the location of nodes）info                                |
+| outputs     | list | outputs info, indicate outputs field of global                     |
 
 
 ###### data.pipeline_tree.constants.KEY

@@ -13,25 +13,26 @@
     <div class="periodic-container">
         <skeleton :loading="firstLoading" loader="taskList">
             <div class="list-wrapper">
-                <advance-search-form
-                    id="periodicList"
-                    :open="isSearchFormOpen"
-                    :search-config="{ placeholder: $t('请输入任务名称'), value: requestData.taskName }"
-                    :search-form="searchForm"
-                    @onSearchInput="onSearchInput"
-                    @submit="onSearchFormSubmit">
-                    <template v-if="!adminView" v-slot:operation>
-                        <bk-button
-                            ref="childComponent"
-                            theme="primary"
-                            size="normal"
-                            style="min-width: 120px;"
-                            data-test-id="periodicList_form_createTask"
-                            @click="onCreatePeriodTask">
-                            {{$t('新建')}}
-                        </bk-button>
-                    </template>
-                </advance-search-form>
+                <div class="search-wrapper mb20">
+                    <bk-button
+                        v-if="!adminView"
+                        ref="childComponent"
+                        theme="primary"
+                        size="normal"
+                        style="min-width: 120px;"
+                        data-test-id="periodicList_form_createTask"
+                        @click="onCreatePeriodTask">
+                        {{$t('新建')}}
+                    </bk-button>
+                    <search-select
+                        ref="searchSelect"
+                        id="periodicList"
+                        :placeholder="$t('ID/任务名/创建人/更新人/状态')"
+                        v-model="searchSelectValue"
+                        :search-list="searchList"
+                        @change="handleSearchValueChange">
+                    </search-select>
+                </div>
                 <div class="periodic-table-content" data-test-id="periodicList_table_taskList">
                     <bk-table
                         :data="periodicList"
@@ -47,6 +48,7 @@
                                 :label="item.label"
                                 :prop="item.id"
                                 :width="item.width"
+                                :render-header="renderTableHeader"
                                 :min-width="item.min_width">
                                 <template slot-scope="{ row }">
                                     <!--任务-->
@@ -112,7 +114,7 @@
                                 </template>
                             </bk-table-column>
                         </template>
-                        <bk-table-column :label="$t('操作')" width="240">
+                        <bk-table-column :label="$t('操作')" width="190" :fixed="periodicList.length ? 'right' : false">
                             <template slot-scope="props">
                                 <div class="periodic-operation">
                                     <template v-if="!adminView">
@@ -215,7 +217,7 @@
             :cron="selectedCron"
             :task-id="selectedPeriodicId"
             :is-modify-dialog-show="isModifyDialogShow"
-            :project_id="project_id"
+            :project_id="curRow.project.id"
             :cur-row="curRow"
             :is-edit="editTask"
             @onUpdateTask="onUpdateTask"
@@ -247,26 +249,34 @@
     import ModifyPeriodicDialog from './ModifyPeriodicDialog.vue'
     import BootRecordDialog from './BootRecordDialog.vue'
     import DeletePeriodicDialog from './DeletePeriodicDialog.vue'
-    import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
-    const SEARCH_FORM = [
+    import SearchSelect from '@/components/common/searchSelect/index.vue'
+    import moment from 'moment-timezone'
+    import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
+    const SEARCH_LIST = [
         {
-            type: 'input',
-            key: 'creator',
-            label: i18n.t('创建人'),
-            placeholder: i18n.t('请输入创建人'),
-            value: ''
+            id: 'task_id',
+            name: 'ID'
         },
         {
-            type: 'select',
-            label: i18n.t('状态'),
-            key: 'enabled',
-            loading: false,
-            placeholder: i18n.t('请选择状态'),
-            list: [
-                { 'value': 'true', 'name': i18n.t('启动') },
-                { 'value': 'false', 'name': i18n.t('暂停') }
-            ],
-            value: ''
+            id: 'taskName',
+            name: i18n.t('任务名'),
+            isDefaultOption: true
+        },
+        {
+            id: 'creator',
+            name: i18n.t('创建人')
+        },
+        {
+            id: 'editor',
+            name: i18n.t('更新人')
+        },
+        {
+            id: 'enabled',
+            name: i18n.t('状态'),
+            children: [
+                { id: 'true', name: i18n.t('启动') },
+                { id: 'false', name: i18n.t('暂停') }
+            ]
         }
     ]
     const TABLE_FIELDS = [
@@ -329,7 +339,7 @@
         name: 'PeriodicList',
         components: {
             Skeleton,
-            AdvanceSearchForm,
+            SearchSelect,
             NoData,
             TaskCreateDialog,
             ModifyPeriodicDialog,
@@ -347,18 +357,39 @@
             }
         },
         data () {
-            const { page = 1, limit = 15, creator = '', enabled = '', keyword = '' } = this.$route.query
-            const searchForm = SEARCH_FORM.map(item => {
-                if (this.$route.query[item.key]) {
-                    if (Array.isArray(item.value)) {
-                        item.value = this.$route.query[item.key].split(',')
-                    } else {
-                        item.value = this.$route.query[item.key]
+            const {
+                page = 1,
+                limit = 15,
+                creator = '',
+                enabled = '',
+                taskName = '',
+                editor = '',
+                task_id = '',
+                last_run_at = '',
+                create_time = '',
+                edit_time = ''
+            } = this.$route.query
+            const searchList = [
+                ...SEARCH_LIST,
+                { id: 'last_run_at', name: i18n.t('上次运行时间'), type: 'dateRange' },
+                { id: 'create_time', name: i18n.t('创建时间'), type: 'dateRange' },
+                { id: 'edit_time', name: i18n.t('更新时间'), type: 'dateRange' }
+            ]
+            const searchSelectValue = searchList.reduce((acc, cur) => {
+                const values_text = this.$route.query[cur.id]
+                if (values_text) {
+                    let values = []
+                    if (!cur.children) {
+                        values = cur.type === 'dateRange' ? values_text.split(',') : [values_text]
+                        acc.push({ ...cur, values })
+                    } else if (cur.children.length) {
+                        const ids = values_text.split(',')
+                        values = cur.children.filter(item => ids.includes(String(item.id)))
+                        acc.push({ ...cur, values })
                     }
                 }
-                return item
-            })
-            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
+                return acc
+            }, [])
             return {
                 firstLoading: true,
                 businessInfoLoading: true,
@@ -380,12 +411,15 @@
                 selectedTemplateName: undefined,
                 periodEntrance: '',
                 taskCategory: [],
-                searchForm,
-                isSearchFormOpen,
                 requestData: {
                     creator,
                     enabled,
-                    taskName: keyword
+                    taskName,
+                    editor,
+                    task_id,
+                    last_run_at: last_run_at ? last_run_at.split(',') : ['', ''],
+                    create_time: create_time ? create_time.split(',') : ['', ''],
+                    edit_time: edit_time ? edit_time.split(',') : ['', '']
                 },
                 pagination: {
                     current: Number(page),
@@ -400,13 +434,18 @@
                     size: 'small'
                 },
                 editTask: true, // 编辑/创建周期任务
-                curRow: {} // 当前选中行的数据
+                curRow: {}, // 当前选中行的数据
+                searchList: toolsUtils.deepClone(SEARCH_LIST),
+                searchSelectValue
             }
         },
         computed: {
             ...mapState({
                 username: state => state.username,
                 hasAdminPerm: state => state.hasAdminPerm
+            }),
+            ...mapState('project', {
+                'timeZone': state => state.timezone
             }),
             adminView () {
                 return this.hasAdminPerm && this.admin
@@ -416,7 +455,6 @@
             this.getFields()
             this.getBizBaseInfo()
             this.getCollectList()
-            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             await this.getPeriodicList()
             this.firstLoading = false
         },
@@ -438,13 +476,28 @@
             async getPeriodicList () {
                 this.listLoading = true
                 try {
-                    const { creator, enabled, taskName } = this.requestData
+                    const { creator, enabled, taskName, task_id, editor, last_run_at, create_time, edit_time } = this.requestData
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         task__celery_task__enabled: enabled || undefined,
-                        task__creator__contains: creator || undefined,
-                        task__name__icontains: taskName || undefined
+                        task__creator: creator || undefined,
+                        task__name__icontains: taskName || undefined,
+                        id: task_id || undefined,
+                        editor: editor || undefined
+                    }
+
+                    if (last_run_at && last_run_at[0] && last_run_at[1]) {
+                        data['task__last_run_at__gte'] = moment.tz(last_run_at[0], this.timeZone).format('YYYY-MM-DD hh:mm:ss')
+                        data['task__last_run_at__lte'] = moment.tz(last_run_at[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD hh:mm:ss')
+                    }
+                    if (create_time && create_time[0] && create_time[1]) {
+                        data['create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD hh:mm:ss')
+                        data['create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD hh:mm:ss')
+                    }
+                    if (edit_time && edit_time[0] && edit_time[1]) {
+                        data['edit_time__gte'] = moment.tz(edit_time[0], this.timeZone).format('YYYY-MM-DD hh:mm:ss')
+                        data['edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD hh:mm:ss')
                     }
 
                     if (!this.admin) {
@@ -507,12 +560,6 @@
                     this.collectListLoading = false
                 }
             },
-            searchInputhandler (data) {
-                this.requestData.taskName = data
-                this.pagination.current = 1
-                this.updateUrl()
-                this.getPeriodicList()
-            },
             getEditPerm (row) {
                 if (row.template_source === 'common') {
                     return ['common_flow_view', 'periodic_task_edit']
@@ -570,21 +617,72 @@
                 this.updateUrl()
                 this.getPeriodicList()
             },
-            onSearchFormSubmit (data) {
-                this.requestData = Object.assign({}, this.requestData, data)
+            renderTableHeader (h, { column, $index }) {
+                if (['last_run_at', 'create_time', 'edit_time'].includes(column.property)) {
+                    const index = this.adminView ? $index : $index + 1
+                    const id = this.setting.selectedFields[index].id
+                    const date = this.requestData[id]
+                    return <TableRenderHeader
+                        name={ column.label }
+                        orderShow = { false }
+                        dateValue={ date }
+                        onDateChange={ data => this.handleDateTimeFilter(data, id) }>
+                    </TableRenderHeader>
+                } else {
+                    return column.label
+                }
+            },
+            handleDateTimeFilter (date = [], id) {
+                const index = this.searchSelectValue.findIndex(item => item.id === id)
+                if (date.length) {
+                    if (index > -1) {
+                        this.searchSelectValue[index].values = date
+                    } else {
+                        const info = {
+                            id,
+                            type: 'dateRange',
+                            name: id === 'last_run_at' ? i18n.t('上次运行时间') : id === 'create_time' ? i18n.t('创建时间') : i18n.t('更新时间'),
+                            values: date
+                        }
+                        this.searchSelectValue.push(info)
+                        // 添加搜索记录
+                        const searchDom = this.$refs.searchSelect
+                        searchDom && searchDom.addSearchRecord(info)
+                    }
+                } else if (index > -1) {
+                    this.searchSelectValue.splice(index, 1)
+                }
+            },
+            handleSearchValueChange (data) {
+                data = data.reduce((acc, cur) => {
+                    if (cur.type === 'dateRange') {
+                        acc[cur.id] = cur.values
+                    } else if (cur.multiable) {
+                        acc[cur.id] = cur.values.map(item => item.id)
+                    } else {
+                        const value = cur.values[0]
+                        acc[cur.id] = cur.children ? value.id : value
+                    }
+                    return acc
+                }, {})
+                this.requestData = data
                 this.pagination.current = 1
                 this.updateUrl()
                 this.getPeriodicList()
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { creator, enabled, taskName } = this.requestData
+                const { creator, enabled, taskName, task_id, last_run_at, create_time, edit_time } = this.requestData
                 const filterObj = {
                     limit,
                     creator,
                     enabled,
                     page: current,
-                    keyword: taskName
+                    taskName,
+                    task_id,
+                    last_run_at: last_run_at && last_run_at.every(item => item) ? last_run_at.join(',') : '',
+                    create_time: create_time && create_time.every(item => item) ? create_time.join(',') : '',
+                    edit_time: edit_time && edit_time.every(item => item) ? edit_time.join(',') : ''
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {
@@ -774,6 +872,12 @@
     height: 100%;
     overflow: auto;
     @include scrollbar;
+}
+.search-wrapper {
+    position: relative;
+    height: 32px;
+    display: flex;
+    justify-content: space-between;
 }
 .list-wrapper {
     min-height: calc(100vh - 300px);

@@ -174,10 +174,12 @@ class GetNodeDataV2TestCase(TestCase):
                     **kwargs
                 )
 
+        dispatcher._get_node_info.assert_called_once_with(
+            node_id=dispatcher.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
+        )
         bamboo_api.get_children_states.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
         bamboo_api.get_execution_data.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
         bamboo_api.preview_node_inputs.assert_not_called()
-        dispatcher._get_node_info.assert_not_called()
         dispatcher._format_outputs.assert_called_once_with(
             outputs={"outputs": {}},
             component_code=component_code,
@@ -230,10 +232,12 @@ class GetNodeDataV2TestCase(TestCase):
                     **kwargs
                 )
 
+        dispatcher._get_node_info.assert_called_once_with(
+            node_id=dispatcher.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
+        )
         bamboo_api.get_children_states.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
         bamboo_api.get_execution_data.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
         bamboo_api.preview_node_inputs.assert_not_called()
-        dispatcher._get_node_info.assert_not_called()
         dispatcher._format_outputs.assert_called_once_with(
             outputs={"outputs": {}},
             component_code=component_code,
@@ -285,10 +289,12 @@ class GetNodeDataV2TestCase(TestCase):
                     **kwargs
                 )
 
+        dispatcher._get_node_info.assert_called_once_with(
+            node_id=dispatcher.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
+        )
         bamboo_api.get_children_states.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
         bamboo_api.get_execution_data.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
         bamboo_api.preview_node_inputs.assert_not_called()
-        dispatcher._get_node_info.assert_not_called()
         dispatcher._format_outputs.assert_not_called()
         self.assertEqual(
             node_data,
@@ -336,10 +342,12 @@ class GetNodeDataV2TestCase(TestCase):
                     **kwargs
                 )
 
+        dispatcher._get_node_info.assert_called_once_with(
+            node_id=dispatcher.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
+        )
         bamboo_api.get_children_states.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
         bamboo_api.get_node_histories.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id, loop=loop)
         bamboo_api.preview_node_inputs.assert_not_called()
-        dispatcher._get_node_info.assert_not_called()
         dispatcher._format_outputs.assert_called_once_with(
             outputs={"outputs": {}},
             component_code=component_code,

@@ -11,7 +11,8 @@
 */
 <template>
     <div class="tag-host-allocation">
-        <div class="tag-host-allocation-wrap">
+        <span v-if="constants.subflow_detail_var" class="rf-view-value">{{ constants[tagCode] }}</span>
+        <div class="tag-host-allocation-wrap" v-else>
             <host-allocation
                 ref="hostAllocation"
                 :editable="editable && !disabled"

@@ -174,6 +174,7 @@
                             :label-width="87"
                             :table-width="570"
                             :notify-type="notifyType"
+                            :project_id="project_id"
                             :is-view-mode="true"
                             :notify-type-list="[{ text: $t('任务状态') }]"
                             :receiver-group="receiverGroup">
@@ -202,22 +203,6 @@
                 </div>
             </div>
         </bk-sideslider>
-        <bk-dialog
-            width="400"
-            ext-cls="edit-clocked-dialog"
-            :theme="'primary'"
-            :mask-close="false"
-            :show-footer="false"
-            :value="isShowDialog"
-            @cancel="isShowDialog = false">
-            <div class="edit-clocked-dialog">
-                <div class="save-tips">{{ $t('保存已修改的信息吗？') }}</div>
-                <div class="action-wrapper">
-                    <bk-button theme="primary" :loading="saveLoading" @click="onClockedConfirm">{{ $t('保存') }}</bk-button>
-                    <bk-button theme="default" :disabled="saveLoading" @click="onCancelSave">{{ $t('不保存') }}</bk-button>
-                </div>
-            </div>
-        </bk-dialog>
     </div>
 </template>
 
@@ -348,7 +333,6 @@
                 },
                 saveLoading: false,
                 constants: {},
-                isShowDialog: false,
                 templateData: {},
                 templateLoading: false,
                 tplScrollLoading: false,
@@ -383,6 +367,9 @@
         computed: {
             ...mapState('project', {
                 'projectName': state => state.projectName
+            }),
+            ...mapState({
+                'infoBasicConfig': state => state.infoBasicConfig
             }),
             sameTimeStamp () {
                 const initTimeStamp = new Date(this.curRow.plan_start_time).getTime()
@@ -436,6 +423,7 @@
             this.initFormData = tools.deepClone(this.formData)
             if (this.type !== 'create') {
                 const id = this.curRow.template_id
+                this.onSelectTemplate(id)
                 this.getTemplateData(id)
             } else {
                 this.templateLoading = true
@@ -818,7 +806,6 @@
                 } catch (error) {
                     console.warn(error)
                 } finally {
-                    this.isShowDialog = false
                     this.saveLoading = false
                 }
             },
@@ -877,7 +864,6 @@
                     } catch (e) {
                         console.log(e)
                     } finally {
-                        this.isShowDialog = false
                         this.saveLoading = false
                     }
                 })
@@ -890,11 +876,15 @@
                 if (same) {
                     this.onCancelSave()
                 } else {
-                    this.isShowDialog = true
+                    this.$bkInfo({
+                        ...this.infoBasicConfig,
+                        cancelFn: () => {
+                            this.onCancelSave()
+                        }
+                    })
                 }
             },
             onCancelSave () {
-                this.isShowDialog = false
                 this.constants = {}
                 this.$emit('onCloseConfig')
             }
@@ -902,25 +892,6 @@
     }
 </script>
 
-<style lang="scss">
-    .edit-clocked-dialog {
-        .bk-dialog-body {
-            padding: 0;
-        }
-        .edit-clocked-dialog {
-            padding: 20px 0 40px 0;
-            text-align: center;
-            .save-tips {
-                font-size: 24px;
-                margin-bottom: 30px;
-                padding: 0 10px;
-            }
-            .action-wrapper .bk-button {
-                margin-right: 6px;
-            }
-        }
-    }
-</style>
 <style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
 /deep/.bk-sideslider-content {

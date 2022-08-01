@@ -13,29 +13,16 @@
     <div class="project-container">
         <skeleton :loading="firstLoading" loader="commonList">
             <div class="list-wrapper">
-                <div class="list-header">
-                    <!-- <bk-button
-                        v-cursor="{ active: !hasPermission(['project_create'], projectActions) }"
-                        theme="primary"
-                        :class="['create-project-btn', {
-                            'btn-permission-disable': !hasPermission(['project_create'], projectActions)
-                        }]"
-                        @click="onCreateProject">
-                        {{$t('新建项目')}}
-                    </bk-button> -->
-                    <div class="filter-area">
-                        <bk-checkbox v-model="isClosedShow" @change="onClosedProjectToggle">{{$t('显示已停用项目')}}</bk-checkbox>
-                        <div class="search-input">
-                            <bk-input
-                                v-model.trim="searchStr"
-                                class="search-input"
-                                clearable
-                                :right-icon="'bk-icon icon-search'"
-                                :placeholder="$t('请输入ID、名称、描述、创建人')"
-                                @change="onSearchInput">
-                            </bk-input>
-                        </div>
-                    </div>
+                <div class="list-header mb20">
+                    <bk-checkbox v-model="isClosedShow" @change="onClosedProjectToggle">{{$t('显示已停用项目')}}</bk-checkbox>
+                    <search-select
+                        ref="searchSelect"
+                        id="projectList"
+                        :placeholder="$t('ID/CC_ID/项目名称/创建人')"
+                        v-model="searchSelectValue"
+                        :search-list="searchList"
+                        @change="handleSearchValueChange">
+                    </search-select>
                 </div>
                 <div class="project-table-content" data-test-id="project_table_projectList">
                     <bk-table
@@ -177,6 +164,26 @@
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import { getTimeZoneList } from '@/constants/timeZones.js'
     import permission from '@/mixins/permission.js'
+    import SearchSelect from '@/components/common/searchSelect/index.vue'
+    const SEARCH_LIST = [
+        {
+            id: 'project_id',
+            name: 'ID'
+        },
+        {
+            id: 'bk_biz_id',
+            name: 'CC_ID'
+        },
+        {
+            id: 'project_name',
+            name: i18n.t('项目名称'),
+            isDefaultOption: true
+        },
+        {
+            id: 'creator',
+            name: i18n.t('创建人')
+        }
+    ]
     const OptBtnList = [
         {
             name: 'view',
@@ -231,10 +238,27 @@
         name: 'ProjectHome',
         components: {
             Skeleton,
-            NoData
+            NoData,
+            SearchSelect
         },
         mixins: [permission],
         data () {
+            const {
+                page = 1,
+                limit = 15,
+                project_id = '',
+                bk_biz_id = '',
+                project_name = '',
+                creator = ''
+            } = this.$route.query
+            const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
+                const values_text = this.$route.query[cur.id]
+                if (values_text) {
+                    const { id, name } = cur
+                    acc.push({ id, name, values: [values_text] })
+                }
+                return acc
+            }, [])
             return {
                 firstLoading: true,
                 OptBtnList,
@@ -267,9 +291,9 @@
                 },
                 projectActions: [],
                 pagination: {
-                    current: 1,
+                    current: Number(page),
                     count: 0,
-                    limit: 15,
+                    limit: Number(limit),
                     'limit-list': [15, 30, 50, 100]
                 },
                 tableFields: TABLE_FIELDS,
@@ -277,7 +301,15 @@
                     fieldList: TABLE_FIELDS,
                     selectedFields: TABLE_FIELDS.slice(0),
                     size: 'small'
-                }
+                },
+                requestData: {
+                    project_id,
+                    bk_biz_id,
+                    project_name,
+                    creator
+                },
+                searchList: toolsUtils.deepClone(SEARCH_LIST),
+                searchSelectValue
             }
         },
         computed: {
@@ -294,7 +326,6 @@
         async created () {
             this.getFields()
             this.queryProjectCreatePerm()
-            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             await this.getProjectList()
             this.firstLoading = false
         },
@@ -331,14 +362,15 @@
                 this.loading = true
 
                 try {
+                    const { project_id, bk_biz_id, project_name, creator } = this.requestData
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
-                        is_disable: this.isClosedShow
-                    }
-
-                    if (this.searchStr !== '') {
-                        data.search = this.searchStr
+                        is_disable: this.isClosedShow,
+                        id: project_id || undefined,
+                        bk_biz_id: bk_biz_id || undefined,
+                        name__icontains: project_name || undefined,
+                        creator: creator || undefined
                     }
 
                     const projectList = await this.loadUserProjectList(data)
@@ -447,10 +479,38 @@
             },
             onPageChange (page) {
                 this.pagination.current = page
+                this.updateUrl()
                 this.getProjectList()
             },
-            searchInputhandler () {
+            updateUrl () {
+                const { current, limit } = this.pagination
+                const { project_id, bk_biz_id, project_name, creator } = this.requestData
+                const filterObj = {
+                    current,
+                    limit,
+                    project_id,
+                    bk_biz_id,
+                    project_name,
+                    creator
+                }
+                const query = {}
+                Object.keys(filterObj).forEach(key => {
+                    const val = filterObj[key]
+                    if (val || val === 0 || val === false) {
+                        query[key] = val
+                    }
+                })
+                this.$router.replace({ name: this.$route.name, query })
+            },
+            handleSearchValueChange (data) {
+                data = data.reduce((acc, cur) => {
+                    const value = cur.values[0]
+                    acc[cur.id] = cur.children ? value.id : value
+                    return acc
+                }, {})
+                this.requestData = data
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getProjectList()
             },
             clearProjectDetail () {
@@ -607,6 +667,7 @@
             handlePageLimitChange (val) {
                 this.pagination.limit = val
                 this.pagination.current = 1
+                this.updateUrl()
                 this.getProjectList()
             }
         }
@@ -625,28 +686,13 @@
         }
     }
     .list-header {
-        padding-bottom: 20px;
-        overflow: hidden;
-        .create-project-btn {
-            width: 120px;
-            height: 32px;
-            line-height: 30px;
-        }
-        .filter-area {
-            float: right;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            .switch-status {
-                display: inline-block;
-            }
-            .bk-form-checkbox {
-                margin-right: 30px;
-            }
-        }
-        .search-input {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        .bk-form-checkbox {
             position: relative;
-            width: 360px;
+            right: 495px;
         }
     }
     .project-table {

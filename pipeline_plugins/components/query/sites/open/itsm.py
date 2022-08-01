@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from rest_framework import permissions, serializers
 
 from api.collections.itsm import BKItsmClient
+from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.utils.handlers import handle_api_error
 
@@ -35,7 +36,9 @@ class ITSMNodeTransitionView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     @swagger_auto_schema(
-        method="POST", operation_summary="提供节点审批功能", request_body=ITSMViewRequestSerializer,
+        method="POST",
+        operation_summary="提供节点审批功能",
+        request_body=ITSMViewRequestSerializer,
         responses={200: ITSMViewResponse},
     )
     @action(methods=["POST"], detail=False)
@@ -55,14 +58,16 @@ class ITSMNodeTransitionView(APIView):
             return Response({"result": False, "message": "审批拒绝后需填入备注"})
 
         # 获取当前任务id以及节点id查询目前的itsm单据sn
-        task_flow_instance_query = TaskFlowInstance.objects.filter(pk=serializer_data["task_id"],
-                                                                   project_id=serializer_data["project_id"])
+        task_flow_instance_query = TaskFlowInstance.objects.filter(
+            pk=serializer_data["task_id"], project_id=serializer_data["project_id"]
+        )
         if not task_flow_instance_query.exists():
             return Response({"result": False, "message": "查询不到任务记录"})
 
         # 获取节点详情
-        node_detail = task_flow_instance_query.first().get_node_detail(serializer_data["node_id"], operator,
-                                                                       project_id=serializer_data["project_id"])
+        node_detail = task_flow_instance_query.first().get_node_detail(
+            serializer_data["node_id"], operator, project_id=serializer_data["project_id"]
+        )
         if not node_detail["result"]:
             message = node_detail["message"]
             logger.error(message)
@@ -91,6 +96,7 @@ class ITSMNodeTransitionView(APIView):
         if not ticket_info_result["result"]:
             message = handle_api_error("itsm", "get_ticket_info", request.data, ticket_info_result)
             logger.error(message)
+            check_and_raise_raw_auth_fail_exception(ticket_info_result, message)
             result = {"result": False, "message": message}
             return Response(result)
 
@@ -128,13 +134,7 @@ class ITSMNodeTransitionView(APIView):
                 break
 
         # 构建请求参数
-        kwargs = {
-            "operator": operator,
-            "sn": sn,
-            "state_id": state_id,
-            "action_type": "TRANSITION",
-            "fields": fields
-        }
+        kwargs = {"operator": operator, "sn": sn, "state_id": state_id, "action_type": "TRANSITION", "fields": fields}
 
         itsm_result = client.operate_node(**kwargs)
 
@@ -142,12 +142,11 @@ class ITSMNodeTransitionView(APIView):
         if not itsm_result["result"]:
             message = handle_api_error("itsm", "node_transition", kwargs, itsm_result)
             logger.error(message)
+            check_and_raise_raw_auth_fail_exception(itsm_result, message)
             result = {"result": False, "message": message}
             return Response(result)
 
         return Response({"result": True, "data": None})
 
 
-itsm_urlpatterns = [
-    url(r"^itsm/node_transition/$", ITSMNodeTransitionView.as_view())
-]
+itsm_urlpatterns = [url(r"^itsm/node_transition/$", ITSMNodeTransitionView.as_view())]

@@ -15,6 +15,7 @@ import logging
 
 from gcloud.conf import settings
 from gcloud.exceptions import ApiRequestError
+from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.utils.handlers import handle_api_error
 from .thread import ThreadPool
 
@@ -43,7 +44,8 @@ def batch_request(
     get_count=lambda x: x["data"]["count"],
     limit=500,
     page_param=None,
-    is_page_merge=False
+    is_page_merge=False,
+    check_iam_auth_fail=False,
 ):
     """
     并发请求接口
@@ -56,6 +58,7 @@ def batch_request(
     :param get_data: 获取数据函数
     :param get_count: 获取总数函数
     :param limit: 一次请求数量
+    :param check_iam_auth_fail: 是否检查iam授权失败
     :return: 请求结果
     """
     # 兼容其他分页参数类型
@@ -80,6 +83,8 @@ def batch_request(
     if not result["result"]:
         message = handle_api_error("[batch_request]", func.path, params, result)
         logger.error(message)
+        if check_iam_auth_fail:
+            check_and_raise_raw_auth_fail_exception(result, message)
         raise ApiRequestError(message)
 
     count = get_count(result)
@@ -117,6 +122,8 @@ def batch_request(
         if not result:
             message = handle_api_error("[batch_request]", func.path, params_and_future["params"], result)
             logger.error(message)
+            if check_iam_auth_fail:
+                check_and_raise_raw_auth_fail_exception(result, message)
             raise ApiRequestError(message)
 
         data.extend(get_data(result))

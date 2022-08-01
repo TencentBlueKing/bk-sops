@@ -23,25 +23,26 @@
         <div class="task-content-wrapper">
             <skeleton :loading="firstLoading" loader="taskList">
                 <div class="list-wrapper">
-                    <advance-search-form
-                        id="taskList"
-                        :open="isSearchFormOpen"
-                        :search-config="{ placeholder: $t('请输入任务名称'), value: requestData.taskName }"
-                        :search-form="searchForm"
-                        @onSearchInput="onSearchInput"
-                        @submit="onSearchFormSubmit">
-                        <template v-slot:operation>
-                            <bk-button
-                                theme="primary"
-                                style="min-width: 120px;"
-                                data-test-id="taskList_form_createTask"
-                                @click="onCreateTask">
-                                {{$t('新建')}}
-                            </bk-button>
-                        </template>
-                    </advance-search-form>
+                    <div class="search-wrapper mb20">
+                        <bk-button
+                            theme="primary"
+                            style="min-width: 120px;"
+                            data-test-id="taskList_form_createTask"
+                            @click="onCreateTask">
+                            {{$t('新建')}}
+                        </bk-button>
+                        <search-select
+                            ref="searchSelect"
+                            id="taskList"
+                            :placeholder="$t('ID/任务名/创建人/执行人/状态/创建方式/执行代理人')"
+                            v-model="searchSelectValue"
+                            :search-list="searchList"
+                            @change="handleSearchValueChange">
+                        </search-select>
+                    </div>
                     <div class="task-table-content" data-test-id="taskList_table_taskList">
                         <bk-table
+                            ref="templateTable"
                             :data="taskList"
                             :pagination="pagination"
                             :size="setting.size"
@@ -94,7 +95,7 @@
                                     </template>
                                 </template>
                             </bk-table-column>
-                            <bk-table-column :label="$t('操作')" width="190">
+                            <bk-table-column :label="$t('操作')" width="190" :fixed="taskList.length ? 'right' : false">
                                 <template slot-scope="props">
                                     <div class="task-operation">
                                         <!-- 事后鉴权，后续对接新版权限中心 -->
@@ -214,7 +215,8 @@
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import toolsUtils from '@/utils/tools.js'
-    import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
+    import SearchSelect from '@/components/common/searchSelect/index.vue'
+    import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     import TaskCreateDialog from './TaskCreateDialog.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import moment from 'moment-timezone'
@@ -222,59 +224,42 @@
     import Skeleton from '@/components/skeleton/index.vue'
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
-    const SEARCH_FORM = [
+    const SEARCH_LIST = [
         {
-            type: 'dateRange',
-            key: 'executeTime',
-            placeholder: i18n.t('选择日期时间范围'),
-            label: i18n.t('执行开始'),
-            value: ['', '']
+            id: 'id',
+            name: 'ID'
         },
         {
-            type: 'select',
-            label: i18n.t('创建方式'),
-            key: 'createMethod',
-            loading: true,
-            placeholder: i18n.t('请选择创建方式'),
-            list: [],
-            value: ''
+            id: 'taskName',
+            name: i18n.t('任务名'),
+            isDefaultOption: true
         },
         {
-            type: 'input',
-            key: 'creator',
-            label: i18n.t('创建人'),
-            placeholder: i18n.t('请输入创建人'),
-            value: ''
+            id: 'creator',
+            name: i18n.t('创建人')
         },
         {
-            type: 'input',
-            key: 'executor',
-            label: i18n.t('执行人'),
-            placeholder: i18n.t('请输入执行人'),
-            value: ''
+            id: 'executor',
+            name: i18n.t('执行人')
         },
         {
-            type: 'select',
-            label: i18n.t('状态'),
-            key: 'statusSync',
-            loading: false,
-            placeholder: i18n.t('请选择状态'),
-            list: [
-                { 'value': 'nonExecution', 'name': i18n.t('未执行') },
-                { 'value': 'running', 'name': i18n.t('未完成') },
-                { 'value': 'revoked', 'name': i18n.t('撤销') },
-                { 'value': 'finished', 'name': i18n.t('完成') }
-            ],
-            value: ''
+            id: 'statusSync',
+            name: i18n.t('状态'),
+            children: [
+                { id: 'nonExecution', name: i18n.t('未执行') },
+                { id: 'running', name: i18n.t('未完成') },
+                { id: 'revoked', name: i18n.t('撤销') },
+                { id: 'finished', name: i18n.t('完成') }
+            ]
         },
         {
-            type: 'select',
-            label: i18n.t('任务分类'),
-            key: 'category',
-            loading: true,
-            placeholder: i18n.t('请选择分类'),
-            list: [],
-            value: ''
+            id: 'create_method',
+            name: i18n.t('创建方式'),
+            children: []
+        },
+        {
+            id: 'recorded_executor_proxy',
+            name: i18n.t('执行代理人')
         }
     ]
     const TABLE_FIELDS = [
@@ -348,7 +333,7 @@
             NoData,
             TaskCreateDialog,
             TaskCloneDialog,
-            AdvanceSearchForm
+            SearchSelect
         },
         mixins: [permission, task],
         props: {
@@ -363,33 +348,44 @@
                 limit = 15,
                 template_source = '',
                 create_info = '',
-                category = '',
-                executeTime = '',
-                create_method = '',
+                start_time = '',
+                create_time = '',
+                finish_time = '',
                 creator = '',
                 executor = '',
                 statusSync = '',
-                keyword = ''
+                taskName = '',
+                task_id = '',
+                create_method = '',
+                recorded_executor_proxy = ''
             } = this.$route.query
-            const searchForm = SEARCH_FORM.map(item => {
-                if (this.$route.query[item.key]) {
-                    if (Array.isArray(item.value)) {
-                        item.value = this.$route.query[item.key].split(',')
-                    } else {
-                        item.value = this.$route.query[item.key]
+            const searchList = [
+                ...SEARCH_LIST,
+                { id: 'start_time', name: i18n.t('执行时间'), type: 'dateRange' },
+                { id: 'create_time', name: i18n.t('创建时间'), type: 'dateRange' },
+                { id: 'finish_time', name: i18n.t('结束时间'), type: 'dateRange' }
+            ]
+            const searchSelectValue = searchList.reduce((acc, cur) => {
+                const values_text = this.$route.query[cur.id]
+                if (values_text) {
+                    let values = []
+                    if (!cur.children) {
+                        values = cur.type === 'dateRange' ? values_text.split(',') : [values_text]
+                        acc.push({ ...cur, values })
+                    } else if (cur.children.length) {
+                        const ids = values_text.split(',')
+                        values = cur.children.filter(item => ids.includes(String(item.id)))
+                        acc.push({ ...cur, values })
                     }
                 }
-                return item
-            })
-            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
+                return acc
+            }, [])
             return {
                 firstLoading: true,
                 listLoading: false,
                 templateId: this.$route.query.template_id,
                 taskCategory: [],
                 searchStr: '',
-                searchForm,
-                isSearchFormOpen, // 高级搜索表单默认展开
                 executeStatus: [], // 任务执行状态
                 totalPage: 1,
                 isDeleteDialogShow: false,
@@ -407,17 +403,19 @@
                 },
                 taskBasicInfoLoading: true,
                 taskCreateMethodList: [],
-                createMethod: create_method,
                 createInfo: create_info,
                 templateSource: template_source,
                 requestData: {
-                    executeTime: executeTime ? executeTime.split(',') : ['', ''],
-                    category,
+                    start_time: start_time ? start_time.split(',') : ['', ''],
+                    create_time: create_time ? create_time.split(',') : ['', ''],
+                    finish_time: finish_time ? finish_time.split(',') : ['', ''],
                     creator,
                     executor,
                     statusSync,
-                    createMethod: create_method,
-                    taskName: keyword
+                    taskName,
+                    id: task_id,
+                    create_method,
+                    recorded_executor_proxy
                 },
                 pagination: {
                     current: Number(page),
@@ -442,7 +440,9 @@
                 },
                 isCreateDialogShow: false,
                 paramsType: 'default',
-                selectedRow: {}
+                selectedRow: {},
+                searchList: toolsUtils.deepClone(SEARCH_LIST),
+                searchSelectValue
             }
         },
         computed: {
@@ -456,7 +456,6 @@
         },
         async created () {
             this.getFields()
-            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             await this.getData()
             this.firstLoading = false
         },
@@ -483,7 +482,7 @@
                 this.listLoading = true
                 this.executeStatus = []
                 try {
-                    const { executeTime, category, createMethod, creator, executor, statusSync, taskName } = this.requestData
+                    const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, id, create_method, recorded_executor_proxy } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
                     let pipeline_instance__is_revoked
@@ -507,7 +506,6 @@
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
-                        category: category || undefined,
                         template_id: this.templateId || undefined,
                         pipeline_instance__creator__contains: creator || undefined,
                         pipeline_instance__executor__contains: executor || undefined,
@@ -515,19 +513,39 @@
                         pipeline_instance__is_started,
                         pipeline_instance__is_finished,
                         pipeline_instance__is_revoked,
-                        create_method: createMethod || undefined,
                         create_info: this.createInfo || undefined,
                         project__id: this.project_id,
-                        template_source: this.templateSource || undefined
+                        template_source: this.templateSource || undefined,
+                        id: id || undefined,
+                        create_method: create_method || undefined,
+                        recorded_executor_proxy: recorded_executor_proxy || undefined
                     }
 
-                    if (executeTime[0] && executeTime[1]) {
+                    if (start_time && start_time[0] && start_time[1]) {
                         if (this.template_source === 'common') {
-                            data['pipeline_template__start_time__gte'] = moment(executeTime[0]).format('YYYY-MM-DD')
-                            data['pipeline_template__start_time__lte'] = moment(executeTime[1]).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__gte'] = moment(start_time[0]).format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__lte'] = moment(start_time[1]).add('1', 'd').format('YYYY-MM-DD')
                         } else {
-                            data['pipeline_instance__start_time__gte'] = moment.tz(executeTime[0], this.timeZone).format('YYYY-MM-DD')
-                            data['pipeline_instance__start_time__lte'] = moment.tz(executeTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__gte'] = moment.tz(start_time[0], this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(start_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                        }
+                    }
+                    if (create_time && create_time[0] && create_time[1]) {
+                        if (this.template_source === 'common') {
+                            data['pipeline_template__create_time__gte'] = moment(create_time[0]).format('YYYY-MM-DD')
+                            data['pipeline_template__create_time__lte'] = moment(create_time[1]).add('1', 'd').format('YYYY-MM-DD')
+                        } else {
+                            data['pipeline_instance__create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                        }
+                    }
+                    if (finish_time && finish_time[0] && finish_time[1]) {
+                        if (this.template_source === 'common') {
+                            data['pipeline_template__finish_time__gte'] = moment(finish_time[0]).format('YYYY-MM-DD')
+                            data['pipeline_template__finish_time__lte'] = moment(finish_time[1]).add('1', 'd').format('YYYY-MM-DD')
+                        } else {
+                            data['pipeline_instance__finish_time_gte'] = moment.tz(finish_time[0], this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__finish_time__lte'] = moment.tz(finish_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                         }
                     }
                     const taskListData = await this.loadTaskList(data)
@@ -555,9 +573,6 @@
                     this.taskCategory = res.data.task_categories
                     this.setProjectBaseInfo(res.data)
                     this.taskBasicInfoLoading = false
-                    const form = this.searchForm.find(item => item.key === 'category')
-                    form.list = this.taskCategory
-                    form.loading = false
                 } catch (e) {
                     console.log(e)
                 }
@@ -581,20 +596,7 @@
             // 创建方式tab切换
             handleCreateMethodTabClick (method) {
                 this.crtCreateMethodTab = method
-                if (method !== 'all') {
-                    this.searchForm = SEARCH_FORM.filter(item => item.key !== 'createMethod')
-                    this.requestData.createMethod = method
-                } else {
-                    this.searchForm = SEARCH_FORM.slice(0)
-                    this.requestData.createMethod = ''
-                }
                 this.pagination.current = 1
-                this.getTaskList()
-            },
-            searchInputhandler (data) {
-                this.requestData.taskName = data
-                this.pagination.current = 1
-                this.updateUrl()
                 this.getTaskList()
             },
             hasCreateTaskPerm (task) {
@@ -734,22 +736,52 @@
                 }))
             },
             renderTableHeader (h, { column, $index }) {
-                if (column.property !== 'recorded_executor_proxy') {
+                if (column.property === 'recorded_executor_proxy') {
+                    return h('span', {
+                        'class': 'recorded_executor_proxy-label'
+                    }, [
+                        column.label,
+                        h('i', {
+                            'class': 'common-icon-info table-header-tips',
+                            directives: [{
+                                name: 'bk-tooltips',
+                                value: i18n.t('执行代理人在任务开始执行时确定，未执行任务不展示')
+                            }]
+                        })
+                    ])
+                } else if (['start_time', 'create_time', 'finish_time'].includes(column.property)) {
+                    const id = this.setting.selectedFields[$index].id
+                    const date = this.requestData[id]
+                    return <TableRenderHeader
+                        name={ column.label }
+                        orderShow = { false }
+                        dateValue={ date }
+                        onDateChange={ data => this.handleDateTimeFilter(data, id) }>
+                    </TableRenderHeader>
+                } else {
                     return column.label
                 }
-
-                return h('span', {
-                    'class': 'executor_proxy-label'
-                }, [
-                    column.label,
-                    h('i', {
-                        'class': 'common-icon-info table-header-tips',
-                        directives: [{
-                            name: 'bk-tooltips',
-                            value: i18n.t('执行代理人在任务开始执行时确定，未执行任务不展示')
-                        }]
-                    })
-                ])
+            },
+            handleDateTimeFilter (date = [], id) {
+                const index = this.searchSelectValue.findIndex(item => item.id === id)
+                if (date.length) {
+                    if (index > -1) {
+                        this.searchSelectValue[index].values = date
+                    } else {
+                        const info = {
+                            id,
+                            type: 'dateRange',
+                            name: id === 'start_time' ? i18n.t('执行时间') : id === 'create_time' ? i18n.t('创建时间') : i18n.t('结束时间'),
+                            values: date
+                        }
+                        this.searchSelectValue.push(info)
+                        // 添加搜索记录
+                        const searchDom = this.$refs.searchSelect
+                        searchDom && searchDom.addSearchRecord(info)
+                    }
+                } else if (index > -1) {
+                    this.searchSelectValue.splice(index, 1)
+                }
             },
             onPageChange (page) {
                 this.pagination.current = page
@@ -764,17 +796,20 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { category, executeTime, createMethod, creator, executor, statusSync, taskName } = this.requestData
+                const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, id, create_method, recorded_executor_proxy } = this.requestData
                 const filterObj = {
                     limit,
-                    category,
                     creator,
                     executor,
                     statusSync,
-                    createMethod,
                     page: current,
-                    executeTime: executeTime.every(item => item) ? executeTime.join(',') : '',
-                    keyword: taskName
+                    start_time: start_time && start_time.every(item => item) ? start_time.join(',') : '',
+                    create_time: create_time && create_time.every(item => item) ? create_time.join(',') : '',
+                    finish_time: finish_time && finish_time.every(item => item) ? finish_time.join(',') : '',
+                    taskName,
+                    task_id: id,
+                    create_method,
+                    recorded_executor_proxy
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {
@@ -789,9 +824,16 @@
                 try {
                     const createMethodData = await this.loadCreateMethod()
                     this.taskCreateMethodList = createMethodData.data.map(m => ({ value: m.value, name: m.name }))
-                    const form = this.searchForm.find(item => item.key === 'createMethod')
-                    form.list = this.taskCreateMethodList
-                    form.loading = false
+                    const form = this.searchList.find(item => item.id === 'create_method')
+                    form.children = this.taskCreateMethodList.map(item => {
+                        return { id: item.value, name: item.name }
+                    })
+                    // 因为任务类型列表是通过接口获取的，所以需要把路径上的类型添加进去
+                    const ids = this.$route.query['create_method']
+                    if (ids) {
+                        const values = form.children.filter(item => ids.includes(item.id))
+                        this.searchSelectValue.push({ ...form, values })
+                    }
                 } catch (e) {
                     console.log(e)
                 }
@@ -818,10 +860,21 @@
             onCreateTaskCancel () {
                 this.isNewTaskDialogShow = false
             },
-            onSearchFormSubmit (data) {
-                this.requestData = Object.assign({}, this.requestData, data)
+            handleSearchValueChange (data) {
+                data = data.reduce((acc, cur) => {
+                    if (cur.type === 'dateRange') {
+                        acc[cur.id] = cur.values
+                    } else if (cur.multiable) {
+                        acc[cur.id] = cur.values.map(item => item.id)
+                    } else {
+                        const value = cur.values[0]
+                        acc[cur.id] = cur.children ? value.id : value
+                    }
+                    return acc
+                }, {})
+                this.requestData = data
                 this.pagination.current = 1
-                // 高级搜索手动点击时，清空 createInfo、templateId、templateSource 筛选条件
+                // 搜索时，清空 createInfo、templateId、templateSource 筛选条件
                 this.createInfo = ''
                 this.templateId = ''
                 this.templateSource = ''
@@ -868,6 +921,11 @@
     height: calc(100% - 36px);
     overflow: auto;
     @include scrollbar;
+}
+.search-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
 }
 .dialog-content {
     padding: 30px;

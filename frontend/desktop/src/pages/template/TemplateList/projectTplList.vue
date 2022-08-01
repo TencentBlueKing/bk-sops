@@ -17,37 +17,28 @@
                     :num="expiredSubflowTplList.length"
                     @viewClick="handleSubflowFilter">
                 </list-page-tips-title>
-                <advance-search-form
-                    ref="advanceSearch"
-                    id="templateList"
-                    :open="isSearchFormOpen"
-                    :search-form="searchForm"
-                    :search-config="{ placeholder: $t('请输入流程名称'), value: requestData.flowName }"
-                    @onSearchInput="onSearchInput"
-                    @submit="onSearchFormSubmit">
-                    <template v-slot:operation>
-                        <template>
-                            <bk-button
-                                v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
-                                theme="primary"
-                                :class="['create-template-btn', {
-                                    'btn-permission-disable': !hasPermission(['flow_create'], authActions)
-                                }]"
-                                data-test-id="process_form_creatProcess"
-                                @click="checkCreatePermission">
-                                {{$t('新建')}}
-                            </bk-button>
-                            <bk-dropdown-menu style="margin: 0 14px;">
-                                <div class="import-tpl-btn" slot="dropdown-trigger">
-                                    <span>{{ $t('导入') }}</span>
-                                    <i :class="['bk-icon icon-angle-down']"></i>
-                                </div>
-                                <ul class="import-option-list" slot="dropdown-content">
-                                    <li data-test-id="process_list_importDatFile" @click="isImportDialogShow = true">{{ $t('导入') }}DAT{{ $t('文件') }}</li>
-                                    <li data-test-id="process_list_importYamlFile" @click="isImportYamlDialogShow = true">{{ $t('导入') }}YAML{{ $t('文件') }}</li>
-                                </ul>
-                            </bk-dropdown-menu>
-                        </template>
+                <div class="search-wrapper mb20">
+                    <div class="operation-wrap">
+                        <bk-button
+                            v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
+                            theme="primary"
+                            :class="['create-template-btn', {
+                                'btn-permission-disable': !hasPermission(['flow_create'], authActions)
+                            }]"
+                            data-test-id="process_form_creatProcess"
+                            @click="checkCreatePermission">
+                            {{$t('新建')}}
+                        </bk-button>
+                        <bk-dropdown-menu style="margin: 0 14px;">
+                            <div class="import-tpl-btn" slot="dropdown-trigger">
+                                <span>{{ $t('导入') }}</span>
+                                <i :class="['bk-icon icon-angle-down']"></i>
+                            </div>
+                            <ul class="import-option-list" slot="dropdown-content">
+                                <li data-test-id="process_list_importDatFile" @click="isImportDialogShow = true">{{ $t('导入') }}DAT{{ $t('文件') }}</li>
+                                <li data-test-id="process_list_importYamlFile" @click="isImportYamlDialogShow = true">{{ $t('导入') }}YAML{{ $t('文件') }}</li>
+                            </ul>
+                        </bk-dropdown-menu>
                         <bk-dropdown-menu>
                             <div class="export-tpl-btn" slot="dropdown-trigger">
                                 <span>{{ $t('批量操作') }}</span>
@@ -72,16 +63,22 @@
                             {{ $t('已选择') }}{{ selectedTpls.length }}{{ $t('项') }}
                             <bk-link theme="primary" @click="selectedTpls = []">{{ $t('清空') }}</bk-link>
                         </div>
-                    </template>
-                    <template v-slot:search-extend>
-                        <bk-button
-                            class="my-create-btn"
-                            data-test-id="commonProcess_form_myCreateProcess"
-                            @click="handleMyCreateFilter">
-                            {{$t('我创建的')}}
-                        </bk-button>
-                    </template>
-                </advance-search-form>
+                    </div>
+                    <bk-button
+                        class="my-create-btn"
+                        data-test-id="process_form_myCreateProcess"
+                        @click="handleMyCreateFilter">
+                        {{$t('我创建的')}}
+                    </bk-button>
+                    <search-select
+                        ref="searchSelect"
+                        id="templateList"
+                        :placeholder="$t('ID/流程名称/标签/更新人/创建人/子流程更新')"
+                        v-model="searchSelectValue"
+                        :search-list="searchList"
+                        @change="handleSearchValueChange">
+                    </search-select>
+                </div>
                 <div class="template-table-content" data-test-id="process_table_processList">
                     <bk-table
                         ref="templateTable"
@@ -106,12 +103,13 @@
                             :prop="item.key || item.id"
                             :width="item.width"
                             :min-width="item.min_width"
+                            :class-name="item.id.replace(/_/g, '-')"
                             :render-header="renderTableHeader"
                             :sort-orders="['descending', 'ascending', null]"
                             :sortable="sortableCols.find(col => col.value === (item.key || item.id)) ? 'custom' : false">
                             <template slot-scope="{ row }">
                                 <!--流程名称-->
-                                <div v-if="item.id === 'name'">
+                                <div v-if="item.id === 'name'" class="flow-name-column">
                                     <a
                                         data-test-id="process_table_collectBtn"
                                         v-cursor="{ active: !hasPermission(['flow_view'], row.auth_actions) }"
@@ -141,19 +139,64 @@
                                         </router-link>
                                     </template>
                                 </div>
-                                <div v-else-if="item.id === 'label'" class="label-column">
-                                    <template v-if="row.template_labels && row.template_labels.length > 0">
-                                        <span
-                                            v-for="label in row.template_labels"
-                                            class="label-name"
-                                            :key="label.id"
-                                            :style="{ background: label.color, color: darkColorList.includes(label.color) ? '#fff' : '#262e4f' }"
-                                            @click="onSearchLabel(label.label_id)">
-                                            {{ label.name }}
-                                        </span>
-                                    </template>
-                                    <span v-else>--</span>
-                                </div>
+                                <template v-else-if="item.id === 'label'">
+                                    <div
+                                        v-if="row.isSelectShow"
+                                        class="label-select"
+                                        v-bkloading="{ isLoading: row.labelLoading }"
+                                        v-bk-clickoutside="handleClickOutSide">
+                                        <bk-select
+                                            ref="labelSelect"
+                                            v-model="row.labelIds"
+                                            ext-popover-cls="label-select-popover"
+                                            :display-tag="true"
+                                            :multiple="true"
+                                            searchable
+                                            ext-cls="label-select"
+                                            @toggle="onToggleTplLabel">
+                                            <bk-option
+                                                v-for="(label, index) in templateLabels"
+                                                :key="index"
+                                                :id="label.id"
+                                                :name="label.name">
+                                                <div class="label-select-option">
+                                                    <span
+                                                        class="label-select-color"
+                                                        :style="{ background: label.color }">
+                                                    </span>
+                                                    <span>{{label.name}}</span>
+                                                    <i v-if="row.labelIds.includes(label.id)" class="bk-option-icon bk-icon icon-check-1"></i>
+                                                </div>
+                                            </bk-option>
+                                            <div
+                                                slot="extension"
+                                                v-cursor="{ active: !hasPermission(['project_edit'], authActions) }"
+                                                class="label-select-extension"
+                                                :class="{ 'text-permission-disable': !hasPermission(['project_edit'], authActions) }"
+                                                data-test-id="process_list__editLabel"
+                                                @click="onEditLabel">
+                                                <i class="bk-icon icon-plus-circle"></i>
+                                                <span>{{ $t('编辑标签') }}</span>
+                                            </div>
+                                        </bk-select>
+                                    </div>
+                                    <div
+                                        v-else
+                                        class="label-column"
+                                        v-cursor="{ active: !hasPermission(['flow_edit'], row.auth_actions) }"
+                                        @click="handleTempLabelClick(row)">
+                                        <template v-if="row.template_labels && row.template_labels.length > 0">
+                                            <span
+                                                v-for="label in row.template_labels"
+                                                class="label-name"
+                                                :key="label.id"
+                                                :style="{ background: label.color, color: darkColorList.includes(label.color) ? '#fff' : '#262e4f' }">
+                                                {{ label.name }}
+                                            </span>
+                                        </template>
+                                        <span v-else>--</span>
+                                    </div>
+                                </template>
                                 <!--子流程更新-->
                                 <div v-else-if="item.id === 'subprocess_has_update'" :class="['subflow-update', { 'subflow-has-update': row.subprocess_has_update }]">
                                     {{getSubflowContent(row)}}
@@ -165,7 +208,7 @@
                                 </template>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('操作')" width="240" class="operation-cell">
+                        <bk-table-column :label="$t('操作')" width="240" class="operation-cell" :fixed="templateList.length ? 'right' : false">
                             <template slot-scope="props">
                                 <div class="template-operation">
                                     <template>
@@ -296,20 +339,68 @@
                 {{$t('确认删除') + '"' + deleteTemplateName + '"' + '?' }}
             </div>
         </bk-dialog>
+        <bk-dialog
+            width="480"
+            ext-cls="common-dialog label-dialog"
+            header-position="left"
+            render-directive="if"
+            :mask-close="false"
+            :auto-close="false"
+            :title="$t('新建标签')"
+            :loading="labelLoading"
+            :value="labelDialogShow"
+            @confirm="editLabelConfirm"
+            @cancel="labelDialogShow = false">
+            <bk-form ref="labelForm" :model="labelDetail" :rules="labelRules">
+                <bk-form-item property="name" :label="$t('标签名称')" :required="true">
+                    <bk-input v-model="labelDetail.name"></bk-input>
+                </bk-form-item>
+                <bk-form-item property="color" :label="$t('标签颜色')" :required="true">
+                    <bk-dropdown-menu
+                        ref="dropdown"
+                        trigger="click"
+                        class="color-dropdown"
+                        @show="colorDropdownShow = true"
+                        @hide="colorDropdownShow = false">
+                        <div class="dropdown-trigger-btn" slot="dropdown-trigger">
+                            <span class="color-block" :style="{ background: labelDetail.color }"></span>
+                            <i :class="['bk-icon icon-angle-down',{ 'icon-flip': colorDropdownShow }]"></i>
+                        </div>
+                        <div class="color-list" slot="dropdown-content">
+                            <div class="tip">{{ $t('选择颜色') }}</div>
+                            <div>
+                                <span
+                                    v-for="color in colorList"
+                                    :key="color"
+                                    class="color-item color-block"
+                                    :style="{ background: color }"
+                                    @click="labelDetail.color = color">
+                                </span>
+                            </div>
+                        </div>
+                    </bk-dropdown-menu>
+                </bk-form-item>
+                <bk-form-item :label="$t('标签描述')">
+                    <bk-input type="textarea" v-model="labelDetail.description"></bk-input>
+                </bk-form-item>
+            </bk-form>
+        </bk-dialog>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
-    import { DARK_COLOR_LIST } from '@/constants/index.js'
+    import { DARK_COLOR_LIST, LABEL_COLOR_LIST } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
+    import dom from '@/utils/dom.js'
     import Skeleton from '@/components/skeleton/index.vue'
     import ImportDatTplDialog from './ImportDatTplDialog.vue'
     import ImportYamlTplDialog from './ImportYamlTplDialog.vue'
     import ExportTemplateDialog from './ExportTemplateDialog.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
-    import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
+    import SearchSelect from '@/components/common/searchSelect/index.vue'
+    import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     import TableSettingContent from '@/components/common/TableSettingContent.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
@@ -317,53 +408,41 @@
 
     const categoryTips = i18n.t('模板分类即将下线，建议使用标签')
 
-    const SEARCH_FORM = [
+    const SEARCH_LIST = [
         {
-            type: 'select',
-            key: 'label_ids',
-            multiple: true,
-            label: i18n.t('标签'),
-            placeholder: i18n.t('请选择标签'),
-            list: [],
-            value: []
+            id: 'template_id',
+            name: 'ID'
         },
         {
-            type: 'dateRange',
-            key: 'queryTime',
-            placeholder: i18n.t('选择日期时间范围'),
-            label: i18n.t('更新时间'),
-            value: ['', '']
+            id: 'flowName',
+            name: i18n.t('流程名'),
+            isDefaultOption: true
         },
         {
-            type: 'select',
-            label: i18n.t('子流程更新'),
-            key: 'subprocessUpdateVal',
-            placeholder: i18n.t('请选择'),
-            list: [
-                { 'value': 1, name: i18n.t('是') },
-                { 'value': -1, name: i18n.t('否') },
-                { 'value': 0, name: i18n.t('无子流程') }
-            ],
-            value: ''
+            id: 'label_ids',
+            name: i18n.t('标签'),
+            children: [],
+            multiable: true
         },
         {
-            type: 'input',
-            key: 'creator',
-            label: i18n.t('创建人'),
-            placeholder: i18n.t('请输入创建人'),
-            value: ''
+            id: 'subprocessUpdateVal',
+            name: i18n.t('子流程更新'),
+            children: [
+                { id: 1, name: i18n.t('是') },
+                { id: -1, name: i18n.t('否') },
+                { id: 0, name: i18n.t('无子流程') }
+            ]
         },
         {
-            type: 'select',
-            label: i18n.t('分类'),
-            key: 'category',
-            loading: false,
-            placeholder: i18n.t('请选择分类'),
-            tips: categoryTips,
-            list: [],
-            value: ''
+            id: 'creator',
+            name: i18n.t('创建人')
+        },
+        {
+            id: 'editor',
+            name: i18n.t('更新人')
         }
     ]
+
     const TABLE_FIELDS = [
         {
             id: 'id',
@@ -424,7 +503,7 @@
             ImportYamlTplDialog,
             ExportTemplateDialog,
             ListPageTipsTitle,
-            AdvanceSearchForm,
+            SearchSelect,
             TableSettingContent,
             NoData
         },
@@ -436,25 +515,35 @@
             const {
                 page = 1,
                 limit = 15,
-                category = '',
-                queryTime = '',
+                create_time = '',
+                edit_time = '',
                 subprocessUpdateVal = '',
                 creator = '',
-                keyword = '',
-                label_ids = ''
+                editor = '',
+                flowName = '',
+                label_ids = '',
+                template_id = ''
             } = this.$route.query
-            const searchForm = SEARCH_FORM.map(item => {
-                if (this.$route.query[item.key]) {
-                    if (Array.isArray(item.value)) {
-                        const value = this.$route.query[item.key].split(',')
-                        item.value = item.key === 'label_ids' ? value.map(v => Number(v)) : value
-                    } else {
-                        item.value = this.$route.query[item.key]
+            const searchList = [
+                ...SEARCH_LIST,
+                { id: 'create_time', name: i18n.t('创建时间'), type: 'dateRange' },
+                { id: 'edit_time', name: i18n.t('更新时间'), type: 'dateRange' }
+            ]
+            const searchSelectValue = searchList.reduce((acc, cur) => {
+                const values_text = this.$route.query[cur.id]
+                if (values_text) {
+                    let values = []
+                    if (!cur.children) {
+                        values = cur.type === 'dateRange' ? values_text.split(',') : [values_text]
+                        acc.push({ ...cur, values })
+                    } else if (cur.children.length) {
+                        const ids = values_text.split(',')
+                        values = cur.children.filter(item => ids.includes(String(item.id)))
+                        acc.push({ ...cur, values })
                     }
                 }
-                return item
-            })
-            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
+                return acc
+            }, [])
             // 获取操作列表
             const noViewAuthTip = i18n.t('已选流程模板没有查看权限，请取消选择或申请权限')
             const noEditAuthTip = i18n.t('已选流程模板没有编辑权限，请取消选择或申请权限')
@@ -493,8 +582,6 @@
                 projectInfoLoading: true, // 模板分类信息 loading
                 configLoading: true,
                 searchStr: '',
-                searchForm,
-                isSearchFormOpen, // 高级搜索表单默认展开
                 exportType: 'dat', // 模板导出类型
                 operateList,
                 expiredSubflowTplList: [],
@@ -517,12 +604,14 @@
                 isHasSubprocess: undefined,
                 deleteTemplateName: '',
                 requestData: {
-                    category,
                     creator,
+                    editor,
                     subprocessUpdateVal: subprocessUpdateVal !== '' ? Number(subprocessUpdateVal) : '',
-                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
+                    create_time: create_time ? create_time.split(',') : ['', ''],
+                    edit_time: edit_time ? edit_time.split(',') : ['', ''],
                     label_ids: label_ids ? label_ids.split(',') : [],
-                    flowName: keyword
+                    flowName,
+                    template_id
                 },
                 isInit: true, // 避免default-sort在初始化时去触发table的sort-change事件
                 totalPage: 1,
@@ -542,7 +631,44 @@
                     selectedFields: [],
                     size: 'small'
                 },
-                categoryTips
+                categoryTips,
+                templateLabels: [],
+                labelDialogShow: false,
+                labelRules: {
+                    color: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    name: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        },
+                        {
+                            max: 50,
+                            message: i18n.t('标签名称不能超过') + 50 + i18n.t('个字符'),
+                            trigger: 'blur'
+                        },
+                        {
+                            validator: (val) => {
+                                return this.templateLabels.every(label => label.name !== val)
+                            },
+                            message: i18n.t('标签已存在，请重新输入'),
+                            trigger: 'blur'
+                        }
+                    ]
+                },
+                labelDetail: {},
+                colorDropdownShow: false,
+                colorList: LABEL_COLOR_LIST,
+                labelLoading: false,
+                curSelectedRow: {},
+                searchList: tools.deepClone(SEARCH_LIST),
+                searchSelectValue
             }
         },
         computed: {
@@ -595,10 +721,8 @@
         },
         async created () {
             this.getFields()
-            this.getProjectBaseInfo()
             this.getProjectLabelList()
             this.getExpiredSubflowData()
-            this.onSearchInput = tools.debounce(this.searchInputHandler, 500)
             await this.initData()
             this.firstLoading = false
         },
@@ -615,7 +739,8 @@
                 'deleteCollect'
             ]),
             ...mapActions('template/', [
-                'loadProjectBaseInfo'
+                'loadProjectBaseInfo',
+                'saveTemplateData'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList',
@@ -628,10 +753,12 @@
             ...mapActions('project/', [
                 'getProjectLabelsWithDefault',
                 'getUserProjectConfigOptions',
-                'setUserProjectConfig'
+                'setUserProjectConfig',
+                'createTemplateLabel'
             ]),
             ...mapMutations('template/', [
-                'setProjectBaseInfo'
+                'setProjectBaseInfo',
+                'setTemplateData'
             ]),
             async initData () {
                 try {
@@ -651,7 +778,16 @@
                     const data = this.getQueryData()
                     let templateListData = {}
                     templateListData = await this.loadTemplateList(data)
-                    this.templateList = templateListData.results
+                    this.templateList = templateListData.results.map(item => {
+                        item.isSelectShow = false
+                        item.labelLoading = false
+                        if (item.template_labels && item.template_labels.length > 0) {
+                            item.labelIds = item.template_labels.map(label => label.label_id)
+                        } else {
+                            item.labelIds = []
+                        }
+                        return item
+                    })
                     this.pagination.count = templateListData.count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
@@ -667,7 +803,7 @@
                 }
             },
             getQueryData () {
-                const { subprocessUpdateVal, creator, category, queryTime, flowName, label_ids } = this.requestData
+                const { subprocessUpdateVal, creator, create_time, edit_time, flowName, label_ids, template_id, editor } = this.requestData
 
                 /**
                  * 无子流程 has_subprocess=false
@@ -681,13 +817,14 @@
                     limit: this.pagination.limit,
                     offset: (this.pagination.current - 1) * this.pagination.limit,
                     pipeline_template__name__icontains: flowName || undefined,
-                    pipeline_template__creator__contains: creator || undefined,
-                    category: category || undefined,
+                    pipeline_template__creator: creator || undefined,
                     label_ids: label_ids && label_ids.length ? label_ids.join(',') : undefined,
                     subprocess_has_update__exact: subprocess_has_update,
-                    has_subprocess,
+                    pipeline_template__has_subprocess: has_subprocess,
                     project__id: this.project_id,
-                    new: true
+                    new: true,
+                    id: template_id || undefined,
+                    pipeline_template__editor: editor || undefined
                 }
                 const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
                 if (keys.includes(this.ordering)) {
@@ -697,9 +834,13 @@
                 } else {
                     data['order_by'] = this.ordering
                 }
-                if (queryTime[0] && queryTime[1]) {
-                    data['pipeline_template__edit_time__gte'] = moment.tz(queryTime[0], this.timeZone).format('YYYY-MM-DD')
-                    data['pipeline_template__edit_time__lte'] = moment.tz(queryTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                if (create_time && create_time[0] && create_time[1]) {
+                    data['pipeline_template__create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD')
+                    data['pipeline_template__create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                }
+                if (edit_time && edit_time[0] && edit_time[1]) {
+                    data['pipeline_template__edit_time__gte'] = moment.tz(edit_time[0], this.timeZone).format('YYYY-MM-DD')
+                    data['pipeline_template__edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                 }
                 return data
             },
@@ -719,21 +860,6 @@
                 }
                 this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
             },
-            async getProjectBaseInfo () {
-                this.projectInfoLoading = true
-                this.categoryLoading = true
-                const form = this.searchForm.find(item => item.key === 'category')
-                try {
-                    const res = await this.loadProjectBaseInfo()
-                    this.setProjectBaseInfo(res.data)
-                    form.list = res.data.task_categories
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.projectInfoLoading = false
-                    form.loading = false
-                }
-            },
             async getExpiredSubflowData () {
                 try {
                     const resp = await this.getExpiredSubProcess({ project__id: this.project_id })
@@ -745,16 +871,140 @@
                 }
             },
             async getProjectLabelList () {
-                const form = this.searchForm.find(item => item.key === 'label_ids')
+                const form = this.searchList.find(item => item.id === 'label_ids')
                 try {
                     this.templateLabelLoading = true
                     const res = await this.getProjectLabelsWithDefault(this.project_id)
-                    form.list = res.data.map(item => Object.assign({}, item, { value: item.id }))
+                    this.templateLabels = res.data
+                    
+                    form.children = res.data.map(item => Object.assign({}, item, { value: item.id }))
+                    // 因为标签列表是通过接口获取的，所以需要把路径上的标签添加进去
+                    const ids = this.$route.query['label_ids']
+                    if (ids) {
+                        const values = form.children.filter(item => ids.split(',').includes(String(item.id)))
+                        this.searchSelectValue.push({ ...form, values })
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.templateLabelLoading = false
-                    form.loading = false
+                }
+            },
+            onToggleTplLabel (val) {
+                if (val) {
+                    window.reportInfo({
+                        page: 'templateEdit',
+                        zone: 'selectLabel',
+                        event: 'click'
+                    })
+                }
+            },
+            handleTempLabelClick (row) {
+                if (!this.hasPermission(['flow_edit'], row.auth_actions)) {
+                    this.onTemplatePermissionCheck(['flow_edit'], row)
+                    return
+                }
+                this.curSelectedRow = tools.deepClone(row)
+                row.labelLoading = true
+                row.isSelectShow = true
+                setTimeout(() => {
+                    this.$refs.labelSelect[0].show()
+                    row.labelLoading = false
+                }, 500)
+            },
+            handleClickOutSide (e) {
+                if (dom.parentClsContains('label-select-popover', e.target)
+                    || dom.parentClsContains('label-dialog', e.target)
+                    || dom.parentClsContains('permission-dialog', e.target)
+                ) {
+                    return
+                }
+                this.saveTemplateLabels()
+            },
+            async saveTemplateLabels () {
+                const curRow = this.templateList.find(item => item.id === this.curSelectedRow.id)
+                const match = tools.isDataEqual(curRow.labelIds, this.curSelectedRow.labelIds)
+                if (match) {
+                    curRow.isSelectShow = false
+                    return
+                }
+                curRow.labelLoading = true
+                try {
+                    const { id, labelIds: template_labels } = curRow
+                    this.setTemplateData({ ...curRow, template_labels })
+                    const resp = await this.saveTemplateData({
+                        templateId: id,
+                        projectId: this.project_id,
+                        common: false
+                    })
+                    if (!resp.result) return
+                    // 前端修改对应模板的labels
+                    curRow.template_labels = this.templateLabels.reduce((acc, cur) => {
+                        const { id, name, color } = cur
+                        if (curRow.labelIds.includes(id)) {
+                            acc.push({ id, name, color })
+                        }
+                        return acc
+                    }, [])
+                    curRow.labelLoading = false
+                    this.$nextTick(() => {
+                        curRow.isSelectShow = false
+                    })
+                    this.$bkMessage({
+                        message: i18n.t('模板标签修改成功'),
+                        theme: 'success'
+                    })
+                } catch (error) {
+                    curRow.labelLoading = false
+                    console.warn(error)
+                }
+            },
+            onEditLabel () {
+                if (!this.hasPermission(['project_edit'], this.authActions)) {
+                    const resourceData = {
+                        project: [{
+                            id: this.project_id,
+                            name: this.projectName
+                        }]
+                    }
+                    this.applyForPermission(['project_edit'], this.authActions, resourceData)
+                    return
+                }
+                this.labelDetail = { color: '#1c9574', name: '', description: '' }
+                this.labelDialogShow = true
+            },
+            editLabelConfirm () {
+                if (this.labelLoading) {
+                    return
+                }
+                this.labelLoading = true
+                try {
+                    this.$refs.labelForm.validate().then(async result => {
+                        if (result) {
+                            const { project_id } = this.$route.params
+                            const data = {
+                                creator: this.username,
+                                project_id: Number(project_id),
+                                ...this.labelDetail
+                            }
+                            const resp = await this.createTemplateLabel(data)
+                            if (resp.result) {
+                                this.labelDialogShow = false
+                                this.$bkMessage({
+                                    message: i18n.t('标签新建成功'),
+                                    theme: 'success'
+                                })
+                                // 新建标签后自动选上
+                                const curRow = this.templateList.find(item => item.id === this.curSelectedRow.id)
+                                curRow.labelIds.push(resp.data.id)
+                                this.getProjectLabelList()
+                            }
+                        }
+                    })
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.labelLoading = false
                 }
             },
             onShowMoreOperation () {
@@ -780,22 +1030,35 @@
                     })
                 }
             },
-            // 我创建的公共流程
+            // 我创建的
             handleMyCreateFilter () {
-                const username = this.$store.state.username
-                const searchComp = this.$refs.advanceSearch
-                searchComp.onAdvanceOpen(true)
-                searchComp.onChangeFormItem(username, 'creator')
-                searchComp.submit()
+                const creatorInfo = this.searchSelectValue.find(item => item.id === 'creator')
+                let info = {}
+                if (creatorInfo) {
+                    creatorInfo.values = [this.username]
+                    info = creatorInfo
+                } else {
+                    const form = this.searchList.find(item => item.id === 'creator')
+                    info = { ...form, values: [this.username] }
+                    this.searchSelectValue.push(info)
+                }
+                // 添加搜索记录
+                const searchDom = this.$refs.searchSelect
+                searchDom && searchDom.addSearchRecord(info)
             },
-            onSearchFormSubmit (data) {
-                this.requestData = Object.assign({}, this.requestData, data)
-                this.pagination.current = 1
-                this.updateUrl()
-                this.getTemplateList()
-            },
-            searchInputHandler (data) {
-                this.requestData.flowName = data
+            handleSearchValueChange (data) {
+                data = data.reduce((acc, cur) => {
+                    if (cur.type === 'dateRange') {
+                        acc[cur.id] = cur.values
+                    } else if (cur.multiable) {
+                        acc[cur.id] = cur.values.map(item => item.id)
+                    } else {
+                        const value = cur.values[0]
+                        acc[cur.id] = cur.children ? value.id : value
+                    }
+                    return acc
+                }, {})
+                this.requestData = data
                 this.pagination.current = 1
                 this.updateUrl()
                 this.getTemplateList()
@@ -1049,6 +1312,16 @@
                 } else {
                     this.ordering = ''
                 }
+                // 更新表格头（自定义排序后不会清空其他排序的状态）
+                if (prop === 'pipeline_template__create_time') {
+                    const tableDom = this.$refs.templateTable
+                    const columns = tableDom ? tableDom.store.states.columns : []
+                    columns.forEach(column => {
+                        if (column.sortable && column.property !== prop) {
+                            column.order = null
+                        }
+                    })
+                }
                 this.pagination.current = 1
                 this.updateUrl()
                 this.getTemplateList()
@@ -1057,22 +1330,55 @@
                 }
             },
             renderTableHeader (h, { column, $index }) {
-                if (column.property !== 'category') {
+                if (column.property === 'category') {
+                    return h('span', {
+                        'class': 'category-label'
+                    }, [
+                        column.label,
+                        h('i', {
+                            'class': 'common-icon-info table-header-tips',
+                            directives: [{
+                                name: 'bk-tooltips',
+                                value: this.categoryTips
+                            }]
+                        })
+                    ])
+                } else if (['pipeline_template__create_time', 'pipeline_template__edit_time'].includes(column.property)) {
+                    const id = this.setting.selectedFields[$index - 1].id
+                    const date = this.requestData[id]
+                    return <TableRenderHeader
+                        ref="TableRenderHeader"
+                        name={ column.label }
+                        property={ column.property }
+                        sortConfig={ this.getDefaultSortConfig }
+                        dateValue={ date }
+                        onSortChange={ data => this.handleSortChange(data) }
+                        onDateChange={ data => this.handleDateTimeFilter(data, id) }>
+                    </TableRenderHeader>
+                } else {
                     return column.label
                 }
-
-                return h('span', {
-                    'class': 'category-label'
-                }, [
-                    column.label,
-                    h('i', {
-                        'class': 'common-icon-info table-header-tips',
-                        directives: [{
-                            name: 'bk-tooltips',
-                            value: this.categoryTips
-                        }]
-                    })
-                ])
+            },
+            handleDateTimeFilter (date = [], id) {
+                const index = this.searchSelectValue.findIndex(item => item.id === id)
+                if (date.length) {
+                    if (index > -1) {
+                        this.searchSelectValue[index].values = date
+                    } else {
+                        const info = {
+                            id,
+                            type: 'dateRange',
+                            name: id === 'create_time' ? i18n.t('创建时间') : i18n.t('更新时间'),
+                            values: date
+                        }
+                        this.searchSelectValue.push(info)
+                        // 添加搜索记录
+                        const searchDom = this.$refs.searchSelect
+                        searchDom && searchDom.addSearchRecord(info)
+                    }
+                } else if (index > -1) {
+                    this.searchSelectValue.splice(index, 1)
+                }
             },
             onPageChange (page) {
                 this.pagination.current = page
@@ -1087,16 +1393,19 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { category, queryTime, subprocessUpdateVal, creator, label_ids, flowName } = this.requestData
+                const { category, create_time, edit_time, subprocessUpdateVal, creator, label_ids, flowName, template_id, editor } = this.requestData
                 const filterObj = {
                     limit,
                     category,
                     subprocessUpdateVal,
                     creator,
                     page: current,
-                    queryTime: queryTime.every(item => item) ? queryTime.join(',') : '',
-                    label_ids: label_ids.length ? label_ids.join(',') : '',
-                    keyword: flowName
+                    create_time: create_time && create_time.every(item => item) ? create_time.join(',') : '',
+                    edit_time: edit_time && edit_time.every(item => item) ? edit_time.join(',') : '',
+                    label_ids: label_ids && label_ids.length ? label_ids.join(',') : '',
+                    flowName: flowName,
+                    template_id,
+                    editor
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {
@@ -1193,17 +1502,13 @@
             },
             // 标题提示信息，查看子流程更新
             handleSubflowFilter () {
-                const searchComp = this.$refs.advanceSearch
-                searchComp.onAdvanceOpen(true)
-                searchComp.onChangeFormItem(1, 'subprocessUpdateVal')
-                searchComp.submit()
-            },
-            // 筛选包含当前标签的模板
-            onSearchLabel (id) {
-                const searchComp = this.$refs.advanceSearch
-                searchComp.onAdvanceOpen(true)
-                searchComp.onChangeFormItem([id], 'label_ids')
-                searchComp.submit()
+                const subFlowInfo = this.searchSelectValue.find(item => item.id === 'subprocessUpdateVal')
+                if (subFlowInfo) {
+                    subFlowInfo.values = [{ id: 1, name: i18n.t('是') }]
+                } else {
+                    const form = this.searchList.find(item => item.id === 'subprocessUpdateVal')
+                    this.searchSelectValue.push({ ...form, values: [{ id: 1, name: i18n.t('是') }] })
+                }
             },
             // 添加/取消收藏模板
             async onCollectTemplate (template) {
@@ -1314,6 +1619,19 @@
     overflow: auto;
     @include scrollbar;
 }
+.search-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    .operation-wrap {
+        display: flex;
+        align-items: center;
+    }
+    .my-create-btn {
+        position: absolute;
+        right: 495px;
+    }
+}
 .create-template-btn {
     min-width: 120px;
 }
@@ -1389,10 +1707,6 @@
     padding: 30px;
     word-break: break-all;
 }
-.my-create-btn {
-    padding: 0 10px;
-    margin: 0 -15px 0 10px;
-}
 .template-table-content {
     background: #ffffff;
     .bk-table-row.hover-row {
@@ -1405,9 +1719,12 @@
             height: 42px;
         }
     }
+    .flow-name-column {
+        display: flex;
+        align-items: center;
+    }
     .icon-favorite {
         position: absolute;
-        top: 14px;
         left: -9px;
         font-size: 14px;
         color: #c4c6cc;
@@ -1421,17 +1738,27 @@
         color: $blueDefault;
     }
     .label-column {
-        display: table-cell;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        min-height: 41px;
+        width: 100%;
+        padding-left: 8px;
+        &:hover {
+            cursor: pointer;
+            background: #dcdee5;
+        }
+        .label-name {
+            margin: 4px 0 4px 4px;
+            padding: 2px 6px;
+            font-size: 12px;
+            color: #63656e;
+            border-radius: 8px;
+        }
     }
-    .label-name {
-        display: inline-block;
-        margin: 4px 0 4px 4px;
-        padding: 2px 6px;
-        font-size: 12px;
-        line-height: 1;
-        color: #63656e;
-        border-radius: 8px;
-        cursor: pointer;
+    .label-select {
+        width: 100%;
+        margin: 5px 0 4px;
     }
     .template-operation > .text-permission-disable {
         padding: 5px;
@@ -1490,6 +1817,12 @@
         font-size: 14px;
         color: #c4c6cc;
         cursor: pointer;
+    }
+    /deep/.edit-time,
+    /deep/.create-time {
+        .bk-table-caret-wrapper {
+            display: none;
+        }
     }
 }
 </style>

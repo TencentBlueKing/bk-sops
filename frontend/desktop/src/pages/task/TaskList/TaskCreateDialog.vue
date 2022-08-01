@@ -8,6 +8,7 @@
         :header-position="'left'"
         :title="$t('新建任务')"
         :value="isNewTaskDialogShow"
+        render-directive="if"
         :auto-close="false"
         :on-close="onCancel"
         @value-change="toggleShow">
@@ -248,6 +249,15 @@
                     return this.selectedTplType === 'businessProcess' ? ['flow_create_periodic_task'] : ['common_flow_create_periodic_task']
                 } else {
                     return ['flow_create_clocked_task']
+                }
+            }
+        },
+        watch: {
+            isNewTaskDialogShow (val) {
+                if (!val) {
+                    this.currentPage = 0
+                    this.templateList = []
+                    this.publicList = []
                 }
             }
         },

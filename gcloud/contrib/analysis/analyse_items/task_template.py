@@ -84,17 +84,6 @@ def dispatch(group_by, filters=None, page=None, limit=None):
     if filters is None:
         filters = {}
     orm_filters = produce_filter(filters)
-    try:
-        # version 条件为插件版本，需要过滤掉
-        if "version" in orm_filters:
-            orm_filters.pop("version")
-        tasktmpl = TaskTemplate.objects.filter(**orm_filters).select_related("project", "pipeline_template")
-    except Exception as e:
-        message = "query template params conditions[{filters}] have invalid key or value: {error}".format(
-            filters=filters, error=e
-        )
-        logger.error(message)
-        return False, message
 
     # 不同类别、创建方法、流程类型对应的任务数
     if group_by in [AE.category, AE.create_method, AE.flow_type]:
@@ -102,7 +91,18 @@ def dispatch(group_by, filters=None, page=None, limit=None):
         if not result:
             return False, message
     else:
-        total, groups = TEMPLATE_GROUP_BY_METHODS[group_by](tasktmpl, filters, page, limit)
+        try:
+            # version 条件为插件版本，需要过滤掉
+            if "version" in orm_filters:
+                orm_filters.pop("version")
+            tasktmpl = TaskTemplate.objects.filter(**orm_filters).select_related("project", "pipeline_template")
+            total, groups = TEMPLATE_GROUP_BY_METHODS[group_by](tasktmpl, filters, page, limit)
+        except Exception as e:
+            message = "query template params conditions[{filters}] have invalid key or value: {error}".format(
+                filters=filters, error=e
+            )
+            logger.error(message)
+            return False, message
 
     data = {"total": total, "groups": groups}
     return True, data

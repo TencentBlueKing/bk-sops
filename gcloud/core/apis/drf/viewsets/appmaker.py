@@ -50,5 +50,5 @@ class AppmakerListViewSet(GcloudReadOnlyViewSet, mixins.DestroyModelMixin):
         ],
     )
     permission_classes = [permissions.IsAuthenticated, AppmakerPermission]
-    filter_fields = {"editor": ["exact"], "project__id": ["exact"], "edit_time": ["gte", "lte"]}
+    filter_fields = {"editor": ["exact"], "project__id": ["exact"], "edit_time": ["gte", "lte"], "name": ["icontains"]}
     pagination_class = LimitOffsetPagination

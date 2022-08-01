@@ -33,10 +33,15 @@ class ClockedTaskViewSet(ApiMixin, IAMMixin, viewsets.ModelViewSet):
     serializer_class = ClockedTaskSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = {
+        "id": ["exact"],
         "creator": ["exact"],
+        "editor": ["exact"],
         "plan_start_time": ["gte", "lte"],
+        "edit_time": ["gte", "lte"],
+        "create_time": ["gte", "lte"],
         "task_name": ["exact", "icontains", "contains"],
         "project_id": ["exact"],
+        "state": ["exact"],
     }
     pagination_class = LimitOffsetPagination
     iam_resource_helper = ClockedTaskResourceHelper(

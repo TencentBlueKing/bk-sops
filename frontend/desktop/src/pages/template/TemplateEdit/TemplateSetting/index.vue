@@ -32,6 +32,7 @@
             :template-label-loading="templateLabelLoading"
             :template-labels="templateLabels"
             @templateDataChanged="$emit('templateDataChanged')"
+            @updateTemplateLabelList="$emit('updateTemplateLabelList')"
             @closeTab="closeTab">
         </TabTemplateConfig>
         <TabTemplateSnapshoot

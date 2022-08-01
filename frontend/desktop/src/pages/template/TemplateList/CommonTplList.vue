@@ -13,23 +13,22 @@
     <div class="template-container">
         <skeleton :loading="firstLoading" loader="templateList">
             <div class="list-wrapper">
-                <advance-search-form
-                    ref="advanceSearch"
-                    id="commonTplList"
-                    :open="isSearchFormOpen"
-                    :search-form="searchForm"
-                    :search-config="{ placeholder: $t('请输入流程名称'), value: requestData.flowName }"
-                    @onSearchInput="onSearchInput"
-                    @submit="onSearchFormSubmit">
-                    <template v-slot:search-extend>
-                        <bk-button
-                            class="my-create-btn"
-                            data-test-id="commonProcess_form_myCreateProcess"
-                            @click="handleMyCreateFilter">
-                            {{$t('我创建的')}}
-                        </bk-button>
-                    </template>
-                </advance-search-form>
+                <div class="search-wrapper mb20">
+                    <bk-button
+                        class="my-create-btn"
+                        data-test-id="process_form_myCreateProcess"
+                        @click="handleMyCreateFilter">
+                        {{$t('我创建的')}}
+                    </bk-button>
+                    <search-select
+                        ref="searchSelect"
+                        id="commonTplList"
+                        :placeholder="$t('ID/流程名/创建人/更新人')"
+                        v-model="searchSelectValue"
+                        :search-list="searchList"
+                        @change="handleSearchValueChange">
+                    </search-select>
+                </div>
                 <div class="template-table-content" data-test-id="commonProcess_table_processList">
                     <bk-table
                         ref="templateTable"
@@ -49,6 +48,7 @@
                             :prop="item.key || item.id"
                             :width="item.width"
                             :min-width="item.min_width"
+                            :class-name="item.id.replace(/_/g, '-')"
                             :render-header="renderTableHeader"
                             :sort-orders="['descending', 'ascending', null]"
                             :sortable="sortableCols.find(col => col.value === (item.key || item.id)) ? 'custom' : false">
@@ -87,7 +87,7 @@
                                 </template>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('操作')" width="240" class="operation-cell">
+                        <bk-table-column :label="$t('操作')" width="190" class="operation-cell" :fixed="templateList.length ? 'right' : false">
                             <template slot-scope="props">
                                 <div class="template-operation">
                                     <template>
@@ -127,39 +127,34 @@
     import { mapState, mapMutations, mapActions } from 'vuex'
     import toolsUtils from '@/utils/tools.js'
     import Skeleton from '@/components/skeleton/index.vue'
-    import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
+    import SearchSelect from '@/components/common/searchSelect/index.vue'
+    import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import TableSettingContent from '@/components/common/TableSettingContent.vue'
     import permission from '@/mixins/permission.js'
     // moment用于时区使用
     import moment from 'moment-timezone'
 
-    const SEARCH_FORM = [
+    const SEARCH_LIST = [
         {
-            type: 'dateRange',
-            key: 'queryTime',
-            placeholder: i18n.t('选择日期时间范围'),
-            label: i18n.t('更新时间'),
-            value: []
+            id: 'template_id',
+            name: 'ID'
         },
         {
-            type: 'input',
-            key: 'creator',
-            label: i18n.t('创建人'),
-            placeholder: i18n.t('请输入创建人'),
-            value: ''
+            id: 'flowName',
+            name: i18n.t('流程名'),
+            isDefaultOption: true
         },
         {
-            type: 'select',
-            label: i18n.t('分类'),
-            key: 'category',
-            loading: true,
-            placeholder: i18n.t('请选择分类'),
-            tips: i18n.t('模板分类即将下线，建议使用标签'),
-            list: [],
-            value: ''
+            id: 'creator',
+            name: i18n.t('创建人')
+        },
+        {
+            id: 'editor',
+            name: i18n.t('更新人')
         }
     ]
+
     const TABLE_FIELDS = [
         {
             id: 'id',
@@ -205,7 +200,7 @@
         name: 'TemplateCommonList',
         components: {
             Skeleton,
-            AdvanceSearchForm,
+            SearchSelect,
             NoData,
             TableSettingContent
         },
@@ -215,40 +210,50 @@
             const {
                 page = 1,
                 limit = 15,
-                category = '',
-                queryTime = '',
+                create_time = '',
+                edit_time = '',
                 creator = '',
-                keyword = ''
+                editor = '',
+                flowName = '',
+                template_id = ''
             } = this.$route.query
-            const searchForm = SEARCH_FORM.map(item => {
-                if (this.$route.query[item.key]) {
-                    if (Array.isArray(item.value)) {
-                        item.value = this.$route.query[item.key].split(',')
-                    } else {
-                        item.value = this.$route.query[item.key]
+            const searchList = [
+                ...SEARCH_LIST,
+                { id: 'create_time', name: i18n.t('创建时间'), type: 'dateRange' },
+                { id: 'edit_time', name: i18n.t('更新时间'), type: 'dateRange' }
+            ]
+            const searchSelectValue = searchList.reduce((acc, cur) => {
+                const values_text = this.$route.query[cur.id]
+                if (values_text) {
+                    let values = []
+                    if (!cur.children) {
+                        values = cur.type === 'dateRange' ? values_text.split(',') : [values_text]
+                        acc.push({ ...cur, values })
+                    } else if (cur.children.length) {
+                        const ids = values_text.split(',')
+                        values = cur.children.filter(item => ids.includes(String(item.id)))
+                        acc.push({ ...cur, values })
                     }
                 }
-                return item
-            })
-            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
+                return acc
+            }, [])
             // 获取操作列表
             return {
                 firstLoading: true,
                 listLoading: false,
                 projectInfoLoading: true, // 模板分类信息 loading
-                searchForm,
-                isSearchFormOpen,
                 templateList: [],
                 sortableCols: [],
                 isSelectProjectShow: false,
                 templateCategoryList: [],
-                category: undefined,
                 editEndTime: undefined,
                 requestData: {
-                    category,
                     creator,
-                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
-                    flowName: keyword
+                    editor,
+                    create_time: create_time ? create_time.split(',') : ['', ''],
+                    edit_time: edit_time ? edit_time.split(',') : ['', ''],
+                    flowName,
+                    template_id
                 },
                 totalPage: 1,
                 pagination: {
@@ -272,7 +277,9 @@
                     size: 'small'
                 },
                 isInit: true, // 避免default-sort在初始化时去触发table的sort-change事件
-                categoryTips: i18n.t('模板分类即将下线，建议使用标签')
+                categoryTips: i18n.t('模板分类即将下线，建议使用标签'),
+                searchList: toolsUtils.deepClone(SEARCH_LIST),
+                searchSelectValue
             }
         },
         computed: {
@@ -310,8 +317,6 @@
         },
         async created () {
             this.getFields()
-            this.getProjectBaseInfo()
-            this.onSearchInput = toolsUtils.debounce(this.searchInputHandler, 500)
             const res = await this.getUserProjectConfigOptions({ id: this.project_id, params: { configs: 'task_template_ordering' } })
             this.sortableCols = res.data.task_template_ordering
             await this.getTemplateList()
@@ -367,16 +372,17 @@
                 }
             },
             getQueryData () {
-                const { creator, category, queryTime, flowName } = this.requestData
+                const { creator, create_time, edit_time, flowName, template_id, editor } = this.requestData
                 const data = {
                     limit: this.pagination.limit,
                     offset: (this.pagination.current - 1) * this.pagination.limit,
                     common: '1',
                     pipeline_template__name__icontains: flowName || undefined,
-                    pipeline_template__creator__contains: creator || undefined,
-                    category: category || undefined,
+                    pipeline_template__creator: creator || undefined,
+                    pipeline_template__editor: editor || undefined,
                     project__id: this.project_id,
-                    new: true
+                    new: true,
+                    id: template_id
                 }
                 const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
                 if (keys.includes(this.ordering)) {
@@ -386,28 +392,15 @@
                 } else {
                     data['order_by'] = this.ordering
                 }
-                if (queryTime[0] && queryTime[1]) {
-                    data['pipeline_template__edit_time__gte'] = moment(queryTime[0]).format('YYYY-MM-DD')
-                    data['pipeline_template__edit_time__lte'] = moment(queryTime[1]).add('1', 'd').format('YYYY-MM-DD')
+                if (create_time && create_time[0] && create_time[1]) {
+                    data['pipeline_template__create_time__gte'] = moment(create_time[0]).format('YYYY-MM-DD')
+                    data['pipeline_template__create_time__lte'] = moment(create_time[1]).add('1', 'd').format('YYYY-MM-DD')
+                }
+                if (edit_time && edit_time[0] && edit_time[1]) {
+                    data['pipeline_template__edit_time__gte'] = moment(edit_time[0]).format('YYYY-MM-DD')
+                    data['pipeline_template__edit_time__lte'] = moment(edit_time[1]).add('1', 'd').format('YYYY-MM-DD')
                 }
                 return data
-            },
-            async getProjectBaseInfo () {
-                this.projectInfoLoading = true
-                this.categoryLoading = true
-                try {
-                    const res = await this.loadProjectBaseInfo()
-                    this.setProjectBaseInfo(res.data)
-                    this.templateCategoryList = res.data.task_categories
-                    const form = this.searchForm.find(item => item.key === 'category')
-                    form.list = this.templateCategoryList
-                    form.loading = false
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.projectInfoLoading = false
-                    this.categoryLoading = false
-                }
             },
             // 获取当前视图表格头显示字段
             getFields () {
@@ -435,25 +428,38 @@
                     })
                 }
             },
-            searchInputHandler (data) {
-                this.requestData.flowName = data
-                this.pagination.current = 1
-                this.updateUrl()
-                this.getTemplateList()
-            },
-            onSearchFormSubmit (data) {
-                this.requestData = Object.assign({}, this.requestData, data)
-                this.pagination.current = 1
-                this.updateUrl()
-                this.getTemplateList()
-            },
-            // 我创建的公共流程
+            // 我创建的
             handleMyCreateFilter () {
-                const username = this.$store.state.username
-                const searchComp = this.$refs.advanceSearch
-                searchComp.onAdvanceOpen(true)
-                searchComp.onChangeFormItem(username, 'creator')
-                searchComp.submit()
+                const creatorInfo = this.searchSelectValue.find(item => item.id === 'creator')
+                let info = {}
+                if (creatorInfo) {
+                    creatorInfo.values = [this.username]
+                    info = creatorInfo
+                } else {
+                    const form = this.searchList.find(item => item.id === 'creator')
+                    info = { ...form, values: [this.username] }
+                    this.searchSelectValue.push(info)
+                }
+                // 添加搜索记录
+                const searchDom = this.$refs.searchSelect
+                searchDom && searchDom.addSearchRecord(info)
+            },
+            handleSearchValueChange (data) {
+                data = data.reduce((acc, cur) => {
+                    if (cur.type === 'dateRange') {
+                        acc[cur.id] = cur.values
+                    } else if (cur.multiable) {
+                        acc[cur.id] = cur.values.map(item => item.id)
+                    } else {
+                        const value = cur.values[0]
+                        acc[cur.id] = cur.children ? value.id : value
+                    }
+                    return acc
+                }, {})
+                this.requestData = data
+                this.pagination.current = 1
+                this.updateUrl()
+                this.getTemplateList()
             },
             handleSortChange ({ prop, order }) {
                 if (this.isInit) return
@@ -464,6 +470,16 @@
                 } else {
                     this.ordering = ''
                 }
+                // 更新表格头（自定义排序后不会清空其他排序的状态）
+                if (prop === 'pipeline_template__create_time') {
+                    const tableDom = this.$refs.templateTable
+                    const columns = tableDom ? tableDom.store.states.columns : []
+                    columns.forEach(column => {
+                        if (column.sortable && column.property !== prop) {
+                            column.order = null
+                        }
+                    })
+                }
                 this.pagination.current = 1
                 this.updateUrl()
                 this.getTemplateList()
@@ -472,22 +488,54 @@
                 }
             },
             renderTableHeader (h, { column, $index }) {
-                if (column.property !== 'category') {
+                if (column.property === 'category') {
+                    return h('span', {
+                        'class': 'category-label'
+                    }, [
+                        column.label,
+                        h('i', {
+                            'class': 'common-icon-info table-header-tips',
+                            directives: [{
+                                name: 'bk-tooltips',
+                                value: this.categoryTips
+                            }]
+                        })
+                    ])
+                } else if (['pipeline_template__create_time', 'pipeline_template__edit_time'].includes(column.property)) {
+                    const id = this.setting.selectedFields[$index].id
+                    const date = this.requestData[id]
+                    return <TableRenderHeader
+                        name={ column.label }
+                        property={ column.property }
+                        sortConfig={ this.getDefaultSortConfig }
+                        dateValue={ date }
+                        onSortChange={ data => this.handleSortChange(data) }
+                        onDateChange={ data => this.handleDateTimeFilter(data, id) }>
+                    </TableRenderHeader>
+                } else {
                     return column.label
                 }
-
-                return h('span', {
-                    'class': 'category-label'
-                }, [
-                    column.label,
-                    h('i', {
-                        'class': 'common-icon-info table-header-tips',
-                        directives: [{
-                            name: 'bk-tooltips',
-                            value: this.categoryTips
-                        }]
-                    })
-                ])
+            },
+            handleDateTimeFilter (date = [], id) {
+                const index = this.searchSelectValue.findIndex(item => item.id === id)
+                if (date.length) {
+                    if (index > -1) {
+                        this.searchSelectValue[index].values = date
+                    } else {
+                        const info = {
+                            id,
+                            type: 'dateRange',
+                            name: id === 'create_time' ? i18n.t('创建时间') : i18n.t('更新时间'),
+                            values: date
+                        }
+                        this.searchSelectValue.push(info)
+                        // 添加搜索记录
+                        const searchDom = this.$refs.searchSelect
+                        searchDom && searchDom.addSearchRecord(info)
+                    }
+                } else if (index > -1) {
+                    this.searchSelectValue.splice(index, 1)
+                }
             },
             onPageChange (page) {
                 this.pagination.current = page
@@ -518,14 +566,16 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { category, queryTime, creator, flowName } = this.requestData
+                const { create_time, edit_time, creator, flowName, template_id, editor } = this.requestData
                 const filterObj = {
                     limit,
-                    category,
                     creator,
+                    editor,
                     page: current,
-                    queryTime: queryTime.every(item => item) ? queryTime.join(',') : '',
-                    keyword: flowName
+                    create_time: create_time && create_time.every(item => item) ? create_time.join(',') : '',
+                    edit_time: edit_time && edit_time.every(item => item) ? edit_time.join(',') : '',
+                    flowName,
+                    template_id
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {
@@ -654,6 +704,15 @@
     overflow: auto;
     @include scrollbar;
 }
+.search-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+    .my-create-btn {
+        position: relative;
+        right: 495px;
+    }
+}
 a {
     cursor: pointer;
 }
@@ -728,10 +787,6 @@ a {
         line-height: 1;
     }
 }
-.my-create-btn {
-    padding: 0 10px;
-    margin: 0 -15px 0 10px;
-}
 .template-table-content {
     background: #ffffff;
     .bk-table-row.hover-row {
@@ -801,6 +856,12 @@ a {
         font-size: 14px;
         color: #c4c6cc;
         cursor: pointer;
+    }
+    /deep/.edit-time,
+    /deep/.create-time {
+        .bk-table-caret-wrapper {
+            display: none;
+        }
     }
 }
 </style>

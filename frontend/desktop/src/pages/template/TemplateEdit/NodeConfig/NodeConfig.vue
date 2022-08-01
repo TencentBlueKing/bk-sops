@@ -196,26 +196,37 @@
                                     </p>
                                     <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading, zIndex: 100 }">
                                         <template v-if="!inputLoading">
-                                            <input-params
-                                                v-if="inputs.length > 0"
-                                                ref="inputParams"
-                                                :node-id="nodeId"
-                                                :scheme="inputs"
-                                                :plugin="basicInfo.plugin"
-                                                :version="basicInfo.version"
-                                                :subflow-forms="subflowForms"
-                                                :forms-not-referred="formsNotReferred"
-                                                :value="inputsParamValue"
-                                                :render-config="inputsRenderConfig"
-                                                :is-subflow="isSubflow"
-                                                :is-view-mode="isViewMode"
-                                                :constants="localConstants"
-                                                :third-party-code="isThirdParty ? basicInfo.plugin : ''"
-                                                @hookChange="onHookChange"
-                                                @renderConfigChange="onRenderConfigChange"
-                                                @update="updateInputsValue">
-                                            </input-params>
-                                            <no-data v-else></no-data>
+                                            <template v-if="Array.isArray(inputs)">
+                                                <input-params
+                                                    v-if="inputs.length > 0"
+                                                    ref="inputParams"
+                                                    :node-id="nodeId"
+                                                    :scheme="inputs"
+                                                    :plugin="basicInfo.plugin"
+                                                    :version="basicInfo.version"
+                                                    :subflow-forms="subflowForms"
+                                                    :forms-not-referred="formsNotReferred"
+                                                    :value="inputsParamValue"
+                                                    :render-config="inputsRenderConfig"
+                                                    :is-subflow="isSubflow"
+                                                    :is-view-mode="isViewMode"
+                                                    :constants="localConstants"
+                                                    :third-party-code="isThirdParty ? basicInfo.plugin : ''"
+                                                    @hookChange="onHookChange"
+                                                    @renderConfigChange="onRenderConfigChange"
+                                                    @update="updateInputsValue">
+                                                </input-params>
+                                                <no-data v-else></no-data>
+                                            </template>
+                                            <template v-else>
+                                                <jsonschema-input-params
+                                                    v-if="inputs.properties && Object.keys(inputs.properties).length > 0"
+                                                    :inputs="inputs"
+                                                    :value="inputsParamValue"
+                                                    @update="updateInputsValue">
+                                                </jsonschema-input-params>
+                                                <no-data v-else></no-data>
+                                            </template>
                                         </template>
                                     </div>
                                 </section>
@@ -262,27 +273,11 @@
             </template>
         </bk-sideslider>
         <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            :theme="'primary'"
-            :mask-close="false"
-            :show-footer="false"
-            :value="isConfirmDialogShow"
-            @cancel="isConfirmDialogShow = false">
-            <div class="node-config-confirm-dialog-content">
-                <div class="leave-tips">{{ $t('保存已修改的节点信息吗？') }}</div>
-                <div class="action-wrapper">
-                    <bk-button theme="primary" :disabled="inputLoading" @click="onConfirmClick">{{ $t('保存') }}</bk-button>
-                    <bk-button theme="default" @click="onClosePanel()">{{ $t('不保存') }}</bk-button>
-                </div>
-            </div>
-        </bk-dialog>
-        <bk-dialog
             width="480"
             ext-cls="cancel-global-variable-dialog"
             header-position="left"
             :mask-close="false"
-            :value="isCancelGloVarDialogShow"
+            v-model="isCancelGloVarDialogShow"
             :title="$t('取消变量引用')">
             <p style="word-break: break-all;">{{ $t('全局变量【 x 】的引用数已为 0。如果不再使用，可立即删除变量; 也可以稍后在全局变量面板中删除', { key: unhookingVarForm.key })}}</p>
             <template slot="footer">
@@ -299,6 +294,7 @@
     import tools from '@/utils/tools.js'
     import BasicInfo from './BasicInfo.vue'
     import InputParams from './InputParams.vue'
+    import JsonschemaInputParams from './JsonschemaInputParams.vue'
     import OutputParams from './OutputParams.vue'
     import SelectPanel from './SelectPanel/index.vue'
     import VariableEdit from '../TemplateSetting/TabGlobalVariables/VariableEdit.vue'
@@ -306,11 +302,13 @@
     import NoData from '@/components/common/base/NoData.vue'
     import bus from '@/utils/bus.js'
     import permission from '@/mixins/permission.js'
+
     export default {
         name: 'NodeConfig',
         components: {
             BasicInfo,
             InputParams,
+            JsonschemaInputParams,
             OutputParams,
             SelectPanel,
             VariableEdit,
@@ -340,7 +338,6 @@
                 subflowLoading: false, // 子流程任务节点数据加载
                 constantsLoading: false, // 子流程输入参数配置项加载
                 subflowVersionUpdating: false, // 子流程更新
-                isConfirmDialogShow: false, // 确认是否保存编辑数据
                 isCancelGloVarDialogShow: false, // 取消勾选全局变量
                 nodeConfig: {}, // 任务节点的完整 activity 配置参数
                 isBaseInfoLoading: true, // 基础信息loading
@@ -372,7 +369,8 @@
                 'internalVariable': state => state.template.internalVariable,
                 'locations': state => state.template.location,
                 'pluginConfigs': state => state.atomForm.config,
-                'pluginOutput': state => state.atomForm.output
+                'pluginOutput': state => state.atomForm.output,
+                'infoBasicConfig': state => state.infoBasicConfig
             }),
             variableList () {
                 const systemVars = Object.keys(this.internalVariable).map(key => this.internalVariable[key])
@@ -621,7 +619,7 @@
                         })
                         if (!resp.result) return
                         // 获取参数
-                        const { outputs: respsOutputs, forms } = resp.data
+                        const { outputs: respsOutputs, forms, inputs } = resp.data
                         // 获取不同版本的描述
                         let desc = resp.data.desc || ''
                         if (desc && desc.includes('\n')) {
@@ -629,37 +627,43 @@
                             desc = descList.join('<br>')
                         }
                         this.updateBasicInfo({ desc })
-                        if (!this.isSubflow) {
-                            // 获取第三方插件公共输出参数
-                            if (!this.pluginOutput['remote_plugin']) {
-                                await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
+                        if (forms.renderFrom) {
+                            if (!this.isSubflow) {
+                                // 获取第三方插件公共输出参数
+                                if (!this.pluginOutput['remote_plugin']) {
+                                    await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
+                                }
+                                // 输出参数
+                                const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
+                                const outputs = []
+                                for (const [key, val] of Object.entries(respsOutputs.properties)) {
+                                    outputs.push({
+                                        name: val.title,
+                                        key,
+                                        type: val.type,
+                                        schema: { description: val.description || '--' }
+                                    })
+                                }
+                                this.outputs = [...storeOutputs, ...outputs]
                             }
-                            // 输出参数
-                            const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
-                            const outputs = []
-                            for (const [key, val] of Object.entries(respsOutputs.properties)) {
-                                outputs.push({
-                                    name: val.title,
-                                    key,
-                                    type: val.type,
-                                    schema: { description: val.description || '--' }
-                                })
-                            }
-                            this.outputs = [...storeOutputs, ...outputs]
+                            // 获取host
+                            const { origin } = window.location
+                            const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${plugin}/`
+                            $.context.bk_plugin_api_host[plugin] = hostUrl
+                            // 输入参数
+                            $.atoms[plugin] = {}
+                            const renderFrom = forms.renderform
+                            /* eslint-disable-next-line */
+                            eval(renderFrom)
+                        } else {
+                            $.atoms[plugin] = inputs
+                            this.outputs = [] // jsonschema form输出参数
                         }
-                        // 获取host
-                        const { origin } = window.location
-                        const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${plugin}/`
-                        $.context.bk_plugin_api_host[plugin] = hostUrl
-                        // 输入参数
-                        $.atoms[plugin] = {}
-                        const renderFrom = forms.renderform
-                        /* eslint-disable-next-line */
-                        eval(renderFrom)
                     } else {
                         await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id })
                     }
                     const config = $.atoms[plugin]
+                    console.log(config)
                     return config
                 } catch (e) {
                     console.log(e)
@@ -1514,7 +1518,12 @@
                     this.onClosePanel()
                     return true
                 } else {
-                    this.isConfirmDialogShow = true
+                    this.$bkInfo({
+                        ...this.infoBasicConfig,
+                        cancelFn: () => {
+                            this.onClosePanel()
+                        }
+                    })
                     this.isSelectorPanelShow = false
                     return false
                 }
@@ -1563,10 +1572,6 @@
                         this.$emit('close')
                     }
                 })
-            },
-            onConfirmClick () {
-                this.isConfirmDialogShow = false
-                this.onSaveConfig()
             },
             onClosePanel (openVariablePanel) {
                 this.$emit('close', openVariablePanel)
@@ -1751,17 +1756,6 @@
             &:hover {
                 color: #3a84ff;
             }
-        }
-    }
-    .node-config-confirm-dialog-content {
-        padding: 40px 0;
-        text-align: center;
-        .leave-tips {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-        .action-wrapper .bk-button {
-            margin-right: 6px;
         }
     }
     .cancel-global-variable-dialog {

@@ -74,6 +74,9 @@ class MockTaskflowStatistics(MagicMock):
     def values(self, *args, **kwargs):
         return TEST_TASKFLOW_STATISTICS_DATA
 
+    def count(self, *args, **kwargs):
+        return TEST_TOTAL
+
 
 class MockInstanceDict(MagicMock):
     def values_list(self, *args, **kwargs):
@@ -91,7 +94,7 @@ class TestGroupByInstanceNode(TestCase):
             with mock.patch(PIPELINE_INSTANCE_FILTER, MockInstanceDict()) as mock_instance_dict:
                 with mock.patch(PROJECT_FILTER, MockProjectDict()) as mock_project_dict:
                     total, groups = TaskFlowInstance.objects.group_by_instance_node(
-                        taskflow=TEST_TASKFLOW, filters=None, page=TEST_PAGE, limit=TEST_LIMIT
+                        taskflow=TEST_TASKFLOW, filters={}, page=TEST_PAGE, limit=TEST_LIMIT
                     )
                     mock_statistics_filter.assert_called_once_with(task_instance_id__in=TEST_TASK_INSTANCE_ID_LIST)
                     mock_instance_dict.assert_called_once_with(id__in=TEST_TASK_INSTANCE_ID_LIST[0:TEST_LIMIT])
