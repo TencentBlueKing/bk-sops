@@ -66,6 +66,7 @@ INSTALLED_APPS += (
     "gcloud.apigw",
     "gcloud.common_template",
     "gcloud.label",
+    "gcloud.contrib.cleaner",
     "gcloud.periodictask",
     "gcloud.external_plugins",
     "gcloud.contrib.admin",
@@ -481,6 +482,7 @@ from pipeline.celery.settings import *  # noqa
 from pipeline.eri.celery import queues as eri_queues  # noqa
 from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver  # noqa
 from gcloud.taskflow3.celery import settings as taskflow3_celery_settings  # noqa
+from gcloud.contrib.cleaner import settings as cleaner_settings  # noqa
 
 API_TASK_QUEUE_NAME_V2 = "api"
 PERIODIC_TASK_QUEUE_NAME_V2 = "periodic_task"
@@ -489,6 +491,7 @@ CELERY_QUEUES.extend(eri_queues.QueueResolver(API_TASK_QUEUE_NAME_V2).queues())
 CELERY_QUEUES.extend(eri_queues.QueueResolver(PERIODIC_TASK_QUEUE_NAME_V2).queues())
 CELERY_QUEUES.extend(PrepareAndStartTaskQueueResolver(API_TASK_QUEUE_NAME_V2).queues())
 CELERY_QUEUES.extend(taskflow3_celery_settings.CELERY_QUEUES)
+CELERY_QUEUES.extend(cleaner_settings.CELERY_QUEUES)
 
 # CELERY与RabbitMQ增加60秒心跳设置项
 BROKER_HEARTBEAT = 60
@@ -737,3 +740,10 @@ PAASV3_APIGW_API_TOKEN = env.PAASV3_APIGW_API_TOKEN
 
 # requests请求尝试重试次数
 REQUEST_RETRY_NUMBER = env.REQUEST_RETRY_NUMBER
+
+# V2引擎任务清理配置
+ENABLE_CLEAN_EXPIRED_V2_TASK = env.ENABLE_CLEAN_EXPIRED_V2_TASK
+CLEAN_EXPIRED_V2_TASK_CRON = env.CLEAN_EXPIRED_V2_TASK_CRON
+V2_TASK_VALIDITY_DAY = env.V2_TASK_VALIDITY_DAY
+CLEAN_EXPIRED_V2_TASK_BATCH_NUM = env.CLEAN_EXPIRED_V2_TASK_BATCH_NUM
+CLEAN_EXPIRED_V2_TASK_INSTANCE = env.CLEAN_EXPIRED_V2_TASK_INSTANCE

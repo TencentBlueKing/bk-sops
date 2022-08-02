@@ -113,9 +113,7 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
                     resources = res_factory.resources_for_common_flow_obj(template)
                     if request.data.get("project"):
                         resources.extend(res_factory.resources_for_project(request.data["project"]))
-                self.iam_auth_check(
-                    request=request, action=iam_action, resources=resources,
-                )
+                self.iam_auth_check(request=request, action=iam_action, resources=resources)
                 return True
         elif view.action == "list":
             user_type_validator = IamUserTypeBasedValidator()
@@ -125,7 +123,9 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
 
 class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, generics.DestroyAPIView):
     serializer_class = TaskFlowInstanceSerializer
-    queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False, is_deleted=False).order_by("-id")
+    queryset = TaskFlowInstance.objects.filter(
+        pipeline_instance__isnull=False, is_deleted=False, pipeline_instance__is_expired=False
+    ).order_by("-id")
     iam_resource_helper = ViewSetResourceHelper(resource_func=res_factory.resources_for_task_obj, actions=TASK_ACTIONS)
     filter_class = TaskFlowFilterSet
     permission_classes = [permissions.IsAuthenticated, TaskFlowInstancePermission]
@@ -202,6 +202,15 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
                     if allowed:
                         instance["auth_actions"].append(act)
         return self.get_paginated_response(data) if page is not None else Response(data)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.pipeline_instance.is_expired:
+            return Response({"detail": ErrorDetail("任务已过期", err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+        serializer = self.get_serializer(instance)
+        # 注入权限
+        data = self.injection_auth_actions(request, serializer.data, instance)
+        return Response(data)
 
     @staticmethod
     def handle_task_name_attr(data):
