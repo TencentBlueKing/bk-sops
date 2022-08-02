@@ -597,8 +597,19 @@
             // 创建方式tab切换
             handleCreateMethodTabClick (method) {
                 this.crtCreateMethodTab = method
-                this.pagination.current = 1
-                this.getTaskList()
+                const index = this.searchSelectValue.findIndex(item => item.id === 'create_method')
+                const form = this.searchList.find(item => item.id === 'create_method')
+                const values = form.children.filter(item => item.id === method)
+                if (method === 'all' && index > -1) {
+                    this.searchSelectValue.splice(index, 1)
+                } else if (method !== 'all') {
+                    const methodInfo = this.searchSelectValue[index]
+                    if (methodInfo) {
+                        methodInfo.values = values
+                    } else {
+                        this.searchSelectValue.push({ ...form, values })
+                    }
+                }
             },
             hasCreateTaskPerm (task) {
                 const authActions = [...task.auth_actions, ...this.authActions]
@@ -830,10 +841,14 @@
                         return { id: item.value, name: item.name }
                     })
                     // 因为任务类型列表是通过接口获取的，所以需要把路径上的类型添加进去
-                    const ids = this.$route.query['create_method']
-                    if (ids) {
+                    const id = this.$route.query['create_method']
+                    if (id) {
+                        const match = this.createMethodTabs.some(item => item.id === id)
+                        if (match) {
+                            this.crtCreateMethodTab = id
+                        }
                         this.isInitCreateMethod = true
-                        const values = form.children.filter(item => ids.includes(item.id))
+                        const values = form.children.filter(item => id === item.id)
                         this.searchSelectValue.push({ ...form, values })
                     }
                 } catch (e) {
@@ -874,6 +889,15 @@
                     }
                     return acc
                 }, {})
+                const method = data['create_method']
+                if (method) {
+                    const match = this.createMethodTabs.some(item => item.id === method)
+                    if (match) {
+                        this.crtCreateMethodTab = method
+                    }
+                } else {
+                    this.crtCreateMethodTab = 'all'
+                }
                 this.requestData = data
                 this.pagination.current = 1
                 // 当拉取创建方式列表时，不需要更新任务列表
