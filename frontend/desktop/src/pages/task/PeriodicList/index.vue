@@ -217,7 +217,7 @@
             :cron="selectedCron"
             :task-id="selectedPeriodicId"
             :is-modify-dialog-show="isModifyDialogShow"
-            :project_id="curRow.project.id"
+            :project_id="projectId"
             :cur-row="curRow"
             :is-edit="editTask"
             @onUpdateTask="onUpdateTask"
@@ -449,6 +449,9 @@
             }),
             adminView () {
                 return this.hasAdminPerm && this.admin
+            },
+            projectId () {
+                return this.adminView ? this.curRow.project.id : this.project_id
             }
         },
         async created () {
