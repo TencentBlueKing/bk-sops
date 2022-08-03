@@ -199,7 +199,6 @@
     import moment from 'moment-timezone'
     import { uuid } from '@/utils/uuid.js'
     import tools from '@/utils/tools.js'
-    import bus from '@/utils/bus.js'
     import atomFilter from '@/utils/atomFilter.js'
     import validatePipeline from '@/utils/validatePipeline.js'
     import TemplateHeader from './TemplateHeader.vue'
@@ -310,7 +309,9 @@
                 validateConnectFailList: [], // 节点校验失败列表
                 isPerspective: false, // 流程是否透视
                 nodeVariableInfo: {}, // 节点输入输出变量
-                isMultipleTabCount: 0
+                initType: '', // 记录最初的流程类型
+                isMultipleTabCount: 0,
+                isRouterPush: false
             }
         },
         computed: {
@@ -436,10 +437,10 @@
                 } else {
                     tplTabCount.setTab(data, 'del')
                 }
-                this.setMultipleTabCount()
             }
         },
         created () {
+            this.initType = this.type
             this.initData()
         },
         mounted () {
@@ -450,7 +451,6 @@
                 const data = this.getTplTabData()
                 tplTabCount.setTab(data, 'add')
             }
-            this.setMultipleTabCount()
         },
         beforeDestroy () {
             if (this.type === 'edit') {
@@ -575,7 +575,7 @@
                         }
                     })
                     this.atomList = this.handleAtomVersionOrder(atomList)
-                    this.handleAtomGroup(atomList)
+                    this.handleAtomGroup(tools.deepClone(this.atomList))
                     this.markNodesPhase()
                 } catch (e) {
                     console.log(e)
@@ -609,7 +609,18 @@
                     if (this.type === 'clone') {
                         templateData.name = templateData.name.slice(0, STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH - 6) + '_clone'
                     }
-                    this.setTemplateData(templateData)
+                    // 登录成功后，使用最新的快照模板
+                    if (localStorage.getItem('useSnapshot') && this.snapshoots.length) {
+                        localStorage.removeItem('useSnapshot')
+                        const data = this.snapshoots[0]
+                        this.replaceTemplate(data.template)
+                        this.$bkMessage({
+                            'message': i18n.t('存在未保存内容，已自动载入'),
+                            'theme': 'success'
+                        })
+                    } else {
+                        this.setTemplateData(templateData)
+                    }
                 } catch (e) {
                     if (e.status === 404) {
                         this.$router.push({ name: 'notFoundPage' })
@@ -839,13 +850,19 @@
 
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
-                    } else if (this.isBackViewMode) {
-                        this.$router.back()
-                    } else { // 保存后需要切到查看模式(查看执行方案时为编辑模式)
-                        this.$router.push({
-                            params: { type: this.isExecuteScheme ? 'edit' : 'view' },
-                            query: { template_id: data.template_id }
-                        })
+                    } else { // 保存后需要切到查看模式(查看执行方案时不需要)
+                        if (this.isExecuteScheme) return
+                        if (this.initType === 'view') {
+                            this.$router.back()
+                            this.initData()
+                        } else {
+                            this.$router.push({
+                                params: { type: 'view' },
+                                query: { template_id: data.template_id }
+                            })
+                            this.isRouterPush = true
+                            this.initType = 'view'
+                        }
                     }
                 } catch (e) {
                     console.log(e)
@@ -879,7 +896,7 @@
              */
             handleAtomVersionOrder (atomList) {
                 return atomList.map(atom => {
-                    const index = atom.list.find(item => item.version === 'legacy')
+                    const index = atom.list.findIndex(item => item.version === 'legacy')
                     const list = atom.list.slice(0)
                     const legacyList = []
                     if (index > -1) {
@@ -1413,10 +1430,7 @@
                         // 返回查看模式时初始化数据
                         this.isTemplateDataChanged = false
                         this.isGlobalVariableUpdate = false
-                        this.$router.push({
-                            query: { template_id: this.template_id },
-                            params: { type: 'view' }
-                        })
+                        this.$router.back()
                         this.initData()
                     }
                 })
@@ -1474,6 +1488,7 @@
                 }
                 this.saveAndCreate = saveAndCreate
                 this.pid = pid
+                this.isMultipleTabCount = tplTabCount.getCount(this.getTplTabData())
                 if (this.type === 'edit' && this.isMultipleTabCount > 1) {
                     if (!this.isExecuteScheme) {
                         this.multipleTabDialogShow = true
@@ -1538,16 +1553,6 @@
                         }
                     }
                 }
-            },
-            onLeaveConfirm () {
-                this.allowLeave = true
-                this.$router.push({ path: this.leaveToPath })
-            },
-            onLeaveCancel () {
-                this.allowLeave = false
-                this.leaveToPath = ''
-                this.isLeaveDialogShow = false
-                bus.$emit('resetProjectChange', this.project_id)
             },
             // 修改line和location
             onReplaceLineAndLocation (data) {
@@ -1807,9 +1812,6 @@
             onCancelSave () {
                 this.isExecuteSchemeDialog = false
                 this.isExecuteScheme = false
-            },
-            setMultipleTabCount () {
-                this.isMultipleTabCount = tplTabCount.getCount(this.getTplTabData())
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page

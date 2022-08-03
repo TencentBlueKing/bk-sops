@@ -18,6 +18,7 @@
 | scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 |   simplify_vars     |   list     |   否   |  需要进行类型简化的参数 key 列表。（类型简化后的参数在创建任务后会丢失模板中原本配置的类型，全部变成本文框类型的变量，通过使用这个选项能够在 API 调用时屏蔽不同类型变量 value 格式的差异，统一通过文本类型传递 value） |
 | execute_task_nodes_id | list | 否 | 仅执行的节点ID列表（与exclude_task_nodes_id同时存在时execute_task_nodes_id优先） |
+| callback_url | string | 否 | 任务执行完成后的回调地址 |
 
 #### constants KEY
 
@@ -49,6 +50,7 @@
     "execute_task_nodes_id": [1, 2, 3],
     "exclude_task_nodes_id": [4, 5, 6],
     "scope": "cmdb_biz",
+    "callback_url": "http://xxx.com"
 }
 ```
 

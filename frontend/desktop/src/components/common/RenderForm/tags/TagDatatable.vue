@@ -51,7 +51,8 @@
                 </el-upload>
             </template>
         </div>
-        <template v-if="Array.isArray(value) && !loading">
+        <span v-if="constants.subflow_detail_var" class="rf-view-value">{{ constants[tagCode] }}</span>
+        <template v-else-if="Array.isArray(value) && !loading">
             <el-table
                 ref="tableEl"
                 style="width: 100%; font-size: 12px"

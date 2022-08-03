@@ -5,46 +5,16 @@
             :style="{ maxHeight: (shrink ? (input.focus ? maxHeight : minHeight) : maxHeight) + 'px' }">
             <template v-if="searchSelectValue.length">
                 <!-- 已经选中的tag列表 -->
-                <div
-                    v-for="(item, index) in searchSelectValue"
-                    :key="index"
-                    :class="['select-tags', { 'active': item.isSelect }]"
-                    @click.stop="onClickSelectTag(item.id)">
-                    <bk-popover
-                        ref="selectPopover"
-                        placement="bottom"
-                        ext-cls="select-list-popover"
-                        trigger="manual"
-                        theme="light"
-                        :disabled="!item.multiable || !item.values || item.values.length <= 1"
-                        :allow="false">
-                        <span>{{ item.name + '：' }}</span>
-                        <span class="val-item" v-for="(val, idx) in item.values" :key="idx">
-                            {{ val.name || val }}
-                            <template v-if="idx !== item.values.length - 1">
-                                <span class="wavy-line" v-if="item.id === 'dateRange'">~</span>
-                                <span v-else class="separation-line">|</span>
-                            </template>
-                        </span>
-                        <i @click.stop="onClearSelectTag(item.id)" class="bk-icon icon-close"></i>
-                        <div slot="content">
-                            <ul class="select-list-menu">
-                                <li
-                                    v-for="(val, valIndex) in selectValues"
-                                    :key="valIndex"
-                                    class="menu-item"
-                                    @click="val.checked = !val.checked">
-                                    {{ val.name }}
-                                    <i class="bk-icon icon-check-1" v-if="val.checked"></i>
-                                </li>
-                            </ul>
-                            <div class="popover-footer">
-                                <span class="footer-btn" @click="handleConfirm(item.id)">{{ $t('确定') }}</span>
-                                <span class="footer-btn" @click="handleSelectPopHidden(item.id)">{{ $t('取消') }}</span>
-                            </div>
-                        </div>
-                    </bk-popover>
-                </div>
+                <select-tag
+                    v-for="tagInfo in searchSelectValue"
+                    :key="tagInfo.id"
+                    :list="list"
+                    :tag-info="tagInfo"
+                    @handleTagClear="handleTagClear"
+                    @handleSelectTagConfirm="handleSelectTagConfirm"
+                    @handleSelectTagCancel="initInputFocus"
+                    @updateSelectTag="setSearchSelectValue">
+                </select-tag>
             </template>
             <div class="search-input-input">
                 <bk-popover
@@ -96,7 +66,7 @@
                                         :class="{ 'is-hover': hoverId === option.id }"
                                         @click="handleOptionSelect(option)">
                                         {{ option.name }}
-                                        <i class="bk-icon icon-check-1" v-if="selectInfo.multiable && option.isActive"></i>
+                                        <i class="bk-icon icon-check-1" v-if="selectInfo.multiable && judgeOptionActive(option)"></i>
                                     </li>
                                 </template>
                             </ul>
@@ -135,7 +105,11 @@
     import { mapState } from 'vuex'
     import tools from '@/utils/tools.js'
     import { random4 } from '@/utils/uuid.js'
+    import selectTag from './selectTag.vue'
     export default {
+        components: {
+            selectTag
+        },
         model: {
             prop: 'values',
             event: 'change'
@@ -186,7 +160,6 @@
                     focus: false
                 },
                 searchText: '',
-                selectValues: [],
                 searchSelectValue: [],
                 selectTagList: [],
                 isVisible: false, // 输入框是否获取焦点
@@ -257,7 +230,7 @@
                     list = this.records.map(recordItem => {
                         if (Array.isArray(recordItem.values)) {
                             const values = recordItem.values.map(item => item.name || item)
-                            recordItem.text_value = values.join(recordItem.id === 'dateRange' ? ' - ' : ',')
+                            recordItem.text_value = values.join(recordItem.type === 'dateRange' ? ' - ' : ',')
                         } else {
                             recordItem.text_value = recordItem.values
                         }
@@ -307,6 +280,9 @@
                 if (option.multiable) return true
                 return !this.searchSelectValue.some(item => item.id === option.id)
             },
+            judgeOptionActive (option) {
+                return this.selectTagList.find(tag => tag.id === option.id)
+            },
             setInputFocus () {
                 this.$refs.input.focus()
             },
@@ -316,65 +292,28 @@
             getPopoverInstance () {
                 return this.$refs.searchPopover.instance
             },
-            // 点击已生成的selectTag
-            onClickSelectTag (id) {
-                const index = this.searchSelectValue.findIndex(item => item.id === id)
-                const popover = this.$refs.selectPopover[index].instance
-                popover.show()
-                const selectContent = this.searchSelectValue[index]
-                this.selectValues = selectContent.values.map(item => {
-                    if (item.id) {
-                        return { ...item, checked: true }
-                    }
-                    return { name: item, checked: true }
-                })
-                this.input.focus = true
-            },
             // 确定修改已生成的tag
-            handleConfirm (id) {
+            handleSelectTagConfirm (id, selectValues) {
                 const index = this.searchSelectValue.findIndex(item => item.id === id)
                 const selectContent = this.searchSelectValue[index]
-                // 如果没有修改则不更新
-                const selectValues = this.selectValues.reduce((acc, cur) => {
-                    const { id, name, checked } = cur
-                    if (checked) {
-                        id ? acc.push({ id, name }) : acc.push(name)
-                    }
-                    return acc
-                }, [])
-                const isEqual = tools.isDataEqual(selectContent.values, selectValues)
-                if (!isEqual) {
-                    selectContent.values = selectValues
-                    if (!selectContent.values.length) {
-                        this.searchSelectValue.splice(index, 1)
-                    }
+                selectContent.values = selectValues
+                if (!selectContent.values.length) {
+                    this.searchSelectValue.splice(index, 1)
                 }
                 // 添加搜索记录
                 this.addSearchRecord(selectContent)
-                // 关闭selectPopover，打开searchPopover
-                this.selectValues = []
-                const popover = this.$refs.selectPopover[index].instance
-                popover.hide()
-                this.setInputFocus()
-                this.isVisible = true
+                this.initInputFocus()
             },
-            // 已生成tag的popover消失事件
-            handleSelectPopHidden (id) {
-                const index = this.searchSelectValue.findIndex(item => item.id === id)
-                const popover = this.$refs.selectPopover[index].instance
-                popover.hide()
+            // 输入框focus&打开searchPopover
+            initInputFocus () {
                 this.setInputFocus()
                 this.isVisible = true
             },
             // 修改已生成的tag
-            onClearSelectTag (id) {
+            handleTagClear (id) {
                 const index = this.searchSelectValue.findIndex(item => item.id === id)
                 this.searchSelectValue.splice(index, 1)
-                // 关闭selectPopover，打开searchPopover
-                const popover = this.$refs.selectPopover[index].instance
-                popover.hide()
-                this.setInputFocus()
-                this.isVisible = true
+                this.initInputFocus()
             },
             handleSearchPopHidden () {
                 this.isVisible = false
@@ -433,7 +372,6 @@
                     } else {
                         this.selectTagList.push(tools.deepClone(val))
                     }
-                    val.isActive = !val.isActive
                     if (this.selectInfo.multiable) {
                         let text = this.selectTagList.map(item => item.name).join(' | ')
                         this.input.value = text
@@ -493,7 +431,9 @@
                 if (this.shrink) {
                     this.setInputFocus()
                 }
-                this.isVisible = true
+                if (!this.selectInfo.id || this.selectInfo.children) {
+                    this.isVisible = true
+                }
             },
             handleInputCut () {
                 console.log('cut')
@@ -517,7 +457,6 @@
             },
             // 文本框按键事件
             handleInputKeyup (e) {
-                console.log(e.code)
                 switch (e.code) {
                     case 'Enter':
                     case 'NumpadEnter':
@@ -599,7 +538,7 @@
                     this.$refs.input.innerText = ''
                     this.selectInfo = {}
                     this.isVisible = true
-                }, 0)
+                }, 100)
             },
             // 清空按键
             handleKeyBackspace (e) {
@@ -653,7 +592,7 @@
                     if (match) {
                         list.unshift({ ...data, cid })
                     }
-                    records[this.username][this.id] = list.splice(0, 7)
+                    records[this.username][this.id] = list.splice(0, 10)
                 } else {
                     records[this.username][this.id] = [{ ...data, cid }]
                 }
@@ -677,13 +616,13 @@
                 localStorage.setItem(`advanced_search_record`, JSON.stringify(records))
             },
             // 选中搜索数据
-            setSearchSelectValue (record) {
+            setSearchSelectValue (data) {
                 this.setInputFocus()
-                const selectInfo = this.searchSelectValue.find(item => item.id === record.id)
+                const selectInfo = this.searchSelectValue.find(item => item.id === data.id)
                 if (selectInfo) {
-                    selectInfo.values = record.values
+                    selectInfo.values = data.values
                 } else {
-                    this.searchSelectValue.push(record)
+                    this.searchSelectValue.push(data)
                 }
             },
             // 删除搜索数据
@@ -702,11 +641,10 @@
                 const len = this.optionList.filter(option => {
                     return this.judgeOptionShow(option)
                 }).length
-                if (['ArrowDown', 'ArrowUp'].includes(e.code) && len) {
+                if (len) {
                     e.preventDefault()
                     e.stopPropagation()
                     this.setInputFocus()
-                    this.hasFocus = true
                     let curIndex = this.optionList.findIndex(set => set.id === this.hoverId)
                     curIndex = e.code === 'ArrowDown' ? curIndex + 1 : curIndex - 1
                     curIndex = curIndex > len - 1 ? 0 : (curIndex < 0 ? len - 1 : curIndex)
@@ -756,44 +694,9 @@
         overflow: visible;
         display: flex;
         flex-wrap: wrap;
-        min-height: 32px;
+        min-height: 30px;
         transition: max-height .3s cubic-bezier(0.4, 0, 0.2, 1);
-        
-        .select-tags {
-            margin: 4px 0 5px 5px;
-            padding: 0 5px;
-            min-height: 22px;
-            line-height: 22px;
-            background: #f0f1f5;
-            border-radius: 2pt;
-            display: flex;
-            align-items: center;
-            color: #63656e;
-            cursor: pointer;
-            &.active, &:hover {
-                background: #dcdee4;
-            }
-            .val-item {
-                position: relative;
-                .wavy-line,
-                .separation-line {
-                    margin: 0 7px;
-                }
-                &:nth-last-child(2) {
-                    margin-right: 0;
-                    &::after {
-                        content: '';
-                        display: none !important;
-                    }
-                }
-            }
-            .icon-close {
-                color: #979ba5;
-                font-size: 13px;
-                margin: 0 4px;
-                font-weight: 700;
-            }
-        }
+
         .search-input-input {
             position: relative;
             padding: 0 8px;
@@ -805,7 +708,7 @@
             align-items: center;
             .div-input {
                 width: 100%;
-                line-height: 32px;
+                line-height: 30px;
                 word-break: break-all;
                 position: relative;
                 border: none;
@@ -842,7 +745,6 @@
         }
     }
     .close-icon {
-        top: 9px;
         font-size: 14px;
         &:hover {
             color: #979ba5;
@@ -861,6 +763,9 @@
             .tippy-arrow {
                 display: none;
             }
+            .tippy-content {
+                padding: 0;
+            }
         }
         .option-none {
             .search-list-menu {
@@ -871,19 +776,6 @@
                 &::before {
                     width: 100%;
                     left: 0;
-                }
-            }
-            .no-search-data {
-                height: 46px;
-                width: 238px !important;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #63656e;
-                cursor: default;
-                &:hover {
-                    color: #63656e;
-                    background: none;
                 }
             }
         }
@@ -909,14 +801,11 @@
             padding: 0 15px !important;
             cursor: pointer;
             font-size: 12px;
-            &:hover {
-                color: #3a84ff;
-                background: #eaf3ff;
-            }
             .icon-check-1 {
                 font-size: 22px;
                 color: #3a84ff;
             }
+            &:hover,
             &.is-hover {
                 background: #eaf3ff;
                 color: #3a84ff;
@@ -924,7 +813,7 @@
         }
         .search-menu-item {
             .search-menu-label {
-                width: 60px;
+                min-width: 60px;
                 text-align: right;
                 padding-left: 12px !important;
                 font-weight: 700;
@@ -944,6 +833,19 @@
         }
         .popover-footer {
             border: 1px solid #dcdee5;
+        }
+        .no-search-data {
+            height: 46px;
+            width: 238px !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #63656e;
+            cursor: default;
+            &:hover {
+                color: #63656e;
+                background: none;
+            }
         }
         .recent-search-list {
             position: relative;

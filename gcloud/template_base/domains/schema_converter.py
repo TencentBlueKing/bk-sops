@@ -591,8 +591,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                     if field == "custom_type":
                         cur_constant["type"] = value
                     elif field == "show_type":
-                        if constant["source_type"] == "component_outputs":
-                            cur_constant["hide"] = True
+                        cur_constant["hide"] = True
                     elif field == "source_tag":
                         if not constant["custom_type"]:
                             cur_constant["source_tag"] = value

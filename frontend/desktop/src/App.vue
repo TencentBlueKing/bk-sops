@@ -73,7 +73,8 @@
                 },
                 isRouterAlive: false,
                 projectDetailLoading: false, // 项目详情加载
-                appmakerDataLoading: false // 轻应用加载 app 详情,
+                appmakerDataLoading: false, // 轻应用加载 app 详情,
+                isUseSnapshot: false // 登录成功时是否使用快照
             }
         },
         computed: {
@@ -123,29 +124,34 @@
                 this.$refs.permissionModal.show(data)
             })
             bus.$on('showErrMessage', info => {
-                window.show_msg(info.message, 'error', info.traceId)
+                const msg = JSON.stringify(info.message)
+                window.show_msg(msg, 'error', info.traceId, info.errorSource)
+            })
+            // 登录成功后使用快照
+            bus.$on('useSnapshot', data => {
+                this.isUseSnapshot = true
             })
 
             /**
              * 兼容标准插件配置项里，异步请求用到的全局弹窗提示
              */
-            window.show_msg = (msg, type = 'error', traceId) => {
+            window.show_msg = (msg, type = 'error', traceId, errorSource = '') => {
                 const index = window.msg_list.findIndex(item => item.msg === msg)
                 if (index > -1) {
                     if (traceId && !window.msg_list[index].traceId) {
-                        window.msg_list[index] = { msg, type, traceId }
+                        window.msg_list[index] = { msg, type, traceId, errorSource }
                     } else {
                         return
                     }
                 } else {
-                    window.msg_list.push({ msg, type, traceId })
+                    window.msg_list.push({ msg, type, traceId, errorSource })
                 }
                 setTimeout(() => { // 异步执行,可以把前端报错的trace_id同步上
                     const info = window.msg_list.find(item => item.msg === msg && item.traceId === traceId)
                     if (!info) return
                     this.$nextTick(() => {
                         /* eslint-disable-next-line */
-                        new ErrorNotify(info.msg, info.type, info.traceId, this)
+                        new ErrorNotify(info, this)
                     })
                 })
             }
@@ -310,7 +316,16 @@
                 const data = message.data // message.data为另一个页面传递的数据
                 if (data && data === 'login') {
                     window.loginWindow.close() // 关闭弹出的窗口
-                    window.location.reload()
+                    window.loginWindow = null
+                    if (this.isUseSnapshot) { // 使用模板快照
+                        this.isUseSnapshot = false
+                        localStorage.setItem('useSnapshot', true)
+                    }
+                    // 刷新页面(公共流程模板页面登录后路由需要单独挂载)
+                    if (this.$route.query.common) {
+                        this.reload()
+                    }
+                    this.initData()
                 }
             }
         }

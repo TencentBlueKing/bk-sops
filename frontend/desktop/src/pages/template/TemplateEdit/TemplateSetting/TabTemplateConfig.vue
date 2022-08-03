@@ -50,7 +50,12 @@
                                     <i class="bk-option-icon bk-icon icon-check-1"></i>
                                 </div>
                             </bk-option>
-                            <div slot="extension" @click="onEditLabel" class="label-select-extension" data-test-id="tabTemplateConfig_form_editLabel">
+                            <div
+                                slot="extension"
+                                class="label-select-extension"
+                                data-test-id="tabTemplateConfig_form_editLabel"
+                                v-cursor="{ active: !hasPermission(['project_edit'], authActions) }"
+                                @click="onEditLabel">
                                 <i class="bk-icon icon-plus-circle"></i>
                                 <span>{{ $t('编辑标签') }}</span>
                             </div>
@@ -93,6 +98,7 @@
                         :notify-type="formData.notifyType"
                         :notify-type-list="[{ text: $t('任务状态') }]"
                         :receiver-group="formData.receiverGroup"
+                        :project_id="projectId"
                         :common="common"
                         :is-view-mode="isViewMode"
                         @change="onSelectNotifyConfig">
@@ -191,6 +197,7 @@
     import { NAME_REG, STRING_LENGTH, TASK_CATEGORIES, LABEL_COLOR_LIST } from '@/constants/index.js'
     import i18n from '@/config/i18n/index.js'
     import NotifyTypeConfig from './NotifyTypeConfig.vue'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'TabTemplateConfig',
@@ -198,6 +205,7 @@
             MemberSelect,
             NotifyTypeConfig
         },
+        mixins: [permission],
         props: {
             projectInfoLoading: Boolean,
             templateLabelLoading: Boolean,
@@ -262,6 +270,13 @@
                             max: 50,
                             message: i18n.t('标签名称不能超过') + 50 + i18n.t('个字符'),
                             trigger: 'blur'
+                        },
+                        {
+                            validator: (val) => {
+                                return this.templateLabels.every(label => label.name !== val)
+                            },
+                            message: i18n.t('标签已存在，请重新输入'),
+                            trigger: 'blur'
                         }
                     ]
                 },
@@ -278,6 +293,8 @@
                 'infoBasicConfig': state => state.infoBasicConfig
             }),
             ...mapState('project', {
+                'projectId': state => state.project_id,
+                'projectName': state => state.projectName,
                 'authActions': state => state.authActions
             })
         },
@@ -310,6 +327,16 @@
                 }
             },
             onEditLabel () {
+                if (!this.hasPermission(['project_edit'], this.authActions)) {
+                    const resourceData = {
+                        project: [{
+                            id: this.projectId,
+                            name: this.projectName
+                        }]
+                    }
+                    this.applyForPermission(['project_edit'], this.authActions, resourceData)
+                    return
+                }
                 this.labelDetail = { color: '#1c9574', name: '', description: '' }
                 this.labelDialogShow = true
                 this.colorDropdownShow = false
@@ -331,6 +358,14 @@
                 if (this.isViewMode) return
                 if (this.authActions.includes('project_edit')) {
                     this.$router.push({ name: 'projectConfig', params: { id: this.$route.params.project_id } })
+                } else {
+                    const resourceData = {
+                        project: [{
+                            id: this.projectId,
+                            name: this.projectName
+                        }]
+                    }
+                    this.applyForPermission(['project_edit'], this.authActions, resourceData)
                 }
             },
             onSelectNotifyConfig (formData) {
@@ -404,6 +439,7 @@
                             if (resp.result) {
                                 this.$emit('updateTemplateLabelList')
                                 this.labelDialogShow = false
+                                this.formData.labels.push(resp.data.id)
                                 this.$bkMessage({
                                     message: i18n.t('标签新建成功'),
                                     theme: 'success'
