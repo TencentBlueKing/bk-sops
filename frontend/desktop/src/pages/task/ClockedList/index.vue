@@ -96,15 +96,15 @@
                         <bk-table-column :label="$t('操作')" width="190" :fixed="clockedList.length ? 'right' : false">
                             <div class="clocked-operation" slot-scope="props">
                                 <a
-                                    v-cursor="{ active: props.row.task_id ? false : !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions) }"
+                                    v-cursor="{ active: !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions) }"
                                     href="javascript:void(0);"
                                     :class="{
-                                        'text-permission-disable': !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions),
-                                        'clocked-bk-disable': props.row.task_id
+                                        'clocked-bk-disable': props.row.state !== 'not_started',
+                                        'text-permission-disable': !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions)
                                     }"
                                     v-bk-tooltips.top="{
-                                        content: $t('已执行的计划任务无法编辑'),
-                                        disabled: !props.row.task_id
+                                        content: props.row.task_id ? $t('已执行的计划任务无法编辑') : $t('启动失败的计划任务无法编辑'),
+                                        disabled: !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions) || props.row.state === 'not_started'
                                     }"
                                     data-test-id="clockedList_table_editBtn"
                                     @click="onEditClockedTask(props.row, $event)">
@@ -243,6 +243,7 @@
         }, {
             id: 'editor',
             label: i18n.t('更新人'),
+            disabled: true,
             width: 150
         }, {
             id: 'create_time',
@@ -285,31 +286,34 @@
                 limit = 15,
                 creator = '',
                 editor = '',
-                queryTime = '',
+                plan_start_time = '',
+                create_time = '',
+                edit_time = '',
                 taskName = '',
                 task_id = '',
                 state = ''
             } = this.$route.query
-            const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
+            const searchList = [
+                ...SEARCH_LIST,
+                { id: 'plan_start_time', name: i18n.t('启动时间'), type: 'dateRange' },
+                { id: 'create_time', name: i18n.t('创建时间'), type: 'dateRange' },
+                { id: 'edit_time', name: i18n.t('更新时间'), type: 'dateRange' }
+            ]
+            const searchSelectValue = searchList.reduce((acc, cur) => {
                 const values_text = this.$route.query[cur.id]
                 if (values_text) {
-                    const { id, name, children } = cur
                     let values = []
-                    if (!children) {
-                        values = [values_text]
-                        acc.push({ id, name, values })
-                    } else if (children.length) {
+                    if (!cur.children) {
+                        values = cur.type === 'dateRange' ? values_text.split(',') : [values_text]
+                        acc.push({ ...cur, values })
+                    } else if (cur.children.length) {
                         const ids = values_text.split(',')
-                        values = children.filter(item => ids.includes(String(item.id)))
-                        acc.push({ id, name, values })
+                        values = cur.children.filter(item => ids.includes(String(item.id)))
+                        acc.push({ ...cur, values })
                     }
                 }
                 return acc
             }, [])
-            if (queryTime) {
-                const values = queryTime.split(',')
-                searchSelectValue.push({ id: 'dateRange', name: '创建时间', values })
-            }
             return {
                 firstLoading: true,
                 clockedList: [],
@@ -317,7 +321,9 @@
                 requestData: {
                     creator,
                     editor,
-                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
+                    plan_start_time: plan_start_time ? plan_start_time.split(',') : ['', ''],
+                    create_time: create_time ? create_time.split(',') : ['', ''],
+                    edit_time: edit_time ? edit_time.split(',') : ['', ''],
                     taskName,
                     task_id,
                     state
@@ -345,8 +351,7 @@
                 sideSliderType: '',
                 isShowSideslider: false,
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
-                searchSelectValue,
-                dateTimeRange: queryTime ? queryTime.split(',') : []
+                searchSelectValue
             }
         },
         computed: {
@@ -382,7 +387,7 @@
             async getClockedTaskList () {
                 try {
                     this.listLoading = true
-                    const { creator, queryTime, taskName, task_id, editor, state } = this.requestData
+                    const { creator, plan_start_time, create_time, edit_time, taskName, task_id, editor, state } = this.requestData
                     const params = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
@@ -395,9 +400,17 @@
                     if (!this.admin) {
                         params.project_id = this.project_id
                     }
-                    if (queryTime && queryTime[0] && queryTime[1]) {
-                        params['plan_start_time__gte'] = moment.tz(queryTime[0], this.timeZone).format('YYYY-MM-DD hh:mm:ss')
-                        params['plan_start_time__lte'] = moment.tz(queryTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD hh:mm:ss')
+                    if (plan_start_time && plan_start_time[0] && plan_start_time[1]) {
+                        params['plan_start_time__gte'] = moment.tz(plan_start_time[0], this.timeZone).format('YYYY-MM-DD hh:mm:ss')
+                        params['plan_start_time__lte'] = moment.tz(plan_start_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD hh:mm:ss')
+                    }
+                    if (create_time && create_time[0] && create_time[1]) {
+                        params['create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD hh:mm:ss')
+                        params['create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD hh:mm:ss')
+                    }
+                    if (edit_time && edit_time[0] && edit_time[1]) {
+                        params['edit_time__gte'] = moment.tz(edit_time[0], this.timeZone).format('YYYY-MM-DD hh:mm:ss')
+                        params['edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD hh:mm:ss')
                     }
                     const resp = await this.loadClockedList(params)
                     this.pagination.count = resp.data.count
@@ -450,8 +463,8 @@
             },
             handleSearchValueChange (data) {
                 data = data.reduce((acc, cur) => {
-                    if (cur.id === 'dateRange') {
-                        acc['queryTime'] = cur.values
+                    if (cur.type === 'dateRange') {
+                        acc[cur.id] = cur.values
                     } else if (cur.multiable) {
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
@@ -460,7 +473,6 @@
                     }
                     return acc
                 }, {})
-                this.dateTimeRange = data['queryTime'] || []
                 this.requestData = data
                 this.pagination.current = 1
                 this.updateUrl()
@@ -480,27 +492,29 @@
                 this.getClockedTaskList()
             },
             renderTableHeader (h, { column, $index }) {
-                if (column.property === 'create_time') {
+                if (['plan_start_time', 'create_time', 'edit_time'].includes(column.property)) {
+                    const id = this.setting.selectedFields[$index].id
+                    const date = this.requestData[id]
                     return <TableRenderHeader
                         name={ column.label }
                         orderShow = { false }
-                        dateValue={ this.dateTimeRange }
-                        onDateChange={ data => this.handleDateTimeFilter(data) }>
+                        dateValue={ date }
+                        onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
                 } else {
                     return column.label
                 }
             },
-            handleDateTimeFilter (date = []) {
-                this.dateTimeRange = date
-                const index = this.searchSelectValue.findIndex(item => item.id === 'dateRange')
+            handleDateTimeFilter (date = [], id) {
+                const index = this.searchSelectValue.findIndex(item => item.id === id)
                 if (date.length) {
                     if (index > -1) {
                         this.searchSelectValue[index].values = date
                     } else {
                         const info = {
-                            id: 'dateRange',
-                            name: '创建时间',
+                            id,
+                            type: 'dateRange',
+                            name: id === 'plan_start_time' ? i18n.t('启动时间') : id === 'create_time' ? i18n.t('创建时间') : i18n.t('更新时间'),
                             values: date
                         }
                         this.searchSelectValue.push(info)
@@ -525,11 +539,13 @@
             // 更新路径
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { creator, queryTime, taskName, task_id, state, editor } = this.requestData
+                const { creator, plan_start_time, create_time, edit_time, taskName, task_id, state, editor } = this.requestData
                 const filterObj = {
                     limit,
                     creator,
-                    queryTime: queryTime && queryTime.every(item => item) ? queryTime.join(',') : '',
+                    plan_start_time: plan_start_time && plan_start_time.every(item => item) ? plan_start_time.join(',') : '',
+                    create_time: create_time && create_time.every(item => item) ? create_time.join(',') : '',
+                    edit_time: edit_time && edit_time.every(item => item) ? edit_time.join(',') : '',
                     page: current,
                     taskName,
                     task_id,
@@ -585,7 +601,8 @@
                     this.onClockedPermissonCheck(['flow_view', 'clocked_task_edit'], row)
                     return
                 }
-                if (row.task_id) return
+                // 已执行的计划任务禁止编辑
+                if (row.state !== 'not_started') return
                 // 检查计划任务是否已执行
                 const resp = await this.getClockedDetail(row)
                 if (resp.data.task_id) {
@@ -699,7 +716,7 @@
         cursor: pointer;
         &.clocked-bk-disable {
             color:#cccccc !important;
-            cursor: not-allowed !important;
+            cursor: not-allowed;
         }
     }
     .empty-data {

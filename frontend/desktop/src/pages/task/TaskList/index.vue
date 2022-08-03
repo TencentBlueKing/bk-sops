@@ -34,7 +34,7 @@
                         <search-select
                             ref="searchSelect"
                             id="taskList"
-                            :placeholder="$t('ID/任务名/创建人/执行人/任务类型/状态')"
+                            :placeholder="$t('ID/任务名/创建人/执行人/状态/创建方式/执行代理人')"
                             v-model="searchSelectValue"
                             :search-list="searchList"
                             @change="handleSearchValueChange">
@@ -202,8 +202,8 @@
                         <div slot="content">
                             <p class="mb10">{{ $t('以下情况参数值无法重用，使用变量默认值：') }}</p>
                             <p>{{ '1. ' + $t('变量的类型变更') }}</p>
-                            <p>{{ '2. ' + $t('变量值的配置项变更') }}</p>
-                            <p>{{ '3. ' + $t('元变量的配置变更') }}</p>
+                            <p>{{ '2. ' + $t('变量默认值的字段增减') }}</p>
+                            <p>{{ '3. ' + $t('下拉框、表格类型变量的配置变更') }}</p>
                         </div>
                     </bk-popover>
                 </bk-radio>
@@ -243,11 +243,6 @@
             name: i18n.t('执行人')
         },
         {
-            id: 'category',
-            name: i18n.t('任务类型'),
-            children: []
-        },
-        {
             id: 'statusSync',
             name: i18n.t('状态'),
             children: [
@@ -256,6 +251,15 @@
                 { id: 'revoked', name: i18n.t('撤销') },
                 { id: 'finished', name: i18n.t('完成') }
             ]
+        },
+        {
+            id: 'create_method',
+            name: i18n.t('创建方式'),
+            children: []
+        },
+        {
+            id: 'recorded_executor_proxy',
+            name: i18n.t('执行代理人')
         }
     ]
     const TABLE_FIELDS = [
@@ -344,20 +348,29 @@
                 limit = 15,
                 template_source = '',
                 create_info = '',
-                category = '',
-                queryTime = '',
+                start_time = '',
+                create_time = '',
+                finish_time = '',
                 creator = '',
                 executor = '',
                 statusSync = '',
                 taskName = '',
-                task_id = ''
+                task_id = '',
+                create_method = '',
+                recorded_executor_proxy = ''
             } = this.$route.query
-            const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
+            const searchList = [
+                ...SEARCH_LIST,
+                { id: 'start_time', name: i18n.t('执行时间'), type: 'dateRange' },
+                { id: 'create_time', name: i18n.t('创建时间'), type: 'dateRange' },
+                { id: 'finish_time', name: i18n.t('结束时间'), type: 'dateRange' }
+            ]
+            const searchSelectValue = searchList.reduce((acc, cur) => {
                 const values_text = this.$route.query[cur.id]
                 if (values_text) {
                     let values = []
                     if (!cur.children) {
-                        values = [values_text]
+                        values = cur.type === 'dateRange' ? values_text.split(',') : [values_text]
                         acc.push({ ...cur, values })
                     } else if (cur.children.length) {
                         const ids = values_text.split(',')
@@ -367,10 +380,6 @@
                 }
                 return acc
             }, [])
-            if (queryTime) {
-                const values = queryTime.split(',')
-                searchSelectValue.push({ id: 'dateRange', name: '创建时间', values })
-            }
             return {
                 firstLoading: true,
                 listLoading: false,
@@ -397,13 +406,16 @@
                 createInfo: create_info,
                 templateSource: template_source,
                 requestData: {
-                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
-                    category,
+                    start_time: start_time ? start_time.split(',') : ['', ''],
+                    create_time: create_time ? create_time.split(',') : ['', ''],
+                    finish_time: finish_time ? finish_time.split(',') : ['', ''],
                     creator,
                     executor,
                     statusSync,
                     taskName,
-                    id: task_id
+                    id: task_id,
+                    create_method,
+                    recorded_executor_proxy
                 },
                 pagination: {
                     current: Number(page),
@@ -431,7 +443,7 @@
                 selectedRow: {},
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
                 searchSelectValue,
-                dateTimeRange: queryTime.split(',')
+                isInitCreateMethod: false
             }
         },
         computed: {
@@ -445,7 +457,6 @@
         },
         async created () {
             this.getFields()
-            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             await this.getData()
             this.firstLoading = false
         },
@@ -472,7 +483,7 @@
                 this.listLoading = true
                 this.executeStatus = []
                 try {
-                    const { queryTime, category, creator, executor, statusSync, taskName, id } = this.requestData
+                    const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, id, create_method, recorded_executor_proxy } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
                     let pipeline_instance__is_revoked
@@ -496,7 +507,6 @@
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
-                        category: category || undefined,
                         template_id: this.templateId || undefined,
                         pipeline_instance__creator__contains: creator || undefined,
                         pipeline_instance__executor__contains: executor || undefined,
@@ -507,16 +517,36 @@
                         create_info: this.createInfo || undefined,
                         project__id: this.project_id,
                         template_source: this.templateSource || undefined,
-                        id: id || undefined
+                        id: id || undefined,
+                        create_method: create_method || undefined,
+                        recorded_executor_proxy: recorded_executor_proxy || undefined
                     }
 
-                    if (queryTime && queryTime[0] && queryTime[1]) {
+                    if (start_time && start_time[0] && start_time[1]) {
                         if (this.template_source === 'common') {
-                            data['pipeline_template__start_time__gte'] = moment(queryTime[0]).format('YYYY-MM-DD')
-                            data['pipeline_template__start_time__lte'] = moment(queryTime[1]).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__gte'] = moment(start_time[0]).format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__lte'] = moment(start_time[1]).add('1', 'd').format('YYYY-MM-DD')
                         } else {
-                            data['pipeline_instance__start_time__gte'] = moment.tz(queryTime[0], this.timeZone).format('YYYY-MM-DD')
-                            data['pipeline_instance__start_time__lte'] = moment.tz(queryTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__gte'] = moment.tz(start_time[0], this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(start_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                        }
+                    }
+                    if (create_time && create_time[0] && create_time[1]) {
+                        if (this.template_source === 'common') {
+                            data['pipeline_template__create_time__gte'] = moment(create_time[0]).format('YYYY-MM-DD')
+                            data['pipeline_template__create_time__lte'] = moment(create_time[1]).add('1', 'd').format('YYYY-MM-DD')
+                        } else {
+                            data['pipeline_instance__create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                        }
+                    }
+                    if (finish_time && finish_time[0] && finish_time[1]) {
+                        if (this.template_source === 'common') {
+                            data['pipeline_template__finish_time__gte'] = moment(finish_time[0]).format('YYYY-MM-DD')
+                            data['pipeline_template__finish_time__lte'] = moment(finish_time[1]).add('1', 'd').format('YYYY-MM-DD')
+                        } else {
+                            data['pipeline_instance__finish_time_gte'] = moment.tz(finish_time[0], this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__finish_time__lte'] = moment.tz(finish_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                         }
                     }
                     const taskListData = await this.loadTaskList(data)
@@ -544,16 +574,6 @@
                     this.taskCategory = res.data.task_categories
                     this.setProjectBaseInfo(res.data)
                     this.taskBasicInfoLoading = false
-                    const form = this.searchList.find(item => item.id === 'category')
-                    form.children = this.taskCategory.map(item => {
-                        return { id: item.value, name: item.name }
-                    })
-                    // 因为任务类型列表是通过接口获取的，所以需要把路径上的类型添加进去
-                    const ids = this.$route.query['category']
-                    if (ids) {
-                        const values = form.children.filter(item => ids.includes(item.id))
-                        this.searchSelectValue.push({ ...form, values })
-                    }
                 } catch (e) {
                     console.log(e)
                 }
@@ -577,14 +597,19 @@
             // 创建方式tab切换
             handleCreateMethodTabClick (method) {
                 this.crtCreateMethodTab = method
-                this.pagination.current = 1
-                this.getTaskList()
-            },
-            searchInputhandler (data) {
-                this.requestData.taskName = data
-                this.pagination.current = 1
-                this.updateUrl()
-                this.getTaskList()
+                const index = this.searchSelectValue.findIndex(item => item.id === 'create_method')
+                const form = this.searchList.find(item => item.id === 'create_method')
+                const values = form.children.filter(item => item.id === method)
+                if (method === 'all' && index > -1) {
+                    this.searchSelectValue.splice(index, 1)
+                } else if (method !== 'all') {
+                    const methodInfo = this.searchSelectValue[index]
+                    if (methodInfo) {
+                        methodInfo.values = values
+                    } else {
+                        this.searchSelectValue.push({ ...form, values })
+                    }
+                }
             },
             hasCreateTaskPerm (task) {
                 const authActions = [...task.auth_actions, ...this.authActions]
@@ -725,7 +750,7 @@
             renderTableHeader (h, { column, $index }) {
                 if (column.property === 'recorded_executor_proxy') {
                     return h('span', {
-                        'class': 'executor_proxy-label'
+                        'class': 'recorded_executor_proxy-label'
                     }, [
                         column.label,
                         h('i', {
@@ -736,27 +761,29 @@
                             }]
                         })
                     ])
-                } else if (column.property === 'create_time') {
+                } else if (['start_time', 'create_time', 'finish_time'].includes(column.property)) {
+                    const id = this.setting.selectedFields[$index].id
+                    const date = this.requestData[id]
                     return <TableRenderHeader
                         name={ column.label }
                         orderShow = { false }
-                        dateValue={ this.dateTimeRange }
-                        onDateChange={ data => this.handleDateTimeFilter(data) }>
+                        dateValue={ date }
+                        onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
                 } else {
                     return column.label
                 }
             },
-            handleDateTimeFilter (date = []) {
-                this.dateTimeRange = date
-                const index = this.searchSelectValue.findIndex(item => item.id === 'dateRange')
+            handleDateTimeFilter (date = [], id) {
+                const index = this.searchSelectValue.findIndex(item => item.id === id)
                 if (date.length) {
                     if (index > -1) {
                         this.searchSelectValue[index].values = date
                     } else {
                         const info = {
-                            id: 'dateRange',
-                            name: '创建时间',
+                            id,
+                            type: 'dateRange',
+                            name: id === 'start_time' ? i18n.t('执行时间') : id === 'create_time' ? i18n.t('创建时间') : i18n.t('结束时间'),
                             values: date
                         }
                         this.searchSelectValue.push(info)
@@ -781,17 +808,20 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { category, queryTime, creator, executor, statusSync, taskName, id } = this.requestData
+                const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, id, create_method, recorded_executor_proxy } = this.requestData
                 const filterObj = {
                     limit,
-                    category,
                     creator,
                     executor,
                     statusSync,
                     page: current,
-                    queryTime: queryTime && queryTime.every(item => item) ? queryTime.join(',') : '',
+                    start_time: start_time && start_time.every(item => item) ? start_time.join(',') : '',
+                    create_time: create_time && create_time.every(item => item) ? create_time.join(',') : '',
+                    finish_time: finish_time && finish_time.every(item => item) ? finish_time.join(',') : '',
                     taskName,
-                    task_id: id
+                    task_id: id,
+                    create_method,
+                    recorded_executor_proxy
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {
@@ -806,6 +836,21 @@
                 try {
                     const createMethodData = await this.loadCreateMethod()
                     this.taskCreateMethodList = createMethodData.data.map(m => ({ value: m.value, name: m.name }))
+                    const form = this.searchList.find(item => item.id === 'create_method')
+                    form.children = this.taskCreateMethodList.map(item => {
+                        return { id: item.value, name: item.name }
+                    })
+                    // 因为任务类型列表是通过接口获取的，所以需要把路径上的类型添加进去
+                    const id = this.$route.query['create_method']
+                    if (id) {
+                        const match = this.createMethodTabs.some(item => item.id === id)
+                        if (match) {
+                            this.crtCreateMethodTab = id
+                        }
+                        this.isInitCreateMethod = true
+                        const values = form.children.filter(item => id === item.id)
+                        this.searchSelectValue.push({ ...form, values })
+                    }
                 } catch (e) {
                     console.log(e)
                 }
@@ -834,8 +879,8 @@
             },
             handleSearchValueChange (data) {
                 data = data.reduce((acc, cur) => {
-                    if (cur.id === 'dateRange') {
-                        acc['queryTime'] = cur.values
+                    if (cur.type === 'dateRange') {
+                        acc[cur.id] = cur.values
                     } else if (cur.multiable) {
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
@@ -844,9 +889,22 @@
                     }
                     return acc
                 }, {})
-                this.dateTimeRange = data['queryTime'] || []
+                const method = data['create_method']
+                if (method) {
+                    const match = this.createMethodTabs.some(item => item.id === method)
+                    if (match) {
+                        this.crtCreateMethodTab = method
+                    }
+                } else {
+                    this.crtCreateMethodTab = 'all'
+                }
                 this.requestData = data
                 this.pagination.current = 1
+                // 当拉取创建方式列表时，不需要更新任务列表
+                if (this.isInitCreateMethod) {
+                    this.isInitCreateMethod = false
+                    return
+                }
                 // 搜索时，清空 createInfo、templateId、templateSource 筛选条件
                 this.createInfo = ''
                 this.templateId = ''

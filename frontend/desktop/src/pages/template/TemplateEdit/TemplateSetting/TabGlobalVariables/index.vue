@@ -146,7 +146,7 @@
                             </thead-popover>
                         </span>
                         <span class="col-show t-head">
-                            {{ $t('显示') }}
+                            {{ $t('必填') }}
                             <thead-popover
                                 :content-list="varShowList"
                                 type="show"
@@ -176,7 +176,6 @@
                                     :common="common"
                                     :is-view-mode="isViewMode"
                                     :new-clone-keys="newCloneKeys"
-                                    @onCancelCloneKey="onCancelCloneKey"
                                     @viewClick="viewClick"
                                     @onEditVariable="onEditVariable"
                                     @onDeleteVariable="onDeleteVariable"
@@ -218,6 +217,7 @@
             <variable-clone
                 :is-var-clone-dialog-show="isVarCloneDialogShow"
                 :var-type-list="varTypeList"
+                :global-variable-list="variableList"
                 @onCloneVarConfirm="onCloneVarConfirm"
                 @onCloneVarCancel="isVarCloneDialogShow = false">
             </variable-clone>
@@ -276,11 +276,11 @@
                     checked: false,
                     code: 'all'
                 }, {
-                    name: i18n.t('显示'),
+                    name: i18n.t('是'),
                     checked: false,
                     code: 'show'
                 }, {
-                    name: i18n.t('隐藏'),
+                    name: i18n.t('否'),
                     checked: false,
                     code: 'hide'
                 }
@@ -500,7 +500,7 @@
                     source_tag: 'input.input',
                     source_type: 'custom',
                     validation: '^.+$',
-                    is_condition_hide: false,
+                    is_condition_hide: 'false',
                     pre_render_mako: false,
                     value: '',
                     version: 'legacy'
@@ -545,7 +545,12 @@
              * @param {String} key 变量key值
              */
             onEditVariable (key) {
-                this.variableData = tools.deepClone(this.constants[key] || this.internalVariable[key])
+                const variableData = tools.deepClone(this.constants[key] || this.internalVariable[key])
+                if (!('is_condition_hide' in variableData)) { // 添加自动隐藏默认值
+                    variableData.is_condition_hide = 'false'
+                }
+                this.variableData = variableData
+                this.newCloneKeys = []
             },
             onCitedNodeClick (data) {
                 const { group, id } = data
@@ -658,22 +663,8 @@
                 })
                 this.isVarCloneDialogShow = false
             },
-            setCloneKey (key, variableKeys) {
-                let newKey = key
-                if (variableKeys.includes(key)) {
-                    newKey = key.slice(0, -1) + '_clone}'
-                }
-                if (variableKeys.includes(newKey)) {
-                    newKey = this.setCloneKey(newKey, variableKeys)
-                }
-                return newKey
-            },
             setNewCloneKeys (key) {
-                this.newCloneKeys.push(key)
-            },
-            onCancelCloneKey (key) {
-                const index = this.newCloneKeys.findIndex(item => item === key)
-                this.newCloneKeys.splice(index, 1)
+                this.newCloneKeys = [key]
             }
         }
     }

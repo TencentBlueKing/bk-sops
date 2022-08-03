@@ -74,6 +74,9 @@ class MockTaskflowStatistics(MagicMock):
     def values(self, *args, **kwargs):
         return TEST_TASKFLOW_STATISTICS_DATA
 
+    def count(self, *args, **kwargs):
+        return TEST_TOTAL
+
 
 class MockInstanceDict(MagicMock):
     def values_list(self, *args, **kwargs):

@@ -38,7 +38,8 @@ axios.interceptors.response.use(
             if (!response.data.result) {
                 const info = {
                     message: response.data,
-                    traceId: response.headers['sops-trace-id']
+                    traceId: response.headers['sops-trace-id'],
+                    errorSource: 'result'
                 }
                 bus.$emit('showErrMessage', info)
             }
@@ -74,6 +75,15 @@ axios.interceptors.response.use(
             case 401:
                 const data = response.data
                 if (data.has_plain && !window.loginWindow) {
+                    // 当前路由为模板编辑页时，登录前先保存模板数据
+                    const { pathname } = window.location
+                    const typeList = ['new', 'edit', 'clone']
+                    const isMatch = typeList.some(type => {
+                        return [`/template/${type}/`, `/common/${type}/`].some(item => pathname.indexOf(item) > -1)
+                    })
+                    if (isMatch) {
+                        bus.$emit('createSnapshot', true) // 创建模板快照
+                    }
                     const { login_url: src, width, height } = data
                     const { availHeight, availWidth } = window.screen
                     const left = (availWidth - width) / 2

@@ -205,7 +205,7 @@ def cmdb_search_dynamic_group(request, bk_biz_id, bk_supplier_account=""):
     """
     client = get_client_by_user(request.user.username)
     kwargs = {"bk_biz_id": bk_biz_id, "bk_supplier_account": bk_supplier_account}
-    result = batch_request(client.cc.search_dynamic_group, kwargs, limit=200)
+    result = batch_request(client.cc.search_dynamic_group, kwargs, limit=200, check_iam_auth_fail=True)
 
     dynamic_groups = []
     for dynamic_group in result:

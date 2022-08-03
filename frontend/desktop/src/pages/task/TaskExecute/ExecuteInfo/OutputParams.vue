@@ -16,7 +16,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="output in outputsInfo" :key="output.name">
+                    <tr v-for="(output, index) in outputsInfo" :key="index">
                         <td class="output-name">{{ getOutputName(output) }}</td>
                         <td v-if="isUrl(output.value)" class="output-value" v-html="getOutputValue(output)"></td>
                         <td v-else class="output-value">{{ getOutputValue(output) }}</td>

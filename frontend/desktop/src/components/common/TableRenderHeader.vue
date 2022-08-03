@@ -29,13 +29,14 @@
                 slot="trigger"
                 class="bk-table-column-filter-trigger bk-icon icon-funnel"
                 :class="{ 'is-filtered': isFiltered, 'is-open': isDateOpen }"
-                @click="isDateOpen = !isDateOpen">
+                @click.stop="isDateOpen = !isDateOpen">
             </i>
         </bk-date-picker>
     </section>
 </template>
 
 <script>
+    import i18n from '@/config/i18n/index.js'
     export default {
         name: 'TableRenderHeader',
         props: {
@@ -67,7 +68,7 @@
                 isDateOpen: false,
                 shortcuts: [
                     {
-                        text: '今天',
+                        text: i18n.t('今天'),
                         value () {
                             const end = new Date()
                             const start = new Date(end.getFullYear(), end.getMonth(), end.getDate())
@@ -78,7 +79,7 @@
                         }
                     },
                     {
-                        text: '近7天',
+                        text: i18n.t('近7天'),
                         value () {
                             const end = new Date()
                             const start = new Date()
@@ -87,7 +88,7 @@
                         }
                     },
                     {
-                        text: '近15天',
+                        text: i18n.t('近15天'),
                         value () {
                             const end = new Date()
                             const start = new Date()
@@ -96,7 +97,7 @@
                         }
                     },
                     {
-                        text: '近30天',
+                        text: i18n.t('近30天'),
                         value () {
                             const end = new Date()
                             const start = new Date()
@@ -109,8 +110,8 @@
         },
         computed: {
             isFiltered () {
-                return this.dateTimeRange.length
-                    ? this.dateTimeRange.every(date => date)
+                return this.dateValue.length
+                    ? this.dateValue.every(date => date)
                     : false
             }
         },
