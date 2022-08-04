@@ -29,6 +29,11 @@ class UserProjectFilter(AllLookupSupportFilterSet):
         model = Project
         fields = {
             "is_disable": ALL_LOOKUP,
+            "id": ["exact"],
+            "bk_biz_id": ["exact"],
+            "name": ["icontains"],
+            "desc": ["icontains"],
+            "creator": ["exact"],
         }
 
 
@@ -38,7 +43,7 @@ class UserProjectSetViewSet(GcloudListViewSet):
     permission_classes = [permissions.IsAuthenticated]
     filterset_class = UserProjectFilter
     pagination_class = LimitOffsetPagination
-    search_fields = ["id", "name", "desc", "creator"]
+    search_fields = ["id", "name", "desc", "creator", "bk_biz_id"]
 
     iam_resource_helper = ViewSetResourceHelper(
         resource_func=res_factory.resources_for_project_obj,

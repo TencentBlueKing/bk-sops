@@ -12,4 +12,4 @@ specific language governing permissions and limitations under the License.
 """
 
 PROJECT_SCOPE_CMDB_BIZ = "cmdb_biz"
-DEFAULT_APP_WHITELIST = {"bk_fta", "bk_bcs", "bk_datainstaller", "bk_dataadmin", "bk_sops", "bk_paas"}
+DEFAULT_APP_WHITELIST = {"bk_fta", "bk_bcs", "bk_datainstaller", "bk_dataadmin", "bk_sops", "bk_paas", "bk_monitorv3"}

@@ -15,8 +15,9 @@ from django.views.decorators.http import require_GET
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, timezone_inject, return_json_response
+from gcloud.apigw.forms.get_functionalization_task_list import GetFunctionalizationTaskListForm
 from gcloud.contrib.function.models import FunctionTask
-from gcloud.apigw.views.utils import logger, format_function_task_list_data, paginate_list_data
+from gcloud.apigw.views.utils import format_function_task_list_data, paginate_list_data
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import FunctionViewInterceptor
 from apigw_manager.apigw.decorators import apigw_require
@@ -30,31 +31,20 @@ from apigw_manager.apigw.decorators import apigw_require
 @timezone_inject
 @iam_intercept(FunctionViewInterceptor())
 def get_functionalization_task_list(request):
-    id_in = request.GET.get("id_in")
-    task_id_in = request.GET.get("task_id_in")
-    status = request.GET.get("status")
-    if id_in:
-        try:
-            id_in = id_in.split(",")
-        except Exception:
-            id_in = None
-            logger.exception("[API] get_functionalization_task_list id_in[{}] resolve fail, ignore.".format(id_in))
-    if task_id_in:
-        try:
-            task_id_in = task_id_in.split(",")
-        except Exception:
-            task_id_in = None
-            logger.exception(
-                "[API] get_functionalization_task_list task_id_in[{}] resolve fail, ignore.".format(task_id_in)
-            )
-
+    params_validator = GetFunctionalizationTaskListForm(data=request.GET)
+    if not params_validator.is_valid():
+        return {"result": False, "data": "", "message": params_validator.errors, "code": err_code.VALIDATION_ERROR.code}
+    param_mappings = {
+        "id_in": "id__in",
+        "task_id_in": "task_id__in",
+        "status": "status",
+        "project_id": "task__project_id",
+    }
     filter_kwargs = {}
-    if status:
-        filter_kwargs["status"] = status
-    if id_in:
-        filter_kwargs["id__in"] = id_in
-    if task_id_in:
-        filter_kwargs["task__id__in"] = task_id_in
+    for param, filter_key in param_mappings.items():
+        param_value = params_validator.cleaned_data.get(param)
+        if param_value:
+            filter_kwargs[filter_key] = param_value
 
     function_tasks = FunctionTask.objects.select_related("task").filter(**filter_kwargs)
     try:

@@ -21,8 +21,14 @@
                         @click="onCreateTask">
                         {{$t('新建')}}
                     </bk-button>
-                    <span class="auto-redraw" @click.stop>
-                        <bk-checkbox v-model="isAutoRedraw" @change="onAutoRedrawChange">{{ $t('实时刷新') }}</bk-checkbox>
+                    <span class="operate-wrap" @click.stop>
+                        <bk-checkbox class="auto-redraw" v-model="isAutoRedraw" @change="onAutoRedrawChange">{{ $t('实时刷新') }}</bk-checkbox>
+                        <bk-button
+                            class="my-create-btn"
+                            data-test-id="function_form_myCreateProcess"
+                            @click="handleMyCreateFilter">
+                            {{$t('我创建的')}}
+                        </bk-button>
                     </span>
                     <search-select
                         ref="searchSelect"
@@ -384,7 +390,8 @@
                 page = 1,
                 limit = 15,
                 selectedProject = '',
-                queryTime = '',
+                create_time = '',
+                claim_time = '',
                 creator = '',
                 claimStatus = '',
                 statusSync = '',
@@ -392,26 +399,26 @@
                 task_id = '',
                 claimant = ''
             } = this.$route.query
-            const searchSelectValue = SEARCH_LIST.reduce((acc, cur) => {
+            const searchList = [
+                ...SEARCH_LIST,
+                { id: 'create_time', name: i18n.t('提单时间'), type: 'dateRange' },
+                { id: 'claim_time', name: i18n.t('认领时间'), type: 'dateRange' }
+            ]
+            const searchSelectValue = searchList.reduce((acc, cur) => {
                 const values_text = this.$route.query[cur.id]
                 if (values_text) {
-                    const { id, name, children } = cur
                     let values = []
-                    if (!children) {
-                        values = [values_text]
-                        acc.push({ id, name, values })
-                    } else if (children.length) {
+                    if (!cur.children) {
+                        values = cur.type === 'dateRange' ? values_text.split(',') : [values_text]
+                        acc.push({ ...cur, values })
+                    } else if (cur.children.length) {
                         const ids = values_text.split(',')
-                        values = children.filter(item => ids.includes(String(item.id)))
-                        acc.push({ id, name, values })
+                        values = cur.children.filter(item => ids.includes(String(item.id)))
+                        acc.push({ ...cur, values })
                     }
                 }
                 return acc
             }, [])
-            if (queryTime) {
-                const values = queryTime.split(',')
-                searchSelectValue.push({ id: 'dateRange', name: '执行时间', values })
-            }
             return {
                 firstLoading: true,
                 listLoading: false,
@@ -462,7 +469,8 @@
                     creator,
                     statusSync,
                     claimStatus,
-                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
+                    create_time: create_time ? create_time.split(',') : ['', ''],
+                    claim_time: claim_time ? claim_time.split(',') : ['', ''],
                     taskName,
                     task_id,
                     claimant
@@ -500,8 +508,7 @@
                 isLoadCommonTpl: false,
                 onTplSearch: null,
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
-                searchSelectValue,
-                dateTimeRange: queryTime ? queryTime.split(',') : []
+                searchSelectValue
             }
         },
         computed: {
@@ -545,7 +552,7 @@
             async loadFunctionTask () {
                 this.listLoading = true
                 try {
-                    const { selectedProject, queryTime, creator, statusSync, taskName, claimant, task_id, claimStatus } = this.requestData
+                    const { selectedProject, create_time, claim_time, creator, statusSync, taskName, claimant, task_id, claimStatus } = this.requestData
                     let task__pipeline_instance__is_started
                     let task__pipeline_instance__is_finished
                     let task__pipeline_instance__is_revoked
@@ -578,13 +585,22 @@
                         task__pipeline_instance__is_finished,
                         task__pipeline_instance__is_revoked
                     }
-                    if (queryTime && queryTime[0] && queryTime[1]) {
+                    if (create_time && create_time[0] && create_time[1]) {
                         if (this.common) {
-                            data['pipeline_template__start_time__gte'] = moment(queryTime[0]).format('YYYY-MM-DD') + ' 00:00:00'
-                            data['pipeline_template__start_time__lte'] = moment(queryTime[1]).add('1', 'd').format('YYYY-MM-DD') + ' 23:59:59'
+                            data['pipeline_template__start_time__gte'] = moment(create_time[0]).format('YYYY-MM-DD') + ' 00:00:00'
+                            data['pipeline_template__start_time__lte'] = moment(create_time[1]).add('1', 'd').format('YYYY-MM-DD') + ' 23:59:59'
                         } else {
-                            data['create_time__gte'] = moment.tz(queryTime[0], this.timeZone).format('YYYY-MM-DD') + ' 00:00:00'
-                            data['create_time__lte'] = moment.tz(queryTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD') + ' 23:59:59'
+                            data['create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD') + ' 00:00:00'
+                            data['create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD') + ' 23:59:59'
+                        }
+                    }
+                    if (claim_time && claim_time[0] && claim_time[1]) {
+                        if (this.common) {
+                            data['pipeline_template__claim_time__gte'] = moment(claim_time[0]).format('YYYY-MM-DD') + ' 00:00:00'
+                            data['pipeline_template__claim_time__lte'] = moment(claim_time[1]).add('1', 'd').format('YYYY-MM-DD') + ' 23:59:59'
+                        } else {
+                            data['claim_time__gte'] = moment.tz(claim_time[0], this.timeZone).format('YYYY-MM-DD') + ' 00:00:00'
+                            data['claim_time__lte'] = moment.tz(claim_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD') + ' 23:59:59'
                         }
                     }
                     const functorListData = await this.loadFunctionTaskList(data)
@@ -601,27 +617,29 @@
                 }
             },
             renderTableHeader (h, { column, $index }) {
-                if (column.property === 'create_time') {
+                if (['create_time', 'claim_time'].includes(column.property)) {
+                    const id = this.setting.selectedFields[$index].id
+                    const date = this.requestData[id]
                     return <TableRenderHeader
                         name={ column.label }
                         orderShow = { false }
-                        dateValue={ this.dateTimeRange }
-                        onDateChange={ data => this.handleDateTimeFilter(data) }>
+                        dateValue={ date }
+                        onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
                 } else {
                     return column.label
                 }
             },
-            handleDateTimeFilter (date = []) {
-                this.dateTimeRange = date
-                const index = this.searchSelectValue.findIndex(item => item.id === 'dateRange')
+            handleDateTimeFilter (date = [], id) {
+                const index = this.searchSelectValue.findIndex(item => item.id === id)
                 if (date.length) {
                     if (index > -1) {
                         this.searchSelectValue[index].values = date
                     } else {
                         const info = {
-                            id: 'dateRange',
-                            name: '提单时间',
+                            id,
+                            type: 'dateRange',
+                            name: id === 'create_time' ? i18n.t('提单时间') : i18n.t('认领时间'),
                             values: date
                         }
                         this.searchSelectValue.push(info)
@@ -676,14 +694,15 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { selectedProject, queryTime, creator, statusSync, taskName, task_id, claimant, claimStatus } = this.requestData
+                const { selectedProject, create_time, claim_time, creator, statusSync, taskName, task_id, claimant, claimStatus } = this.requestData
                 const filterObj = {
                     limit,
                     selectedProject,
                     creator,
                     statusSync,
                     page: current,
-                    queryTime: queryTime && queryTime.every(item => item) ? queryTime.join(',') : '',
+                    create_time: create_time && create_time.every(item => item) ? create_time.join(',') : '',
+                    claim_time: claim_time && claim_time.every(item => item) ? claim_time.join(',') : '',
                     taskName,
                     task_id,
                     claimant,
@@ -1030,10 +1049,25 @@
                 }
                 this.applyForPermission(required, data.auth_actions, permissionData)
             },
+            handleMyCreateFilter () {
+                const creatorInfo = this.searchSelectValue.find(item => item.id === 'creator')
+                let info = {}
+                if (creatorInfo) {
+                    creatorInfo.values = [this.username]
+                    info = creatorInfo
+                } else {
+                    const form = this.searchList.find(item => item.id === 'creator')
+                    info = { ...form, values: [this.username] }
+                    this.searchSelectValue.push(info)
+                }
+                // 添加搜索记录
+                const searchDom = this.$refs.searchSelect
+                searchDom && searchDom.addSearchRecord(info)
+            },
             handleSearchValueChange (data) {
                 data = data.reduce((acc, cur) => {
-                    if (cur.id === 'dateRange') {
-                        acc['queryTime'] = cur.values
+                    if (cur.type === 'dateRange') {
+                        acc[cur.id] = cur.values
                     } else if (cur.multiable) {
                         acc[cur.id] = cur.values.map(item => item.id)
                     } else {
@@ -1042,7 +1076,6 @@
                     }
                     return acc
                 }, {})
-                this.dateTimeRange = data['queryTime'] || []
                 this.requestData = data
                 this.pagination.current = 1
                 this.updateUrl()
@@ -1136,11 +1169,13 @@
 .search-wrapper {
     position: relative;
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    .auto-redraw {
-        position: relative;
-        right: 500px;
+    .operate-wrap {
+        position: absolute;
+        right: 495px;
+        .my-create-btn {
+            margin-left: 15px;
+        }
     }
 }
 .functor-container {

@@ -35,7 +35,7 @@ def get_user_info(username):
         )
         user_info["data"]["bk_role"] = user_info["data"]["role"]
         user_info["data"]["bk_username"] = user_info["data"]["username"]
-        user_info["data"]["phone"] = user_info["data"]["telephone"]
+        user_info["data"]["phone"] = user_info["data"].get("telephone", "")
     return user_info
 
 

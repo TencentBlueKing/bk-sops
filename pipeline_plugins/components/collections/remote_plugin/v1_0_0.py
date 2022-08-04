@@ -119,7 +119,7 @@ class RemotePluginService(Service):
         if state == State.FAIL:
             default_message = "please check the logs for the reason of task failure."
             logger.error(f"[remote plugin service state failed]: {result_data}")
-            data.set_outputs("ex_data", result_data["outputs"].get("ex_data") or default_message)
+            data.set_outputs("ex_data", result_data["outputs"].get("err") or default_message)
             return False
         if state in UNFINISHED_STATES:
             setattr(self, "__need_schedule__", True)

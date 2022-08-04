@@ -61,6 +61,7 @@
                         :admin-view="adminView"
                         :inputs="inputsInfo"
                         :render-config="renderConfig"
+                        :constants="subFlowConstants"
                         :render-data="renderData">
                     </InputParams>
                     <OutputParams
@@ -82,13 +83,6 @@
                         </RenderForm>
                     </div>
                 </section>
-                <NodeLog
-                    ref="nodeLog"
-                    :node-detail-config="nodeDetailConfig"
-                    :execute-info="executeInfo"
-                    :third-party-node-code="thirdPartyNodeCode"
-                    :engine-ver="engineVer">
-                </NodeLog>
                 <section class="info-section" data-test-id="taskExcute_form_exceptionInfo" v-if="executeInfo.ex_data">
                     <h4 class="common-section-title">{{ $t('异常信息') }}</h4>
                     <div v-html="failInfo"></div>
@@ -98,6 +92,13 @@
                         :node-info="executeInfo">
                     </IpLogContent>
                 </section>
+                <NodeLog
+                    ref="nodeLog"
+                    :node-detail-config="nodeDetailConfig"
+                    :execute-info="executeInfo"
+                    :third-party-node-code="thirdPartyNodeCode"
+                    :engine-ver="engineVer">
+                </NodeLog>
                 <ExecuteLog
                     :admin-view="adminView"
                     :history-info="historyInfo"
@@ -115,13 +116,21 @@
                     @click="onResumeClick">
                     {{ $t('继续执行') }}
                 </bk-button>
-                <bk-button
+                <span
                     v-if="nodeDetailConfig.component_code === 'sleep_timer'"
-                    theme="primary"
-                    data-test-id="taskExcute_form_modifyTimeBtn"
-                    @click="onModifyTimeClick">
-                    {{ $t('修改时间') }}
-                </bk-button>
+                    v-bk-tooltips="{
+                        content: $t('修改时间实际是强制失败后重试节点，需配置可重试才能修改时间'),
+                        disabled: nodeActivity.retryable !== false,
+                        hideOnClick: false
+                    }">
+                    <bk-button
+                        theme="primary"
+                        :disabled="nodeActivity.retryable === false"
+                        data-test-id="taskExcute_form_modifyTimeBtn"
+                        @click="onModifyTimeClick">
+                        {{ $t('修改时间') }}
+                    </bk-button>
+                </span>
                 <bk-button
                     v-if="nodeDetailConfig.component_code === 'bk_approve'"
                     theme="primary"
@@ -247,6 +256,7 @@
                     formMode: true
                 },
                 renderData: {},
+                subFlowConstants: {}, // 子流程constants
                 loop: 1,
                 theExecuteTime: undefined,
                 isReadyStatus: true,
@@ -322,6 +332,12 @@
                 codeInfo = codeInfo && codeInfo.plugin_code
                 codeInfo = codeInfo.value
                 return codeInfo
+            },
+            isSubFlow () {
+                return this.location.type === 'subflow'
+            },
+            nodeActivity () {
+                return this.pipelineData.activities[this.nodeDetailConfig.node_id]
             }
         },
         watch: {
@@ -364,6 +380,8 @@
                         this.executeInfo = {}
                         this.outputsInfo = []
                         this.inputsInfo = {}
+                        this.subFlowConstants = {}
+                        this.renderData = {}
                         this.logInfo = ''
                         return
                     }
@@ -406,7 +424,18 @@
                         })
                     } else {
                         this.executeInfo = respData
-                        this.inputsInfo = inputs
+                        if (this.isSubFlow) { // 获取子流程输入参数 (subflow_detail_var 标识当前为子流程节点详情)
+                            this.subFlowConstants = { subflow_detail_var: true, ...inputs }
+                            this.inputsInfo = Object.values(this.pipelineData.constants).reduce((acc, cur) => {
+                                if (cur.show_type === 'show') {
+                                    acc[cur.key] = cur.value
+                                }
+                                return acc
+                            }, {})
+                        } else {
+                            this.subFlowConstants = {}
+                            this.inputsInfo = inputs
+                        }
                         if (respData.histories) {
                             this.historyInfo = respData.histories.map(item => {
                                 this.$set(item, 'historyLogTab', 'build_in_plugin')
@@ -416,6 +445,7 @@
                                 return item
                             })
                         }
+                        this.renderData = {}
                         for (const key in this.inputsInfo) {
                             this.$set(this.renderData, key, this.inputsInfo[key])
                         }
@@ -460,6 +490,13 @@
                                         outputsInfo.push(info)
                                     }
                                 })
+                            } else if (this.isSubFlow) {
+                                outputsInfo = outputs.map(item => {
+                                    const { value, key } = item
+                                    const constants = this.nodeActivity.pipeline.constants
+                                    const name = constants[key] ? constants[key].name : key
+                                    return { value, name }
+                                })
                             } else { // 普通插件展示 preset 为 true 的输出参数
                                 outputsInfo = outputs.filter(output => output.preset)
                             }
@@ -497,7 +534,7 @@
                     if (this.executeInfo.state === 'FAILED') {
                         const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
                         this.isShowSkipBtn = this.location.type === 'tasknode' && activity.skippable
-                        this.isShowRetryBtn = this.location.type === 'tasknode' ? activity.retryable : this.location.type === 'subflow'
+                        this.isShowRetryBtn = this.location.type === 'tasknode' ? activity.retryable : this.isSubFlow
                     } else {
                         this.isShowSkipBtn = false
                         this.isShowRetryBtn = false
@@ -558,7 +595,7 @@
                                 with_app_detail: true
                             })
                             if (!resp.result) return
-                            const { outputs: respsOutputs, forms } = resp.data
+                            const { outputs: respsOutputs, forms, inputs } = resp.data
                             // 输出参数
                             const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
                             const outputs = []
@@ -572,16 +609,22 @@
                             }
                             this.pluginOutputs = outputs
                             this.outputRenderConfig = [...storeOutputs, ...outputs]
-                            // 设置host
-                            const { origin } = window.location
-                            const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${this.thirdPartyNodeCode}/`
-                            $.context.bk_plugin_api_host[this.thirdPartyNodeCode] = hostUrl
-                            // 输入参数
-                            const renderFrom = forms.renderform
-                            /* eslint-disable-next-line */
-                            eval(renderFrom)
-                            const config = $.atoms[this.thirdPartyNodeCode]
-                            this.renderConfig = config || []
+                            if (forms.renderform) {
+                                // 设置host
+                                const { origin } = window.location
+                                const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${this.thirdPartyNodeCode}/`
+                                $.context.bk_plugin_api_host[this.thirdPartyNodeCode] = hostUrl
+                                // 输入参数
+                                const renderFrom = forms.renderform
+                                /* eslint-disable-next-line */
+                                eval(renderFrom)
+                                const config = $.atoms[this.thirdPartyNodeCode]
+                                this.renderConfig = config || []
+                            } else {
+                                $.atoms[this.thirdPartyNodeCode] = inputs
+                                this.renderConfig = inputs || {}
+                                this.outputs = [] // jsonschema form输出参数
+                            }
                             return
                         }
                         this.renderConfig = this.atomFormConfig[type] && this.atomFormConfig[type][version]
@@ -615,7 +658,8 @@
                     const { key } = variable
                     const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
                     const version = variable.version || 'legacy'
-                    const atomConfig = await this.getAtomConfig({ plugin: atom, version, classify, name })
+                    const isThird = Boolean(variable.plugin_code)
+                    const atomConfig = await this.getAtomConfig({ plugin: atom, version, classify, name, isThird })
                     let formItemConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                     if (variable.is_meta || formItemConfig.meta_transform) {
                         formItemConfig = formItemConfig.meta_transform(variable.meta || variable)
@@ -686,6 +730,7 @@
                 this.loadNodeInfo()
             },
             onSelectNode (nodeHeirarchy, selectNodeId, nodeType) {
+                this.editScrollDom = null
                 this.$emit('onClickTreeNode', nodeHeirarchy, selectNodeId, nodeType)
             },
             onRetryClick () {

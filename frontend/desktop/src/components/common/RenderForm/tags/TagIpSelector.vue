@@ -25,7 +25,7 @@
                 v-model="ipValue">
             </ip-selector>
         </div>
-        <span v-else class="rf-view-value">{{viewValue}}</span>
+        <span v-else class="rf-view-value">{{ constants.subflow_detail_var ? constants[tagCode] : viewValue }}</span>
     </div>
 </template>
 <script>

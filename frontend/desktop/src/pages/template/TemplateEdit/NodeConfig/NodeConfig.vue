@@ -81,7 +81,7 @@
                                                 <i
                                                     :class="[props.row.show_type === 'show' ? 'common-icon-eye-show' : 'common-icon-eye-hide color-org']"
                                                     v-bk-tooltips="{
-                                                        content: props.row.show_type === 'show' ? $t('显示') : $t('隐藏'),
+                                                        content: props.row.show_type === 'show' ? $t('必填') : $t('非必填'),
                                                         placements: ['bottom']
                                                     }">
                                                 </i>
@@ -187,35 +187,46 @@
                                     <p class="citations-waivers-guide">
                                         <bk-popover placement="top-end" theme="light" width="258" :ext-cls="'citations-waivers-guide-tip'">
                                             <i class="bk-icon icon-info-circle-shape"></i>
-                                            {{ $t('变量引用和豁免使用指引') }}
+                                            {{ $t('设置为变量&变量免渲染使用指引') }}
                                             <div slot="content">
-                                                <p>{{ $t('变量引用：使用参数的配置创建全局变量并引用，或不创建直接引用同类型变量') }}</p><br>
-                                                <p>{{ $t('变量豁免：开启后忽略参数中的全局变量，视为普通字符串') }}</p>
+                                                <p>{{ $t('设置为变量：将节点的输入或输出设置为全局变量，可供其他节点使用') }}</p><br>
+                                                <p>{{ $t('变量免渲染：忽略参数中的全局变量，将${}视为普通字符串') }}</p>
                                             </div>
                                         </bk-popover>
                                     </p>
                                     <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading, zIndex: 100 }">
                                         <template v-if="!inputLoading">
-                                            <input-params
-                                                v-if="inputs.length > 0"
-                                                ref="inputParams"
-                                                :node-id="nodeId"
-                                                :scheme="inputs"
-                                                :plugin="basicInfo.plugin"
-                                                :version="basicInfo.version"
-                                                :subflow-forms="subflowForms"
-                                                :forms-not-referred="formsNotReferred"
-                                                :value="inputsParamValue"
-                                                :render-config="inputsRenderConfig"
-                                                :is-subflow="isSubflow"
-                                                :is-view-mode="isViewMode"
-                                                :constants="localConstants"
-                                                :third-party-code="isThirdParty ? basicInfo.plugin : ''"
-                                                @hookChange="onHookChange"
-                                                @renderConfigChange="onRenderConfigChange"
-                                                @update="updateInputsValue">
-                                            </input-params>
-                                            <no-data v-else></no-data>
+                                            <template v-if="Array.isArray(inputs)">
+                                                <input-params
+                                                    v-if="inputs.length > 0"
+                                                    ref="inputParams"
+                                                    :node-id="nodeId"
+                                                    :scheme="inputs"
+                                                    :plugin="basicInfo.plugin"
+                                                    :version="basicInfo.version"
+                                                    :subflow-forms="subflowForms"
+                                                    :forms-not-referred="formsNotReferred"
+                                                    :value="inputsParamValue"
+                                                    :render-config="inputsRenderConfig"
+                                                    :is-subflow="isSubflow"
+                                                    :is-view-mode="isViewMode"
+                                                    :constants="localConstants"
+                                                    :third-party-code="isThirdParty ? basicInfo.plugin : ''"
+                                                    @hookChange="onHookChange"
+                                                    @renderConfigChange="onRenderConfigChange"
+                                                    @update="updateInputsValue">
+                                                </input-params>
+                                                <no-data v-else></no-data>
+                                            </template>
+                                            <template v-else>
+                                                <jsonschema-input-params
+                                                    v-if="inputs.properties && Object.keys(inputs.properties).length > 0"
+                                                    :inputs="inputs"
+                                                    :value="inputsParamValue"
+                                                    @update="updateInputsValue">
+                                                </jsonschema-input-params>
+                                                <no-data v-else></no-data>
+                                            </template>
                                         </template>
                                     </div>
                                 </section>
@@ -268,7 +279,7 @@
             :mask-close="false"
             v-model="isCancelGloVarDialogShow"
             :title="$t('取消变量引用')">
-            <p>{{ $t('全局变量【 x 】的引用数已为 0。如果不再使用，可立即删除变量; 也可以稍后再全局变量面板中删除', { key: unhookingVarForm.key })}}</p>
+            <p style="word-break: break-all;">{{ $t('全局变量【 x 】的引用数已为 0。如果不再使用，可立即删除变量; 也可以稍后在全局变量面板中删除', { key: unhookingVarForm.key })}}</p>
             <template slot="footer">
                 <bk-button theme="primary" @click="deleteUnhookingVar">{{ $t('删除变量') }}</bk-button>
                 <bk-button @click="onCancelVarConfirmClick">{{ $t('以后再说') }}</bk-button>
@@ -283,6 +294,7 @@
     import tools from '@/utils/tools.js'
     import BasicInfo from './BasicInfo.vue'
     import InputParams from './InputParams.vue'
+    import JsonschemaInputParams from './JsonschemaInputParams.vue'
     import OutputParams from './OutputParams.vue'
     import SelectPanel from './SelectPanel/index.vue'
     import VariableEdit from '../TemplateSetting/TabGlobalVariables/VariableEdit.vue'
@@ -290,11 +302,13 @@
     import NoData from '@/components/common/base/NoData.vue'
     import bus from '@/utils/bus.js'
     import permission from '@/mixins/permission.js'
+
     export default {
         name: 'NodeConfig',
         components: {
             BasicInfo,
             InputParams,
+            JsonschemaInputParams,
             OutputParams,
             SelectPanel,
             VariableEdit,
@@ -343,7 +357,8 @@
                 isThirdParty: false, // 是否为第三方插件
                 quickOperateVariableVisable: false,
                 variableCited: {}, // 全局变量被任务节点、网关节点以及其他全局变量引用情况
-                unhookingVarForm: {} // 正被取消勾选的表单配置
+                unhookingVarForm: {}, // 正被取消勾选的表单配置
+                isUpdateConstants: false // 是否更新输入参数配置
             }
         },
         computed: {
@@ -604,7 +619,7 @@
                         })
                         if (!resp.result) return
                         // 获取参数
-                        const { outputs: respsOutputs, forms } = resp.data
+                        const { outputs: respsOutputs, forms, inputs } = resp.data
                         // 获取不同版本的描述
                         let desc = resp.data.desc || ''
                         if (desc && desc.includes('\n')) {
@@ -612,37 +627,43 @@
                             desc = descList.join('<br>')
                         }
                         this.updateBasicInfo({ desc })
-                        if (!this.isSubflow) {
-                            // 获取第三方插件公共输出参数
-                            if (!this.pluginOutput['remote_plugin']) {
-                                await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
+                        if (forms.renderFrom) {
+                            if (!this.isSubflow) {
+                                // 获取第三方插件公共输出参数
+                                if (!this.pluginOutput['remote_plugin']) {
+                                    await this.loadAtomConfig({ atom: 'remote_plugin', version: '1.0.0' })
+                                }
+                                // 输出参数
+                                const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
+                                const outputs = []
+                                for (const [key, val] of Object.entries(respsOutputs.properties)) {
+                                    outputs.push({
+                                        name: val.title,
+                                        key,
+                                        type: val.type,
+                                        schema: { description: val.description || '--' }
+                                    })
+                                }
+                                this.outputs = [...storeOutputs, ...outputs]
                             }
-                            // 输出参数
-                            const storeOutputs = this.pluginOutput['remote_plugin']['1.0.0']
-                            const outputs = []
-                            for (const [key, val] of Object.entries(respsOutputs.properties)) {
-                                outputs.push({
-                                    name: val.title,
-                                    key,
-                                    type: val.type,
-                                    schema: { description: val.description || '--' }
-                                })
-                            }
-                            this.outputs = [...storeOutputs, ...outputs]
+                            // 获取host
+                            const { origin } = window.location
+                            const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${plugin}/`
+                            $.context.bk_plugin_api_host[plugin] = hostUrl
+                            // 输入参数
+                            $.atoms[plugin] = {}
+                            const renderFrom = forms.renderform
+                            /* eslint-disable-next-line */
+                            eval(renderFrom)
+                        } else {
+                            $.atoms[plugin] = inputs
+                            this.outputs = [] // jsonschema form输出参数
                         }
-                        // 获取host
-                        const { origin } = window.location
-                        const hostUrl = `${origin + window.SITE_URL}plugin_service/data_api/${plugin}/`
-                        $.context.bk_plugin_api_host[plugin] = hostUrl
-                        // 输入参数
-                        $.atoms[plugin] = {}
-                        const renderFrom = forms.renderform
-                        /* eslint-disable-next-line */
-                        eval(renderFrom)
                     } else {
                         await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id })
                     }
                     const config = $.atoms[plugin]
+                    console.log(config)
                     return config
                 } catch (e) {
                     console.log(e)
@@ -922,10 +943,10 @@
 
             // 标准插件（子流程）选择面板切换插件（子流程）
             // isThirdParty 是否为第三方插件
-            onPluginOrTplChange (val) {
+            async onPluginOrTplChange (val) {
                 this.isSelectorPanelShow = false
                 this.isThirdParty = val.id === 'remote_plugin'
-                this.clearParamsSourceInfo()
+                await this.clearParamsSourceInfo()
                 if (this.isSubflow) {
                     this.tplChange(val)
                 } else {
@@ -991,7 +1012,7 @@
                     desc = descList.join('<br>')
                 }
                 this.updateBasicInfo({ version: val, desc })
-                this.clearParamsSourceInfo()
+                await this.clearParamsSourceInfo()
                 this.inputsParamValue = {}
                 await this.getPluginDetail()
                 this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
@@ -1057,7 +1078,7 @@
                 this.subflowVersionUpdating = true
                 const oldForms = Object.assign({}, this.subflowForms)
                 await this.getSubflowDetail(this.basicInfo.tpl)
-                this.subflowUpdateParamsChange()
+                await this.subflowUpdateParamsChange()
                 this.inputs = await this.getSubflowInputsConfig()
                 this.subflowVersionUpdating = false
                 this.$nextTick(() => {
@@ -1078,7 +1099,9 @@
              * 1.输入、输出参数被勾选，并且对应变量在新流程模板中被删除或者变量 source_tag 有更新，需要在更新后修改全局变量 source_info 信息
              * 2.新增和修改输入、输出参数，不做处理
              */
-            subflowUpdateParamsChange () {
+            async subflowUpdateParamsChange () {
+                this.isUpdateConstants = true
+                this.variableCited = await this.getVariableCitedData() || {}
                 const nodeId = this.nodeConfig.id
                 for (const key in this.localConstants) {
                     const varItem = this.localConstants[key]
@@ -1113,9 +1136,13 @@
                         }
                     }
                 }
+                this.variableCited = {}
+                this.isUpdateConstants = false
             },
             // 取消已勾选为全局变量的输入、输出参数勾选状态
-            clearParamsSourceInfo () {
+            async clearParamsSourceInfo () {
+                this.isUpdateConstants = true
+                this.variableCited = await this.getVariableCitedData() || {}
                 const nodeId = this.nodeConfig.id
                 for (const key in this.localConstants) {
                     const varItem = this.localConstants[key]
@@ -1148,6 +1175,8 @@
                         }
                     }
                 }
+                this.variableCited = {}
+                this.isUpdateConstants = false
             },
             // 查看子流程模板
             onViewSubflow (id) {
@@ -1175,7 +1204,7 @@
             async onSelectSubflowScheme () {
                 const oldForms = Object.assign({}, this.subflowForms)
                 await this.getSubflowDetail(this.basicInfo.tpl, this.basicInfo.version)
-                this.subflowUpdateParamsChange()
+                await this.subflowUpdateParamsChange()
                 this.inputs = await this.getSubflowInputsConfig()
                 this.$nextTick(() => {
                     this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms, oldForms)
@@ -1198,6 +1227,7 @@
                 if (type === 'create') {
                     this.$set(this.localConstants, data.key, data)
                 } else {
+                    this.variableCited = {}
                     this.setVariableSourceInfo(data)
                 }
                 // 如果全局变量数据有变，需要更新popover
@@ -1217,11 +1247,18 @@
                     }
                 } else if (type === 'delete') {
                     this.unhookingVarForm = { ...data, value: constant.value }
-                    this.variableCited = await this.getVariableCitedData() || {}
+                    if (!Object.keys(this.variableCited).length) {
+                        this.variableCited = await this.getVariableCitedData() || {}
+                    }
                     const { activities, conditions, constants } = this.variableCited[key]
                     const citedNum = activities.length + conditions.length + constants.length
                     if (citedNum <= 1) {
-                        this.isCancelGloVarDialogShow = true
+                        // 切换插件/切换版本/更新子流程时直接删除引用量为1变量
+                        if (this.isUpdateConstants) {
+                            this.deleteUnhookingVar()
+                        } else {
+                            this.isCancelGloVarDialogShow = true
+                        }
                     } else {
                         if (sourceInfo[id].length <= 1) {
                             this.$delete(sourceInfo, id)
@@ -1303,7 +1340,7 @@
                     Object.keys(this.subflowForms).forEach(key => {
                         const constant = this.subflowForms[key]
                         if (constant.show_type === 'show') {
-                            constant.value = tools.deepClone(this.inputsParamValue[key])
+                            constant.value = key in this.inputsParamValue ? tools.deepClone(this.inputsParamValue[key]) : constant.value
                             constant.need_render = key in this.inputsRenderConfig ? this.inputsRenderConfig[key] : true
                         }
                         constants[key] = constant

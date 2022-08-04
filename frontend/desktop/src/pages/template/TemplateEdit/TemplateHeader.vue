@@ -359,7 +359,7 @@
             goBackTplList () {
                 if (this.isTemplateDataChanged && this.type === 'edit') {
                     this.$emit('goBackViewMode') // 编辑态下返回上一个路由时先保存再back
-                } else if (window.history.length <= 1 || (this.type === 'view' && !this.saveAndCreate)) {
+                } else if (window.history.length <= 1) {
                     const { name } = this.$route
                     const url = name === 'projectCommonTemplatePanel'
                         ? { name: 'processCommon', params: { project_id: this.project_id } }
@@ -367,6 +367,8 @@
                             ? { name: 'commonProcessList' }
                             : { name: 'processHome', params: { project_id: this.project_id } }
                     this.$router.push(url)
+                } else if (this.$parent.isRouterPush) {
+                    this.$router.go(-2)
                 } else {
                     this.$router.back() // 由模板页跳转进入需要保留分页参数
                 }

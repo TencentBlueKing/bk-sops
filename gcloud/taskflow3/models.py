@@ -394,13 +394,12 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         @return:
         """
         # 查询出有序的taskflow统计数据
-        total = taskflow.count()
         task_instance_id_list = taskflow.values_list("id", flat=True)
         order_by = filters.get("order_by", "-create_time")
+        taskflow_statistics_queryset = TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)
+        total = taskflow_statistics_queryset.count()
         taskflow_statistics_data = list(
-            TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)
-            .order_by(order_by)[(page - 1) * limit : page * limit]
-            .values(
+            taskflow_statistics_queryset.order_by(order_by)[(page - 1) * limit : page * limit].values(
                 "instance_id",
                 "task_instance_id",
                 "project_id",
@@ -961,19 +960,29 @@ class TaskFlowInstance(models.Model):
 
     def task_claim(self, username, constants, name):
         if self.flow_type != "common_func":
-            return {"result": False, "message": "task is not functional"}
+            return {"result": False, "message": "task is not functional", "data": None}
         elif self.current_flow != "func_claim":
-            return {"result": False, "message": "task with current_flow:%s cannot be claimed" % self.current_flow}
+            return {
+                "result": False,
+                "message": "task with current_flow:%s cannot be claimed" % self.current_flow,
+                "data": None,
+            }
 
-        with transaction.atomic():
-            if name:
-                self.pipeline_instance.name = name
-            self.set_task_constants(constants)
-            result = self.function_task.get(task=self).claim_task(username)
-            if result["result"]:
+        try:
+            with transaction.atomic():
+                if name:
+                    self.pipeline_instance.name = name
+                set_constants_result = self.set_task_constants(constants)
+                if not set_constants_result["result"]:
+                    raise Exception(set_constants_result["message"])
+                result = self.function_task.get(task=self).claim_task(username)
+                if not result["result"]:
+                    raise Exception(result["message"])
                 self.current_flow = "execute_task"
                 self.pipeline_instance.save()
                 self.save()
+        except Exception as e:
+            return {"result": False, "message": str(e), "data": None}
 
         return result
 

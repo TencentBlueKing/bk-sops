@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="variable-item">
+    <div class="variable-item" :class="{ 'variable-animation': newCloneKeys.includes(variableData.key) }">
         <div :class="['variable-content', { 'view-model': isViewMode }]" @click="onEditVariable(variableData.key, variableData.index)">
             <i v-if="!isSystemVar && !isProjectVar && !showCitedList" class="col-item-drag common-icon-drawable f16"></i>
             <span v-if="!isViewMode && !isSystemVar && !isProjectVar" @click.stop class="col-item-checkbox">
@@ -19,14 +19,7 @@
             <i v-if="isSystemVar" class="variable-icon common-icon-lock-disable"></i>
             <i v-if="isProjectVar" class="variable-icon common-icon-paper"></i>
             <span class="col-item col-name" v-bk-overflow-tips="{ distance: 0 }">
-                <span>
-                    {{ variableData.name }}
-                    <i
-                        v-if="newCloneKeys.includes(variableData.key)"
-                        class="cross-process-clone-icon"
-                        @click.stop="$emit('onCancelCloneKey', variableData.key)">
-                    </i>
-                </span>
+                {{ variableData.name }}
             </span>
             <span class="col-item col-key" v-bk-overflow-tips="{ distance: 0 }">
                 {{ variableData.key }}
@@ -371,20 +364,6 @@ $localBorderColor: #d8e2e7;
     .col-name {
         width: 170px;
         padding-right: 10px;
-        > span {
-            position: relative;
-            .cross-process-clone-icon {
-                position: absolute;
-                top: 1px;
-                right: -2px;
-                display: inline-block;
-                width: 6px;
-                height: 6px;
-                background: #ff5656;
-                border: 1px solid #fff;
-                border-radius: 50%;
-            }
-        }
     }
     .col-key {
         position: relative;
@@ -432,6 +411,14 @@ $localBorderColor: #d8e2e7;
             color: #3a84ff;
         }
     }
+}
+.variable-animation {
+    animation: bgAnimation 3.5s;
+}
+@keyframes bgAnimation {
+    0%{ background: #f2fcf5; }
+    85%{ background: #f2fcf5; }
+    100%{ background: #fff; }
 }
 .col-item {
     display: inline-block;

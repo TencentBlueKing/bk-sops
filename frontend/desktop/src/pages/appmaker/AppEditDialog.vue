@@ -298,11 +298,15 @@
             }
         },
         watch: {
-            isEditDialogShow () {
+            isEditDialogShow (val) {
                 this.isLogoEmpty = !!this.isCreateNewApp
                 this.logoPanelActiveTab = 0
                 this.selectedLogoIndex = null
                 this.isChooseLogoPanelShow = false
+                if (val) {
+                    this.flowName = this.currentAppData.template_name || ''
+                    this.getTemplateList()
+                }
             },
             isShowDefaultLogo: {
                 handler (val) {
