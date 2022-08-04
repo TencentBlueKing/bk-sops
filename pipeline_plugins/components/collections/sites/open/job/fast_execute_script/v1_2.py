@@ -34,14 +34,21 @@ from functools import partial
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.constants import JobBizScopeType
-from gcloud.utils.ip import get_ip_by_regex
-from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema, IntItemSchema, ArrayItemSchema, BooleanItemSchema
+from pipeline.core.flow.io import (
+    StringItemSchema,
+    ObjectItemSchema,
+    BooleanItemSchema,
+)
 from pipeline.component_framework.component import Component
+
+from api.utils.request import batch_request
+from gcloud.exceptions import ApiRequestError
 from pipeline_plugins.components.collections.sites.open.job import JobService
-from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, has_biz_set
+from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, get_biz_ip_from_frontend
+from ..base import GetJobHistoryResultMixin
 
 from gcloud.conf import settings
+from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _("作业平台(JOB)")
@@ -51,19 +58,26 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class AllBizJobFastExecuteScriptService(JobService):
+class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
     need_get_sops_var = True
     need_is_tagged_ip = True
-
-    biz_scope_type = JobBizScopeType.BIZ_SET.value
 
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务集 ID"),
-                key="all_biz_cc_id",
+                name=_("业务 ID"),
+                key="biz_cc_id",
                 type="string",
-                schema=StringItemSchema(description=_("当前操作业务集 ID")),
+                schema=StringItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+            ),
+            self.InputItem(
+                name=_("脚本来源"),
+                key="job_script_source",
+                type="string",
+                schema=StringItemSchema(
+                    description=_("待执行的脚本来源，手动(manual)，业务脚本(general)，公共脚本(public)"),
+                    enum=["manual", "general", "public"],
+                ),
             ),
             self.InputItem(
                 name=_("脚本类型"),
@@ -81,49 +95,34 @@ class AllBizJobFastExecuteScriptService(JobService):
                 schema=StringItemSchema(description=_("待执行的脚本内容，仅在脚本来源为手动时生效")),
             ),
             self.InputItem(
+                name=_("公共脚本"),
+                key="job_script_list_public",
+                type="string",
+                schema=StringItemSchema(description=_("待执行的公共脚本 ID，仅在脚本来源为公共脚本时生效")),
+            ),
+            self.InputItem(
+                name=_("业务脚本"),
+                key="job_script_list_general",
+                type="string",
+                schema=StringItemSchema(description=_("待执行的业务脚本 ID，仅在脚本来源为业务脚本时生效")),
+            ),
+            self.InputItem(
                 name=_("脚本执行参数"),
                 key="job_script_param",
                 type="string",
                 schema=StringItemSchema(description=_("脚本执行参数")),
             ),
             self.InputItem(
+                name=_("目标 IP"),
+                key="job_ip_list",
+                type="string",
+                schema=StringItemSchema(description=_("执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔")),
+            ),
+            self.InputItem(
                 name=_("目标账户"),
-                key="job_target_account",
+                key="job_account",
                 type="string",
                 schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
-            ),
-            self.InputItem(
-                name=_("脚本超时时间"),
-                key="job_target_account",
-                type="int",
-                schema=IntItemSchema(description=_("脚本超时时间")),
-            ),
-            self.InputItem(
-                name=_("脚本超时时间"),
-                key="job_target_account",
-                type="int",
-                schema=IntItemSchema(description=_("脚本超时时间")),
-            ),
-            self.InputItem(
-                name=_("执行目标信息"),
-                key="job_target_ip_table",
-                type="array",
-                schema=ArrayItemSchema(
-                    description=_("执行目标信息"),
-                    item_schema=ObjectItemSchema(
-                        description=_("单条目标 IP 信息"),
-                        property_schemas={
-                            "bk_cloud_id": StringItemSchema(description=_("云区域ID, 默认为0")),
-                            "ip": StringItemSchema(description=_("待执行目标机器 IP，多IP请使用;分隔")),
-                        },
-                    ),
-                ),
-            ),
-            self.InputItem(
-                name=_("IP Tag 分组"),
-                key="is_tagged_ip",
-                type="boolean",
-                schema=BooleanItemSchema(description=_("是否对 IP 进行 Tag 分组")),
             ),
             self.InputItem(
                 name=_("滚动执行"),
@@ -146,11 +145,11 @@ class AllBizJobFastExecuteScriptService(JobService):
         ]
 
     def outputs_format(self):
-        return super(AllBizJobFastExecuteScriptService, self).outputs_format() + [
+        return super(JobFastExecuteScriptService, self).outputs_format() + [
             self.OutputItem(
                 name=_("JOB全局变量"),
                 key="log_outputs",
-                type="object",
+                type="dict",
                 schema=ObjectItemSchema(
                     description=_(
                         "输出日志中提取的全局变量，日志中形如 <SOPS_VAR>key:val</SOPS_VAR> 的变量会被提取到 log_outputs['key'] 中，值为 val"
@@ -170,36 +169,34 @@ class AllBizJobFastExecuteScriptService(JobService):
         ]
 
     def execute(self, data, parent_data):
+        job_success_id = data.get_one_of_inputs("job_success_id")
+        if job_success_id:
+            history_result = self.get_job_history_result(data, parent_data)
+            self.logger.info(history_result)
+            if history_result:
+                self.__need_schedule__ = False
+            return history_result
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
-        biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
-        data.inputs.biz_cc_id = biz_cc_id
-        script_param = str(data.get_one_of_inputs("job_script_param"))
-        job_script_timeout = data.get_one_of_inputs("job_script_timeout")
-        ip_info = data.get_one_of_inputs("job_target_ip_table")
+        biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
+        script_source = data.get_one_of_inputs("job_script_source")
+        original_ip_list = data.get_one_of_inputs("job_ip_list")
         job_rolling_execute = data.get_one_of_inputs("job_rolling_execute", False)
-
-        if not has_biz_set(int(biz_cc_id)):
-            self.biz_scope_type = JobBizScopeType.BIZ.value
-
-        # 拼装ip_list， bk_cloud_id为空则值为0
-        ip_list = [
-            {"ip": ip, "bk_cloud_id": int(_ip["bk_cloud_id"]) if str(_ip["bk_cloud_id"]) else 0}
-            for _ip in ip_info
-            for ip in get_ip_by_regex(_ip["ip"])
-        ]
+        # 获取 IP
+        clean_result, ip_list = get_biz_ip_from_frontend(original_ip_list, executor, biz_cc_id, data, self.logger)
+        if not clean_result:
+            return False
 
         job_kwargs = {
-            "bk_scope_type": self.biz_scope_type,
+            "bk_scope_type": JobBizScopeType.BIZ.value,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
-            "account_alias": data.get_one_of_inputs("job_target_account"),
-            "target_server": {
-                "ip_list": ip_list,
-            },
+            "timeout": data.get_one_of_inputs("job_script_timeout"),
+            "account_alias": data.get_one_of_inputs("job_account"),
+            "target_server": {"ip_list": ip_list},
             "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
 
@@ -212,20 +209,63 @@ class AllBizJobFastExecuteScriptService(JobService):
             rolling_config = {"expression": job_rolling_expression, "mode": job_rolling_mode}
             job_kwargs.update({"rolling_config": rolling_config})
 
+        script_param = str(data.get_one_of_inputs("job_script_param"))
+
         if script_param:
             job_kwargs.update({"script_param": base64.b64encode(script_param.encode("utf-8")).decode("utf-8")})
-        if job_script_timeout:
-            job_kwargs.update({"timeout": int(job_script_timeout)})
 
-        job_kwargs.update(
-            {
-                "script_language": data.get_one_of_inputs("job_script_type"),
-                "script_content": base64.b64encode(data.get_one_of_inputs("job_content").encode("utf-8")).decode(
-                    "utf-8"
-                ),
-            }
-        )
+        if script_source in ["general", "public"]:
+            script_name = data.get_one_of_inputs("job_script_list_{}".format(script_source))
+            kwargs = {"name": script_name}
+            if script_source == "general":
+                kwargs.update(
+                    {"bk_scope_type": JobBizScopeType.BIZ.value, "bk_scope_id": str(biz_cc_id), "bk_biz_id": biz_cc_id}
+                )
+                func = client.jobv3.get_script_list
+            else:
+                func = client.jobv3.get_public_script_list
 
+            try:
+                script_list = batch_request(
+                    func=func,
+                    params=kwargs,
+                    get_data=lambda x: x["data"]["data"],
+                    get_count=lambda x: x["data"]["total"],
+                    page_param={"cur_page_param": "start", "page_size_param": "length"},
+                    is_page_merge=True,
+                )
+            except ApiRequestError as e:
+                message = str(e)
+                self.logger.error(str(e))
+                data.outputs.ex_data = message
+                return False
+
+            # job 脚本名称使用的是模糊匹配，这里需要做一次精确匹配
+            selected_script = None
+            for script in script_list:
+                if script["name"] == script_name:
+                    selected_script = script
+                    break
+
+            if not selected_script:
+                api_name = "jobv3.get_script_list" if script_source == "general" else "jobv3.get_public_script_list"
+                message = job_handle_api_error(api_name, job_kwargs, script_list)
+                message += "Data validation error: can not find a script exactly named {}".format(script_name)
+                self.logger.error(message)
+                data.outputs.ex_data = message
+                return False
+
+            script_id = selected_script["id"]
+            job_kwargs.update({"script_id": script_id})
+        else:
+            job_kwargs.update(
+                {
+                    "script_language": data.get_one_of_inputs("job_script_type"),
+                    "script_content": base64.b64encode(data.get_one_of_inputs("job_content").encode("utf-8")).decode(
+                        "utf-8"
+                    ),
+                }
+            )
         job_result = client.jobv3.fast_execute_script(job_kwargs)
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:
@@ -242,15 +282,17 @@ class AllBizJobFastExecuteScriptService(JobService):
             return False
 
     def schedule(self, data, parent_data, callback_data=None):
-        biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
-        if not has_biz_set(int(biz_cc_id)):
-            self.biz_scope_type = JobBizScopeType.BIZ.value
-        return super().schedule(data, parent_data, callback_data)
+        return super(JobFastExecuteScriptService, self).schedule(data, parent_data, callback_data)
 
 
-class AllBizJobFastExecuteScriptComponent(Component):
-    name = _("业务集快速执行脚本")
-    code = "all_biz_job_fast_execute_script"
-    bound_service = AllBizJobFastExecuteScriptService
-    version = "v1.0"
-    form = "%scomponents/atoms/job/all_biz_fast_execute_script/v1_0.js" % settings.STATIC_URL
+class JobFastExecuteScriptComponent(Component):
+    name = _("快速执行脚本")
+    code = "job_fast_execute_script"
+    bound_service = JobFastExecuteScriptService
+    version = "v1.2"
+    form = "%scomponents/atoms/job/fast_execute_script/v1_2.js" % settings.STATIC_URL
+    desc = _(
+        "插件版本legacy会依据脚本id来执行脚本，JOB平台脚本上线版本变动仍执行原来脚本。\n"
+        "插件版本v1.1会依据脚本名称来执行脚本，自动同步JOB平台当前上线版本进行执行。\n"
+        "注：插件版本v1.1中跨业务执行脚本时需要在作业平台添加白名单"
+    )

@@ -275,6 +275,8 @@ class JobService(Service):
     reload_outputs = True
 
     need_get_sops_var = False
+    # 是否IP分组
+    need_is_tagged_ip = False
 
     biz_scope_type = JobBizScopeType.BIZ.value
 
@@ -303,8 +305,8 @@ class JobService(Service):
 
                 client = data.outputs.client
 
-                # 判断是否对IP进行Tag分组
-                is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", False)
+                # 判断是否对IP进行Tag分组, 兼容之前的配置，默认从inputs拿
+                is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", True)
                 tagged_ip_dict = {}
                 if is_tagged_ip:
                     result, tagged_ip_dict = get_job_tagged_ip_dict(
@@ -321,7 +323,7 @@ class JobService(Service):
                         self.finish_schedule()
                         return False
 
-                if "is_tagged_ip" in data.get_inputs():
+                if "is_tagged_ip" in data.get_inputs() or self.need_is_tagged_ip:
                     data.set_outputs("job_tagged_ip_dict", tagged_ip_dict)
 
                 bk_biz_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
