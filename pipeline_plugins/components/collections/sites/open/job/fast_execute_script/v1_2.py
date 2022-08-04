@@ -149,7 +149,7 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
             self.OutputItem(
                 name=_("JOB全局变量"),
                 key="log_outputs",
-                type="dict",
+                type="object",
                 schema=ObjectItemSchema(
                     description=_(
                         "输出日志中提取的全局变量，日志中形如 <SOPS_VAR>key:val</SOPS_VAR> 的变量会被提取到 log_outputs['key'] 中，值为 val"
