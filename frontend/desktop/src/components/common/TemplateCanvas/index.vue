@@ -874,6 +874,16 @@
                 }
             },
             onNodeRemove (node) {
+                // 拷贝数据更新前的数据
+                const canvasData = tools.deepClone(this.canvasData)
+                const { activities, lines } = canvasData
+                let nodeConfig = activities[node.id] || {}
+                const isGatewayNode = node.type.indexOf('gateway') > -1
+                if (isGatewayNode) {
+                    let gateways = this.$store.state.template.gateways
+                    gateways = tools.deepClone(gateways)
+                    nodeConfig = gateways[node.id]
+                }
                 this.$refs.jsFlow.removeNode(node)
                 this.$emit('templateDataChanged')
                 this.$emit('onLocationChange', 'delete', node)
@@ -883,6 +893,77 @@
                 } else if (node.type === 'endpoint') {
                     this.isDisableEndPoint = false
                 }
+                // 被删除的节点只存在一条输入连线和输出连线时才允许自动连线
+                const { incoming, outgoing } = nodeConfig
+                if (
+                    !['startpoint', 'endpoint'].includes(node.type)
+                    && incoming.length === 1
+                    && Array.isArray(outgoing) ? outgoing.length === 1 : outgoing) {
+                    let { source } = lines.find(item => item.id === incoming[0])
+                    const outlinesId = Array.isArray(outgoing) ? outgoing[0] : outgoing
+                    let { target } = lines.find(item => item.id === outlinesId)
+                    // 先更新数据再进行连线
+                    this.$nextTick(() => {
+                        const sourcePosition = this.getNodeEndpointPosition(source.id)
+                        const targetPosition = this.getNodeEndpointPosition(target.id)
+                        const instance = this.$refs.jsFlow.instance
+                        const eps = instance.selectEndpoints({ source: source.id })
+                        const oEps = instance.selectEndpoints({ target: target.id })
+                        let sourceArrow, targetArrow
+                        let minDis = Infinity
+                        eps.each(e => {
+                            if (sourcePosition.includes(e.anchor.type)) return
+                            oEps.each(oe => {
+                                if (targetPosition.includes(oe.anchor.type)) return
+                                const [eX, eY] = e.anchor.lastReturnValue
+                                const [tEpX, tEpY] = oe.anchor.lastReturnValue
+                                const distance = Math.sqrt(Math.pow((tEpX - eX), 2) + Math.pow((tEpY - eY), 2))
+                                if (distance < minDis) {
+                                    minDis = distance
+                                    sourceArrow = e.anchor.type
+                                    targetArrow = oe.anchor.type
+                                }
+                            })
+                        })
+                        source = { ...source, arrow: sourceArrow }
+                        target = { ...target, arrow: targetArrow }
+                        this.createLine(source, target)
+                    })
+                }
+            },
+            // 获取节点端点被占用情况
+            getNodeEndpointPosition (nodeId) {
+                const { activities, lines } = this.canvasData
+                const { start_event, gateways, end_event } = this.$store.state.template
+                let nodeConfig = {}
+                // 获取节点配置
+                if (start_event.id === nodeId) {
+                    nodeConfig = start_event
+                } else if (end_event.id === nodeId) {
+                    nodeConfig = end_event
+                } else if (nodeId in activities) {
+                    nodeConfig = activities[nodeId]
+                } else if (nodeId in gateways) {
+                    nodeConfig = gateways[nodeId]
+                }
+                let { incoming, outgoing } = nodeConfig
+                // 统一incoming, outgoing数据格式为数组
+                if (!Array.isArray(incoming)) {
+                    incoming = incoming ? [incoming] : []
+                }
+                if (!Array.isArray(outgoing)) {
+                    outgoing = outgoing ? [outgoing] : []
+                }
+                const position = []
+                lines.forEach(item => {
+                    if (incoming.includes(item.id)) {
+                        position.push(item.target.arrow)
+                    }
+                    if (outgoing.includes(item.id)) {
+                        position.push(item.source.arrow)
+                    }
+                })
+                return position
             },
             onBeforeDrag (data) {
                 if (this.referenceLine.id && this.referenceLine.id === data.sourceId) {
