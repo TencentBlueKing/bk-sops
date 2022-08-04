@@ -283,6 +283,9 @@ class JobService(Service):
     def execute(self, data, parent_data):
         pass
 
+    def is_need_log_outputs_even_fail(self, data):
+        return data.get_one_of_inputs("need_log_outputs_even_fail", False)
+
     def schedule(self, data, parent_data, callback_data=None):
 
         try:
@@ -300,7 +303,7 @@ class JobService(Service):
             return False
 
         job_success = status in JOB_SUCCESS
-        need_log_outputs_even_fail = data.get_one_of_inputs("need_log_outputs_even_fail", False)
+        need_log_outputs_even_fail = self.is_need_log_outputs_even_fail(data)
         if job_success or need_log_outputs_even_fail:
 
             if not job_success:
@@ -320,9 +323,9 @@ class JobService(Service):
                 client = data.outputs.client
 
                 # 判断是否对IP进行Tag分组, 兼容之前的配置，默认从inputs拿
-                is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", True)
+                is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", False)
                 tagged_ip_dict = {}
-                if is_tagged_ip:
+                if is_tagged_ip or self.need_is_tagged_ip:
                     result, tagged_ip_dict = get_job_tagged_ip_dict(
                         data.outputs.client,
                         self.logger,

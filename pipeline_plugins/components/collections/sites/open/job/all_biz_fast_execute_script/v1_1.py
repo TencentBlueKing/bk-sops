@@ -53,6 +53,7 @@ job_handle_api_error = partial(handle_api_error, __group_name__)
 
 class AllBizJobFastExecuteScriptService(JobService):
     need_get_sops_var = True
+    need_is_tagged_ip = True
 
     biz_scope_type = JobBizScopeType.BIZ_SET.value
 
@@ -124,6 +125,24 @@ class AllBizJobFastExecuteScriptService(JobService):
                 type="boolean",
                 schema=BooleanItemSchema(description=_("是否对 IP 进行 Tag 分组")),
             ),
+            self.InputItem(
+                name=_("滚动执行"),
+                key="job_rolling_execute",
+                type="boolean",
+                schema=BooleanItemSchema(description=_("是否开启滚动执行")),
+            ),
+            self.InputItem(
+                name=_("滚动策略"),
+                key="job_rolling_expression",
+                type="string",
+                schema=StringItemSchema(description=_("滚动策略，仅在滚动执行开启时生效")),
+            ),
+            self.InputItem(
+                name=_("滚动机制"),
+                key="job_rolling_mode",
+                type="string",
+                schema=StringItemSchema(description=_("滚动机制，仅在滚动执行开启时生效")),
+            ),
         ]
 
     def outputs_format(self):
@@ -150,6 +169,9 @@ class AllBizJobFastExecuteScriptService(JobService):
             ),
         ]
 
+    def is_need_log_outputs_even_fail(self, data):
+        return True
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
@@ -161,6 +183,7 @@ class AllBizJobFastExecuteScriptService(JobService):
         script_param = str(data.get_one_of_inputs("job_script_param"))
         job_script_timeout = data.get_one_of_inputs("job_script_timeout")
         ip_info = data.get_one_of_inputs("job_target_ip_table")
+        job_rolling_execute = data.get_one_of_inputs("job_rolling_execute", False)
 
         if not has_biz_set(int(biz_cc_id)):
             self.biz_scope_type = JobBizScopeType.BIZ.value
@@ -182,6 +205,15 @@ class AllBizJobFastExecuteScriptService(JobService):
             },
             "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
+
+        # 如果开启了滚动执行，填充rolling_config配置
+        if job_rolling_execute:
+            # 滚动策略
+            job_rolling_expression = data.get_one_of_inputs("job_rolling_expression")
+            # 滚动机制
+            job_rolling_mode = data.get_one_of_inputs("job_rolling_mode")
+            rolling_config = {"expression": job_rolling_expression, "mode": job_rolling_mode}
+            job_kwargs.update({"rolling_config": rolling_config})
 
         if script_param:
             job_kwargs.update({"script_param": base64.b64encode(script_param.encode("utf-8")).decode("utf-8")})
@@ -223,5 +255,5 @@ class AllBizJobFastExecuteScriptComponent(Component):
     name = _("业务集快速执行脚本")
     code = "all_biz_job_fast_execute_script"
     bound_service = AllBizJobFastExecuteScriptService
-    version = "v1.0"
-    form = "%scomponents/atoms/job/all_biz_fast_execute_script/v1_0.js" % settings.STATIC_URL
+    version = "v1.1"
+    form = "%scomponents/atoms/job/all_biz_fast_execute_script/v1_1.js" % settings.STATIC_URL
