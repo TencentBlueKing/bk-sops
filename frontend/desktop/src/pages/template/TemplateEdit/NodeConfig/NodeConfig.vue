@@ -627,7 +627,7 @@
                             desc = descList.join('<br>')
                         }
                         this.updateBasicInfo({ desc })
-                        if (forms.renderFrom) {
+                        if (forms.renderform) {
                             if (!this.isSubflow) {
                                 // 获取第三方插件公共输出参数
                                 if (!this.pluginOutput['remote_plugin']) {
