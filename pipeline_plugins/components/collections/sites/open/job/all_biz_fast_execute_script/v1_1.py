@@ -257,3 +257,4 @@ class AllBizJobFastExecuteScriptComponent(Component):
     bound_service = AllBizJobFastExecuteScriptService
     version = "v1.1"
     form = "%scomponents/atoms/job/all_biz_fast_execute_script/v1_1.js" % settings.STATIC_URL
+    desc = _("业务集快速执行脚本，滚动执行功能需要作业平台版本>=V3.6.0.0")
