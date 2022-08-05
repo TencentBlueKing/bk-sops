@@ -902,15 +902,18 @@
                     let { source } = lines.find(item => item.id === incoming[0])
                     const outlinesId = Array.isArray(outgoing) ? outgoing[0] : outgoing
                     let { target } = lines.find(item => item.id === outlinesId)
+                    // 当之上没有任务节点时，不自动连线
+                    if (!activities[source.id] && !activities[target.id]) return
                     // 先更新数据再进行连线
                     this.$nextTick(() => {
-                        const sourcePosition = this.getNodeEndpointPosition(source.id)
-                        const targetPosition = this.getNodeEndpointPosition(target.id)
+                        const sourcePosition = this.getNodeEndpointPosition(source.id, 'source')
+                        const targetPosition = this.getNodeEndpointPosition(target.id, 'target')
                         const instance = this.$refs.jsFlow.instance
                         const eps = instance.selectEndpoints({ source: source.id })
                         const oEps = instance.selectEndpoints({ target: target.id })
                         let sourceArrow, targetArrow
                         let minDis = Infinity
+                        // 排除源头节点输入连线的端点和目标短线输出连线的端点
                         eps.each(e => {
                             if (sourcePosition.includes(e.anchor.type)) return
                             oEps.each(oe => {
@@ -925,6 +928,7 @@
                                 }
                             })
                         })
+                        if (!sourceArrow || !sourceArrow) return
                         source = { ...source, arrow: sourceArrow }
                         target = { ...target, arrow: targetArrow }
                         this.createLine(source, target)
@@ -932,7 +936,7 @@
                 }
             },
             // 获取节点端点被占用情况
-            getNodeEndpointPosition (nodeId) {
+            getNodeEndpointPosition (nodeId, type) {
                 const { activities, lines } = this.canvasData
                 const { start_event, gateways, end_event } = this.$store.state.template
                 let nodeConfig = {}
@@ -955,11 +959,12 @@
                     outgoing = outgoing ? [outgoing] : []
                 }
                 const position = []
+                // 计算源头节点输入连线的端点和目标短线输出连线的端点
                 lines.forEach(item => {
-                    if (incoming.includes(item.id)) {
+                    if (type === 'source' && incoming.includes(item.id)) {
                         position.push(item.target.arrow)
                     }
-                    if (outgoing.includes(item.id)) {
+                    if (type === 'target' && outgoing.includes(item.id)) {
                         position.push(item.source.arrow)
                     }
                 })
