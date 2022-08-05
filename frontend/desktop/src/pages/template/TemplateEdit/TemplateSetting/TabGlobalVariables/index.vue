@@ -647,17 +647,9 @@
                     this.deleteVarList = []
                 }
             },
-            // 垮流程克隆变量
+            // 跨流程克隆变量
             onCloneVarConfirm (constants = []) {
-                const indexList = []
-                const variableKeys = this.variableList.map(item => {
-                    indexList.push(item.index)
-                    return item.key
-                })
-                const maxIndex = Math.max(...indexList)
-                constants.forEach((item, index) => {
-                    item.key = this.setCloneKey(item.key, variableKeys)
-                    item.index = maxIndex + index + 1
+                constants.forEach(item => {
                     this.newCloneKeys.push(item.key)
                     this.addVariable(item)
                 })
