@@ -647,7 +647,7 @@
                     this.deleteVarList = []
                 }
             },
-            // 垮流程克隆变量
+            // 跨流程克隆变量
             onCloneVarConfirm (constants = []) {
                 constants.forEach(item => {
                     this.newCloneKeys.push(item.key)
