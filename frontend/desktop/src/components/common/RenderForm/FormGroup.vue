@@ -255,11 +255,17 @@
             emit_event (name, type, data) {
                 this.$parent.$emit(`${name}_${type}`, data)
             },
-            onShowForm () {
+            show () {
                 this.showForm = true
             },
-            onHideForm () {
+            hide () {
                 this.showForm = false
+            },
+            onShowForm () {
+                this.show()
+            },
+            onHideForm () {
+                this.hide()
             },
             validate () {
                 let isValid = true
