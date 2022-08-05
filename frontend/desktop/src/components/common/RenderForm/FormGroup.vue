@@ -255,10 +255,10 @@
             emit_event (name, type, data) {
                 this.$parent.$emit(`${name}_${type}`, data)
             },
-            show () {
+            onShowForm () {
                 this.showForm = true
             },
-            hide () {
+            onHideForm () {
                 this.showForm = false
             },
             validate () {
