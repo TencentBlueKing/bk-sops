@@ -351,19 +351,68 @@
             }
         },
         {
-            tag_code: "job_ip_list",
-            type: "textarea",
+            tag_code: "job_target_ip_table",
+            type: "datatable",
             attrs: {
-                name: gettext("目标IP"),
-                placeholder: gettext("输入IP, 多个用英文逗号 `,` 或换行分隔"),
+                name: gettext("执行目标"),
+                pagination: true,
+                placeholder: gettext("格式为【云区域ID:IP】或者【IP】格式之一，多个用换行分隔,需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"),
                 hookable: true,
+                empty_text: gettext("请添加目标IP信息"),
+                table_buttons: [
+                    {
+                        type: "add_row",
+                        text: gettext("添加"),
+                        callback: function () {
+                            this.add_row()
+                        }
+                    },
+                    {
+                        type: "export",
+                        text: gettext("导出"),
+                        callback: function () {
+                            this.export2Excel()
+                        }
+                    },
+                    {
+                        type: "import",
+                        text: gettext("导入")
+                    }
+                ],
+                columns: [
+                    {
+                        tag_code: "bk_cloud_id",
+                        type: "input",
+                        attrs: {
+                            name: gettext("云区域ID(默认为0)"),
+                            validation: [
+                                {
+                                    type: "required"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        tag_code: "ip",
+                        type: "textarea",
+                        attrs: {
+                            name: "IP",
+                            placeholder: gettext("多个IP以,分隔"),
+                            validation: [
+                                {
+                                    type: "required"
+                                }
+                            ]
+                        }
+                    },
+                ],
+
                 validation: [
                     {
                         type: "required"
                     }
                 ],
             },
-            events: []
         },
         {
             tag_code: "job_account",

@@ -43,8 +43,8 @@ from pipeline.component_framework.component import Component
 
 from api.utils.request import batch_request
 from gcloud.exceptions import ApiRequestError
-from pipeline_plugins.components.collections.sites.open.job import JobService
-from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, get_biz_ip_from_frontend
+from pipeline_plugins.components.collections.sites.open.job import JobService, get_ip_by_regex
+from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url
 from ..base import GetJobHistoryResultMixin
 
 from gcloud.conf import settings
@@ -183,13 +183,15 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
             translation.activate(parent_data.get_one_of_inputs("language"))
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         script_source = data.get_one_of_inputs("job_script_source")
-        original_ip_list = data.get_one_of_inputs("job_ip_list")
+        ip_info = data.get_one_of_inputs("job_target_ip_table")
         job_rolling_execute = data.get_one_of_inputs("job_rolling_execute", False)
         # 获取 IP
-        clean_result, ip_list = get_biz_ip_from_frontend(original_ip_list, executor, biz_cc_id, data, self.logger)
-        if not clean_result:
-            return False
 
+        ip_list = [
+            {"ip": ip, "bk_cloud_id": int(_ip["bk_cloud_id"]) if str(_ip["bk_cloud_id"]) else 0}
+            for _ip in ip_info
+            for ip in get_ip_by_regex(_ip["ip"])
+        ]
         job_kwargs = {
             "bk_scope_type": JobBizScopeType.BIZ.value,
             "bk_scope_id": str(biz_cc_id),

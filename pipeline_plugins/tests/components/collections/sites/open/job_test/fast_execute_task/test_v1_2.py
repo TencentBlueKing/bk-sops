@@ -38,7 +38,6 @@ class JobFastExecuteScriptComponentTest(TestCase, ComponentTestMixin):
     def cases(self):
         # return your component test cases here
         return [
-            IP_IS_EXIST_FAIL_CASE,
             FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE,
             FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE,
             FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_SUCCESS_CASE,
@@ -222,7 +221,9 @@ PARENT_DATA = {"executor": "executor", "biz_cc_id": 1}
 BASE_INPUTS = {
     "job_script_param": "1",
     "job_script_timeout": "100",
-    "job_ip_list": "127.0.0.1\n127.0.0.2",
+    "job_target_ip_table": [
+        {"bk_cloud_id": "0", "ip": "127.0.0.1;127.0.0.2"},
+    ],
     "job_account": "root",
     "job_script_list_public": "",
     "job_script_list_general": "",
@@ -241,7 +242,9 @@ MANUAL_INPUTS.update(
 IP_EXIST_INPUTS = {
     "job_script_param": "1",
     "job_script_timeout": "100",
-    "job_ip_list": "127.0.0.1\n127.0.0.2",
+    "job_target_ip_table": [
+        {"bk_cloud_id": "0", "ip": "127.0.0.1;127.0.0.2"},
+    ],
     "job_account": "root",
     "job_script_list_public": "",
     "job_script_list_general": "",
@@ -260,7 +263,7 @@ MANUAL_KWARGS = {
     "bk_biz_id": 1,
     "timeout": "100",
     "account_alias": "root",
-    "target_server": {"ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 1}, {"ip": "127.0.0.2", "bk_cloud_id": 2}]},
+    "target_server": {"ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}, {"ip": "127.0.0.2", "bk_cloud_id": 0}]},
     "callback_url": "callback_url",
     "rolling_config": {"expression": "10%", "mode": "1"},
     "script_param": "MQ==",
@@ -274,7 +277,7 @@ MANUAL_FAIL_OUTPUTS = {
     "request_id=aac7755b09944e4296b2848d81bd9411".format(params=json.dumps(MANUAL_KWARGS), error=FAIL_RESULT["message"])
 }
 
-IP_IS_EXIST_FAIL_OUTPUTS = {"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： 127.0.0.2"}
+IP_IS_EXIST_FAIL_OUTPUTS = MANUAL_FAIL_OUTPUTS
 
 # 手动输入脚本成功样例输出
 MANUAL_SUCCESS_OUTPUTS = {
@@ -370,18 +373,5 @@ FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE = ComponentTestCase(
             target=CC_GET_IPS_INFO_BY_STR,
             return_value={"ip_result": [{"InnerIP": "127.0.0.1", "Source": 1}, {"InnerIP": "127.0.0.2", "Source": 2}]},
         ),
-    ],
-)
-
-# ip 校验
-IP_IS_EXIST_FAIL_CASE = ComponentTestCase(
-    name="fast execute manual script fail test case",
-    inputs=IP_EXIST_INPUTS,
-    parent_data=PARENT_DATA,
-    execute_assertion=ExecuteAssertion(success=False, outputs=IP_IS_EXIST_FAIL_OUTPUTS),
-    schedule_assertion=None,
-    patchers=[
-        Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_FAIL_CLIENT),
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "127.0.0.1", "Source": 1}]}),
     ],
 )
