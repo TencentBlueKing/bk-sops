@@ -223,7 +223,12 @@ def get_job_tagged_ip_dict(
     result = client.jobv3.get_job_instance_status(kwargs)
 
     if not result["result"]:
-        message = handle_api_error(__group_name__, "jobv3.get_job_instance_status", kwargs, result,)
+        message = handle_api_error(
+            __group_name__,
+            "jobv3.get_job_instance_status",
+            kwargs,
+            result,
+        )
         service_logger.warning(message)
         return False, message
 
@@ -346,7 +351,9 @@ class JobService(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
+                        "jobv3.get_job_instance_global_var_value",
+                        get_var_kwargs,
+                        global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
@@ -428,6 +435,8 @@ class JobScheduleService(JobService):
 
     interval = StaticIntervalGenerator(5)
 
+    need_show_failure_inst_url = False
+
     def schedule(self, data, parent_data, callback_data=None):
         if hasattr(data.outputs, "requests_error") and data.outputs.requests_error:
             data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
@@ -455,6 +464,8 @@ class JobScheduleService(JobService):
         # 解析查询结果
         running_task_list = []
 
+        failure_inst_url = []
+
         for job_result in batch_result_list:
             result = job_result["result"]
             job_id_str = job_result["params"]["job_instance_id"]
@@ -468,12 +479,14 @@ class JobScheduleService(JobService):
                 # 失败状态
                 elif job_status > 3:
                     # 出于性能考虑，不拉取对应主机IP的日志，引导用户跳转JOB平台查看
+                    failure_inst_url.append(job_detail_url)
                     data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
                         job_detail_url
                     )
                 else:
                     running_task_list.append(job_id_str)
             else:
+                failure_inst_url.append(job_detail_url)
                 data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
                     job_detail_url
                 )
@@ -485,7 +498,8 @@ class JobScheduleService(JobService):
             # 没有报错信息
             if not data.outputs.ex_data:
                 del data.outputs.ex_data
-
+            if self.need_show_failure_inst_url:
+                data.outputs.failure_inst_url = failure_inst_url
             self.finish_schedule()
             return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count
 
@@ -570,7 +584,9 @@ class Jobv3Service(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
+                        "jobv3.get_job_instance_global_var_value",
+                        get_var_kwargs,
+                        global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
@@ -727,7 +743,12 @@ class GetJobHistoryResultMixin(object):
         job_result = client.jobv3.get_job_instance_status(job_kwargs)
 
         if not job_result["result"]:
-            message = handle_api_error(__group_name__, "jobv3.get_job_instance_status", job_kwargs, job_result,)
+            message = handle_api_error(
+                __group_name__,
+                "jobv3.get_job_instance_status",
+                job_kwargs,
+                job_result,
+            )
             self.logger.error(message)
             data.outputs.ex_data = message
             self.logger.info(data.outputs)
@@ -747,7 +768,10 @@ class GetJobHistoryResultMixin(object):
             return True
 
         get_job_sops_var_dict_return = get_job_sops_var_dict(
-            client, self.logger, job_success_id, data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+            client,
+            self.logger,
+            job_success_id,
+            data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
         )
         if not get_job_sops_var_dict_return["result"]:
             self.logger.error(
