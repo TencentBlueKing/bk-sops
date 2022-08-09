@@ -327,6 +327,16 @@
                                 if (resp.result === false) {
                                     show_msg(resp.message, "error");
                                 }
+                                // 当操作类型为停止时将不再默认选中最新版本
+                                if (this.get_parent().get_child('nodeman_op_type').value === "MAIN_STOP_PLUGIN"){
+                                    return resp.data;
+                                }
+                                // 如果当前值为空，则默认选中第一个，否则视为回显逻辑，不进行操作
+                                if (!this.value) {
+                                    if (resp.data.length > 0) {
+                                        this.set_value(resp.data[0].value);
+                                    }
+                                }
                                 return resp.data;
                             },
                             validation: [
@@ -387,8 +397,21 @@
                                 type: "change",
                                 action: function (value) {
                                     if (value === "MAIN_STOP_PLUGIN") {
+                                        // 停止状态时不需要版本信息，所以版本信息内容设置为空
+                                        this.set_value("")
                                         this.hide()
                                     } else {
+                                        this.show()
+                                    }
+                                }
+                            },
+                            {
+                                source: "nodeman_op_type",
+                                type: "init",
+                                action: function (value) {
+                                    if (this.get_parent().get_child('nodeman_op_type').value === "MAIN_STOP_PLUGIN"){
+                                       this.hide();
+                                    }else {
                                         this.show()
                                     }
                                 }
