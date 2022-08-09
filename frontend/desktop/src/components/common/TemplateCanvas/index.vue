@@ -925,8 +925,13 @@
                     const cEndpoint = type === 'source' ? item.endpoints[0] : item.endpoints[1]
                     const oEndpoint = type === 'source' ? item.endpoints[1] : item.endpoints[0]
                     const oEps = type === 'source' ? instance.selectEndpoints({ target: item.target.id }) : instance.selectEndpoints({ source: item.source.id })
+                    // targetId恒为移动的节点id
+                    const targetPosition = this.getNodeEndpointPosition(item.targetId, type)
+                    const sourcePosition = this.getNodeEndpointPosition(item.sourceId, type === 'target' ? 'source' : 'target')
                     eps.each(e => {
+                        if (targetPosition.includes(e.anchor.type)) return
                         oEps.each(oe => {
+                            if (sourcePosition.includes(oe.anchor.type)) return
                             const [eX, eY] = e.anchor.lastReturnValue
                             const [tEpX, tEpY] = oe.anchor.lastReturnValue
                             const distance = Math.sqrt(Math.pow((tEpX - eX), 2) + Math.pow((tEpY - eY), 2))
@@ -937,6 +942,7 @@
                             }
                         })
                     })
+                    if (!cep || !oep) return
                     if (cep !== cEndpoint || oep !== oEndpoint) {
                         // 保留分支网关连线上的分支条件
                         let condition, sId, sType, tId, tType
@@ -975,6 +981,41 @@
                         })
                     }
                 })
+            },
+            // 获取节点端点被占用情况
+            getNodeEndpointPosition (nodeId, type) {
+                const { activities, lines } = this.canvasData
+                const { start_event, gateways, end_event } = this.$store.state.template
+                let nodeConfig = {}
+                // 获取节点配置
+                if (start_event.id === nodeId) {
+                    nodeConfig = start_event
+                } else if (end_event.id === nodeId) {
+                    nodeConfig = end_event
+                } else if (nodeId in activities) {
+                    nodeConfig = activities[nodeId]
+                } else if (nodeId in gateways) {
+                    nodeConfig = gateways[nodeId]
+                }
+                let { incoming, outgoing } = nodeConfig
+                // 统一incoming, outgoing数据格式为数组
+                if (!Array.isArray(incoming)) {
+                    incoming = incoming ? [incoming] : []
+                }
+                if (!Array.isArray(outgoing)) {
+                    outgoing = outgoing ? [outgoing] : []
+                }
+                const position = []
+                // 计算源头节点输入连线的端点和目标短线输出连线的端点
+                lines.forEach(item => {
+                    if (type === 'source' && incoming.includes(item.id)) {
+                        position.push(item.target.arrow)
+                    }
+                    if (type === 'target' && outgoing.includes(item.id)) {
+                        position.push(item.source.arrow)
+                    }
+                })
+                return position
             },
             // 初始化生成参考线
             createReferenceLine () {
