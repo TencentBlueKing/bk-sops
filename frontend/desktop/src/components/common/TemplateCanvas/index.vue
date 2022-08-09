@@ -26,6 +26,7 @@
             :node-options="nodeOptions"
             @onCreateNodeBefore="onCreateNodeBefore"
             @onCreateNodeAfter="onCreateNodeAfter"
+            @connectionDrag="onConnectionDrag"
             @onConnectionDragStop="onConnectionDragStop"
             @onConnectionClick="onConnectionClick"
             @onBeforeDrag="onBeforeDrag"
@@ -595,6 +596,15 @@
                     this.isDisableStartPoint = true
                 } else if (node.type === 'endpoint') {
                     this.isDisableEndPoint = true
+                }
+            },
+            // 连线开始拖动
+            onConnectionDrag (connection) {
+                if (Array.isArray(connection.endpoints) && connection.endpoints.length > 0) {
+                    const pos = connection.endpoints[0].canvas?.dataset.pos
+                    if (pos && connection.endpoints[1]) {
+                        connection.endpoints[1].canvas.dataset.pos = pos
+                    }
                 }
             },
             // 拖拽到节点上自动连接
@@ -1879,32 +1889,37 @@
             }
             .jtk-endpoint {
                 cursor: pointer;
-                &.template-canvas-endpoint:not(.jtk-dragging) {
+                &.template-canvas-endpoint {
                     height: 32px;
                     width: 32px;
-                    &:hover,
+                    background-repeat: no-repeat;
+                    background-size: 20px;
                     &.jtk-endpoint-highlight {
-                        box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.10);
-                        border-radius: 50%;
-                        &[data-pos="Top"] {
-                            transform: translateY(-22px) rotate(-90deg);
-                        }
-                        &[data-pos="Bottom"] {
-                            transform: translateY(22px) rotate(90deg);
-                        }
-                        &[data-pos="Left"] {
-                            transform: translateX(-22px) rotate(-180deg);
-                        }
-                        &[data-pos="Right"] {
-                            transform: translateX(22px);
-                        }
+                        background-image: url('~@/assets/images/endpoint.png');
+                    }
+                    &[data-pos="Top"] {
+                        transform: rotate(90deg);
+                        background-position: bottom 50% left 0;
+                    }
+                    &[data-pos="Bottom"] {
+                        transform: rotate(-90deg);
+                        background-position: bottom 50% left 0;
+                    }
+                    &[data-pos="Left"] {
+                        background-position: top 50% left 0;
+                    }
+                    &[data-pos="Right"] {
+                        transform: rotate(180deg);
+                        background-position: top 50% left 0;
                     }
                     &:hover {
-                        background: url('~@/assets/images/endpoint-hover.png') center/32px no-repeat;
+                        background-image: url('~@/assets/images/endpoint-hover.png');
                     }
-                    &.jtk-endpoint-highlight {
-                        background: url('~@/assets/images/endpoint.png') center/32px no-repeat;
-                    }
+                }
+                &.template-canvas-endpoint.jtk-dragging {
+                    background-image: url('~@/assets/images/endpoint-dragging.png');
+                    background-position: bottom 50% left 50%;
+                    z-index: 3;
                 }
             }
         }
