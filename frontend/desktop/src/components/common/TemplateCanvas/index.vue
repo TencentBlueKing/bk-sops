@@ -286,7 +286,8 @@
                 connectorOptions,
                 nodeOptions,
                 zoomRatio: 100,
-                labelDrag: false // 标识分支条件是否为拖动触发
+                labelDrag: false, // 标识分支条件是否为拖动触发
+                connectorPosition: {} // 鼠标hover的连线的坐标
             }
         },
         watch: {
@@ -309,7 +310,7 @@
             const canvasPaintArea = document.querySelector('.canvas-flow-wrap')
             canvasPaintArea.addEventListener('mousewheel', this.onMouseWheel, false)
             canvasPaintArea.addEventListener('DOMMouseScroll', this.onMouseWheel, false) // 单独处理firefox
-            canvasPaintArea.addEventListener('mousemove', this.onCanvasMouseMove, false)
+            canvasPaintArea.addEventListener('mousemove', tools.debounce(this.onCanvasMouseMove, 300), false)
             // 监听页面视图变化
             window.addEventListener('resize', this.onWindowResize, false)
         },
@@ -639,12 +640,7 @@
                 }
             },
             onConnectionClick (conn, e) {
-                if (!this.editable || e.target.tagName !== 'path') {
-                    return
-                }
-                this.activeNode = null
                 this.activeCon = conn
-                this.openShortcutPanel('line', e)
                 // const [sEdp, tEdp] = conn.endpoints
                 // const { sourceId, targetId } = conn
                 // this.replaceEndpoint(sEdp, sourceId, true)
@@ -779,11 +775,7 @@
                     }
                     // 增加连线删除 icon
                     this.$refs.jsFlow.addLineOverlay(line, {
-                        type: 'Label',
-                        name: '<i class="common-icon-dark-circle-close"></i>',
-                        location: 0.5,
-                        cls: 'delete-line-circle-icon',
-                        id: `close_${lineId}`
+                        type: 'Label'
                     })
                     const branchInfo = this.canvasData.branchConditions[line.source.id]
                     // 增加分支网关 label
@@ -1329,6 +1321,7 @@
                         this.onUpdateNodeInfo(id, { isActived: true })
                         this.toggleNodeLevel(id, true)
                     }
+                    this.activeCon = null
                     this.activeNode = this.canvasData.locations.find(item => item.id === id)
                     this.openShortcutPanel('node')
                 }
@@ -1370,6 +1363,7 @@
                     left = pageX - wrapGap.x + 10
                     top = pageY - wrapGap.y + 10
                 }
+                this.connectorPosition = {}
                 this.shortcutPanelPosition = { left, top }
                 this.showShortcutPanel = true
             },
@@ -1457,6 +1451,7 @@
                 }
                 this.activeNode = null
                 this.activeCon = null
+                this.connectorPosition = {}
                 this.showShortcutPanel = false
                 this.shortcutPanelNodeOperate = false
                 this.shortcutPanelDeleteLine = false
@@ -1544,6 +1539,37 @@
                 const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
                 this.zoomOriginPosition.x = e.pageX - offsetX
                 this.zoomOriginPosition.y = e.pageY - offsetY
+                // 监听鼠标是否hover到连线上
+                if (!this.editable || e.target.tagName !== 'path') {
+                    return
+                }
+                const connectorDom = document.querySelector('svg.bk-sops-connector-hover')
+                if (!connectorDom) return
+                // 当鼠标hover到新的连线时关闭旧的快捷面板
+                const { top, left } = connectorDom.style
+                if (tools.isDataEqual({ top, left }, this.connectorPosition)) {
+                    return
+                } else {
+                    this.connectorPosition = { top, left }
+                    this.showShortcutPanel = false
+                }
+                if (!this.showShortcutPanel) {
+                    // 手动触发path元素的click事件
+                    const pathDom = connectorDom.querySelector('path')
+                    const event = document.createEvent('MouseEvent')
+                    event.initMouseEvent('click', true, true)
+                    pathDom.dispatchEvent(event)
+                    // 打开快捷面板
+                    const wrapGap = dom.getElementScrollCoords(this.$refs.jsFlow.$el)
+                    const { pageX, pageY } = e
+                    const nodeId = this.activeCon.sourceId
+                    this.activeNode = this.canvasData.locations.find(item => item.id === nodeId)
+                    this.shortcutPanelDeleteLine = true
+                    const left = pageX - wrapGap.x + 10
+                    const top = pageY - wrapGap.y - 50
+                    this.shortcutPanelPosition = { left, top }
+                    this.showShortcutPanel = true
+                }
             },
             /**
              * 设置画布偏移量
@@ -1817,12 +1843,6 @@
             z-index: 3;
             &.delete-line-circle-icon {
                 display: none;
-            }
-            .common-icon-dark-circle-close{
-                font-size: 16px;
-                color: #63656e;
-                background: #ffffff;
-                border-radius: 50%;
             }
             .branch-condition {
                 padding: 4px 6px;
