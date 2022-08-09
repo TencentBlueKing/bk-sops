@@ -97,7 +97,7 @@
                             </bk-table-column>
                             <bk-table-column :label="$t('操作')" width="190" :fixed="taskList.length ? 'right' : false">
                                 <template slot-scope="props">
-                                    <div class="task-operation">
+                                    <div class="task-operation" :task-name="props.row.name">
                                         <!-- 事后鉴权，后续对接新版权限中心 -->
                                         <a v-if="props.row.template_deleted || props.row.template_source === 'onetime'" class="task-operation-btn disabled" data-test-id="taskList_table_recreateBtn">{{$t('再创建')}}</a>
                                         <a
