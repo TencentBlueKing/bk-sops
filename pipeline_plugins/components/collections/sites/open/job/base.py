@@ -213,6 +213,39 @@ def get_job_tagged_ip_dict(
     client, service_logger, job_instance_id, bk_biz_id, job_scope_type=JobBizScopeType.BIZ.value
 ):
     """根据job步骤执行标签获取 IP 分组"""
+
+    JOB_STEP_IP_RESULT_STATUS_MAP = {
+        0: "未知错误",
+        1: "Agent异常",
+        2: "无效主机",
+        3: "上次已成功",
+        9: "执行成功",
+        11: "执行失败",
+        12: "任务下发失败",
+        13: "任务超时",
+        15: "任务日志错误",
+        16: "GSE脚本日志超时",
+        17: "GSE文件日志超时",
+        101: "脚本执行失败",
+        102: "脚本执行超时",
+        103: "脚本执行被终止",
+        104: "脚本返回码非零",
+        202: "文件传输失败",
+        203: "源文件不存在",
+        301: "文件任务系统错误-未分类的",
+        303: "文件任务超时",
+        310: "Agent异常",
+        311: "用户名不存在",
+        312: "用户密码错误",
+        320: "文件获取失败",
+        321: "文件超出限制",
+        329: "文件传输错误",
+        399: "任务执行出错",
+        403: "GSE任务强制终止成功",
+        404: "GSE任务强制终止失败",
+        500: "未知状态",
+    }
+
     kwargs = {
         "bk_scope_type": job_scope_type,
         "bk_scope_id": str(bk_biz_id),
@@ -236,16 +269,25 @@ def get_job_tagged_ip_dict(
 
     step_ip_result_list = step_instance["step_ip_result_list"]
     tagged_ip_dict = {}
+    tagged_status_dict = {}
 
     for step_ip_result in step_ip_result_list:
         tag_key = step_ip_result["tag"]
-        if not tag_key:
-            continue
-        if tag_key in tagged_ip_dict:
-            tagged_ip_dict[tag_key] += f",{step_ip_result['ip']}"
-        else:
-            tagged_ip_dict[tag_key] = step_ip_result["ip"]
+        status = step_ip_result["status"]
+        status_display = JOB_STEP_IP_RESULT_STATUS_MAP.get(status, status)
+        status_key = "{}-{}".format(status_display, status)
+        if tag_key:
+            if tag_key in tagged_ip_dict:
+                tagged_ip_dict[tag_key] += f",{step_ip_result['ip']}"
+            else:
+                tagged_ip_dict[tag_key] = step_ip_result["ip"]
 
+        if status_key in tagged_status_dict:
+            tagged_status_dict[status_key] += f",{step_ip_result['ip']}"
+        else:
+            tagged_status_dict[status_key] = step_ip_result["ip"]
+
+    tagged_ip_dict.update(tagged_status_dict)
     return True, tagged_ip_dict
 
 
