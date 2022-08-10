@@ -96,3 +96,12 @@ class CreateTaskFlowInstanceSerializer(TaskSerializer):
     class Meta:
         model = TaskFlowInstance
         exclude = ["current_flow"]
+
+
+class ListChildrenTaskFlowQuerySerializer(serializers.Serializer):
+    root_task_id = serializers.IntegerField(help_text="根任务ID")
+
+
+class ListChildrenTaskFlowResponseSerializer(serializers.Serializer):
+    tasks = serializers.ListSerializer(child=TaskFlowInstanceSerializer())
+    relations = serializers.DictField(help_text="任务关系, key为父任务ID, value为子任务ID列表")
