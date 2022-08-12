@@ -17,6 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from gcloud.utils.ip import get_ip_by_regex
 
 from pipeline_plugins.components.utils import convert_num_to_str
 from pipeline.component_framework.component import Component
@@ -104,7 +105,7 @@ class CCBatchTransferHostModule(Service):
         success_update = []
         failed_update = []
         for attr in attr_list:
-            cc_host_ip_list = attr["cc_transfer_host_ip"].split(",")
+            cc_host_ip_list = get_ip_by_regex(attr["cc_transfer_host_ip"])
             cc_module_path_list = attr["cc_transfer_host_target_module"].split(",")
 
             # 获取主机id列表
