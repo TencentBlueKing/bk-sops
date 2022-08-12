@@ -59,7 +59,7 @@ class SubprocessPluginService(Service):
     def execute(self, data, parent_data):
         parent_task_id = parent_data.get_one_of_inputs("task_id")
         try:
-            parent_task = TaskFlowInstance.objects.filter(id=parent_task_id).first()
+            parent_task = TaskFlowInstance.objects.get(id=parent_task_id)
         except TaskFlowInstance.DoesNotExist:
             data.set_outputs("ex_data", f"parent task {parent_task_id} not found")
             return False
