@@ -67,6 +67,7 @@ class DemoComponent(Component):
     version = "1.0.0" # 默认不填为legacy
     bound_service = DemoService
     form = '%scomponents/atoms/demo/plugin_code/legacy.js' % settings.STATIC_URL
+    desc = "这是这个插件的默认描述"
 ```
 
 接下来我们来看看Service的各个方法的作用都是什么:
@@ -124,7 +125,7 @@ class DemoComponent(Component):
 正确的做法应该是 开启
 
 ```python
-__need_schedule__ = True
+__need_schedule__ = True尽量编写足够多的异常处理，提高插件的稳定性
 ```
 
 然后在`schedule`中编写我们相关的轮询逻辑，执行的时间长，每次轮询的时间短一点，多轮询几次就好了。
@@ -137,7 +138,7 @@ __need_schedule__ = True
 
 #### ✈️   尽量编写足够多的异常处理，提高插件的稳定性
 
-翻开大多数的标准运维插件，我们会发现大多数插件都不是直接执行那么简单，比如`更新主机属性 这个插件。可以看到很多的这样的逻辑:
+翻开大多数的标准运维插件，我们会发现大多数插件都不是直接执行那么简单，比如`更新主机属性` 这个插件。可以看到很多的这样的逻辑:
 
 ```python
         if ip_list["invalid_ip"]:
@@ -153,6 +154,8 @@ __need_schedule__ = True
 有时候我们需要对某个插件进行升级操作，例如为表单添加新的字段，为后台逻辑添加新的功能，那么这个时候就需要修改现有插件的逻辑；但是用户存量流程和任务使用到了这个插件，直接修改插件的代码可能会导致存量流程和任务不可用，所以正确的做法应该是为这个插件增加一个新的版本。
 
 通过设置 Component 的 `version` 类属性，我们能够将 `code` 相同的插件设置成不同版本，以保证插件的功能升级不会影响用户的正常使用，用户只需要在合适的时候将旧的插件升级到新版本即可。
+
+如果插件需要说明不同版本之间的差异，可以在插件Component的desc中说明。
 
 **重要：对于没有声明 `version` 参数的插件，请不要擅自为其添加 `version` 字段，否则系统会将其视为新的插件，可能会导致现有模板和任务不可用。**
 
@@ -189,7 +192,7 @@ class CmdbTransferHostResourceModuleComponent(Component):
 
 当插件中出现多次调用时，可以适当的使用并发来提高插件的效率。参考案例：`job分发文件` 等插件，相关代码可以搜索:
 
-路径：pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.v1_0.AllBizJobFastPushFileService
+路径： [查看相关代码](https://github.com/Tencent/bk-sops/blob/master/pipeline_plugins/components/collections/sites/open/job/all_biz_fast_push_file/v1_0.py)
 
 ```python
 job_result_list = batch_execute_func(client.jobv3.fast_transfer_file, params_list, interval_enabled=True)
