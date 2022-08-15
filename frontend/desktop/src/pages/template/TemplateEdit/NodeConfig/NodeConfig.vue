@@ -1273,7 +1273,7 @@
                             sourceInfo[id].splice(atomIndex, 1)
                         }
                         const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
-                        refDom && refDom.setFromData()
+                        refDom && refDom.setFormData()
                     }
                 }
             },
@@ -1298,7 +1298,7 @@
                 const { key, source } = this.unhookingVarForm
                 this.$delete(this.localConstants, key)
                 const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
-                refDom && refDom.setFromData({ ...this.unhookingVarForm })
+                refDom && refDom.setFormData({ ...this.unhookingVarForm })
                 this.isCancelGloVarDialogShow = false
             },
             onCancelVarConfirmClick () {
@@ -1306,7 +1306,7 @@
                 const constant = this.localConstants[key]
                 constant.source_info = {}
                 const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
-                refDom && refDom.setFromData({ ...this.unhookingVarForm })
+                refDom && refDom.setFormData({ ...this.unhookingVarForm })
                 this.isCancelGloVarDialogShow = false
             },
             // 删除全局变量

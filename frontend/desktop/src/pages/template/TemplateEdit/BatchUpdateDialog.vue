@@ -484,7 +484,7 @@
                         }
                         const index = this.subflowForms.findIndex(item => item.id === id)
                         const refDoms = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
-                        refDoms && refDoms[index].setFromData()
+                        refDoms && refDoms[index].setFormData()
                     }
                 }
             },
@@ -524,7 +524,7 @@
                 }
                 const index = this.subflowForms.findIndex(item => item.id === id)
                 const refDoms = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
-                refDoms && refDoms[index].setFromData({ ...this.unhookingVarForm })
+                refDoms && refDoms[index].setFormData({ ...this.unhookingVarForm })
                 this.isCancelGloVarDialogShow = false
             },
             updateInputsValue (subflowId, value) {
