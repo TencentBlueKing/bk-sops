@@ -42,7 +42,11 @@ class ComponentModelFilter(FilterSet):
 
 
 class ComponentModelSetViewSet(GcloudReadOnlyViewSet):
-    queryset = ComponentModel.objects.filter(status=True).exclude(code="remote_plugin").order_by("name")
+    queryset = (
+        ComponentModel.objects.filter(status=True)
+        .exclude(code__in=["remote_plugin", "subprocess_plugin"])
+        .order_by("name")
+    )
     retrieve_queryset = ComponentModel.objects.filter(status=True).order_by("name")
     serializer_class = ComponentModelListSerializer
     retrieve_serializer_class = ComponentModelDetailSerializer
