@@ -10,6 +10,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import re
+
 from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework.exceptions import ErrorDetail
@@ -116,9 +118,7 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
                     resources = res_factory.resources_for_common_flow_obj(template)
                     if request.data.get("project"):
                         resources.extend(res_factory.resources_for_project(request.data["project"]))
-                self.iam_auth_check(
-                    request=request, action=iam_action, resources=resources,
-                )
+                self.iam_auth_check(request=request, action=iam_action, resources=resources)
                 return True
         elif view.action == "list":
             user_type_validator = IamUserTypeBasedValidator()
@@ -146,7 +146,10 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             self.paginator.limit = self.paginator.get_limit(request)
             self.paginator.offset = self.paginator.get_offset(request)
             self.paginator.count = -1
-            page = list(queryset[self.paginator.offset : self.paginator.offset + self.paginator.limit])
+            queryset = self._optimized_my_dynamic_query(
+                queryset, request.user.username, self.paginator.limit, self.paginator.offset
+            )
+            page = list(queryset)
         else:
             page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page, many=True)
@@ -286,3 +289,19 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         elif self.action == "retrieve":
             return RetrieveTaskFlowInstanceSerializer
         return super().get_serializer_class(*args, **kwargs)
+
+    @staticmethod
+    def _optimized_my_dynamic_query(queryset, username, limit, offset):
+        """
+        优化我的动态接口查询速度
+        """
+        original_query = str(queryset.query)
+        new_query = re.sub(
+            "FROM (.*?) ON",
+            "FROM `pipeline_pipelineinstance` STRAIGHT_JOIN `taskflow3_taskflowinstance` ON",
+            original_query,
+        )
+        new_query = re.sub("ORDER BY (.*?) DESC", "ORDER BY `pipeline_pipelineinstance`.`id` DESC", new_query)
+        new_query = new_query.replace(username, f"'{username}'")
+        new_query += f" LIMIT {limit} OFFSET {offset}"
+        return TaskFlowInstance.objects.raw(new_query)
