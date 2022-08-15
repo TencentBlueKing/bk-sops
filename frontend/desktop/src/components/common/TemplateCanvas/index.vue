@@ -288,7 +288,8 @@
                 nodeOptions,
                 zoomRatio: 100,
                 labelDrag: false, // 标识分支条件是否为拖动触发
-                connectorPosition: {} // 鼠标hover的连线的坐标
+                connectorPosition: {}, // 鼠标hover的连线的坐标
+                conditionInfo: null
             }
         },
         watch: {
@@ -790,12 +791,13 @@
                     const branchInfo = this.canvasData.branchConditions[line.source.id]
                     // 增加分支网关 label
                     if (branchInfo && Object.keys(branchInfo).length > 0) {
-                        const labelValue = branchInfo[lineId].evaluate
+                        const conditionInfo = this.conditionInfo || branchInfo[lineId]
+                        const labelValue = conditionInfo.evaluate
                         // 兼容旧数据，分支条件里没有 name 属性的情况
-                        const labelName = branchInfo[lineId].name || labelValue
-                        const loc = ('loc' in branchInfo[lineId]) ? branchInfo[lineId].loc : -70
+                        const labelName = conditionInfo.name || labelValue
+                        const loc = ('loc' in conditionInfo) ? conditionInfo.loc : -70
                         const gatewayInfo = this.$store.state.template.gateways[line.source.id]
-                        let defaultCls = ''
+                        let defaultCls = conditionInfo.default_condition ? 'default-branch' : ''
                         if (gatewayInfo && gatewayInfo.default_condition && gatewayInfo.default_condition.flow_id === lineId) {
                             defaultCls = 'default-branch'
                         }
@@ -813,9 +815,21 @@
                         const condition = {
                             id: lineId,
                             nodeId: line.source.id,
-                            name: branchInfo[lineId].name,
-                            tag: branchInfo[lineId].tag,
-                            value: branchInfo[lineId].evaluate
+                            name: conditionInfo.name,
+                            tag: conditionInfo.tag,
+                            value: conditionInfo.evaluate
+                        }
+                        if (conditionInfo.default_condition) {
+                            condition.default_condition = {
+                                name: conditionInfo.name,
+                                tag: conditionInfo.tag,
+                                flow_id: lineId
+                            }
+                        }
+                        // 更新本地condition配置
+                        if (this.conditionInfo) {
+                            this.$emit('updateCondition', condition)
+                            this.conditionInfo = null
                         }
                         this.setLabelDraggable({ ...line, id: lineId }, condition)
                     }
@@ -881,9 +895,9 @@
                 const { activities, lines } = canvasData
                 let nodeConfig = activities[node.id] || {}
                 const isGatewayNode = node.type.indexOf('gateway') > -1
+                let gateways = this.$store.state.template.gateways
+                gateways = tools.deepClone(gateways)
                 if (isGatewayNode) {
-                    let gateways = this.$store.state.template.gateways
-                    gateways = tools.deepClone(gateways)
                     nodeConfig = gateways[node.id]
                 }
                 this.$refs.jsFlow.removeNode(node)
@@ -934,6 +948,15 @@
                         source = { ...source, arrow: sourceArrow }
                         target = { ...target, arrow: targetArrow }
                         this.createLine(source, target)
+                        // 删除节点时，若起始节点为网关节点则保留分支表达式
+                        if (source.id in gateways) {
+                            const branchInfo = gateways[source.id]
+                            const { conditions, default_condition } = branchInfo
+                            this.conditionInfo = conditions[incoming[0]]
+                            if (default_condition) {
+                                this.conditionInfo = { ...default_condition, default_condition }
+                            }
+                        }
                     })
                 }
             },
@@ -1376,6 +1399,9 @@
                 if (!deleteLine) {
                     return false
                 }
+                // 拷贝插入节点前网关的配置
+                let gateways = this.$store.state.template.gateways
+                gateways = tools.deepClone(gateways)
                 this.$refs.jsFlow.removeConnector(deleteLine)
                 const startLine = {
                     source: {
@@ -1407,6 +1433,15 @@
                     this.activeNode = location
                     this.openShortcutPanel('node')
                 })
+                // 插入节点时，若起始节点为网关节点则保留分支表达式
+                if (startNodeId in gateways) {
+                    const branchInfo = gateways[startNodeId]
+                    const { conditions, default_condition } = branchInfo
+                    this.conditionInfo = conditions[deleteLine.id]
+                    if (default_condition) {
+                        this.conditionInfo = { ...default_condition, default_condition }
+                    }
+                }
             },
             // 通过快捷面板删除连线
             onShortcutDeleteLine () {
