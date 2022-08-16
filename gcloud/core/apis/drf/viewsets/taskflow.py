@@ -30,8 +30,8 @@ from gcloud.core.apis.drf.serilaziers import (
     RetrieveTaskFlowInstanceSerializer,
     ListChildrenTaskFlowQuerySerializer,
     ListChildrenTaskFlowResponseSerializer,
-    HaveChildrenTaskflowQuerySerializer,
-    HaveChildrenTaskflowResponseSerializer,
+    RootTaskflowQuerySerializer,
+    RootTaskflowResponseSerializer,
 )
 from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig, TaskFlowRelation
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -324,8 +324,8 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     @swagger_auto_schema(
         method="GET",
         operation_summary="批量获取任务是否有独立子任务",
-        query_serializer=HaveChildrenTaskflowQuerySerializer,
-        responses={200: HaveChildrenTaskflowResponseSerializer},
+        query_serializer=RootTaskflowQuerySerializer,
+        responses={200: RootTaskflowResponseSerializer},
     )
     @action(methods=["GET"], detail=False)
     def root_task_info(self, request, *args, **kwargs):
