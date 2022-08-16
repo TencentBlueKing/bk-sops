@@ -25,6 +25,7 @@ class ITSMViewRequestSerializer(serializers.Serializer):
     node_id = serializers.CharField(help_text="标准运维节点ID")
     is_passed = serializers.BooleanField(help_text="是否通过")
     message = serializers.CharField(help_text="审批备注", allow_blank=True)
+    subprocess_id = serializers.CharField(help_text="父流程ID, 当有子流程当时候传", required=False)
 
 
 class ITSMViewResponse(serializers.Serializer):
@@ -64,9 +65,17 @@ class ITSMNodeTransitionView(APIView):
         if not task_flow_instance_query.exists():
             return Response({"result": False, "message": "查询不到任务记录"})
 
+        subprocess_stack = []
+        subprocess_id = serializer_data.get("subprocess_id")
+        if subprocess_id is not None:
+            subprocess_stack.append(subprocess_id)
+
         # 获取节点详情
         node_detail = task_flow_instance_query.first().get_node_detail(
-            serializer_data["node_id"], operator, project_id=serializer_data["project_id"]
+            serializer_data["node_id"],
+            operator,
+            project_id=serializer_data["project_id"],
+            subprocess_stack=subprocess_stack,
         )
         if not node_detail["result"]:
             message = node_detail["message"]
