@@ -21,9 +21,20 @@ class PipelineTreeSubprocessConverter:
         "template_id",
         "pipeline",
     }
-    REMAIN_FIELDS = {"id", "name", "optional", "outgoing", "stage_name", "labels", "incoming"}
+    REMAIN_FIELDS = {
+        "id",
+        "name",
+        "optional",
+        "outgoing",
+        "stage_name",
+        "labels",
+        "incoming",
+        "original_template_id",
+        "original_template_version",
+    }
     DEFAULT_VALUES = {
         "error_ignorable": False,
+        "always_use_latest": False,
         "auto_retry": {"enabled": False, "interval": 0, "times": 1},
         "timeout_config": {"enabled": False, "seconds": 10, "action": "forced_fail"},
         "skippable": True,
@@ -40,7 +51,19 @@ class PipelineTreeSubprocessConverter:
         self.pipeline_tree = pipeline_tree
         self.constants = constants or {}
 
+    def pre_convert(self):
+        """
+        在pipeline_tree转换前做一些预处理
+        """
+        for act_id, act in self.pipeline_tree["activities"].items():
+            if act["type"] == "SubProcess":
+                act["original_template_id"] = act["template_id"]
+                act["original_template_version"] = act["version"]
+
     def convert(self):
+        """
+        在pipeline_tree转换之后进行处理
+        """
         for act_id, act in self.pipeline_tree["activities"].items():
             if act["type"] == "SubProcess":
                 subprocess_converter = PipelineTreeSubprocessConverter(act["pipeline"])

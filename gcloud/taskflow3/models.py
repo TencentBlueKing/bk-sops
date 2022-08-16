@@ -571,6 +571,12 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
             "independent_subprocess", False
         ) or TaskConfig.objects.enable_independent_subprocess(getattr(template, "project_id", None), template.id)
         pipeline_tree = kwargs["pipeline_tree"]
+
+        if independent_subprocess:
+            converter = PipelineTreeSubprocessConverter(pipeline_tree)
+            converter.pre_convert()
+            pipeline_tree = converter.pipeline_tree
+
         replace_template_id(template.__class__, pipeline_tree)
         pipeline_template_data = {
             "name": kwargs["name"],

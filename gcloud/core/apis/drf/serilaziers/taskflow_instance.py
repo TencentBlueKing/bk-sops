@@ -100,8 +100,18 @@ class CreateTaskFlowInstanceSerializer(TaskSerializer):
 
 class ListChildrenTaskFlowQuerySerializer(serializers.Serializer):
     root_task_id = serializers.IntegerField(help_text="根任务ID")
+    project_id = serializers.IntegerField(help_text="项目ID, 用于鉴权")
 
 
 class ListChildrenTaskFlowResponseSerializer(serializers.Serializer):
     tasks = serializers.ListSerializer(child=TaskFlowInstanceSerializer())
     relations = serializers.DictField(help_text="任务关系, key为父任务ID, value为子任务ID列表")
+
+
+class HaveChildrenTaskflowQuerySerializer(serializers.Serializer):
+    task_ids = serializers.CharField(help_text="任务ID列表, 多个任务ID之间用逗号分隔")
+    project_id = serializers.IntegerField(help_text="项目ID, 用于鉴权")
+
+
+class HaveChildrenTaskflowResponseSerializer(serializers.Serializer):
+    has_children_taskflow = serializers.DictField(help_text="是否有子任务流, key为任务ID, value为是否有子任务")
