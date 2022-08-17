@@ -231,9 +231,6 @@ class JobFastPushFileService(JobScheduleService):
         data.outputs.final_res = task_count == len(job_instance_id_list)
         return True
 
-    def schedule(self, data, parent_data, callback_data=None):
-        return super(JobFastPushFileService, self).schedule(data, parent_data, callback_data)
-
     def outputs_format(self):
         return [
             self.OutputItem(
@@ -276,5 +273,6 @@ class JobFastPushFileComponent(Component):
         "1. 填参方式支持手动填写和结合模板生成（单行自动扩展）\n"
         "2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，"
         '插件后台会自动将其扩展成多行，如 "1,2,3,4" 会被扩展成四行：1 2 3 4\n'
-        "3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据"
+        "3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据\n"
+        "4. V2.1版本支持job滚动执行，要求作业平台天版本>=3.6.0.0"
     )

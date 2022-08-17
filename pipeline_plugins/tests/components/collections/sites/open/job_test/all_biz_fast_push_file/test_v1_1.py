@@ -47,16 +47,16 @@ class MockClient(object):
 
 # mock path
 GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.v1_1.get_client_by_user"
+    "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.base_service.get_client_by_user"
 )
 BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_user"
 
 GET_JOB_INSTANCE_URL = (
-    "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.v1_1.get_job_instance_url"
+    "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.base_service.get_job_instance_url"
 )
 
 JOB_HANDLE_API_ERROR = (
-    "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.v1_1.job_handle_api_error"
+    "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.base_service.job_handle_api_error"
 )
 UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_user"
 
