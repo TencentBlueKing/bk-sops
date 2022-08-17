@@ -30,6 +30,8 @@ from gcloud.core.apis.drf.serilaziers import (
     RetrieveTaskFlowInstanceSerializer,
     ListChildrenTaskFlowQuerySerializer,
     ListChildrenTaskFlowResponseSerializer,
+    RootTaskflowQuerySerializer,
+    RootTaskflowResponseSerializer,
 )
 from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig, TaskFlowRelation
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -122,7 +124,7 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
                         resources.extend(res_factory.resources_for_project(request.data["project"]))
                 self.iam_auth_check(request=request, action=iam_action, resources=resources)
                 return True
-        elif view.action in ["list", "list_children_taskflow"]:
+        elif view.action in ["list", "list_children_taskflow", "root_task_info"]:
             user_type_validator = IamUserTypeBasedValidator()
             return user_type_validator.validate(request)
         return super().has_permission(request, view)
@@ -318,3 +320,20 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         for info in children_task_info:
             relations.setdefault(info["parent_task_id"], []).append(info["task_id"])
         return Response({"tasks": data, "relations": relations})
+
+    @swagger_auto_schema(
+        method="GET",
+        operation_summary="批量获取任务是否有独立子任务",
+        query_serializer=RootTaskflowQuerySerializer,
+        responses={200: RootTaskflowResponseSerializer},
+    )
+    @action(methods=["GET"], detail=False)
+    def root_task_info(self, request, *args, **kwargs):
+        task_ids = request.query_params.get("task_ids") or []
+        if task_ids:
+            task_ids = [int(task_id) for task_id in task_ids.split(",")]
+        root_task_ids = TaskFlowRelation.objects.filter(root_task_id__in=task_ids).values_list(
+            "root_task_id", flat=True
+        )
+        root_task_info = {task_id: True if task_id in root_task_ids else False for task_id in task_ids}
+        return Response({"has_children_taskflow": root_task_info})
