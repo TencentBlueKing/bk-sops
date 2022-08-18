@@ -1013,6 +1013,9 @@
                             task_id: this.instance_id,
                             node_id: id
                         }
+                        if (!this.isTopTask) {
+                            params.subprocess_id = this.pipelineData.id
+                        }
                         await this.itsmTransition(params)
                         this.approval.id = ''
                         this.approval.is_passed = true
