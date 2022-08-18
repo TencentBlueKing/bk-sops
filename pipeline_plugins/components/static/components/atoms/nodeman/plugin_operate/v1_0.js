@@ -327,7 +327,8 @@
                                 if (resp.result === false) {
                                     show_msg(resp.message, "error");
                                 }
-                                if (!this.get_parent()) {
+                                // 针对 parent 做判断
+                                if (!this.get_parent) {
                                     return resp.data
                                 }
                                 // 当操作类型为停止时将不再默认选中最新版本
