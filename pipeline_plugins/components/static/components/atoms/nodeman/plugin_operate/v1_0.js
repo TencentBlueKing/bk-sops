@@ -327,6 +327,9 @@
                                 if (resp.result === false) {
                                     show_msg(resp.message, "error");
                                 }
+                                if (!this.get_parent()) {
+                                    return resp.data
+                                }
                                 // 当操作类型为停止时将不再默认选中最新版本
                                 if (this.get_parent().get_child('nodeman_op_type').value === "MAIN_STOP_PLUGIN"){
                                     return resp.data;
@@ -409,7 +412,8 @@
                                 source: "nodeman_op_type",
                                 type: "init",
                                 action: function (value) {
-                                    if (this.get_parent().get_child('nodeman_op_type').value === "MAIN_STOP_PLUGIN"){
+                                    const nodeman_op_type = this.get_parent && this.get_parent().get_child('nodeman_op_type').value
+                                    if (nodeman_op_type === "MAIN_STOP_PLUGIN"){
                                        this.hide();
                                     }else {
                                         this.show()
