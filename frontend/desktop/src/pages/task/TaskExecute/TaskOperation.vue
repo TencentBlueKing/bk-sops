@@ -22,10 +22,8 @@
             :admin-view="adminView"
             :state-str="taskState"
             :state="state"
-            :is-breadcrumb-show="isBreadcrumbShow"
             :is-show-view-process="isShowViewProcess"
             :is-task-operation-btns-show="isTaskOperationBtnsShow"
-            @onSelectSubflow="onSelectSubflow"
             @onOperationClick="onOperationClick"
             @onTaskParamsClick="onTaskParamsClick">
         </task-operation-header>
@@ -388,11 +386,6 @@
             completePipelineData () {
                 return JSON.parse(this.instanceFlow)
             },
-            isBreadcrumbShow () {
-                return this.completePipelineData.location.some(item => {
-                    return item.type === 'subflow'
-                })
-            },
             canvasData () {
                 const { line, location, gateways, activities } = this.pipelineData
                 const branchConditions = {}
@@ -417,12 +410,15 @@
             },
             nodeData () {
                 const data = this.getOrderedTree(this.completePipelineData)
+                const children = data.map(item => {
+                    return { ...item, children: [] }
+                })
                 return [{
                     id: this.instance_id,
                     name: this.instanceName,
                     title: this.instanceName,
                     expanded: true,
-                    children: data
+                    children
                 }]
             },
             taskState () {
@@ -932,17 +928,12 @@
                     code = node.type === 'ServiceActivity' ? node.component.code : ''
                     version = (node.type === 'ServiceActivity' ? node.component.version : node.version) || 'legacy'
                 }
-                let subprocessStack = []
-                if (this.selectedFlowPath.length > 1) {
-                    subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
-                }
                 this.nodeDetailConfig = {
                     component_code: code,
                     version: version,
                     node_id: id,
                     instance_id: this.instance_id,
                     root_node: rootNode,
-                    subprocess_stack: JSON.stringify(subprocessStack),
                     componentData
                 }
             },
@@ -1145,7 +1136,7 @@
                             nodeData = null
                         } else {
                             subprocessStack.push(activityNode.id)
-                            nodeData = activityNode.children
+                            nodeData = null
                         }
                     }
                     this.defaultActiveId = firstTaskNode.id
@@ -1206,69 +1197,24 @@
             },
             onNodeClick (id, type) {
                 this.defaultActiveId = id
-                if (type === 'subflow') {
-                    this.handleSubflowCanvasChange(id)
-                } else {
-                    this.setNodeDetailConfig(id)
-                    if (this.nodeDetailConfig.node_id) {
-                        this.updateNodeActived(this.nodeDetailConfig.node_id, false)
-                    }
-                    this.updateNodeActived(id, true)
-                    // 如果为子流程节点则需要重置pipelineData的constants
-                    this.nodePipelineData = { ...this.pipelineData }
-                    if (type === 'subflowDetail') {
-                        const { constants } = this.pipelineData.activities[id].pipeline
-                        this.nodePipelineData['constants'] = constants
-                    }
-                    this.openNodeInfoPanel('executeInfo', i18n.t('节点参数'))
+                this.setNodeDetailConfig(id)
+                if (this.nodeDetailConfig.node_id) {
+                    this.updateNodeActived(this.nodeDetailConfig.node_id, false)
                 }
+                this.updateNodeActived(id, true)
+                // 如果为子流程节点则需要重置pipelineData的constants
+                this.nodePipelineData = { ...this.pipelineData }
+                // 兼容旧版本子流程节点输出数据
+                const selectLocation = this.canvasData.locations.find(item => item.id === id)
+                if (selectLocation.type === 'subflow') {
+                    const { constants } = this.pipelineData.activities[id].pipeline
+                    this.nodePipelineData['constants'] = constants
+                }
+                this.openNodeInfoPanel('executeInfo', i18n.t('节点参数'))
             },
             onOpenConditionEdit (data) {
                 this.isShowConditionEdit = true
                 this.conditionData = { ...data }
-            },
-            /**
-             * 切换为子流程画布
-             */
-            handleSubflowCanvasChange (id) {
-                this.cancelTaskStatusTimer()
-                const nodeActivities = this.pipelineData.activities[id]
-                this.nodeSwitching = true
-                this.selectedFlowPath.push({
-                    id: nodeActivities.id,
-                    name: nodeActivities.name,
-                    nodeId: nodeActivities.id,
-                    type: 'SubProcess'
-                })
-                this.pipelineData = this.pipelineData.activities[id].pipeline
-                this.updateTaskStatus(id)
-            },
-            // 面包屑点击
-            onSelectSubflow (id) {
-                let nodeIndex = 0
-                this.selectedFlowPath.some((item, index) => {
-                    if (id === item.id) {
-                        nodeIndex = index
-                        return true
-                    }
-                })
-                if (nodeIndex === (this.selectedFlowPath.length - 1)) return // the last level node
-                this.nodeSwitching = true
-                this.selectedFlowPath.splice(nodeIndex + 1)
-                if (nodeIndex === 0) {
-                    this.pipelineData = this.completePipelineData
-                } else {
-                    const pathList = this.selectedFlowPath.slice(1)
-                    let nodeActivities = this.completePipelineData.activities
-                    pathList.forEach((item, index) => {
-                        nodeActivities = index ? nodeActivities.pipeline.activities[item.id] : nodeActivities[item.id]
-                    })
-                    this.pipelineData = nodeActivities.pipeline
-                }
-                this.isNodeInfoPanelShow = false
-                this.nodeDetailConfig = {}
-                this.cancelTaskStatusTimer()
-                this.updateTaskStatus(id)
             },
             async onClickTreeNode (nodeHeirarchy, selectNodeId, nodeType) {
                 let nodeActivities
@@ -1296,7 +1242,6 @@
                             parentNodeActivities = nodeActivities
                         }
                     })
-                    this.selectedFlowPath = nodePath
                     if (nodeActivities.type === 'SubProcess') {
                         await this.switchCanvasView(nodeActivities)
                         this.treeNodeConfig = {}
@@ -1306,21 +1251,15 @@
                         } else if (!parentNodeActivities && this.taskId !== this.instance_id) { // 属于第二级任务
                             await this.switchCanvasView(this.completePipelineData, true)
                         }
-                        let subprocessStack = []
-                        if (this.selectedFlowPath.length > 1) {
-                            subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1, -1)
-                        }
                         this.treeNodeConfig = {
                             component_code: nodeActivities.component.code,
                             version: nodeActivities.component.version || 'legacy',
                             node_id: nodeActivities.id,
-                            instance_id: this.instance_id,
-                            subprocess_stack: JSON.stringify(subprocessStack)
+                            instance_id: this.instance_id
                         }
                         this.updataNodeParamsInfo(nodeActivities)
                     }
                 } else {
-                    this.selectedFlowPath = nodePath
                     await this.switchCanvasView(this.completePipelineData, true)
                     this.treeNodeConfig = {}
                 }
@@ -1328,7 +1267,9 @@
                 this.setNodeDetailConfig(selectNodeId, !nodeHeirarchy)
                 // 节点树切换时，如果为子流程节点则需要重置pipelineData的constants
                 this.nodePipelineData = { ...this.pipelineData }
-                if (nodeType === 'subflow') {
+                // 兼容旧版本子流程节点输出数据
+                const selectLocation = this.canvasData.locations.find(item => item.id === selectNodeId)
+                if (selectLocation.type === 'subflow') {
                     const { constants } = this.pipelineData.activities[selectNodeId].pipeline
                     this.nodePipelineData['constants'] = constants
                 }
@@ -1345,16 +1286,11 @@
             },
             // 更新节点的参数面板信息
             updataNodeParamsInfo (nodeActivities) {
-                let subprocessStack = []
-                if (this.selectedFlowPath.length > 1) {
-                    subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1, -1)
-                }
                 this.treeNodeConfig = {
                     component_code: nodeActivities.component.code,
                     version: nodeActivities.component.version || 'legacy',
                     node_id: nodeActivities.id,
                     instance_id: this.instance_id,
-                    subprocess_stack: JSON.stringify(subprocessStack),
                     name: nodeActivities.name
                 }
                 this.cancelSelectedNode(this.selectedNodeId)

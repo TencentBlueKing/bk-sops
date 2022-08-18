@@ -1457,7 +1457,12 @@ const en = {
     '近30天': 'Last 30 days',
     '查看更多': 'See more',
     '请求异常（外部系统错误或非法操作）': 'Request exception (external system error or illegal operation)',
-    '请求异常（内部系统发生未知错误）': 'Request exception (an unknown error occurred in the internal system)'
+    '请求异常（内部系统发生未知错误）': 'Request exception (an unknown error occurred in the internal system)',
+    '节点基础信息': 'Node basic information',
+    '节点执行记录': 'Node execution record记录',
+    '节点操作记录': 'Node operation record',
+    '参数Key': 'Parameter Key',
+    '详情': 'Detail'
 }
 
 export default en

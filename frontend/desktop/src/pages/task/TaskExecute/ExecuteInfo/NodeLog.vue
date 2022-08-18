@@ -1,21 +1,23 @@
 <template>
-    <section class="info-section log-info" data-test-id="taskExecute_form_nodeLog">
-        <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
-        <!-- 内置插件/第三方插件tab -->
-        <bk-tab v-if="isThirdPartyNode" :active.sync="curPluginTab" type="unborder-card">
-            <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('节点日志') }"></bk-tab-panel>
-            <bk-tab-panel
-                v-bind="{ name: 'third_party_plugin', label: $t('第三方节点日志') }">
-            </bk-tab-panel>
-        </bk-tab>
-        <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
-            <full-code-editor
-                v-if="curPluginTab === 'build_in_plugin' ? logInfo : thirdPartyNodeLog"
-                class="scroll-editor"
-                :key="curPluginTab"
-                :value="curPluginTab === 'build_in_plugin' ? logInfo : thirdPartyNodeLog">
-            </full-code-editor>
-            <NoData v-else></NoData>
+    <section class="info-section log-section" data-test-id="taskExecute_form_nodeLog">
+        <h4 class="log-label">{{ $t('节点日志') }}</h4>
+        <div :class="['log-wrap', { 'tab-active': isThirdPartyNode }]">
+            <!-- 内置插件/第三方插件tab -->
+            <bk-tab v-if="isThirdPartyNode" :active.sync="curPluginTab" type="unborder-card">
+                <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('节点日志') }"></bk-tab-panel>
+                <bk-tab-panel
+                    v-bind="{ name: 'third_party_plugin', label: $t('第三方节点日志') }">
+                </bk-tab-panel>
+            </bk-tab>
+            <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
+                <full-code-editor
+                    v-if="curPluginTab === 'build_in_plugin' ? logInfo : thirdPartyNodeLog"
+                    class="scroll-editor"
+                    :key="curPluginTab"
+                    :value="curPluginTab === 'build_in_plugin' ? logInfo : thirdPartyNodeLog">
+                </full-code-editor>
+                <NoData v-else></NoData>
+            </div>
         </div>
     </section>
 </template>
@@ -184,6 +186,26 @@
     }
 </script>
 
-<style>
-
+<style lang="scss" scoped>
+    .log-section {
+        display: flex;
+        .log-wrap {
+            flex: 1;
+            margin-left: 48px;
+            /deep/.bk-tab {
+                .bk-tab-section {
+                    padding: 10px 0;
+                }
+            }
+            .full-code-editor {
+                margin: 0 !important;
+            }
+        }
+        .tab-active {
+            transform: translateY(-15px);
+        }
+        .no-data-wrapper {
+            margin-top: 15px;
+        }
+    }
 </style>
