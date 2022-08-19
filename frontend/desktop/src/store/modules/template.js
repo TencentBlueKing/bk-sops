@@ -1016,8 +1016,8 @@ const template = {
         getVariableFieldExplain ({ commit }) {
             return axios.get('template/api/variable_field_explain/').then(response => response.data)
         },
-        // 获取流程是否开启独立子流程
-        getProcessOpenChdProcess ({ commit }, data) {
+        // 获取流程是否开启重试和超时控制
+        getProcessOpenRetryAndTimeout ({ commit }, data) {
             const { id } = data
             return axios.get(`/api/v3/template/${id}/enable_independent_subprocess/`, { params: data }).then(response => response.data)
         },

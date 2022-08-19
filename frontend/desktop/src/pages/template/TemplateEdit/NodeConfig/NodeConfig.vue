@@ -157,7 +157,6 @@
                                                 :is-subflow="isSubflow"
                                                 :input-loading="inputLoading"
                                                 :project-id="project_id"
-                                                :form-enable="formEnable"
                                                 :common="common"
                                                 :subflow-updated="subflowUpdated"
                                                 :is-view-mode="isViewMode"
@@ -330,8 +329,7 @@
             subflowListLoading: Boolean,
             backToVariablePanel: Boolean,
             pluginLoading: Boolean,
-            isViewMode: Boolean,
-            formEnable: Boolean
+            isViewMode: Boolean
         },
         data () {
             return {
@@ -955,6 +953,7 @@
             async onPluginOrTplChange (val) {
                 this.isSelectorPanelShow = false
                 this.isThirdParty = val.id === 'remote_plugin'
+                await this.clearParamsSourceInfo()
                 if (this.isSubflow) {
                     await this.$parent.getProcessOpenChd(val)
                     this.tplChange(val)
@@ -1368,8 +1367,7 @@
                         skippable,
                         error_ignorable: ignorable,
                         auto_retry: autoRetry,
-                        timeout_config: timeoutConfig,
-                        enable: this.formEnable
+                        timeout_config: timeoutConfig
                     })
                     if (this.common) {
                         config['executor_proxy'] = executor_proxy.join(',')

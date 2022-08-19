@@ -251,7 +251,7 @@
                     class="bk-icon icon-question-circle form-item-tips">
                 </i>
             </bk-form-item>
-            <template v-if="formEnable">
+            <template v-if="isShowFailTimeoutHandle">
                 <bk-form-item :label="$t('失败处理')">
                     <div class="error-handle">
                         <bk-checkbox
@@ -426,7 +426,6 @@
             basicInfo: Object,
             versionList: Array,
             isSubflow: Boolean,
-            formEnable: Boolean,
             inputLoading: Boolean,
             subflowUpdated: Boolean,
             common: [String, Number],
@@ -434,6 +433,7 @@
         },
         data () {
             return {
+                isShowFailTimeoutHandle: false,
                 labelData: [],
                 labelLoading: false,
                 subflowLoading: false,
@@ -568,6 +568,15 @@
                 }
             }
         },
+        async mounted () {
+            if (this.isSubflow) {
+                const res = await this.getProcessOpenRetryAndTimeout({
+                    project_id: this.projectId,
+                    id: this.formData.tpl
+                })
+                this.isShowFailTimeoutHandle = res.data.enable
+            }
+        },
         methods: {
             ...mapMutations('template/', [
                 'setNodeBasicInfo'
@@ -577,7 +586,8 @@
                 'loadSubflowConfig'
             ]),
             ...mapActions('template/', [
-                'getLabels'
+                'getLabels',
+                'getProcessOpenRetryAndTimeout'
             ]),
             // 加载子流程详情，拿到最新版本子流程的version字段
             async getSubflowDetail () {

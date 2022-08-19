@@ -98,7 +98,6 @@
                     :atom-type-list="atomTypeList"
                     :template-labels="templateLabels"
                     :common="common"
-                    :form-enable="formEnable"
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
                     :back-to-variable-panel="backToVariablePanel"
@@ -312,8 +311,7 @@
                 nodeVariableInfo: {}, // 节点输入输出变量
                 initType: '', // 记录最初的流程类型
                 isMultipleTabCount: 0,
-                isRouterPush: false,
-                formEnable: false // 子流程是否需要超时控制和异常处理
+                isRouterPush: false
             }
         },
         computed: {
@@ -473,7 +471,7 @@
                 'getLayoutedPipeline',
                 'loadInternalVariable',
                 'getVariableCite',
-                'getProcessOpenChdProcess'
+                'getProcessOpenRetryAndTimeout'
             ]),
             ...mapActions('task', [
                 'loadSubflowConfig'
@@ -545,15 +543,6 @@
                     this.setTemplateName(name)
                     this.templateDataLoading = false
                 }
-            },
-            // 查询流程是否开启独立子流程
-            async getProcessOpenChd (val) {
-                const id = typeof val === 'number' ? val : val.id
-                const res = await this.getProcessOpenChdProcess({
-                    project_id: this.project_id,
-                    id
-                })
-                this.formEnable = res.data.enable
             },
             /**
              * 加载标准插件列表
@@ -1185,9 +1174,6 @@
             async onShowNodeConfig (id) {
                 // 判断节点配置的插件是否存在
                 const nodeConfig = this.$store.state.template.activities[id]
-                if (nodeConfig.type === 'SubProcess') {
-                    this.formEnable = nodeConfig.enable
-                }
                 if (nodeConfig.type === 'ServiceActivity' && nodeConfig.name) {
                     let atom = true
                     if (nodeConfig.component.code !== 'remote_plugin') {
