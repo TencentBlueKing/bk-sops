@@ -14,6 +14,10 @@ import json
 import logging
 
 import requests
+from bamboo_engine import states
+from django.core.exceptions import ValidationError
+
+from pipeline.eri.runtime import BambooDjangoRuntime
 from requests import HTTPError
 
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher
@@ -49,12 +53,18 @@ class TaskCallBacker:
                 self.extra_info["engine_ver"],
             )
             dispatcher = NodeCommandDispatcher(engine_ver=engine_ver, node_id=node_id, taskflow_id=self.task_id)
-            dispatcher.dispatch(command="callback", operator="", version=version, data=self.extra_info)
+            runtime = BambooDjangoRuntime()
+            node_state = runtime.get_state(node_id)
+            if node_state.name == states.RUNNING:
+                dispatcher.dispatch(command="callback", operator="", version=version, data=self.extra_info)
+            elif node_state.name == states.FAILED:
+                dispatcher.dispatch(command="skip", operator="")
+            raise ValidationError(f"node state is not running or failed, but {node_state.name}")
         except Exception as e:
-            message = f"[TaskCallBacker _local_callback] data: {self.record.extra_info}, error: {e}"
+            message = f"[TaskCallBacker _local_callback] error: {e}, with data {self.record.extra_info}"
             logger.exception(message)
-            return False
-        logger.info(f"[TaskCallBacker _local_callback] data: {self.record.extra_info}, callback success.")
+        else:
+            logger.info(f"[TaskCallBacker _local_callback] data: {self.record.extra_info}, callback success.")
         return True
 
     def _url_callback(self):

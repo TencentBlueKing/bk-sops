@@ -40,7 +40,7 @@ class Subprocess(BaseModel):
     pipeline: dict
     template_id: str
     always_use_latest: bool = False
-    template_source: str
+    template_source: str = "business"
     scheme_id_list: List[int] = []
 
 
@@ -53,6 +53,9 @@ class SubprocessPluginService(Service):
             self.OutputItem(name="Task ID", key="task_id", type="int", schema=IntItemSchema(description="Task ID")),
             self.OutputItem(
                 name="Task URL", key="task_url", type="string", schema=StringItemSchema(description="Task URL")
+            ),
+            self.OutputItem(
+                name="Task Name", key="task_name", type="string", schema=StringItemSchema(description="Task Name")
             ),
         ]
 
@@ -158,6 +161,7 @@ class SubprocessPluginService(Service):
         task.task_action("start", parent_task.executor)
         data.set_outputs("task_id", task.id)
         data.set_outputs("task_url", task.url)
+        data.set_outputs("task_name", task.name)
         return True
 
     def schedule(self, data, parent_data, callback_data=None):
