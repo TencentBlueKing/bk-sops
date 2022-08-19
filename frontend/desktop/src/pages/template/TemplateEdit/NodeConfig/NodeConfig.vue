@@ -490,7 +490,6 @@
             ]),
             async initDefaultData () {
                 const nodeConfig = tools.deepClone(this.activities[this.nodeId])
-                console.log(nodeConfig)
                 const isThirdParty = nodeConfig.component && nodeConfig.component.code === 'remote_plugin'
                 if (nodeConfig.type === 'ServiceActivity') {
                     await this.setThirdPartyList(nodeConfig)
