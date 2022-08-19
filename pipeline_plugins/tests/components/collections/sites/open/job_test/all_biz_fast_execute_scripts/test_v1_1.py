@@ -38,8 +38,8 @@ class AllBizJobFastExecuteScriptComponentTest(TestCase, ComponentTestMixin):
     def cases(self):
         # return your component test cases here
         return [
-            # FAST_EXECUTE_SCRIPT_FAIL_CASE,
-            # FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE,
+            FAST_EXECUTE_SCRIPT_FAIL_CASE,
+            FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE,
             BIZ_SET_FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE,
         ]
 
@@ -66,16 +66,18 @@ class MockClient(object):
 
 # mock path
 GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.v1_1.get_client_by_user"
+    "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.base_service.get_client_by_user"
 )
 GET_NODE_CALLBACK_URL = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.v1_1.get_node_callback_url"
 )
 JOB_HANDLE_API_ERROR = (
-    "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.v1_1.job_handle_api_error"
+    "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script."
+    "base_service.job_handle_api_error"
 )
 GET_JOB_INSTANCE_URL = (
-    "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.v1_1.get_job_instance_url"
+    "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script."
+    "base_service.get_job_instance_url"
 )
 UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_user"
 

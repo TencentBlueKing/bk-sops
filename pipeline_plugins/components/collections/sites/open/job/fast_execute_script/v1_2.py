@@ -45,7 +45,7 @@ from api.utils.request import batch_request
 from gcloud.exceptions import ApiRequestError
 from pipeline_plugins.components.collections.sites.open.job import JobService, get_ip_by_regex
 from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url
-from ..base import GetJobHistoryResultMixin
+from ..base import GetJobHistoryResultMixin, get_job_tagged_ip_dict_complex
 
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
@@ -167,6 +167,16 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
                 schema=StringItemSchema(description=_("根据JOB步骤执行标签获取的IP分组")),
             ),
         ]
+
+    def get_tagged_ip_dict(self, data, parent_data, job_instance_id):
+        result, tagged_ip_dict = get_job_tagged_ip_dict_complex(
+            data.outputs.client,
+            self.logger,
+            job_instance_id,
+            data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+            job_scope_type=self.biz_scope_type,
+        )
+        return result, tagged_ip_dict
 
     def execute(self, data, parent_data):
         job_success_id = data.get_one_of_inputs("job_success_id")
