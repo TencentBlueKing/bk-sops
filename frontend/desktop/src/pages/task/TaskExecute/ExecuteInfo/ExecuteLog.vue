@@ -175,7 +175,21 @@
                 }
             },
             async onHistoryExpand (record) {
-                if ('renderData' in record) return
+                if ('isExpand' in record) {
+                    const { state, history_id, version } = record
+                    // 获取节点日志
+                    if (state && !['READY', 'CREATED'].includes(state)) {
+                        const query = Object.assign({}, this.nodeDetailConfig, {
+                            history_id: history_id,
+                            version: version
+                        })
+                        this.$nextTick(() => {
+                            const nodeLogDom = this.$refs.nodeLog
+                            nodeLogDom && nodeLogDom.getPerformLog(query)
+                        })
+                    }
+                    return
+                }
                 this.$parent.setFillRecordField(record)
             }
         }
