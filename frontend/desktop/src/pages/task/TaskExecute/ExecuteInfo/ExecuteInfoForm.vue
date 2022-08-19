@@ -129,7 +129,7 @@
                 const timeoutConfig = this.nodeActivity['timeout_config']
                 if (!timeoutConfig) return '--'
                 const actionText = timeoutConfig.action === 'forced_fail' ? i18n.t('强制失败') : i18n.t('强制失败后跳过')
-                return i18n.t('超时') + ' ' + timeoutConfig.seconds + ' ' + i18n.t('秒') + i18n.t('后') + i18n.t('则') + actionText
+                return i18n.t('超时') + ' ' + timeoutConfig.seconds + ' ' + i18n.tc('秒', 0) + i18n.t('后') + i18n.t('则') + actionText
             },
             componentValue () {
                 return this.nodeActivity.component.data.subprocess.value
