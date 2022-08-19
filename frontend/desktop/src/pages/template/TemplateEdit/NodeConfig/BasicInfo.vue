@@ -251,6 +251,124 @@
                     class="bk-icon icon-question-circle form-item-tips">
                 </i>
             </bk-form-item>
+            <template v-if="formEnable">
+                <bk-form-item :label="$t('失败处理')">
+                    <div class="error-handle">
+                        <bk-checkbox
+                            :value="formData.ignorable"
+                            :disabled="isViewMode || formData.autoRetry.enable || formData.timeoutConfig.enable"
+                            @change="onErrorHandlerChange($event, 'ignorable')">
+                            <span class="error-handle-icon"><span class="text">AS</span></span>
+                            {{ $t('自动跳过') }}
+                        </bk-checkbox>
+                        <bk-checkbox
+                            :value="formData.skippable"
+                            :disabled="isViewMode || formData.ignorable"
+                            @change="onErrorHandlerChange($event, 'skippable')">
+                            <span class="error-handle-icon"><span class="text">MS</span></span>
+                            {{ $t('手动跳过') }}
+                        </bk-checkbox>
+                        <bk-checkbox
+                            :value="formData.retryable"
+                            :disabled="isViewMode || formData.ignorable || formData.autoRetry.enable"
+                            @change="onErrorHandlerChange($event, 'retryable')">
+                            <span class="error-handle-icon"><span class="text">MR</span></span>
+                            {{ $t('手动重试') }}
+                        </bk-checkbox>
+                        <bk-checkbox
+                            :value="formData.autoRetry.enable"
+                            :disabled="isViewMode || formData.ignorable || formData.timeoutConfig.enable"
+                            @change="onErrorHandlerChange($event, 'autoRetry')">
+                            <span class="error-handle-icon"><span class="text">AR</span></span>
+                        </bk-checkbox>
+                        <span class="auto-retry-times">
+                            {{ $t('在') }}
+                            <div class="number-input" style="margin: 0 4px;">
+                                <bk-input
+                                    v-model.number="formData.autoRetry.interval"
+                                    type="number"
+                                    style="width: 68px;"
+                                    :placeholder="' '"
+                                    :disabled="isViewMode || !formData.autoRetry.enable"
+                                    :max="10"
+                                    :min="0"
+                                    :precision="0"
+                                    @change="updateData">
+                                </bk-input>
+                                <span class="unit">{{ $tc('秒', 0) }}</span>
+                            </div>
+                            {{ $t('后') }}{{ $t('，') }}{{ $t('自动重试') }}
+                            <div class="number-input" style=" margin-left: 4px;">
+                                <bk-input
+                                    v-model.number="formData.autoRetry.times"
+                                    type="number"
+                                    style="width: 68px;"
+                                    :placeholder="' '"
+                                    :disabled="isViewMode || !formData.autoRetry.enable"
+                                    :max="10"
+                                    :min="1"
+                                    :precision="0"
+                                    @change="updateData">
+                                </bk-input>
+                                <span class="unit">{{ $t('次') }}</span>
+                            </div>
+                        </span>
+                    </div>
+                    <p
+                        v-if="!formData.ignorable && !formData.skippable && !formData.retryable && !formData.autoRetry.enable"
+                        class="error-handle-tips">
+                        {{ $t('未选择失败处理方式，标准插件节点如果执行失败，会导致任务中断后不可继续') }}
+                    </p>
+                    <div id="html-error-ingored-tootip" class="tips-item" style="white-space: normal;">
+                        <p>{{ $t('自动忽略：标准插件节点如果执行失败，会自动忽略错误并把节点状态设置为成功。') }}</p>
+                        <p>{{ $t('手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。') }}</p>
+                        <p>{{ $t('手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。') }}</p>
+                        <p>{{ $t('自动重试：标准插件节点如果执行失败，系统会自动以原参数进行重试。') }}</p>
+                    </div>
+                    <i v-bk-tooltips="errorHandleTipsConfig" ref="tooltipsHtml" class="bk-icon icon-question-circle form-item-tips"></i>
+                </bk-form-item>
+                <bk-form-item :label="$t('超时控制')">
+                    <div class="timeout-setting-wrap">
+                        <bk-switcher
+                            theme="primary"
+                            size="small"
+                            style="margin-right: 8px;"
+                            :value="formData.timeoutConfig.enable"
+                            :disabled="isViewMode || formData.ignorable || formData.autoRetry.enable"
+                            @change="onTimeoutChange">
+                        </bk-switcher>
+                        <template v-if="formData.timeoutConfig.enable">
+                            {{ $t('超时') }}
+                            <div class="number-input" style="margin: 0 4px;">
+                                <bk-input
+                                    v-model.number="formData.timeoutConfig.seconds"
+                                    type="number"
+                                    style="width: 75px;"
+                                    :placeholder="' '"
+                                    :min="10"
+                                    :max="maxNodeExecuteTimeout"
+                                    :precision="0"
+                                    :readonly="isViewMode"
+                                    @change="updateData">
+                                </bk-input>
+                                <span class="unit">{{ $tc('秒', 0) }}</span>
+                            </div>
+                            {{ $t('后') }}{{ $t('，') }}{{ $t('则') }}
+                            <bk-select
+                                style="width: 160px; margin-left: 4px;"
+                                v-model="formData.timeoutConfig.action"
+                                :disabled="isViewMode"
+                                :clearable="false" @change="updateData">
+                                <bk-option id="forced_fail" :name="$t('强制失败')"></bk-option>
+                                <bk-option id="forced_fail_and_skip" :name="$t('强制失败后跳过')"></bk-option>
+                            </bk-select>
+                        </template>
+                    </div>
+                    <p v-if="formData.timeoutConfig.enable" class="error-handle-tips" style="margin-top: 6px;">
+                        {{ $t('该功能仅对V2引擎生效') }}
+                    </p>
+                </bk-form-item>
+            </template>
             <bk-form-item :label="$t('是否可选')">
                 <bk-switcher
                     theme="primary"
@@ -308,6 +426,7 @@
             basicInfo: Object,
             versionList: Array,
             isSubflow: Boolean,
+            formEnable: Boolean,
             inputLoading: Boolean,
             subflowUpdated: Boolean,
             common: [String, Number],
@@ -644,7 +763,7 @@
                 } = this.formData
                 let data
                 if (this.isSubflow) {
-                    data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, latestVersion: this.version, executor_proxy }
+                    data = { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, latestVersion: this.version, executor_proxy, retryable, autoRetry, timeoutConfig, skippable }
                 } else {
                     data = { version, nodeName, stageName, nodeLabel, ignorable, skippable, retryable, selectable, autoRetry, timeoutConfig, executor_proxy }
                 }

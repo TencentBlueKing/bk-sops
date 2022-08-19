@@ -157,6 +157,7 @@
                                                 :is-subflow="isSubflow"
                                                 :input-loading="inputLoading"
                                                 :project-id="project_id"
+                                                :form-enable="formEnable"
                                                 :common="common"
                                                 :subflow-updated="subflowUpdated"
                                                 :is-view-mode="isViewMode"
@@ -329,7 +330,8 @@
             subflowListLoading: Boolean,
             backToVariablePanel: Boolean,
             pluginLoading: Boolean,
-            isViewMode: Boolean
+            isViewMode: Boolean,
+            formEnable: Boolean
         },
         data () {
             return {
@@ -473,7 +475,8 @@
             ]),
             ...mapActions('template/', [
                 'loadTemplateData',
-                'getVariableCite'
+                'getVariableCite',
+                'getProcessOpenChdProcess'
             ]),
             ...mapActions('task', [
                 'loadSubflowConfig'
@@ -487,6 +490,7 @@
             ]),
             async initDefaultData () {
                 const nodeConfig = tools.deepClone(this.activities[this.nodeId])
+                console.log(nodeConfig)
                 const isThirdParty = nodeConfig.component && nodeConfig.component.code === 'remote_plugin'
                 if (nodeConfig.type === 'ServiceActivity') {
                     await this.setThirdPartyList(nodeConfig)
@@ -663,7 +667,6 @@
                         await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id })
                     }
                     const config = $.atoms[plugin]
-                    console.log(config)
                     return config
                 } catch (e) {
                     console.log(e)
@@ -821,7 +824,10 @@
                         executor_proxy: executorProxy
                     }
                 } else {
-                    const { template_id, name, stage_name = '', labels, optional, always_use_latest, scheme_id_list, executor_proxy } = config
+                    const {
+                        template_id, name, stage_name = '', labels, optional, always_use_latest, scheme_id_list, executor_proxy,
+                        auto_retry, timeout_config, error_ignorable, isSkipped, skippable, can_retry, retryable
+                    } = config
                     let templateName = i18n.t('请选择子流程')
 
                     if (template_id) {
@@ -851,6 +857,11 @@
                         alwaysUseLatest: always_use_latest || false, // 兼容旧数据，该字段为新增
                         schemeIdList: scheme_id_list || [], // 兼容旧数据，该字段为后面新增
                         version: config.hasOwnProperty('version') ? config.version : '', // 子流程版本，区别于标准插件版本
+                        ignorable: error_ignorable,
+                        skippable: isSkipped === undefined ? skippable : isSkipped,
+                        retryable: can_retry === undefined ? retryable : can_retry,
+                        autoRetry: Object.assign({}, { enable: false, interval: 0, times: 1 }, auto_retry),
+                        timeoutConfig: timeout_config || { enable: false, seconds: 10, action: 'forced_fail' },
                         executor_proxy: executorProxy
                     }
                 }
@@ -940,14 +951,13 @@
                     this.isSelectorPanelShow = false
                 }
             },
-
             // 标准插件（子流程）选择面板切换插件（子流程）
             // isThirdParty 是否为第三方插件
             async onPluginOrTplChange (val) {
                 this.isSelectorPanelShow = false
                 this.isThirdParty = val.id === 'remote_plugin'
-                await this.clearParamsSourceInfo()
                 if (this.isSubflow) {
+                    await this.$parent.getProcessOpenChd(val)
                     this.tplChange(val)
                 } else {
                     this.pluginChange(val)
@@ -1335,7 +1345,7 @@
             getNodeFullConfig () {
                 let config
                 if (this.isSubflow) {
-                    const { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, version, tpl, executor_proxy } = this.basicInfo
+                    const { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, version, tpl, executor_proxy, retryable, skippable, ignorable, autoRetry, timeoutConfig } = this.basicInfo
                     const constants = {}
                     Object.keys(this.subflowForms).forEach(key => {
                         const constant = this.subflowForms[key]
@@ -1354,7 +1364,13 @@
                         template_id: tpl,
                         optional: selectable,
                         always_use_latest: alwaysUseLatest,
-                        scheme_id_list: schemeIdList
+                        scheme_id_list: schemeIdList,
+                        retryable,
+                        skippable,
+                        error_ignorable: ignorable,
+                        auto_retry: autoRetry,
+                        timeout_config: timeoutConfig,
+                        enable: this.formEnable
                     })
                     if (this.common) {
                         config['executor_proxy'] = executor_proxy.join(',')

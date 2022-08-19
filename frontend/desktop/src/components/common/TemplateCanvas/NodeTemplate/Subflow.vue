@@ -41,13 +41,53 @@
         </div>
         <!-- 节点右上角执行相关的icon区域 -->
         <div class="node-execute-icon">
-            <div v-if="node.status === 'SUSPENDED' || node.status === 'RUNNING'" class="task-status-icon subflow-status">
-                <i v-if="node.status === 'SUSPENDED'" class="common-icon-double-vertical-line"></i>
-                <i v-if="node.status === 'RUNNING'" class="common-icon-loading"></i>
+            <!-- 节点执行顶部右侧 icon， 执行中、重试次数、是否为跳过-->
+            <div v-if="node.status === 'RUNNING'" class="task-status-icon">
+                <i class="common-icon-loading"></i>
+            </div>
+            <div v-else-if="node.status === 'FINISHED' && (node.retry > 0 || node.skip)" class="task-status-icon">
+                <i v-if="node.skip" class="bk-icon icon-arrows-right-shape"></i>
+                <span v-else-if="node.retry > 0" class="retry-times">{{ node.retry > 99 ? '100+' : node.retry }}</span>
+            </div>
+            <!-- 节点失败后自动忽略icon -->
+            <div v-else-if="node.status === 'FINISHED' && node.error_ignored" class="task-status-icon node-subscript">
+                <i class="bk-icon icon-arrows-right-shape"></i>
+            </div>
+            <!-- 节点循环次数 -->
+            <div v-if="node.loop > 1" :class="['task-status-icon task-node-loop', { 'loop-plural': node.loop > 9 }]">
+                <i :class="`common-icon-loading-${ node.loop > 9 ? 'oval' : 'round' }`"></i>
+                <span>{{ node.loop > 99 ? '99+' : node.loop }}</span>
+            </div>
+            <!-- 节点顶部右侧生命周期 icon -->
+            <div class="node-phase-icon" v-if="[1, 2].includes(node.phase)">
+                <i
+                    :class="['bk-icon', 'icon-exclamation-circle', {
+                        'phase-warn': node.phase === 1,
+                        'phase-error': node.phase === 2
+                    }]"
+                    v-bk-tooltips="{
+                        content: phaseStr[node.phase],
+                        width: 210
+                    }">
+                </i>
             </div>
         </div>
         <!-- tooltip提示 -->
         <div class="state-icon">
+            <template v-if="node.status === 'FAILED'">
+                <el-tooltip v-if="isShowRetryBtn" placement="bottom" :content="$t('重试')">
+                    <span
+                        class="common-icon-retry"
+                        @click.stop="$emit('onRetryClick', node.id)">
+                    </span>
+                </el-tooltip>
+                <el-tooltip v-if="isShowSkipBtn" placement="bottom" :content="$t('跳过')">
+                    <span
+                        class="common-icon-skip"
+                        @click.stop="$emit('onSkipClick', node.id)">
+                    </span>
+                </el-tooltip>
+            </template>
             <el-tooltip placement="bottom" :content="$t('节点参数')">
                 <span
                     class="common-icon-bkflow-setting"

@@ -229,16 +229,18 @@ const template = {
             state.default_flow_type = default_flow_type
         },
         setSubprocessUpdated (state, subflow) {
-            state.subprocess_info.details.some((item) => {
-                if (subflow.subprocess_node_id === item.subprocess_node_id) {
-                    item.expired = subflow.expired
-                    if (subflow.version) {
-                        item.version = subflow.version
+            if (state.subprocess_info.loadTemplateData) {
+                state.subprocess_info.loadTemplateData.some((item) => {
+                    if (subflow.subprocess_node_id === item.subprocess_node_id) {
+                        item.expired = subflow.expired
+                        if (subflow.version) {
+                            item.version = subflow.version
+                        }
+                        return true
                     }
-                    return true
-                }
-                return false
-            })
+                    return false
+                })
+            }
         },
         setPipelineTree (state, data) {
             const pipelineTreeOrder = [
@@ -1013,6 +1015,19 @@ const template = {
         },
         getVariableFieldExplain ({ commit }) {
             return axios.get('template/api/variable_field_explain/').then(response => response.data)
+        },
+        // 获取流程是否开启独立子流程
+        getProcessOpenChdProcess ({ commit }, data) {
+            const { id } = data
+            return axios.get(`/api/v3/template/${id}/enable_independent_subprocess/`, { params: data }).then(response => response.data)
+        },
+        // 批量获取任务是否有独立子任务
+        getTaskHasSubTasks ({ commit }, data) {
+            return axios.get(`/api/v3/taskflow/root_task_info/`, { params: data }).then(response => response.data)
+        },
+        // 获取某个任务的子任务列表
+        getTaskHasSubTaskList ({ commit }, data) {
+            return axios.get(`/api/v3/taskflow/list_children_taskflow/`, { params: data }).then(response => response.data)
         }
     },
     getters: {
