@@ -213,37 +213,108 @@ def get_job_tagged_ip_dict(
     client, service_logger, job_instance_id, bk_biz_id, job_scope_type=JobBizScopeType.BIZ.value
 ):
     """根据job步骤执行标签获取 IP 分组"""
+    kwargs = {
+        "bk_scope_type": job_scope_type,
+        "bk_scope_id": str(bk_biz_id),
+        "bk_biz_id": bk_biz_id,
+        "job_instance_id": job_instance_id,
+        "return_ip_result": True,
+    }
+    result = client.jobv3.get_job_instance_status(kwargs)
+
+    if not result["result"]:
+        message = handle_api_error(
+            __group_name__,
+            "jobv3.get_job_instance_status",
+            kwargs,
+            result,
+        )
+        service_logger.warning(message)
+        return False, message
+
+    step_instance = result["data"]["step_instance_list"][-1]
+
+    step_ip_result_list = step_instance["step_ip_result_list"]
+    tagged_ip_dict = {}
+
+    for step_ip_result in step_ip_result_list:
+        tag_key = step_ip_result["tag"]
+        if not tag_key:
+            continue
+        if tag_key in tagged_ip_dict:
+            tagged_ip_dict[tag_key] += f",{step_ip_result['ip']}"
+        else:
+            tagged_ip_dict[tag_key] = step_ip_result["ip"]
+
+    return True, tagged_ip_dict
+
+
+def get_job_tagged_ip_dict_complex(
+    client, service_logger, job_instance_id, bk_biz_id, job_scope_type=JobBizScopeType.BIZ.value
+):
+    """根据job步骤执行标签获取 IP 分组(该类型的会返回一个新的IP分组结构)，新的ip分组协议如下
+    {
+        "name": "JOB执行IP分组",
+        "key": "job_tagged_ip_dict",
+        "value": {
+            "SUCCESS": {
+                "DESC": "执行成功",
+                "TAGS": {
+                    "success-1": "127.0.0.1,127.0.0.1",
+                    "success-2": "127.0.0.1,127.0.0.1",
+                    "ALL": "127.0.0.1"
+                }
+            },
+            "SCRIPT_FAILED": {
+                "DESC": "脚本返回值非0",
+                "TAGS": {
+                    "failed-1": "127.0.0.1",
+                    "failed-2": "127.0.0.1",
+                    "ALL": "127.0.0.1"
+                }
+            },
+            "OTHER_FAILED": {
+                "desc": "其他报错",
+                "tags": {
+                    "TASK_TIMEOUT": "127.0.0.1",
+                    "LOG_ERROR": "127.0.0.1",
+                    "ALL": "127.0.0.1"
+                }
+            }
+        }
+    }
+    """
 
     JOB_STEP_IP_RESULT_STATUS_MAP = {
-        0: "未知错误",
-        1: "Agent异常",
-        2: "无效主机",
-        3: "上次已成功",
-        9: "执行成功",
-        11: "执行失败",
-        12: "任务下发失败",
-        13: "任务超时",
-        15: "任务日志错误",
-        16: "GSE脚本日志超时",
-        17: "GSE文件日志超时",
-        101: "脚本执行失败",
-        102: "脚本执行超时",
-        103: "脚本执行被终止",
-        104: "脚本返回码非零",
-        202: "文件传输失败",
-        203: "源文件不存在",
-        301: "文件任务系统错误-未分类的",
-        303: "文件任务超时",
-        310: "Agent异常",
-        311: "用户名不存在",
-        312: "用户密码错误",
-        320: "文件获取失败",
-        321: "文件超出限制",
-        329: "文件传输错误",
-        399: "任务执行出错",
-        403: "GSE任务强制终止成功",
-        404: "GSE任务强制终止失败",
-        500: "未知状态",
+        0: "UNKNOWN_ERROR",
+        1: "AGENT_ERROR",
+        2: "HOST_NOT_EXIST",
+        3: "LAST_SUCCESS",
+        9: "SUCCESS",
+        11: "FAILED",
+        12: "SUBMIT_FAILED",
+        13: "TASK_TIMEOUT",
+        15: "LOG_ERROR",
+        16: "GSE_SCRIPT_TIMEOUT",
+        17: "GSE_FILE_TIMEOUT",
+        101: "SCRIPT_FAILED",
+        102: "SCRIPT_TIMEOUT",
+        103: "SCRIPT_TERMINATE",
+        104: "SCRIPT_NOT_ZERO_EXIT_CODE",
+        202: "COPYFILE_FAILED",
+        203: "COPYFILE_SOURCE_FILE_NOT_EXIST",
+        301: "FILE_ERROR_UNCLASSIFIED",
+        303: "GSE_TIMEOUT",
+        310: "GSE_AGENT_ERROR",
+        311: "GSE_USER_ERROR",
+        312: "GSE_USER_PWD_ERROR",
+        320: "GSE_FILE_ERROR",
+        321: "GSE_FILE_SIZE_EXCEED",
+        329: "GSE_FILE_TASK_ERROR",
+        399: "GSE_TASK_ERROR",
+        403: "GSE_TASK_TERMINATE_SUCCESS",
+        404: "GSE_TASK_TERMINATE_FAILED",
+        500: "UNKNOWN",
     }
 
     kwargs = {
@@ -268,26 +339,61 @@ def get_job_tagged_ip_dict(
     step_instance = result["data"]["step_instance_list"][-1]
 
     step_ip_result_list = step_instance["step_ip_result_list"]
-    tagged_ip_dict = {}
-    tagged_status_dict = {}
+
+    success_tags_dict = {}
+    success_ips = []
+
+    failed_tags_dict = {}
+    failed_ips = []
+
+    others_tags_dict = {}
+    others_ips = []
 
     for step_ip_result in step_ip_result_list:
         tag_key = step_ip_result["tag"]
         status = step_ip_result["status"]
-        status_display = JOB_STEP_IP_RESULT_STATUS_MAP.get(status, status)
-        status_key = "{}-{}".format(status_display, status)
-        if tag_key:
-            if tag_key in tagged_ip_dict:
-                tagged_ip_dict[tag_key] += f",{step_ip_result['ip']}"
-            else:
-                tagged_ip_dict[tag_key] = step_ip_result["ip"]
+        status_key = JOB_STEP_IP_RESULT_STATUS_MAP.get(status, status)
+        ip = step_ip_result["ip"]
 
-        if status_key in tagged_status_dict:
-            tagged_status_dict[status_key] += f",{step_ip_result['ip']}"
+        # 执行成功的分类到执行成功里面，JOB_SUCCESS
+        if status == 9:
+            success_ips.append(ip)
+            if tag_key:
+                if tag_key in success_tags_dict:
+                    success_tags_dict[tag_key] += f",{ip}"
+                else:
+                    success_tags_dict[tag_key] = ip
+        # 当调用job_failed时，会有失败的tag信息
+        elif status == 104:
+            failed_ips.append(ip)
+            if tag_key:
+                if tag_key in failed_tags_dict:
+                    failed_tags_dict[tag_key] += f",{ip}"
+                else:
+                    failed_tags_dict[tag_key] = ip
         else:
-            tagged_status_dict[status_key] = step_ip_result["ip"]
+            # 其他情况就是失败了
+            others_ips.append(ip)
+            if tag_key:
+                if status_key in others_tags_dict:
+                    others_tags_dict[status_key] += f",{ip}"
+                else:
+                    others_tags_dict[status_key] = ip
 
-    tagged_ip_dict.update(tagged_status_dict)
+    success_tags_dict["ALL"] = ",".join(success_ips)
+    failed_tags_dict["ALL"] = ",".join(failed_ips)
+    others_tags_dict["ALL"] = ",".join(others_ips)
+
+    tagged_ip_dict = {
+        "name": "JOB执行IP分组",
+        "key": "job_tagged_ip_dict",
+        "value": {
+            "SUCCESS": {"DESC": "执行成功", "TAGS": success_tags_dict},
+            "SCRIPT_FAILED": {"DESC": "脚本返回值非0", "TAGS": failed_tags_dict},
+            "OTHER_FAILED": {"desc": "其他报错", "tags": others_tags_dict},
+        },
+    }
+
     return True, tagged_ip_dict
 
 
@@ -327,6 +433,16 @@ class JobService(Service):
 
     def is_need_log_outputs_even_fail(self, data):
         return data.get_one_of_inputs("need_log_outputs_even_fail", False)
+
+    def get_tagged_ip_dict(self, data, parent_data, job_instance_id):
+        result, tagged_ip_dict = get_job_tagged_ip_dict(
+            data.outputs.client,
+            self.logger,
+            job_instance_id,
+            data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+            job_scope_type=self.biz_scope_type,
+        )
+        return result, tagged_ip_dict
 
     def schedule(self, data, parent_data, callback_data=None):
 
@@ -368,14 +484,7 @@ class JobService(Service):
                 is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", False)
                 tagged_ip_dict = {}
                 if is_tagged_ip or self.need_is_tagged_ip:
-                    result, tagged_ip_dict = get_job_tagged_ip_dict(
-                        data.outputs.client,
-                        self.logger,
-                        job_instance_id,
-                        data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
-                        job_scope_type=self.biz_scope_type,
-                    )
-
+                    result, tagged_ip_dict = self.get_tagged_ip_dict(data, parent_data, job_instance_id)
                     if not result:
                         self.logger.error(tagged_ip_dict)
                         data.outputs.ex_data = tagged_ip_dict
