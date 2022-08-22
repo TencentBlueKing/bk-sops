@@ -28,7 +28,7 @@
  * cornerRadius 连线分段点的弧度，默认为 0
  */
 export const endpointOptions = {
-    endpoint: ['Rectangle', { width: 46, height: 24 }],
+    endpoint: ['Dot', { radius: 12 }],
     connector: ['Flowchart', { stub: [20, 20], alwaysRespectStub: true, gap: 0, cornerRadius: 10 }], // 'Bezier'、'Straight'、'Flowchart'、'State Machine'，格式 [ type, params]
     connectorOverlays: [
         ['PlainArrow', { width: 8, length: 6, location: 1, id: 'arrow' }]

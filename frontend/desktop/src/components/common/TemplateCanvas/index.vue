@@ -26,7 +26,6 @@
             :node-options="nodeOptions"
             @onCreateNodeBefore="onCreateNodeBefore"
             @onCreateNodeAfter="onCreateNodeAfter"
-            @connectionDrag="onConnectionDrag"
             @onConnectionDragStop="onConnectionDragStop"
             @onConnectionClick="onConnectionClick"
             @onBeforeDrag="onBeforeDrag"
@@ -596,15 +595,6 @@
                     this.isDisableStartPoint = true
                 } else if (node.type === 'endpoint') {
                     this.isDisableEndPoint = true
-                }
-            },
-            // 连线开始拖动
-            onConnectionDrag (connection) {
-                if (Array.isArray(connection.endpoints) && connection.endpoints.length > 0) {
-                    const pos = connection.endpoints[0].canvas?.dataset.pos
-                    if (pos && connection.endpoints[1]) {
-                        connection.endpoints[1].canvas.dataset.pos = pos
-                    }
                 }
             },
             // 拖拽到节点上自动连接
@@ -1855,10 +1845,8 @@
             .jtk-endpoint {
                 cursor: pointer;
                 &.template-canvas-endpoint {
-                    height: 32px;
-                    width: 32px;
                     background-repeat: no-repeat;
-                    background-size: 20px;
+                    background-size: 24px;
                     &.jtk-endpoint-highlight {
                         background-image: url('~@/assets/images/endpoint.png');
                     }
