@@ -40,14 +40,23 @@
             <div class="ripple"></div>
         </div>
         <!-- 节点右上角执行相关的icon区域 -->
-        <div class="node-execute-icon">
-            <div v-if="node.status === 'SUSPENDED' || node.status === 'RUNNING'" class="task-status-icon subflow-status">
-                <i v-if="node.status === 'SUSPENDED'" class="common-icon-double-vertical-line"></i>
-                <i v-if="node.status === 'RUNNING'" class="common-icon-loading"></i>
-            </div>
-        </div>
+        <node-right-icon-status :node="node"></node-right-icon-status>
         <!-- tooltip提示 -->
         <div class="state-icon">
+            <template v-if="node.status === 'FAILED'">
+                <el-tooltip v-if="isShowRetryBtn" placement="bottom" :content="$t('重试')">
+                    <span
+                        class="common-icon-retry"
+                        @click.stop="$emit('onRetryClick', node.id)">
+                    </span>
+                </el-tooltip>
+                <el-tooltip v-if="isShowSkipBtn" placement="bottom" :content="$t('跳过')">
+                    <span
+                        class="common-icon-skip"
+                        @click.stop="$emit('onSkipClick', node.id)">
+                    </span>
+                </el-tooltip>
+            </template>
             <el-tooltip placement="bottom" :content="$t('节点参数')">
                 <span
                     class="common-icon-bkflow-setting"
@@ -78,9 +87,12 @@
     </div>
 </template>
 <script>
-
+    import NodeRightIconStatus from './NodeRightIconStatus.vue'
     export default {
         name: 'Subflow',
+        components: {
+            NodeRightIconStatus
+        },
         props: {
             hasAdminPerm: {
                 type: Boolean,
@@ -91,6 +103,29 @@
                 default () {
                     return {}
                 }
+            }
+        },
+        computed: {
+            isOpenTooltip () {
+                if (this.node.mode === 'execute') {
+                    if (this.node.status === 'RUNNING') {
+                        return ['sleep_timer', 'pause_node'].indexOf(this.node.code) > -1
+                    }
+                    return this.node.status === 'FAILED'
+                }
+                return false
+            },
+            isShowSkipBtn () {
+                if (this.node.status === 'FAILED' && (this.node.skippable || this.node.errorIgnorable)) {
+                    return true
+                }
+                return false
+            },
+            isShowRetryBtn () {
+                if (this.node.status === 'FAILED' && (this.node.retryable || this.node.errorIgnorable)) {
+                    return true
+                }
+                return false
             }
         },
         methods: {
