@@ -105,6 +105,29 @@
                 }
             }
         },
+        computed: {
+            isOpenTooltip () {
+                if (this.node.mode === 'execute') {
+                    if (this.node.status === 'RUNNING') {
+                        return ['sleep_timer', 'pause_node'].indexOf(this.node.code) > -1
+                    }
+                    return this.node.status === 'FAILED'
+                }
+                return false
+            },
+            isShowSkipBtn () {
+                if (this.node.status === 'FAILED' && (this.node.skippable || this.node.errorIgnorable)) {
+                    return true
+                }
+                return false
+            },
+            isShowRetryBtn () {
+                if (this.node.status === 'FAILED' && (this.node.retryable || this.node.errorIgnorable)) {
+                    return true
+                }
+                return false
+            }
+        },
         methods: {
             onSubflowPauseResumeClick (value) {
                 this.$emit('onSubflowPauseResumeClick', this.node.id, value)
