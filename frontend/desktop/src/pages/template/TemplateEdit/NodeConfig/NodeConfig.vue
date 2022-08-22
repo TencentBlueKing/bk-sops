@@ -955,7 +955,6 @@
                 this.isThirdParty = val.id === 'remote_plugin'
                 await this.clearParamsSourceInfo()
                 if (this.isSubflow) {
-                    await this.$parent.getProcessOpenChd(val)
                     this.tplChange(val)
                 } else {
                     this.pluginChange(val)

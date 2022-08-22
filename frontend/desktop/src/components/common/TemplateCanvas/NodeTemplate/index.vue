@@ -113,6 +113,9 @@
         },
         computed: {
             nodeTemplate () {
+                if (this.node.code === 'subprocess_plugin') {
+                    return this.components.subflow
+                }
                 return this.components[this.node.type.toLowerCase()]
             },
             nodeVar () {
