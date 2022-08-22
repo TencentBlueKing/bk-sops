@@ -389,7 +389,7 @@ def get_job_tagged_ip_dict_complex(
         "key": "job_tagged_ip_dict",
         "value": {
             "SUCCESS": {"DESC": "执行成功", "TAGS": success_tags_dict},
-            "SCRIPT_FAILED": {"DESC": "脚本返回值非零", "TAGS": failed_tags_dict},
+            "SCRIPT_NOT_ZERO_EXIT_CODE": {"DESC": "脚本返回值非零", "TAGS": failed_tags_dict},
             "OTHER_FAILED": {"desc": "其他异常", "TAGS": others_tags_dict},
         },
     }
