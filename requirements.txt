@@ -1,5 +1,5 @@
 # Base
-Django==3.2.13
+Django==3.2.15
 PyMySQL==0.6.7
 mysqlclient==2.0.3
 requests==2.25.1
@@ -60,7 +60,7 @@ importlib-metadata==3.7.3
 protobuf==3.19.4
 
 # blueapps
-blueapps[opentelemetry]==4.4.2
+blueapps[opentelemetry]==4.4.7
 whitenoise==5.2.0
 raven==6.5.0
 python-json-logger==2.0.1

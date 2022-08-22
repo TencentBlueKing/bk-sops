@@ -19,13 +19,11 @@ modules:
         source_dir: ./src
         services:
             - name: mysql
-              spec: reusable
             - name: rabbitmq
-              spec: reusable
             - name: redis
               spec: reusable
             - name: bkrepo
-              spec: reusable
+            - name: otel
         env_variables:
             - key: PIP_VERSION
               value: 20.2.3
@@ -88,6 +86,8 @@ modules:
               shared_from: default
             - name: bkrepo
               shared_from: default
+            - name: otel
+              shared_from: default
         env_variables:
             - key: PIP_VERSION
               value: 20.2.3
@@ -139,6 +139,8 @@ modules:
             - name: redis
               shared_from: default
             - name: bkrepo
+              shared_from: default
+            - name: otel
               shared_from: default
         env_variables:
             - key: PIP_VERSION
@@ -238,6 +240,8 @@ modules:
             - name: redis
               shared_from: default
             - name: bkrepo
+              shared_from: default
+            - name: otel
               shared_from: default
         env_variables:
             - key: PIP_VERSION
