@@ -115,7 +115,7 @@
     }
     .outputs-section .operation-table {
         flex: 1;
-        margin-left: 48px;
+        margin-left: 24px;
         padding-top: 18px;
         border: none;
         border-collapse: initial;
