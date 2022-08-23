@@ -24,7 +24,10 @@ from pipeline.component_framework.test import (
     Call,
     Patcher,
 )
-from pipeline_plugins.components.collections.sites.open.job import AllBizJobFastExecuteScriptComponent
+
+from pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.v1_1 import (
+    AllBizJobFastExecuteScriptComponent,
+)
 
 
 class AllBizJobFastExecuteScriptComponentTest(TestCase, ComponentTestMixin):
@@ -66,7 +69,7 @@ GET_CLIENT_BY_USER = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.base_service.get_client_by_user"
 )
 GET_NODE_CALLBACK_URL = (
-    "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.v1_0.get_node_callback_url"
+    "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.v1_1.get_node_callback_url"
 )
 JOB_HANDLE_API_ERROR = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script."
@@ -251,6 +254,9 @@ MANUAL_INPUTS = {
     "job_content": "cd /aa",
     "job_script_param": " bbb",
     "job_script_timeout": "80",
+    "job_rolling_execute": True,
+    "job_rolling_expression": "10%",
+    "job_rolling_mode": "1",
     "job_target_ip_table": [
         {"bk_cloud_id": "0", "ip": "127.0.0.1;127.0.0.2;127.0.0.3"},
         {"bk_cloud_id": "1", "ip": "200.0.0.1;200.0.0.2;200.0.0.3"},
@@ -275,6 +281,7 @@ MANUAL_KWARGS = {
         ],
     },
     "callback_url": "callback_url",
+    "rolling_config": {"expression": "10%", "mode": "1"},
     "script_param": "IGJiYg==",
     "timeout": 80,
     "script_language": "1",
@@ -297,6 +304,7 @@ BIZ_SET_MANUAL_KWARGS = {
         ],
     },
     "callback_url": "callback_url",
+    "rolling_config": {"expression": "10%", "mode": "1"},
     "script_param": "IGJiYg==",
     "timeout": 80,
     "script_language": "1",

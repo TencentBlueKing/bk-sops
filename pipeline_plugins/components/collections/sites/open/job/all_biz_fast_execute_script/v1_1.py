@@ -34,11 +34,12 @@ from django.utils.translation import ugettext_lazy as _
 
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.ip import get_ip_by_regex
-from pipeline.core.flow.io import BooleanItemSchema
+from pipeline.core.flow.io import StringItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.base_service import (
     BaseAllBizJobFastExecuteScriptService,
 )
+from pipeline_plugins.components.collections.sites.open.job.base import get_job_tagged_ip_dict_complex
 from pipeline_plugins.components.utils import get_node_callback_url
 
 from gcloud.conf import settings
@@ -48,6 +49,7 @@ __group_name__ = _("作业平台(JOB)")
 
 class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService):
     need_get_sops_var = True
+    need_is_tagged_ip = True
 
     biz_scope_type = JobBizScopeType.BIZ_SET.value
 
@@ -55,20 +57,44 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService):
         input_format_list = super().inputs_format()
         return input_format_list + [
             self.InputItem(
-                name=_("IP Tag 分组"),
-                key="is_tagged_ip",
+                name=_("滚动执行"),
+                key="job_rolling_execute",
                 type="boolean",
-                schema=BooleanItemSchema(description=_("是否对 IP 进行 Tag 分组")),
+                schema=BooleanItemSchema(description=_("是否开启滚动执行")),
+            ),
+            self.InputItem(
+                name=_("滚动策略"),
+                key="job_rolling_expression",
+                type="string",
+                schema=StringItemSchema(description=_("滚动策略，仅在滚动执行开启时生效")),
+            ),
+            self.InputItem(
+                name=_("滚动机制"),
+                key="job_rolling_mode",
+                type="string",
+                schema=StringItemSchema(description=_("滚动机制，仅在滚动执行开启时生效")),
             ),
         ]
 
+    def is_need_log_outputs_even_fail(self, data):
+        return True
+
+    def get_tagged_ip_dict(self, data, parent_data, job_instance_id):
+        result, tagged_ip_dict = get_job_tagged_ip_dict_complex(
+            data.outputs.client,
+            self.logger,
+            job_instance_id,
+            data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+            job_scope_type=self.biz_scope_type,
+        )
+        return result, tagged_ip_dict
+
     def get_job_params(self, data):
-
         biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
-
         script_param = str(data.get_one_of_inputs("job_script_param"))
         job_script_timeout = data.get_one_of_inputs("job_script_timeout")
         ip_info = data.get_one_of_inputs("job_target_ip_table")
+        job_rolling_execute = data.get_one_of_inputs("job_rolling_execute", False)
 
         # 拼装ip_list， bk_cloud_id为空则值为0
         ip_list = [
@@ -87,6 +113,15 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService):
             },
             "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
+
+        # 如果开启了滚动执行，填充rolling_config配置
+        if job_rolling_execute:
+            # 滚动策略
+            job_rolling_expression = data.get_one_of_inputs("job_rolling_expression")
+            # 滚动机制
+            job_rolling_mode = data.get_one_of_inputs("job_rolling_mode")
+            rolling_config = {"expression": job_rolling_expression, "mode": job_rolling_mode}
+            job_kwargs.update({"rolling_config": rolling_config})
 
         if script_param:
             job_kwargs.update({"script_param": base64.b64encode(script_param.encode("utf-8")).decode("utf-8")})
@@ -109,5 +144,6 @@ class AllBizJobFastExecuteScriptComponent(Component):
     name = _("业务集快速执行脚本")
     code = "all_biz_job_fast_execute_script"
     bound_service = AllBizJobFastExecuteScriptService
-    version = "v1.0"
-    form = "%scomponents/atoms/job/all_biz_fast_execute_script/v1_0.js" % settings.STATIC_URL
+    version = "v1.1"
+    form = "%scomponents/atoms/job/all_biz_fast_execute_script/v1_1.js" % settings.STATIC_URL
+    desc = _("业务集快速执行脚本，新增滚动执行功能,需要作业平台版本>=V3.6.0.0")
