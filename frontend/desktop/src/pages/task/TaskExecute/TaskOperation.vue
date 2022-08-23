@@ -51,7 +51,7 @@
                 </TemplateCanvas>
             </div>
         </div>
-        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="true" @hidden="onHiddenSideslider" :before-close="onBeforeClose">
+        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="960" :quick-close="true" @hidden="onHiddenSideslider" :before-close="onBeforeClose">
             <div slot="header">{{sideSliderTitle}}</div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
                 <ModifyParams

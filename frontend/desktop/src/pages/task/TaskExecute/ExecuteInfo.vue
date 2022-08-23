@@ -252,6 +252,9 @@
             },
             nodeActivity () {
                 return this.pipelineData.activities[this.nodeDetailConfig.node_id]
+            },
+            componentValue () {
+                return this.isSubProcessNode ? this.nodeActivity.component.data.subprocess.value : {}
             }
         },
         watch: {
@@ -301,6 +304,15 @@
                         this.historyInfo.push(...respData.histories)
                     }
                     this.executeInfo.name = this.location.name || NODE_DICT[this.location.type]
+                    const { component_code: componentCode, version } = this.nodeDetailConfig
+                    this.executeInfo.plugin_version = this.isThirdPartyNode ? respData.inputs.plugin_version : version
+                    if (this.isThirdPartyNode) {
+                        const resp = await this.loadPluginServiceAppDetail({ plugin_code: this.thirdPartyNodeCode })
+                        this.executeInfo.plugin_name = resp.data.name
+                    } else if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
+                        const pluginInfo = this.atomFormInfo[componentCode][version]
+                        this.executeInfo.plugin_name = `${pluginInfo.group_name}-${pluginInfo.name}`
+                    }
                     // 获取执行失败节点是否允许跳过，重试状态
                     if (this.executeInfo.state === 'FAILED') {
                         const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
@@ -319,7 +331,7 @@
             // 补充记录缺少的字段
             async setFillRecordField (record) {
                 const { version, component_code: componentCode } = this.nodeDetailConfig
-                const { inputs, state, history_id } = record
+                const { inputs, state } = record
                 let outputs = record.outputs
                 // 执行记录的outputs可能为Object格式，需要转为Array格式
                 if (!Array.isArray(outputs)) {
@@ -352,7 +364,7 @@
                 $.context.output_form.state = state
                 // 获取子流程配置详情
                 if (componentCode === 'subprocess_plugin' || islegacySubProcess) {
-                    const constants = this.pipelineData.constants
+                    const { constants } = islegacySubProcess ? this.pipelineData : this.componentValue.pipeline
                     this.renderConfig = await this.getSubflowInputsConfig(constants)
                 } else if (componentCode) { // 任务节点需要加载标准插件
                     await this.getNodeConfig(componentCode, version, inputs.plugin_version)
@@ -385,15 +397,6 @@
                 }
                 for (const key in inputsInfo) {
                     renderData[key] = inputsInfo[key]
-                }
-                // 节点日志
-                if (state && !['READY', 'CREATED'].includes(state)) {
-                    const query = Object.assign({}, this.nodeDetailConfig, {
-                        history_id: history_id,
-                        version: record.version
-                    })
-                    const nodeLogDom = this.$refs.nodeLog
-                    nodeLogDom && nodeLogDom.getPerformLog(query)
                 }
 
                 // 兼容 JOB 执行作业输出参数
@@ -452,6 +455,7 @@
                 this.$set(record, 'inputs', inputsInfo)
                 this.$set(record, 'failInfo', failInfo)
                 this.$set(record, 'last_time', tools.timeTransform(record.elapsed_time))
+                this.$set(record, 'isExpand', true)
             },
             async getTaskNodeDetail () {
                 try {
