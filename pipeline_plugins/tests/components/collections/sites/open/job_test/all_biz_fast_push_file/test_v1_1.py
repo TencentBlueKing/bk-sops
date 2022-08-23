@@ -23,7 +23,7 @@ from pipeline.component_framework.test import (
     Call,
     Patcher,
 )
-from pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.v1_0 import (
+from pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.v1_1 import (
     AllBizJobFastPushFileComponent,
 )
 
@@ -83,6 +83,9 @@ INPUT = {
             "job_target_account": "user01",
         },
     ],
+    "job_rolling_execute": True,
+    "job_rolling_expression": "10%",
+    "job_rolling_mode": "1",
     "break_line": ";",
     "job_timeout": "100",
 }
@@ -94,18 +97,6 @@ FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT = MockClient(
             "code": 0,
             "message": "success",
             "data": {"job_instance_name": "API Quick Distribution File1521101427176", "job_instance_id": 10000},
-        },
-        {
-            "result": True,
-            "code": 0,
-            "message": "success",
-            "data": {"job_instance_name": "API Quick Distribution File1521101427176", "job_instance_id": 10001},
-        },
-        {
-            "result": True,
-            "code": 0,
-            "message": "success",
-            "data": {"job_instance_name": "API Quick Distribution File1521101427176", "job_instance_id": 10002},
         },
         {
             "result": False,
@@ -131,18 +122,6 @@ FAST_PUSH_FILE_BIZ_SET_REQUEST_FAILURE_CLIENT = MockClient(
             "data": {"job_instance_name": "API Quick Distribution File1521101427176", "job_instance_id": 10000},
         },
         {
-            "result": True,
-            "code": 0,
-            "message": "success",
-            "data": {"job_instance_name": "API Quick Distribution File1521101427176", "job_instance_id": 10001},
-        },
-        {
-            "result": True,
-            "code": 0,
-            "message": "success",
-            "data": {"job_instance_name": "API Quick Distribution File1521101427176", "job_instance_id": 10002},
-        },
-        {
             "result": False,
             "code": 1,
             "message": "failed",
@@ -157,7 +136,6 @@ FAST_PUSH_FILE_BIZ_SET_REQUEST_FAILURE_CLIENT = MockClient(
     list_business_set_return={"result": True, "data": {"info": ["biz_set"]}},
 )
 
-
 CLL_INFO = MagicMock(
     side_effect=[
         {
@@ -167,26 +145,28 @@ CLL_INFO = MagicMock(
             "file_source_list": [
                 {
                     "file_list": ["/tmp/aa", "/tmp/bb"],
-                    "server": {
-                        "ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}],
-                    },
-                    "account": {
-                        "alias": "root",
-                    },
-                }
+                    "server": {"ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}]},
+                    "account": {"alias": "root"},
+                },
+                {
+                    "file_list": ["/tmp/cc", "/tmp/dd"],
+                    "server": {"ip_list": [{"ip": "127.0.02", "bk_cloud_id": 1}]},
+                    "account": {"alias": "user00"},
+                },
             ],
             "target_server": {
                 "ip_list": [
                     {"ip": "127.0.0.3", "bk_cloud_id": 0},
                     {"ip": "127.0.0.4", "bk_cloud_id": 0},
                     {"ip": "127.0.0.5", "bk_cloud_id": 0},
-                ],
+                ]
             },
             "account_alias": "root",
             "file_target_path": "/tmp/ee/",
             "upload_speed_limit": 100,
             "download_speed_limit": 100,
             "timeout": 100,
+            "rolling_config": {"expression": "10%", "mode": "1"},
         },
         {
             "bk_scope_type": "biz",
@@ -195,82 +175,28 @@ CLL_INFO = MagicMock(
             "file_source_list": [
                 {
                     "file_list": ["/tmp/aa", "/tmp/bb"],
-                    "server": {
-                        "ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}],
-                    },
-                    "account": {
-                        "alias": "root",
-                    },
-                }
+                    "server": {"ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}]},
+                    "account": {"alias": "root"},
+                },
+                {
+                    "file_list": ["/tmp/cc", "/tmp/dd"],
+                    "server": {"ip_list": [{"ip": "127.0.02", "bk_cloud_id": 1}]},
+                    "account": {"alias": "user00"},
+                },
             ],
             "target_server": {
                 "ip_list": [
                     {"ip": "200.0.0.1", "bk_cloud_id": 1},
                     {"ip": "200.0.0.2", "bk_cloud_id": 1},
                     {"ip": "200.0.0.3", "bk_cloud_id": 1},
-                ],
+                ]
             },
             "account_alias": "user01",
             "file_target_path": "/tmp/200/",
             "upload_speed_limit": 100,
             "download_speed_limit": 100,
             "timeout": 100,
-        },
-        {
-            "bk_scope_type": "biz",
-            "bk_scope_id": "321456",
-            "bk_biz_id": 321456,
-            "file_source_list": [
-                {
-                    "file_list": ["/tmp/cc", "/tmp/dd"],
-                    "server": {
-                        "ip_list": [{"ip": "127.0.02", "bk_cloud_id": 1}],
-                    },
-                    "account": {
-                        "alias": "user00",
-                    },
-                }
-            ],
-            "target_server": {
-                "ip_list": [
-                    {"ip": "127.0.0.3", "bk_cloud_id": 0},
-                    {"ip": "127.0.0.4", "bk_cloud_id": 0},
-                    {"ip": "127.0.0.5", "bk_cloud_id": 0},
-                ],
-            },
-            "account_alias": "root",
-            "file_target_path": "/tmp/ee/",
-            "upload_speed_limit": 100,
-            "download_speed_limit": 100,
-            "timeout": 100,
-        },
-        {
-            "bk_scope_type": "biz",
-            "bk_scope_id": "321456",
-            "bk_biz_id": 321456,
-            "file_source_list": [
-                {
-                    "file_list": ["/tmp/cc", "/tmp/dd"],
-                    "server": {
-                        "ip_list": [{"ip": "127.0.02", "bk_cloud_id": 1}],
-                    },
-                    "account": {
-                        "alias": "user00",
-                    },
-                }
-            ],
-            "target_server": {
-                "ip_list": [
-                    {"ip": "200.0.0.1", "bk_cloud_id": 1},
-                    {"ip": "200.0.0.2", "bk_cloud_id": 1},
-                    {"ip": "200.0.0.3", "bk_cloud_id": 1},
-                ],
-            },
-            "account_alias": "user01",
-            "file_target_path": "/tmp/200/",
-            "upload_speed_limit": 100,
-            "download_speed_limit": 100,
-            "timeout": 100,
+            "rolling_config": {"expression": "10%", "mode": "1"},
         },
     ]
 )
@@ -284,26 +210,28 @@ BIZ_SET_CLL_INFO = MagicMock(
             "file_source_list": [
                 {
                     "file_list": ["/tmp/aa", "/tmp/bb"],
-                    "server": {
-                        "ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}],
-                    },
-                    "account": {
-                        "alias": "root",
-                    },
-                }
+                    "server": {"ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}]},
+                    "account": {"alias": "root"},
+                },
+                {
+                    "file_list": ["/tmp/cc", "/tmp/dd"],
+                    "server": {"ip_list": [{"ip": "127.0.02", "bk_cloud_id": 1}]},
+                    "account": {"alias": "user00"},
+                },
             ],
             "target_server": {
                 "ip_list": [
                     {"ip": "127.0.0.3", "bk_cloud_id": 0},
                     {"ip": "127.0.0.4", "bk_cloud_id": 0},
                     {"ip": "127.0.0.5", "bk_cloud_id": 0},
-                ],
+                ]
             },
             "account_alias": "root",
             "file_target_path": "/tmp/ee/",
             "upload_speed_limit": 100,
             "download_speed_limit": 100,
             "timeout": 100,
+            "rolling_config": {"expression": "10%", "mode": "1"},
         },
         {
             "bk_scope_type": "biz_set",
@@ -312,82 +240,28 @@ BIZ_SET_CLL_INFO = MagicMock(
             "file_source_list": [
                 {
                     "file_list": ["/tmp/aa", "/tmp/bb"],
-                    "server": {
-                        "ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}],
-                    },
-                    "account": {
-                        "alias": "root",
-                    },
-                }
+                    "server": {"ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}]},
+                    "account": {"alias": "root"},
+                },
+                {
+                    "file_list": ["/tmp/cc", "/tmp/dd"],
+                    "server": {"ip_list": [{"ip": "127.0.02", "bk_cloud_id": 1}]},
+                    "account": {"alias": "user00"},
+                },
             ],
             "target_server": {
                 "ip_list": [
                     {"ip": "200.0.0.1", "bk_cloud_id": 1},
                     {"ip": "200.0.0.2", "bk_cloud_id": 1},
                     {"ip": "200.0.0.3", "bk_cloud_id": 1},
-                ],
+                ]
             },
             "account_alias": "user01",
             "file_target_path": "/tmp/200/",
             "upload_speed_limit": 100,
             "download_speed_limit": 100,
             "timeout": 100,
-        },
-        {
-            "bk_scope_type": "biz_set",
-            "bk_scope_id": "321456",
-            "bk_biz_id": 321456,
-            "file_source_list": [
-                {
-                    "file_list": ["/tmp/cc", "/tmp/dd"],
-                    "server": {
-                        "ip_list": [{"ip": "127.0.02", "bk_cloud_id": 1}],
-                    },
-                    "account": {
-                        "alias": "user00",
-                    },
-                }
-            ],
-            "target_server": {
-                "ip_list": [
-                    {"ip": "127.0.0.3", "bk_cloud_id": 0},
-                    {"ip": "127.0.0.4", "bk_cloud_id": 0},
-                    {"ip": "127.0.0.5", "bk_cloud_id": 0},
-                ],
-            },
-            "account_alias": "root",
-            "file_target_path": "/tmp/ee/",
-            "upload_speed_limit": 100,
-            "download_speed_limit": 100,
-            "timeout": 100,
-        },
-        {
-            "bk_scope_type": "biz_set",
-            "bk_scope_id": "321456",
-            "bk_biz_id": 321456,
-            "file_source_list": [
-                {
-                    "file_list": ["/tmp/cc", "/tmp/dd"],
-                    "server": {
-                        "ip_list": [{"ip": "127.0.02", "bk_cloud_id": 1}],
-                    },
-                    "account": {
-                        "alias": "user00",
-                    },
-                }
-            ],
-            "target_server": {
-                "ip_list": [
-                    {"ip": "200.0.0.1", "bk_cloud_id": 1},
-                    {"ip": "200.0.0.2", "bk_cloud_id": 1},
-                    {"ip": "200.0.0.3", "bk_cloud_id": 1},
-                ],
-            },
-            "account_alias": "user01",
-            "file_target_path": "/tmp/200/",
-            "upload_speed_limit": 100,
-            "download_speed_limit": 100,
-            "timeout": 100,
+            "rolling_config": {"expression": "10%", "mode": "1"},
         },
     ]
 )
@@ -395,18 +269,18 @@ BIZ_SET_CLL_INFO = MagicMock(
 
 def PUSH_FILE_TO_IPS_FAIL_CASE():
     return ComponentTestCase(
-        name="all biz fast_push_files v1.0  call fail case",
+        name="all biz fast_push_files v1.1  call fail case",
         inputs=INPUT,
         parent_data={"executor": "executor", "project_id": "project_id"},
         execute_assertion=ExecuteAssertion(
             success=True,
             outputs={
                 "requests_error": "Request Error:\nfailed\n",
-                "task_count": 4,
-                "job_instance_id_list": [10000, 10001, 10002],
-                "job_id_of_batch_execute": [10000, 10001, 10002],
-                "job_inst_url": ["job.com/api_execute/", "job.com/api_execute/", "job.com/api_execute/"],
-                "request_success_count": 3,
+                "task_count": 2,
+                "job_instance_id_list": [10000],
+                "job_id_of_batch_execute": [10000],
+                "job_inst_url": ["job.com/api_execute/"],
+                "request_success_count": 1,
                 "success_count": 0,
                 "final_res": False,
             },
@@ -414,21 +288,22 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
         execute_call_assertion=[
             CallAssertion(
                 func=FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT.jobv3.fast_transfer_file,
-                calls=[Call(**CLL_INFO()), Call(**CLL_INFO()), Call(**CLL_INFO()), Call(**CLL_INFO())],
+                calls=[Call(**CLL_INFO()), Call(**CLL_INFO())],
             ),
         ],
         schedule_assertion=ScheduleAssertion(
             success=False,
             outputs={
                 "requests_error": "Request Error:\nfailed\n",
-                "task_count": 4,
-                "job_instance_id_list": [10000, 10001, 10002],
+                "task_count": 2,
+                "job_instance_id_list": [10000],
                 "job_id_of_batch_execute": [],
-                "job_inst_url": ["job.com/api_execute/", "job.com/api_execute/", "job.com/api_execute/"],
-                "request_success_count": 3,
-                "success_count": 3,
+                "job_inst_url": ["job.com/api_execute/"],
+                "request_success_count": 1,
+                "success_count": 1,
                 "final_res": False,
                 "ex_data": "Request Error:\nfailed\n\n Get Result Error:\n",
+                "failure_inst_url": [],
             },
             schedule_finished=True,
         ),
@@ -451,11 +326,11 @@ def BIZ_SET_PUSH_FILE_TO_IPS_FAIL_CASE():
             success=True,
             outputs={
                 "requests_error": "Request Error:\nfailed\n",
-                "task_count": 4,
-                "job_instance_id_list": [10000, 10001, 10002],
-                "job_id_of_batch_execute": [10000, 10001, 10002],
-                "job_inst_url": ["job.com/api_execute/", "job.com/api_execute/", "job.com/api_execute/"],
-                "request_success_count": 3,
+                "task_count": 2,
+                "job_instance_id_list": [10000],
+                "job_id_of_batch_execute": [10000],
+                "job_inst_url": ["job.com/api_execute/"],
+                "request_success_count": 1,
                 "success_count": 0,
                 "final_res": False,
             },
@@ -466,8 +341,6 @@ def BIZ_SET_PUSH_FILE_TO_IPS_FAIL_CASE():
                 calls=[
                     Call(**BIZ_SET_CLL_INFO()),
                     Call(**BIZ_SET_CLL_INFO()),
-                    Call(**BIZ_SET_CLL_INFO()),
-                    Call(**BIZ_SET_CLL_INFO()),
                 ],
             ),
         ],
@@ -475,14 +348,15 @@ def BIZ_SET_PUSH_FILE_TO_IPS_FAIL_CASE():
             success=False,
             outputs={
                 "requests_error": "Request Error:\nfailed\n",
-                "task_count": 4,
-                "job_instance_id_list": [10000, 10001, 10002],
+                "task_count": 2,
+                "job_instance_id_list": [10000],
                 "job_id_of_batch_execute": [],
-                "job_inst_url": ["job.com/api_execute/", "job.com/api_execute/", "job.com/api_execute/"],
-                "request_success_count": 3,
-                "success_count": 3,
+                "job_inst_url": ["job.com/api_execute/"],
+                "request_success_count": 1,
+                "success_count": 1,
                 "final_res": False,
                 "ex_data": "Request Error:\nfailed\n\n Get Result Error:\n",
+                "failure_inst_url": [],
             },
             schedule_finished=True,
         ),
