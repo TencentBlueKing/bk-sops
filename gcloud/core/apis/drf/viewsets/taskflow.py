@@ -148,8 +148,9 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             self.paginator.limit = self.paginator.get_limit(request)
             self.paginator.offset = self.paginator.get_offset(request)
             self.paginator.count = -1
+            create_method = request.query_params.get("create_method")
             queryset = self._optimized_my_dynamic_query(
-                queryset, request.user.username, self.paginator.limit, self.paginator.offset
+                queryset, request.user.username, self.paginator.limit, self.paginator.offset, create_method
             )
             page = list(queryset)
         else:
@@ -302,7 +303,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         return super().get_serializer_class(*args, **kwargs)
 
     @staticmethod
-    def _optimized_my_dynamic_query(queryset, username, limit, offset):
+    def _optimized_my_dynamic_query(queryset, username, limit, offset, create_method=None):
         """
         优化我的动态接口查询速度
         """
@@ -314,5 +315,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         )
         new_query = re.sub("ORDER BY (.*?) DESC", "ORDER BY `pipeline_pipelineinstance`.`id` DESC", new_query)
         new_query = new_query.replace(username, f"'{username}'")
+        if create_method:
+            new_query = new_query.replace(create_method, f"'{create_method}'")
         new_query += f" LIMIT {limit} OFFSET {offset}"
         return TaskFlowInstance.objects.raw(new_query)
