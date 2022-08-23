@@ -59,7 +59,17 @@
                                 :min-width="item.min_width">
                                 <template slot-scope="props">
                                     <!--任务名称-->
-                                    <div v-if="item.id === 'name'">
+                                    <div v-if="item.id === 'id'">
+                                        <span v-if="props.row.isHasChild" :style="{ 'margin-left': `${(props.row.level - 1) * 30}px` }">
+                                            <i
+                                                :class="['commonicon-icon', 'common-icon-next-triangle-shape', props.row.isOpen ? 'show-chd' : 'close-chd']"
+                                                @click="getCurProcessChdProcess(props.row)">
+                                            </i>
+                                        </span>
+                                        <span v-else :style="{ 'margin-left': `${(props.row.level - 1) * 30}px` }"></span>
+                                        <span>{{ props.row[item.id] || '--' }}</span>
+                                    </div>
+                                    <div v-else-if="item.id === 'name'">
                                         <a
                                             v-if="!hasPermission(['task_view'], props.row.auth_actions)"
                                             v-cursor
@@ -462,7 +472,9 @@
         },
         methods: {
             ...mapActions('template/', [
-                'loadProjectBaseInfo'
+                'loadProjectBaseInfo',
+                'getTaskHasSubTaskList',
+                'getTaskHasSubTasks'
             ]),
             ...mapActions('task/', [
                 'loadCreateMethod'
@@ -551,6 +563,10 @@
                     }
                     const taskListData = await this.loadTaskList(data)
                     const list = taskListData.results
+                    // 设置level初始值
+                    list.forEach(item => {
+                        item.level = 1
+                    })
                     this.pagination.count = taskListData.count
                     this.totalCount = taskListData.count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
@@ -559,14 +575,72 @@
                     } else {
                         this.totalPage = totalPage
                     }
+                    const result = await this.setListHaveChild(list)
                     // mixins getExecuteStatus
-                    this.getExecuteStatus('executeStatus', list)
-                    this.setTaskListData(list)
+                    this.getExecuteStatus('executeStatus', result)
+                    this.setTaskListData(result)
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.listLoading = false
                 }
+            },
+            // 设置每条记录是否有子流程
+            async setListHaveChild (list) {
+                const ids = list.map(item => item.id)
+                const checkStatus = await this.getTaskHasSubTasks({
+                    project_id: this.project_id,
+                    task_ids: ids.toString()
+                })
+                list.forEach(item => {
+                    item.isHasChild = checkStatus.data.has_children_taskflow[item.id]
+                })
+                return list
+            },
+            // 获取当前流程的子流程列表
+            async getCurProcessChdProcess (row) {
+                const curTaskList = toolsUtils.deepClone(this.$store.state.taskList.taskListData)
+                const curParent = curTaskList.find(item => item.id === row.id)
+                curParent.isOpen = !row.isOpen
+                // table field
+                const curField = this.setting.fieldList.find(item => item.id)
+                if (curParent.isOpen && row.level) {
+                    const params = {
+                        root_task_id: row.id,
+                        project_id: this.project_id
+                    }
+                    const res = await this.getTaskHasSubTaskList(params)
+                    const { tasks, relations } = res.data
+                    for (const key in relations) {
+                        if (row.id === Number(key)) {
+                            relations[key].forEach(id => {
+                                const task = tasks.find(item => item.id === id)
+                                task.level = row.level + 1
+                                task.parent_id = row.id
+                                curTaskList.splice(curTaskList.findIndex(item => item.id === row.id) + 1, 0, task)
+                            })
+                        }
+                    }
+                    const result = await this.setListHaveChild(curTaskList)
+                    this.getExecuteStatus('executeStatus', result)
+                    this.setTaskListData(result)
+                    curField.width = 30 * (curParent.level) + 100
+                } else {
+                    const filterArr = this.filterTaskList(curTaskList, curParent.id)
+                    this.getExecuteStatus('executeStatus', filterArr)
+                    this.setTaskListData(filterArr)
+                    curField.width = 30 * (curParent.level - 1) + 100
+                }
+            },
+            // 关闭展开icon过滤列表
+            filterTaskList (list, id, ids = []) {
+                list.map(item => {
+                    if (item.parent_id === id) {
+                        ids.push(item.id)
+                        this.filterTaskList(list, item.id, ids)
+                    }
+                })
+                return list.filter(item => !ids.includes(item.id))
             },
             async getBizBaseInfo () {
                 try {
@@ -922,6 +996,16 @@
 @import '@/scss/mixins/scrollbar.scss';
 @include advancedSearch;
 
+.show-chd {
+    transform: rotate(90deg);
+    display: inline-block;
+    transition: 0.5s;
+}
+.close-chd {
+    transform: rotate(0deg);
+    display: inline-block;
+    transition: 0.5s;
+}
 .task-container {
     height: 100%;
 }
