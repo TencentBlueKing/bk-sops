@@ -573,7 +573,7 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
             "client": EXECUTE_SUCCESS_CLIENT,
-            "job_tagged_ip_dict": {"tag": "1.1.1.1,1.1.1.2", "执行成功-9": "1.1.1.1,1.1.1.2"},
+            "job_tagged_ip_dict": {"tag": "1.1.1.1,1.1.1.2"},
             "key_1": "new_value_1",
             "key_2": "new_value_2",
             "log_outputs": {
@@ -680,7 +680,7 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
             "client": GET_VAR_ERROR_SUCCESS_CLIENT,
-            "job_tagged_ip_dict": {"tag": "1.1.1.1,1.1.1.2", "执行成功-9": "1.1.1.1,1.1.1.2"},
+            "job_tagged_ip_dict": {"tag": "1.1.1.1,1.1.1.2"},
             "key_1": "new_value_1",
             "key_2": "new_value_2",
             "log_outputs": {
