@@ -291,7 +291,15 @@ MANUAL_SUCCESS_OUTPUTS2 = {
     "job_inst_name": "API Quick execution script1521100521303",
     "job_inst_url": "instance_url_token",
     "client": FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT,
-    "job_tagged_ip_dict": {"执行成功-9": "1.1.1.1,1.1.1.2"},
+    "job_tagged_ip_dict": {
+        "name": "JOB执行IP分组",
+        "key": "job_tagged_ip_dict",
+        "value": {
+            "SUCCESS": {"DESC": "执行成功", "TAGS": {"ALL": "1.1.1.1,1.1.1.2"}},
+            "SCRIPT_NOT_ZERO_EXIT_CODE": {"DESC": "脚本返回值非零", "TAGS": {"ALL": ""}},
+            "OTHER_FAILED": {"desc": "其他异常", "TAGS": {"ALL": ""}},
+        },
+    },
     "name": "value",
     "log_outputs": {},
 }
