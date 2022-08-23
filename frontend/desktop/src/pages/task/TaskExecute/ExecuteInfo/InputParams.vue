@@ -172,7 +172,7 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        margin-left: 48px;
+        margin-left: 24px;
         padding-top: 18px;
         .table-header {
             display: flex;
@@ -184,7 +184,7 @@
                 padding: 16px 13px;
             }
             .input-name {
-                width: 120px;
+                width: 30%;
             }
         }
         /deep/.render-form {

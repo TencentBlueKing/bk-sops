@@ -2,14 +2,19 @@
     <section class="info-section log-section" data-test-id="taskExecute_form_nodeLog">
         <h4 class="log-label">{{ $t('节点日志') }}</h4>
         <div :class="['log-wrap', { 'tab-active': isThirdPartyNode }]">
+            <p class="log-switch" @click="toggleLogSwitch">
+                {{ isExpand ? $t('收起日志') : $t('展开日志') }}
+                <i v-if="isExpand" class="bk-icon icon-angle-up"></i>
+                <i v-else class="bk-icon icon-angle-down"></i>
+            </p>
             <!-- 内置插件/第三方插件tab -->
-            <bk-tab v-if="isThirdPartyNode" :active.sync="curPluginTab" type="unborder-card">
+            <bk-tab v-if="isExpand && isThirdPartyNode" :active.sync="curPluginTab" type="unborder-card">
                 <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('节点日志') }"></bk-tab-panel>
                 <bk-tab-panel
                     v-bind="{ name: 'third_party_plugin', label: $t('第三方节点日志') }">
                 </bk-tab-panel>
             </bk-tab>
-            <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
+            <div v-if="isExpand" class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
                 <full-code-editor
                     v-if="curPluginTab === 'build_in_plugin' ? logInfo : thirdPartyNodeLog"
                     class="scroll-editor"
@@ -52,6 +57,7 @@
         },
         data () {
             return {
+                isExpand: false,
                 curPluginTab: 'build_in_plugin',
                 isLogLoading: false,
                 logInfo: '',
@@ -181,6 +187,9 @@
                 } finally {
                     this.isLogLoading = false
                 }
+            },
+            toggleLogSwitch () {
+                this.isExpand = !this.isExpand
             }
         }
     }
@@ -191,11 +200,22 @@
         display: flex;
         .log-wrap {
             flex: 1;
-            margin-left: 48px;
+            margin-left: 24px;
+            .log-switch {
+                line-height: 20px;
+                color: #3a84ff;
+                cursor: pointer;
+                i {
+                    font-size: 16px;
+                }
+            }
             /deep/.bk-tab {
                 .bk-tab-section {
-                    padding: 10px 0;
+                    padding: 6px 0;
                 }
+            }
+            .perform-log {
+                margin-top: 8px;
             }
             .full-code-editor {
                 margin: 0 !important;

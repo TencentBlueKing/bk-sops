@@ -5,26 +5,28 @@
             <tr v-if="isSubProcessNode">
                 <th>{{ $t('流程模板') }}</th>
                 <td v-if="templateName">
-                    <router-link
-                        class="template-name"
-                        :title="templateName"
-                        :to="{
-                            name: 'templatePanel',
-                            params: { type: 'view' },
-                            query: { template_id: nodeActivity.original_template_id }
-                        }">
-                        {{ templateName }}
-                    </router-link>
+                    {{ templateName }}
+                    <i class="commonicon-icon common-icon-jump-link" @click="onSkipSubTemplate"></i>
                 </td>
                 <td v-else>
                     {{ '--' }}
                 </td>
             </tr>
+            <template v-else>
+                <tr>
+                    <th>{{ $t('标准插件') }}</th>
+                    <td>{{ executeInfo.plugin_name || '--' }}</td>
+                </tr>
+                <tr>
+                    <th>{{ $t('插件版本') }}</th>
+                    <td>{{ executeInfo.plugin_version || '--' }}</td>
+                </tr>
+            </template>
             <tr>
                 <th>{{ $t('节点名称') }}</th>
                 <td>{{ nodeActivity.name || '--' }}</td>
             </tr>
-            <tr v-if="isSubProcessNode">
+            <tr>
                 <th>{{ $t('步骤名称') }}</th>
                 <td>{{ nodeActivity.stage_name || '--' }}</td>
             </tr>
@@ -170,6 +172,14 @@
                     }
                     return acc
                 }, '')
+            },
+            onSkipSubTemplate () {
+                const { href } = this.$router.resolve({
+                    name: 'templatePanel',
+                    params: { type: 'view' },
+                    query: { template_id: this.nodeActivity.original_template_id }
+                })
+                window.open(href, '_blank')
             }
         }
     }
@@ -187,6 +197,7 @@
             background: #fafbfd !important;
         }
         td {
+            position: relative;
             color: #63656e;
         }
     }
@@ -250,8 +261,12 @@
         margin-top: 24px;
         margin-bottom: -1px;
     }
-    .template-name {
-        color: #3a84ff !important;
+    .common-icon-jump-link {
+        position: absolute;
+        top: 12px;
+        right: 10px;
+        color: #3a84ff;
+        cursor: pointer;
     }
     
 </style>

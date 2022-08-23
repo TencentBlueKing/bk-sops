@@ -1462,7 +1462,9 @@ const en = {
     '节点执行记录': 'Node execution record',
     '节点操作记录': 'Node operation record',
     '参数Key': 'Parameter Key',
-    '详情': 'Detail'
+    '详情': 'Detail',
+    '展开日志': 'Expand log',
+    '收起日志': 'Collapse log'
 }
 
 export default en

@@ -304,6 +304,15 @@
                         this.historyInfo.push(...respData.histories)
                     }
                     this.executeInfo.name = this.location.name || NODE_DICT[this.location.type]
+                    const { component_code: componentCode, version } = this.nodeDetailConfig
+                    this.executeInfo.plugin_version = this.isThirdPartyNode ? respData.inputs.plugin_version : version
+                    if (this.isThirdPartyNode) {
+                        const resp = await this.loadPluginServiceAppDetail({ plugin_code: this.thirdPartyNodeCode })
+                        this.executeInfo.plugin_name = resp.data.name
+                    } else if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
+                        const pluginInfo = this.atomFormInfo[componentCode][version]
+                        this.executeInfo.plugin_name = `${pluginInfo.group_name}-${pluginInfo.name}`
+                    }
                     // 获取执行失败节点是否允许跳过，重试状态
                     if (this.executeInfo.state === 'FAILED') {
                         const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]

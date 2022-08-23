@@ -1,7 +1,7 @@
 <template>
     <section class="info-section" data-test-id="taskExecute_form_executeLog">
         <h4 class="common-section-title">{{ $t('节点执行记录') }}</h4>
-        <div class="excute-time" v-if="isReadyStatus">
+        <div class="excute-time" v-if="loop && loop > 1">
             <span>{{$t('第')}}</span>
             <bk-select
                 :clearable="false"
@@ -52,10 +52,10 @@
                     {{ row.taskName }}
                 </div>
             </bk-table-column>
-            <bk-table-column :label="$t('开始时间')" :width="140" prop="start_time">
+            <bk-table-column :label="$t('开始时间')" :width="200" prop="start_time">
                 <div slot-scope="{ row }" v-bk-overflow-tips>  {{ row.start_time }} </div>
             </bk-table-column>
-            <bk-table-column :label="$t('结束时间')" :width="140" prop="finish_time">
+            <bk-table-column :label="$t('结束时间')" :width="200" prop="finish_time">
                 <div slot-scope="{ row }" v-bk-overflow-tips> {{ row.finish_time }} </div>
             </bk-table-column>
             <bk-table-column :label="$t('耗时')" :width="60">
@@ -250,7 +250,7 @@
     }
     /deep/.bk-table .bk-table-body td.bk-table-expanded-cell {
         background: #f5f7fa;
-        padding: 16px 22px 22px 39px;
+        padding: 16px 24px 22px 32px;
         .info-section:not(:last-child) {
             margin-bottom: 16px;
         }
@@ -258,7 +258,7 @@
             display: flex;
             line-height: 16px;
             > div {
-                margin-left: 48px;
+                margin-left: 24px;
             }
         }
         .abnormal-label,
