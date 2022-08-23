@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from functools import partial
 from django.utils.translation import ugettext_lazy as _
-
+from pipeline.core.flow.io import BooleanItemSchema
 from .execute_task_base import JobExecuteTaskServiceBase
 from pipeline.component_framework.component import Component
 from gcloud.conf import settings
@@ -27,7 +27,15 @@ job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
 class JobExecuteTaskService(JobExecuteTaskServiceBase):
-    pass
+    def inputs_format(self):
+        return super().inputs_format() + [
+            self.InputItem(
+                name=_("IP 存在性校验"),
+                key="ip_is_exist",
+                type="boolean",
+                schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
+            ),
+        ]
 
 
 class JobExecuteTaskComponent(Component):

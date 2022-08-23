@@ -22,7 +22,6 @@ from pipeline.core.flow.io import (
     IntItemSchema,
     ArrayItemSchema,
     ObjectItemSchema,
-    BooleanItemSchema,
 )
 from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline_plugins.components.utils import (
@@ -79,12 +78,6 @@ class JobExecuteTaskServiceBase(JobService):
                     ),
                 ),
             ),
-            self.InputItem(
-                name=_("IP 存在性校验"),
-                key="ip_is_exist",
-                type="boolean",
-                schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
-            ),
         ]
 
     def outputs_format(self):
@@ -105,6 +98,12 @@ class JobExecuteTaskServiceBase(JobService):
             ),
         ]
 
+    def check_ip_is_exist(self, data):
+        return data.get_one_of_inputs("ip_is_exist")
+
+    def is_biz_across(self, data):
+        return data.get_one_of_inputs("biz_across")
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
@@ -116,8 +115,8 @@ class JobExecuteTaskServiceBase(JobService):
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         original_global_var = deepcopy(data.get_one_of_inputs("job_global_var"))
         global_vars = []
-        ip_is_exist = data.get_one_of_inputs("ip_is_exist")
-        biz_across = data.get_one_of_inputs("biz_across")
+        ip_is_exist = self.check_ip_is_exist(data)
+        biz_across = self.is_biz_across(data)
 
         for _value in original_global_var:
             val = loose_strip(_value["value"])
