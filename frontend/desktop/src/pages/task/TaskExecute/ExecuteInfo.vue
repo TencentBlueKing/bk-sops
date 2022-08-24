@@ -228,9 +228,11 @@
                 return this.executeInfo.state && TASK_STATE_DICT[this.executeInfo.state]
             },
             location () {
-                const { node_id } = this.nodeDetailConfig
+                const { node_id, subprocess_stack } = this.nodeDetailConfig
                 return this.pipelineData.location.find(item => {
-                    return item.id === node_id
+                    if (item.id === node_id || subprocess_stack.includes(item.id)) {
+                        return true
+                    }
                 })
             },
             isThirdPartyNode () {
@@ -357,7 +359,7 @@
                 let inputsInfo = inputs
                 let failInfo = ''
                 // 判断是否为旧版子流程
-                const islegacySubProcess = !this.isSubProcessNode && this.nodeActivity.type === 'SubProcess'
+                const islegacySubProcess = !this.isSubProcessNode && this.nodeActivity && this.nodeActivity.type === 'SubProcess'
                 // 添加插件输出表单所需上下文
                 $.context.input_form.inputs = inputs
                 $.context.output_form.outputs = outputs
@@ -469,8 +471,8 @@
                     }
 
                     if (this.adminView) {
-                        const { instance_id: task_id, node_id } = this.nodeDetailConfig
-                        query = { task_id, node_id }
+                        const { instance_id: task_id, node_id, subprocess_stack } = this.nodeDetailConfig
+                        query = { task_id, node_id, subprocess_stack }
                         res = await this.taskflowNodeDetail(query)
                     } else {
                         res = await this.getNodeActDetail(query)

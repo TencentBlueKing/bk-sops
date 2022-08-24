@@ -194,7 +194,7 @@
                 padding: 5px 0;
                 border-bottom: 1px solid #dcdee5;
                 label {
-                    width: 120px;
+                    width: 30%;
                     text-align: left;
                     padding-left: 13px;
                     &::before {
@@ -202,7 +202,8 @@
                     }
                 }
                 .rf-tag-form {
-                    margin-left: 140px;
+                    margin-left: 30%;
+                    padding-left: 13px;
                 }
             }
         }
