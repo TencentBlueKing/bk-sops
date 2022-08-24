@@ -15,6 +15,7 @@ import logging
 
 import requests
 from bamboo_engine import states
+from bamboo_engine.context import Context
 from bamboo_engine.eri import ContextValue, ContextValueType
 from django.core.exceptions import ValidationError
 
@@ -64,14 +65,18 @@ class TaskCallBacker:
                 child_outputs = runtime.get_execution_data_outputs(node_id=child_pipeline_id)
                 if child_outputs:
                     pipeline_id = TaskFlowInstance.objects.get(id=parent_task_id).pipeline_instance.instance_id
+                    # 注入节点输出
                     outputs = {
                         key: ContextValue(key=key, type=ContextValueType.PLAIN, value=value)
                         for key, value in child_outputs.items()
                     }
-                    runtime.upsert_plain_context_values(pipeline_id=pipeline_id, update=outputs)
-                    cur_outputs = runtime.get_execution_data_outputs(node_id)
-                    cur_outputs.update(outputs)
-                    runtime.set_execution_data_outputs(node_id, cur_outputs)
+                    cur_execution_outputs = runtime.get_execution_data_outputs(node_id)
+                    cur_execution_outputs.update(outputs)
+                    runtime.set_execution_data_outputs(node_id, cur_execution_outputs)
+                    # 子流程输出同步到上下文
+                    cur_outputs = runtime.get_data_outputs(node_id)
+                    context = Context(runtime, [], {})
+                    context.extract_outputs(pipeline_id, cur_outputs, child_outputs)
                 dispatcher.dispatch(command="skip", operator="")
             else:
                 raise ValidationError(f"node state is not running or failed, but {node_state.name}")

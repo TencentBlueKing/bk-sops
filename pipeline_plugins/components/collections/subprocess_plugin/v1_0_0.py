@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import json
-import logging
 from typing import List
 
 from bamboo_engine.context import Context
@@ -31,8 +30,6 @@ from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig, TaskCal
 from gcloud.tasktmpl3.models import TaskTemplate
 from pipeline.component_framework.component import Component
 from pipeline.core.flow import Service
-
-logger = logging.getLogger("celery")
 
 
 class Subprocess(BaseModel):
@@ -179,14 +176,13 @@ class SubprocessPluginService(Service):
             return False
 
         subprocess_pipeline_id = subprocess_task.pipeline_instance.instance_id
-        logger.info(f"subprocess pipeline id: {subprocess_pipeline_id}")
+        self.logger.info(f"subprocess pipeline id: {subprocess_pipeline_id}")
         subprocess_execution_data_outputs = self.runtime.get_execution_data_outputs(node_id=subprocess_pipeline_id)
-        logger.info(f"subprocess execution data outputs: {subprocess_execution_data_outputs}")
+        self.logger.info(f"subprocess execution data outputs: {subprocess_execution_data_outputs}")
         node_outputs = self.runtime.get_data_outputs(self.id)
-        logger.info(f"node outputs: {node_outputs}")
-        for origin_key, target_key in node_outputs.items():
-            if origin_key in subprocess_execution_data_outputs:
-                data.set_outputs(target_key, subprocess_execution_data_outputs[origin_key])
+        self.logger.info(f"node outputs: {node_outputs}")
+        for key in filter(lambda x: x in subprocess_execution_data_outputs, node_outputs.keys()):
+            data.set_outputs(key, subprocess_execution_data_outputs[key])
         return True
 
 
