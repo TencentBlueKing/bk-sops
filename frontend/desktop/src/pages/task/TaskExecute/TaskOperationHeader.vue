@@ -21,7 +21,7 @@
                     :key="path.id"
                     :title="showNodeList.includes(index) ? path.name : ''">
                     <span v-if="!!index && showNodeList.includes(index) || index === 1">/</span>
-                    <span v-if="showNodeList.includes(index)" class="node-name" :title="path.name">
+                    <span v-if="showNodeList.includes(index)" class="node-name" :title="path.name" @click="onSelectSubflow(path.id)">
                         {{path.name}}
                     </span>
                     <span class="node-ellipsis" v-else-if="index === 1">...</span>
@@ -137,6 +137,7 @@
             'adminView',
             'state',
             'stateStr',
+            'isBreadcrumbShow',
             'isTaskOperationBtnsShow',
             'isShowViewProcess'
         ],
@@ -169,6 +170,9 @@
                     routerData = `/common/view/?template_id=${this.template_id}&common=1`
                 }
                 return routerData
+            },
+            onSelectSubflow (id) {
+                this.$emit('onSelectSubflow', id)
             },
             onOperationClick (action) {
                 this.$emit('onOperationClick', action)

@@ -190,6 +190,17 @@
             },
             toggleLogSwitch () {
                 this.isExpand = !this.isExpand
+                if (this.isExpand) {
+                    const { state, history_id, version } = this.executeInfo
+                    // 获取节点日志
+                    if (state && !['READY', 'CREATED'].includes(state)) {
+                        const query = Object.assign({}, this.nodeDetailConfig, {
+                            history_id: history_id,
+                            version: version
+                        })
+                        this.getPerformLog(query)
+                    }
+                }
             }
         }
     }
