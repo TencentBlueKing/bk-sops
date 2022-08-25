@@ -481,7 +481,6 @@
                     type: "change",
                     action: function (value) {
                         var self = this
-                        console.log(value);
                         if (value) {
                             self.show()
                         } else {
@@ -600,6 +599,9 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
+                        if($.context.exec_env === "NODE_CONFIG") {
+                            this.hide()
+                        }
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         if (cc_id !== '' && $.context.canSelectBiz()) {
                             this.remote_url = $.context.get('site_url') + 'pipeline/jobv3_get_instance_list/' + cc_id + '/1/3/';
@@ -645,7 +647,18 @@
                 size: "normal",
                 cols: 1,
                 formViewHidden: true
-            }
+            },
+            events: [
+                {
+                    source: "biz_cc_id",
+                    type: "init",
+                    action: function () {
+                        if($.context.exec_env === "NODE_CONFIG") {
+                            this.hide()
+                        }
+                    }
+                },
+            ]
         },
     ]
 })();
