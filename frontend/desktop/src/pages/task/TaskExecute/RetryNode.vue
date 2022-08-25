@@ -81,9 +81,13 @@
             }
         },
         mounted () {
+            $.context.exec_env = 'NODE_RETRY'
             if (this.nodeDetailConfig.component_code) {
                 this.loadNodeInfo()
             }
+        },
+        beforeDestroy () {
+            $.context.exec_env = ''
         },
         methods: {
             ...mapActions('task/', [
