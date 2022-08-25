@@ -276,6 +276,14 @@
                             component_code,
                             inputs: this.renderData
                         }
+                        if (component_code === 'subprocess_plugin') {
+                            const { inputs } = this.nodeInfo.data
+                            const constants = inputs.subprocess ? inputs.subprocess.pipeline.constants : {}
+                            Object.keys(constants).forEach(key => {
+                                constants[key].value = this.renderData[key]
+                            })
+                            data.inputs = inputs
+                        }
                         res = await this.instanceRetry(data)
                     } else {
                         res = await this.subflowNodeRetry({ instance_id, node_id })
