@@ -23,6 +23,7 @@
             </i>
         </div>
         <code-editor
+            :key="isFullScreen"
             :value="value"
             :options="{ readOnly: true, language: 'json' }">
         </code-editor>
@@ -80,6 +81,7 @@
             left: 0;
             height: 100vh;
             z-index: 3000;
+            margin: 0 !important;
             .code-editor {
                 height: calc(100% - 38px);
             }

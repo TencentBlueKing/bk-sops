@@ -10,12 +10,20 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import json
 import logging
 
 import requests
+from bamboo_engine import states
+from bamboo_engine.context import Context
+from bamboo_engine.eri import ContextValue, ContextValueType
+from django.core.exceptions import ValidationError
+
+from pipeline.eri.runtime import BambooDjangoRuntime
 from requests import HTTPError
 
-from gcloud.taskflow3.models import TaskCallBackRecord
+from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher
+from gcloud.taskflow3.models import TaskCallBackRecord, TaskFlowInstance, TaskFlowRelation
 
 logger = logging.getLogger("root")
 
@@ -23,8 +31,8 @@ logger = logging.getLogger("root")
 class TaskCallBacker:
     def __init__(self, task_id, *args, **kwargs):
         self.task_id = task_id
-        self.extra_info = {**kwargs, "task_id": self.task_id}
         self.record = TaskCallBackRecord.objects.filter(task_id=self.task_id).first()
+        self.extra_info = {"task_id": self.task_id, **json.loads(self.record.extra_info), **kwargs}
 
     def check_record_existence(self):
         return True if self.record else False
@@ -35,6 +43,51 @@ class TaskCallBacker:
         self.record.save(update_fields=list(kwargs.keys()))
 
     def callback(self):
+        if self.record.url:
+            return self._url_callback()
+        return self._subprocess_callback()
+
+    def _subprocess_callback(self):
+        try:
+            node_id, version, engine_ver = (
+                self.extra_info["node_id"],
+                self.extra_info["node_version"],
+                self.extra_info["engine_ver"],
+            )
+            parent_task_id = TaskFlowRelation.objects.filter(task_id=self.task_id).first().parent_task_id
+            dispatcher = NodeCommandDispatcher(engine_ver=engine_ver, node_id=node_id, taskflow_id=parent_task_id)
+            runtime = BambooDjangoRuntime()
+            node_state = runtime.get_state(node_id)
+            if node_state.name == states.RUNNING:
+                dispatcher.dispatch(command="callback", operator="", version=version, data=self.extra_info)
+            elif node_state.name == states.FAILED:
+                child_pipeline_id = TaskFlowInstance.objects.get(id=self.task_id).pipeline_instance.instance_id
+                child_outputs = runtime.get_execution_data_outputs(node_id=child_pipeline_id)
+                if child_outputs:
+                    pipeline_id = TaskFlowInstance.objects.get(id=parent_task_id).pipeline_instance.instance_id
+                    # 注入节点输出
+                    outputs = {
+                        key: ContextValue(key=key, type=ContextValueType.PLAIN, value=value)
+                        for key, value in child_outputs.items()
+                    }
+                    cur_execution_outputs = runtime.get_execution_data_outputs(node_id)
+                    cur_execution_outputs.update(outputs)
+                    runtime.set_execution_data_outputs(node_id, cur_execution_outputs)
+                    # 子流程输出同步到上下文
+                    cur_outputs = runtime.get_data_outputs(node_id)
+                    context = Context(runtime, [], {})
+                    context.extract_outputs(pipeline_id, cur_outputs, child_outputs)
+                dispatcher.dispatch(command="skip", operator="")
+            else:
+                raise ValidationError(f"node state is not running or failed, but {node_state.name}")
+        except Exception as e:
+            message = f"[TaskCallBacker _subprocess_callback] error: {e}, with data {self.record.extra_info}"
+            logger.exception(message)
+        else:
+            logger.info(f"[TaskCallBacker _subprocess_callback] data: {self.record.extra_info}, callback success.")
+        return True
+
+    def _url_callback(self):
         url = self.record.url
         response = None
         try:

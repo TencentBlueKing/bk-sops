@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 import re
 
 from django.db.models import Q
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import ErrorDetail
 from rest_framework import serializers, generics, permissions, status
@@ -28,8 +30,12 @@ from gcloud.core.apis.drf.serilaziers import (
     TaskFlowInstanceSerializer,
     CreateTaskFlowInstanceSerializer,
     RetrieveTaskFlowInstanceSerializer,
+    ListChildrenTaskFlowQuerySerializer,
+    ListChildrenTaskFlowResponseSerializer,
+    RootTaskflowQuerySerializer,
+    RootTaskflowResponseSerializer,
 )
-from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
+from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig, TaskFlowRelation
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.common_template.models import CommonTemplate
 from gcloud.iam_auth.conf import TASK_ACTIONS
@@ -120,7 +126,7 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
                         resources.extend(res_factory.resources_for_project(request.data["project"]))
                 self.iam_auth_check(request=request, action=iam_action, resources=resources)
                 return True
-        elif view.action == "list":
+        elif view.action in ["list", "list_children_taskflow", "root_task_info"]:
             user_type_validator = IamUserTypeBasedValidator()
             return user_type_validator.validate(request)
         return super().has_permission(request, view)
@@ -136,7 +142,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     permission_classes = [permissions.IsAuthenticated, TaskFlowInstancePermission]
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+        queryset = self.filter_queryset(self.get_queryset().filter(is_child_taskflow=False))
 
         # [我的动态] 接口过滤
         if "creator_or_executor" in request.query_params:
@@ -158,6 +164,11 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         serializer = self.get_serializer(page, many=True)
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, page)
+        self._inject_template_related_info(request, data)
+        return self.get_paginated_response(data) if page is not None else Response(data)
+
+    @staticmethod
+    def _inject_template_related_info(request, data):
         # 注入template_info（name、deleted
         # 项目流程
         template_ids = [
@@ -210,7 +221,6 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
                 for act, allowed in common_templates_allowed_actions.get(str(instance["template_id"]), {}).items():
                     if allowed:
                         instance["auth_actions"].append(act)
-        return self.get_paginated_response(data) if page is not None else Response(data)
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -319,3 +329,46 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             new_query = new_query.replace(create_method, f"'{create_method}'")
         new_query += f" LIMIT {limit} OFFSET {offset}"
         return TaskFlowInstance.objects.raw(new_query)
+
+    @swagger_auto_schema(
+        method="GET",
+        operation_summary="获取某个任务的子任务列表",
+        query_serializer=ListChildrenTaskFlowQuerySerializer,
+        responses={200: ListChildrenTaskFlowResponseSerializer},
+    )
+    @action(methods=["GET"], detail=False)
+    def list_children_taskflow(self, request, *args, **kwargs):
+        root_task_id = request.query_params.get("root_task_id")
+        children_task_info = TaskFlowRelation.objects.filter(root_task_id=root_task_id).values(
+            "task_id", "parent_task_id"
+        )
+        children_task_ids = [info["task_id"] for info in children_task_info]
+        queryset = TaskFlowInstance.objects.filter(
+            id__in=children_task_ids, pipeline_instance__isnull=False, is_deleted=False
+        )
+        queryset = self.filter_queryset(queryset)
+        serializer = self.get_serializer(queryset, many=True)
+        data = self.injection_auth_actions(request, serializer.data, queryset)
+        self._inject_template_related_info(request, data)
+
+        relations = {}
+        for info in children_task_info:
+            relations.setdefault(info["parent_task_id"], []).append(info["task_id"])
+        return Response({"tasks": data, "relations": relations})
+
+    @swagger_auto_schema(
+        method="GET",
+        operation_summary="批量获取任务是否有独立子任务",
+        query_serializer=RootTaskflowQuerySerializer,
+        responses={200: RootTaskflowResponseSerializer},
+    )
+    @action(methods=["GET"], detail=False)
+    def root_task_info(self, request, *args, **kwargs):
+        task_ids = request.query_params.get("task_ids") or []
+        if task_ids:
+            task_ids = [int(task_id) for task_id in task_ids.split(",")]
+        root_task_ids = TaskFlowRelation.objects.filter(root_task_id__in=task_ids).values_list(
+            "root_task_id", flat=True
+        )
+        root_task_info = {task_id: True if task_id in root_task_ids else False for task_id in task_ids}
+        return Response({"has_children_taskflow": root_task_info})

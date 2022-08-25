@@ -473,7 +473,8 @@
                 'loadCustomVarCollection',
                 'getLayoutedPipeline',
                 'loadInternalVariable',
-                'getVariableCite'
+                'getVariableCite',
+                'getProcessOpenRetryAndTimeout'
             ]),
             ...mapActions('task', [
                 'loadSubflowConfig'
