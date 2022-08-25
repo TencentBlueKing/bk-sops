@@ -85,6 +85,7 @@ INSTALLED_APPS += (
     "pipeline.contrib.statistics",
     "pipeline.contrib.periodic_task",
     "pipeline.contrib.external_plugins",
+    "pipeline.contrib.engine_admin",
     "pipeline.django_signal_valve",
     "pipeline_plugins",
     "pipeline_plugins.components",
@@ -757,3 +758,11 @@ CLEAN_EXPIRED_V2_TASK_CRON = env.CLEAN_EXPIRED_V2_TASK_CRON
 V2_TASK_VALIDITY_DAY = env.V2_TASK_VALIDITY_DAY
 CLEAN_EXPIRED_V2_TASK_BATCH_NUM = env.CLEAN_EXPIRED_V2_TASK_BATCH_NUM
 CLEAN_EXPIRED_V2_TASK_INSTANCE = env.CLEAN_EXPIRED_V2_TASK_INSTANCE
+
+
+# engine admin permission settings
+def check_engine_admin_permission(request, *args, **kwargs):
+    return request.user.is_superuser
+
+
+PIPELINE_ENGINE_ADMIN_API_PERMISSION = "config.default.check_engine_admin_permission"
