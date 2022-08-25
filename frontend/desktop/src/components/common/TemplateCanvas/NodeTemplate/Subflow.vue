@@ -57,13 +57,13 @@
                     </span>
                 </el-tooltip>
             </template>
-            <el-tooltip placement="bottom" :content="$t('节点参数')">
+            <el-tooltip v-if="!isSubProcessNode" placement="bottom" :content="$t('节点参数')">
                 <span
                     class="common-icon-bkflow-setting"
                     @click.stop="$emit('onSubflowDetailClick', node.id)">
                 </span>
             </el-tooltip>
-            <template v-if="node.status === 'RUNNING'">
+            <template v-if="!isSubProcessNode && node.status === 'RUNNING'">
                 <el-tooltip placement="bottom" :content="$t('暂停')">
                     <span
                         class="common-icon-resume"
@@ -77,7 +77,7 @@
                     </span>
                 </el-tooltip>
             </template>
-            <el-tooltip v-if="node.status === 'SUSPENDED'" placement="bottom" :content="$t('继续')">
+            <el-tooltip v-if="!isSubProcessNode && node.status === 'SUSPENDED'" placement="bottom" :content="$t('继续')">
                 <span
                     class="common-icon-play"
                     @click.stop="onSubflowPauseResumeClick('resume')">
@@ -126,6 +126,9 @@
                     return true
                 }
                 return false
+            },
+            isSubProcessNode () {
+                return this.node.code === 'subprocess_plugin'
             }
         },
         methods: {
