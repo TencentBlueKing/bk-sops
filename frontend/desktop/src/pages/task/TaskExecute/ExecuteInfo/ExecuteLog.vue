@@ -49,7 +49,7 @@
             </bk-table-column>
             <bk-table-column :label="$t('任务名')" :width="80">
                 <div slot-scope="{ row }" v-bk-overflow-tips>
-                    {{ row.taskName }}
+                    {{ getTaskName(row.outputs) }}
                 </div>
             </bk-table-column>
             <bk-table-column :label="$t('开始时间')" :width="200" prop="start_time">
@@ -160,6 +160,14 @@
                 'loadAtomConfig',
                 'loadPluginServiceDetail'
             ]),
+            getTaskName (outputs) {
+                if (Array.isArray(outputs)) {
+                    const taskNameInfo = outputs.find(item => item.key === 'task_name')
+                    return taskNameInfo ? taskNameInfo.value : ''
+                } else {
+                    return outputs.task_name
+                }
+            },
             getLastTime (time) {
                 return tools.timeTransform(time)
             },
