@@ -38,6 +38,7 @@ from gcloud.core.apis.drf.serilaziers.common_template import (
 from gcloud.common_template.signals import post_template_save_commit
 from gcloud.common_template.models import CommonTemplate
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
+from gcloud.taskflow3.models import TaskConfig
 from gcloud.template_base.domains.template_manager import TemplateManager
 from gcloud.iam_auth import res_factory, get_iam_client
 from gcloud.iam_auth import IAMMeta
@@ -261,3 +262,11 @@ class CommonTemplateViewSet(GcloudModelViewSet):
             instance_id=template.id,
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @swagger_auto_schema(method="GET", operation_summary="查询流程是否开启独立子流程")
+    @action(methods=["GET"], detail=True)
+    def enable_independent_subprocess(self, request, *args, **kwargs):
+        template_id = kwargs.get("pk")
+        project_id = -1
+        independent_subprocess_enable = TaskConfig.objects.enable_independent_subprocess(project_id, template_id)
+        return Response({"enable": independent_subprocess_enable})
