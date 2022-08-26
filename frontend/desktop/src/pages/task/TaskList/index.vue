@@ -60,13 +60,13 @@
                                 <template slot-scope="props">
                                     <!--任务名称-->
                                     <div v-if="item.id === 'id'">
-                                        <span v-if="props.row.isHasChild" :style="{ 'margin-left': `${(props.row.level - 1) * 30}px` }">
+                                        <span v-if="props.row.isHasChild || (props.row.children && props.row.children.length !== 0)" :style="{ 'margin-left': `${(props.row.level) * 20}px` }">
                                             <i
                                                 :class="['commonicon-icon', 'common-icon-next-triangle-shape', props.row.isOpen ? 'show-chd' : 'close-chd']"
                                                 @click="getCurProcessChdProcess(props.row)">
                                             </i>
                                         </span>
-                                        <span v-else :style="{ 'margin-left': `${(props.row.level - 1) * 30}px` }"></span>
+                                        <span v-else :style="{ 'margin-left': `${(props.row.level) * 20}px`, width: '12px', display: 'inline-block' }"></span>
                                         <span>{{ props.row[item.id] || '--' }}</span>
                                     </div>
                                     <div v-else-if="item.id === 'name'">
@@ -565,7 +565,7 @@
                     const list = taskListData.results
                     // 设置level初始值
                     list.forEach(item => {
-                        item.level = 1
+                        item.level = 0
                     })
                     this.pagination.count = taskListData.count
                     this.totalCount = taskListData.count
@@ -602,34 +602,79 @@
                 const curTaskList = toolsUtils.deepClone(this.$store.state.taskList.taskListData)
                 const curParent = curTaskList.find(item => item.id === row.id)
                 curParent.isOpen = !row.isOpen
+                curParent.maxLevel = ''
                 // table field
                 const curField = this.setting.fieldList.find(item => item.id)
-                if (curParent.isOpen && row.level) {
-                    const params = {
-                        root_task_id: row.id,
-                        project_id: this.project_id
-                    }
-                    const res = await this.getTaskHasSubTaskList(params)
-                    const { tasks, relations } = res.data
-                    for (const key in relations) {
-                        if (row.id === Number(key)) {
-                            relations[key].forEach(id => {
-                                const task = tasks.find(item => item.id === id)
-                                task.level = row.level + 1
-                                task.parent_id = row.id
-                                curTaskList.splice(curTaskList.findIndex(item => item.id === row.id) + 1, 0, task)
+                let result = []
+                if (curParent.isOpen) {
+                    // 处理task与relations
+                    const taskIds = [] // task id
+                    const taskIdList = []
+                    if (curParent.children && curParent.children.length !== 0) {
+                        curParent.children.forEach(item => {
+                            item.isOpen = false // 子流程默认icon close
+                            item.level = curParent.level + 1
+                            result.push(item)
+                        })
+                        curField.width = 20 * (curParent.level + 1) + 100
+                    } else {
+                        const params = {
+                            root_task_id: row.id,
+                            project_id: this.project_id
+                        }
+                        const res = await this.getTaskHasSubTaskList(params)
+                        const { tasks, relations } = res.data
+                        for (const key in relations) {
+                            taskIds.push({
+                                id: Number(key),
+                                children_id: [...relations[key]]
                             })
                         }
+                        taskIds.forEach(item => {
+                            item.children_id.forEach(ite => {
+                                taskIdList.push({
+                                    id: ite,
+                                    parent_id: item.id,
+                                    children: []
+                                })
+                            })
+                        })
+                        const arrToTree = (arr, parentId, level = 1) => {
+                            const result = []
+                            curParent.maxLevel = level
+                            arr.forEach(item => {
+                                if (item.parent_id === parentId) {
+                                    const task = tasks.find(task => task.id === item.id)
+                                    task.root_id = row.id
+                                    result.push({
+                                        ...item,
+                                        level: level,
+                                        ...task,
+                                        children: arrToTree(arr, item.id, level + 1)
+                                    })
+                                }
+                            })
+                            return result
+                        }
+                        result = arrToTree(taskIdList, Number(row.id))
+                        curField.width = 20 * curParent.maxLevel + 100
                     }
-                    const result = await this.setListHaveChild(curTaskList)
-                    this.getExecuteStatus('executeStatus', result)
-                    this.setTaskListData(result)
-                    curField.width = 30 * (curParent.level) + 100
+                    curTaskList.splice(curTaskList.findIndex(item => item.id === row.id) + 1, 0, ...result)
+                    this.getExecuteStatus('executeStatus', curTaskList)
+                    this.setTaskListData(curTaskList)
                 } else {
+                    // 关闭获取已展开列的最大level
+                    const MaxLevel = Math.max(...curTaskList.map(item => {
+                        if (item.isOpen) {
+                            return item.maxLevel
+                        } else {
+                            return 0
+                        }
+                    }))
                     const filterArr = this.filterTaskList(curTaskList, curParent.id)
                     this.getExecuteStatus('executeStatus', filterArr)
                     this.setTaskListData(filterArr)
-                    curField.width = 30 * (curParent.level - 1) + 100
+                    curField.width = 20 * MaxLevel + 100
                 }
             },
             // 关闭展开icon过滤列表
@@ -973,6 +1018,7 @@
                     this.crtCreateMethodTab = 'all'
                 }
                 this.requestData = data
+                console.log(this.requestData)
                 this.pagination.current = 1
                 // 当拉取创建方式列表时，不需要更新任务列表
                 if (this.isInitCreateMethod) {
