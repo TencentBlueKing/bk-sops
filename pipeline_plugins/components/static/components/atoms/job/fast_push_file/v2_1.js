@@ -51,21 +51,6 @@
                 add_btn: true,
                 columns: [
                     {
-                        tag_code: "bk_cloud_id",
-                        type: "input",
-                        attrs: {
-                            name: gettext("云区域ID"),
-                            placeholder: gettext("默认为0"),
-                            width: '90px',
-                            editable: true,
-                            validation: [
-                                {
-                                    type: "required"
-                                }
-                            ]
-                        }
-                    },
-                    {
                         tag_code: "ip",
                         type: "input",
                         attrs: {
@@ -169,21 +154,6 @@
                 add_btn: true,
                 hookable: true,
                 columns: [
-                    {
-                        tag_code: "bk_cloud_id",
-                        type: "input",
-                        attrs: {
-                            name: gettext("云区域ID"),
-                            placeholder: gettext("默认为0"),
-                            width: '90px',
-                            editable: true,
-                            validation: [
-                                {
-                                    type: "required"
-                                }
-                            ]
-                        }
-                    },
                     {
                         tag_code: "job_ip_list",
                         type: "textarea",

@@ -59,19 +59,18 @@ UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_u
 INPUT = {
     "biz_cc_id": 1,
     "job_source_files": [
-        {"bk_cloud_id": "0", "ip": "127.0.0.1", "files": "/tmp/aa\n/tmp/bb", "account": "root"},
+        {"ip": "0:127.0.0.1", "files": "/tmp/aa\n/tmp/bb", "account": "root"},
     ],
     "upload_speed_limit": "100",
     "download_speed_limit": "100",
     "job_dispatch_attr": [
         {
-            "job_ip_list": "127.0.0.3,127.0.0.4,127.0.0.5",
+            "job_ip_list": "0:127.0.0.3,0:127.0.0.4,0:127.0.0.5",
             "job_target_path": "/tmp/ee/",
             "job_account": "root",
-            "bk_cloud_id": "0",
         },
         {
-            "job_ip_list": "200.0.0.1,200.0.0.2,200.0.0.3",
+            "job_ip_list": "0:200.0.0.1,0:200.0.0.2,0:200.0.0.3",
             "job_target_path": "/tmp/200/",
             "job_account": "user01",
             "bk_cloud_id": "0",

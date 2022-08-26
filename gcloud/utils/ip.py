@@ -16,6 +16,8 @@ import logging
 
 ip_pattern = re.compile(r"(?<!\d)((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(?!\d)")
 plat_ip_reg = re.compile(r"\d+:((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(?!\d)")
+ip_reg_without_plat = re.compile(r"^(?!\d+:)((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(?!\d)")
+
 
 logger = logging.getLogger("root")
 

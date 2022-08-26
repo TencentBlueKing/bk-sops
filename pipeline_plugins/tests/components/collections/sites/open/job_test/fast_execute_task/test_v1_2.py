@@ -221,9 +221,7 @@ PARENT_DATA = {"executor": "executor", "biz_cc_id": 1}
 BASE_INPUTS = {
     "job_script_param": "1",
     "job_script_timeout": "100",
-    "job_target_ip_table": [
-        {"bk_cloud_id": "0", "ip": "127.0.0.1;127.0.0.2"},
-    ],
+    "job_ip_list": "0:127.0.0.1;0:127.0.0.2",
     "job_account": "root",
     "job_script_list_public": "",
     "job_script_list_general": "",
@@ -242,9 +240,7 @@ MANUAL_INPUTS.update(
 IP_EXIST_INPUTS = {
     "job_script_param": "1",
     "job_script_timeout": "100",
-    "job_target_ip_table": [
-        {"bk_cloud_id": "0", "ip": "127.0.0.1;127.0.0.2"},
-    ],
+    "job_ip_list": "0:127.0.0.1;0:127.0.0.2",
     "job_account": "root",
     "job_script_list_public": "",
     "job_script_list_general": "",
