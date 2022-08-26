@@ -569,7 +569,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
     def create_pipeline_instance(template, **kwargs):
         independent_subprocess = kwargs.pop(
             "independent_subprocess", False
-        ) or TaskConfig.objects.enable_independent_subprocess(getattr(template, "project_id", None), template.id)
+        ) or TaskConfig.objects.enable_independent_subprocess(getattr(template, "project_id", -1), template.id)
         pipeline_tree = kwargs["pipeline_tree"]
 
         if independent_subprocess:
@@ -1336,6 +1336,9 @@ class TaskConfigManager(models.Manager):
         """
         是否启用独立子进程
         """
+        # 公共流程, 配置项template_id有-号前缀
+        if project_id and int(project_id) == -1:
+            template_id = -1 * int(template_id)
         template_config = self.filter(
             scope=TaskConfig.SCOPE_TYPE_TEMPLATE, scope_id=template_id, config_type=TaskConfig.CONFIG_TYPE_SUBPROCESS
         ).only("config_value")
@@ -1352,6 +1355,7 @@ class TaskConfigManager(models.Manager):
 
 
 class TaskConfig(models.Model):
+    # 公共流程相关配置 project_id 记为-1, template_id 为-template_id
     SCOPE_TYPE_PROJECT = 1
     SCOPE_TYPE_TEMPLATE = 2
     SCOPE_TYPES = ((SCOPE_TYPE_PROJECT, "project"), (SCOPE_TYPE_TEMPLATE, "template"))
