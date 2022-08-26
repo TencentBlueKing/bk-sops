@@ -78,6 +78,7 @@ class TaskFlowFilterSet(FilterSet):
             "pipeline_instance__start_time": ["gte", "lte"],
             "pipeline_instance__finish_time": ["gte", "lte"],
             "pipeline_instance__create_time": ["gte", "lte"],
+            "is_child_taskflow": ["exact"],
         }
 
 
