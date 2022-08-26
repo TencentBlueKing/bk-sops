@@ -10,17 +10,22 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import datetime
 import json
 from typing import List
 
 from bamboo_engine.context import Context
 from bamboo_engine.template import Template
+from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
+from pipeline.models import PipelineTemplate
+
 from pipeline.core.flow.io import StringItemSchema, IntItemSchema
 
 from pipeline.eri.runtime import BambooDjangoRuntime
 
-from gcloud.core.models import EngineConfig
+from gcloud.core.models import EngineConfig, Project
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from pydantic import BaseModel
 
@@ -98,8 +103,14 @@ class SubprocessPluginService(Service):
 
         # 构造pipeline_instance & taskflow_instance
         with transaction.atomic():
+            project_tz = (
+                getattr(Project.objects.filter(id=parent_data.get_one_of_inputs("project_id")).first(), "time_zone")
+                or settings.TIME_ZONE
+            )
+            time_stamp = datetime.datetime.now(tz=timezone.pytz.timezone(project_tz)).strftime("%Y%m%d%H%M%S")
+            template_name = getattr(PipelineTemplate.objects.filter(template_id=subprocess.template_id).first(), "name")
             pipeline_instance_kwargs = {
-                "name": f'{parent_data.get_one_of_inputs("task_name")}-{subprocess.subprocess_name}',
+                "name": f"{template_name}_{time_stamp}",
                 "creator": parent_task.executor,
                 "pipeline_tree": pipeline_tree,
                 "description": "",
