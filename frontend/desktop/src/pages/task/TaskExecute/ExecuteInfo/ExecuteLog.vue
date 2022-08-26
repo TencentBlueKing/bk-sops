@@ -65,7 +65,7 @@
             </bk-table-column>
             <bk-table-column v-if="isSubProcessNode" :label="$t('操作')" :width="60">
                 <template slot-scope="{ row }">
-                    <bk-button text title="primary" @click="onSkipSubProcess(row)">{{ $t('详情') }}</bk-button>
+                    <bk-button v-if="hasTaskNodeUrl(row)" text title="primary" @click="onSkipSubProcess(row)">{{ $t('详情') }}</bk-button>
                 </template>
             </bk-table-column>
         </bk-table>
@@ -166,6 +166,14 @@
                     return taskNameInfo ? taskNameInfo.value : ''
                 } else {
                     return outputs.task_name
+                }
+            },
+            hasTaskNodeUrl (outputs) {
+                if (Array.isArray(outputs)) {
+                    const taskUrlInfo = outputs.find(item => item.key === 'task_url')
+                    return taskUrlInfo ? taskUrlInfo.value : ''
+                } else {
+                    return outputs.task_url
                 }
             },
             getLastTime (time) {
