@@ -36,7 +36,7 @@
             </tr>
             <tr>
                 <th>{{ $t('是否可选') }}</th>
-                <td>{{ !('selectable' in nodeActivity) ? '--' : nodeActivity.selectable ? $t('是') : $t('否') }}</td>
+                <td>{{ nodeActivity.optional ? $t('是') : $t('否') }}</td>
             </tr>
             <tr>
                 <th>{{ $t('失败处理') }}</th>
@@ -129,7 +129,7 @@
             }),
             timeoutTextValue () {
                 const timeoutConfig = this.nodeActivity['timeout_config']
-                if (!timeoutConfig) return '--'
+                if (!timeoutConfig || !timeoutConfig.enable) return '--'
                 const actionText = timeoutConfig.action === 'forced_fail' ? i18n.t('强制失败') : i18n.t('强制失败后跳过')
                 return i18n.t('超时') + ' ' + timeoutConfig.seconds + ' ' + i18n.tc('秒', 0) + i18n.t('后') + i18n.t('则') + actionText
             },
