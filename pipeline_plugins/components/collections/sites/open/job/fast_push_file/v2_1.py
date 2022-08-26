@@ -20,7 +20,6 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
 
-from gcloud.utils.ip import get_ip_by_regex
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
 from pipeline_plugins.components.utils.common import batch_execute_func
 from pipeline_plugins.components.utils import (
@@ -35,13 +34,14 @@ from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _("作业平台(JOB)")
 
+from pipeline_plugins.components.utils.sites.open.utils import get_biz_ip_from_frontend_hybrid
+
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
 class JobFastPushFileService(JobScheduleService):
-
     need_show_failure_inst_url = True
 
     def inputs_format(self):
@@ -129,20 +129,18 @@ class JobFastPushFileService(JobScheduleService):
         job_timeout = data.get_one_of_inputs("job_timeout")
         job_rolling_execute = data.get_one_of_inputs("job_rolling_execute", False)
 
-        file_source = [
-            {
-                "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
-                "server": {
-                    "ip_list": [
-                        {"ip": item["ip"], "bk_cloud_id": int(item["bk_cloud_id"]) if item["bk_cloud_id"] else 0}
-                    ],
-                },
-                "account": {
-                    "alias": loose_strip(item["account"]),
-                },
-            }
-            for item in original_source_files
-        ]
+        file_source = []
+        for item in original_source_files:
+            ip_list = get_biz_ip_from_frontend_hybrid(executor, item["ip"], biz_cc_id)
+            file_source.append(
+                {
+                    "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
+                    "server": {"ip_list": ip_list},
+                    "account": {
+                        "alias": loose_strip(item["account"]),
+                    },
+                }
+            )
 
         select_method = data.get_one_of_inputs("select_method")
         break_line = data.get_one_of_inputs("break_line") or ","
@@ -172,11 +170,7 @@ class JobFastPushFileService(JobScheduleService):
         params_list = []
         for attr in attr_list:
             # 获取目标IP
-            original_ip_list = attr["job_ip_list"]
-            ip_list = [
-                {"ip": _ip, "bk_cloud_id": int(attr["bk_cloud_id"]) if attr["bk_cloud_id"] else 0}
-                for _ip in get_ip_by_regex(original_ip_list)
-            ]
+            ip_list = get_biz_ip_from_frontend_hybrid(executor, attr["job_ip_list"], biz_cc_id)
             job_kwargs = {
                 "bk_scope_type": JobBizScopeType.BIZ.value,
                 "bk_scope_id": str(biz_cc_id),

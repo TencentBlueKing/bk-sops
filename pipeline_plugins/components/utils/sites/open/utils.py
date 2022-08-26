@@ -23,7 +23,7 @@ from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.variables.utils import find_module_with_relation
 
 from gcloud.utils import cmdb
-from gcloud.utils.ip import get_ip_by_regex
+from gcloud.utils.ip import get_ip_by_regex, ip_reg_without_plat
 from gcloud.conf import settings
 from gcloud.core.models import EngineConfig
 
@@ -255,3 +255,27 @@ def get_biz_ip_from_frontend(
             data.outputs.ex_data = _("IP 为空，请确认是否输入IP,请检查IP格式是否正确：{}".format(ip_str))
         return False, ip_list
     return True, ip_list
+
+
+def get_biz_ip_from_frontend_hybrid(executor, ip_str, biz_cc_id):
+    """
+    处理前端ip,云区域:ip 混合输入的情况，最终提取出来的格式为:
+    [
+        {
+            "bk_cloud_id": 0,
+            "ip": 127.0.0.1
+        }
+    ]
+    """
+    # 先提取所有跨业务的ip
+    plat_ip = [match.group() for match in plat_ip_reg.finditer(ip_str)]
+    plat_ip_list = [{"ip": _ip.split(":")[1], "bk_cloud_id": int(_ip.split(":")[0])} for _ip in plat_ip]
+    # 再提取所有非跨业务的ip
+    ip = [match.group() for match in ip_reg_without_plat.finditer(ip_str)]
+    # 对于用户没有输入云区域的ip,则去当前业务下查询云区域
+    if not ip:
+        return plat_ip_list
+    var_ip = cc_get_ips_info_by_str(username=executor, biz_cc_id=biz_cc_id, ip_str=",".join(ip), use_cache=False)
+    ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in var_ip["ip_result"]]
+    ip_list.extend(plat_ip_list)
+    return ip_list
