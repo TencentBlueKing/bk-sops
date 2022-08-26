@@ -53,6 +53,7 @@
                                 v-for="item in setting.selectedFields"
                                 :key="item.id"
                                 :label="item.label"
+                                :label-class-name="item.id === 'id' ? 'task-id' : ''"
                                 :prop="item.id"
                                 :render-header="renderTableHeader"
                                 :width="item.width"
@@ -453,7 +454,8 @@
                 selectedRow: {},
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
                 searchSelectValue,
-                isInitCreateMethod: false
+                isInitCreateMethod: false,
+                isChildTaskflow: false
             }
         },
         computed: {
@@ -531,7 +533,8 @@
                         template_source: this.templateSource || undefined,
                         id: id || undefined,
                         create_method: create_method || undefined,
-                        recorded_executor_proxy: recorded_executor_proxy || undefined
+                        recorded_executor_proxy: recorded_executor_proxy || undefined,
+                        is_child_taskflow: this.isChildTaskflow
                     }
 
                     if (start_time && start_time[0] && start_time[1]) {
@@ -800,6 +803,7 @@
                     ) {
                         this.pagination.current -= 1
                     }
+                    this.isChildTaskflow = false
                     await this.getTaskList()
                     this.$bkMessage({
                         message: i18n.t('任务') + i18n.t('删除成功！'),
@@ -916,10 +920,12 @@
             },
             onPageChange (page) {
                 this.pagination.current = page
+                this.isChildTaskflow = false
                 this.updateUrl()
                 this.getTaskList()
             },
             onPageLimitChange (val) {
+                this.isChildTaskflow = false
                 this.pagination.limit = val
                 this.pagination.current = 1
                 this.updateUrl()
@@ -1028,6 +1034,14 @@
                 this.createInfo = ''
                 this.templateId = ''
                 this.templateSource = ''
+                this.isChildTaskflow = false
+                const methodList = this.createMethodTabs.map(item => item.id)
+                if (Object.keys(data).length !== 0) {
+                    this.isChildTaskflow = ''
+                    if (Object.keys(data).length === 1 && methodList.includes(data.create_method)) {
+                        this.isChildTaskflow = false
+                    }
+                }
                 this.updateUrl()
                 this.getTaskList()
             }
@@ -1141,6 +1155,9 @@
         font-size: 14px;
         color: #c4c6cc;
         cursor: pointer;
+    }
+    /deep/ .cell .task-id {
+        margin-left: 16px;
     }
 }
 </style>
