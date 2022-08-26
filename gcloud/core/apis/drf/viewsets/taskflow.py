@@ -142,7 +142,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     permission_classes = [permissions.IsAuthenticated, TaskFlowInstancePermission]
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset().filter(is_child_taskflow=False))
+        queryset = self.filter_queryset(self.get_queryset())
 
         # [我的动态] 接口过滤
         if "creator_or_executor" in request.query_params:
