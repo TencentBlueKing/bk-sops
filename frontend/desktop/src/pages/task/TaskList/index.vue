@@ -1018,7 +1018,6 @@
                     this.crtCreateMethodTab = 'all'
                 }
                 this.requestData = data
-                console.log(this.requestData)
                 this.pagination.current = 1
                 // 当拉取创建方式列表时，不需要更新任务列表
                 if (this.isInitCreateMethod) {
