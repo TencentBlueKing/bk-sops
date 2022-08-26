@@ -991,10 +991,12 @@
                 this.updateBasicInfo(config)
                 this.inputsParamValue = {}
                 await this.getPluginDetail()
-                this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
-                    acc[crt.tag_code] = true
-                    return acc
-                }, {})
+                if (Array.isArray(this.inputs)) {
+                    this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
+                        acc[crt.tag_code] = true
+                        return acc
+                    }, {})
+                }
                 this.$refs.basicInfo && this.$refs.basicInfo.validate() // 清除节点保存报错时的错误信息
             },
             /**
@@ -1015,10 +1017,12 @@
                 await this.clearParamsSourceInfo()
                 this.inputsParamValue = {}
                 await this.getPluginDetail()
-                this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
-                    acc[crt.tag_code] = true
-                    return acc
-                }, {})
+                if (Array.isArray(this.inputs)) {
+                    this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
+                        acc[crt.tag_code] = true
+                        return acc
+                    }, {})
+                }
             },
             /**
              * 子流程切换
