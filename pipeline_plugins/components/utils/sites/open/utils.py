@@ -267,15 +267,30 @@ def get_biz_ip_from_frontend_hybrid(executor, ip_str, biz_cc_id):
         }
     ]
     """
-    # 先提取所有跨业务的ip
-    plat_ip = [match.group() for match in plat_ip_reg.finditer(ip_str)]
-    plat_ip_list = [{"ip": _ip.split(":")[1], "bk_cloud_id": int(_ip.split(":")[0])} for _ip in plat_ip]
+    logger.info(
+        "[get_biz_ip_from_frontend_hybrid] -> start get ip from frontend, ip_str={}, biz_cc_id={}".format(
+            ip_str, biz_cc_id
+        )
+    )
+    # 先提取所有带云区域的ip
+    plat_ip = [match.group().split(":") for match in plat_ip_reg.finditer(ip_str)]
+    plat_ip_list = [{"ip": _ip, "bk_cloud_id": int(_cloud)} for _ip, _cloud in plat_ip]
+    logger.info(
+        "[get_biz_ip_from_frontend_hybrid] -> get_plat_ip_list, ip_str={}, plat_ip_list={}".format(ip_str, plat_ip_list)
+    )
     # 再提取所有非跨业务的ip
-    ip = [match.group() for match in ip_reg_without_plat.finditer(ip_str)]
+    without_plat_ip_list = [match.group() for match in ip_reg_without_plat.finditer(ip_str)]
+    logger.info(
+        "[get_biz_ip_from_frontend_hybrid] -> get_without_plat_ip_list, ip_str={}, plat_ip_list={}".format(
+            ip_str, plat_ip_list
+        )
+    )
     # 对于用户没有输入云区域的ip,则去当前业务下查询云区域
-    if not ip:
+    if not without_plat_ip_list:
         return plat_ip_list
-    var_ip = cc_get_ips_info_by_str(username=executor, biz_cc_id=biz_cc_id, ip_str=",".join(ip), use_cache=False)
+    var_ip = cc_get_ips_info_by_str(
+        username=executor, biz_cc_id=biz_cc_id, ip_str=",".join(without_plat_ip_list), use_cache=False
+    )
     ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in var_ip["ip_result"]]
     ip_list.extend(plat_ip_list)
     return ip_list
