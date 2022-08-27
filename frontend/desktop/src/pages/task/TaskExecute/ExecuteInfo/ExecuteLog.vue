@@ -1,136 +1,108 @@
 <template>
-    <section class="info-section" data-test-id="taskExecute_form_executeLog" v-if="historyList && historyList.length">
-        <h4 class="common-section-title">{{ $t('执行记录') }}</h4>
+    <section class="info-section" data-test-id="taskExecute_form_executeLog">
+        <h4 class="common-section-title">{{ $t('节点执行记录') }}</h4>
+        <div class="excute-time" v-if="loop && loop > 1">
+            <span>{{$t('第')}}</span>
+            <bk-select
+                :clearable="false"
+                :value="theExecuteTime"
+                @selected="onSelectExecuteTime">
+                <bk-option
+                    v-for="index in loopTimes"
+                    :key="index"
+                    :id="index"
+                    :name="index">
+                </bk-option>
+            </bk-select>
+            <span>{{$t('次循环')}}</span>
+        </div>
         <bk-table
-            class="retry-table"
+            ref="recordTable"
+            class="record-table"
             :data="historyList"
+            row-key="history_id"
             @expand-change="onHistoryExpand">
             <bk-table-column type="expand" :width="30">
-                <template slot-scope="props">
-                    <div class="common-form-item">
-                        <label>{{ $t('输入参数') }}</label>
-                        <div class="common-form-content">
-                            <div class="code-block-wrap">
-                                <VueJsonPretty :data="props.row.inputs"></VueJsonPretty>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="common-form-item">
-                        <label>{{ $t('输出参数') }}</label>
-                        <div class="common-form-content">
-                            <div class="code-block-wrap">
-                                <VueJsonPretty :data="props.row.outputs"></VueJsonPretty>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="common-form-item" v-if="props.row.ex_data">
-                        <label>{{ $t('异常信息') }}</label>
-                        <div class="common-form-content">
-                            <div v-html="props.row.ex_data"></div>
-                        </div>
-                    </div>
-                    <div class="common-form-item executeLog">
-                        <label>{{ $t('日志') }}</label>
-                        <!-- 内置插件/第三方插件tab -->
-                        <bk-tab
-                            v-if="isThirdPartyNode"
-                            :active.sync="props.row.historyLogTab"
-                            type="unborder-card">
-                            <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('节点日志') }"></bk-tab-panel>
-                            <bk-tab-panel
-                                v-bind="{ name: 'third_party_plugin', label: $t('第三方节点日志') }">
-                            </bk-tab-panel>
-                        </bk-tab>
-                        <div class="perform-log" v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1, zIndex: 100 }">
-                            <div v-show="getHistoryLogData(props.row)">
-                                <VueJsonPretty
-                                    v-show="adminView"
-                                    :data="getHistoryLogData(props.row)">
-                                </VueJsonPretty>
-                                <full-code-editor
-                                    v-show="!adminView"
-                                    :class="[
-                                        `history-editor-${props.row.history_id}`
-                                    ]"
-                                    :value="getHistoryLogData(props.row)">
-                                </full-code-editor>
-                            </div>
-                            <NoData v-show="!getHistoryLogData(props.row)"></NoData>
-                        </div>
-
-                    </div>
+                <div class="record-wrap" slot-scope="{ row }">
+                    <InputParams
+                        :inputs="row.inputs"
+                        :render-config="row.renderConfig"
+                        :constants="row.constants"
+                        :render-data="row.renderData">
+                    </InputParams>
+                    <OutputParams
+                        :outputs="row.outputsInfo"
+                        :node-detail-config="nodeDetailConfig">
+                    </OutputParams>
+                    <section class="info-section abnormal-section" data-test-id="taskExcute_form_exceptionInfo" v-if="row.ex_data">
+                        <h4 class="abnormal-label">{{ $t('异常信息') }}</h4>
+                        <div v-html="row.failInfo"></div>
+                    </section>
+                    <NodeLog
+                        ref="nodeLog"
+                        :node-detail-config="nodeDetailConfig"
+                        :execute-info="row"
+                        :third-party-node-code="thirdPartyNodeCode"
+                        :engine-ver="engineVer">
+                    </NodeLog>
+                </div>
+            </bk-table-column>
+            <bk-table-column :label="$t('任务名')" :width="80">
+                <div slot-scope="{ row }" v-bk-overflow-tips>
+                    {{ getTaskName(row.outputs) }}
+                </div>
+            </bk-table-column>
+            <bk-table-column :label="$t('开始时间')" :width="200" prop="start_time">
+                <div slot-scope="{ row }" v-bk-overflow-tips>  {{ row.start_time }} </div>
+            </bk-table-column>
+            <bk-table-column :label="$t('结束时间')" :width="200" prop="finish_time">
+                <div slot-scope="{ row }" v-bk-overflow-tips> {{ row.finish_time }} </div>
+            </bk-table-column>
+            <bk-table-column :label="$t('耗时')" :width="60">
+                <template slot-scope="{ row }">
+                    {{ getLastTime(row.elapsed_time) }}
                 </template>
             </bk-table-column>
-            <bk-table-column :label="$t('序号')" :width="60">
-                <template slot-scope="props">
-                    {{ props.$index + 1 }}
+            <bk-table-column v-if="isSubProcessNode" :label="$t('操作')" :width="60">
+                <template slot-scope="{ row }">
+                    <bk-button v-if="hasTaskNodeUrl(row.outputs)" text title="primary" @click="onSkipSubProcess(row)">{{ $t('详情') }}</bk-button>
                 </template>
-            </bk-table-column>
-            <bk-table-column :label="$t('执行次数')" :width="100" prop="loop"></bk-table-column>
-            <bk-table-column
-                v-for="col in historyCols"
-                show-overflow-tooltip
-                :key="col.id"
-                :label="col.title"
-                :prop="col.id">
             </bk-table-column>
         </bk-table>
     </section>
 </template>
 
 <script>
-    import i18n from '@/config/i18n/index.js'
-    import VueJsonPretty from 'vue-json-pretty'
-    import FullCodeEditor from '../FullCodeEditor.vue'
-    import NoData from '@/components/common/base/NoData.vue'
-    import { mapActions } from 'vuex'
-
-    const HISTORY_COLS = [
-        {
-            title: i18n.t('开始时间'),
-            id: 'start_time'
-        },
-        {
-            title: i18n.t('结束时间'),
-            id: 'finish_time'
-        },
-        {
-            title: i18n.t('耗时'),
-            id: 'last_time'
-        }
-    ]
-
-    const ADMIN_HISTORY_COLS = [
-        {
-            title: i18n.t('开始时间'),
-            id: 'started_time'
-        },
-        {
-            title: i18n.t('结束时间'),
-            id: 'finished_time'
-        },
-        {
-            title: i18n.t('耗时'),
-            id: 'elapsed_time'
-        }
-    ]
+    import { mapState, mapActions } from 'vuex'
+    import tools from '@/utils/tools.js'
+    import InputParams from './InputParams.vue'
+    import OutputParams from './OutputParams.vue'
+    import NodeLog from './NodeLog.vue'
 
     export default {
         components: {
-            NoData,
-            VueJsonPretty,
-            FullCodeEditor
+            InputParams,
+            OutputParams,
+            NodeLog
         },
         props: {
-            adminView: {
+            isReadyStatus: {
                 type: Boolean,
                 default: false
+            },
+            loop: {
+                type: Number,
+                default: 1
             },
             historyInfo: {
                 type: Array,
                 default: () => ([])
             },
             isThirdPartyNode: {
+                type: Boolean,
+                default: false
+            },
+            isSubProcessNode: {
                 type: Boolean,
                 default: false
             },
@@ -149,175 +121,107 @@
         },
         data () {
             return {
-                historyList: [],
-                historyLog: {},
-                thirdHistoryLog: {},
-                historyLogLoading: {}
+                theExecuteTime: this.loop,
+                historyList: []
             }
         },
         computed: {
-            historyCols () {
-                return this.adminView ? ADMIN_HISTORY_COLS : HISTORY_COLS
+            ...mapState({
+                'atomFormConfig': state => state.atomForm.config,
+                'atomOutputConfig': state => state.atomForm.outputConfig
+            }),
+            loopTimes () {
+                const times = []
+                for (let i = 0; i < this.loop; i++) {
+                    times.push(this.loop - i)
+                }
+
+                return times
             }
         },
         watch: {
             historyInfo: {
                 handler (val) {
                     this.historyList = [...val]
+                    this.$nextTick(() => {
+                        const dom = this.$refs.recordTable
+                        const recordData = val[0]
+                        if (dom && recordData) {
+                            dom.toggleRowExpansion(recordData, true)
+                        }
+                    })
                 },
-                immediate: true
-            }
-        },
-        beforeDestroy () {
-            if (this.historyList.length) {
-                this.historyList.forEach(item => {
-                    if (item.observe) {
-                        item.observer.disconnect()
-                        item.observer.takeRecords()
-                        item.observer = null
-                    }
-                })
+                immediate: true,
+                deep: true
             }
         },
         methods: {
-            ...mapActions('task/', [
-                'getEngineVerNodeLog',
-                'getNodeExecutionRecordLog'
-            ]),
             ...mapActions('atomForm/', [
-                'loadPluginServiceLog'
+                'loadAtomConfig',
+                'loadPluginServiceDetail'
             ]),
-            ...mapActions('admin/', [
-                'taskflowNodeDetail',
-                'taskflowHistroyLog'
-            ]),
-            async onHistoryExpand (row, expended) {
-                const id = Number(row.history_id)
-                if (expended && !this.historyLog.hasOwnProperty(id)) {
-                    // 获取普通节点历史日志
-                    await this.getHistoryLog(id, row)
-                    // 获取第三方插件的执行历史日志
-                    const traceId = row.outputs.trace_id
-                    if (traceId) {
-                        // 设置第三方节点历史日志
-                        await this.setThirdHistoryLog(row)
-                    } else {
-                        this.$set(this.thirdHistoryLog, id, i18n.t('输出参数中不包含trace_id，无法查看第三方节点日志'))
-                    }
-                }
-                if (row && !row.observer) {
-                    this.$nextTick(() => {
-                        // 给历史日志设置监听事件
-                        this.setHistoryLogWatch(row)
-                    })
+            getTaskName (outputs) {
+                if (Array.isArray(outputs)) {
+                    const taskNameInfo = outputs.find(item => item.key === 'task_name')
+                    return taskNameInfo ? taskNameInfo.value : ''
+                } else {
+                    return outputs.task_name
                 }
             },
-            async getHistoryLog (id, row) {
-                try {
-                    this.$set(this.historyLogLoading, id, true)
-                    const data = {
-                        page: row.pageInfo ? (row.pageInfo.page + 1) : 1,
-                        node_id: this.nodeDetailConfig.node_id,
-                        history_id: id,
-                        instance_id: this.nodeDetailConfig.instance_id,
-                        version: row.version
-                    }
-                    let resp = null
-                    if (this.adminView) {
-                        resp = await this.taskflowHistroyLog(data)
-                    } else if (this.engineVer === 1) {
-                        resp = await this.getNodeExecutionRecordLog(data)
-                    } else if (this.engineVer === 2) {
-                        resp = await this.getEngineVerNodeLog(data)
-                    }
-                    if (resp.result) {
-                        const respData = this.adminView ? resp.data.log : resp.data
-                        row.pageInfo = this.adminView ? resp.data.page : resp.page
-                        const curLog = this.historyLog[id] || ''
-                        this.$set(this.historyLog, id, curLog + (curLog ? '\n' : '') + respData)
-                    }
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.historyLogLoading[id] = false
+            hasTaskNodeUrl (outputs) {
+                if (Array.isArray(outputs)) {
+                    const taskUrlInfo = outputs.find(item => item.key === 'task_url')
+                    return taskUrlInfo ? taskUrlInfo.value : ''
+                } else {
+                    return outputs.task_url
                 }
             },
-            // 设置第三方节点历史日志
-            setHistoryLogWatch (row) {
-                try {
-                    // 滚动dom
-                    const editorDom = document.querySelector(`.history-editor-${row.history_id}`)
-                    const scrollDom = editorDom && editorDom.querySelector('.code-editor .vertical .slider')
-                    if (!scrollDom) return
-                    // 编辑器dom
-                    const editDom = editorDom && editorDom.querySelector('.monaco-editor')
-                    const MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
-                    // 监听滚动dom
-                    row.observer = new MutationObserver(async mutation => {
-                        const { height } = scrollDom.getBoundingClientRect()
-                        const { height: editHeight } = editDom && editDom.getBoundingClientRect()
-                        const top = scrollDom.offsetTop
-                        const offsetBottom = editHeight > 300 ? 180 : 100
-                        if (row.historyLogTab === 'third_party_plugin') {
-                            if (editHeight - height - top < offsetBottom && !this.historyLogLoading[row.history_id] && row.scrollId) {
-                                this.historyLogLoading[row.history_id] = true
-                                // 设置第三方节点历史日志
-                                await this.setThirdHistoryLog(row)
-                            }
-                        } else if (row.nodeInfo) {
-                            const { page, total, page_size } = row.nodeInfo
-                            if (editHeight - height - top < offsetBottom && !this.this.historyLogLoading[row.history_id] && page < Math.ceil(total / page_size)) {
-                                const id = Number(row.history_id)
-                                this.getHistoryLog(id, row)
-                            }
-                        }
-                    })
-                    row.observer.observe(scrollDom, {
-                        childList: true,
-                        attributes: true,
-                        characterData: true,
-                        subtree: true
-                    })
-                } catch (error) {
-                    console.warn(error)
-                } finally {
-                    this.historyLogLoading[row.history_id] = false
+            getLastTime (time) {
+                return tools.timeTransform(time)
+            },
+            onSelectExecuteTime (val) {
+                this.theExecuteTime = val
+                this.randomKey = new Date().getTime()
+                this.$parent.loadNodeInfo()
+            },
+            onSkipSubProcess (row) {
+                const taskInfo = row.outputsInfo.find(item => item.key === 'task_url')
+                if (taskInfo) {
+                    window.open(taskInfo.value, '_blank')
                 }
             },
-            // 设置第三方节点历史日志
-            async setThirdHistoryLog (row) {
-                try {
-                    const id = Number(row.history_id)
-                    const traceId = row.outputs.trace_id
-                    const thirdLogsResp = await this.loadPluginServiceLog({
-                        plugin_code: this.thirdPartyNodeCode,
-                        trace_id: traceId,
-                        scroll_id: row.scrollId || undefined
-                    })
-                    if (thirdLogsResp.result) {
-                        const { logs, scroll_id } = thirdLogsResp.data
-                        const thirdPartyLogs = this.thirdHistoryLog[id] || ''
-                        this.$set(this.thirdHistoryLog, id, thirdPartyLogs + logs)
-                        row.scrollId = logs && scroll_id ? scroll_id : ''
-                    } else {
-                        row.scrollId = ''
-                    }
-                } catch (error) {
-                    console.warn(error)
-                } finally {
-                    this.historyLogLoading[row.history_id] = false
-                }
-            },
-            getHistoryLogData (row) {
-                return row.historyLogTab === 'build_in_plugin' ? this.historyLog[row.history_id] : this.thirdHistoryLog[row.history_id]
+            async onHistoryExpand (record) {
+                if ('isExpand' in record) return
+                this.$parent.setFillRecordField(record)
             }
         }
     }
 </script>
 
 <style lang="scss" scoped>
-    .retry-table {
+    .excute-time {
+        margin-top: 16px;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        font-size: 14px;
+        &>span {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        /deep/.bk-select {
+            margin: 0 8px;
+            width: 88px;
+            height: 24px;
+            line-height: 22px;
+            .icon-angle-down {
+                top: 0;
+            }
+        }
+    }
+    .record-table {
         font-size: 12px;
+        margin-top: 16px;
         .common-form-item {
             & > label {
                 margin-top: 0;
@@ -344,6 +248,60 @@
                     margin: 20px 0;
                 }
             }
+        }
+    }
+    /deep/.bk-table .bk-table-body td.bk-table-expanded-cell {
+        background: #f5f7fa;
+        padding: 16px 24px 22px 32px;
+        .info-section:not(:last-child) {
+            margin-bottom: 16px;
+        }
+        .abnormal-section {
+            display: flex;
+            line-height: 16px;
+            > div {
+                margin-left: 24px;
+            }
+        }
+        .abnormal-label,
+        .inputs-label,
+        .outputs-label,
+        .log-label {
+            flex-shrink: 0;
+            color: #313238;
+            font-size: 12px;
+            line-height: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+        .origin-value {
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: flex;
+            font-weight: normal;
+            .bk-switcher {
+                margin-right: 5px;
+            }
+        }
+        .full-code-editor {
+            flex: 1;
+            margin: 20px 0 0 48px;
+        }
+        .no-data-wrapper {
+            background: #f5f7fa;
+            .no-data-wording {
+                font-size: 12px;
+                color: #63656e;
+            }
+        }
+        .ex-data-wrap {
+            /deep/ pre {
+                white-space: pre-wrap;
+            }
+        }
+        .perform-log {
+            width: 100%;
         }
     }
 </style>

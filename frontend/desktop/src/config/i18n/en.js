@@ -1457,7 +1457,18 @@ const en = {
     '近30天': 'Last 30 days',
     '查看更多': 'See more',
     '请求异常（外部系统错误或非法操作）': 'Request exception (external system error or illegal operation)',
-    '请求异常（内部系统发生未知错误）': 'Request exception (an unknown error occurred in the internal system)'
+    '请求异常（内部系统发生未知错误）': 'Request exception (an unknown error occurred in the internal system)',
+    '节点基础信息': 'Node basic information',
+    '节点执行记录': 'Node execution record',
+    '节点操作记录': 'Node operation record',
+    '参数Key': 'Parameter Key',
+    '详情': 'Detail',
+    '展开日志': 'Expand log',
+    '收起日志': 'Collapse log',
+    '输入参数可在填参页面自定义传值。非输入参数填参页面不显示，使用变量默认值': 'Input parameters can be custom passed values on the parameter filling page. The non-input parameter filling page is not displayed, use the default value of the variable',
+    '是否为输入参数': 'Is it an input parameter',
+    '当满足触发条件时，输入参数在填参页面将不显示。可实现不同条件下配置不同的输入参数': 'When the trigger conditions are met, the input parameters will not be displayed on the parameter filling page. Different input parameters can be configured under different conditions',
+    '输入参数条件隐藏': 'Input parameter condition hidden'
 }
 
 export default en

@@ -351,62 +351,12 @@
             }
         },
         {
-            tag_code: "job_target_ip_table",
-            type: "datatable",
+            tag_code: "job_ip_list",
+            type: "textarea",
             attrs: {
-                name: gettext("执行目标"),
-                pagination: true,
-                placeholder: gettext("格式为【云区域ID:IP】或者【IP】格式之一，多个用换行分隔,需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"),
+                name: gettext("目标IP"),
+                placeholder: gettext("输入IP, 多个用英文逗号 `,` 或换行分隔"),
                 hookable: true,
-                empty_text: gettext("请添加目标IP信息"),
-                table_buttons: [
-                    {
-                        type: "add_row",
-                        text: gettext("添加"),
-                        callback: function () {
-                            this.add_row()
-                        }
-                    },
-                    {
-                        type: "export",
-                        text: gettext("导出"),
-                        callback: function () {
-                            this.export2Excel()
-                        }
-                    },
-                    {
-                        type: "import",
-                        text: gettext("导入")
-                    }
-                ],
-                columns: [
-                    {
-                        tag_code: "bk_cloud_id",
-                        type: "input",
-                        attrs: {
-                            name: gettext("云区域ID(默认为0)"),
-                            validation: [
-                                {
-                                    type: "required"
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        tag_code: "ip",
-                        type: "textarea",
-                        attrs: {
-                            name: "IP",
-                            placeholder: gettext("多个IP以,分隔"),
-                            validation: [
-                                {
-                                    type: "required"
-                                }
-                            ]
-                        }
-                    },
-                ],
-
                 validation: [
                     {
                         type: "required"
@@ -481,7 +431,6 @@
                     type: "change",
                     action: function (value) {
                         var self = this
-                        console.log(value);
                         if (value) {
                             self.show()
                         } else {
@@ -532,9 +481,9 @@
                     }
                 ],
                 items: [
-                    {text: '执行失败则暂停', value: 1},
+                    {text: '默认（执行失败则暂停）', value: 1},
                     {text: '忽略失败，自动滚动下一批', value: 2},
-                    {text: '人工确认', value: 3},
+                    {text: '不自动，每批次都人工确认', value: 3},
                 ]
             },
             events: [
@@ -600,6 +549,9 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
+                        if($.context.exec_env === "NODE_CONFIG") {
+                            this.hide()
+                        }
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         if (cc_id !== '' && $.context.canSelectBiz()) {
                             this.remote_url = $.context.get('site_url') + 'pipeline/jobv3_get_instance_list/' + cc_id + '/1/3/';
@@ -645,7 +597,18 @@
                 size: "normal",
                 cols: 1,
                 formViewHidden: true
-            }
+            },
+            events: [
+                {
+                    source: "biz_cc_id",
+                    type: "init",
+                    action: function () {
+                        if($.context.exec_env === "NODE_CONFIG") {
+                            this.hide()
+                        }
+                    }
+                },
+            ]
         },
     ]
 })();

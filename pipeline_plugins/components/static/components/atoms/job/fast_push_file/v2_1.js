@@ -51,21 +51,6 @@
                 add_btn: true,
                 columns: [
                     {
-                        tag_code: "bk_cloud_id",
-                        type: "input",
-                        attrs: {
-                            name: gettext("云区域ID"),
-                            placeholder: gettext("默认为0"),
-                            width: '90px',
-                            editable: true,
-                            validation: [
-                                {
-                                    type: "required"
-                                }
-                            ]
-                        }
-                    },
-                    {
                         tag_code: "ip",
                         type: "input",
                         attrs: {
@@ -169,21 +154,6 @@
                 add_btn: true,
                 hookable: true,
                 columns: [
-                    {
-                        tag_code: "bk_cloud_id",
-                        type: "input",
-                        attrs: {
-                            name: gettext("云区域ID"),
-                            placeholder: gettext("默认为0"),
-                            width: '90px',
-                            editable: true,
-                            validation: [
-                                {
-                                    type: "required"
-                                }
-                            ]
-                        }
-                    },
                     {
                         tag_code: "job_ip_list",
                         type: "textarea",
@@ -399,9 +369,9 @@
                     }
                 ],
                 items: [
-                    {text: '执行失败则暂停', value: 1},
+                    {text: '默认（执行失败则暂停）', value: 1},
                     {text: '忽略失败，自动滚动下一批', value: 2},
-                    {text: '人工确认', value: 3},
+                    {text: '不自动，每批次都人工确认', value: 3},
                 ]
             },
             events: [

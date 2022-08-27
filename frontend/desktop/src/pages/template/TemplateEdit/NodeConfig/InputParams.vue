@@ -127,7 +127,11 @@
             }
         },
         created () {
+            $.context.exec_env = 'NODE_CONFIG'
             this.hooked = this.getFormsHookState()
+        },
+        beforeDestroy () {
+            $.context.exec_env = ''
         },
         methods: {
             getFormsHookState () {

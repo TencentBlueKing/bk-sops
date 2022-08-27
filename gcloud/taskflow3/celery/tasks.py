@@ -187,7 +187,7 @@ def task_callback(task_id, retry_times=0, *args, **kwargs):
         )
         return
     tcb.update_record(
-        extra_info=json.dumps(kwargs),
+        extra_info=json.dumps({**tcb.extra_info, **kwargs}),
         status=CallbackStatus.SUCCESS.value if result else CallbackStatus.FAIL.value,
         callback_time=timezone.now(),
     )
