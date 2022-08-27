@@ -1,1 +1,51 @@
 # -*- coding: utf-8 -*-
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://opensource.org/licenses/MIT
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+from django.utils.translation import ugettext_lazy as _
+from pipeline.component_framework.component import Component
+
+from gcloud.conf import settings
+from pipeline_plugins.components.collections.sites.open.job.all_biz_execute_job_plan.base_service import (
+    BaseAllBizJobExecuteJobPlanService,
+)
+
+__group_name__ = _("作业平台(JOB)")
+
+from pipeline_plugins.components.collections.sites.open.job.base import get_job_tagged_ip_dict_complex
+
+
+class AllBizJobExecuteJobPlanService(BaseAllBizJobExecuteJobPlanService):
+    need_is_tagged_ip = True
+
+    def is_need_log_outputs_even_fail(self, data):
+        return True
+
+    def get_tagged_ip_dict(self, data, parent_data, job_instance_id):
+        result, tagged_ip_dict = get_job_tagged_ip_dict_complex(
+            data.outputs.client,
+            self.logger,
+            job_instance_id,
+            data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+            job_scope_type=self.biz_scope_type,
+        )
+        return result, tagged_ip_dict
+
+
+class AllBizJobExecuteJobPlanComponent(Component):
+    name = _("业务集执行作业")
+    code = "all_biz_execute_job_plan"
+    bound_service = AllBizJobExecuteJobPlanService
+    form = "%scomponents/atoms/job/all_biz_execute_job_plan/v1_1/all_biz_execute_job_plan_v1_1.js" % settings.STATIC_URL
+    version = "v1.1"
+    output_form = "%scomponents/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan_output.js" % (
+        settings.STATIC_URL
+    )

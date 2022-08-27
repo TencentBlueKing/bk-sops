@@ -678,6 +678,16 @@ class Jobv3Service(Service):
     def is_need_log_outputs_even_fail(self, data):
         return data.get_one_of_inputs("need_log_outputs_even_fail", False)
 
+    def get_tagged_ip_dict(self, data, parent_data, job_instance_id):
+        result, tagged_ip_dict = get_job_tagged_ip_dict(
+            data.outputs.client,
+            self.logger,
+            job_instance_id,
+            data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+            job_scope_type=self.biz_scope_type,
+        )
+        return result, tagged_ip_dict
+
     def schedule(self, data, parent_data, callback_data=None):
 
         try:
@@ -717,14 +727,7 @@ class Jobv3Service(Service):
                 is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", False)
                 tagged_ip_dict = {}
                 if is_tagged_ip or self.need_is_tagged_ip:
-                    result, tagged_ip_dict = get_job_tagged_ip_dict(
-                        data.outputs.client,
-                        self.logger,
-                        job_instance_id,
-                        data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
-                        job_scope_type=self.biz_scope_type,
-                    )
-
+                    result, tagged_ip_dict = self.get_tagged_ip_dict(data, parent_data, job_instance_id)
                     if not result:
                         self.logger.error(tagged_ip_dict)
                         data.outputs.ex_data = tagged_ip_dict

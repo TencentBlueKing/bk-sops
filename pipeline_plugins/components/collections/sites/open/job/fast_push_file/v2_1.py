@@ -131,7 +131,9 @@ class JobFastPushFileService(JobScheduleService):
 
         file_source = []
         for item in original_source_files:
-            ip_list = get_biz_ip_from_frontend_hybrid(executor, item["ip"], biz_cc_id)
+            result, ip_list = get_biz_ip_from_frontend_hybrid(executor, item["ip"], biz_cc_id, data)
+            if not result:
+                return False
             file_source.append(
                 {
                     "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
@@ -170,7 +172,9 @@ class JobFastPushFileService(JobScheduleService):
         params_list = []
         for attr in attr_list:
             # 获取目标IP
-            ip_list = get_biz_ip_from_frontend_hybrid(executor, attr["job_ip_list"], biz_cc_id)
+            result, ip_list = get_biz_ip_from_frontend_hybrid(executor, attr["job_ip_list"], biz_cc_id, data)
+            if not result:
+                return False
             job_kwargs = {
                 "bk_scope_type": JobBizScopeType.BIZ.value,
                 "bk_scope_id": str(biz_cc_id),

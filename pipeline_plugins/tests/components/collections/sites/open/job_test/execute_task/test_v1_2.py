@@ -404,6 +404,9 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
             "client": JOB_EXECUTE_NOT_SUCCESS_CLIENT,
+            "ex_data": "调用作业平台(JOB)接口jobv3.get_job_instance_global_var_value返回失败, "
+            'params={"bk_scope_type":"biz","bk_scope_id":"1","bk_biz_id":1,"job_instance_id":56789}, '
+            "error=global var message token",
             "job_tagged_ip_dict": {
                 "name": "JOB执行IP分组",
                 "key": "job_tagged_ip_dict",
@@ -413,9 +416,6 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
                     "OTHER_FAILED": {"desc": "其他异常", "TAGS": {"ALL": ""}},
                 },
             },
-            "ex_data": "调用作业平台(JOB)接口jobv3.get_job_instance_global_var_value返回失败,"
-            'params={"bk_scope_type":"biz","bk_scope_id":"1","bk_biz_id":1,"job_instance_id":56789}, '
-            "error=global var message token",
         },
         callback_data={"job_instance_id": 56789, "status": 1},
     ),
@@ -650,8 +650,8 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
                                 "name": "key_3",
                                 "server": {
                                     "ip_list": [
-                                        {"ip": "4.4.4.4", "bk_cloud_id": "0"},
-                                        {"ip": "3.3.3.3", "bk_cloud_id": "0"},
+                                        {"ip": "4.4.4.4", "bk_cloud_id": 0},
+                                        {"ip": "3.3.3.3", "bk_cloud_id": 0},
                                     ],
                                 },
                             },

@@ -101,9 +101,6 @@ class JobExecuteTaskServiceBase(JobService):
     def check_ip_is_exist(self, data):
         return data.get_one_of_inputs("ip_is_exist")
 
-    def is_biz_across(self, data):
-        return data.get_one_of_inputs("biz_across")
-
     def build_ip_list(self, biz_across, val, executor, biz_cc_id, data, ip_is_exist):
         if biz_across:
             result, ip_list = get_biz_ip_from_frontend(
@@ -158,7 +155,7 @@ class JobExecuteTaskServiceBase(JobService):
         original_global_var = deepcopy(data.get_one_of_inputs("job_global_var"))
         global_vars = []
         ip_is_exist = self.check_ip_is_exist(data)
-        biz_across = self.is_biz_across(data)
+        biz_across = data.get_one_of_inputs("biz_across")
 
         for _value in original_global_var:
             val = loose_strip(_value["value"])

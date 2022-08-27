@@ -9,6 +9,12 @@ from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.components.collections.sites.open.job import Jobv3Service
+from pipeline.core.flow.io import (
+    StringItemSchema,
+    IntItemSchema,
+    ArrayItemSchema,
+    ObjectItemSchema,
+)
 from pipeline_plugins.components.utils import (
     get_job_instance_url,
     get_node_callback_url,
@@ -31,6 +37,66 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service):
     need_get_sops_var = True
 
     biz_scope_type = JobBizScopeType.BIZ_SET.value
+
+    def inputs_format(self):
+        return [
+            self.InputItem(
+                name=_("业务 ID"),
+                key="all_biz_cc_id",
+                type="string",
+                schema=StringItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+            ),
+            self.InputItem(
+                name=_("作业模板 ID"),
+                key="job_template_id",
+                type="string",
+                schema=StringItemSchema(description=_("作业模板 ID")),
+            ),
+            self.InputItem(
+                name=_("执行方案 ID"),
+                key="job_plan_id",
+                type="string",
+                schema=StringItemSchema(description=_("执行方案 ID")),
+            ),
+            self.InputItem(
+                name=_("全局变量"),
+                key="job_global_var",
+                type="array",
+                schema=ArrayItemSchema(
+                    description=_("作业方案执行所需的全局变量列表"),
+                    item_schema=ObjectItemSchema(
+                        description=_("全局变量"),
+                        property_schemas={
+                            "type": IntItemSchema(description=_("变量类型，字符串(1) 命名空间(2) IP(3) 密码(4) 数组(5)")),
+                            "name": StringItemSchema(description=_("变量名")),
+                            "value": StringItemSchema(description=_("变量值")),
+                        },
+                    ),
+                ),
+            ),
+        ]
+
+    def outputs_format(self):
+        return super(BaseAllBizJobExecuteJobPlanService, self).outputs_format() + [
+            self.OutputItem(
+                name=_("JOB全局变量"),
+                key="log_outputs",
+                type="object",
+                schema=ObjectItemSchema(
+                    description=_("输出日志中提取的全局变量"),
+                    property_schemas={
+                        "name": StringItemSchema(description=_("全局变量名称")),
+                        "value": StringItemSchema(description=_("全局变量值")),
+                    },
+                ),
+            ),
+            self.OutputItem(
+                name=_("JOB执行IP分组"),
+                key="job_tagged_ip_dict",
+                type="string",
+                schema=StringItemSchema(description=_("根据JOB步骤执行标签获取的IP分组")),
+            ),
+        ]
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
@@ -92,3 +158,10 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service):
             self.logger.error(message)
             data.outputs.ex_data = message
             return False
+
+    def schedule(self, data, parent_data, callback_data=None):
+        config_data = data.get_one_of_inputs("all_biz_job_config")
+        biz_cc_id = int(config_data.get("all_biz_cc_id"))
+        if not has_biz_set(int(biz_cc_id)):
+            self.biz_scope_type = JobBizScopeType.BIZ.value
+        return super().schedule(data, parent_data, callback_data)
