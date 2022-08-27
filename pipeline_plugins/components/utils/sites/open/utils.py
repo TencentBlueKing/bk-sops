@@ -274,7 +274,7 @@ def get_biz_ip_from_frontend_hybrid(executor, ip_str, biz_cc_id):
     )
     # 先提取所有带云区域的ip
     plat_ip = [match.group().split(":") for match in plat_ip_reg.finditer(ip_str)]
-    plat_ip_list = [{"ip": _ip, "bk_cloud_id": int(_cloud)} for _ip, _cloud in plat_ip]
+    plat_ip_list = [{"ip": _ip, "bk_cloud_id": int(_cloud)} for _cloud, _ip in plat_ip]
     logger.info(
         "[get_biz_ip_from_frontend_hybrid] -> get_plat_ip_list, ip_str={}, plat_ip_list={}".format(ip_str, plat_ip_list)
     )
