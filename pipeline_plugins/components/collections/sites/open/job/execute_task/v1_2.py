@@ -74,6 +74,10 @@ class JobExecuteTaskService(JobExecuteTaskServiceBase, GetJobHistoryResultMixin)
         )
         return result, tagged_ip_dict
 
+    def build_ip_list(self, biz_across, val, executor, biz_cc_id, data, ip_is_exist):
+        # ip_list =
+        return []
+
     def execute(self, data, parent_data):
         job_success_id = data.get_one_of_inputs("job_success_id")
         if not job_success_id:

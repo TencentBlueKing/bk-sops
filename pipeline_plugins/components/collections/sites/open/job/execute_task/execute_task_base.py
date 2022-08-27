@@ -104,6 +104,48 @@ class JobExecuteTaskServiceBase(JobService):
     def is_biz_across(self, data):
         return data.get_one_of_inputs("biz_across")
 
+    def build_ip_list(self, biz_across, val, executor, biz_cc_id, data, ip_is_exist):
+        if biz_across:
+            result, ip_list = get_biz_ip_from_frontend(
+                ip_str=val,
+                executor=executor,
+                biz_cc_id=biz_cc_id,
+                data=data,
+                logger_handle=self.logger,
+                is_across=True,
+                ip_is_exist=ip_is_exist,
+                ignore_ex_data=True,
+            )
+
+            # 匹配不到云区域IP格式IP，尝试从当前业务下获取
+            if not result:
+                result, ip_list = get_biz_ip_from_frontend(
+                    ip_str=val,
+                    executor=executor,
+                    biz_cc_id=biz_cc_id,
+                    data=data,
+                    logger_handle=self.logger,
+                    is_across=False,
+                    ip_is_exist=ip_is_exist,
+                )
+
+            if not result:
+                return []
+        else:
+            result, ip_list = get_biz_ip_from_frontend(
+                ip_str=val,
+                executor=executor,
+                biz_cc_id=biz_cc_id,
+                data=data,
+                logger_handle=self.logger,
+                is_across=False,
+                ip_is_exist=ip_is_exist,
+            )
+            if not result:
+                return []
+
+        return ip_list
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
@@ -122,47 +164,10 @@ class JobExecuteTaskServiceBase(JobService):
             val = loose_strip(_value["value"])
             # category为3,表示变量类型为IP
             if _value["category"] == 3:
-                if biz_across:
-                    result, ip_list = get_biz_ip_from_frontend(
-                        ip_str=val,
-                        executor=executor,
-                        biz_cc_id=biz_cc_id,
-                        data=data,
-                        logger_handle=self.logger,
-                        is_across=True,
-                        ip_is_exist=ip_is_exist,
-                        ignore_ex_data=True,
-                    )
-
-                    # 匹配不到云区域IP格式IP，尝试从当前业务下获取
-                    if not result:
-                        result, ip_list = get_biz_ip_from_frontend(
-                            ip_str=val,
-                            executor=executor,
-                            biz_cc_id=biz_cc_id,
-                            data=data,
-                            logger_handle=self.logger,
-                            is_across=False,
-                            ip_is_exist=ip_is_exist,
-                        )
-
-                    if not result:
-                        return False
-                else:
-                    result, ip_list = get_biz_ip_from_frontend(
-                        ip_str=val,
-                        executor=executor,
-                        biz_cc_id=biz_cc_id,
-                        data=data,
-                        logger_handle=self.logger,
-                        is_across=False,
-                        ip_is_exist=ip_is_exist,
-                    )
-                    if not result:
-                        return False
-
-                if ip_list:
-                    global_vars.append({"name": _value["name"], "server": {"ip_list": ip_list}})
+                ip_list = self.build_ip_list(biz_across, val, executor, biz_cc_id, data, ip_is_exist)
+                if not ip_list:
+                    return False
+                global_vars.append({"name": _value["name"], "server": {"ip_list": ip_list}})
             else:
                 global_vars.append({"name": _value["name"], "value": val})
 
