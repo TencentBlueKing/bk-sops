@@ -242,7 +242,7 @@
 <style lang="scss">
 .shortcut-panel {
     position: absolute;
-    width: 120px;
+    width: 128px;
     background: rgba(255, 255, 255, .9);
     cursor: default;
     z-index: 6;
@@ -251,12 +251,12 @@
         align-items: center;
         justify-content: left;
         flex-wrap: wrap;
-        padding: 9px 12px 0px 14px;
-        width: 120px;
+        padding: 9px 12px 0px;
+        width: 128px;
         overflow: hidden;
         border-radius: 4px;
         .nodes-item {
-            margin-bottom: 11px;
+            margin-bottom: 10px;
             width: 24px;
             height: 24px;
             line-height: 24px;
@@ -265,7 +265,7 @@
             color: #52699d;
             cursor: pointer;
             &:not(:nth-child(3n)) {
-                margin-right: 11px;
+                margin-right: 16px;
             }
             &:hover {
                 color: #3a84ff;
@@ -277,9 +277,9 @@
         }
     }
     .operate-btns {
-        padding: 4px 12px;
-        border-top: 1px solid #e0e5ef;
-        text-align: right;
+        padding: 5px 12px;
+        text-align: left;
+        background: #f5f7fa;
         .btn-item {
             display: inline-block;
             margin-left: 4px;

@@ -512,19 +512,62 @@ def cc_find_host_by_topo(request, biz_cc_id):
     return JsonResponse({"result": True, "data": data})
 
 
+def list_business_set(request):
+    """
+    查询所有业务集
+    @param request:
+    @return:
+    """
+    client = get_client_by_user(request.user.username)
+
+    count_resp = client.cc.list_business_set({"page": {"enable_count": True}})
+
+    if not count_resp["result"]:
+        return JsonResponse({"result": False, "data": [], "message": "\n".join(count_resp.get("message"))})
+
+    count = count_resp["data"]["count"]
+    resp = batch_request(client.cc.list_business_set, {}, check_iam_auth_fail=True, get_count=lambda x: count)
+    business_set = [{"value": item["bk_biz_set_id"], "text": item["bk_biz_set_name"]} for item in resp]
+    return JsonResponse({"result": True, "data": business_set})
+
+
 cc_urlpatterns = [
     url(r"^cc_get_editable_module_attribute/(?P<biz_cc_id>\d+)/$", cc_get_editable_module_attribute),
-    url(r"^cc_search_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_object_attribute,),
-    url(r"^cc_search_object_attribute_all/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_object_attribute_all,),
-    url(r"^cc_search_create_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_create_object_attribute,),
-    url(r"^cc_search_topo/(?P<obj_id>\w+)/(?P<category>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_topo,),
-    url(r"^cc_list_service_category/(?P<biz_cc_id>\w+)/(?P<bk_parent_id>\w+)/$", cc_list_service_category,),
-    url(r"^cc_list_service_template/(?P<biz_cc_id>\d+)/$", cc_list_service_template,),
-    url(r"^cc_get_service_category_topo/(?P<biz_cc_id>\d+)/$", cc_get_service_category_topo,),
+    url(
+        r"^cc_search_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$",
+        cc_search_object_attribute,
+    ),
+    url(
+        r"^cc_search_object_attribute_all/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$",
+        cc_search_object_attribute_all,
+    ),
+    url(
+        r"^cc_search_create_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$",
+        cc_search_create_object_attribute,
+    ),
+    url(
+        r"^cc_search_topo/(?P<obj_id>\w+)/(?P<category>\w+)/(?P<biz_cc_id>\d+)/$",
+        cc_search_topo,
+    ),
+    url(
+        r"^cc_list_service_category/(?P<biz_cc_id>\w+)/(?P<bk_parent_id>\w+)/$",
+        cc_list_service_category,
+    ),
+    url(
+        r"^cc_list_service_template/(?P<biz_cc_id>\d+)/$",
+        cc_list_service_template,
+    ),
+    url(
+        r"^cc_get_service_category_topo/(?P<biz_cc_id>\d+)/$",
+        cc_get_service_category_topo,
+    ),
     # IP selector
     url(r"^cc_search_topo_tree/(?P<biz_cc_id>\d+)/$", cc_search_topo_tree),
     url(r"^cc_search_host/(?P<biz_cc_id>\d+)/$", cc_search_host),
-    url(r"^cc_get_mainline_object_topo/(?P<biz_cc_id>\d+)/$", cc_get_mainline_object_topo,),
+    url(
+        r"^cc_get_mainline_object_topo/(?P<biz_cc_id>\d+)/$",
+        cc_get_mainline_object_topo,
+    ),
     url(r"^cc_get_business_list/$", cc_get_business),
     url(r"^cc_search_dynamic_group/(?P<biz_cc_id>\d+)/$", cc_search_dynamic_group),
     # 查询集群模板
@@ -537,4 +580,5 @@ cc_urlpatterns = [
     url(r"^cc_get_set_attribute/(?P<biz_cc_id>\d+)/$", cc_get_editable_set_attribute),
     # 批量查询拓扑节点下的主机
     url(r"^cc_find_host_by_topo/(?P<biz_cc_id>\d+)/$", cc_find_host_by_topo),
+    url("list_business_set/", list_business_set),
 ]

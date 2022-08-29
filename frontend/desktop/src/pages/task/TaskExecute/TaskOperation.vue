@@ -53,7 +53,7 @@
                 </TemplateCanvas>
             </div>
         </div>
-        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="true" @hidden="onHiddenSideslider" :before-close="onBeforeClose">
+        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="960" :quick-close="true" @hidden="onHiddenSideslider" :before-close="onBeforeClose">
             <div slot="header">{{sideSliderTitle}}</div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
                 <ModifyParams
@@ -1148,7 +1148,7 @@
                             nodeData = null
                         } else {
                             subprocessStack.push(activityNode.id)
-                            nodeData = activityNode.children
+                            nodeData = null
                         }
                     }
                     this.defaultActiveId = firstTaskNode.id
@@ -1211,20 +1211,22 @@
                 this.defaultActiveId = id
                 if (type === 'subflow') {
                     this.handleSubflowCanvasChange(id)
-                } else {
-                    this.setNodeDetailConfig(id)
-                    if (this.nodeDetailConfig.node_id) {
-                        this.updateNodeActived(this.nodeDetailConfig.node_id, false)
-                    }
-                    this.updateNodeActived(id, true)
-                    // 如果为子流程节点则需要重置pipelineData的constants
-                    this.nodePipelineData = { ...this.pipelineData }
-                    if (type === 'subflowDetail') {
-                        const { constants } = this.pipelineData.activities[id].pipeline
-                        this.nodePipelineData['constants'] = constants
-                    }
-                    this.openNodeInfoPanel('executeInfo', i18n.t('节点参数'))
+                    return
                 }
+                this.setNodeDetailConfig(id)
+                if (this.nodeDetailConfig.node_id) {
+                    this.updateNodeActived(this.nodeDetailConfig.node_id, false)
+                }
+                this.updateNodeActived(id, true)
+                // 如果为子流程节点则需要重置pipelineData的constants
+                this.nodePipelineData = { ...this.pipelineData }
+                // 兼容旧版本子流程节点输出数据
+                const selectLocation = this.canvasData.locations.find(item => item.id === id)
+                if (selectLocation.type === 'subflow') {
+                    const { constants } = this.pipelineData.activities[id].pipeline
+                    this.nodePipelineData['constants'] = constants
+                }
+                this.openNodeInfoPanel('executeInfo', i18n.t('节点参数'))
             },
             onOpenConditionEdit (data) {
                 this.isShowConditionEdit = true
@@ -1331,7 +1333,9 @@
                 this.setNodeDetailConfig(selectNodeId, !nodeHeirarchy)
                 // 节点树切换时，如果为子流程节点则需要重置pipelineData的constants
                 this.nodePipelineData = { ...this.pipelineData }
-                if (nodeType === 'subflow') {
+                // 兼容旧版本子流程节点输出数据
+                const selectLocation = this.canvasData.locations.find(item => item.id === selectNodeId)
+                if (selectLocation.type === 'subflow') {
                     const { constants } = this.pipelineData.activities[selectNodeId].pipeline
                     this.nodePipelineData['constants'] = constants
                 }

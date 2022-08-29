@@ -116,7 +116,7 @@
                         </template>
                         <bk-table-column :label="$t('操作')" width="190" :fixed="periodicList.length ? 'right' : false">
                             <template slot-scope="props">
-                                <div class="periodic-operation">
+                                <div class="periodic-operation" :periodic-task-name="props.row.name">
                                     <template v-if="!adminView">
                                         <a
                                             v-cursor="{ active: !hasPermission(getEditPerm(props.row), props.row.auth_actions) }"
