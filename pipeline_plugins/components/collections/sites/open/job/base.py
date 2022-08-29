@@ -667,10 +667,26 @@ class Jobv3Service(Service):
 
     need_get_sops_var = False
 
+    # 是否IP分组
+    need_is_tagged_ip = False
+
     biz_scope_type = JobBizScopeType.BIZ.value
 
     def execute(self, data, parent_data):
         pass
+
+    def is_need_log_outputs_even_fail(self, data):
+        return data.get_one_of_inputs("need_log_outputs_even_fail", False)
+
+    def get_tagged_ip_dict(self, data, parent_data, job_instance_id):
+        result, tagged_ip_dict = get_job_tagged_ip_dict(
+            data.outputs.client,
+            self.logger,
+            job_instance_id,
+            data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+            job_scope_type=self.biz_scope_type,
+        )
+        return result, tagged_ip_dict
 
     def schedule(self, data, parent_data, callback_data=None):
 
@@ -689,7 +705,7 @@ class Jobv3Service(Service):
             return False
 
         job_success = status in JOB_SUCCESS
-        need_log_outputs_even_fail = data.get_one_of_inputs("need_log_outputs_even_fail", False)
+        need_log_outputs_even_fail = self.is_need_log_outputs_even_fail(data)
         if job_success or need_log_outputs_even_fail:
 
             if not job_success:
@@ -710,22 +726,15 @@ class Jobv3Service(Service):
                 # 判断是否对IP进行Tag分组
                 is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", False)
                 tagged_ip_dict = {}
-                if is_tagged_ip:
-                    result, tagged_ip_dict = get_job_tagged_ip_dict(
-                        data.outputs.client,
-                        self.logger,
-                        job_instance_id,
-                        data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
-                        job_scope_type=self.biz_scope_type,
-                    )
-
+                if is_tagged_ip or self.need_is_tagged_ip:
+                    result, tagged_ip_dict = self.get_tagged_ip_dict(data, parent_data, job_instance_id)
                     if not result:
                         self.logger.error(tagged_ip_dict)
                         data.outputs.ex_data = tagged_ip_dict
                         self.finish_schedule()
                         return False
 
-                if "is_tagged_ip" in data.get_inputs():
+                if "is_tagged_ip" in data.get_inputs() or self.need_is_tagged_ip:
                     data.set_outputs("job_tagged_ip_dict", tagged_ip_dict)
 
                 # 全局变量重载

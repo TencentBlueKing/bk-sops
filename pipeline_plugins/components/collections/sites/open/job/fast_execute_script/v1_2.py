@@ -197,7 +197,9 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
         ip_info = data.get_one_of_inputs("job_ip_list")
         job_rolling_execute = data.get_one_of_inputs("job_rolling_execute", False)
         # 获取 IP
-        ip_list = get_biz_ip_from_frontend_hybrid(executor, ip_info, biz_cc_id)
+        result, ip_list = get_biz_ip_from_frontend_hybrid(executor, ip_info, biz_cc_id, data)
+        if not result:
+            return False
         job_kwargs = {
             "bk_scope_type": JobBizScopeType.BIZ.value,
             "bk_scope_id": str(biz_cc_id),

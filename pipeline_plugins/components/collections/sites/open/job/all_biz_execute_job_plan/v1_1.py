@@ -12,9 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline.core.flow.io import (
-    BooleanItemSchema,
-)
 
 from gcloud.conf import settings
 from pipeline_plugins.components.collections.sites.open.job.all_biz_execute_job_plan.base_service import (
@@ -23,31 +20,33 @@ from pipeline_plugins.components.collections.sites.open.job.all_biz_execute_job_
 
 __group_name__ = _("作业平台(JOB)")
 
+from pipeline_plugins.components.collections.sites.open.job.base import get_job_tagged_ip_dict_complex
+
 
 class AllBizJobExecuteJobPlanService(BaseAllBizJobExecuteJobPlanService):
-    def inputs_format(self):
-        inputs_format_list = super(AllBizJobExecuteJobPlanService, self).inputs_format()
-        return inputs_format_list + [
-            self.InputItem(
-                name=_("IP 存在性校验"),
-                key="ip_is_exist",
-                type="boolean",
-                schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
-            ),
-            self.InputItem(
-                name=_("IP Tag 分组"),
-                key="is_tagged_ip",
-                type="boolean",
-                schema=BooleanItemSchema(description=_("是否对 IP 进行 Tag 分组")),
-            ),
-        ]
+    need_is_tagged_ip = True
+
+    def is_need_log_outputs_even_fail(self, data):
+        return True
+
+    def get_tagged_ip_dict(self, data, parent_data, job_instance_id):
+        result, tagged_ip_dict = get_job_tagged_ip_dict_complex(
+            data.outputs.client,
+            self.logger,
+            job_instance_id,
+            data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+            job_scope_type=self.biz_scope_type,
+        )
+        return result, tagged_ip_dict
 
 
 class AllBizJobExecuteJobPlanComponent(Component):
     name = _("业务集执行作业")
     code = "all_biz_execute_job_plan"
     bound_service = AllBizJobExecuteJobPlanService
-    form = "%scomponents/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan.js" % settings.STATIC_URL
+    form = "%scomponents/atoms/job/all_biz_execute_job_plan/v1_1/all_biz_execute_job_plan_v1_1.js" % settings.STATIC_URL
+    version = "v1.1"
     output_form = "%scomponents/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan_output.js" % (
         settings.STATIC_URL
     )
+    desc = _("3. 业务集修改为下拉框获取，默认开启新版IP tag分组, 默认开启失败时提取变量")
