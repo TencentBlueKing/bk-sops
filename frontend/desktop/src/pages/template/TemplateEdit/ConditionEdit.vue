@@ -148,8 +148,7 @@
                     } else {
                         this.conditionName = this.conditionData.name
                     }
-                },
-                immediate: true
+                }
             }
         },
         methods: {

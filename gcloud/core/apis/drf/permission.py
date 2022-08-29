@@ -93,7 +93,7 @@ class IamUserTypeBasedValidator(IAMMixin):
         if user_type:
             func = getattr(self, f"query_{user_type}_type", None)
             return callable(func) and func(request)
-        project_id = request.query_params.get("project__id")
+        project_id = request.query_params.get("project__id") or request.query_params.get("project_id")
         action = IAMMeta.PROJECT_VIEW_ACTION if project_id else IAMMeta.ADMIN_VIEW_ACTION
         resources = res_factory.resources_for_project(project_id) if project_id else []
         self.iam_auth_check(request, action=action, resources=resources)

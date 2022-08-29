@@ -1,15 +1,17 @@
 <template>
-    <section class="info-section" data-test-id="taskExecute_form_inputParams">
-        <div class="common-section-title input-parameter">
-            <div class="input-title">{{ $t('输入参数') }}</div>
-            <div class="origin-value" v-if="!adminView">
-                <bk-switcher @change="inputSwitcher" v-model="isShowInputOrigin"></bk-switcher>
-                {{ $t('原始值') }}
-            </div>
+    <section class="info-section input-section" data-test-id="taskExecute_form_inputParams">
+        <h4 class="inputs-label">{{ $t('输入参数') }}</h4>
+        <div class="origin-value" v-if="!adminView">
+            <bk-switcher size="small" @change="inputSwitcher" v-model="isShowInputOrigin"></bk-switcher>
+            {{ $t('原始值') }}
         </div>
-        <div v-if="!adminView">
-            <div v-if="!isShowInputOrigin">
+        <template v-if="!adminView">
+            <div class="input-table" v-if="!isShowInputOrigin">
                 <template v-if="Array.isArray(renderConfig)">
+                    <div class="table-header">
+                        <span class="input-name">{{ $t('参数名') }}</span>
+                        <span class="input-key">{{ $t('参数值') }}</span>
+                    </div>
                     <RenderForm
                         v-if="!isEmptyParams && !loading"
                         :key="renderKey"
@@ -30,7 +32,7 @@
                 </template>
             </div>
             <full-code-editor v-else :value="inputsInfo"></full-code-editor>
-        </div>
+        </template>
         <div class="code-block-wrap" v-else>
             <VueJsonPretty :data="inputsInfo"></VueJsonPretty>
         </div>
@@ -140,7 +142,8 @@
                     }
                     this.inputRenderDate = renderData
                 },
-                deep: true
+                deep: true,
+                immediate: true
             }
         },
         methods: {
@@ -160,6 +163,53 @@
     }
 </script>
 
-<style>
-
+<style lang="scss" scoped>
+    .input-section {
+        display: flex;
+        position: relative;
+    }
+    .input-section .input-table {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-left: 24px;
+        padding-top: 18px;
+        .table-header {
+            display: flex;
+            align-items: center;
+            color: #313238;
+            font-weight: 700;
+            border-bottom: 1px solid #dcdee5;
+            > span {
+                padding: 16px 13px;
+            }
+            .input-name {
+                width: 30%;
+            }
+        }
+        /deep/.render-form {
+            color: #63656e;
+            .rf-form-item {
+                margin: 0;
+                padding: 5px 0;
+                border-bottom: 1px solid #dcdee5;
+                label {
+                    width: 30%;
+                    text-align: left;
+                    padding-left: 13px;
+                    &::before {
+                        content: initial;
+                    }
+                }
+                .rf-tag-form {
+                    margin-left: 30%;
+                    padding-left: 13px;
+                }
+            }
+        }
+        .no-data-wrapper {
+            padding: 16px 13px;
+            border-bottom: 1px solid #dcdee5;
+        }
+    }
 </style>

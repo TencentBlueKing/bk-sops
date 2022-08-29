@@ -4,7 +4,7 @@
             :value="inputFormData"
             form-type="horizontal"
             :schema="inputs"
-            :layout="[]"
+            :layout="{ group: [], container: { gap: '14px' } }"
             @change="$emit('update', $event)">
         </bkui-form>
     </div>
@@ -12,6 +12,7 @@
 
 <script>
     import createForm from '@blueking/bkui-form'
+    import '@blueking/bkui-form/dist/bkui-form.css'
     import tools from '@/utils/tools.js'
 
     const BkuiForm = createForm()
@@ -42,6 +43,28 @@
         }
     }
 </script>
-<style scoped>
-
+<style lang="scss" scoped>
+    .jsonschema-input-params {
+        >>> .bk-form-item {
+            .bk-label {
+               width: 130px !important;
+               font-size: 12px;
+            }
+            .bk-form-content {
+                margin-left: 130px !important;
+            }
+            .bk-form-radio {
+                margin-right: 30px;
+                .bk-radio-text {
+                    font-size: 12px;
+                }
+            }
+            .bk-form-checkbox {
+                margin-right: 30px;
+                .bk-checkbox-text {
+                    font-size: 12px;
+                }
+            }
+        }
+    }
 </style>
