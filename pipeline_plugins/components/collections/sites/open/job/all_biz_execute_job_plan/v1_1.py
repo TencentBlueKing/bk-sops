@@ -49,3 +49,4 @@ class AllBizJobExecuteJobPlanComponent(Component):
     output_form = "%scomponents/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan_output.js" % (
         settings.STATIC_URL
     )
+    desc = _("3. 业务集修改为下拉框获取，默认开启新版IP tag分组, 默认开启失败时提取变量")
