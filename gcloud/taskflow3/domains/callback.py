@@ -61,6 +61,9 @@ class TaskCallBacker:
             if node_state.name == states.RUNNING:
                 dispatcher.dispatch(command="callback", operator="", version=version, data=self.extra_info)
             elif node_state.name == states.FAILED:
+                if self.extra_info["task_success"] is False:
+                    logger.info(f"[TaskCallBacker _subprocess_callback] info: child task not success: {self.task_id}")
+                    return True
                 child_pipeline_id = TaskFlowInstance.objects.get(id=self.task_id).pipeline_instance.instance_id
                 child_outputs = runtime.get_execution_data_outputs(node_id=child_pipeline_id)
                 if child_outputs:
