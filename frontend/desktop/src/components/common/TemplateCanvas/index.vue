@@ -908,8 +908,8 @@
                     let { source } = lines.find(item => item.id === incoming[0])
                     const outlinesId = Array.isArray(outgoing) ? outgoing[0] : outgoing
                     let { target } = lines.find(item => item.id === outlinesId)
-                    // 当之上没有任务节点时，不自动连线
-                    if (!activities[source.id] && !activities[target.id]) return
+                    // 当分支上只剩网关节点时，不自动连线
+                    if (gateways[source.id] && gateways[target.id]) return
                     // 先更新数据再进行连线
                     this.$nextTick(() => {
                         const sourcePosition = this.getNodeEndpointPosition(source.id, 'source')
@@ -938,12 +938,18 @@
                         source = { ...source, arrow: sourceArrow }
                         target = { ...target, arrow: targetArrow }
                         this.createLine(source, target)
+                        // 判断新建的连线是否合法
+                        const validateMessage = validatePipeline.isLineValid({ source, target }, this.canvasData)
+                        if (!validateMessage) return
                         // 删除节点时，若起始节点为网关节点则保留分支表达式
                         if (source.id in gateways) {
                             const branchInfo = gateways[source.id]
                             const { conditions, default_condition } = branchInfo
+                            const tagCode = `branch_${source.id}_${target.id}`
+                            conditions.tag = tagCode
                             this.conditionInfo = conditions[incoming[0]]
                             if (default_condition) {
+                                default_condition.tag = tagCode
                                 this.conditionInfo = { ...default_condition, default_condition }
                             }
                         }
@@ -1154,9 +1160,10 @@
                     this.clearReferenceLine()
                     return false
                 }
-                this.createReferenceLine()
+                // 触发端点拖拽事件
+                const endPointDom = event.target.parentNode.parentNode
+                Object.values(endPointDom.__ta.mousedown)[0](event)
                 this.referenceLine = { x: bX, y: bY, id: edp.elementId, arrow: type }
-                document.getElementById('canvasContainer').addEventListener('mousemove', this.handleReferenceLine, false)
             },
             // 鼠标移动更新参考线
             handleReferenceLine (e) {
@@ -1280,6 +1287,7 @@
                     }
                     this.$refs.jsFlow.addLineOverlay(line, labelData)
                     this.setLabelDraggable(line, { ...data, nodeId: line.source.id })
+                    this.conditionInfo = null
                 })
             },
             // node mousedown
@@ -1295,10 +1303,7 @@
                     return
                 }
                 if (this.referenceLine.id) {
-                    // 自动连线
-                    this.onConnectionDragStop({ id: this.referenceLine.id, arrow: this.referenceLine.arrow }, id, event)
-                    // 移出参考线
-                    this.clearReferenceLine()
+                    this.referenceLine = {}
                     return
                 }
                 // 快捷菜单面板
@@ -1427,8 +1432,11 @@
                 if (startNodeId in gateways) {
                     const branchInfo = gateways[startNodeId]
                     const { conditions, default_condition } = branchInfo
+                    const tagCode = `branch_${startNodeId}_${location.id}`
+                    conditions.tag = tagCode
                     this.conditionInfo = conditions[deleteLine.id]
                     if (default_condition) {
+                        default_condition.tag = tagCode
                         this.conditionInfo = { ...default_condition, default_condition }
                     }
                 }

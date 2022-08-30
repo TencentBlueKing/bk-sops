@@ -1372,7 +1372,7 @@
                     const nodeList = this.validateConnectFailList.filter(val => idList.includes(val))
                     if (!nodeList || !nodeList.length) return
                     nodeList.forEach(node => {
-                        let nodeInfo = this.activities[node] || this.locations[node]
+                        let nodeInfo = this.activities[node] || this.locations[node] || this.gateways[node]
                         if (!nodeInfo) {
                             nodeInfo = node === this.start_event.id ? this.start_event : node === this.end_event.id ? this.end_event : {}
                         }
