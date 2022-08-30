@@ -819,8 +819,8 @@
                         // 更新本地condition配置
                         if (this.conditionInfo) {
                             this.$emit('updateCondition', condition)
-                            this.conditionInfo = null
                         }
+                        this.conditionInfo = null
                         this.setLabelDraggable({ ...line, id: lineId }, condition)
                     }
                 })
@@ -937,18 +937,16 @@
                         if (!sourceArrow || !sourceArrow) return
                         source = { ...source, arrow: sourceArrow }
                         target = { ...target, arrow: targetArrow }
-                        this.createLine(source, target)
-                        // 判断新建的连线是否合法
-                        const validateMessage = validatePipeline.isLineValid({ source, target }, this.canvasData)
-                        if (!validateMessage) return
+                        // 创建连线状态
+                        const createResult = this.createLine(source, target)
                         // 删除节点时，若起始节点为网关节点则保留分支表达式
-                        if (source.id in gateways) {
+                        if (createResult && source.id in gateways) {
                             const branchInfo = gateways[source.id]
                             const { conditions, default_condition } = branchInfo
                             const tagCode = `branch_${source.id}_${target.id}`
                             conditions.tag = tagCode
                             this.conditionInfo = conditions[incoming[0]]
-                            if (default_condition) {
+                            if (default_condition && default_condition.flow_id === incoming[0]) {
                                 default_condition.tag = tagCode
                                 this.conditionInfo = { ...default_condition, default_condition }
                             }
@@ -1191,11 +1189,13 @@
                     this.$emit('onLineChange', 'add', line)
                     this.$refs.jsFlow.createConnector(line)
                     this.referenceLine.id = ''
+                    return true
                 } else {
                     this.$bkMessage({
                         message: validateMessage.message,
                         theme: 'warning'
                     })
+                    return false
                 }
             },
             onSubflowPauseResumeClick (id, value) {
@@ -1435,7 +1435,7 @@
                     const tagCode = `branch_${startNodeId}_${location.id}`
                     conditions.tag = tagCode
                     this.conditionInfo = conditions[deleteLine.id]
-                    if (default_condition) {
+                    if (default_condition && default_condition.flow_id === deleteLine.id) {
                         default_condition.tag = tagCode
                         this.conditionInfo = { ...default_condition, default_condition }
                     }
