@@ -17,6 +17,7 @@ import requests
 from bamboo_engine import states
 from bamboo_engine.context import Context
 from bamboo_engine.eri import ContextValue, ContextValueType
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from pipeline.eri.runtime import BambooDjangoRuntime
@@ -24,6 +25,7 @@ from requests import HTTPError
 
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher
 from gcloud.taskflow3.models import TaskCallBackRecord, TaskFlowInstance, TaskFlowRelation
+from gcloud.utils.redis_lock import redis_lock
 
 logger = logging.getLogger("root")
 
@@ -54,35 +56,42 @@ class TaskCallBacker:
                 self.extra_info["node_version"],
                 self.extra_info["engine_ver"],
             )
-            parent_task_id = TaskFlowRelation.objects.filter(task_id=self.task_id).first().parent_task_id
-            dispatcher = NodeCommandDispatcher(engine_ver=engine_ver, node_id=node_id, taskflow_id=parent_task_id)
-            runtime = BambooDjangoRuntime()
-            node_state = runtime.get_state(node_id)
-            if node_state.name == states.RUNNING:
-                dispatcher.dispatch(command="callback", operator="", version=version, data=self.extra_info)
-            elif node_state.name == states.FAILED:
-                if self.extra_info["task_success"] is False:
-                    logger.info(f"[TaskCallBacker _subprocess_callback] info: child task not success: {self.task_id}")
+            with redis_lock(settings.redis_inst, key=f"sc_{node_id}_{version}") as (acquired_result, err):
+                if not acquired_result:
+                    # 如果对应节点已经在回调，则直接忽略本次回调
+                    logger.error(f"[TaskCallBacker _subprocess_callback] get lock error: {err}")
                     return True
-                child_pipeline_id = TaskFlowInstance.objects.get(id=self.task_id).pipeline_instance.instance_id
-                child_outputs = runtime.get_execution_data_outputs(node_id=child_pipeline_id)
-                if child_outputs:
-                    pipeline_id = TaskFlowInstance.objects.get(id=parent_task_id).pipeline_instance.instance_id
-                    # 注入节点输出
-                    outputs = {
-                        key: ContextValue(key=key, type=ContextValueType.PLAIN, value=value)
-                        for key, value in child_outputs.items()
-                    }
-                    cur_execution_outputs = runtime.get_execution_data_outputs(node_id)
-                    cur_execution_outputs.update(outputs)
-                    runtime.set_execution_data_outputs(node_id, cur_execution_outputs)
-                    # 子流程输出同步到上下文
-                    cur_outputs = runtime.get_data_outputs(node_id)
-                    context = Context(runtime, [], {})
-                    context.extract_outputs(pipeline_id, cur_outputs, child_outputs)
-                dispatcher.dispatch(command="skip", operator="")
-            else:
-                raise ValidationError(f"node state is not running or failed, but {node_state.name}")
+                parent_task_id = TaskFlowRelation.objects.filter(task_id=self.task_id).first().parent_task_id
+                dispatcher = NodeCommandDispatcher(engine_ver=engine_ver, node_id=node_id, taskflow_id=parent_task_id)
+                runtime = BambooDjangoRuntime()
+                node_state = runtime.get_state(node_id)
+                if node_state.name == states.RUNNING:
+                    dispatcher.dispatch(command="callback", operator="", version=version, data=self.extra_info)
+                elif node_state.name == states.FAILED:
+                    if self.extra_info["task_success"] is False:
+                        logger.info(
+                            f"[TaskCallBacker _subprocess_callback] info: child task not success: {self.task_id}"
+                        )
+                        return True
+                    child_pipeline_id = TaskFlowInstance.objects.get(id=self.task_id).pipeline_instance.instance_id
+                    child_outputs = runtime.get_execution_data_outputs(node_id=child_pipeline_id)
+                    if child_outputs:
+                        pipeline_id = TaskFlowInstance.objects.get(id=parent_task_id).pipeline_instance.instance_id
+                        # 注入节点输出
+                        outputs = {
+                            key: ContextValue(key=key, type=ContextValueType.PLAIN, value=value)
+                            for key, value in child_outputs.items()
+                        }
+                        cur_execution_outputs = runtime.get_execution_data_outputs(node_id)
+                        cur_execution_outputs.update(outputs)
+                        runtime.set_execution_data_outputs(node_id, cur_execution_outputs)
+                        # 子流程输出同步到上下文
+                        cur_outputs = runtime.get_data_outputs(node_id)
+                        context = Context(runtime, [], {})
+                        context.extract_outputs(pipeline_id, cur_outputs, child_outputs)
+                    dispatcher.dispatch(command="skip", operator="")
+                else:
+                    raise ValidationError(f"node state is not running or failed, but {node_state.name}")
         except Exception as e:
             message = f"[TaskCallBacker _subprocess_callback] error: {e}, with data {self.record.extra_info}"
             logger.exception(message)
