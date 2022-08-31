@@ -19,6 +19,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from engine_pickle_obj.context import SystemObject
 from gcloud.core.models import Business, ProjectConfig, Project
+from gcloud.project_constants.domains.context import get_project_constants_context
 
 logger = logging.getLogger("root")
 
@@ -150,9 +151,19 @@ class TaskContext(object):
         return details
 
 
+def get_context(root_pipeline_data: dict):
+    context = {"${_system}": SystemObject(root_pipeline_data)}
+    project_id = root_pipeline_data.get("project_id")
+    # 如果不存在项目ID,则不更新项目变量
+    if project_id:
+        project_context = get_project_constants_context(project_id)
+        context.update(project_context)
+    return context
+
+
 def root_pipeline_context_provider(root_pipeline_data: dict):
-    return {"${_system}": SystemObject(root_pipeline_data)}
+    return get_context(root_pipeline_data)
 
 
 def subprocess_context_provider(root_pipeline_data: dict):
-    return {"${_system}": SystemObject(root_pipeline_data)}
+    return get_context(root_pipeline_data)
