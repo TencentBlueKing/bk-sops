@@ -137,6 +137,13 @@
                                             {{ $t('克隆') }}
                                         </a>
                                         <a
+                                            v-if="props.row.is_child_taskflow"
+                                            class="task-operation-btn disabled"
+                                            data-test-id="taskList_table_deleteBtn">
+                                            {{ $t('删除') }}
+                                        </a>
+                                        <a
+                                            v-else
                                             v-cursor="{ active: !hasPermission(['task_delete'], props.row.auth_actions) }"
                                             :class="['task-operation-btn', {
                                                 'text-permission-disable': !hasPermission(['task_delete'], props.row.auth_actions)
