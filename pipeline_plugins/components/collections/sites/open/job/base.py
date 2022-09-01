@@ -462,7 +462,8 @@ class JobService(Service):
 
         job_success = status in JOB_SUCCESS
         need_log_outputs_even_fail = self.is_need_log_outputs_even_fail(data)
-        if job_success or need_log_outputs_even_fail:
+        # 失败情况下也需要要进行ip tag分组
+        if job_success or need_log_outputs_even_fail or self.need_is_tagged_ip:
 
             if not job_success:
                 data.set_outputs(
@@ -706,7 +707,8 @@ class Jobv3Service(Service):
 
         job_success = status in JOB_SUCCESS
         need_log_outputs_even_fail = self.is_need_log_outputs_even_fail(data)
-        if job_success or need_log_outputs_even_fail:
+        # 如果打开了ip分组，失败的情况也需要进行ip分组
+        if job_success or need_log_outputs_even_fail or self.need_is_tagged_ip:
 
             if not job_success:
                 data.set_outputs(
