@@ -13,7 +13,6 @@
     <div class="my-collection" data-test-id="home_form_myCollection" v-bkloading="{ isLoading: collectionBodyLoading, opacity: 1, zIndex: 100 }">
         <h3 class="panel-title">
             {{ $t('我的收藏') }}
-            <span class="add-btn" data-test-id="home_form_addCollect" @click="onAddCollection">{{ $t('添加') }}</span>
         </h3>
         <div
             v-for="(grounp, index) in collectionGrounpList"
@@ -46,14 +45,8 @@
             </ul>
         </div>
         <panel-nodata v-if="!collectionGrounpList.length">
-            <span class="link-text" @click="onAddCollection">{{ $t('添加') }}</span>
             <span>{{ $t('常用流程到收藏夹，可作为你的流程管理快捷入口') }}</span>
         </panel-nodata>
-        <add-collection-dialog
-            :collection-list="collectionList"
-            :is-add-collection-dialog-show="isShowAdd"
-            @onCloseDialog="onCloseDialog">
-        </add-collection-dialog>
         <select-create-task-dialog
             :create-task-item="createTaskItem"
             :is-create-task-dialog-show="isCreateTaskDialogShow"
@@ -79,7 +72,6 @@
     import i18n from '@/config/i18n/index.js'
     import PanelNodata from './PanelNodata.vue'
     import BaseCard from '@/components/common/base/BaseCard.vue'
-    import AddCollectionDialog from './AddCollectionDialog.vue'
     import SelectCreateTaskDialog from './SelectCreateTaskDialog.vue'
     import permission from '@/mixins/permission.js'
     import toolsUtils from '@/utils/tools.js'
@@ -89,7 +81,6 @@
         components: {
             BaseCard,
             PanelNodata,
-            AddCollectionDialog,
             SelectCreateTaskDialog
         },
         mixins: [permission],
@@ -99,7 +90,6 @@
                 collectionList: [],
                 collectionGrounpList: [],
                 categorySwitchMap: {},
-                isShowAdd: false, // 显示添加收藏
                 isDeleteDialogShow: false, // 显示确认删除
                 deleteCollectLoading: false, // 确认删除按钮 loading
                 isCreateTaskDialogShow: false, // 显示创建任务 dialog
@@ -176,17 +166,6 @@
                 storageData = storageData ? JSON.parse(storageData) : {}
                 storageData[key] = this.categorySwitchMap[key]
                 localStorage.setItem('myCollection', JSON.stringify(storageData))
-            },
-            // 打开添加收藏
-            onAddCollection () {
-                this.isShowAdd = true
-            },
-            // 关闭添加收藏
-            onCloseDialog (save) {
-                if (save) {
-                    this.initData()
-                }
-                this.isShowAdd = false
             },
             // card 点击删除
             onDeleteCard (data) {
@@ -308,13 +287,6 @@
         color: #313238;
         font-size: 16px;
         font-weight: 600;
-        .add-btn {
-            float: right;
-            font-size: 12px;
-            color: #3a84ff;
-            font-weight: normal;
-            cursor: pointer;
-        }
     }
     .category-item {
         .grounp-name {
