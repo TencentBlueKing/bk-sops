@@ -114,6 +114,11 @@
             window.addEventListener('resize', this.onWindowResize, false)
             await this.initData()
             this.handlerWindowResize()
+            let storageData = localStorage.getItem('myCollection')
+            storageData = storageData ? JSON.parse(storageData) : {}
+            Object.keys(storageData).forEach(key => {
+                this.categorySwitchMap[key] = storageData[key]
+            })
         },
         beforeDestroy () {
             window.removeEventListener('resize', this.onWindowResize, false)
@@ -167,6 +172,10 @@
             },
             onSwitchCategory (key) {
                 this.categorySwitchMap[key] = !this.categorySwitchMap[key]
+                let storageData = localStorage.getItem('myCollection')
+                storageData = storageData ? JSON.parse(storageData) : {}
+                storageData[key] = this.categorySwitchMap[key]
+                localStorage.setItem('myCollection', JSON.stringify(storageData))
             },
             // 打开添加收藏
             onAddCollection () {
