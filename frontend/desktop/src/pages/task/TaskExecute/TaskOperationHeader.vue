@@ -198,9 +198,6 @@
                         name: 'auditHome'
                     })
                 }
-                if (this.$route.name === 'taskExecute' && window.history.length > 2) {
-                    return this.$router.back()
-                }
                 this.$router.push({
                     name: 'taskList',
                     params: { project_id: this.project_id }
