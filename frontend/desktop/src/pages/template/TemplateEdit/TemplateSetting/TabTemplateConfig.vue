@@ -57,7 +57,7 @@
                                 v-cursor="{ active: !hasPermission(['project_edit'], authActions) }"
                                 @click="onEditLabel">
                                 <i class="bk-icon icon-plus-circle"></i>
-                                <span>{{ $t('编辑标签') }}</span>
+                                <span>{{ $t('新建标签') }}</span>
                             </div>
                         </bk-select>
                     </bk-form-item>
