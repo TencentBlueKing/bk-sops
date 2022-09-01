@@ -423,7 +423,6 @@
             this.initFormData = tools.deepClone(this.formData)
             if (this.type !== 'create') {
                 const id = this.curRow.template_id
-                this.onSelectTemplate(id)
                 this.getTemplateData(id)
             } else {
                 this.templateLoading = true
