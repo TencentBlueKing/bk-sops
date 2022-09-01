@@ -551,7 +551,7 @@
             onSelectTemplate (id) {
                 // 自动填充任务名称
                 const templateInfo = this.templateList.find(item => item.id === id)
-                this.formData.task_name = templateInfo.name + '_' + i18n.t('计划执行')
+                this.formData.task_name = templateInfo ? templateInfo.name + '_' + i18n.t('计划执行') : ''
                 this.formData.schemeId = []
                 this.getTemplateData(id)
             },
