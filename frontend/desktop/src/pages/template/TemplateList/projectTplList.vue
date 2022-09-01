@@ -176,7 +176,7 @@
                                                 data-test-id="process_list__editLabel"
                                                 @click="onEditLabel">
                                                 <i class="bk-icon icon-plus-circle"></i>
-                                                <span>{{ $t('编辑标签') }}</span>
+                                                <span>{{ $t('新建标签') }}</span>
                                             </div>
                                         </bk-select>
                                     </div>
