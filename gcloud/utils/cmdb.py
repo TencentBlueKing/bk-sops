@@ -174,7 +174,7 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
         logger.error(handle_api_error("CMDB", "cc.search_business", kwargs, cc_result))
         result = {
             "result": False,
-            "message": _("从 CMDB 查询到业务不唯一，业务ID:{}, 返回数量: {}".format(biz_cc_id, biz_count)),
+            "message": _("从 CMDB 查询业务异常，可能为如下原因：无CMDB业务访问权限/业务ID不存在/业务ID重复"),
             "data": None,
         }
         return result
