@@ -1457,7 +1457,8 @@ const en = {
     '近30天': 'Last 30 days',
     '查看更多': 'See more',
     '请求异常（外部系统错误或非法操作）': 'Request exception (external system error or illegal operation)',
-    '请求异常（内部系统发生未知错误）': 'Request exception (an unknown error occurred in the internal system)'
+    '请求异常（内部系统发生未知错误）': 'Request exception (an unknown error occurred in the internal system)',
+    '计划执行': 'Planly'
 }
 
 export default en
