@@ -29,6 +29,16 @@ class CollectionManager(models.Manager):
                 collection_template_ids.append(user_collection["id"])
         return collection_template_ids
 
+    def update_collection_info_name(self, category, instance_id, name):
+        inst = self.filter(category=category, instance_id=instance_id).first()
+        if not inst:
+            return
+        extra_info = json.loads(inst.extra_info)
+        if extra_info.get("name") != name:
+            extra_info["name"] = name
+            inst.extra_info = json.dumps(extra_info)
+            inst.save(update_fields=["extra_info"])
+
 
 class Collection(models.Model):
     COLLECTION_TYPE = (
