@@ -95,8 +95,7 @@
                     taskContainer: false
                 },
                 taskTypeList: [
-                    { name: i18n.t('普通任务'), value: 'taskflow' },
-                    { name: i18n.t('周期任务'), value: 'periodic' }
+                    { name: i18n.t('普通任务'), value: 'taskflow' }
                 ],
                 rules: {
                     taskType: [{
