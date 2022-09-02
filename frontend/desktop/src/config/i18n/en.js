@@ -1466,7 +1466,9 @@ const en = {
     '全局变量支持基于python基础表达式进行处理，函数仅可使用内置函数和datetime、re、hashlib、random、time、os.path模块。': 'Global variables support processing based on python basic expressions, and functions can only use built-in functions and datetime, re, hashlib, random, time, and os.path modules.',
     '包含：': 'Include:',
     '。': '.',
-    '条件': 'Condition'
+    '条件': 'Condition',
+    '将标准运维的流程快速生成一个独立的蓝鲸SaaS 应用，同样可在蓝鲸应用市场进行搜索和添加。这种不需要开发，零成本快速生成的 SaaS 应用称为 “轻应用”。': 'Quickly generate an independent BlueKing SaaS application from the standard operation and maintenance process, which can also be searched and added in the BlueKing application market. This kind of SaaS application that does not require development and is quickly generated at zero cost is called "light application”.',
+    '将流程的编排和执行进行角色分离，高阶人员负责编排流程，而日常执行这类简单任务交付给初级人员使用。这种交付模式称为“职能化”。': 'The roles of process choreography and execution are separated, and senior personnel are responsible for choreographing the process, while simple tasks such as daily execution are delivered to junior personnel. This delivery model is called "functionalization".'
 }
 
 export default en
