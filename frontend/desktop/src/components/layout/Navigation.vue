@@ -51,7 +51,7 @@
     </bk-navigation>
 </template>
 <script>
-    import { mapState } from 'vuex'
+    import { mapState, mapActions, mapMutations } from 'vuex'
     import { COMMON_ROUTE_LIST, ADMIN_ROUTE_LIST, APPMAKER_ROUTE_LIST } from '@/constants/routes.js'
     import tools from '@/utils/tools.js'
     import NavigatorHeadRight from '@/components/layout/NavigatorHeadRight.vue'
@@ -121,6 +121,12 @@
             }
         },
         methods: {
+            ...mapActions('project', [
+                'loadUserProjectList'
+            ]),
+            ...mapMutations('project', [
+                'setProjectId'
+            ]),
             setNavigationTitle (route) {
                 const nav = this.findCurrentNav(route)
                 if (nav) {
@@ -164,7 +170,7 @@
                 }
                 this.title = nav.name
             },
-            onHandleNavClick (id, groupIndex, routeIndex) {
+            async onHandleNavClick (id, groupIndex, routeIndex) {
                 if (this.view_mode === 'appmaker') { // 轻应用跳转特殊处理
                     const { template_id } = this.$route.query
                     if (id === 'appmakerTaskCreate') {
@@ -188,9 +194,20 @@
                         })
                     }
                 } else {
-                    this.changeRoute(this.routerList[groupIndex][routeIndex])
+                    const routeInfo = this.routerList[groupIndex][routeIndex]
+                    // 如果没有项目列表，切换路由时则去拉取用户项目列表
+                    if (!this.projectList.length && (routeInfo.hasProjectId || routeInfo.id === 'home')) {
+                        await this.loadUserProjectList({ is_disable: false })
+                        if (this.projectList.length && !this.project_id) {
+                            const projectId = this.projectList[0].id
+                            this.setProjectId(projectId)
+                        }
+                    }
+                    // 项目列表和默认项目id记录后再进下路由跳转
+                    this.$nextTick(() => {
+                        this.changeRoute(this.routerList[groupIndex][routeIndex])
+                    })
                 }
-                this.$emit('navChangeRoute')
             },
             // onHandleSubNavClick (groupIndex, routeIndex, childIndex) {
             //     if (this.$route.name === route.routerName) {
