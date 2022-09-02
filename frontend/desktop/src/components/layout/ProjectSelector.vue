@@ -40,6 +40,10 @@
                     :name="option.from_cmdb ? `[${option.bk_biz_id}] ${option.name}` : `[${option.id}] ${option.name}`">
                 </bk-option>
             </bk-option-group>
+            <div slot="extension" @click="jumpToOther">
+                <i class="bk-icon icon-plus-circle"></i>
+                {{ $t('申请业务权限') }}
+            </div>
         </bk-select>
     </div>
 </template>
@@ -47,6 +51,7 @@
     import i18n from '@/config/i18n/index.js'
     import bus from '@/utils/bus.js'
     import { mapState } from 'vuex'
+    import openOtherApp from '@/utils/openOtherApp.js'
 
     export default {
         name: 'ProjectSelector',
@@ -143,6 +148,10 @@
                 } else { // 默认跳转到项目流程页面
                     this.$router.push(redirectMap['/template'])
                 }
+            },
+            // 这里统一直接用后端提供的 host 跳转
+            jumpToOther () {
+                openOtherApp(window.BK_IAM_APP_CODE, window.BK_IAM_APPLY_URL)
             }
         }
     }
@@ -212,6 +221,10 @@
                     }
                 }
             }
+        }
+        .bk-select-extension {
+            text-align: center;
+            cursor: pointer;
         }
     }
 </style>
