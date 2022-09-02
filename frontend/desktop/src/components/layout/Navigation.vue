@@ -11,6 +11,10 @@
         </div>
         <template slot="header">
             <div class="header-title">{{ title }}</div>
+            <p v-if="subTitle" class="header-sub-title">
+                <i class="bk-icon icon-info-circle"></i>
+                {{ subTitle }}
+            </p>
             <navigator-head-right></navigator-head-right>
         </template>
         <template slot="menu">
@@ -113,6 +117,14 @@
                     return commonRouteList.concat(adminRouteList)
                 }
                 return commonRouteList
+            },
+            subTitle () {
+                if (this.currentNav === 'appMakerList') {
+                    return this.$t('将标准运维的流程快速生成一个独立的蓝鲸SaaS 应用，同样可在蓝鲸应用市场进行搜索和添加。这种不需要开发，零成本快速生成的 SaaS 应用称为 “轻应用”。')
+                } else if (this.currentNav === 'functionHome') {
+                    return this.$t('将流程的编排和执行进行角色分离，高阶人员负责编排流程，而日常执行这类简单任务交付给初级人员使用。这种交付模式称为“职能化”。')
+                }
+                return ''
             }
         },
         watch: {
@@ -236,8 +248,27 @@
     @import '@/scss/mixins/scrollbar.scss';
 
     .header-title {
+        flex-shrink: 0;
         font-size: 16px;
         color: #313238;
+    }
+    .header-sub-title {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        font-size: 12px;
+        line-height: 20px;
+        margin: 0 15px;
+        color: #63656e;
+        word-break: break-all;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+        .icon-info-circle {
+            margin-right: 9px;
+        }
     }
 
     .bk-navigation {
