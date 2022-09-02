@@ -40,7 +40,7 @@ The background uses Python as the development language and Django development fr
  flow templates.
 
 If you want to know more about the above features, please refer to the
- [Blueking Standard OPS White Paper (In Chinese)](http://docs.bk.tencent.com/product_white_paper/gcloud/)
+ [Blueking Standard OPS White Paper (In Chinese)](https://bk.tencent.com/docs/)
 
 
 ## Getting started
@@ -77,7 +77,7 @@ If you want to know more about the above features, please refer to the
 ## Support
 - [Source (In Chinese)](https://github.com/Tencent/bk-sops/tree/master)
 - [Wiki (In Chinese)](https://github.com/Tencent/bk-sops/wiki) or ask for help
-- [White paper(In Chinese)](http://docs.bk.tencent.com/product_white_paper/gcloud/)
+- [White paper(In Chinese)](https://bk.tencent.com/docs/)
 - [BK forum](https://bk.tencent.com/s-mart/community)
 - [BK DevOps online video tutorial(In Chinese)](https://bk.tencent.com/s-mart/video/)
 - Contact us, technical exchange QQ group：878501914
