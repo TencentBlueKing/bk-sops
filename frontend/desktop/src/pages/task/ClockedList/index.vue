@@ -58,32 +58,6 @@
                                         {{ row.template_name }}
                                     </router-link>
                                 </div>
-                                <!--任务实例-->
-                                <div v-else-if="item.id === 'task_instance'">
-                                    <template v-if="row.task_id">
-                                        <a
-                                            v-if="!hasPermission(['clocked_task_view'], row.auth_actions)"
-                                            v-cursor
-                                            class="text-permission-disable"
-                                            :title="row.task_name"
-                                            @click="onClockedPermissonCheck(['clocked_task_view'], row, $event)">
-                                            {{ row.task_name }}
-                                        </a>
-                                        <router-link
-                                            v-else
-                                            class="task-name"
-                                            target="_blank"
-                                            :title="row.task_name"
-                                            :to="{
-                                                name: 'taskExecute',
-                                                params: { project_id: row.project_id },
-                                                query: { instance_id: row.task_id }
-                                            }">
-                                            {{ row.task_name }}
-                                        </router-link>
-                                    </template>
-                                    <template v-else>{{ '--' }}</template>
-                                </div>
                                 <div v-else-if="item.id === 'state'">
                                     {{ row.state === 'not_started' ? $t('未执行') : row.state === 'started' ? $t('已执行') : row.state ? $t('启动失败') : '--' }}
                                 </div>
@@ -93,7 +67,7 @@
                                 </template>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('操作')" width="190" :fixed="clockedList.length ? 'right' : false">
+                        <bk-table-column :label="$t('操作')" width="230" :fixed="clockedList.length ? 'right' : false">
                             <div class="clocked-operation" slot-scope="props">
                                 <a
                                     v-cursor="{ active: !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions) }"
@@ -130,6 +104,27 @@
                                     @click="onDeleteClockedTask(props.row, $event)">
                                     {{ $t('删除') }}
                                 </a>
+                                <template v-if="props.row.task_id">
+                                    <a
+                                        v-if="!hasPermission(['clocked_task_view'], props.row.auth_actions)"
+                                        v-cursor
+                                        class="text-permission-disable"
+                                        data-test-id="clockedList_table_executeHistoryBtn"
+                                        @click="onClockedPermissonCheck(['clocked_task_view'], props.row, $event)">
+                                        {{ $t('执行历史') }}
+                                    </a>
+                                    <router-link
+                                        v-else
+                                        class="task-name"
+                                        data-test-id="clockedList_table_executeHistoryBtn"
+                                        :to="{
+                                            name: 'taskExecute',
+                                            params: { project_id: props.row.project_id },
+                                            query: { instance_id: props.row.task_id }
+                                        }">
+                                        {{ $t('执行历史') }}
+                                    </router-link>
+                                </template>
                             </div>
                         </bk-table-column>
                         <bk-table-column type="setting">
@@ -226,10 +221,6 @@
         }, {
             id: 'template_name',
             label: i18n.t('流程模板'),
-            min_width: 200
-        }, {
-            id: 'task_instance',
-            label: i18n.t('任务实例'),
             min_width: 200
         }, {
             id: 'plan_start_time',
