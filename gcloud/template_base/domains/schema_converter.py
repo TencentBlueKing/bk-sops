@@ -261,6 +261,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                     "outgoing": node.pop("next") if "next" in node else [nodes[i + 1]["id"]],
                 }
                 inputs = node.pop("data") if "data" in node else {}
+                hooked_inputs = {key: value for key, value in inputs.items() if "key" in value}
                 outputs = node.pop("output") if "output" in node else {}
                 subprocess.update(node)
                 constants = dict(
@@ -272,11 +273,13 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 )
                 constants = copy.deepcopy(constants)
                 for key, constant in constants.items():
-                    if key in inputs:
-                        constant["value"] = inputs[key]["key"]
+                    if key in hooked_inputs:
+                        constant["value"] = hooked_inputs[key]["key"]
+                    elif key in inputs:
+                        constant["value"] = inputs[key]["value"]
 
                 subprocess["constants"] = constants
-                subprocess_constants = {"component_inputs": inputs, "component_outputs": outputs}
+                subprocess_constants = {"component_inputs": hooked_inputs, "component_outputs": outputs}
                 for source_type, data in subprocess_constants.items():
                     for form_key, param in data.items():
                         source_info = (node["id"], form_key)
@@ -549,6 +552,8 @@ class YamlSchemaConverter(BaseSchemaConverter):
             for form_key, constant in param_constants["component_outputs"].get(node["id"], {}).items():
                 converted_node.setdefault("output", {})[form_key] = constant
         elif node["type"] == "SubProcess":
+            for key, constant in node["constants"].items():
+                converted_node.setdefault("data", {})[key] = {"value": constant["value"]}
             # 处理 对应勾选的constants
             for form_key, constant in param_constants["component_inputs"].get(node["id"], {}).items():
                 converted_node.setdefault("data", {})[form_key] = constant
