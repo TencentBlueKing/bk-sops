@@ -60,10 +60,20 @@
                     </label>
                     <div class="code-wrapper">
                         <div class="condition-tips">
-                            <p>{{ $t('支持 "==、!=、>、>=、&lt;、&lt;=、in、notin" 等二元操作符和 "and、or、True/true、False/false" 等关键字语法，还支持通过 ${key} 方式引用全局变量。')}}</p>
+                            <p>
+                                {{ $t('支持 "==、!=、>、>=、&lt;、&lt;=、in、notin" 等二元比较操作符和 "and、or、True/true、False/false" 等关键字语法,更多细节可参考') }}
+                                <bk-link theme="primary" href="https://boolrule.readthedocs.io/en/latest/expressions.html#basic-comparison-operators" target="_blank">
+                                    {{ 'boolrule' }}
+                                </bk-link>
+                                {{ $t('。') }}
+                            </p>
+                            <p>{{ $t('操作符两侧的比较对象支持通过 ${key} 或${int(key)} 等方式引用全局变量。') }}</p>
+                            <p>{{ $t('全局变量支持基于python基础表达式进行处理，函数仅可使用内置函数和datetime、re、hashlib、random、time、os.path模块。') }}</p>
+                            <br>
                             <p>{{ $t('示例：') }}</p>
                             <p>{{ $t('字符串比较：') }} "${key}" == "my string"</p>
                             <p>{{ $t('数值比较：') }} ${int(key)} >= 3</p>
+                            <p>{{ $t('包含：') }} ${key} in (1,2,3)</p>
                         </div>
                         <code-editor
                             v-validate="expressionRule"
@@ -241,6 +251,12 @@
                     margin-bottom: 10px;
                     font-size: 12px;
                     color: #b8b8b8;
+                    /deep/.bk-link {
+                        vertical-align: initial;
+                        .bk-link-text {
+                            font-size: 12px;
+                        }
+                    }
                 }
             }
             .bk-form-radio {
