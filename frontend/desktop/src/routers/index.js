@@ -152,7 +152,20 @@ const routers = new VueRouter({
                         common: route.query.common
                     }),
                     meta: { project: true }
-                }]
+                },
+                {
+                    path: 'common/:type(edit|clone|view)/:project_id/',
+                    name: 'projectCommonTemplatePanel',
+                    pathToRegexpOptions: { strict: true },
+                    component: TemplatePanel,
+                    props: route => ({
+                        template_id: route.query.template_id,
+                        type: route.params.type,
+                        common: '1'
+                    }),
+                    meta: { project: true }
+                }
+            ]
         },
         {
             path: '/taskflow',
@@ -463,18 +476,6 @@ const routers = new VueRouter({
                         common: '1'
                     }),
                     meta: { project: false }
-                },
-                {
-                    path: ':type(edit|clone|view)/:project_id/',
-                    name: 'projectCommonTemplatePanel',
-                    pathToRegexpOptions: { strict: true },
-                    component: TemplatePanel,
-                    props: route => ({
-                        template_id: route.query.template_id,
-                        type: route.params.type,
-                        common: '1'
-                    }),
-                    meta: { project: true }
                 }
             ]
         },
