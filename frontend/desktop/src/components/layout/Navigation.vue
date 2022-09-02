@@ -40,7 +40,10 @@
                                 :default-active="child.active"
                                 :data-test-id="`navigation_list_${child.id}`"
                                 @click="changeRoute(routerList[groupIndex][routeIndex].children[childIndex])">
-                                <span>{{child.name}}</span>
+                                <span>
+                                    {{child.name}}
+                                    <span v-if="child.id === 'atomDev'" class="offline-tip">{{ $t('即将下线') }}</span>
+                                </span>
                             </bk-navigation-menu-item>
                         </div>
                     </bk-navigation-menu-item>
@@ -274,6 +277,16 @@
             .bk-navigation-menu-group {
                 border-top: 1px solid rgba(255,255,255,0.06);
             }
+        }
+        .offline-tip {
+            display: inline-block;
+            line-height: 22px;
+            font-size: 12px;
+            transform: scale(.8);
+            color: #ff9c01;
+            padding: 0 4px;
+            border: 1px solid #ffb848;
+            border-radius: 2px;
         }
     }
 </style>
