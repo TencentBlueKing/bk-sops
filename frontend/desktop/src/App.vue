@@ -11,7 +11,7 @@
 */
 <template>
     <div id="app">
-        <navigation v-if="!hideHeader" @navChangeRoute="navChangeRoute">
+        <navigation v-if="!hideHeader">
             <template slot="page-content">
                 <div class="main-container">
                     <router-view v-if="isRouterViewShow"></router-view>
@@ -93,7 +93,7 @@
         },
         watch: {
             '$route' (val, oldVal) {
-                const prevRouterProjectId = oldVal.params.project_id
+                const prevRouterProjectId = val.params.project_id
                 const id = prevRouterProjectId || prevRouterProjectId === 0 ? Number(prevRouterProjectId) : undefined
                 this.handleRouteChange(id)
             }
@@ -290,9 +290,9 @@
                     // 项目上下文页面
                     if (this.project_id !== '' && !isNaN(this.project_id)) {
                         if (this.project_id !== preProjectId) {
-                            this.permissinApplyShow = false
                             this.getProjectDetail()
                         }
+                        this.permissinApplyShow = false
                     } else { // 需要项目id页面，id为空时，显示无权限页面
                         this.permissinApplyShow = true
                     }
@@ -306,10 +306,6 @@
                 this.$nextTick(() => {
                     this.isRouterAlive = true
                 })
-            },
-            // 左侧导航切换重置权限界面
-            navChangeRoute () {
-                this.permissinApplyShow = false
             },
             // 绑定跨域通信事件
             messageHandler (message) {
