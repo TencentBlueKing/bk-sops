@@ -46,6 +46,7 @@ from gcloud.utils.decorators import request_validate
 from gcloud.utils.strings import string_to_boolean
 from gcloud.exceptions import FlowExportError
 from gcloud.template_base.utils import read_template_data_file
+from gcloud.utils.yaml import NoAliasSafeDumper
 
 logger = logging.getLogger("root")
 
@@ -393,7 +394,7 @@ def export_yaml_templates(request: Request):
         return JsonResponse(convert_result)
 
     yaml_data = convert_result["data"]
-    file_data = yaml.dump_all(yaml_data, allow_unicode=True, sort_keys=False)
+    file_data = yaml.dump_all(yaml_data, allow_unicode=True, sort_keys=False, Dumper=NoAliasSafeDumper)
     filename = "bk_sops_%s_%s.yaml" % (project_id or template_type, time_now_str())
     response = HttpResponse()
     response["Content-Disposition"] = "attachment; filename=%s" % filename
