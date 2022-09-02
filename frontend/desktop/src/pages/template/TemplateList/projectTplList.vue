@@ -1729,7 +1729,7 @@
         font-size: 14px;
         color: #c4c6cc;
         display: none;
-        &:hover, &.is-active {
+        &.is-active {
             display: block;
             color: #ff9c01;
         }
