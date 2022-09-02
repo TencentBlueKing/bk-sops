@@ -167,7 +167,7 @@
                 if (this.templateSource === 'business' || this.templateSource === 'project') {
                     routerData = `/template/view/${this.project_id}/?template_id=${this.template_id}`
                 } else if (this.templateSource === 'common') {
-                    routerData = `/common/view/?template_id=${this.template_id}&common=1`
+                    routerData = `/template/common/view/${this.project_id}/?template_id=${this.template_id}&common=1`
                 }
                 return routerData
             },
