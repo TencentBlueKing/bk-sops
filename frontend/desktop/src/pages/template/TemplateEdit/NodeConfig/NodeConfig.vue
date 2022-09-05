@@ -114,9 +114,14 @@
                 </template>
             </div>
             <template slot="content">
+                <!-- 插件/插件版本不存在面板 -->
+                <bk-exception v-if="isNotExistAtomOrVerion" class="exception-wrap" type="500">
+                    <span>{{ $t('未找到可用的插件或插件版本') }}</span>
+                    <div class="text-wrap" @click="handleReslectPlugin">{{ $t('重选插件') }}</div>
+                </bk-exception>
                 <!-- 插件/子流程选择面板 -->
                 <select-panel
-                    v-if="isSelectorPanelShow"
+                    v-else-if="isSelectorPanelShow"
                     :project_id="project_id"
                     :template-labels="templateLabels"
                     :node-config="nodeConfig"
@@ -328,6 +333,7 @@
             common: [String, Number],
             subflowListLoading: Boolean,
             backToVariablePanel: Boolean,
+            isNotExistAtomOrVerion: Boolean,
             pluginLoading: Boolean,
             isViewMode: Boolean
         },
@@ -489,7 +495,6 @@
                 const nodeConfig = tools.deepClone(this.activities[this.nodeId])
                 const isThirdParty = nodeConfig.component && nodeConfig.component.code === 'remote_plugin'
                 if (nodeConfig.type === 'ServiceActivity') {
-                    await this.setThirdPartyList(nodeConfig)
                     this.basicInfo = await this.getNodeBasic(nodeConfig)
                 } else {
                     this.isSelectorPanelShow = !nodeConfig.template_id
@@ -779,7 +784,7 @@
                     let desc = ''
                     let version = ''
                     // 节点已选择标准插件
-                    if (component.code) {
+                    if (component.code && !this.isNotExistAtomOrVerion) { // 节点插件存在
                         if (component.code === 'remote_plugin') {
                             const atom = this.$parent.thirdPartyList[this.nodeId]
                             code = component.data.plugin_code.value
@@ -859,7 +864,7 @@
              * 获取某一标准插件所有版本列表
              */
             getAtomVersions (code, isThirdParty = false) {
-                if (!code) {
+                if (!code || this.isNotExistAtomOrVerion) {
                     return []
                 }
                 let atom
@@ -1177,6 +1182,11 @@
                 }
                 this.variableCited = {}
                 this.isUpdateConstants = false
+            },
+            // 重选插件
+            handleReslectPlugin () {
+                this.$parent.isNotExistAtomOrVerion = false
+                this.isSelectorPanelShow = true
             },
             // 查看子流程模板
             onViewSubflow (id) {
@@ -1691,6 +1701,23 @@
     .variable-edit-panel {
         height: calc(100vh - 60px);
         overflow: hidden;
+    }
+    .exception-wrap {
+        margin-top: 146px;
+        .bk-exception-img {
+            width: 220px;
+            height: 110px;
+            margin-bottom: 12px;
+        }
+        .bk-exception-text {
+            font-size: 12px;
+            color: #444444;
+        }
+        .text-wrap {
+            color: #3a84ff;
+            margin-top: 5px;
+            cursor: pointer;
+        }
     }
 }
 </style>
