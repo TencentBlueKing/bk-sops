@@ -93,7 +93,7 @@
         },
         watch: {
             '$route' (val, oldVal) {
-                const prevRouterProjectId = val.params.project_id
+                const prevRouterProjectId = oldVal.params.project_id
                 const id = prevRouterProjectId || prevRouterProjectId === 0 ? Number(prevRouterProjectId) : undefined
                 this.handleRouteChange(id)
             }
