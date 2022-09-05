@@ -141,6 +141,48 @@ def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_lis
     return batch_request(client.cc.list_biz_hosts, kwargs)
 
 
+def get_business_host_ipv6(username, bk_biz_id, supplier_account, host_fields, ip_list=None, bk_cloud_id=None):
+    """
+    根据主机内网 IP 过滤业务下的主机, 主要查询ip_v6
+    :param username: 请求用户名
+    :type username: str
+    :param bk_biz_id: 业务 CC ID
+    :type bk_biz_id: int
+    :param supplier_account: 开发商账号, defaults to 0
+    :type supplier_account: int
+    :param host_fields: 主机过滤字段, defaults to None
+    :type host_fields: list
+    :param ip_list: 主机内网 IP 列表
+    :type ip_list: list
+    :param bk_cloud_id: IP列表对应的云区域
+    :type bk_cloud_id: int
+    :return:
+    [
+        {
+            "bk_cloud_id": 0,
+            "bk_host_id": 1,
+            "bk_host_innerip": "127.0.0.1",
+            "bk_mac": "",
+            "bk_os_type": null
+        },
+        ...
+    ]
+    :rtype: [type]
+    """
+    kwargs = {
+        "bk_biz_id": bk_biz_id,
+        "bk_supplier_account": supplier_account,
+        "fields": list(host_fields or []),
+        "host_property_filter": {
+            "condition": "AND",
+            "rules": [{"field": "bk_host_innerip_v6", "operator": "in", "value": ip_list}],
+        },
+    }
+
+    client = get_client_by_user(username)
+    return batch_request(client.cc.list_biz_hosts, kwargs)
+
+
 def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, more_receiver, logger=None):
     """
     @summary: 根据通知分组和附加通知人获取最终通知人

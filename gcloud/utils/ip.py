@@ -10,12 +10,16 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+import ipaddress
 import re
 import logging
 
 ip_pattern = re.compile(r"(?<!\d)((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(?!\d)")
 plat_ip_reg = re.compile(r"\d+:((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(?!\d)")
+ipv6_pattern = re.compile(
+    r"(?:|(?<=\s))(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))(?=\s|)"  # noqa
+)  # noqa
+number_pattern = re.compile(r"\d+")
 
 logger = logging.getLogger("root")
 
@@ -32,6 +36,68 @@ def get_ip_by_regex(ip_str):
     for match in ip_pattern.finditer(ip_str):
         ret.append(match.group())
     return ret
+
+
+def extension_ipv6(ip_list):
+    """
+    将ipv6扩展为完整ipv6地址列表
+    @param ip_list: ["::0001"]
+    @return: ["0000:0000:0000:0000:0000:0000:0000:0001"]
+    """
+    ip_v6_list = []
+    for ip_v6 in ip_list:
+        p_address = ipaddress.ip_address(ip_v6)
+        if p_address.version == 6:
+            ip_v6_list.append(p_address.exploded)
+
+    return ip_v6_list
+
+
+def get_ip_by_regex_type(regex_type, ip_str):
+    """
+    根据传入的正则类型，匹配指定的数据，并返回去除匹配结果的子串
+    :param regex: ipv4, ipv6, number
+    :param ip_str:
+    :return:
+    """
+    regex_map = {"ipv4": ip_pattern, "ipv4_with_cloud_id": plat_ip_reg, "ipv6": ipv6_pattern, "number": number_pattern}
+
+    if regex_type not in regex_map.keys():
+        raise Exception("暂不支持的正则类型")
+
+    logger.info(
+        "[get_ip_by_regex_type] start match ip by regex type, regex_type={}, ip_str={}".format(regex_type, ip_str)
+    )
+    regex = regex_map[regex_type]
+    ip_list = []
+    for match in regex.finditer(ip_str):
+        ip_list.append(match.group())
+    new_ip_str = regex.sub("", ip_str)
+    logger.info(
+        "[get_ip_by_regex_type] match ip by regex type end, regex_type={}, new_ip_str={}".format(regex_type, new_ip_str)
+    )
+
+    # 对于IPV6的主机, 需要将压缩格式的ipv6扩展为全格式
+    if regex_type == "ipv6":
+        ip_list = extension_ipv6(ip_list)
+
+    return ip_list, new_ip_str
+
+
+def extract_ip_from_ip_str(ip_str):
+    ipv6_list, ip_str_without_ipv6 = get_ip_by_regex_type("ipv6", ip_str)
+
+    ipv4_list_with_cloud_id, ip_str_without_ipv4_with_cloud_id = get_ip_by_regex_type(
+        "ipv4_with_cloud_id", ip_str_without_ipv6
+    )
+    # 在ipv6下，云区域+ip 将不再唯一
+    ipv4_list, ip_str_without_ipv4 = get_ip_by_regex_type("ipv4", ip_str_without_ipv4_with_cloud_id)
+    # 合并列表并去重
+    ipv4_total_list = list(set(ipv4_list + [_ip.split(":")[1] for _ip in ipv4_list_with_cloud_id]))
+
+    host_id_list, _ = get_ip_by_regex_type("number", ip_str_without_ipv4)
+
+    return ipv6_list, ipv4_total_list, host_id_list
 
 
 def get_plat_ip_by_regex(ip_str):

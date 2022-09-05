@@ -22,7 +22,10 @@ from pipeline.core.flow.io import StringItemSchema
 from pipeline.component_framework.component import Component
 
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.components.collections.sites.open.cc.base import cc_format_prop_data, cc_get_host_id_by_innerip
+from pipeline_plugins.components.collections.sites.open.cc.base import (
+    cc_format_prop_data,
+    BaseCcPluginIp,
+)
 
 from gcloud.conf import settings
 from gcloud.utils.ip import get_ip_by_regex
@@ -36,7 +39,7 @@ __group_name__ = _("配置平台(CMDB)")
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class CCUpdateHostService(Service):
+class CCUpdateHostService(Service, BaseCcPluginIp):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -78,7 +81,7 @@ class CCUpdateHostService(Service):
 
         # 查询主机id
         ip_list = get_ip_by_regex(data.get_one_of_inputs("cc_host_ip"))
-        host_result = cc_get_host_id_by_innerip(executor, biz_cc_id, ip_list, supplier_account)
+        host_result = self.get_host_list(executor, biz_cc_id, ip_list, supplier_account)
         if not host_result["result"]:
             data.set_outputs("ex_data", host_result["message"])
             return False
