@@ -25,8 +25,8 @@ from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemS
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
-    cc_get_host_id_by_innerip,
     cc_list_select_node_inst_id,
+    BaseCcPluginIp,
 )
 
 
@@ -39,7 +39,7 @@ VERSION = "1.0"
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class CCBatchTransferHostModule(Service):
+class CCBatchTransferHostModule(Service, BaseCcPluginIp):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -114,11 +114,9 @@ class CCBatchTransferHostModule(Service):
         success_update = []
         failed_update = []
         for attr in attr_list:
-            cc_host_ip_list = [attr["cc_transfer_host_ip"]]
             cc_module_path = attr["cc_transfer_host_target_module"]
-
             # 获取主机id列表
-            host_result = cc_get_host_id_by_innerip(executor, biz_cc_id, cc_host_ip_list, supplier_account)
+            host_result = self.get_host_list(executor, biz_cc_id, attr["cc_transfer_host_ip"], supplier_account)
             if not host_result["result"]:
                 message = _("无法获取主机id列表，主机属性={}, message={}".format(attr, host_result["message"]))
                 self.logger.info(message)

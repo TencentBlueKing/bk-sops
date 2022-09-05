@@ -24,9 +24,9 @@ from pipeline.core.flow.activity import Service
 
 from gcloud.utils import cmdb
 from gcloud.conf import settings
-from gcloud.utils.ip import get_ip_by_regex
+from gcloud.utils.ip import get_ip_by_regex, get_ip_by_regex_type, ipv6_pattern, ip_pattern, extract_ip_from_ip_str
 from gcloud.utils.handlers import handle_api_error
-
+from pipeline_plugins.components.utils.sites.open.utils import cc_get_ips_info_by_str, cc_get_ips_info_by_str_ipv6
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -74,6 +74,24 @@ class ModuleCreateMethod(Enum):
     CATEGORY = "category"
 
 
+def compare_ip_list(host_list, ip_list, host_key="bk_host_innerip"):
+    if len(host_list) > len(ip_list):
+        # find repeat innerip host
+        host_counter = Counter([host[host_key] for host in host_list])
+        mutiple_innerip_hosts = [innerip for innerip, count in host_counter.items() if count > 1]
+        return (
+            False,
+            "mutiple same innerip host found: {}".format(", ".join(mutiple_innerip_hosts)),
+        )
+    if len(host_list) < len(ip_list):
+        return_innerip_set = {host[host_key] for host in host_list}
+        absent_innerip = set(ip_list).difference(return_innerip_set)
+
+        return False, "ip not found in business: {}".format(", ".join(absent_innerip))
+
+    return True, ""
+
+
 def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
     """根据主机内网 IP 获取主机 ID
 
@@ -91,7 +109,11 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
     """
 
     host_list = cmdb.get_business_host(
-        executor, bk_biz_id, supplier_account, ["bk_host_id", "bk_host_innerip"], ip_list,
+        executor,
+        bk_biz_id,
+        supplier_account,
+        ["bk_host_id", "bk_host_innerip"],
+        ip_list,
     )
 
     if not host_list:
@@ -114,6 +136,65 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
         return {"result": False, "message": "ip not found in business: {}".format(", ".join(absent_innerip))}
 
     return {"result": True, "data": [str(host["bk_host_id"]) for host in host_list]}
+
+
+def cc_get_host_by_innerip_with_ipv6(executor, bk_biz_id, ip_str, supplier_account):
+    ipv6_list, ipv4_total_list, host_id_list = extract_ip_from_ip_str(ip_str)
+
+    ip_v6_host_list = []
+    if ipv6_list:
+        # 去查询ip_v6 相关的主机信息
+        ip_v6_host_list = cmdb.get_business_host_ipv6(
+            executor,
+            bk_biz_id,
+            supplier_account,
+            ["bk_host_id", "bk_host_innerip_v6", "bk_cloud_id"],
+            ipv6_list,
+        )
+        if not ip_v6_host_list:
+            logger.info(
+                "[cc_get_host_by_innerip_with_ipv6] list_biz_hosts[ipv6] query failed, return empty list, "
+                "ipv6_list = {}".format(ipv6_list)
+            )
+            return {
+                "result": False,
+                "message": "list_biz_hosts[ipv6] query failed, return empty list, ipv6_list = {}".format(ipv6_list),
+            }
+        result, message = compare_ip_list(host_list=ip_v6_host_list, ip_list=ipv6_list, host_key="bk_host_innerip_v6")
+        if not result:
+            logger.info(
+                "[cc_get_host_by_innerip_with_ipv6] list_biz_hosts[ipv6] query failed, return empty list, "
+                "message = {}".format(message)
+            )
+            return {"result": False, "message": message}
+
+    ip_v4_host_list = []
+    if ipv4_total_list:
+        ip_v4_host_list = cmdb.get_business_host(
+            executor, bk_biz_id, supplier_account, ["bk_host_id", "bk_host_innerip", "bk_cloud_id"], ipv4_total_list
+        )
+        if not ip_v4_host_list:
+            logger.info(
+                "[cc_get_host_by_innerip_with_ipv6] list_biz_hosts[ipv4] query failed, return empty list, "
+                "ipv6_list = {}".format(ipv4_total_list)
+            )
+            return {
+                "result": False,
+                "message": "list_biz_hosts[ipv4] query failed, return empty list, ipv4_list = {}".format(
+                    ipv4_total_list
+                ),
+            }
+
+        result, message = compare_ip_list(host_list=ip_v4_host_list, ip_list=ipv4_total_list)
+        if not result:
+            logger.info(
+                "[cc_get_host_by_innerip_with_ipv6] list_biz_hosts[ipv4] query failed, return empty list, "
+                "message = {}".format(message)
+            )
+            return {"result": False, "message": message}
+
+    host_list = [{"bk_host_id": host_id} for host_id in host_id_list]
+    return {"result": True, "data": ip_v6_host_list + ip_v4_host_list + host_list}
 
 
 def get_module_set_id(topo_data, module_id):
@@ -337,7 +418,88 @@ def cc_list_select_node_inst_id(
     return {"result": True, "data": cc_list_match_node_inst_id_return["data"]}
 
 
-class BaseTransferHostToModuleService(Service, metaclass=ABCMeta):
+class BaseCcPluginIp:
+    def get_host_list(self, executor, biz_cc_id, ip_str, supplier_account):
+        """
+        获取host_list
+        @param executor: executor 执行人
+        @param biz_cc_id: biz_cc_id 业务id
+        @param ip_str: ip_str ip字符串
+        @param supplier_account: supplier_account
+        @return:
+        """
+        # 如果开启IPV6
+        if settings.OPEN_IP_V6:
+            host_result = cc_get_host_by_innerip_with_ipv6(executor, biz_cc_id, ip_str, supplier_account)
+            if not host_result["result"]:
+                return host_result
+            return {"result": True, "data": [str(host["bk_host_id"]) for host in host_result["data"]]}
+        ip_list = get_ip_by_regex(ip_str)
+        return cc_get_host_id_by_innerip(executor, biz_cc_id, ip_list, supplier_account)
+
+    def get_ip_info_list(self, executor, biz_cc_id, ip_str, supplier_account):
+        """
+        @param executor: 执行人
+        @param biz_cc_id: 业务id
+        @param ip_str: ip串
+        @param supplier_account: 服务商账号
+        @return:
+        result = {
+                    "result": True,
+                    "ip_result": ip_result,
+                    "ip_count": len(ip_result),
+                    "invalid_ip": invalid_ip,
+              }
+        """
+        # 如果开启IPV6, 则走IPV6的实现
+        if settings.OPEN_IP_V6:
+            return cc_get_ips_info_by_str_ipv6(executor, biz_cc_id, ip_str, supplier_account)
+        return cc_get_ips_info_by_str(executor, biz_cc_id, ip_str, supplier_account)
+
+    def get_host_topo(self, executor, biz_cc_id, supplier_account, host_attrs, ip_str):
+        """获取主机拓扑"""
+        if settings.OPEN_IP_V6:
+            # 如果是ipv6的主机
+            if ipv6_pattern.match(ip_str):
+                ipv6_list, _ = get_ip_by_regex_type("ipv6", ip_str)
+                property_filters = {
+                    "host_property_filter": {
+                        "condition": "AND",
+                        "rules": [{"field": "bk_host_innerip_v6", "operator": "in", "value": ipv6_list}],
+                    }
+                }
+            elif ip_pattern.match(ip_str):
+                ipv4_list, _ = get_ip_by_regex_type("ipv4", ip_str)
+                property_filters = {
+                    "host_property_filter": {
+                        "condition": "AND",
+                        "rules": [{"field": "bk_host_innerip", "operator": "in", "value": ipv4_list}],
+                    }
+                }
+            elif ip_str.isdigit():
+                host_id_list, _ = get_ip_by_regex_type("number", ip_str)
+                property_filters = {
+                    "host_property_filter": {
+                        "condition": "AND",
+                        "rules": [
+                            {
+                                "field": "bk_host_id",
+                                "operator": "in",
+                                "value": [int(host_id) for host_id in host_id_list],
+                            }
+                        ],
+                    }
+                }
+
+            return cmdb.get_business_host_topo(
+                executor, biz_cc_id, supplier_account, host_attrs, None, property_filters=property_filters
+            )
+
+        ip_list = get_ip_by_regex(ip_str)
+        return cmdb.get_business_host_topo(executor, biz_cc_id, supplier_account, host_attrs, ip_list)
+
+
+class BaseTransferHostToModuleService(Service, BaseCcPluginIp, metaclass=ABCMeta):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -368,8 +530,8 @@ class BaseTransferHostToModuleService(Service, metaclass=ABCMeta):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         # 查询主机id
-        ip_list = get_ip_by_regex(data.get_one_of_inputs("cc_host_ip"))
-        host_result = cc_get_host_id_by_innerip(executor, biz_cc_id, ip_list, supplier_account)
+        ip_str = data.get_one_of_inputs("cc_host_ip")
+        host_result = self.get_host_list(executor, biz_cc_id, ip_str, supplier_account)
         if not host_result["result"]:
             data.set_outputs("ex_data", host_result["message"])
             return False
