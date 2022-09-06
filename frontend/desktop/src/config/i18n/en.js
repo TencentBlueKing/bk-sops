@@ -1467,7 +1467,7 @@ const en = {
     '包含：': 'Include:',
     '。': '.',
     '条件': 'Condition',
-    '将标准运维的流程快速生成一个独立的蓝鲸SaaS 应用，同样可在蓝鲸应用市场进行搜索和添加。这种不需要开发，零成本快速生成的 SaaS 应用称为 “轻应用”。': 'Quickly generate an independent BlueKing SaaS application from the standard operation and maintenance process, which can also be searched and added in the BlueKing application market. This kind of SaaS application that does not require development and is quickly generated at zero cost is called "light application”.',
+    '将流程快速⽣成⼀个蓝鲸SaaS 应⽤，可在蓝鲸应⽤市场进⾏搜索并添加到蓝鲸桌⾯。这种⽆需开发、快速⽣成的SaaS 应⽤称为 “轻应⽤”。': 'Quickly generate a BlueKing SaaS application from the process, which can be searched in the BlueKing application market and added to the BlueKing desktop. This kind of SaaS application that does not require development and is quickly generated is called "light application".',
     '将流程的编排和执行进行角色分离，高阶人员负责编排流程，而日常执行这类简单任务交付给初级人员使用。这种交付模式称为“职能化”。': 'The roles of process choreography and execution are separated, and senior personnel are responsible for choreographing the process, while simple tasks such as daily execution are delivered to junior personnel. This delivery model is called "functionalization".',
     '未找到可用的插件或插件版本': 'No available plugin or plugin version found',
     '重选插件': 'Reselect plugin'

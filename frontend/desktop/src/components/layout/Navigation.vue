@@ -120,7 +120,7 @@
             },
             subTitle () {
                 if (this.currentNav === 'appMakerList') {
-                    return this.$t('将标准运维的流程快速生成一个独立的蓝鲸SaaS 应用，同样可在蓝鲸应用市场进行搜索和添加。这种不需要开发，零成本快速生成的 SaaS 应用称为 “轻应用”。')
+                    return this.$t('将流程快速⽣成⼀个蓝鲸SaaS 应⽤，可在蓝鲸应⽤市场进⾏搜索并添加到蓝鲸桌⾯。这种⽆需开发、快速⽣成的SaaS 应⽤称为 “轻应⽤”。')
                 } else if (this.currentNav === 'functionHome') {
                     return this.$t('将流程的编排和执行进行角色分离，高阶人员负责编排流程，而日常执行这类简单任务交付给初级人员使用。这种交付模式称为“职能化”。')
                 }
