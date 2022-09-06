@@ -92,12 +92,10 @@ def extract_ip_from_ip_str(ip_str):
     )
     # 在ipv6下，云区域+ip 将不再唯一
     ipv4_list, ip_str_without_ipv4 = get_ip_by_regex_type("ipv4", ip_str_without_ipv4_with_cloud_id)
-    # 合并列表并去重
-    ipv4_total_list = list(set(ipv4_list + [_ip.split(":")[1] for _ip in ipv4_list_with_cloud_id]))
 
     host_id_list, _ = get_ip_by_regex_type("number", ip_str_without_ipv4)
 
-    return ipv6_list, ipv4_total_list, host_id_list
+    return ipv6_list, ipv4_list, host_id_list, ipv4_list_with_cloud_id
 
 
 def get_plat_ip_by_regex(ip_str):

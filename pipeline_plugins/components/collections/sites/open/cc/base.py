@@ -26,6 +26,11 @@ from gcloud.utils import cmdb
 from gcloud.conf import settings
 from gcloud.utils.ip import get_ip_by_regex, get_ip_by_regex_type, ipv6_pattern, ip_pattern, extract_ip_from_ip_str
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import (
+    get_ip_v6_host_list,
+    get_ip_v4_host_list,
+    get_ip_v4_host_with_cloud_list,
+)
 from pipeline_plugins.components.utils.sites.open.utils import cc_get_ips_info_by_str, cc_get_ips_info_by_str_ipv6
 
 logger = logging.getLogger("celery")
@@ -72,24 +77,6 @@ class ModuleCreateMethod(Enum):
 
     TEMPLATE = "template"
     CATEGORY = "category"
-
-
-def compare_ip_list(host_list, ip_list, host_key="bk_host_innerip"):
-    if len(host_list) > len(ip_list):
-        # find repeat innerip host
-        host_counter = Counter([host[host_key] for host in host_list])
-        mutiple_innerip_hosts = [innerip for innerip, count in host_counter.items() if count > 1]
-        return (
-            False,
-            "mutiple same innerip host found: {}".format(", ".join(mutiple_innerip_hosts)),
-        )
-    if len(host_list) < len(ip_list):
-        return_innerip_set = {host[host_key] for host in host_list}
-        absent_innerip = set(ip_list).difference(return_innerip_set)
-
-        return False, "ip not found in business: {}".format(", ".join(absent_innerip))
-
-    return True, ""
 
 
 def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
@@ -139,62 +126,31 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
 
 
 def cc_get_host_by_innerip_with_ipv6(executor, bk_biz_id, ip_str, supplier_account):
-    ipv6_list, ipv4_total_list, host_id_list = extract_ip_from_ip_str(ip_str)
+    ipv6_list, ipv4_list, host_id_list, ipv4_list_with_cloud_id = extract_ip_from_ip_str(ip_str)
+    ip_v6_host_list_result = get_ip_v6_host_list(executor, bk_biz_id, supplier_account, ipv6_list)
+    if not ip_v6_host_list_result["result"]:
+        return ip_v6_host_list_result
 
-    ip_v6_host_list = []
-    if ipv6_list:
-        # 去查询ip_v6 相关的主机信息
-        ip_v6_host_list = cmdb.get_business_host_ipv6(
-            executor,
-            bk_biz_id,
-            supplier_account,
-            ["bk_host_id", "bk_host_innerip_v6", "bk_cloud_id"],
-            ipv6_list,
-        )
-        if not ip_v6_host_list:
-            logger.info(
-                "[cc_get_host_by_innerip_with_ipv6] list_biz_hosts[ipv6] query failed, return empty list, "
-                "ipv6_list = {}".format(ipv6_list)
-            )
-            return {
-                "result": False,
-                "message": "list_biz_hosts[ipv6] query failed, return empty list, ipv6_list = {}".format(ipv6_list),
-            }
-        result, message = compare_ip_list(host_list=ip_v6_host_list, ip_list=ipv6_list, host_key="bk_host_innerip_v6")
-        if not result:
-            logger.info(
-                "[cc_get_host_by_innerip_with_ipv6] list_biz_hosts[ipv6] query failed, return empty list, "
-                "message = {}".format(message)
-            )
-            return {"result": False, "message": message}
+    ip_v4_host_list_result = get_ip_v4_host_list(executor, bk_biz_id, supplier_account, ipv4_list)
+    if not ip_v4_host_list_result["result"]:
+        return ip_v4_host_list_result
 
-    ip_v4_host_list = []
-    if ipv4_total_list:
-        ip_v4_host_list = cmdb.get_business_host(
-            executor, bk_biz_id, supplier_account, ["bk_host_id", "bk_host_innerip", "bk_cloud_id"], ipv4_total_list
-        )
-        if not ip_v4_host_list:
-            logger.info(
-                "[cc_get_host_by_innerip_with_ipv6] list_biz_hosts[ipv4] query failed, return empty list, "
-                "ipv6_list = {}".format(ipv4_total_list)
-            )
-            return {
-                "result": False,
-                "message": "list_biz_hosts[ipv4] query failed, return empty list, ipv4_list = {}".format(
-                    ipv4_total_list
-                ),
-            }
+    ip_v4_host_with_cloud_list_result = get_ip_v4_host_with_cloud_list(
+        executor, bk_biz_id, supplier_account, ipv4_list_with_cloud_id
+    )
 
-        result, message = compare_ip_list(host_list=ip_v4_host_list, ip_list=ipv4_total_list)
-        if not result:
-            logger.info(
-                "[cc_get_host_by_innerip_with_ipv6] list_biz_hosts[ipv4] query failed, return empty list, "
-                "message = {}".format(message)
-            )
-            return {"result": False, "message": message}
+    if not ip_v4_host_with_cloud_list_result["result"]:
+        return ip_v4_host_with_cloud_list_result
 
     host_list = [{"bk_host_id": host_id} for host_id in host_id_list]
-    return {"result": True, "data": ip_v6_host_list + ip_v4_host_list + host_list}
+    data = (
+        ip_v6_host_list_result["data"]
+        + ip_v4_host_list_result["data"]
+        + host_list
+        + ip_v4_host_with_cloud_list_result["data"]
+    )
+
+    return {"result": True, "data": data}
 
 
 def get_module_set_id(topo_data, module_id):

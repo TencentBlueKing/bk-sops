@@ -348,10 +348,17 @@ INVALID_IP_CASE = ComponentTestCase(
     name="Invalid IP Case",
     inputs=INPUT_DATA_INVALID,
     parent_data={"executor": "executor", "biz_cc_id": 1},
-    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法"}),
+    execute_assertion=ExecuteAssertion(
+        success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, ip_list = ['1.1.1']"}
+    ),
     schedule_assertion=None,
     execute_call_assertion=None,
-    patchers=[Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"result": False, "ip_count": 0, "ip_result": []})],
+    patchers=[
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR,
+            return_value={"result": False, "ip_count": 0, "ip_result": ["2.2.2.2"], "invalid_ip": ["1.1.1"]},
+        )
+    ],
 )
 
 # 更改主机属性成功案例

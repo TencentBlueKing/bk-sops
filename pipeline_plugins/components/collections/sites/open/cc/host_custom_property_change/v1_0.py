@@ -113,10 +113,10 @@ class CCHostCustomPropertyChangeService(Service, BaseCcPluginIp):
         supplier_account = supplier_account_for_business(biz_cc_id)
         ip_list = self.get_ip_info_list(operator, biz_cc_id, sa_ip_list, supplier_account)
         if not ip_list["result"] or not ip_list["ip_count"]:
-            data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
+            data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, ip_list = {}".format(ip_list["invalid_ip"]))
             return False
         if ip_list["invalid_ip"]:
-            data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
+            data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, ip_list = {}".format(ip_list["invalid_ip"]))
             data.outputs.invalid_ip = ",".join(ip_list["invalid_ip"])
             return False
 
