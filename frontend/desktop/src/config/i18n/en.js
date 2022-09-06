@@ -1460,7 +1460,7 @@ const en = {
     '请求异常（内部系统发生未知错误）': 'Request exception (an unknown error occurred in the internal system)',
     '计划执行': 'Planly',
     '⿏标移动到节点时展示引⽤和输出的变量': '⏏Display variables referenced and output when the mouse moves to a node',
-    '再次执行': 'reExecute',
+    '重新执⾏': 'reExecute',
     '支持 "==、!=、>、>=、<、<=、in、notin" 等二元比较操作符和 "and、or、True/true、False/false" 等关键字语法,更多细节可参考': 'Support binary comparison operators such as "==, !=, >, >=, <, <=, in, notin" and keyword syntaxes such as "and, or, True/true, False/false", more details Can refer to',
     '操作符两侧的比较对象支持通过 ${key} 或${int(key)} 等方式引用全局变量。': 'The comparison objects on both sides of the operator support referencing global variables by means such as ${key} or ${int(key)}.',
     '全局变量支持基于python基础表达式进行处理，函数仅可使用内置函数和datetime、re、hashlib、random、time、os.path模块。': 'Global variables support processing based on python basic expressions, and functions can only use built-in functions and datetime, re, hashlib, random, time, and os.path modules.',
@@ -1470,7 +1470,8 @@ const en = {
     '将流程快速⽣成⼀个蓝鲸SaaS 应⽤，可在蓝鲸应⽤市场进⾏搜索并添加到蓝鲸桌⾯。这种⽆需开发、快速⽣成的SaaS 应⽤称为 “轻应⽤”。': 'Quickly generate a BlueKing SaaS application from the process, which can be searched in the BlueKing application market and added to the BlueKing desktop. This kind of SaaS application that does not require development and is quickly generated is called "light application".',
     '将流程的编排和执行进行角色分离，高阶人员负责编排流程，而日常执行这类简单任务交付给初级人员使用。这种交付模式称为“职能化”。': 'The roles of process choreography and execution are separated, and senior personnel are responsible for choreographing the process, while simple tasks such as daily execution are delivered to junior personnel. This delivery model is called "functionalization".',
     '未找到可用的插件或插件版本': 'No available plugin or plugin version found',
-    '重选插件': 'Reselect plugin'
+    '重选插件': 'Reselect plugin',
+    '复⽤参数值并使⽤流程最新数据重新执⾏': 'Reuse parameter values and re-execute using the latest data of the process'
 }
 
 export default en
