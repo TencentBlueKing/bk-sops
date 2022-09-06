@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import re
 import logging
+from collections import Counter
 
 from cryptography.fernet import Fernet
 
@@ -47,12 +48,22 @@ set_module_ip_reg = re.compile(r"[\u4e00-\u9fa5\w]+\|[\u4e00-\u9fa5\w]+\|" + ip_
 ip_pattern = re.compile(ip_re)
 
 
-def cc_get_ips_info_by_str_ipv6(username, biz_cc_id, ip_str, use_cache=True):
+def compare_ip_list(source_list, target_list, host_key="bk_host_innerip"):
+    if len(source_list) > len(target_list):
+        # find repeat innerip host
+        host_counter = Counter([host["host"][host_key] for host in source_list])
+        mutiple_innerip_hosts = [innerip for innerip, count in host_counter.items() if count > 1]
+        return mutiple_innerip_hosts
+    if len(source_list) < len(target_list):
+        return_innerip_set = {host["host"][host_key] for host in source_list}
+        absent_innerip = set(target_list).difference(return_innerip_set)
 
-    ipv6_list, ipv4_total_list, host_id_list = extract_ip_from_ip_str(ip_str)
+        return absent_innerip
 
-    supplier_account = supplier_account_for_business(biz_cc_id)
+    return []
 
+
+def get_ipv6_info_list(username, biz_cc_id, supplier_account, ipv6_list):
     ipv6_info_list = cmdb.get_business_host_topo(
         username=username,
         bk_biz_id=biz_cc_id,
@@ -65,17 +76,10 @@ def cc_get_ips_info_by_str_ipv6(username, biz_cc_id, ip_str, use_cache=True):
             }
         },
     )
-
     if len(ipv6_list) != len(ipv6_info_list):
-        return {
-            "result": False,
-            "ip_result": [],
-            "ip_count": 0,
-            "invalid_ip": set(ipv6_list) - set([host["host"]["bk_host_innerip_v6"] for host in ipv6_info_list]),
-        }
+        return False, compare_ip_list(ipv6_info_list, ipv6_list, host_key="bk_host_innerip_v6")
 
     ip_result = []
-
     for ip_info in ipv6_info_list:
         ip_result.append(
             {
@@ -87,21 +91,25 @@ def cc_get_ips_info_by_str_ipv6(username, biz_cc_id, ip_str, use_cache=True):
             }
         )
 
+    return True, ip_result
+
+
+def get_ipv4_info_list(username, biz_cc_id, supplier_account, ipv4_list):
+    ip_result = []
+
+    if not ipv4_list:
+        return True, []
+
     ipv4_info_list = cmdb.get_business_host_topo(
         username=username,
         bk_biz_id=biz_cc_id,
         supplier_account=supplier_account,
         host_fields=["bk_host_innerip", "bk_host_id", "bk_cloud_id"],
-        ip_list=ipv4_total_list,
+        ip_list=ipv4_list,
     )
 
-    if len(ipv4_total_list) != len(ipv4_info_list):
-        return {
-            "result": False,
-            "ip_result": [],
-            "ip_count": 0,
-            "invalid_ip": set(ipv4_total_list) - set([host["host"]["bk_host_innerip"] for host in ipv4_info_list]),
-        }
+    if len(ipv4_list) != len(ipv4_info_list):
+        return False, compare_ip_list(ipv4_info_list, ipv4_list, host_key="bk_host_innerip")
 
     for ip_info in ipv4_info_list:
         ip_result.append(
@@ -114,6 +122,51 @@ def cc_get_ips_info_by_str_ipv6(username, biz_cc_id, ip_str, use_cache=True):
             }
         )
 
+    return True, ip_result
+
+
+def get_ipv4_info_list_with_cloud_id(username, biz_cc_id, supplier_account, ipv4_list_with_cloud_id):
+    ip_list = [_ip.split(":")[1] for _ip in ipv4_list_with_cloud_id]
+
+    if not ip_list:
+        return True, []
+
+    ipv4_info_list = cmdb.get_business_host_topo(
+        username=username,
+        bk_biz_id=biz_cc_id,
+        supplier_account=supplier_account,
+        host_fields=["bk_host_innerip", "bk_host_id", "bk_cloud_id"],
+        ip_list=ip_list,
+    )
+
+    ip_v4_info_with_cloud_valid = []
+    for ip_info in ipv4_info_list:
+        # 清洗出来所有带云区域带ip
+        plat_ip = "{}:{}".format(ip_info["host"].get("bk_cloud_id", -1), ip_info["host"].get("bk_host_innerip", ""))
+        if plat_ip in ipv4_list_with_cloud_id:
+            ip_v4_info_with_cloud_valid.append(ip_info)
+
+    # 再比较查询结果和输入结果数量是否一致
+    result = compare_ip_list(ip_v4_info_with_cloud_valid, ip_list, "bk_host_innerip")
+    if result:
+        return False, result
+    ip_result = []
+    for item in ip_v4_info_with_cloud_valid:
+        ip_result.append(
+            {
+                "InnerIP": item["host"]["bk_host_innerip"],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
+                "HostID": item["host"]["bk_host_id"],
+                "Source": item["host"].get("bk_cloud_id", -1),
+                "Sets": item["set"],
+                "Modules": item["module"],
+            }
+        )
+
+    return True, ip_result
+
+
+def get_host_info_list(username, biz_cc_id, supplier_account, host_id_list):
+    ip_result = []
     host_info_list = cmdb.get_business_host_topo(
         username=username,
         bk_biz_id=biz_cc_id,
@@ -133,7 +186,7 @@ def cc_get_ips_info_by_str_ipv6(username, biz_cc_id, ip_str, use_cache=True):
             "result": False,
             "ip_result": [],
             "ip_count": 0,
-            "invalid_ip": set(host_id_list) - set([host["host"]["bk_host_id"] for host in host_info_list]),
+            "invalid_ip": compare_ip_list(host_info_list, host_id_list, host_key="bk_host_id"),
         }
 
     # 默认使用bk_host_innerip地址
@@ -151,6 +204,34 @@ def cc_get_ips_info_by_str_ipv6(username, biz_cc_id, ip_str, use_cache=True):
                 "Modules": ip_info["module"],
             }
         )
+
+    return True, ip_result
+
+
+def cc_get_ips_info_by_str_ipv6(username, biz_cc_id, ip_str, use_cache=True):
+    ipv6_list, ipv4_list, host_id_list, ipv4_list_with_cloud_id = extract_ip_from_ip_str(ip_str)
+
+    supplier_account = supplier_account_for_business(biz_cc_id)
+
+    ipv6_result, ipv6_data = get_ipv6_info_list(username, biz_cc_id, supplier_account, ipv6_list)
+    if not ipv6_result:
+        return {"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": ipv6_data}
+
+    ipv4_result, ipv4_data = get_ipv4_info_list(username, biz_cc_id, supplier_account, ipv4_list)
+    if not ipv4_result:
+        return {"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": ipv4_data}
+
+    host_result, host_data = get_host_info_list(username, biz_cc_id, supplier_account, host_id_list)
+    if not host_result:
+        return {"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": host_data}
+
+    ipv4_with_cloud_id_result, ipv4_info_with_cloud_id_data = get_ipv4_info_list_with_cloud_id(
+        username, biz_cc_id, supplier_account, ipv4_list_with_cloud_id
+    )
+    if not ipv4_with_cloud_id_result:
+        return {"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": ipv4_with_cloud_id_result}
+
+    ip_result = ipv6_data + ipv4_data + host_data + ipv4_info_with_cloud_id_data
 
     return {
         "result": True,
