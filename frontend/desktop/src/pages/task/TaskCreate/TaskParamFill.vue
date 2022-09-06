@@ -282,7 +282,7 @@
                 this.queryCommonTplCreateTaskPerm()
             }
             bus.$on('tagRemoteLoaded', data => {
-                this.remoteData = { ...data }
+                this.remoteData = Object.assign(this.remoteData, data)
             })
             this.loadData()
         },
