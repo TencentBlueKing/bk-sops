@@ -53,14 +53,12 @@ class MockClient(object):
 GET_CLIENT_BY_USER = (
     "pipeline_plugins.components.collections.sites.open.cc.transfer_host_module.v1_0" ".get_client_by_user"
 )
-CC_GET_HOST_ID_BY_INNERIP = (
-    "pipeline_plugins.components.collections.sites.open.cc.transfer_host_module.v1_0" ".cc_get_host_id_by_innerip"
-)
+CC_GET_HOST_ID_BY_INNERIP = "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_id_by_innerip"
 CC_LIST_MATCH_NODE_INST_ID = (
     "pipeline_plugins.components.collections.sites.open.cc.transfer_host_module.v1_0" ".cc_list_match_node_inst_id"
 )
-CC_GET_CLIENT_BY_USER = 'pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user'
-GET_IP_BY_REGEX = "pipeline_plugins.components.collections.sites.open.cc.transfer_host_module.v1_0.get_ip_by_regex"
+CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user"
+
 
 COMMON_MAINLINE = {
     "result": True,
@@ -206,7 +204,6 @@ SELECT_BY_TEXT_SUCCESS_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_SUCCESS_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_SUCCESS_CLIENT),
-        Patcher(target=GET_IP_BY_REGEX, return_value=["1.1.1.1", "2.2.2.2"]),
         Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": True, "data": ["2", "3"]}),
     ],
 )
@@ -254,7 +251,6 @@ SELECT_BY_TOPO_SUCCESS_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TOPO_SUCCESS_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TOPO_SUCCESS_CLIENT),
-        Patcher(target=GET_IP_BY_REGEX, return_value=["1.1.1.1", "2.2.2.2"]),
         Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": True, "data": ["2", "3"]}),
     ],
 )
@@ -287,7 +283,6 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_PATH_FAIL_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_PATH_FAIL_CLIENT),
-        Patcher(target=GET_IP_BY_REGEX, return_value=["1.1.1.1", "2.2.2.2"]),
         Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": True, "data": ["2", "3"]}),
     ],
 )
@@ -320,7 +315,6 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CLIENT),
-        Patcher(target=GET_IP_BY_REGEX, return_value=["1.1.1.1", "2.2.2.2"]),
         Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={"result": True, "data": ["2", "3"]}),
     ],
 )
