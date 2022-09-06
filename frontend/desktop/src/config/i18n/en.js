@@ -1459,7 +1459,7 @@ const en = {
     '请求异常（外部系统错误或非法操作）': 'Request exception (external system error or illegal operation)',
     '请求异常（内部系统发生未知错误）': 'Request exception (an unknown error occurred in the internal system)',
     '计划执行': 'Planly',
-    '显示节点引用和输出的变量': 'Display variables for node references and outputs',
+    '⿏标移动到节点时展示引⽤和输出的变量': '⏏Display variables referenced and output when the mouse moves to a node',
     '再次执行': 'reExecute',
     '支持 "==、!=、>、>=、<、<=、in、notin" 等二元比较操作符和 "and、or、True/true、False/false" 等关键字语法,更多细节可参考': 'Support binary comparison operators such as "==, !=, >, >=, <, <=, in, notin" and keyword syntaxes such as "and, or, True/true, False/false", more details Can refer to',
     '操作符两侧的比较对象支持通过 ${key} 或${int(key)} 等方式引用全局变量。': 'The comparison objects on both sides of the operator support referencing global variables by means such as ${key} or ${int(key)}.',
