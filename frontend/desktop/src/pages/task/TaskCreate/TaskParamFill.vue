@@ -94,9 +94,9 @@
                     <span v-if="reuseTaskId" class="reuse-tip">
                         <bk-popover placement="top-start" theme="light" width="350" :ext-cls="'reuse-rule-tip'">
                             <i class="bk-icon icon-question-circle"></i>
-                            {{ $t('重用说明') }}
+                            {{ $t('参数复用说明') }}
                             <div slot="content">
-                                <p class="mb10">{{ $t('以下情况参数值无法重用，使用变量默认值：') }}</p>
+                                <p class="mb10">{{ $t('以下情况参数值无法复用，将使用全局变量的默认值：') }}</p>
                                 <p>{{ '1. ' + $t('变量的类型变更') }}</p>
                                 <p>{{ '2. ' + $t('变量默认值的字段增减') }}</p>
                                 <p>{{ '3. ' + $t('下拉框、表格类型变量的配置变更') }}</p>
