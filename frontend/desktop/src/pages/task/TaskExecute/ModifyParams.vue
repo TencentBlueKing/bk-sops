@@ -75,7 +75,7 @@
                 cntLoading: true, // 全局变量加载
                 configLoading: true, // 变量配置项加载
                 pending: false, // 提交修改中
-                remoteData: '' // 文本值下拉框变量远程数据源
+                remoteData: {} // 文本值下拉框变量远程数据源
             }
         },
         computed: {
@@ -94,8 +94,8 @@
             }
         },
         created () {
-            bus.$on('tagRemoteLoaded', data => {
-                this.remoteData = { ...data }
+            bus.$on('tagRemoteLoaded', (code, data) => {
+                this.remoteData[code] = data
             })
             this.getTaskData()
         },
