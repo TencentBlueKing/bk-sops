@@ -951,7 +951,7 @@
                         curRow.isSelectShow = false
                     })
                     this.$bkMessage({
-                        message: i18n.t('模板标签修改成功'),
+                        message: i18n.t('流程标签修改成功'),
                         theme: 'success'
                     })
                 } catch (error) {
