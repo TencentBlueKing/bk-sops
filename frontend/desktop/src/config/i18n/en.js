@@ -1413,7 +1413,7 @@ const en = {
     '标签新建成功': 'Label creates successful',
     '标签颜色': 'Label color',
     '新建标签': 'New label',
-    '模板标签修改成功': 'Template tag modified successfully',
+    '流程标签修改成功': 'Process tag modified successfully',
     '确认离开当前页面吗？': '确认离开Are you sure to leave the current page?当前页面吗？',
     '离开将会丢失未保存信息，建议保存后离开': 'If you leave, you will lose the unsaved information. It is recommended to save and leave.',
     '留在此页': 'Stay on this page',
