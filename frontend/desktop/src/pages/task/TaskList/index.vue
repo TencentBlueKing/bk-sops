@@ -99,14 +99,15 @@
                                             class="text-permission-disable task-operation-btn"
                                             data-test-id="taskList_table_reexecuteBtn"
                                             @click="onTaskPermissonCheck([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row)">
-                                            {{$t('再次执行')}}
+                                            {{$t('重新执⾏')}}
                                         </a>
                                         <a
                                             v-else
+                                            v-bk-tooltips.top="$t('复⽤参数值并使⽤流程最新数据重新执⾏')"
                                             class="task-operation-btn"
                                             data-test-id="taskList_table_reexecuteBtn"
                                             @click="getCreateTaskUrl(props.row)">
-                                            {{$t('再次执行')}}
+                                            {{$t('重新执⾏')}}
                                         </a>
                                     </div>
                                 </template>
