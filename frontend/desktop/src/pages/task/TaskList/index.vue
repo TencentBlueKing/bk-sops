@@ -92,7 +92,7 @@
                                 <template slot-scope="props">
                                     <div class="task-operation">
                                         <!-- 事后鉴权，后续对接新版权限中心 -->
-                                        <a v-if="props.row.template_deleted || props.row.template_source === 'onetime'" class="task-operation-btn disabled" data-test-id="taskList_table_reexecuteBtn">{{$t('再次执行')}}</a>
+                                        <a v-if="props.row.template_deleted || props.row.template_source === 'onetime'" class="task-operation-btn disabled" data-test-id="taskList_table_reexecuteBtn">{{$t('重新执⾏')}}</a>
                                         <a
                                             v-else-if="!hasCreateTaskPerm(props.row)"
                                             v-cursor
@@ -510,7 +510,7 @@
                 const { id, template_id, template_source } = task
                 const url = {
                     name: 'taskCreate',
-                    query: { template_id: template_id, task_id: id },
+                    query: { template_id: template_id, task_id: id, entrance: 'taskflow' },
                     params: { project_id: this.project_id, step: 'selectnode' }
                 }
                 if (template_source === 'common') {
