@@ -10,11 +10,15 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import datetime
 import json
 import logging
 
 from celery import task
+from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
+from pipeline.models import MAX_LEN_OF_NAME
 
 from gcloud.clocked_task.models import ClockedTask
 from gcloud.constants import CLOCKED_TASK_STARTED, CLOCKED_TASK_START_FAILED
@@ -52,9 +56,14 @@ def clocked_task_start(clocked_task_id, *args, **kwargs):
         logger.warning(f"[clocked_task_start] clocked task {clocked_task_id} not found, may be deleted.")
         return
     try:
+        project_tz = (
+            getattr(Project.objects.filter(id=clocked_task.project_id).first(), "time_zone") or settings.TIME_ZONE
+        )
+        time_stamp = datetime.datetime.now(tz=timezone.pytz.timezone(project_tz)).strftime("%Y%m%d%H%M%S")
+        task_name = f"{clocked_task.task_name}_{time_stamp}"[:MAX_LEN_OF_NAME]
         task_params = json.loads(clocked_task.task_params)
         pipeline_instance_kwargs = {
-            "name": clocked_task.task_name,
+            "name": task_name,
             "creator": clocked_task.creator,
             "description": task_params.get("description", ""),
         }
