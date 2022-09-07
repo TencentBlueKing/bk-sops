@@ -196,32 +196,31 @@
                 })
                 const type = template.category
                 // 有权限执行
-                const { project_id, template_id, app_id, name } = template.extra_info
+                const { project_id, template_id, name } = template.extra_info
                 switch (type) {
                     case 'common_flow':
                         this.openSelectCreateTask(template)
                         break
                     case 'flow':
                         this.$router.push({
-                            name: 'taskCreate',
-                            params: { step: 'selectnode', project_id },
-                            query: { template_id }
+                            name: 'taskExecute',
+                            params: { project_id },
+                            query: { instance_id: template_id }
                         })
                         break
                     case 'periodic_task':
                         this.$router.push({
                             name: 'periodicTemplate',
                             params: { project_id },
-                            query: { q: name } // q 表示筛选 Id 值
+                            query: { taskName: name }
                         })
                         break
                     case 'mini_app':
-                        const { href } = this.$router.resolve({
-                            name: 'appmakerTaskCreate',
-                            params: { step: 'selectnode', app_id, project_id },
-                            query: { template_id }
+                        this.$router.push({
+                            name: 'appMakerList',
+                            params: { project_id },
+                            query: { flowName: name }
                         })
-                        window.open(href, '_blank')
                 }
             },
             openSelectCreateTask (item) {
