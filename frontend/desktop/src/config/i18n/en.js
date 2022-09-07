@@ -1471,7 +1471,11 @@ const en = {
     '将流程的编排和执行进行角色分离，高阶人员负责编排流程，而日常执行这类简单任务交付给初级人员使用。这种交付模式称为“职能化”。': 'The roles of process choreography and execution are separated, and senior personnel are responsible for choreographing the process, while simple tasks such as daily execution are delivered to junior personnel. This delivery model is called "functionalization".',
     '未找到可用的插件或插件版本': 'No available plugin or plugin version found',
     '重选插件': 'Reselect plugin',
-    '复⽤参数值并使⽤流程最新数据重新执⾏': 'Reuse parameter values and re-execute using the latest data of the process'
+    '复⽤参数值并使⽤流程最新数据重新执⾏': 'Reuse parameter values and re-execute using the latest data of the process',
+    '输入参数可在填参页面自定义传值。非输入参数填参页面不显示，使用变量默认值': 'Input parameters can be custom passed values on the parameter filling page. The non-input parameter filling page is not displayed, use the default value of the variable',
+    '是否为输入参数': 'Is it an input parameter',
+    '当满足触发条件时，输入参数在填参页面将不显示。可实现不同条件下配置不同的输入参数': 'When the trigger conditions are met, the input parameters will not be displayed on the parameter filling page. Different input parameters can be configured under different conditions',
+    '输入参数条件隐藏': 'Input parameter condition hidden'
 }
 
 export default en

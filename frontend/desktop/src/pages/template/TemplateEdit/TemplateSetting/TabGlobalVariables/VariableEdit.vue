@@ -81,7 +81,9 @@
                 </div>
                 <!-- 显示/隐藏 -->
                 <div class="form-item clearfix" v-if="!isInternalVal">
-                    <label>{{ $t('执行时必填')}}</label>
+                    <label class="form-label ">
+                        <span v-bk-tooltips.top="$t('输入参数可在填参页面自定义传值。非输入参数填参页面不显示，使用变量默认值')" class="condition-tip">{{ $t('是否为输入参数')}}</span>
+                    </label>
                     <div class="form-content">
                         <bk-select
                             v-model="theEditingData.show_type"
@@ -100,7 +102,7 @@
                 <!-- 自动隐藏 -->
                 <div class="form-item clearfix" v-if="theEditingData.show_type === 'show' && !isInternalVal">
                     <label class="form-label ">
-                        <span v-bk-tooltips.top="$t('满足触发条件的变量，在任务执行填参页面将自动隐藏。可实现特定条件忽略必填参数')" class="condition-tip">{{ $t('条件隐藏')}}</span>
+                        <span v-bk-tooltips.top="$t('当满足触发条件时，输入参数在填参页面将不显示。可实现不同条件下配置不同的输入参数')" class="condition-tip">{{ $t('输入参数条件隐藏')}}</span>
                     </label>
                     <div class="form-content">
                         <bk-select
@@ -883,7 +885,7 @@
         label {
             position: relative;
             float: left;
-            width: 60px;
+            width: 100px;
             margin-top: 8px;
             font-size: 12px;
             color: #666666;
@@ -906,7 +908,7 @@
         }
     }
     .form-content {
-        margin-left: 80px;
+        margin-left: 120px;
         min-height: 36px;
         /deep/ {
             .bk-select {
@@ -941,7 +943,7 @@
         }
     }
     .trigger-condition {
-        margin-left: 80px;
+        margin-left: 120px;
         min-height: 36px;
         .condition-item {
             display: flex;
@@ -956,7 +958,7 @@
                 margin-right: 10px;
             }
             .variable-value {
-                width: 260px;
+                width: 240px;
                 margin-right: 10px;
             }
             .icon-operat {
