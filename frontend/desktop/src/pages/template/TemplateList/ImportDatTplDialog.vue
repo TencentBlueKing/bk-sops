@@ -26,6 +26,8 @@
                     accept=".dat"
                     url=""
                     :limit="1"
+                    :size="2"
+                    :tip="$t('支持DAT类型文件，文件小于2M')"
                     :custom-request="handleUpload">
                 </bk-upload>
             </div>
@@ -211,13 +213,6 @@
                 }
                 const fileInfo = file.fileObj.origin
                 if (fileInfo) {
-                    const filename = fileInfo.name
-                    const ext = filename.substr(filename.lastIndexOf('.') + 1)
-                    if (ext !== 'dat') {
-                        this.templateFileErrorExt = true
-                        this.file = null
-                        return
-                    }
                     this.file = fileInfo
                     this.uploaded = true
                     this.uploadCheck()
@@ -284,6 +279,10 @@
                 }
                 const file = e.target.files[0]
                 if (file) {
+                    if (file.size > 2 * 1024 * 1024) {
+                        this.$bkMessage({ message: i18n.t('上传失败，DAT类型文件最大为2M'), theme: 'error' })
+                        return
+                    }
                     const filename = file.name
                     const ext = filename.substr(filename.lastIndexOf('.') + 1)
                     if (ext !== 'dat') {
