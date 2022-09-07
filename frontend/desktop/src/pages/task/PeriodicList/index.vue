@@ -108,17 +108,6 @@
                                     <div v-else-if="item.id === 'cron'">
                                         <div :title="splitPeriodicCron(row.cron)">{{ splitPeriodicCron(row.cron) }}</div>
                                     </div>
-                                    <!--启动任务-->
-                                    <div v-else-if="item.id === 'periodic_status'" class="periodic-status">
-                                        <bk-switcher
-                                            :value="row.enabled"
-                                            v-cursor="{ active: !hasPermission(['periodic_task_edit'], row.auth_actions) }"
-                                            :disabled="!hasPermission(['periodic_task_edit'], row.auth_actions)"
-                                            data-test-id="periodicList_table_enableBtn"
-                                            theme="primary"
-                                            @change="onSetEnable(row, $event)">
-                                        </bk-switcher>
-                                    </div>
                                     <!-- 其他 -->
                                     <template v-else>
                                         <span :title="row[item.id] || '--'">{{ row[item.id] || '--' }}</span>
@@ -126,10 +115,20 @@
                                 </template>
                             </bk-table-column>
                         </template>
-                        <bk-table-column :label="$t('操作')" width="190" :fixed="periodicList.length ? 'right' : false">
+                        <bk-table-column :label="$t('操作')" width="220" :fixed="periodicList.length ? 'right' : false">
                             <template slot-scope="props">
                                 <div class="periodic-operation">
                                     <template v-if="!adminView">
+                                        <bk-switcher
+                                            :value="props.row.enabled"
+                                            v-bk-tooltips.top="props.row.enabled ? $t('暂停') : $t('启动')"
+                                            v-cursor="{ active: !hasPermission(['periodic_task_edit'], props.row.auth_actions) }"
+                                            :disabled="!hasPermission(['periodic_task_edit'], props.row.auth_actions)"
+                                            data-test-id="periodicList_table_enableBtn"
+                                            theme="primary"
+                                            size="small"
+                                            @change="onSetEnable(props.row, $event)">
+                                        </bk-switcher>
                                         <a
                                             v-cursor="{ active: !hasPermission(getEditPerm(props.row), props.row.auth_actions) }"
                                             href="javascript:void(0);"
@@ -315,10 +314,6 @@
         }, {
             id: 'total_run_count',
             label: i18n.t('运行次数'),
-            width: 100
-        }, {
-            id: 'periodic_status',
-            label: i18n.t('启动/暂停'),
             width: 100
         }
     ]
@@ -969,6 +964,9 @@
             color:#cccccc !important;
             cursor: not-allowed;
         }
+    }
+    .bk-switcher {
+        margin-right: 5px;
     }
     .icon-check-circle-shape {
         color: $greenDefault;
