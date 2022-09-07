@@ -14,11 +14,13 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from django.db import transaction
+from django.db.models import ExpressionWrapper, Q, BooleanField
 from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework.pagination import LimitOffsetPagination
 
+from gcloud.contrib.collection.models import Collection
 from gcloud.core.models import Project
 from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user, get_common_flow_allowed_actions_for_user
 from pipeline_web.parser.validator import validate_web_pipeline_tree
@@ -167,7 +169,19 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
         return serializer
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+        project_id = int(request.query_params["project__id"])
+        order_by = request.query_params.get("order_by") or "-id"
+        orderings = ("-is_collected", order_by)
+
+        collection_task_ids, collection_task_map = Collection.objects.get_user_project_collection_instance_info(
+            project_id=project_id, username=request.user.username, category="periodic_task"
+        )
+
+        queryset = (
+            self.filter_queryset(self.get_queryset())
+            .annotate(is_collected=ExpressionWrapper(Q(id__in=collection_task_ids), output_field=BooleanField()))
+            .order_by(*orderings)
+        )
         # 支持使用方配置不分页
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page if page else queryset, many=True)
@@ -195,6 +209,8 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
             view_action = IAMMeta.FLOW_VIEW_ACTION if tmpl_source == PROJECT else IAMMeta.COMMON_FLOW_VIEW_ACTION
             if tmpl_id in user_actions and user_actions[tmpl_id][view_action]:
                 inst["auth_actions"].append(view_action)
+            inst["is_collected"] = 1 if inst["id"] in collection_task_ids else 0
+            inst["collection_id"] = collection_task_map.get(inst["id"], -1)
         return self.get_paginated_response(instances) if page is not None else Response(instances)
 
     def create(self, request, *args, **kwargs):
