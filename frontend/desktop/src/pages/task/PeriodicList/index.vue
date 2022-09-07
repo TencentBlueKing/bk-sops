@@ -53,6 +53,18 @@
                                 <template slot-scope="{ row }">
                                     <!--任务-->
                                     <div v-if="item.id === 'name'" class="task-name">
+                                        <a
+                                            data-test-id="periodic_task_collectBtn"
+                                            v-cursor="{ active: !hasPermission(['periodic_task_edit'], row.auth_actions) }"
+                                            href="javascript:void(0);"
+                                            class="common-icon-favorite icon-favorite"
+                                            :class="{
+                                                'is-active': isCollected(row.id),
+                                                'disable': collectingId === row.id || collectListLoading,
+                                                'text-permission-disable': !hasPermission(['periodic_task_edit'], row.auth_actions)
+                                            }"
+                                            @click="onCollectTask(row)">
+                                        </a>
                                         <span class="name" :title="row.name">{{row.name || '--'}}</span>
                                         <span
                                             class="label"
@@ -133,6 +145,16 @@
                                             @click="onModifyCronPeriodic(props.row, $event)">
                                             {{ $t('编辑') }}
                                         </a>
+                                        <a
+                                            v-cursor="{ active: !hasPermission(['periodic_task_delete'], props.row.auth_actions) }"
+                                            href="javascript:void(0);"
+                                            :class="{
+                                                'text-permission-disable': !hasPermission(['periodic_task_delete'], props.row.auth_actions)
+                                            }"
+                                            data-test-id="periodicList_table_deleteBtn"
+                                            @click="onDeletePeriodic(props.row, $event)">
+                                            {{ $t('删除') }}
+                                        </a>
                                     </template>
                                     <a
                                         v-else
@@ -150,41 +172,6 @@
                                         }">
                                         {{ $t('执行历史') }}
                                     </router-link>
-                                    <bk-popover
-                                        theme="light"
-                                        placement="bottom-start"
-                                        ext-cls="common-dropdown-btn-popver"
-                                        :z-index="2000"
-                                        :distance="0"
-                                        :arrow="false"
-                                        :tippy-options="{ boundary: 'window', duration: [0, 0], hideOnClick: false }">
-                                        <i class="bk-icon icon-more drop-icon-ellipsis"></i>
-                                        <ul slot="content">
-                                            <li class="opt-btn" data-test-id="periodicList_table_collectBtn">
-                                                <a
-                                                    v-cursor="{ active: !hasPermission(['periodic_task_edit'], props.row.auth_actions) }"
-                                                    href="javascript:void(0);"
-                                                    :class="{
-                                                        'disable': props.row.id === collectingId || collectListLoading,
-                                                        'text-permission-disable': !hasPermission(['periodic_task_edit'], props.row.auth_actions)
-                                                    }"
-                                                    @click="onCollectTask(props.row, $event)">
-                                                    {{ isCollected(props.row.id) ? $t('取消收藏') : $t('收藏') }}
-                                                </a>
-                                            </li>
-                                            <li class="opt-btn" data-test-id="periodicList_table_deleteBtn">
-                                                <a
-                                                    v-cursor="{ active: !hasPermission(['periodic_task_delete'], props.row.auth_actions) }"
-                                                    href="javascript:void(0);"
-                                                    :class="{
-                                                        'text-permission-disable': !hasPermission(['periodic_task_delete'], props.row.auth_actions)
-                                                    }"
-                                                    @click="onDeletePeriodic(props.row, $event)">
-                                                    {{ $t('删除') }}
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </bk-popover>
                                 </div>
                             </template>
                         </bk-table-column>
@@ -909,6 +896,23 @@
     /deep/ .bk-table {
         td.is-last .cell {
             overflow: visible;
+        }
+    }
+    .bk-table-row.hover-row {
+        .icon-favorite {
+            display: block;
+        }
+    }
+    .icon-favorite {
+        position: absolute;
+        top: 14px;
+        left: -9px;
+        font-size: 14px;
+        color: #c4c6cc;
+        display: none;
+        &.is-active {
+            display: block;
+            color: #ff9c01;
         }
     }
     .task-name {
