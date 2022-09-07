@@ -279,8 +279,10 @@
             }
         }
         .btn-wrap {
+            position: relative;
             padding: 8px 20px;
             border-top: 1px solid #cacedb;
+            background: #fff;
         }
     }
 </style>
