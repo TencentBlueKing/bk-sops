@@ -216,7 +216,7 @@
                 },
                 notifyType: [[]],
                 receiverGroup: [],
-                remoteData: '', // 文本值下拉框变量远程数据源
+                remoteData: {}, // 文本值下拉框变量远程数据源
                 locTimeZone: '' // 本地时区后缀
             }
         },
@@ -281,8 +281,8 @@
             if (this.common) {
                 this.queryCommonTplCreateTaskPerm()
             }
-            bus.$on('tagRemoteLoaded', data => {
-                this.remoteData = { ...data }
+            bus.$on('tagRemoteLoaded', (code, data) => {
+                this.remoteData[code] = data
             })
             this.loadData()
         },
