@@ -59,8 +59,8 @@
                                             href="javascript:void(0);"
                                             class="common-icon-favorite icon-favorite"
                                             :class="{
-                                                'is-active': isCollected(row.id),
-                                                'disable': collectingId === row.id || collectListLoading,
+                                                'is-active': row.is_collected,
+                                                'disable': collectingId === row.id,
                                                 'text-permission-disable': !hasPermission(['periodic_task_edit'], row.auth_actions)
                                             }"
                                             @click="onCollectTask(row)">
@@ -385,8 +385,6 @@
                 selectedPeriodicId: undefined,
                 periodicList: [],
                 collectingId: '', // 正在被收藏/取消收藏的周期任务id
-                collectListLoading: false,
-                collectionList: [],
                 selectedCron: undefined,
                 constants: {},
                 modifyDialogLoading: false,
@@ -439,15 +437,13 @@
         async created () {
             this.getFields()
             this.getBizBaseInfo()
-            this.getCollectList()
             await this.getPeriodicList()
             this.firstLoading = false
         },
         methods: {
             ...mapActions([
                 'addToCollectList',
-                'deleteCollect',
-                'loadCollectList'
+                'deleteCollect'
             ]),
             ...mapActions('periodic/', [
                 'loadPeriodicList',
@@ -533,17 +529,6 @@
                     }, [])
                 }
                 this.setting.selectedFields = this.tableFields.slice(0).filter(m => selectedFields.includes(m.id))
-            },
-            async getCollectList () {
-                try {
-                    this.collectListLoading = true
-                    const res = await this.loadCollectList()
-                    this.collectionList = res.data
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.collectListLoading = false
-                }
             },
             getEditPerm (row) {
                 if (row.template_source === 'common') {
@@ -813,7 +798,7 @@
 
                 try {
                     this.collectingId = task.id
-                    if (!this.isCollected(task.id)) { // add
+                    if (!task.is_collected) { // add
                         const res = await this.addToCollectList([{
                             extra_info: {
                                 project_id: task.project.id,
@@ -829,21 +814,18 @@
                         if (res.data.length) {
                             this.$bkMessage({ message: i18n.t('添加收藏成功！'), theme: 'success' })
                         }
+                        task.collection_id = res.data[0].id
                     } else { // cancel
-                        const delId = this.collectionList.find(m => m.extra_info.id === task.id && m.category === 'periodic_task').id
-                        await this.deleteCollect(delId)
+                        await this.deleteCollect(task.collection_id)
                         this.$bkMessage({ message: i18n.t('取消收藏成功！'), theme: 'success' })
+                        task.collection_id = 0
                     }
-                    this.getCollectList()
+                    task.is_collected = task.is_collected ? 0 : 1
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.collectingId = ''
                 }
-            },
-            // 判断是否已在收藏列表
-            isCollected (id) {
-                return !!this.collectionList.find(m => m.extra_info.id === id && m.category === 'periodic_task')
             }
         }
     }

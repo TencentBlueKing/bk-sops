@@ -196,23 +196,23 @@
                 })
                 const type = template.category
                 // 有权限执行
-                const { project_id, template_id, name } = template.extra_info
+                const { project_id, id, name } = template.extra_info
                 switch (type) {
                     case 'common_flow':
                         this.openSelectCreateTask(template)
                         break
                     case 'flow':
                         this.$router.push({
-                            name: 'taskExecute',
+                            name: 'processHome',
                             params: { project_id },
-                            query: { instance_id: template_id }
+                            query: { template_id: id }
                         })
                         break
                     case 'periodic_task':
                         this.$router.push({
                             name: 'periodicTemplate',
                             params: { project_id },
-                            query: { taskName: name }
+                            query: { task_id: id }
                         })
                         break
                     case 'mini_app':
