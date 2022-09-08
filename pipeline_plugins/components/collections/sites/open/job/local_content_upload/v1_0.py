@@ -18,7 +18,9 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema, IntItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
-from pipeline_plugins.components.utils import cc_get_ips_info_by_str, get_job_instance_url, plat_ip_reg
+
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
+from pipeline_plugins.components.utils import get_job_instance_url, plat_ip_reg
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
@@ -30,7 +32,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class JobLocalContentUploadService(Service):
+class JobLocalContentUploadService(Service, GetJobTargetServerMixin):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(5)
 
@@ -115,6 +117,7 @@ class JobLocalContentUploadService(Service):
 
         original_ip_list = data.get_one_of_inputs("job_ip_list")
         across_biz = data.get_one_of_inputs("job_across_biz", False)
+        target_server = {"ip_list": []}
         if across_biz:
             ip_info = {"ip_result": []}
             for match in plat_ip_reg.finditer(original_ip_list):
@@ -123,14 +126,14 @@ class JobLocalContentUploadService(Service):
                 ip_str = match.group()
                 cloud_id, inner_ip = ip_str.split(":")
                 ip_info["ip_result"].append({"InnerIP": inner_ip, "Source": cloud_id})
+                ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
+                target_server = {"ip_list": ip_list}
         else:
-            ip_info = cc_get_ips_info_by_str(
-                username=executor,
-                biz_cc_id=biz_cc_id,
-                ip_str=original_ip_list,
-                use_cache=False,
+            result, target_server = self.get_target_server(
+                executor, biz_cc_id, data, original_ip_list, False, logger_handle=self.logger
             )
-        ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
+            if not result:
+                return False
 
         job_kwargs = {
             "bk_scope_type": JobBizScopeType.BIZ.value,
@@ -146,9 +149,7 @@ class JobLocalContentUploadService(Service):
                     ),
                 }
             ],
-            "target_server": {
-                "ip_list": ip_list,
-            },
+            "target_server": target_server,
         }
 
         job_result = client.jobv3.push_config_file(job_kwargs)

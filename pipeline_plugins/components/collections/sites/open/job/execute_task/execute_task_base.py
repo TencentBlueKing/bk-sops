@@ -25,11 +25,11 @@ from pipeline.core.flow.io import (
     BooleanItemSchema,
 )
 from pipeline_plugins.components.collections.sites.open.job import JobService
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.utils import (
     get_job_instance_url,
     get_node_callback_url,
     loose_strip,
-    get_biz_ip_from_frontend,
 )
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
@@ -41,7 +41,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class JobExecuteTaskServiceBase(JobService):
+class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
     """
     JobExecuteTaskServiceBase类是job.execute_task所有legacy与v1.0版本的父类;
     由于两个版本仅再前端处理逻辑上不同，所以两个版本的后端代码可以直接复用JobExecuteTaskServiceBase类
@@ -124,20 +124,20 @@ class JobExecuteTaskServiceBase(JobService):
             # category为3,表示变量类型为IP
             if _value["category"] == 3:
                 if biz_across:
-                    result, ip_list = get_biz_ip_from_frontend(
+                    result, server = self.get_target_server(
                         ip_str=val,
                         executor=executor,
                         biz_cc_id=biz_cc_id,
                         data=data,
-                        logger_handle=self.logger,
                         is_across=True,
+                        logger_handle=self.logger,
                         ip_is_exist=ip_is_exist,
                         ignore_ex_data=True,
                     )
 
                     # 匹配不到云区域IP格式IP，尝试从当前业务下获取
                     if not result:
-                        result, ip_list = get_biz_ip_from_frontend(
+                        result, server = self.get_target_server(
                             ip_str=val,
                             executor=executor,
                             biz_cc_id=biz_cc_id,
@@ -150,7 +150,7 @@ class JobExecuteTaskServiceBase(JobService):
                     if not result:
                         return False
                 else:
-                    result, ip_list = get_biz_ip_from_frontend(
+                    result, server = self.get_target_server(
                         ip_str=val,
                         executor=executor,
                         biz_cc_id=biz_cc_id,
@@ -162,8 +162,8 @@ class JobExecuteTaskServiceBase(JobService):
                     if not result:
                         return False
 
-                if ip_list:
-                    global_vars.append({"name": _value["name"], "server": {"ip_list": ip_list}})
+                if server:
+                    global_vars.append({"name": _value["name"], "server": server})
             else:
                 global_vars.append({"name": _value["name"], "value": val})
 

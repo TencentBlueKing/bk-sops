@@ -223,7 +223,12 @@ def get_job_tagged_ip_dict(
     result = client.jobv3.get_job_instance_status(kwargs)
 
     if not result["result"]:
-        message = handle_api_error(__group_name__, "jobv3.get_job_instance_status", kwargs, result,)
+        message = handle_api_error(
+            __group_name__,
+            "jobv3.get_job_instance_status",
+            kwargs,
+            result,
+        )
         service_logger.warning(message)
         return False, message
 
@@ -346,7 +351,9 @@ class JobService(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
+                        "jobv3.get_job_instance_global_var_value",
+                        get_var_kwargs,
+                        global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
@@ -570,7 +577,9 @@ class Jobv3Service(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
+                        "jobv3.get_job_instance_global_var_value",
+                        get_var_kwargs,
+                        global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
@@ -727,7 +736,12 @@ class GetJobHistoryResultMixin(object):
         job_result = client.jobv3.get_job_instance_status(job_kwargs)
 
         if not job_result["result"]:
-            message = handle_api_error(__group_name__, "jobv3.get_job_instance_status", job_kwargs, job_result,)
+            message = handle_api_error(
+                __group_name__,
+                "jobv3.get_job_instance_status",
+                job_kwargs,
+                job_result,
+            )
             self.logger.error(message)
             data.outputs.ex_data = message
             self.logger.info(data.outputs)
@@ -747,7 +761,10 @@ class GetJobHistoryResultMixin(object):
             return True
 
         get_job_sops_var_dict_return = get_job_sops_var_dict(
-            client, self.logger, job_success_id, data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+            client,
+            self.logger,
+            job_success_id,
+            data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
         )
         if not get_job_sops_var_dict_return["result"]:
             self.logger.error(
