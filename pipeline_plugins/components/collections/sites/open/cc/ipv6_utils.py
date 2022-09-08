@@ -25,7 +25,7 @@ def compare_ip_list(host_list, ip_list, host_key="bk_host_innerip"):
     return True, ""
 
 
-def check_ip_v6_cloud(ip_v4_host_with_cloud_list, plat_ip_list):
+def check_ip_v6_cloud(ip_v4_host_with_cloud_list):
     """
     检查cc查询结果中，是否有云区域+ip重复的主机
     @param ip_v4_host_with_cloud_list:
@@ -100,7 +100,7 @@ def get_ip_v4_host_with_cloud_list(executor, bk_biz_id, supplier_account, ipv4_l
             ),
         }
 
-    check_result = check_ip_v6_cloud(ip_v4_host_with_cloud_list, ip_list)
+    check_result = check_ip_v6_cloud(ip_v4_host_with_cloud_list)
     if check_result:
         return {
             "result": False,
