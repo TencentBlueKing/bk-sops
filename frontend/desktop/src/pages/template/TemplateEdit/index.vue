@@ -1182,7 +1182,7 @@
             async onShowNodeConfig (id) {
                 // 判断节点配置的插件是否存在
                 const nodeConfig = this.$store.state.template.activities[id]
-                if (nodeConfig.type === 'ServiceActivity' && nodeConfig.name) {
+                if (nodeConfig && nodeConfig.type === 'ServiceActivity' && nodeConfig.name) {
                     let atom = true
                     if (nodeConfig.component.code !== 'remote_plugin') {
                         atom = this.atomList.find(item => item.code === nodeConfig.component.code)
