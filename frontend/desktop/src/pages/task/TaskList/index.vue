@@ -141,7 +141,7 @@
     import task from '@/mixins/task.js'
     const SEARCH_LIST = [
         {
-            id: 'id',
+            id: 'task_id',
             name: 'ID'
         },
         {
