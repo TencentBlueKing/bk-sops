@@ -229,8 +229,8 @@ const template = {
             state.default_flow_type = default_flow_type
         },
         setSubprocessUpdated (state, subflow) {
-            if (state.subprocess_info.loadTemplateData) {
-                state.subprocess_info.loadTemplateData.some((item) => {
+            if (state.subprocess_info) {
+                state.subprocess_info.details.some((item) => {
                     if (subflow.subprocess_node_id === item.subprocess_node_id) {
                         item.expired = subflow.expired
                         if (subflow.version) {
