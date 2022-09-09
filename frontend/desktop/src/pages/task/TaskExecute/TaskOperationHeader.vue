@@ -198,6 +198,11 @@
                         name: 'auditHome'
                     })
                 }
+                // 当任务执行页由创建任务路由过来时，应该返回到任务列表页
+                const isFromCreate = this.$route.query.from === 'create'
+                if (!isFromCreate && this.$route.name === 'taskExecute' && window.history.length > 2) {
+                    return this.$router.back()
+                }
                 this.$router.push({
                     name: 'taskList',
                     params: { project_id: this.project_id }
