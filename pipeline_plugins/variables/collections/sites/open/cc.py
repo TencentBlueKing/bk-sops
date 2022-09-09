@@ -130,7 +130,7 @@ class VarCmdbIpSelector(LazyVariable, SelfExplainVariable):
         ip_result = get_ip_picker_result(username, bk_biz_id, bk_supplier_account, ip_selector)
         if not ip_result["result"]:
             logger.error(f"[ip_selector get_value] error: {ip_result}")
-            raise Exception(f'ERROR: {ip_result["message"]}')
+            raise Exception(f'ERROR: {ip_result["message"]}, ip_selector_key: {self.original_value.key}')
         separator = self.value.get("separator", ",")
 
         # get for old value compatible
@@ -215,7 +215,9 @@ class VarCmdbSetAllocation(LazyVariable, SelfExplainVariable):
             FieldExplain(key="${KEY._module}", type=Type.LIST, description="集群下的模块信息列表，元素类型为字典，键为模块名，值为模块下的主机列"),
             FieldExplain(key="${KEY.flat__ip_list}", type=Type.STRING, description="本次操作创建的所有集群下的主机（去重后），用 ',' 连接"),
             FieldExplain(
-                key="${KEY.flat__verbose_ip_list}", type=Type.STRING, description="返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接",
+                key="${KEY.flat__verbose_ip_list}",
+                type=Type.STRING,
+                description="返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接",
             ),
             FieldExplain(
                 key="${KEY.flat__verbose_ip_module_list}",
