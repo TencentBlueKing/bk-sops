@@ -890,6 +890,7 @@
                 if (isGatewayNode) {
                     nodeConfig = gateways[node.id]
                 }
+                this.showShortcutPanel = false
                 this.$refs.jsFlow.removeNode(node)
                 this.$emit('templateDataChanged')
                 this.$emit('onLocationChange', 'delete', node)
@@ -902,9 +903,9 @@
                 // 被删除的节点只存在一条输入连线和输出连线时才允许自动连线
                 const { incoming, outgoing } = nodeConfig
                 if (
-                    !['startpoint', 'endpoint'].includes(node.type)
+                    (!['startpoint', 'endpoint'].includes(node.type))
                     && incoming.length === 1
-                    && Array.isArray(outgoing) ? outgoing.length === 1 : outgoing) {
+                    && (Array.isArray(outgoing) ? outgoing.length === 1 : outgoing)) {
                     let { source } = lines.find(item => item.id === incoming[0])
                     const outlinesId = Array.isArray(outgoing) ? outgoing[0] : outgoing
                     let { target } = lines.find(item => item.id === outlinesId)
@@ -1347,6 +1348,7 @@
                             left = x + offsetX + NODES_SIZE_POSITION.GATEWAY_SIZE[0] / 2 + 80
                             top = y + offsetY + NODES_SIZE_POSITION.GATEWAY_SIZE[1] + 10
                     }
+                    this.shortcutPanelDeleteLine = false
                 } else {
                     const wrapGap = dom.getElementScrollCoords(this.$refs.jsFlow.$el)
                     const { pageX, pageY } = e
@@ -1377,6 +1379,10 @@
                 this.$emit('onLocationChange', type, location)
                 this.$emit('onLineChange', 'add', line)
                 this.$nextTick(() => {
+                    // 添加网关节点时禁止对该节点操作
+                    if (location.type.includes('gateway') > -1) {
+                        this.shortcutPanelNodeOperate = false
+                    }
                     this.$refs.jsFlow.createConnector(line)
                     this.activeNode = location
                     this.openShortcutPanel('node')
@@ -1423,6 +1429,10 @@
                 this.$emit('onLineChange', 'add', startLine)
                 this.$emit('onLineChange', 'add', endLine)
                 this.$nextTick(() => {
+                    // 添加网关节点时禁止对该节点操作
+                    if (location.type.includes('gateway') > -1) {
+                        this.shortcutPanelNodeOperate = false
+                    }
                     this.$refs.jsFlow.createConnector(startLine)
                     this.$refs.jsFlow.createConnector(endLine)
                     this.activeNode = location
@@ -1572,6 +1582,7 @@
                     const { pageX, pageY } = e
                     const nodeId = this.activeCon.sourceId
                     this.activeNode = this.canvasData.locations.find(item => item.id === nodeId)
+                    this.shortcutPanelNodeOperate = false
                     this.shortcutPanelDeleteLine = true
                     const left = pageX - wrapGap.x + 10
                     const top = pageY - wrapGap.y - 50
