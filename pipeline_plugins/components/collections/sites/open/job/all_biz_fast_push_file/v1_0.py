@@ -18,14 +18,16 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
+
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.utils.common import batch_execute_func
 from pipeline_plugins.components.utils import get_job_instance_url, loose_strip, has_biz_set
 from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
-from gcloud.utils.ip import get_ip_by_regex
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -34,8 +36,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class AllBizJobFastPushFileService(JobScheduleService):
-
+class AllBizJobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
     biz_scope_type = JobBizScopeType.BIZ_SET.value
 
     def inputs_format(self):
@@ -105,6 +106,9 @@ class AllBizJobFastPushFileService(JobScheduleService):
             return result
         return {"result": False}
 
+    def get_server(self):
+        pass
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
@@ -116,24 +120,26 @@ class AllBizJobFastPushFileService(JobScheduleService):
         upload_speed_limit = data.get_one_of_inputs("upload_speed_limit")
         download_speed_limit = data.get_one_of_inputs("download_speed_limit")
         job_timeout = data.get_one_of_inputs("job_timeout")
+        supplier_account = supplier_account_for_business(biz_cc_id)
 
         if not has_biz_set(int(biz_cc_id)):
             self.biz_scope_type = JobBizScopeType.BIZ.value
 
-        file_source = [
-            {
-                "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
-                "server": {
-                    "ip_list": [
-                        {"ip": item["ip"], "bk_cloud_id": int(item["bk_cloud_id"]) if item["bk_cloud_id"] else 0}
-                    ],
-                },
-                "account": {
-                    "alias": loose_strip(item["account"]),
-                },
-            }
-            for item in data.get_one_of_inputs("job_source_files", [])
-        ]
+        file_source = []
+        for item in data.get_one_of_inputs("job_source_files", []):
+            result, server = self.get_target_server_biz_set(executor, [item], supplier_account)
+            if not result:
+                return False
+
+            file_source.append(
+                {
+                    "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
+                    "server": server,
+                    "account": {
+                        "alias": loose_strip(item["account"]),
+                    },
+                }
+            )
 
         # 拼装参数列表
         params_list = []
@@ -141,18 +147,18 @@ class AllBizJobFastPushFileService(JobScheduleService):
             for attr in data.get_one_of_inputs("job_dispatch_attr"):
                 job_account = attr["job_target_account"]
                 job_target_path = attr["job_target_path"]
-                ip_list = [
-                    {"ip": _ip, "bk_cloud_id": int(attr["bk_cloud_id"]) if attr["bk_cloud_id"] else 0}
-                    for _ip in get_ip_by_regex(attr["job_ip_list"])
-                ]
+                result, target_server = self.get_target_server_biz_set(
+                    executor, [attr], supplier_account, ip_key="job_ip_list"
+                )
+                # ipv4只要不是ip格式有误,result恒定为True
+                if not result:
+                    return False
                 job_kwargs = {
                     "bk_scope_type": self.biz_scope_type,
                     "bk_scope_id": str(biz_cc_id),
                     "bk_biz_id": biz_cc_id,
                     "file_source_list": [source],
-                    "target_server": {
-                        "ip_list": ip_list,
-                    },
+                    "target_server": target_server,
                     "account_alias": job_account,
                     "file_target_path": job_target_path,
                 }

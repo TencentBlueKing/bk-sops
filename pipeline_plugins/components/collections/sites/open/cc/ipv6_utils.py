@@ -47,19 +47,28 @@ def check_ip_v6_cloud(ip_v4_host_with_cloud_list):
 
 
 # 查询所有ip_v6的主机
-def get_ip_v6_host_list(executor, bk_biz_id, supplier_account, ipv6_list):
+def get_ip_v6_host_list(executor, bk_biz_id, supplier_account, ipv6_list, is_biz_set=False):
     ip_v6_host_list = []
     if not ipv6_list:
         return {"result": True, "data": ip_v6_host_list}
 
-    # 去查询ip_v6 相关的主机信息
-    ip_v6_host_list = cmdb.get_business_host_ipv6(
-        executor,
-        bk_biz_id,
-        supplier_account,
-        ["bk_host_id", "bk_host_innerip_v6", "bk_cloud_id"],
-        ipv6_list,
-    )
+    if is_biz_set:
+        # 去查询ip_v6 相关的主机信息
+        ip_v6_host_list = cmdb.get_business_set_host_ipv6(
+            executor,
+            supplier_account,
+            ["bk_host_id", "bk_host_innerip_v6", "bk_cloud_id"],
+            ipv6_list,
+        )
+    else:
+        # 去查询ip_v6 相关的主机信息
+        ip_v6_host_list = cmdb.get_business_host_ipv6(
+            executor,
+            bk_biz_id,
+            supplier_account,
+            ["bk_host_id", "bk_host_innerip_v6", "bk_cloud_id"],
+            ipv6_list,
+        )
     if not ip_v6_host_list:
         logger.info(
             "[cc_get_host_by_innerip_with_ipv6] list_biz_hosts[ipv6] query failed, return empty list, "
@@ -80,18 +89,25 @@ def get_ip_v6_host_list(executor, bk_biz_id, supplier_account, ipv6_list):
 
 
 # 查询所有ip_v4带云区域带主机，并选出指定的ip，如果ip+cloud_id重复，则报错
-def get_ip_v4_host_with_cloud_list(executor, bk_biz_id, supplier_account, ipv4_list_with_cloud_id):
+def get_ip_v4_host_with_cloud_list(executor, bk_biz_id, supplier_account, ipv4_list_with_cloud_id, is_biz_set=False):
     ip_v4_host_with_cloud_valid = []
     if not ipv4_list_with_cloud_id:
         return {"result": True, "data": ip_v4_host_with_cloud_valid}
     ip_list = [_ip.split(":")[1] for _ip in ipv4_list_with_cloud_id]
-    ip_v4_host_with_cloud_list = cmdb.get_business_host(
-        executor, bk_biz_id, supplier_account, ["bk_host_id", "bk_host_innerip", "bk_cloud_id"], ip_list
-    )
+
+    if is_biz_set:
+        ip_v4_host_with_cloud_list = cmdb.get_business_set_host(
+            executor, supplier_account, ["bk_host_id", "bk_host_innerip", "bk_cloud_id"], ip_list
+        )
+    else:
+        ip_v4_host_with_cloud_list = cmdb.get_business_host(
+            executor, bk_biz_id, supplier_account, ["bk_host_id", "bk_host_innerip", "bk_cloud_id"], ip_list
+        )
+
     if not ip_v4_host_with_cloud_list:
         logger.info(
             "[cc_get_host_by_innerip_with_ipv6] list_biz_hosts[ipv4] query failed, return empty list, "
-            "ipv6_list = {}".format(ipv4_list_with_cloud_id.values())
+            "ipv6_list = {}".format(ipv4_list_with_cloud_id)
         )
         return {
             "result": False,
@@ -129,16 +145,27 @@ def get_ip_v4_host_with_cloud_list(executor, bk_biz_id, supplier_account, ipv4_l
 
 
 # 查询所有ip_v4 不带云区域带主机，结果重复则返回False
-def get_ip_v4_host_list(executor, bk_biz_id, supplier_account, ipv4_list):
+def get_ip_v4_host_list(executor, bk_biz_id, supplier_account, ipv4_list, is_biz_set=False):
     ip_v4_host_list = []
     if not ipv4_list:
         return {"result": True, "data": ip_v4_host_list}
-    ip_v4_host_list = cmdb.get_business_host(
-        executor, bk_biz_id, supplier_account, ["bk_host_id", "bk_host_innerip", "bk_cloud_id"], ipv4_list
-    )
+
+    if is_biz_set:
+        ip_v4_host_list = cmdb.get_business_set_host(
+            executor,
+            supplier_account,
+            ["bk_host_id", "bk_host_innerip", "bk_cloud_id"],
+            ipv4_list,
+        )
+    else:
+        ip_v4_host_list = cmdb.get_business_host(
+            executor, bk_biz_id, supplier_account, ["bk_host_id", "bk_host_innerip", "bk_cloud_id"], ipv4_list
+        )
+
     if not ip_v4_host_list:
         logger.info(
-            "[cc_get_host_by_innerip_with_ipv6] list_biz_hosts[ipv4] query failed, return empty list, "
+            "[cc_get_host_by_innerip"
+            "_with_ipv6] list_biz_hosts[ipv4] query failed, return empty list, "
             "ipv6_list = {}".format(ipv4_list)
         )
         return {
