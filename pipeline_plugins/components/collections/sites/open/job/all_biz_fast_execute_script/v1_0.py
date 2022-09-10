@@ -35,10 +35,10 @@ from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud.constants import JobBizScopeType
-from gcloud.utils.ip import get_ip_by_regex
 from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema, IntItemSchema, ArrayItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
-from pipeline_plugins.components.collections.sites.open.job import JobService
+from pipeline_plugins.components.collections.sites.open.job import JobService, supplier_account_for_business
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, has_biz_set
 
 from gcloud.conf import settings
@@ -51,7 +51,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class AllBizJobFastExecuteScriptService(JobService):
+class AllBizJobFastExecuteScriptService(JobService, GetJobTargetServerMixin):
     need_get_sops_var = True
 
     biz_scope_type = JobBizScopeType.BIZ_SET.value
@@ -165,21 +165,18 @@ class AllBizJobFastExecuteScriptService(JobService):
         if not has_biz_set(int(biz_cc_id)):
             self.biz_scope_type = JobBizScopeType.BIZ.value
 
-        # 拼装ip_list， bk_cloud_id为空则值为0
-        ip_list = [
-            {"ip": ip, "bk_cloud_id": int(_ip["bk_cloud_id"]) if str(_ip["bk_cloud_id"]) else 0}
-            for _ip in ip_info
-            for ip in get_ip_by_regex(_ip["ip"])
-        ]
+        supplier_account = supplier_account_for_business(biz_cc_id)
+
+        result, target_server = self.get_target_server_biz_set(executor, ip_info, supplier_account)
+        if not result:
+            return False
 
         job_kwargs = {
             "bk_scope_type": self.biz_scope_type,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
             "account_alias": data.get_one_of_inputs("job_target_account"),
-            "target_server": {
-                "ip_list": ip_list,
-            },
+            "target_server": target_server,
             "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
 

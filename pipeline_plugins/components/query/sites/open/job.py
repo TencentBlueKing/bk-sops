@@ -363,12 +363,15 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
         if var["type"] in JOBV3_VAR_CATEGORY_GLOBAL_VARS:
             value = var.get("value", "")
         elif var["type"] == JOBV3_VAR_CATEGORY_IP:
-            value = ",".join(
-                [
-                    "{plat_id}:{ip}".format(plat_id=ip_item["bk_cloud_id"], ip=ip_item["ip"])
-                    for ip_item in var.get("server", {}).get("ip_list") or []
-                ]
-            )
+            if settings.OPEN_IP_V6:
+                value = ",".join([str(ip_item["bk_host_id"]) for ip_item in var.get("server", {}).get("ip_list") or []])
+            else:
+                value = ",".join(
+                    [
+                        "{plat_id}:{ip}".format(plat_id=ip_item["bk_cloud_id"], ip=ip_item["ip"])
+                        for ip_item in var.get("server", {}).get("ip_list") or []
+                    ]
+                )
         else:
             message = "unknow type var: {}".format(var)
             logger.error(message)

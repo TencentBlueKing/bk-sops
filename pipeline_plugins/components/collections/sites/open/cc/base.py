@@ -125,18 +125,22 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
     return {"result": True, "data": [str(host["bk_host_id"]) for host in host_list]}
 
 
-def cc_get_host_by_innerip_with_ipv6(executor, bk_biz_id, ip_str, supplier_account):
+def cc_get_host_by_innerip_with_ipv6(executor, bk_biz_id, ip_str, supplier_account, is_biz_set=False):
     ipv6_list, ipv4_list, host_id_list, ipv4_list_with_cloud_id = extract_ip_from_ip_str(ip_str)
-    ip_v6_host_list_result = get_ip_v6_host_list(executor, bk_biz_id, supplier_account, ipv6_list)
+    ip_v6_host_list_result = get_ip_v6_host_list(
+        executor, bk_biz_id, supplier_account, ipv6_list, is_biz_set=is_biz_set
+    )
     if not ip_v6_host_list_result["result"]:
         return ip_v6_host_list_result
 
-    ip_v4_host_list_result = get_ip_v4_host_list(executor, bk_biz_id, supplier_account, ipv4_list)
+    ip_v4_host_list_result = get_ip_v4_host_list(
+        executor, bk_biz_id, supplier_account, ipv4_list, is_biz_set=is_biz_set
+    )
     if not ip_v4_host_list_result["result"]:
         return ip_v4_host_list_result
 
     ip_v4_host_with_cloud_list_result = get_ip_v4_host_with_cloud_list(
-        executor, bk_biz_id, supplier_account, ipv4_list_with_cloud_id
+        executor, bk_biz_id, supplier_account, ipv4_list_with_cloud_id, is_biz_set=is_biz_set
     )
 
     if not ip_v4_host_with_cloud_list_result["result"]:
