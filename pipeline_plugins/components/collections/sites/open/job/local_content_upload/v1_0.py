@@ -132,6 +132,7 @@ class JobLocalContentUploadService(Service, GetJobTargetServerMixin):
             result, target_server = self.get_target_server(
                 executor, biz_cc_id, data, original_ip_list, False, logger_handle=self.logger
             )
+
             if not result:
                 return False
 

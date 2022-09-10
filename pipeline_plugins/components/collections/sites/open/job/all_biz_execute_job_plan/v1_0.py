@@ -182,7 +182,6 @@ class AllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
             "global_var_list": global_var_list,
             "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
-
         job_result = client.jobv3.execute_job_plan(job_kwargs)
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:
