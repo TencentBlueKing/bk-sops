@@ -27,22 +27,24 @@ BKAPP_NODEMAN_SUPPORT_TJJ = os.environ.get("BKAPP_NODEMAN_SUPPORT_TJJ", "False")
 
 
 def nodeman_get_cloud_area(request):
-    client = BKNodeManClient(username=request.user.username)
-    cloud_area_result = client.cloud_list()
-    if not cloud_area_result["result"]:
-        message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.cloud_list", {}, cloud_area_result)
-        logger.error(message)
-        check_and_raise_raw_auth_fail_exception(cloud_area_result, message)
-        return JsonResponse(
-            {"result": cloud_area_result["result"], "code": cloud_area_result.get("code", "-1"), "message": message}
-        )
+    # client = BKNodeManClient(username=request.user.username)
+    # cloud_area_result = client.cloud_list()
+    # if not cloud_area_result["result"]:
+    #     message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.cloud_list", {}, cloud_area_result)
+    #     logger.error(message)
+    #     check_and_raise_raw_auth_fail_exception(cloud_area_result, message)
+    #     return JsonResponse(
+    #         {"result": cloud_area_result["result"], "code": cloud_area_result.get("code", "-1"), "message": message}
+    #     )
+    #
+    # data = cloud_area_result["data"]
 
-    data = cloud_area_result["data"]
+    data = [{"bk_cloud_name": "直连区域", "bk_cloud_id": 0}]
 
     result = [{"text": cloud["bk_cloud_name"], "value": cloud["bk_cloud_id"]} for cloud in data]
 
-    cloud_area_result["data"] = result
-    return JsonResponse(cloud_area_result)
+    # cloud_area_result["data"] = result
+    return JsonResponse({"result": True, "data": result})
 
 
 def nodeman_get_ap_list(request):
@@ -63,23 +65,25 @@ def nodeman_get_ap_list(request):
 
 def nodeman_get_plugin_list(request, category):
     """获取插件列表"""
-    client = BKNodeManClient(username=request.user.username)
-    plugin_list = client.plugin_process(category)
+    # client = BKNodeManClient(username=request.user.username)
+    # plugin_list = client.plugin_process(category)
+    #
+    # if not plugin_list["result"]:
+    #     message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.plugin_process", {}, plugin_list)
+    #     logger.error(message)
+    #     check_and_raise_raw_auth_fail_exception(plugin_list, message)
+    #     return JsonResponse(
+    #         {"result": plugin_list["result"], "code": plugin_list.get("code", "-1"), "message": message}
+    #     )
+    #
+    # data = plugin_list["data"]
 
-    if not plugin_list["result"]:
-        message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.plugin_process", {}, plugin_list)
-        logger.error(message)
-        check_and_raise_raw_auth_fail_exception(plugin_list, message)
-        return JsonResponse(
-            {"result": plugin_list["result"], "code": plugin_list.get("code", "-1"), "message": message}
-        )
+    # result = [{"text": ap["name"], "value": ap["name"]} for ap in data]
 
-    data = plugin_list["data"]
-
+    data = [{"name": "直连区域"}]
     result = [{"text": ap["name"], "value": ap["name"]} for ap in data]
-
-    plugin_list["data"] = result
-    return JsonResponse(plugin_list)
+    # plugin_list["data"] = result
+    return JsonResponse({"result": True, "data": result})
 
 
 def nodeman_get_plugin_version(request, plugin, os_type):
