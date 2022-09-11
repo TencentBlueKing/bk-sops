@@ -280,23 +280,18 @@
         },
         {
             tag_code: "job_rolling_execute",
-            type: "radio",
+            type: "checkbox",
             attrs: {
                 name: gettext("滚动执行"),
                 hookable: true,
                 items: [
-                    {value: false, name: gettext("否")},
-                    {value: true, name: gettext("是")},
+                    {name: gettext("滚动执行"), value: "1"},
                 ],
                 default: false,
-                validation: [
-                    {
-                        type: "required"
-                    }
-                ]
+                validation: []
             }
         },
-         {
+        {
             tag_code: "job_rolling_expression",
             type: "input",
             attrs: {
@@ -315,7 +310,7 @@
                             if (!self.get_parent) {
                                 return result
                             } else if (self.get_parent().get_child('job_rolling_execute')) {
-                                if (self.get_parent().get_child('job_rolling_execute').value && !value.toString()) {
+                                if (self.get_parent().get_child('job_rolling_execute').value.includes("1") && !value.toString()) {
                                     result.result = false;
                                     result.error_message = gettext("滚动执行开启时滚动策略为必填项");
                                 }
@@ -331,8 +326,7 @@
                     type: "change",
                     action: function (value) {
                         var self = this
-                        console.log(value);
-                        if (value) {
+                        if (value.includes("1")) {
                             self.show()
                         } else {
                             self.hide()
@@ -344,7 +338,7 @@
                     type: "init",
                     action: function () {
                         const job_rolling_execute = this.get_parent && this.get_parent().get_child('job_rolling_execute')._get_value();
-                        if (job_rolling_execute) {
+                        if (job_rolling_execute.includes("1")) {
                             this.show()
                         } else {
                             this.hide()
@@ -372,7 +366,7 @@
                             if (!self.get_parent) {
                                 return result
                             } else if (self.get_parent().get_child('job_rolling_execute')) {
-                                if (self.get_parent().get_child('job_rolling_execute').value && !value.toString()) {
+                                if (self.get_parent().get_child('job_rolling_execute').value.includes("1") && !value.toString()) {
                                     result.result = false;
                                     result.error_message = gettext("滚动执行开启时滚动机制为必填项");
                                 }
@@ -393,7 +387,7 @@
                     type: "change",
                     action: function (value) {
                         var self = this
-                        if (value) {
+                        if (value.includes("1")) {
                             self.show()
                         } else {
                             self.hide()
@@ -405,7 +399,7 @@
                     type: "init",
                     action: function () {
                         const job_rolling_execute = this.get_parent && this.get_parent().get_child('job_rolling_execute')._get_value();
-                        if (job_rolling_execute) {
+                        if (job_rolling_execute.includes("1")) {
                             this.show()
                         } else {
                             this.hide()

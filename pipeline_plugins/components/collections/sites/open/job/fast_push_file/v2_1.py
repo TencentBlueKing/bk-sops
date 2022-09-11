@@ -127,7 +127,7 @@ class JobFastPushFileService(JobScheduleService):
         upload_speed_limit = data.get_one_of_inputs("upload_speed_limit")
         download_speed_limit = data.get_one_of_inputs("download_speed_limit")
         job_timeout = data.get_one_of_inputs("job_timeout")
-        job_rolling_execute = data.get_one_of_inputs("job_rolling_execute", False)
+        job_rolling_execute = data.get_one_of_inputs("job_rolling_execute", [])
 
         file_source = []
         for item in original_source_files:
