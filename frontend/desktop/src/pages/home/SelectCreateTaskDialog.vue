@@ -21,26 +21,8 @@
         :auto-close="false"
         @cancel="onCancel">
         <div class="task-create-container" v-bkloading="{ isLoading: loadingStatus.taskContainer, opacity: 1, zIndex: 100 }">
-            <bk-form :model="formData" :rules="rules" ref="taskCreateForm">
-                <bk-form-item :label="$t('任务类型')" :required="true" :property="'taskType'">
-                    <bk-select
-                        class="bk-select-inline"
-                        v-model="formData.taskType"
-                        :loading="loadingStatus.taskType"
-                        :popover-width="260"
-                        :clearable="false"
-                        :placeholder="$t('请选择任务类型')"
-                        @change="checkPermission">
-                        <bk-option
-                            v-for="option in taskTypeList"
-                            :key="option.value"
-                            :id="option.value"
-                            :name="option.name">
-                        </bk-option>
-                    </bk-select>
-                    <div v-show="isShowtaskError" class="error-info">{{ $t('请选择任务类型') }}</div>
-                </bk-form-item>
-                <bk-form-item :label="$t('项目名称')" :required="true" :property="'selectedProject'">
+            <bk-form :model="formData" ref="taskCreateForm">
+                <bk-form-item :label="$t('选择项目')" :property="'selectedProject'">
                     <bk-select
                         class="bk-select-inline"
                         v-model="formData.selectedProject"
@@ -48,7 +30,7 @@
                         :popover-width="260"
                         :clearable="false"
                         :searchable="true"
-                        :placeholder="$t('请选择项目')"
+                        :placeholder="$t('请选择')"
                         @change="checkPermission">
                         <bk-option
                             v-for="option in projectList"
@@ -75,7 +57,6 @@
     </bk-dialog>
 </template>
 <script>
-    import i18n from '@/config/i18n/index.js'
     import permission from '@/mixins/permission.js'
     import { mapState, mapActions } from 'vuex'
     export default {
@@ -90,31 +71,12 @@
         data () {
             return {
                 loadingStatus: {
-                    taskType: false,
                     project: false,
                     taskContainer: false
                 },
-                taskTypeList: [
-                    { name: i18n.t('普通任务'), value: 'taskflow' },
-                    { name: i18n.t('周期任务'), value: 'periodic' }
-                ],
-                rules: {
-                    taskType: [{
-                        required: true,
-                        message: '必填项',
-                        trigger: 'blur'
-                    }],
-                    selectedProject: [{
-                        required: true,
-                        message: '必填项',
-                        trigger: 'blur'
-                    }]
-                },
                 formData: {
-                    taskType: '',
                     selectedProject: ''
                 },
-                isShowtaskError: false,
                 isShowProjectError: false,
                 permissionLoading: false,
                 hasUseCommonTplPerm: true // 公共流程创建普通任务、周期任务权限
@@ -128,15 +90,13 @@
                 projectList: state => state.userProjectList
             }),
             createTaskPerm () {
-                return this.formData.taskType === 'taskflow' ? ['common_flow_create_task'] : ['common_flow_create_periodic_task']
+                return ['common_flow_create_task']
             }
         },
         watch: {
             isCreateTaskDialogShow (val) {
                 if (val) {
-                    this.formData.taskType = ''
                     this.formData.selectedProject = ''
-                    this.isShowtaskError = false
                     this.isShowProjectError = false
                     this.hasUseCommonTplPerm = true
                 }
@@ -160,28 +120,26 @@
                     this.applyUseCommonPerm()
                     return
                 }
-                const entrance = this.formData.taskType === 'periodic' ? 'periodicTask' : undefined
                 this.$router.push({
                     name: 'taskCreate',
                     params: { project_id: this.formData.selectedProject, step: 'selectnode' },
-                    query: { template_id: templateId, common: '1', entrance }
+                    query: { template_id: templateId, common: '1' }
                 })
             },
             onCancel () {
                 this.$emit('cancel')
             },
             checkEmpty () {
-                this.isShowtaskError = !this.formData.taskType
                 this.isShowProjectError = !this.formData.selectedProject
-                if (!this.formData.taskType || !this.formData.selectedProject) {
+                if (!this.formData.selectedProject) {
                     return false
                 }
                 return true
             },
             async checkPermission () {
                 this.checkEmpty()
-                const { taskType, selectedProject } = this.formData
-                if (taskType && selectedProject) {
+                const { selectedProject } = this.formData
+                if (selectedProject) {
                     try {
                         this.permissionLoading = true
                         const bkSops = this.permissionMeta.system.find(item => item.id === 'bk_sops')

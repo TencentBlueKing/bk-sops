@@ -307,7 +307,7 @@ class StaffGroupSelector(LazyVariable, SelfExplainVariable):
     type = "dynamic"
     tag = "staff_group_multi_selector.staff_group_selector"
     form = "%svariables/staff_group_multi_selector.js" % settings.STATIC_URL
-    desc = _("输出格式为选中人员用户名以 ',' 拼接的字符串")
+    desc = _("可选cc业务固定的四个人员分组(运维人员、产品人员、开发人员、测试人员)和标准运维【项目管理】中配置的人员分组\n" "输出格式为选中人员用户名以 ',' 拼接的字符串")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:

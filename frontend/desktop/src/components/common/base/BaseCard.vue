@@ -16,16 +16,8 @@
             { 'permission-disable': isApplyPermission },
             { 'selected': selected }]"
         @click="onCardClick">
-        <div v-if="!iconText" class="card-icon">
-            {{ displayName.trim().substr(0,1).toUpperCase() }}
-        </div>
-        <div
-            v-else
-            :class="[
-                'card-icon',
-                'type-icon',
-                { 'zh-en': lang === 'en' }]">
-            {{ iconText }}
+        <div class="card-icon">
+            <i class="common-icon-task"></i>
         </div>
         <div class="card-content">
             <p class="text">{{ displayName }}</p>
@@ -221,6 +213,11 @@
         background: #ffffff;
         border-radius: 50%;
         border: 2px solid #ffffff;
+    }
+    .common-icon-task {
+        display: block;
+        font-size: 24px;
+        color: #f5f7fa;
     }
 }
 </style>

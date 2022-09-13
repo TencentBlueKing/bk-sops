@@ -164,20 +164,14 @@ class TaskTemplateViewSet(GcloudModelViewSet):
     )
     @action(methods=["GET"], detail=False)
     def list_with_top_collection(self, request, *args, **kwargs):
-        project_id = int(request.query_params["project__id"])
+        project_id = request.query_params["project__id"]
         order_by = request.query_params.get("order_by") or "-id"
         orderings = ("-is_collected", order_by)
 
-        user_collections = Collection.objects.filter(category="flow", username=request.user.username).values()
         # 取出用户在当前项目的收藏id
-        collection_template_ids = []
-        collection_id_template_id_map = {}
-        for user_collection in user_collections:
-            extra_info = json.loads(user_collection["extra_info"])
-            if int(extra_info["project_id"]) == project_id:
-                instance_id = user_collection["instance_id"]
-                collection_template_ids.append(instance_id)
-                collection_id_template_id_map[instance_id] = user_collection["id"]
+        collection_template_ids, collection_template_map = Collection.objects.get_user_project_collection_instance_info(
+            project_id=project_id, username=request.user.username, category="flow"
+        )
 
         queryset = (
             self.filter_queryset(self.get_queryset())
@@ -193,7 +187,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         for obj in data:
             obj["template_labels"] = templates_labels.get(obj["id"], [])
             obj["is_collected"] = 1 if obj["id"] in collection_template_ids else 0
-            obj["collection_id"] = collection_id_template_id_map.get(obj["id"], -1)
+            obj["collection_id"] = collection_template_map.get(obj["id"], -1)
         return self.get_paginated_response(data) if page is not None else Response(data)
 
     def retrieve(self, request, *args, **kwargs):
