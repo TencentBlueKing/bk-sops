@@ -195,7 +195,8 @@
                     // logo_url相同会造成浏览器缓存,兼容不同环境下接口返回的logo_url
                     this.appList = resp.results.map(item => {
                         if (item.logo_url.indexOf('v=') === -1) {
-                            item.logo_url = `${item.logo_url}?v=${new Date().getTime()}`
+                            const isHasParmas = item.logo_url.indexOf('?') > -1
+                            item.logo_url = `${item.logo_url}${isHasParmas ? '&' : '?'}v=${new Date().getTime()}`
                         }
                         return item
                     })

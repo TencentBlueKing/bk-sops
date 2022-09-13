@@ -33,7 +33,7 @@
 - 可交互的任务执行：任务执行中可以随时暂停、继续、撤销，节点失败后可以重试、跳过。
 - 通用权限管理：通过配置平台同步业务角色，支持流程模板的使用权限控制。
 
-了解更多功能，请参考[标准运维白皮书](http://docs.bk.tencent.com/product_white_paper/gcloud/)
+了解更多功能，请参考[标准运维白皮书](https://bk.tencent.com/docs/)
 
 
 ## Getting started
@@ -73,7 +73,7 @@
 ## Support
 - [源码](https://github.com/Tencent/bk-sops/tree/master)
 - [wiki](https://github.com/Tencent/bk-sops/wiki)
-- [白皮书](http://docs.bk.tencent.com/product_white_paper/gcloud/)
+- [白皮书](https://bk.tencent.com/docs/)
 - [蓝鲸论坛](https://bk.tencent.com/s-mart/community)
 - [蓝鲸 DevOps 在线视频教程](https://bk.tencent.com/s-mart/video/)
 - 联系我们，加入腾讯蓝鲸运维开发交流群：878501914

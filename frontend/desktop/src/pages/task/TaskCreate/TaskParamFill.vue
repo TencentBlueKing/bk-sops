@@ -94,9 +94,9 @@
                     <span v-if="reuseTaskId" class="reuse-tip">
                         <bk-popover placement="top-start" theme="light" width="350" :ext-cls="'reuse-rule-tip'">
                             <i class="bk-icon icon-question-circle"></i>
-                            {{ $t('重用说明') }}
+                            {{ $t('参数复用说明') }}
                             <div slot="content">
-                                <p class="mb10">{{ $t('以下情况参数值无法重用，使用变量默认值：') }}</p>
+                                <p class="mb10">{{ $t('以下情况参数值无法复用，将使用全局变量的默认值：') }}</p>
                                 <p>{{ '1. ' + $t('变量的类型变更') }}</p>
                                 <p>{{ '2. ' + $t('变量默认值的字段增减') }}</p>
                                 <p>{{ '3. ' + $t('下拉框、表格类型变量的配置变更') }}</p>
@@ -216,7 +216,7 @@
                 },
                 notifyType: [[]],
                 receiverGroup: [],
-                remoteData: '', // 文本值下拉框变量远程数据源
+                remoteData: {}, // 文本值下拉框变量远程数据源
                 locTimeZone: '' // 本地时区后缀
             }
         },
@@ -281,8 +281,8 @@
             if (this.common) {
                 this.queryCommonTplCreateTaskPerm()
             }
-            bus.$on('tagRemoteLoaded', data => {
-                this.remoteData = { ...data }
+            bus.$on('tagRemoteLoaded', (code, data) => {
+                this.remoteData[code] = data
             })
             this.loadData()
         },
@@ -610,7 +610,7 @@
                                 url = {
                                     name: 'taskExecute',
                                     params: { project_id: this.project_id },
-                                    query: { instance_id: taskData.id, common: this.common } // 公共流程创建职能化任务
+                                    query: { instance_id: taskData.id, common: this.common, from: 'create' } // 公共流程创建职能化任务
                                 }
                             }
                             this.$router.push(url)

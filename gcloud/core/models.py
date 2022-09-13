@@ -10,9 +10,10 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+import datetime
 from os import environ
 
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import Group
 from django.db import models, transaction
@@ -202,6 +203,11 @@ class ProjectManager(models.Manager):
     def update_business_project_status(self, archived_cc_ids, active_cc_ids):
         self.filter(bk_biz_id__in=archived_cc_ids, from_cmdb=True).update(is_disable=True)
         self.filter(bk_biz_id__in=active_cc_ids, from_cmdb=True).update(is_disable=False)
+
+    def get_timezone_based_timestamp(self, project_id, timestamp_fmt="%Y%m%d%H%M%S"):
+        project_tz = getattr(self.filter(id=project_id).first(), "time_zone") or settings.TIME_ZONE
+        timestamp = datetime.datetime.now(tz=timezone.pytz.timezone(project_tz)).strftime(timestamp_fmt)
+        return timestamp
 
 
 class Project(models.Model):
