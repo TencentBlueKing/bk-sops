@@ -911,6 +911,9 @@
                     let { target } = lines.find(item => item.id === outlinesId)
                     // 当分支上只剩网关节点时，不自动连线
                     if (gateways[source.id] && gateways[target.id]) return
+                    // 当需要生成的连线已存在，不自动连线
+                    const isExist = lines.find(item => item.source.id === source.id && item.target.id === target.id)
+                    if (isExist) return
                     // 先更新数据再进行连线
                     this.$nextTick(() => {
                         const sourcePosition = this.getNodeEndpointPosition(source.id, 'source')
