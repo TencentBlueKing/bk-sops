@@ -172,6 +172,7 @@
         flex: 1;
         display: flex;
         flex-direction: column;
+        max-width: 565px;
         margin-left: 24px;
         padding-top: 18px;
         .table-header {
