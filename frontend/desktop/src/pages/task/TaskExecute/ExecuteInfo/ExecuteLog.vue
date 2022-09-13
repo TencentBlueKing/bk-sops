@@ -47,7 +47,7 @@
                     </NodeLog>
                 </div>
             </bk-table-column>
-            <bk-table-column :label="$t('任务名')" :width="80">
+            <bk-table-column :label="$t('任务名')" :width="80" v-if="isSubProcessNode">
                 <div slot-scope="{ row }" v-bk-overflow-tips>
                     {{ getTaskName(row.outputs) }}
                 </div>
