@@ -1014,7 +1014,13 @@
                             node_id: id
                         }
                         if (!this.isTopTask) {
-                            params.subprocess_id = this.pipelineData.id
+                            const selectedFlowIds = this.selectedFlowPath.reduce((acc, cur) => {
+                                if (cur.type !== 'root') {
+                                    acc = acc ? acc + '_' + cur.id : cur.id
+                                }
+                                return acc
+                            }, '')
+                            params.subprocess_id = selectedFlowIds
                         }
                         await this.itsmTransition(params)
                         this.approval.id = ''
