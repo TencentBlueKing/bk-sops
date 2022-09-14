@@ -584,7 +584,18 @@ const template = {
                                 name = line.condition.name
                             } else {
                                 evaluate = Object.keys(conditions).length ? '1 == 0' : '1 == 1'
-                                name = evaluate
+                                const defaultName = i18n.t('条件')
+                                const regStr = `^${i18n.t('条件')}[0-9]*$`
+                                const reg = new RegExp(regStr)
+                                let maxCount = 0
+                                Object.values(conditions).forEach(item => {
+                                    if (reg.test(item.name)) {
+                                        let count = item.name.split(defaultName)[1]
+                                        count = Number(count)
+                                        maxCount = maxCount > count ? maxCount : count
+                                    }
+                                })
+                                name = defaultName + (maxCount + 1)
                             }
 
                             const conditionItem = {

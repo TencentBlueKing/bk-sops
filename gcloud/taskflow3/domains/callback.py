@@ -15,16 +15,14 @@ import logging
 
 import requests
 from bamboo_engine import states
-from bamboo_engine.context import Context
-from bamboo_engine.eri import ContextValue, ContextValueType
 from django.conf import settings
 from django.core.exceptions import ValidationError
-
+from pipeline.eri.models import Schedule as DBSchedule
 from pipeline.eri.runtime import BambooDjangoRuntime
 from requests import HTTPError
 
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher
-from gcloud.taskflow3.models import TaskCallBackRecord, TaskFlowInstance, TaskFlowRelation
+from gcloud.taskflow3.models import TaskCallBackRecord, TaskFlowRelation
 from gcloud.utils.redis_lock import redis_lock
 
 logger = logging.getLogger("root")
@@ -65,33 +63,20 @@ class TaskCallBacker:
                 dispatcher = NodeCommandDispatcher(engine_ver=engine_ver, node_id=node_id, taskflow_id=parent_task_id)
                 runtime = BambooDjangoRuntime()
                 node_state = runtime.get_state(node_id)
-                if node_state.name == states.RUNNING:
-                    dispatcher.dispatch(command="callback", operator="", version=version, data=self.extra_info)
-                elif node_state.name == states.FAILED:
+                if node_state.name not in [states.RUNNING, states.FAILED]:
+                    raise ValidationError(f"node state is not running or failed, but {node_state.name}")
+                if node_state.name == states.FAILED:
                     if self.extra_info["task_success"] is False:
                         logger.info(
                             f"[TaskCallBacker _subprocess_callback] info: child task not success: {self.task_id}"
                         )
                         return True
-                    child_pipeline_id = TaskFlowInstance.objects.get(id=self.task_id).pipeline_instance.instance_id
-                    child_outputs = runtime.get_execution_data_outputs(node_id=child_pipeline_id)
-                    if child_outputs:
-                        pipeline_id = TaskFlowInstance.objects.get(id=parent_task_id).pipeline_instance.instance_id
-                        # 注入节点输出
-                        outputs = {
-                            key: ContextValue(key=key, type=ContextValueType.PLAIN, value=value)
-                            for key, value in child_outputs.items()
-                        }
-                        cur_execution_outputs = runtime.get_execution_data_outputs(node_id)
-                        cur_execution_outputs.update(outputs)
-                        runtime.set_execution_data_outputs(node_id, cur_execution_outputs)
-                        # 子流程输出同步到上下文
-                        cur_outputs = runtime.get_data_outputs(node_id)
-                        context = Context(runtime, [], {})
-                        context.extract_outputs(pipeline_id, cur_outputs, child_outputs)
-                    dispatcher.dispatch(command="skip", operator="")
-                else:
-                    raise ValidationError(f"node state is not running or failed, but {node_state.name}")
+                    schedule = runtime.get_schedule_with_node_and_version(node_id, version)
+                    DBSchedule.objects.filter(id=schedule.id).update(expired=False)
+                    # FAILED 状态需要转换为 READY 之后才能转换为 RUNNING
+                    runtime.set_state(node_id=node_id, version=version, to_state=states.READY)
+                    runtime.set_state(node_id=node_id, version=version, to_state=states.RUNNING)
+                dispatcher.dispatch(command="callback", operator="", version=version, data=self.extra_info)
         except Exception as e:
             message = f"[TaskCallBacker _subprocess_callback] error: {e}, with data {self.record.extra_info}"
             logger.exception(message)

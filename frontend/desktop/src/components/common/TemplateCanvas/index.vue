@@ -341,6 +341,7 @@
                 }
             },
             onToggleMapShow () {
+                this.isShowHotKey = false
                 this.showSmallMap = !this.showSmallMap
                 this.smallMapLoading = true
                 this.smallMapImg = ''
@@ -365,7 +366,6 @@
                 }
                 this.clearReferenceLine()
                 this.zoomRatio = Math.round(this.$refs.jsFlow.zoom * 100)
-                this.showSmallMap = false
             },
             onZoomOut (pos) {
                 if (pos) {
@@ -376,7 +376,6 @@
                 }
                 this.clearReferenceLine()
                 this.zoomRatio = Math.round(this.$refs.jsFlow.zoom * 100)
-                this.showSmallMap = false
             },
             onResetPosition () {
                 this.$refs.jsFlow.resetPosition()

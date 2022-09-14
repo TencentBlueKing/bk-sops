@@ -537,6 +537,9 @@
                 }
             },
             onSelectTemplate (id) {
+                // 自动填充任务名称
+                const templateInfo = this.templateList.find(item => item.id === id)
+                this.formData.name = templateInfo ? templateInfo.name + '_' + i18n.t('周期执行') : ''
                 this.formData.schemeId = []
                 this.getTemplateDate(id)
             },

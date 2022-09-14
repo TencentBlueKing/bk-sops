@@ -27,6 +27,8 @@ spec:
     name: yaml导出样例子流程
     template_id: template3
     data:
+      ${description}:
+        value: ''
       ${test}:
         name: test
         value: '3'

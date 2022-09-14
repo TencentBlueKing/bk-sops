@@ -13,7 +13,6 @@
     <div class="my-collection" data-test-id="home_form_myCollection" v-bkloading="{ isLoading: collectionBodyLoading, opacity: 1, zIndex: 100 }">
         <h3 class="panel-title">
             {{ $t('我的收藏') }}
-            <span class="add-btn" data-test-id="home_form_addCollect" @click="onAddCollection">{{ $t('添加') }}</span>
         </h3>
         <div
             v-for="(grounp, index) in collectionGrounpList"
@@ -46,14 +45,8 @@
             </ul>
         </div>
         <panel-nodata v-if="!collectionGrounpList.length">
-            <span class="link-text" @click="onAddCollection">{{ $t('添加') }}</span>
             <span>{{ $t('常用流程到收藏夹，可作为你的流程管理快捷入口') }}</span>
         </panel-nodata>
-        <add-collection-dialog
-            :collection-list="collectionList"
-            :is-add-collection-dialog-show="isShowAdd"
-            @onCloseDialog="onCloseDialog">
-        </add-collection-dialog>
         <select-create-task-dialog
             :create-task-item="createTaskItem"
             :is-create-task-dialog-show="isCreateTaskDialogShow"
@@ -79,7 +72,6 @@
     import i18n from '@/config/i18n/index.js'
     import PanelNodata from './PanelNodata.vue'
     import BaseCard from '@/components/common/base/BaseCard.vue'
-    import AddCollectionDialog from './AddCollectionDialog.vue'
     import SelectCreateTaskDialog from './SelectCreateTaskDialog.vue'
     import permission from '@/mixins/permission.js'
     import toolsUtils from '@/utils/tools.js'
@@ -89,7 +81,6 @@
         components: {
             BaseCard,
             PanelNodata,
-            AddCollectionDialog,
             SelectCreateTaskDialog
         },
         mixins: [permission],
@@ -99,7 +90,6 @@
                 collectionList: [],
                 collectionGrounpList: [],
                 categorySwitchMap: {},
-                isShowAdd: false, // 显示添加收藏
                 isDeleteDialogShow: false, // 显示确认删除
                 deleteCollectLoading: false, // 确认删除按钮 loading
                 isCreateTaskDialogShow: false, // 显示创建任务 dialog
@@ -114,6 +104,11 @@
             window.addEventListener('resize', this.onWindowResize, false)
             await this.initData()
             this.handlerWindowResize()
+            let storageData = localStorage.getItem('myCollection')
+            storageData = storageData ? JSON.parse(storageData) : {}
+            Object.keys(storageData).forEach(key => {
+                this.categorySwitchMap[key] = storageData[key]
+            })
         },
         beforeDestroy () {
             window.removeEventListener('resize', this.onWindowResize, false)
@@ -167,17 +162,10 @@
             },
             onSwitchCategory (key) {
                 this.categorySwitchMap[key] = !this.categorySwitchMap[key]
-            },
-            // 打开添加收藏
-            onAddCollection () {
-                this.isShowAdd = true
-            },
-            // 关闭添加收藏
-            onCloseDialog (save) {
-                if (save) {
-                    this.initData()
-                }
-                this.isShowAdd = false
+                let storageData = localStorage.getItem('myCollection')
+                storageData = storageData ? JSON.parse(storageData) : {}
+                storageData[key] = this.categorySwitchMap[key]
+                localStorage.setItem('myCollection', JSON.stringify(storageData))
             },
             // card 点击删除
             onDeleteCard (data) {
@@ -208,32 +196,31 @@
                 })
                 const type = template.category
                 // 有权限执行
-                const { project_id, template_id, app_id, name } = template.extra_info
+                const { project_id, id, name } = template.extra_info
                 switch (type) {
                     case 'common_flow':
                         this.openSelectCreateTask(template)
                         break
                     case 'flow':
                         this.$router.push({
-                            name: 'taskCreate',
-                            params: { step: 'selectnode', project_id },
-                            query: { template_id }
+                            name: 'processHome',
+                            params: { project_id },
+                            query: { template_id: id }
                         })
                         break
                     case 'periodic_task':
                         this.$router.push({
                             name: 'periodicTemplate',
                             params: { project_id },
-                            query: { q: name } // q 表示筛选 Id 值
+                            query: { task_id: id }
                         })
                         break
                     case 'mini_app':
-                        const { href } = this.$router.resolve({
-                            name: 'appmakerTaskCreate',
-                            params: { step: 'selectnode', app_id, project_id },
-                            query: { template_id }
+                        this.$router.push({
+                            name: 'appMakerList',
+                            params: { project_id },
+                            query: { flowName: name }
                         })
-                        window.open(href, '_blank')
                 }
             },
             openSelectCreateTask (item) {
@@ -299,13 +286,6 @@
         color: #313238;
         font-size: 16px;
         font-weight: 600;
-        .add-btn {
-            float: right;
-            font-size: 12px;
-            color: #3a84ff;
-            font-weight: normal;
-            cursor: pointer;
-        }
     }
     .category-item {
         .grounp-name {

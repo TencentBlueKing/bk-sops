@@ -16,16 +16,8 @@
             { 'permission-disable': isApplyPermission },
             { 'selected': selected }]"
         @click="onCardClick">
-        <div v-if="!iconText" class="card-icon">
-            {{ displayName.trim().substr(0,1).toUpperCase() }}
-        </div>
-        <div
-            v-else
-            :class="[
-                'card-icon',
-                'type-icon',
-                { 'zh-en': lang === 'en' }]">
-            {{ iconText }}
+        <div class="card-icon">
+            <i class="common-icon-task"></i>
         </div>
         <div class="card-content">
             <p class="text">{{ displayName }}</p>
@@ -150,13 +142,11 @@
         }
     }
      &.permission-disable {
-        background: #f7f7f7;
-        border: 1px solid #dcdee5;
+        background: #fafbfd;
         height: auto;
         .card-icon {
-            color: #dcdee5;
-            background: #f7f7f7;
-            border-right: 1px solid #dcdee5;
+            color: #fff;
+            background: #eaebf0;
         }
         .card-content {
             border-left: none;
@@ -164,7 +154,7 @@
         .text {
             color: #c4c6cc;
             &:after {
-                background: #f7f7f7;
+                background: #fafbfd;
             }
         }
         .apply-permission-mask {
@@ -221,6 +211,11 @@
         background: #ffffff;
         border-radius: 50%;
         border: 2px solid #ffffff;
+    }
+    .common-icon-task {
+        display: block;
+        font-size: 24px;
+        color: #f5f7fa;
     }
 }
 </style>

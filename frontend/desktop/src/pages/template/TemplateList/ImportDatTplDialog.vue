@@ -20,39 +20,38 @@
         :value="isImportDialogShow"
         @cancel="onCancel">
         <div class="import-container" v-bkloading="{ isLoading: pending.submit, opacity: 1, zIndex: 100 }">
-            <div class="import-wrapper">
+            <!-- 上传区域 -->
+            <div v-if="!file" class="upload-file-area">
+                <bk-upload
+                    accept=".dat"
+                    url=""
+                    :limit="1"
+                    :size="2"
+                    :tip="$t('支持DAT类型文件，文件小于2M')"
+                    :custom-request="handleUpload">
+                </bk-upload>
+            </div>
+            <div v-else class="import-wrapper">
                 <div class="common-form-item">
-                    <label class="required">{{ $t('上传文件') }}</label>
-                    <div class="common-form-content">
-                        <label
-                            :for="pending.upload ? '' : 'template-file'"
-                            :class="['bk-button', 'bk-primary', { 'is-disabled': pending.upload }]">
-                            {{ uploadText }}
-                        </label>
-                        <h4 v-if="file" class="file-name">{{ file.name }}</h4>
-                        <input
-                            ref="templateFile"
-                            id="template-file"
-                            type="file"
-                            accept=".dat"
-                            @change="onFileChange" />
-                        <span
-                            v-show="templateFileEmpty"
-                            class="common-error-tip error-msg">
-                            {{$t('模板文件上传为空')}}
-                        </span>
-                        <span
-                            v-bk-tooltips.top="commonErrorMsg"
-                            v-show="templateFileError"
-                            class="common-error-tip error-msg multi-character-limit">
-                            {{ commonErrorMsg }}
-                        </span>
-                        <span
-                            v-show="templateFileErrorExt"
-                            class="common-error-tip error-msg">
-                            {{$t('该文件后缀不为.dat')}}
-                        </span>
-                    </div>
+                    <bk-alert :type="checkResult ? 'success' : 'error'">
+                        <div slot="title">
+                            {{ file.name }}
+                            {{ checkResult ? $t('文件合法性检查通过。') : $t('文件不合法，请') }}
+                            <label
+                                :for="pending.upload ? '' : 'template-file'"
+                                :class="['upload-tpl-btn', { 'is-disabled': pending.upload }]">
+                                {{ $t('重新上传文件') }}
+                            </label>
+                            <input
+                                ref="templateFile"
+                                id="template-file"
+                                type="file"
+                                accept=".dat"
+                                style="display: none;"
+                                @change="onFileChange" />
+                            
+                        </div>
+                    </bk-alert>
                 </div>
                 <div class="common-form-item">
                     <label>{{ $t('导入列表') }}</label>
@@ -104,12 +103,35 @@
                         <span>{{ $t('只显示冲突项') }}</span>
                     </div>
                 </div>
+                <div class="check-msg-title" id="checkMsgTitle">{{ $t('合法性检测结果') }}</div>
+                <div class="check-msg">
+                    <template v-if="!templateFileEmpty && !templateFileError && !templateFileErrorExt">{{ $t('合法性检查通过。') }}</template>
+                    <template v-else>
+                        <span
+                            v-show="templateFileEmpty"
+                            class="common-error-tip error-msg">
+                            {{$t('模板文件上传为空')}}
+                        </span>
+                        <span
+                            v-bk-tooltips.top="commonErrorMsg"
+                            v-show="templateFileError"
+                            class="common-error-tip error-msg multi-character-limit">
+                            {{ commonErrorMsg }}
+                        </span>
+                        <span
+                            v-show="templateFileErrorExt"
+                            class="common-error-tip error-msg">
+                            {{$t('该文件后缀不为.dat')}}
+                        </span>
+                    </template>
+                </div>
             </div>
         </div>
         <div slot="footer" class="common-wrapper-btn">
             <div class="button-group">
-                <bk-button theme="primary" :disabled="pending.submit" @click="onConfirm(true)">{{exportConflict}}</bk-button>
+                <bk-button v-if="file" theme="primary" :disabled="pending.submit" @click="onConfirm(true)">{{exportConflict}}</bk-button>
                 <bk-button
+                    v-if="file"
                     theme="default"
                     @click="onConfirm(false)"
                     :disabled="pending.submit"
@@ -141,6 +163,7 @@
                 active: true,
                 file: null,
                 filename: '',
+                checkResult: true,
                 exportList: [],
                 overrideList: [],
                 isChecked: false,
@@ -183,6 +206,18 @@
                 'templateUploadCheck',
                 'templateImport'
             ]),
+            async handleUpload (file) {
+                this.resetErrorTips()
+                if (this.pending.upload) {
+                    return
+                }
+                const fileInfo = file.fileObj.origin
+                if (fileInfo) {
+                    this.file = fileInfo
+                    this.uploaded = true
+                    this.uploadCheck()
+                }
+            },
             async uploadCheck () {
                 this.pending.upload = true
                 this.dataConflict = true
@@ -197,6 +232,7 @@
                     }
                     data.formData.append('data_file', this.file)
                     const resp = await this.templateUploadCheck(data)
+                    this.checkResult = resp.result
                     if (resp.result) {
                         const checkResult = resp.data
                         this.exportList = checkResult.new_template
@@ -243,6 +279,10 @@
                 }
                 const file = e.target.files[0]
                 if (file) {
+                    if (file.size > 2 * 1024 * 1024) {
+                        this.$bkMessage({ message: i18n.t('上传失败，DAT类型文件最大为2M'), theme: 'error' })
+                        return
+                    }
                     const filename = file.name
                     const ext = filename.substr(filename.lastIndexOf('.') + 1)
                     if (ext !== 'dat') {
@@ -312,7 +352,9 @@
                 this.templateFileError = false
                 this.templateFileErrorExt = false
                 this.dataConflict = false
-                this.$refs.templateFile.value = ''
+                if (this.$refs.templateFile) {
+                    this.$refs.templateFile.value = ''
+                }
             }
         }
     }
@@ -322,6 +364,13 @@
 @import "@/scss/mixins/scrollbar.scss";
 .import-container {
     padding: 20px;
+    .upload-file-area {
+        width: 530px;
+        margin: 120px auto 100px;
+        /deep/.file-wrapper {
+            background: #fafbfd;
+        }
+    }
     .common-form-item {
         margin-bottom: 15px;
         & > label {
@@ -497,6 +546,21 @@
                 }
             }
         }
+    }
+    .view-result-btn, .upload-tpl-btn {
+        color: #3a84ff;
+        cursor: pointer;
+        font-size: 12px;
+    }
+    .check-msg-title {
+        margin-top: 26px;
+        font-size: 14px;
+        color: #313237;
+    }
+    .check-msg {
+        padding: 10px 0 10px;
+        font-size: 12px;
+        color: #696a72;
     }
 }
 .common-wrapper-btn {

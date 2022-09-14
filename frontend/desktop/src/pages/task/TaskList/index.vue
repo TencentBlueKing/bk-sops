@@ -24,13 +24,6 @@
             <skeleton :loading="firstLoading" loader="taskList">
                 <div class="list-wrapper">
                     <div class="search-wrapper mb20">
-                        <bk-button
-                            theme="primary"
-                            style="min-width: 120px;"
-                            data-test-id="taskList_form_createTask"
-                            @click="onCreateTask">
-                            {{$t('新建')}}
-                        </bk-button>
                         <search-select
                             ref="searchSelect"
                             id="taskList"
@@ -110,41 +103,22 @@
                                 <template slot-scope="props">
                                     <div class="task-operation" :task-name="props.row.name">
                                         <!-- 事后鉴权，后续对接新版权限中心 -->
-                                        <a v-if="props.row.template_deleted || props.row.template_source === 'onetime'" class="task-operation-btn disabled" data-test-id="taskList_table_recreateBtn">{{$t('再创建')}}</a>
+                                        <a v-if="props.row.template_deleted || props.row.template_source === 'onetime'" class="task-operation-btn disabled" data-test-id="taskList_table_reexecuteBtn">{{$t('重新执⾏')}}</a>
                                         <a
                                             v-else-if="!hasCreateTaskPerm(props.row)"
                                             v-cursor
                                             class="text-permission-disable task-operation-btn"
-                                            data-test-id="taskList_table_recreateBtn"
+                                            data-test-id="taskList_table_reexecuteBtn"
                                             @click="onTaskPermissonCheck([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row)">
-                                            {{$t('再创建')}}
+                                            {{$t('重新执⾏')}}
                                         </a>
                                         <a
                                             v-else
+                                            v-bk-tooltips.top="$t('复⽤参数值并使⽤流程最新数据重新执⾏')"
                                             class="task-operation-btn"
-                                            data-test-id="taskList_table_recreateBtn"
+                                            data-test-id="taskList_table_reexecuteBtn"
                                             @click="getCreateTaskUrl(props.row)">
-                                            {{$t('再创建')}}
-                                        </a>
-                                        <a
-                                            v-cursor="{ active: !hasPermission(['task_clone'], props.row.auth_actions) }"
-                                            :class="['task-operation-btn', {
-                                                'text-permission-disable': !hasPermission(['task_clone'], props.row.auth_actions)
-                                            }]"
-                                            href="javascript:void(0);"
-                                            data-test-id="taskList_table_cloneBtn"
-                                            @click="onCloneTaskClick(props.row, $event)">
-                                            {{ $t('克隆') }}
-                                        </a>
-                                        <a
-                                            v-cursor="{ active: !hasPermission(['task_delete'], props.row.auth_actions) }"
-                                            :class="['task-operation-btn', {
-                                                'text-permission-disable': !hasPermission(['task_delete'], props.row.auth_actions)
-                                            }]"
-                                            href="javascript:void(0);"
-                                            data-test-id="taskList_table_deleteBtn"
-                                            @click="onDeleteTask(props.row, $event)">
-                                            {{ $t('删除') }}
+                                            {{$t('重新执⾏')}}
                                         </a>
                                     </div>
                                 </template>
@@ -163,63 +137,6 @@
                 </div>
             </skeleton>
         </div>
-        <TaskCreateDialog
-            :entrance="'taskflow'"
-            :project_id="project_id"
-            :is-new-task-dialog-show="isNewTaskDialogShow"
-            :business-info-loading="businessInfoLoading"
-            :task-category="taskCategory"
-            @onCreateTaskCancel="onCreateTaskCancel">
-        </TaskCreateDialog>
-        <TaskCloneDialog
-            :is-task-clone-dialog-show="isTaskCloneDialogShow"
-            :task-name="theCloneTaskName"
-            :pending="pending.clone"
-            @confirm="onCloneConfirm"
-            @cancel="onCloneCancel">
-        </TaskCloneDialog>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            :theme="'primary'"
-            :mask-close="false"
-            :header-position="'left'"
-            :title="$t('删除')"
-            :value="isDeleteDialogShow"
-            @confirm="onDeleteConfirm"
-            @cancel="onDeleteCancel">
-            <div class="dialog-content" v-bkloading="{ isLoading: pending.delete, opacity: 1, zIndex: 100 }">
-                {{$t('确认删除') + '"' + theDeleteTaskName + '"?'}}
-            </div>
-        </bk-dialog>
-        <bk-dialog
-            width="480"
-            ext-cls="recreate-dialog"
-            :value="isCreateDialogShow"
-            theme="primary"
-            :mask-close="false"
-            :header-position="'left'"
-            :title="$t('再创建')"
-            :ok-text="$t('再创建')"
-            @confirm="onCreateConfirm"
-            @cancel="isCreateDialogShow = false">
-            <bk-alert type="info" :title="$t('使用流程的最新数据再次创建任务，可重用当前参数')"></bk-alert>
-            <bk-radio-group v-model="paramsType">
-                <bk-radio :value="'default'">{{ $t('使用流程默认参数值') }}</bk-radio>
-                <bk-radio :value="'reuse'">
-                    {{ $t('重用当前任务参数值') }}
-                    <bk-popover placement="bottom-end" theme="light" width="344" :ext-cls="'reuse-rule-tip'">
-                        <i class="bk-icon icon-question-circle"></i>
-                        <div slot="content">
-                            <p class="mb10">{{ $t('以下情况参数值无法重用，使用变量默认值：') }}</p>
-                            <p>{{ '1. ' + $t('变量的类型变更') }}</p>
-                            <p>{{ '2. ' + $t('变量默认值的字段增减') }}</p>
-                            <p>{{ '3. ' + $t('下拉框、表格类型变量的配置变更') }}</p>
-                        </div>
-                    </bk-popover>
-                </bk-radio>
-            </bk-radio-group>
-        </bk-dialog>
     </div>
 </template>
 <script>
@@ -228,16 +145,14 @@
     import toolsUtils from '@/utils/tools.js'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
-    import TaskCreateDialog from './TaskCreateDialog.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import moment from 'moment-timezone'
-    import TaskCloneDialog from './TaskCloneDialog.vue'
     import Skeleton from '@/components/skeleton/index.vue'
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
     const SEARCH_LIST = [
         {
-            id: 'id',
+            id: 'task_id',
             name: 'ID'
         },
         {
@@ -301,11 +216,6 @@
             width: 200
         },
         {
-            id: 'category_name',
-            label: i18n.t('任务类型'),
-            width: 100
-        },
-        {
             id: 'creator_name',
             label: i18n.t('创建人'),
             width: 120
@@ -342,8 +252,6 @@
         components: {
             Skeleton,
             NoData,
-            TaskCreateDialog,
-            TaskCloneDialog,
             SearchSelect
         },
         mixins: [permission, task],
@@ -395,23 +303,11 @@
                 firstLoading: true,
                 listLoading: false,
                 templateId: this.$route.query.template_id,
-                taskCategory: [],
                 searchStr: '',
                 executeStatus: [], // 任务执行状态
                 totalPage: 1,
-                isDeleteDialogShow: false,
                 shapeShow: false,
-                theDeleteTaskId: undefined,
-                theDeleteTaskName: '',
-                isTaskCloneDialogShow: false,
-                isNewTaskDialogShow: false,
                 businessInfoLoading: true, // 模板分类信息 loading
-                theCloneTaskName: '',
-                theCloneTaskId: undefined,
-                pending: {
-                    delete: false,
-                    clone: false
-                },
                 taskBasicInfoLoading: true,
                 taskCreateMethodList: [],
                 createInfo: create_info,
@@ -449,9 +345,6 @@
                     selectedFields: TABLE_FIELDS.slice(0),
                     size: 'small'
                 },
-                isCreateDialogShow: false,
-                paramsType: 'default',
-                selectedRow: {},
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
                 searchSelectValue,
                 isInitCreateMethod: false,
@@ -482,9 +375,7 @@
                 'loadCreateMethod'
             ]),
             ...mapActions('taskList/', [
-                'loadTaskList',
-                'deleteTask',
-                'cloneTask'
+                'loadTaskList'
             ]),
             ...mapMutations('template/', [
                 'setProjectBaseInfo'
@@ -693,7 +584,6 @@
             async getBizBaseInfo () {
                 try {
                     const res = await this.loadProjectBaseInfo()
-                    this.taskCategory = res.data.task_categories
                     this.setProjectBaseInfo(res.data)
                     this.taskBasicInfoLoading = false
                 } catch (e) {
@@ -739,21 +629,15 @@
                 return this.hasPermission([reqPerm], authActions)
             },
             getCreateTaskUrl (task) {
-                this.selectedRow = task
-                this.isCreateDialogShow = true
-            },
-            onCreateConfirm () {
-                const { id, template_id, template_source } = this.selectedRow
-                const taskId = this.paramsType === 'reuse' ? id : undefined
+                const { id, template_id, template_source } = task
                 const url = {
                     name: 'taskCreate',
-                    query: { template_id: template_id, task_id: taskId },
+                    query: { template_id: template_id, task_id: id, entrance: 'taskflow' },
                     params: { project_id: this.project_id, step: 'selectnode' }
                 }
                 if (template_source === 'common') {
                     url.query.common = 1
                 }
-                this.isCreateDialogShow = false
                 this.$router.push(url)
             },
             /**
@@ -778,79 +662,6 @@
                     name: task.template_name
                 }]
                 this.applyForPermission(required, [...task.auth_actions, ...this.authActions], resourceData)
-            },
-            onDeleteTask (task) {
-                if (!this.hasPermission(['task_delete'], task.auth_actions)) {
-                    this.onTaskPermissonCheck(['task_delete'], task)
-                    return
-                }
-                this.theDeleteTaskId = task.id
-                this.theDeleteTaskName = task.name
-                this.isDeleteDialogShow = true
-            },
-            async onDeleteConfirm () {
-                if (this.pending.delete) return
-                this.pending.delete = true
-                try {
-                    await this.deleteTask(this.theDeleteTaskId)
-                    this.theDeleteTaskId = undefined
-                    this.theDeleteTaskName = ''
-                    // 最后一页最后一条删除后，往前翻一页
-                    if (
-                        this.pagination.current > 1
-                        && this.totalPage === this.pagination.current
-                        && this.pagination.count - (this.totalPage - 1) * this.pagination.limit === 1
-                    ) {
-                        this.pagination.current -= 1
-                    }
-                    this.isChildTaskflow = false
-                    await this.getTaskList()
-                    this.$bkMessage({
-                        message: i18n.t('任务') + i18n.t('删除成功！'),
-                        theme: 'success'
-                    })
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.isDeleteDialogShow = false
-                    this.pending.delete = false
-                }
-            },
-            onDeleteCancel () {
-                this.theDeleteTaskId = undefined
-                this.theDeleteTaskName = ''
-                this.isDeleteDialogShow = false
-            },
-            onCloneTaskClick (task) {
-                if (!this.hasPermission(['task_clone'], task.auth_actions)) {
-                    this.onTaskPermissonCheck(['task_clone'], task)
-                    return
-                }
-                this.isTaskCloneDialogShow = true
-                this.theCloneTaskId = task.id
-                this.theCloneTaskName = task.name
-            },
-            async onCloneConfirm (name) {
-                if (this.pending.clone) return
-                this.pending.clone = true
-                const config = {
-                    name,
-                    task_id: this.theCloneTaskId
-                }
-                try {
-                    const data = await this.cloneTask(config)
-                    this.$router.push({
-                        name: 'taskExecute',
-                        params: { project_id: this.project_id },
-                        query: { instance_id: data.data.new_instance_id }
-                    })
-                } catch (e) {
-                    console.log(e)
-                }
-            },
-            onCloneCancel () {
-                this.isTaskCloneDialogShow = false
-                this.theCloneTaskName = ''
             },
             onSelectedStatus (id) {
                 this.isStarted = id !== 'nonExecution'
@@ -996,12 +807,6 @@
                 const taskCreateMethod = this.taskCreateMethodList.find((taskCreateMethod) => taskCreateMethod['value'] === value)
                 return taskCreateMethod['name']
             },
-            onCreateTask () {
-                this.isNewTaskDialogShow = true
-            },
-            onCreateTaskCancel () {
-                this.isNewTaskDialogShow = false
-            },
             handleSearchValueChange (data) {
                 data = data.reduce((acc, cur) => {
                     if (cur.type === 'dateRange') {
@@ -1098,8 +903,7 @@
 }
 .search-wrapper {
     position: relative;
-    display: flex;
-    justify-content: space-between;
+    height: 32px;
 }
 .dialog-content {
     padding: 30px;
@@ -1160,26 +964,4 @@
         margin-left: 16px;
     }
 }
-</style>
-<style lang="scss">
-    .recreate-dialog {
-        .bk-dialog-header {
-            padding-bottom: 10px;
-        }
-        .bk-alert {
-            margin-bottom: 26px;
-        }
-        .bk-form-control {
-            display: flex;
-            justify-content: space-between;
-            padding: 0 24px;
-            .bk-form-radio {
-                font-size: 12px;
-                .icon-question-circle {
-                    font-size: 14px;
-                }
-            }
-
-        }
-    }
 </style>

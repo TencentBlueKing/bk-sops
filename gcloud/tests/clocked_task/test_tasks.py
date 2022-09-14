@@ -42,10 +42,12 @@ class ClockedTaskStartTestCase(TestCase):
             task_params=json.dumps(task_params),
         )
 
+        timestamp = "20220907000000"
         project = MagicMock()
         project.id = 1
         Project = MagicMock()
         Project.objects.get = MagicMock(return_value=project)
+        Project.objects.get_timezone_based_timestamp = MagicMock(return_value=timestamp)
 
         task_template = MagicMock()
         task_template.pipeline_tree = MagicMock()
@@ -84,7 +86,11 @@ class ClockedTaskStartTestCase(TestCase):
         )
         TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
             task_template,
-            {"name": task.task_name, "creator": task.creator, "description": task_params.get("description", "")},
+            {
+                "name": f"{task.task_name}_{timestamp}",
+                "creator": task.creator,
+                "description": task_params.get("description", ""),
+            },
             task_params.get("constants"),
             task_params.get("exclude_task_nodes_id"),
             task_params.get("simplify_vars"),

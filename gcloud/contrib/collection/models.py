@@ -29,6 +29,29 @@ class CollectionManager(models.Manager):
                 collection_template_ids.append(user_collection["id"])
         return collection_template_ids
 
+    def update_collection_info_name(self, category, instance_id, name):
+        inst = self.filter(category=category, instance_id=instance_id).first()
+        if not inst:
+            return
+        extra_info = json.loads(inst.extra_info)
+        if extra_info.get("name") != name:
+            extra_info["name"] = name
+            inst.extra_info = json.dumps(extra_info)
+            inst.save(update_fields=["extra_info"])
+
+    def get_user_project_collection_instance_info(self, project_id: int, username: str, category: str):
+        project_id = int(project_id)
+        user_collections = self.filter(category=category, username=username).values()
+        instance_ids = []
+        instance_collection_mappings = {}
+        for user_collection in user_collections:
+            extra_info = json.loads(user_collection["extra_info"])
+            if int(extra_info["project_id"]) == project_id:
+                instance_id = user_collection["instance_id"]
+                instance_ids.append(instance_id)
+                instance_collection_mappings[instance_id] = user_collection["id"]
+        return instance_ids, instance_collection_mappings
+
 
 class Collection(models.Model):
     COLLECTION_TYPE = (
