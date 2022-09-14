@@ -3,6 +3,9 @@ from gcloud.conf import settings
 from gcloud.utils.ip import get_ip_by_regex, extract_ip_from_ip_str
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_host_by_innerip_with_ipv6
+from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import (
+    cc_get_host_by_innerip_with_ipv6_across_business,
+)
 from pipeline_plugins.components.utils.sites.open.utils import get_biz_ip_from_frontend
 
 
@@ -11,8 +14,32 @@ class GetJobTargetServerMixin(object):
         supplier_account = supplier_account_for_business(biz_cc_id)
         host_result = cc_get_host_by_innerip_with_ipv6(executor, biz_cc_id, ip_str, supplier_account)
         if not host_result["result"]:
-            return host_result
+            return False, host_result["message"]
+
         return True, {"host_id_list": [int(host["bk_host_id"]) for host in host_result["data"]]}
+
+    def get_target_server_ipv6_across_business(self, executor, biz_cc_id, ip_str):
+        """
+        step 1: 去本业务查这些ip，得到两个列表，本业务查询到的host, 本业务查不到的ip列表
+        step 2: 对于本业务查不到的host, 去全业务查询，查不到的话则报错，将查到的host_id 与 本业务的 host_id 进行合并
+        """
+        supplier_account = supplier_account_for_business(biz_cc_id)
+        # 去本业务查
+        (
+            host_list,
+            ip_v4_not_find_list,
+            ip_v4_with_cloud_not_find_list,
+            ip_v6_not_find_list,
+        ) = cc_get_host_by_innerip_with_ipv6_across_business(executor, biz_cc_id, ip_str, supplier_account)
+        ip_not_find_str = ",".join(ip_v4_not_find_list + ip_v6_not_find_list + ip_v4_with_cloud_not_find_list)
+        # 剩下的ip去全业务查
+        host_result = cc_get_host_by_innerip_with_ipv6(
+            executor, None, ip_not_find_str, supplier_account, is_biz_set=True
+        )
+        if not host_result["result"]:
+            return host_result
+        host_data = host_result["data"] + host_list
+        return True, {"host_id_list": [int(host["bk_host_id"]) for host in host_data]}
 
     def get_target_server(
         self,
@@ -26,6 +53,8 @@ class GetJobTargetServerMixin(object):
         ignore_ex_data=False,
     ):
         if settings.OPEN_IP_V6:
+            if is_across:
+                return self.get_target_server_ipv6_across_business(executor, biz_cc_id, ip_str)
             return self.get_target_server_ipv6(executor, biz_cc_id, ip_str)
         # 获取IP
         clean_result, ip_list = get_biz_ip_from_frontend(
