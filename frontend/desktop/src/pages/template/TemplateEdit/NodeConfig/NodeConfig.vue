@@ -1359,7 +1359,7 @@
                     const { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, version, tpl, executor_proxy, retryable, skippable, ignorable, autoRetry, timeoutConfig } = this.basicInfo
                     const constants = {}
                     Object.keys(this.subflowForms).forEach(key => {
-                        const constant = this.subflowForms[key]
+                        const constant = tools.deepClone(this.subflowForms[key])
                         if (constant.show_type === 'show') {
                             constant.value = key in this.inputsParamValue ? tools.deepClone(this.inputsParamValue[key]) : constant.value
                             constant.need_render = key in this.inputsRenderConfig ? this.inputsRenderConfig[key] : true
