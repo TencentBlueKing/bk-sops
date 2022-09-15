@@ -154,9 +154,10 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
                         bk_biz_id="biz_cc_id",
                         file_tags=["tag_1", "tag_2"],
                         target_path="job_target_path",
-                        ips=[{"ip": "1.1.1.1", "bk_cloud_id": 0}],
+                        ips=None,
                         account="job_target_account",
                         callback_url="callback_url",
+                        target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
                     )
                 ],
             ),
@@ -219,9 +220,12 @@ def CALLBACK_INVALID_CASE():
                         bk_biz_id="biz_cc_id",
                         file_tags=["tag_1", "tag_2"],
                         target_path="job_target_path",
-                        ips=[{"ip": "1.1.1.1", "bk_cloud_id": 0}, {"ip": "2.2.2.2", "bk_cloud_id": 0}],
+                        ips=None,
                         account="job_target_account",
                         callback_url="callback_url",
+                        target_server={
+                            "ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}, {"ip": "2.2.2.2", "bk_cloud_id": 0}]
+                        },
                     )
                 ],
             ),
@@ -293,9 +297,10 @@ def CALLBACK_STRUCT_ERR_CASE():
                         bk_biz_id="biz_cc_id",
                         file_tags=["tag_1", "tag_2"],
                         target_path="job_target_path",
-                        ips=[{"ip": "1.1.1.1", "bk_cloud_id": 0}],
+                        ips=None,
                         account="job_target_account",
                         callback_url="callback_url",
+                        target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
                     )
                 ],
             ),
@@ -362,9 +367,10 @@ def CALLBACK_FAIL_CASE():
                         bk_biz_id="biz_cc_id",
                         file_tags=["tag_1", "tag_2"],
                         target_path="job_target_path",
-                        ips=[{"ip": "1.1.1.1", "bk_cloud_id": 0}],
+                        ips=None,
                         account="job_target_account",
                         callback_url="callback_url",
+                        target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
                     )
                 ],
             ),
@@ -423,9 +429,10 @@ def SUCCESS_CASE():
                         bk_biz_id="biz_cc_id",
                         file_tags=["tag_1", "tag_2"],
                         target_path="job_target_path",
-                        ips=[{"ip": "1.1.1.1", "bk_cloud_id": 0}],
+                        ips=None,
                         account="job_target_account",
                         callback_url="callback_url",
+                        target_server={"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
                     )
                 ],
             ),

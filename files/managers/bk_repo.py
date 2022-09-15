@@ -73,6 +73,7 @@ class BKRepoManager(Manager):
         callback_url=None,
         timeout=None,
         bk_scope_type="biz",
+        target_server=None,
     ):
         try:
             file_source_id = BKJobFileSource.objects.get(bk_biz_id=env.JOB_FILE_BIZ_ID).file_source_id
@@ -110,8 +111,13 @@ class BKRepoManager(Manager):
                     "file_source_id": file_source_id,
                 }
             ],
-            "target_server": {"ip_list": ips},
         }
+
+        if target_server is not None:
+            job_kwargs["target_server"] = target_server
+        else:
+            job_kwargs["target_server"] = {"ip_list": ips}
+
         if timeout is not None:
             job_kwargs["timeout"] = int(timeout)
         if callback_url:
