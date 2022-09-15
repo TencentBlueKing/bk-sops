@@ -172,6 +172,7 @@
         flex: 1;
         display: flex;
         flex-direction: column;
+        max-width: 565px;
         margin-left: 24px;
         padding-top: 18px;
         .table-header {
@@ -189,7 +190,8 @@
         }
         /deep/.render-form {
             color: #63656e;
-            .rf-form-item {
+            >.rf-form-item,
+            .rf-form-group >.rf-form-item {
                 margin: 0;
                 padding: 5px 0;
                 border-bottom: 1px solid #dcdee5;
@@ -201,7 +203,7 @@
                         content: initial;
                     }
                 }
-                .rf-tag-form {
+                >.rf-tag-form {
                     margin-left: 30%;
                     padding-left: 13px;
                 }

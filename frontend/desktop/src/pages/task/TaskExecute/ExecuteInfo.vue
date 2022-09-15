@@ -53,7 +53,7 @@
                     <OperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></OperationFlow>
                 </section>
             </div>
-            <div v-if="executeInfo.state === 'RUNNING'" class="action-wrapper">
+            <div v-if="executeInfo.state === 'RUNNING' && !isSubProcessNode" class="action-wrapper">
                 <bk-button
                     v-if="nodeDetailConfig.component_code === 'pause_node'"
                     theme="primary"
@@ -303,7 +303,7 @@
                     this.executeInfo = respData
                     this.historyInfo = [respData]
                     if (respData.histories) {
-                        this.historyInfo.push(...respData.histories)
+                        this.historyInfo.push(...respData.histories.reverse())
                     }
                     this.executeInfo.name = this.location.name || NODE_DICT[this.location.type]
                     const { component_code: componentCode, version } = this.nodeDetailConfig
