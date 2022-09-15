@@ -15,7 +15,7 @@
             tag_code: "all_biz_cc_id",
             type: "select",
             attrs: {
-                name: gettext("业务集ID"),
+                name: gettext("业务集"),
                 hookable: true,
                 remote_url: function () {
                     const url = $.context.get('site_url') + 'pipeline/list_business_set/'
@@ -255,7 +255,7 @@
             type: "input",
             attrs: {
                 name: gettext("超时时间"),
-                placeholder: gettext("单位为秒(60 - 86400)，为空时使用JOB默认值"),
+                placeholder: gettext("单位为秒(1 - 86400)，为空时使用JOB默认值"),
                 hookable: true,
                 validation: [
                     {
@@ -268,9 +268,14 @@
                             if (!value) {
                                 return result
                             }
+                            var reg = /^[\d]+$/;
+                            if (!reg.test(value)) {
+                                result.result = false;
+                                result.error_message = gettext("超时时间必须为整数")
+                            }
                             if (+value < 60 || +value > 86400) {
                                 result.result = false;
-                                result.error_message = gettext("超时时间必须在 60 - 86400 范围内")
+                                result.error_message = gettext("超时时间必须在 1 - 86400 范围内")
                             }
                             return result
                         }
@@ -285,9 +290,8 @@
                 name: gettext("滚动执行"),
                 hookable: true,
                 items: [
-                    {name: gettext("滚动执行"), value: "1"},
+                    {name: gettext(""), value: "open"},
                 ],
-                default: false,
                 validation: []
             }
         },
@@ -310,7 +314,7 @@
                             if (!self.get_parent) {
                                 return result
                             } else if (self.get_parent().get_child('job_rolling_execute')) {
-                                if (self.get_parent().get_child('job_rolling_execute').value.includes("1") && !value.toString()) {
+                                if (self.get_parent().get_child('job_rolling_execute').value.includes("open") && !value.toString()) {
                                     result.result = false;
                                     result.error_message = gettext("滚动执行开启时滚动策略为必填项");
                                 }
@@ -326,7 +330,7 @@
                     type: "change",
                     action: function (value) {
                         var self = this
-                        if (value.includes("1")) {
+                        if (value.includes("open")) {
                             self.show()
                         } else {
                             self.hide()
@@ -338,7 +342,7 @@
                     type: "init",
                     action: function () {
                         const job_rolling_execute = this.get_parent && this.get_parent().get_child('job_rolling_execute')._get_value();
-                        if (job_rolling_execute.includes("1")) {
+                        if (job_rolling_execute.includes("open")) {
                             this.show()
                         } else {
                             this.hide()
@@ -366,7 +370,7 @@
                             if (!self.get_parent) {
                                 return result
                             } else if (self.get_parent().get_child('job_rolling_execute')) {
-                                if (self.get_parent().get_child('job_rolling_execute').value.includes("1") && !value.toString()) {
+                                if (self.get_parent().get_child('job_rolling_execute').value.includes("open") && !value.toString()) {
                                     result.result = false;
                                     result.error_message = gettext("滚动执行开启时滚动机制为必填项");
                                 }
@@ -387,7 +391,7 @@
                     type: "change",
                     action: function (value) {
                         var self = this
-                        if (value.includes("1")) {
+                        if (value.includes("open")) {
                             self.show()
                         } else {
                             self.hide()
@@ -399,7 +403,7 @@
                     type: "init",
                     action: function () {
                         const job_rolling_execute = this.get_parent && this.get_parent().get_child('job_rolling_execute')._get_value();
-                        if (job_rolling_execute.includes("1")) {
+                        if (job_rolling_execute.includes("open")) {
                             this.show()
                         } else {
                             this.hide()
