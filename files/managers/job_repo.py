@@ -60,7 +60,6 @@ class JobRepoStorage:
 
 
 class JobRepoManager(Manager):
-
     type = "job_repo"
 
     def __init__(self):
@@ -94,6 +93,7 @@ class JobRepoManager(Manager):
         callback_url=None,
         timeout=None,
         bk_scope_type="biz",
+        target_server=None,
     ):
 
         if not all([tag["type"] == "job_repo" for tag in file_tags]):
@@ -106,8 +106,13 @@ class JobRepoManager(Manager):
             "account_alias": account,
             "file_target_path": target_path,
             "file_source_list": [{"file_list": [tag["tags"]["file_path"] for tag in file_tags], "file_type": 2}],
-            "target_server": {"ip_list": ips},
         }
+
+        if target_server is not None:
+            job_kwargs["target_server"] = target_server
+        else:
+            job_kwargs["target_server"] = {"ip_list": ips}
+
         if timeout is not None:
             job_kwargs["timeout"] = int(timeout)
         if callback_url:

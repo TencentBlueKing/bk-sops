@@ -175,7 +175,7 @@ class JobFastExecuteScriptService(JobService, GetJobTargetServerMixin):
 
         # 获取 IP
         clean_result, target_server = self.get_target_server(
-            executor, biz_cc_id, data, original_ip_list, ip_is_exist, logger_handle=self.logge, is_across=across_biz
+            executor, biz_cc_id, data, original_ip_list, ip_is_exist, logger_handle=self.logger, is_across=across_biz
         )
 
         if not clean_result:

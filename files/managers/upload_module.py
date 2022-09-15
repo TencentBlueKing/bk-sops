@@ -43,6 +43,7 @@ class UploadModuleManager(Manager):
         callback_url=None,
         timeout=None,
         bk_scope_type="biz",
+        target_server=None,
     ):
 
         if not all([tag["type"] == "upload_module" for tag in file_tags]):
@@ -72,10 +73,12 @@ class UploadModuleManager(Manager):
             "account_alias": account,
             "file_target_path": target_path,
             "file_source_list": file_source,
-            "target_server": {
-                "ip_list": ips,
-            },
         }
+
+        if target_server is not None:
+            job_kwargs["target_server"] = target_server
+        else:
+            job_kwargs["target_server"] = {"ip_list": ips}
 
         if timeout is not None:
             job_kwargs["timeout"] = int(timeout)

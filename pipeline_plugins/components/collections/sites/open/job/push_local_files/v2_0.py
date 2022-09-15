@@ -21,7 +21,8 @@ from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import StaticIntervalGenerator
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
 from pipeline_plugins.components.utils.common import batch_execute_func
-from pipeline_plugins.components.utils import get_job_instance_url, get_biz_ip_from_frontend
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
+from pipeline_plugins.components.utils import get_job_instance_url
 
 from files.factory import ManagerFactory
 from gcloud.conf import settings
@@ -35,7 +36,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class JobPushLocalFilesService(JobScheduleService):
+class JobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(5)
 
@@ -149,10 +150,11 @@ class JobPushLocalFilesService(JobScheduleService):
 
         client = get_client_by_user(executor)
 
-        # filter 跨业务 IP
-        clean_result, ip_list = get_biz_ip_from_frontend(
-            target_ip_list, executor, biz_cc_id, data, self.logger, across_biz
+        # 获取 IP
+        clean_result, target_server = self.get_target_server(
+            executor, biz_cc_id, data, target_ip_list, False, logger_handle=self.logger, is_across=across_biz
         )
+
         if not clean_result:
             return False
 
@@ -166,8 +168,9 @@ class JobPushLocalFilesService(JobScheduleService):
                     if _file["response"]["result"] is True
                 ],
                 "target_path": push_files_info["target_path"],
-                "ips": ip_list,
+                "ips": None,
                 "account": target_account,
+                "target_server": target_server,
             }
             for push_files_info in local_files_and_target_path
         ]
