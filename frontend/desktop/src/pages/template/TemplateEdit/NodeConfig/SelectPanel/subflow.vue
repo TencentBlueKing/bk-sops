@@ -50,7 +50,7 @@
                                         :style="{ background: option.color }">
                                     </span>
                                     <span>{{option.name}}</span>
-                                    <i class="bk-option-icon bk-icon icon-check-1"></i>
+                                    <i v-if="labels.includes(option.id)" class="bk-option-icon bk-icon icon-check-1"></i>
                                 </div>
                             </bk-option>
                         </bk-select>
