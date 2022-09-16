@@ -79,7 +79,7 @@
                                 </div>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('操作')" width="100">
+                        <bk-table-column :label="$t('操作')" width="100" :fixed="appmakerList.length ? 'right' : false">
                             <template slot-scope="props">
                                 <a
                                     v-cursor="{ active: !hasPermission(['task_clone'], props.row.auth_actions) }"
