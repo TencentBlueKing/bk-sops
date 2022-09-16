@@ -52,7 +52,7 @@
                     <div v-else class="empty-app-content">
                         <div class="appmaker-info">
                             <h2 class="appmaker-info-title">{{$t('什么是轻应用？')}}</h2>
-                            <p class="appmaker-info-text">{{$t('业务运维人员将日常工作标准化后，以标准运维中一个模板的形式提供给业务非技术人员使用，为了降低使用者的操作风险和使用成本，将该模板以独立SaaS应用的方式指定给授权者使用，这种不需要开发、零成本快速生成的SaaS应用称为“轻应用”。')}}</p>
+                            <p class="appmaker-info-text">{{$t('流程任务的一种快捷方式，它是基于流程生成并可直接在蓝鲸应用市场&桌面以SaaS方式搜索、添加及打开。这种无需开发、快速生成的类SaaS应用称为“轻应用”。')}}</p>
                             <div class="appmaker-default-icons">
                                 <img
                                     v-for="item in 6"
