@@ -120,9 +120,9 @@
             },
             subTitle () {
                 if (this.currentNav === 'appMakerList') {
-                    return this.$t('将流程快速⽣成⼀个蓝鲸SaaS 应⽤，可在蓝鲸应⽤市场进⾏搜索并添加到蓝鲸桌⾯。这种⽆需开发、快速⽣成的SaaS 应⽤称为 “轻应⽤”。')
+                    return this.$t('流程任务的一种快捷方式，它是基于流程生成并可直接在蓝鲸应用市场&桌面以SaaS方式搜索、添加及打开。这种无需开发、快速生成的类SaaS应用称为“轻应用”。')
                 } else if (this.currentNav === 'functionHome') {
-                    return this.$t('将流程的编排和执行进行角色分离，高阶人员负责编排流程，而日常执行这类简单任务交付给初级人员使用。这种交付模式称为“职能化”。')
+                    return this.$t('拥有流程管理权限的人员，通过设置“执行代理人”功能，将流程任务的执行操作交由第三方人员（如：外包、外聘人员），帮助流程管理人员从繁重的执行工作中解放。')
                 }
                 return ''
             }
@@ -262,7 +262,6 @@
         color: #63656e;
         word-break: break-all;
         text-overflow: ellipsis;
-        display: -webkit-box;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
         overflow: hidden;
