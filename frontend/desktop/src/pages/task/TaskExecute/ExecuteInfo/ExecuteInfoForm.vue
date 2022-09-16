@@ -175,7 +175,7 @@
             },
             onSkipSubTemplate () {
                 const { href } = this.$router.resolve({
-                    name: 'templatePanel',
+                    name: this.componentValue.template_source === 'common' ? 'projectCommonTemplatePanel' : 'templatePanel',
                     params: { type: 'view' },
                     query: { template_id: this.nodeActivity.original_template_id }
                 })
