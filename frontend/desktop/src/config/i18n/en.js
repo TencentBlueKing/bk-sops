@@ -1487,7 +1487,8 @@ const en = {
     '复⽤参数值并使⽤流程最新数据重新执⾏': 'Reuse parameter values and re-execute using the latest data of the process',
     '支持DAT类型文件，文件小于2M': 'Support DAT type file, the file is less than 2M',
     '上传失败，DAT类型文件最大为2M': 'Upload failed, the maximum size of DAT type file is 2M',
-    '上传失败，YAML类型文件最大为2M': 'Upload failed, the maximum size of the YAML type file is 2M'
+    '上传失败，YAML类型文件最大为2M': 'Upload failed, the maximum size of the YAML type file is 2M',
+    'ID/任务名/执行人/状态': 'ID/TaskName/Executor/Status'
 }
 
 export default en
