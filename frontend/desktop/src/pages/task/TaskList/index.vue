@@ -320,7 +320,7 @@
                     executor,
                     statusSync,
                     taskName,
-                    id: task_id,
+                    task_id,
                     create_method,
                     recorded_executor_proxy
                 },
@@ -388,7 +388,7 @@
                 this.listLoading = true
                 this.executeStatus = []
                 try {
-                    const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, id, create_method, recorded_executor_proxy } = this.requestData
+                    const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, task_id, create_method, recorded_executor_proxy } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
                     let pipeline_instance__is_revoked
@@ -422,10 +422,10 @@
                         create_info: this.createInfo || undefined,
                         project__id: this.project_id,
                         template_source: this.templateSource || undefined,
-                        id: id || undefined,
+                        id: task_id || undefined,
                         create_method: create_method || undefined,
                         recorded_executor_proxy: recorded_executor_proxy || undefined,
-                        is_child_taskflow: this.isChildTaskflow
+                        is_child_taskflow: this.isChildTaskflow || undefined
                     }
 
                     if (start_time && start_time[0] && start_time[1]) {
@@ -744,7 +744,7 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, id, create_method, recorded_executor_proxy } = this.requestData
+                const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, task_id, create_method, recorded_executor_proxy } = this.requestData
                 const filterObj = {
                     limit,
                     creator,
@@ -755,7 +755,7 @@
                     create_time: create_time && create_time.every(item => item) ? create_time.join(',') : '',
                     finish_time: finish_time && finish_time.every(item => item) ? finish_time.join(',') : '',
                     taskName,
-                    task_id: id,
+                    task_id,
                     create_method,
                     recorded_executor_proxy
                 }
