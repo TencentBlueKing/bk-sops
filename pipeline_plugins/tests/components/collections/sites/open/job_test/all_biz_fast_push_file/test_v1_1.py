@@ -83,7 +83,7 @@ INPUT = {
             "job_target_account": "user01",
         },
     ],
-    "job_rolling_execute": True,
+    "job_rolling_execute": ["1"],
     "job_rolling_expression": "10%",
     "job_rolling_mode": "1",
     "break_line": ";",

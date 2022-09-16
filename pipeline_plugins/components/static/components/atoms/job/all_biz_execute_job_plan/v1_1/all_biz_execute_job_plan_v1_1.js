@@ -21,7 +21,7 @@
                     {
                         type: "select",
                         attrs: {
-                            name: gettext("业务集ID"),
+                            name: gettext("业务集"),
                             hookable: true,
                             remote_url: function () {
                                 const url = $.context.get('site_url') + 'pipeline/list_business_set/'
