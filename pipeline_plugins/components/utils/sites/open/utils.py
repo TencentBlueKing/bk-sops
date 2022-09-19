@@ -294,6 +294,7 @@ def get_biz_ip_from_frontend_hybrid(executor, ip_str, biz_cc_id, data, ignore_ex
     var_ip = cc_get_ips_info_by_str(
         username=executor, biz_cc_id=biz_cc_id, ip_str=",".join(without_plat_ip_list), use_cache=False
     )
+
     ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in var_ip["ip_result"]]
 
     err_msg = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： {}")
