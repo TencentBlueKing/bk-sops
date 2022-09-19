@@ -23,13 +23,14 @@ from pipeline.contrib.periodic_task.models import BAMBOO_ENGINE_TRIGGER_TASK
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory as PipelinePeriodicTaskHistory
 from pipeline.models import PipelineTemplate, Snapshot
+from pipeline_plugins.components.collections.subprocess_plugin.converter import PipelineTreeSubprocessConverter
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 from gcloud.core.models import Project, EngineConfig, StaffGroupSet
 from gcloud.periodictask.exceptions import InvalidOperationException
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
-from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.models import TaskFlowInstance, TaskConfig
 from gcloud.shortcuts.cmdb import get_business_group_members
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import TEMPLATE_SOURCE, PROJECT, COMMON
@@ -112,8 +113,18 @@ class PeriodicTaskManager(models.Manager):
         if template_source == PROJECT and template.project.id != project.id:
             raise InvalidOperationException("template %s do not belong to project[%s]" % (template.id, project.name))
 
+        independent_subprocess = TaskConfig.objects.enable_independent_subprocess(project.id, template.id)
+        if independent_subprocess:
+            converter = PipelineTreeSubprocessConverter(pipeline_tree)
+            converter.pre_convert()
+            pipeline_tree = converter.pipeline_tree
+
         PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree, template.__class__)
         PipelineTemplate.objects.replace_id(pipeline_tree)
+
+        if independent_subprocess:
+            converter = PipelineTreeSubprocessConverter(pipeline_tree)
+            converter.convert()
 
         extra_info = {
             "project_id": project.id,
