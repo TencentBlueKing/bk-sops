@@ -30,7 +30,7 @@ class NodemanPluginOperateComponentTest(TestCase, ComponentTestMixin):
     def cases(self):
         return [
             OPERATE_SUCCESS_CASE,
-            # OPERATE_FAIL_CASE,
+            OPERATE_FAIL_CASE,
         ]
 
     def component_cls(self):
