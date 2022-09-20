@@ -52,7 +52,7 @@ class GetJobTargetServerMixin(object):
         is_across=False,
         ignore_ex_data=False,
     ):
-        if settings.ENABLE_IP_V6:
+        if settings.ENABLE_IPV6:
             if is_across:
                 return self.get_target_server_ipv6_across_business(executor, biz_cc_id, ip_str)
             return self.get_target_server_ipv6(executor, biz_cc_id, ip_str)
@@ -86,7 +86,7 @@ class GetJobTargetServerMixin(object):
 
             return ",".join(ip_list)
 
-        if settings.ENABLE_IP_V6:
+        if settings.ENABLE_IPV6:
             # 第一步 查询这个业务集下所有的业务id, 得到bk_biz_ids
             ip_str = ip_table
             # 在业务集的执行方案中，可能不需要额外处理ip,这种情况直接透传就好

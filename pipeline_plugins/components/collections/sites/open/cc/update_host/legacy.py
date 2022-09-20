@@ -28,7 +28,6 @@ from pipeline_plugins.components.collections.sites.open.cc.base import (
 )
 
 from gcloud.conf import settings
-from gcloud.utils.ip import get_ip_by_regex
 from gcloud.utils.handlers import handle_api_error
 
 logger = logging.getLogger("celery")
@@ -80,7 +79,7 @@ class CCUpdateHostService(Service, CCPluginIPMixin):
         supplier_account = supplier_account_for_business(biz_cc_id)
 
         # 查询主机id
-        ip_list = get_ip_by_regex(data.get_one_of_inputs("cc_host_ip"))
+        ip_list = data.get_one_of_inputs("cc_host_ip")
         host_result = self.get_host_list(executor, biz_cc_id, ip_list, supplier_account)
         if not host_result["result"]:
             data.set_outputs("ex_data", host_result["message"])

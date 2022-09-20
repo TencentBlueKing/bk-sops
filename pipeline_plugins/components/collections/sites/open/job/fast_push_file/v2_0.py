@@ -150,9 +150,9 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
         for source in file_source:
             for attr in attr_list:
                 # 将[FILESRCIP]替换成源IP
-                job_target_path = (
-                    attr["job_target_path"].replace("[FILESRCIP]", source["server"]["ip_list"][0]["ip"]).strip()
-                )
+                # job_target_path = (
+                #     attr["job_target_path"].replace("[FILESRCIP]", source["server"]["ip_list"][0]["ip"]).strip()
+                # )
                 # 获取目标IP
                 original_ip_list = attr["job_ip_list"]
                 clean_result, target_server = self.get_target_server(
@@ -167,7 +167,7 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
                     "file_source_list": [source],
                     "target_server": target_server,
                     "account_alias": attr["job_account"],
-                    "file_target_path": job_target_path,
+                    "file_target_path": attr["job_target_path"],
                 }
                 if upload_speed_limit:
                     job_kwargs["upload_speed_limit"] = int(upload_speed_limit)
