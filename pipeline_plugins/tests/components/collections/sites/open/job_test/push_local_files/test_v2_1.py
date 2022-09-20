@@ -23,7 +23,7 @@ from pipeline.component_framework.test import (
     Call,
     Patcher,
 )
-from pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_0 import JobPushLocalFilesComponent
+from pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_1 import JobPushLocalFilesComponent
 
 
 class JobPushLocalFilesComponentTest(TestCase, ComponentTestMixin):
@@ -73,6 +73,9 @@ def FILE_MANAGER_NOT_CONFIG_CASE():
             "job_target_ip_list": "job_target_ip_list",
             "job_target_account": "job_target_account",
             "job_local_files_info": {"job_push_multi_local_files_table": [{""}]},
+            "job_rolling_execute": ["1"],
+            "job_rolling_expression": "10%",
+            "job_rolling_mode": "1",
         },
         parent_data={"executor": "executor", "project_id": "project_id"},
         execute_assertion=ExecuteAssertion(
@@ -95,6 +98,9 @@ def FILE_MANAGER_TYPE_ERR_CASE():
             "job_target_ip_list": "job_target_ip_list",
             "job_target_account": "job_target_account",
             "job_local_files_info": {"job_push_multi_local_files_table": [{""}]},
+            "job_rolling_execute": ["1"],
+            "job_rolling_expression": "10%",
+            "job_rolling_mode": "1",
         },
         parent_data={"executor": "executor", "project_id": "project_id"},
         execute_assertion=ExecuteAssertion(
@@ -131,6 +137,9 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
             "biz_cc_id": "1",
             "job_target_ip_list": "1.1.1.1",
             "job_target_account": "job_target_account",
+            "job_rolling_execute": ["1"],
+            "job_rolling_expression": "10%",
+            "job_rolling_mode": "1",
             "job_local_files_info": {
                 "job_push_multi_local_files_table": [
                     {
@@ -177,6 +186,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
                         file_tags=[{"type": "upload_module", "tags": {"tag_id": "tag_id1"}}],
                         target_path="target_path1",
                         ips=[{"ip": "1.1.1.1", "bk_cloud_id": 0}],
+                        rolling_config={"expression": "10%", "mode": "1"},
                         account="job_target_account",
                     )
                 ],
@@ -208,6 +218,9 @@ def SCHEDULE_FAILURE_CASE():
             "biz_cc_id": "1",
             "job_target_ip_list": "1.1.1.1",
             "job_target_account": "job_target_account",
+            "job_rolling_execute": ["1"],
+            "job_rolling_expression": "10%",
+            "job_rolling_mode": "1",
             "job_local_files_info": {
                 "job_push_multi_local_files_table": [
                     {
@@ -268,6 +281,7 @@ def SCHEDULE_FAILURE_CASE():
                         file_tags=[{"type": "upload_module", "tags": {"tag_id": "tag_id1"}}],
                         target_path="target_path1",
                         ips=[{"ip": "1.1.1.1", "bk_cloud_id": 0}],
+                        rolling_config={"expression": "10%", "mode": "1"},
                         account="job_target_account",
                     )
                 ],
@@ -304,6 +318,9 @@ def SUCCESS_MULTI_CASE():
             "biz_cc_id": "biz_cc_id",
             "job_target_ip_list": "1.1.1.1",
             "job_target_account": "job_target_account",
+            "job_rolling_execute": ["1"],
+            "job_rolling_expression": "10%",
+            "job_rolling_mode": "1",
             "job_local_files_info": {
                 "job_push_multi_local_files_table": [
                     {
@@ -385,6 +402,7 @@ def SUCCESS_MULTI_CASE():
                         esb_client=SUCCESS_ESB_CLIENT,
                         file_tags=[{"type": "upload_module", "tags": {"tag_id": "tag_id1"}}],
                         ips=[{"ip": "1.1.1.1", "bk_cloud_id": 0}],
+                        rolling_config={"expression": "10%", "mode": "1"},
                         target_path="target_path1",
                     ),
                     Call(
@@ -393,6 +411,7 @@ def SUCCESS_MULTI_CASE():
                         esb_client=SUCCESS_ESB_CLIENT,
                         file_tags=[{"type": "upload_module", "tags": {"tag_id": "tag_id2"}}],
                         ips=[{"ip": "1.1.1.1", "bk_cloud_id": 0}],
+                        rolling_config={"expression": "10%", "mode": "1"},
                         target_path="target_path2",
                     ),
                     Call(
@@ -401,6 +420,7 @@ def SUCCESS_MULTI_CASE():
                         esb_client=SUCCESS_ESB_CLIENT,
                         file_tags=[{"type": "upload_module", "tags": {"tag_id": "tag_id3"}}],
                         ips=[{"ip": "1.1.1.1", "bk_cloud_id": 0}],
+                        rolling_config={"expression": "10%", "mode": "1"},
                         target_path="target_path3",
                     ),
                 ],
@@ -438,6 +458,9 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
             "biz_cc_id": "biz_cc_id",
             "job_target_ip_list": "1.1.1.1",
             "job_target_account": "job_target_account",
+            "job_rolling_execute": ["1"],
+            "job_rolling_expression": "10%",
+            "job_rolling_mode": "1",
             "job_local_files_info": {
                 "job_push_multi_local_files_table": [
                     {
@@ -520,6 +543,7 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
                         esb_client=SUCCESS_ESB_CLIENT,
                         file_tags=[{"type": "upload_module", "tags": {"tag_id": "tag_id1"}}],
                         ips=[{"ip": "1.1.1.1", "bk_cloud_id": 0}],
+                        rolling_config={"expression": "10%", "mode": "1"},
                         target_path="target_path1",
                         timeout=1000,
                     ),
@@ -529,6 +553,7 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
                         esb_client=SUCCESS_ESB_CLIENT,
                         file_tags=[{"type": "upload_module", "tags": {"tag_id": "tag_id2"}}],
                         ips=[{"ip": "1.1.1.1", "bk_cloud_id": 0}],
+                        rolling_config={"expression": "10%", "mode": "1"},
                         target_path="target_path2",
                         timeout=1000,
                     ),
@@ -538,6 +563,7 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
                         esb_client=SUCCESS_ESB_CLIENT,
                         file_tags=[{"type": "upload_module", "tags": {"tag_id": "tag_id3"}}],
                         ips=[{"ip": "1.1.1.1", "bk_cloud_id": 0}],
+                        rolling_config={"expression": "10%", "mode": "1"},
                         target_path="target_path3",
                         timeout=1000,
                     ),
