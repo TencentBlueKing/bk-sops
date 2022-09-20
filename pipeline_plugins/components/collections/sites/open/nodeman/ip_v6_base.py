@@ -29,7 +29,7 @@ class NodemanPluginIPMixin:
 
         supplier_account = supplier_account_for_business(biz_cc_id)
         # 如果开启IPV6
-        if settings.ENABLE_IP_V6:
+        if settings.ENABLE_IPV6:
             ip_str = build_ip_str()
             host_result = cc_get_host_by_innerip_with_ipv6(executor, biz_cc_id, ip_str, supplier_account)
             if not host_result["result"]:

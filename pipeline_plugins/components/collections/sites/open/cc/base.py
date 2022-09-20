@@ -407,7 +407,7 @@ class CCPluginIPMixin:
         @return:
         """
         # 如果开启IPV6
-        if settings.ENABLE_IP_V6:
+        if settings.ENABLE_IPV6:
             host_result = cc_get_host_by_innerip_with_ipv6(executor, biz_cc_id, ip_str, supplier_account)
             if not host_result["result"]:
                 return host_result
@@ -430,13 +430,13 @@ class CCPluginIPMixin:
               }
         """
         # 如果开启IPV6, 则走IPV6的实现
-        if settings.ENABLE_IP_V6:
+        if settings.ENABLE_IPV6:
             return cc_get_ips_info_by_str_ipv6(executor, biz_cc_id, ip_str, supplier_account)
         return cc_get_ips_info_by_str(executor, biz_cc_id, ip_str, supplier_account)
 
     def get_host_topo(self, executor, biz_cc_id, supplier_account, host_attrs, ip_str):
         """获取主机拓扑"""
-        if not settings.ENABLE_IP_V6:
+        if not settings.ENABLE_IPV6:
             ip_list = get_ip_by_regex(ip_str)
             return cmdb.get_business_host_topo(executor, biz_cc_id, supplier_account, host_attrs, ip_list)
 
