@@ -1563,7 +1563,6 @@
 }
 
 .subprocess-failed-tips {
-    z-index: 222;
     margin-top: -1px;
     color: #63656e;
     /deep/.bk-alert-title {
