@@ -434,12 +434,15 @@
                         })
                     } else if (islegacySubProcess) {
                         // 兼容旧版本子流程节点输出数据
-                        outputsInfo = outputs.map(item => {
-                            const { value, key } = item
-                            const constants = this.nodeActivity.pipeline.constants
-                            const name = constants[key] ? constants[key].name : key
-                            return { value, name, key }
-                        })
+                        outputsInfo = outputs.reduce((acc, cur) => {
+                            const { value, key } = cur
+                            if (key !== 'ex_data') {
+                                const constants = this.nodeActivity.pipeline.constants
+                                const name = constants[key] ? constants[key].name : key
+                                acc.push({ value, name, key })
+                            }
+                            return acc
+                        }, [])
                     } else { // 普通插件展示 preset 为 true 的输出参数
                         outputsInfo = outputs.filter(output => output.preset)
                     }
