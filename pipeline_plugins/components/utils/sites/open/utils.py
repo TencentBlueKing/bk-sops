@@ -48,19 +48,19 @@ set_module_ip_reg = re.compile(r"[\u4e00-\u9fa5\w]+\|[\u4e00-\u9fa5\w]+\|" + ip_
 ip_pattern = re.compile(ip_re)
 
 
-def compare_ip_list(source_list, target_list, host_key="bk_host_innerip"):
-    if len(source_list) > len(target_list):
+def compare_ip_list_and_return(host_list, ip_list, host_key="bk_host_innerip", raise_exception=True):
+    if len(host_list) > len(ip_list):
         # find repeat innerip host
-        host_counter = Counter([host["host"][host_key] for host in source_list])
+        host_counter = Counter([host[host_key] for host in host_list])
         mutiple_innerip_hosts = [innerip for innerip, count in host_counter.items() if count > 1]
+        if raise_exception:
+            raise Exception("mutiple same innerip host found: {}".format(", ".join(mutiple_innerip_hosts)))
         return mutiple_innerip_hosts
-    if len(source_list) < len(target_list):
-        return_innerip_set = {host["host"][host_key] for host in source_list}
-        absent_innerip = set(target_list).difference(return_innerip_set)
-
+    if len(host_list) < len(ip_list):
+        return_innerip_set = {host[host_key] for host in host_list}
+        absent_innerip = set(ip_list).difference(return_innerip_set)
         return absent_innerip
-
-    return []
+    return set()
 
 
 def get_ipv6_info_list(username, biz_cc_id, supplier_account, ipv6_list):
@@ -77,7 +77,9 @@ def get_ipv6_info_list(username, biz_cc_id, supplier_account, ipv6_list):
         },
     )
     if len(ipv6_list) != len(ipv6_info_list):
-        return False, compare_ip_list(ipv6_info_list, ipv6_list, host_key="bk_host_innerip_v6")
+        return False, compare_ip_list_and_return(
+            ipv6_info_list, ipv6_list, host_key="bk_host_innerip_v6", raise_exception=False
+        )
 
     ip_result = []
     for ip_info in ipv6_info_list:
@@ -109,7 +111,9 @@ def get_ipv4_info_list(username, biz_cc_id, supplier_account, ipv4_list):
     )
 
     if len(ipv4_list) != len(ipv4_info_list):
-        return False, compare_ip_list(ipv4_info_list, ipv4_list, host_key="bk_host_innerip")
+        return False, compare_ip_list_and_return(
+            ipv4_info_list, ipv4_list, host_key="bk_host_innerip", raise_exception=False
+        )
 
     for ip_info in ipv4_info_list:
         ip_result.append(
@@ -139,19 +143,21 @@ def get_ipv4_info_list_with_cloud_id(username, biz_cc_id, supplier_account, ipv4
         ip_list=ip_list,
     )
 
-    ip_v4_info_with_cloud_valid = []
+    ipv4_info_with_cloud_valid = []
     for ip_info in ipv4_info_list:
         # 清洗出来所有带云区域带ip
         plat_ip = "{}:{}".format(ip_info["host"].get("bk_cloud_id", -1), ip_info["host"].get("bk_host_innerip", ""))
         if plat_ip in ipv4_list_with_cloud_id:
-            ip_v4_info_with_cloud_valid.append(ip_info)
+            ipv4_info_with_cloud_valid.append(ip_info)
 
     # 再比较查询结果和输入结果数量是否一致
-    result = compare_ip_list(ip_v4_info_with_cloud_valid, ip_list, "bk_host_innerip")
-    if result:
-        return False, result
+    compare_data = compare_ip_list_and_return(
+        ipv4_info_with_cloud_valid, ip_list, "bk_host_innerip", raise_exception=False
+    )
+    if compare_data:
+        return False, compare_data
     ip_result = []
-    for item in ip_v4_info_with_cloud_valid:
+    for item in ipv4_info_with_cloud_valid:
         ip_result.append(
             {
                 "InnerIP": item["host"]["bk_host_innerip"],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
@@ -186,7 +192,9 @@ def get_host_info_list(username, biz_cc_id, supplier_account, host_id_list):
             "result": False,
             "ip_result": [],
             "ip_count": 0,
-            "invalid_ip": compare_ip_list(host_info_list, host_id_list, host_key="bk_host_id"),
+            "invalid_ip": compare_ip_list_and_return(
+                host_info_list, host_id_list, host_key="bk_host_id", raise_exception=False
+            ),
         }
 
     # 默认使用bk_host_innerip地址

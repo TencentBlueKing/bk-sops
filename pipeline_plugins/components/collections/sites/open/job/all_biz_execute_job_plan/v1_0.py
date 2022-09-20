@@ -131,7 +131,7 @@ class AllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
         @param val:
         @return:
         """
-        if settings.OPEN_IP_V6:
+        if settings.ENABLE_IP_V6:
             return val
         plat_ip = [match.group() for match in plat_ip_reg.finditer(val)]
         ip_list = [{"ip": _ip.split(":")[1], "bk_cloud_id": _ip.split(":")[0]} for _ip in plat_ip]

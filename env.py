@@ -87,4 +87,4 @@ EXPIRED_SESSION_CLEAN_CRON = json.loads(
     os.getenv("BKAPP_EXPIRED_SESSION_CLEAN_CRON", '{"hour": "15", "minute": "0"}')
 )  # UTC time
 
-OPEN_IP_V6 = False if os.getenv("BKAPPOPEN_IP_V6") is None else True
+ENABLE_IP_V6 = False if os.getenv("BKAPP_ENABLE_IP_V6") is None else True

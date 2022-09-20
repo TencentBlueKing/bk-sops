@@ -22,7 +22,7 @@ from pipeline.component_framework.component import Component
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.components.collections.sites.open.cc.base import BaseCcPluginIp
+from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -33,7 +33,7 @@ VERSION = "v1.0"
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class CCHostCustomPropertyChangeService(Service, BaseCcPluginIp):
+class CCHostCustomPropertyChangeService(Service, CCPluginIPMixin):
     class FileCode(object):
         host_rule = "1"
         set_rule = "2"

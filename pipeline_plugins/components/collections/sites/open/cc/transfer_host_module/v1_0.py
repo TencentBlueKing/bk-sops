@@ -25,7 +25,7 @@ from pipeline_plugins.components.collections.sites.open.cc.base import (
     SelectMethod,
     cc_format_tree_mode_id,
     cc_list_select_node_inst_id,
-    BaseCcPluginIp,
+    CCPluginIPMixin,
 )
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
@@ -41,7 +41,7 @@ VERSION = "v1.0"
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class CCTransferHostModuleService(Service, BaseCcPluginIp):
+class CCTransferHostModuleService(Service, CCPluginIPMixin):
     def inputs_format(self):
         return [
             self.InputItem(

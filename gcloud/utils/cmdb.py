@@ -141,7 +141,7 @@ def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_lis
     return batch_request(client.cc.list_biz_hosts, kwargs)
 
 
-def get_business_set_host(username, supplier_account, host_fields, ip_list=None, bk_cloud_id=None):
+def get_business_set_host(username, supplier_account, host_fields, ip_list=None):
     """根据主机内网 IP 过滤业务下的主机
     :param username: 请求用户名
     :type username: str

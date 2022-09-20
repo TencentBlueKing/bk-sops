@@ -106,9 +106,6 @@ class AllBizJobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
             return result
         return {"result": False}
 
-    def get_server(self):
-        pass
-
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)

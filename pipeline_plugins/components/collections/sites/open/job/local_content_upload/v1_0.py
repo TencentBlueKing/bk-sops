@@ -117,7 +117,7 @@ class JobLocalContentUploadService(Service, GetJobTargetServerMixin):
 
         original_ip_list = data.get_one_of_inputs("job_ip_list")
         across_biz = data.get_one_of_inputs("job_across_biz", False)
-        target_server = {"ip_list": []}
+
         if across_biz:
             ip_info = {"ip_result": []}
             for match in plat_ip_reg.finditer(original_ip_list):

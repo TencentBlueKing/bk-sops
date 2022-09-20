@@ -27,11 +27,11 @@ class GetJobTargetServerMixin(object):
         # 去本业务查
         (
             host_list,
-            ip_v4_not_find_list,
-            ip_v4_with_cloud_not_find_list,
-            ip_v6_not_find_list,
+            ipv4_not_find_list,
+            ipv4_with_cloud_not_find_list,
+            ipv6_not_find_list,
         ) = cc_get_host_by_innerip_with_ipv6_across_business(executor, biz_cc_id, ip_str, supplier_account)
-        ip_not_find_str = ",".join(ip_v4_not_find_list + ip_v6_not_find_list + ip_v4_with_cloud_not_find_list)
+        ip_not_find_str = ",".join(ipv4_not_find_list + ipv6_not_find_list + ipv4_with_cloud_not_find_list)
         # 剩下的ip去全业务查
         host_result = cc_get_host_by_innerip_with_ipv6(
             executor, None, ip_not_find_str, supplier_account, is_biz_set=True
@@ -52,7 +52,7 @@ class GetJobTargetServerMixin(object):
         is_across=False,
         ignore_ex_data=False,
     ):
-        if settings.OPEN_IP_V6:
+        if settings.ENABLE_IP_V6:
             if is_across:
                 return self.get_target_server_ipv6_across_business(executor, biz_cc_id, ip_str)
             return self.get_target_server_ipv6(executor, biz_cc_id, ip_str)
@@ -78,13 +78,15 @@ class GetJobTargetServerMixin(object):
             # 第二步 分析表格, 得到 ipv6, host_id，ipv4, 三种字符串，并连接成字符串
             for _ip in ip_table:
                 ipv6_list, ipv4_list, host_id_list, ipv4_list_with_cloud_id = extract_ip_from_ip_str(_ip[ip_key])
-                ip_list.extend(ipv6_list)
-                ip_list.extend(host_id_list)
-                ip_list.extend(["{}:{}".format(_ip.get("bk_cloud_id", 0), item) for item in ipv4_list])
+                ip_list = [
+                    *ipv6_list,
+                    *host_id_list,
+                    *["{}:{}".format(_ip.get("bk_cloud_id", 0), item) for item in ipv4_list],
+                ]
 
             return ",".join(ip_list)
 
-        if settings.OPEN_IP_V6:
+        if settings.ENABLE_IP_V6:
             # 第一步 查询这个业务集下所有的业务id, 得到bk_biz_ids
             ip_str = ip_table
             # 在业务集的执行方案中，可能不需要额外处理ip,这种情况直接透传就好
