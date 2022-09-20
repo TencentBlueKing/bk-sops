@@ -6,7 +6,7 @@ from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_ho
 from pipeline_plugins.components.collections.sites.open.nodeman.base import get_host_id_by_inner_ip
 
 
-class BaseNodeManPluginIp:
+class NodemanPluginIPMixin:
     def get_host_list(self, executor, logger, biz_cc_id, ip_str, bk_cloud_id):
         """
         获取host_list
@@ -18,17 +18,18 @@ class BaseNodeManPluginIp:
         """
 
         def build_ip_str():
-            ip_list = []
             ipv6_list, ipv4_list, host_id_list, ipv4_list_with_cloud_id = extract_ip_from_ip_str(ip_str)
-            ip_list.extend(ipv6_list)
-            ip_list.extend(host_id_list)
-            ip_list.extend(["{}:{}".format(bk_cloud_id, item) for item in ipv4_list])
-            ip_list.extend(ipv4_list_with_cloud_id)
+            ip_list = [
+                *ipv6_list,
+                *host_id_list,
+                *ipv4_list_with_cloud_id,
+                *["{}:{}".format(bk_cloud_id, item) for item in ipv4_list],
+            ]
             return ",".join(ip_list)
 
         supplier_account = supplier_account_for_business(biz_cc_id)
         # 如果开启IPV6
-        if settings.OPEN_IP_V6:
+        if settings.ENABLE_IP_V6:
             ip_str = build_ip_str()
             host_result = cc_get_host_by_innerip_with_ipv6(executor, biz_cc_id, ip_str, supplier_account)
             if not host_result["result"]:

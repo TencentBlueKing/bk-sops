@@ -745,10 +745,3 @@ class CollectionsCC(object):
             path="/api/c/compapi{bk_api_ver}/cc/list_hosts_without_biz/",
             description="没有业务信息的主机查询",
         )
-
-        self.list_business_in_business_set = ComponentAPI(
-            client=self.client,
-            method="POST",
-            path="/api/c/compapi{bk_api_ver}/cc/list_business_in_business_set/",
-            description="查询业务集中的业务(v3.10.12+)",
-        )

@@ -20,7 +20,7 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.components.collections.sites.open.cc.base import BaseCcPluginIp
+from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
@@ -38,7 +38,7 @@ class HostLockTypeService(Service, metaclass=ABCMeta):
         raise NotImplementedError()
 
 
-class CCHostLockBaseService(HostLockTypeService, BaseCcPluginIp):
+class CCHostLockBaseService(HostLockTypeService, CCPluginIPMixin):
     def inputs_format(self):
         return [
             self.InputItem(

@@ -25,7 +25,7 @@ from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-from pipeline_plugins.components.collections.sites.open.cc.base import BaseCcPluginIp
+from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -35,7 +35,7 @@ __group_name__ = _("配置平台(CMDB)")
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class CCReplaceFaultMachineService(Service, BaseCcPluginIp):
+class CCReplaceFaultMachineService(Service, CCPluginIPMixin):
     def inputs_format(self):
         return [
             self.InputItem(

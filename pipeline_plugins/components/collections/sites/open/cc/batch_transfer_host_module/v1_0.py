@@ -26,7 +26,7 @@ from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     cc_list_select_node_inst_id,
-    BaseCcPluginIp,
+    CCPluginIPMixin,
 )
 
 
@@ -39,7 +39,7 @@ VERSION = "1.0"
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class CCBatchTransferHostModule(Service, BaseCcPluginIp):
+class CCBatchTransferHostModule(Service, CCPluginIPMixin):
     def inputs_format(self):
         return [
             self.InputItem(

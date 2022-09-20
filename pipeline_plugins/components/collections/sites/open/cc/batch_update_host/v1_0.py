@@ -23,7 +23,7 @@ from pipeline.component_framework.component import Component
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.components.collections.sites.open.cc.base import cc_format_prop_data, BaseCcPluginIp
+from pipeline_plugins.components.collections.sites.open.cc.base import cc_format_prop_data, CCPluginIPMixin
 from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
 from pipeline_plugins.components.utils.sites.open.utils import plat_ip_reg
 
@@ -70,7 +70,7 @@ def verify_host_property(executor, supplier_account, language, cc_host_property,
     return True, ""
 
 
-class CCBatchUpdateHostService(Service, BaseCcPluginIp):
+class CCBatchUpdateHostService(Service, CCPluginIPMixin):
     def inputs_format(self):
         return [
             self.InputItem(

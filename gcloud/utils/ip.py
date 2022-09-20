@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 import ipaddress
 import re
 import logging
+from enum import Enum
 
 ip_pattern = re.compile(r"(?<!\d)((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(?!\d)")
 plat_ip_reg = re.compile(r"\d+:((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(?!\d)")
@@ -38,7 +39,7 @@ def get_ip_by_regex(ip_str):
     return ret
 
 
-def extension_ipv6(ip_list):
+def extend_ipv6(ip_list):
     """
     将ipv6扩展为完整ipv6地址列表
     @param ip_list: ["::0001"]
@@ -53,6 +54,13 @@ def extension_ipv6(ip_list):
     return ip_v6_list
 
 
+class IpRegexType(Enum):
+    IPV4 = "IPV4"
+    IPV6 = "IPV6"
+    IPV4_WITH_CLOUD_ID = "IPV4_WITH_CLOUD_ID"
+    HOST_ID = "HOST_ID"
+
+
 def get_ip_by_regex_type(regex_type, ip_str):
     """
     根据传入的正则类型，匹配指定的数据，并返回去除匹配结果的子串
@@ -60,7 +68,12 @@ def get_ip_by_regex_type(regex_type, ip_str):
     :param ip_str:
     :return:
     """
-    regex_map = {"ipv4": ip_pattern, "ipv4_with_cloud_id": plat_ip_reg, "ipv6": ipv6_pattern, "number": number_pattern}
+    regex_map = {
+        IpRegexType.IPV4.value: ip_pattern,
+        IpRegexType.IPV4_WITH_CLOUD_ID.value: plat_ip_reg,
+        IpRegexType.IPV6.value: ipv6_pattern,
+        IpRegexType.HOST_ID.value: number_pattern,
+    }
 
     if regex_type not in regex_map.keys():
         raise Exception("暂不支持的正则类型")
@@ -78,22 +91,22 @@ def get_ip_by_regex_type(regex_type, ip_str):
     )
 
     # 对于IPV6的主机, 需要将压缩格式的ipv6扩展为全格式
-    if regex_type == "ipv6":
-        ip_list = extension_ipv6(ip_list)
+    if regex_type == IpRegexType.IPV6.value:
+        ip_list = extend_ipv6(ip_list)
 
     return ip_list, new_ip_str
 
 
 def extract_ip_from_ip_str(ip_str):
-    ipv6_list, ip_str_without_ipv6 = get_ip_by_regex_type("ipv6", ip_str)
+    ipv6_list, ip_str_without_ipv6 = get_ip_by_regex_type(IpRegexType.IPV6.value, ip_str)
 
     ipv4_list_with_cloud_id, ip_str_without_ipv4_with_cloud_id = get_ip_by_regex_type(
-        "ipv4_with_cloud_id", ip_str_without_ipv6
+        IpRegexType.IPV4_WITH_CLOUD_ID.value, ip_str_without_ipv6
     )
     # 在ipv6下，云区域+ip 将不再唯一
-    ipv4_list, ip_str_without_ipv4 = get_ip_by_regex_type("ipv4", ip_str_without_ipv4_with_cloud_id)
+    ipv4_list, ip_str_without_ipv4 = get_ip_by_regex_type(IpRegexType.IPV4.value, ip_str_without_ipv4_with_cloud_id)
 
-    host_id_list, _ = get_ip_by_regex_type("number", ip_str_without_ipv4)
+    host_id_list, _ = get_ip_by_regex_type(IpRegexType.HOST_ID.value, ip_str_without_ipv4)
 
     return ipv6_list, ipv4_list, host_id_list, ipv4_list_with_cloud_id
 

@@ -29,12 +29,12 @@ from ..base import NodeManBaseService
 
 __group_name__ = _("节点管理(Nodeman)")
 
-from ..ip_v6_base import BaseNodeManPluginIp
+from ..ip_v6_base import NodemanPluginIPMixin
 
 INSTALL_TYPE = ["MAIN_INSTALL_PLUGIN"]
 
 
-class NodemanPluginOperateService(NodeManBaseService, BaseNodeManPluginIp):
+class NodemanPluginOperateService(NodeManBaseService, NodemanPluginIPMixin):
     def inputs_format(self):
         return [
             self.InputItem(

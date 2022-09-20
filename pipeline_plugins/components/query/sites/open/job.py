@@ -363,7 +363,7 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
         if var["type"] in JOBV3_VAR_CATEGORY_GLOBAL_VARS:
             value = var.get("value", "")
         elif var["type"] == JOBV3_VAR_CATEGORY_IP:
-            if settings.OPEN_IP_V6:
+            if settings.ENABLE_IP_V6:
                 value = ",".join([str(ip_item["bk_host_id"]) for ip_item in var.get("server", {}).get("ip_list") or []])
             else:
                 value = ",".join(
@@ -431,10 +431,7 @@ job_urlpatterns = [
     url(r"^job_get_public_script_name_list/$", job_get_public_script_name_list),
     url(r"^job_get_script_by_script_version/(?P<biz_cc_id>\d+)/$", job_get_script_by_script_version),
     url(r"^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$", job_get_job_tasks_by_biz),
-    url(
-        r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$",
-        job_get_job_task_detail,
-    ),
+    url(r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_job_task_detail),
     url(r"^job_get_instance_detail/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_instance_detail),
     # jobv3接口
     url(r"^jobv3_get_job_template_list/(?P<biz_cc_id>\d+)/$", jobv3_get_job_template_list),

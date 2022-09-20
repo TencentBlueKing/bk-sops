@@ -24,7 +24,7 @@ from pipeline.component_framework.component import Component
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     cc_format_prop_data,
-    BaseCcPluginIp,
+    CCPluginIPMixin,
 )
 
 from gcloud.conf import settings
@@ -39,7 +39,7 @@ __group_name__ = _("配置平台(CMDB)")
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class CCUpdateHostService(Service, BaseCcPluginIp):
+class CCUpdateHostService(Service, CCPluginIPMixin):
     def inputs_format(self):
         return [
             self.InputItem(
