@@ -94,6 +94,7 @@ class JobRepoManager(Manager):
         callback_url=None,
         timeout=None,
         bk_scope_type="biz",
+        rolling_config=None,
     ):
 
         if not all([tag["type"] == "job_repo" for tag in file_tags]):
@@ -110,6 +111,8 @@ class JobRepoManager(Manager):
         }
         if timeout is not None:
             job_kwargs["timeout"] = int(timeout)
+        if rolling_config is not None:
+            job_kwargs["rolling_config"] = rolling_config
         if callback_url:
             job_kwargs["callback_url"] = callback_url
 
