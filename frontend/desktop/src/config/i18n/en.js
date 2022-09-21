@@ -1479,7 +1479,11 @@ const en = {
     '支持DAT类型文件，文件小于2M': 'Support DAT type file, the file is less than 2M',
     '上传失败，DAT类型文件最大为2M': 'Upload failed, the maximum size of DAT type file is 2M',
     '上传失败，YAML类型文件最大为2M': 'Upload failed, the maximum size of the YAML type file is 2M',
-    '退出登录': 'Logout'
+    '退出登录': 'Logout',
+    '执行时显示': 'Display when executed',
+    '配置为“是”可在执行时填参页面覆盖变量默认值，配置为“否”则使用变量默认值': 'Set to "Yes" to override the default value of the variable when filling in the parameter page during execution, and set to "No" to use the default value of the variable',
+    '“显示参数”条件隐藏': 'The Show Parameters condition is hidden',
+    '当满足条件时，可将“执行时显示”的参数隐藏起来，实现变量联动': 'When the conditions are met, the parameters displayed in "execution" can be hidden to realize variable linkage'
 }
 
 export default en

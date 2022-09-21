@@ -82,7 +82,7 @@
                 <!-- 显示/隐藏 -->
                 <div class="form-item clearfix" v-if="!isInternalVal">
                     <label class="form-label ">
-                        <span v-bk-tooltips.top="$t('输入参数可在填参页面自定义传值。非输入参数填参页面不显示，使用变量默认值')" class="condition-tip">{{ $t('是否为输入参数')}}</span>
+                        <span v-bk-tooltips.top="$t('配置为“是”可在执行时填参页面覆盖变量默认值，配置为“否”则使用变量默认值')" class="condition-tip">{{ $t('执行时显示')}}</span>
                     </label>
                     <div class="form-content">
                         <bk-select
@@ -102,7 +102,7 @@
                 <!-- 自动隐藏 -->
                 <div class="form-item clearfix" v-if="theEditingData.show_type === 'show' && !isInternalVal">
                     <label class="form-label ">
-                        <span v-bk-tooltips.top="$t('当满足触发条件时，输入参数在填参页面将不显示。可实现不同条件下配置不同的输入参数')" class="condition-tip">{{ $t('输入参数条件隐藏')}}</span>
+                        <span v-bk-tooltips.top="$t('当满足条件时，可将“执行时显示”的参数隐藏起来，实现变量联动')" class="condition-tip">{{ $t('“显示参数”条件隐藏')}}</span>
                     </label>
                     <div class="form-content">
                         <bk-select
@@ -885,7 +885,7 @@
         label {
             position: relative;
             float: left;
-            width: 100px;
+            width: 120px;
             margin-top: 8px;
             font-size: 12px;
             color: #666666;
@@ -908,7 +908,7 @@
         }
     }
     .form-content {
-        margin-left: 120px;
+        margin-left: 140px;
         min-height: 36px;
         /deep/ {
             .bk-select {
@@ -927,6 +927,12 @@
             }
             .tag-form {
                 margin-left: 0;
+            }
+            .rf-tag-label {
+                width: 120px;
+            }
+            .rf-tag-form {
+                margin-left: 140px;
             }
         }
     }

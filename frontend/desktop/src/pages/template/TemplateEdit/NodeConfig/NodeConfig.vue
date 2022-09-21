@@ -81,7 +81,7 @@
                                                 <i
                                                     :class="[props.row.show_type === 'show' ? 'common-icon-eye-show' : 'common-icon-eye-hide color-org']"
                                                     v-bk-tooltips="{
-                                                        content: props.row.show_type === 'show' ? $t('必填') : $t('非必填'),
+                                                        content: props.row.show_type === 'show' ? $t('显示') : $t('隐藏'),
                                                         placements: ['bottom']
                                                     }">
                                                 </i>
