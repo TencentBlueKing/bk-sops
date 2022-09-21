@@ -31,6 +31,7 @@
                         :disabled="item.disabled"
                         :url="item.url"
                         :id="item.id"
+                        :class="{ 'active-nav': currentNav === item.id }"
                         :data-test-id="`navigation_list_${item.id}`"
                         @click="onHandleNavClick($event, groupIndex, routeIndex)">
                         <span>{{item.name}}</span>
@@ -289,6 +290,9 @@
                 }
                 .navigation-nav {
                     z-index: 111;
+                    .nav-slider {
+                        background-color: #182132 !important;
+                    }
                     .nav-slider-list {
                         padding-top: 0;
                     }
@@ -306,6 +310,40 @@
             }
             .bk-navigation-menu-group {
                 border-top: 1px solid rgba(255,255,255,0.06);
+            }
+            .navigation-menu-item,
+            .navigation-sbmenu-title {
+                .navigation-menu-item-default-icon {
+                    height: 4px;
+                    width: 4px;
+                }
+                .navigation-menu-item-icon,
+                .navigation-sbmenu-title-icon {
+                    color: #979ba5 !important;
+                }
+                .navigation-menu-item-name,
+                .navigation-sbmenu-title-content {
+                    color: #96a2b9 !important;
+                }
+                &.active-nav,
+                &:hover {
+                    background: #2f3847 !important;
+                    .navigation-menu-item-icon,
+                    .navigation-menu-item-name,
+                    .navigation-sbmenu-title-icon,
+                    .navigation-sbmenu-title-content {
+                        color: #fff !important;
+                    }
+                }
+                &.active-nav {
+                    background: #3a84ff !important;
+                    &:hover {
+                        background: #3a84ff !important;
+                    }
+                }
+            }
+            .navigation-sbmenu-content {
+                background: #161c2c !important;
             }
         }
         .offline-tip {
