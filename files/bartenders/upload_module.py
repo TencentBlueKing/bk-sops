@@ -15,7 +15,6 @@ import re
 import logging
 import traceback
 
-from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 
 from .base import UploadRequestBartender
@@ -26,7 +25,7 @@ INVALID_CHAR_REGEX = re.compile('[\\/:*?"<>|,]')
 
 
 class UploadModuleBartender(UploadRequestBartender):
-    def process_request(self, request):
+    def process_request(self, request, *args, **kwargs):
         file_name = request.POST.get("file_name")
         file_path = request.POST.get("file_local_path")
         source_ip = request.POST.get("file_locate_ip")
@@ -34,36 +33,26 @@ class UploadModuleBartender(UploadRequestBartender):
 
         if not file_name:
             logger.error("[FILE_UPLOAD]invalid file_name: {}".format(file_name))
-            response = JsonResponse({"result": False, "message": "invalid file_name"})
-            response.status_code = 400
-            return response
+            return {"result": False, "message": "invalid file_name", "code": 400}
 
         if INVALID_CHAR_REGEX.findall(file_name):
             message = _('文件上传失败，文件名不能包含\\/:*?"<>|等特殊字符')
             logger.error("[FILE_UPLOAD]invalid file_name: {}".format(message))
-            response = JsonResponse({"result": False, "message": message})
-            response.status_code = 400
-            return response
+            return {"result": False, "message": message, "code": 400}
 
         if not file_path:
             logger.error("[FILE_UPLOAD]invalid file_path: {}".format(file_path))
-            response = JsonResponse({"result": False, "message": "invalid file_path"})
-            response.status_code = 400
-            return response
+            return {"result": False, "message": "invalid file_path", "code": 400}
 
         if not source_ip:
             logger.error("[FILE_UPLOAD]invalid source_ip: {}".format(source_ip))
-            response = JsonResponse({"result": False, "message": "invalid source_ip"})
-            response.status_code = 400
-            return response
+            return {"result": False, "message": "invalid source_ip", "code": 400}
 
         try:
             file_tag = self.manager.save(name=file_name, content=None, source_ip=source_ip, file_path=file_path)
-        except Exception:
+        except Exception as e:
             logger.error("[FILE_UPLOAD]file upload save err: {}".format(traceback.format_exc()))
-            response = JsonResponse({"result": False, "message": _("文件上传归档失败，请联系管理员")})
-            response.status_code = 500
-            return response
+            return {"result": False, "message": _("文件上传归档失败，请联系管理员") + f":{e}", "code": 500}
 
         logger.info("[FILE_UPLOAD] will return: {}".format(file_tag))
-        return JsonResponse({"result": True, "tag": file_tag, "md5": file_local_md5})
+        return {"result": True, "tag": file_tag, "md5": file_local_md5, "code": 200}

@@ -15,7 +15,6 @@ import logging
 import traceback
 import hashlib
 
-from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
@@ -23,34 +22,26 @@ logger = logging.getLogger("root")
 INVALID_CHAR_REGEX = re.compile('[\\/:*?"<>|,]')
 
 
-def common_process_request(request, manager):
+def common_process_request(request, manager, *args, **kwargs):
     file_obj = request.FILES["file"]
     project_id = request.META["HTTP_APP_PROJECTID"]
     file_name = file_obj.name
     file_size = file_obj.size
 
     if not project_id:
-        response = JsonResponse({"result": False, "message": "invalid project_id: {}".format(project_id)})
-        response.status_code = 400
-        return response
+        return {"result": False, "message": "invalid project_id: {}".format(project_id), "code": 400}
 
     # 文件名不能包含中文， 文件大小不能大于 2G
     if file_size > 2048 * 1024 * 1024:
-        message = _("文件上传失败， 文件大小超过2G")
-        response = JsonResponse({"result": False, "message": message})
-        response.status_code = 400
-        return response
+        return {"result": False, "message": _("文件上传失败， 文件大小超过2G"), "code": 400}
 
     if INVALID_CHAR_REGEX.findall(file_name):
-        message = _('文件上传失败，文件名不能包含\\/:*?"<>|等特殊字符')
-        response = JsonResponse({"result": False, "message": message})
-        response.status_code = 400
-        return response
+        return {"result": False, "message": _('文件上传失败，文件名不能包含\\/:*?"<>|等特殊字符'), "code": 400}
 
     shims = "plugins_upload/job_push_local_files/{}".format(project_id)
     kwargs = {
         "project_id": int(project_id),
-        "username": request.user.username,
+        "username": kwargs.get("specific_username") or request.user.username,
     }
 
     # 计算文件md5
@@ -58,10 +49,8 @@ def common_process_request(request, manager):
 
     try:
         file_tag = manager.save(name=file_name, content=file_obj, shims=shims, **kwargs)
-    except Exception:
+    except Exception as e:
         logger.error("file upload save err: {}".format(traceback.format_exc()))
-        response = JsonResponse({"result": False, "message": _("文件上传归档失败，请联系管理员")})
-        response.status_code = 500
-        return response
+        return {"result": False, "message": _("文件上传归档失败，请联系管理员") + f":{e}", "code": 500}
 
-    return JsonResponse({"result": True, "tag": file_tag, "md5": file_local_md5})
+    return {"result": True, "tag": file_tag, "md5": file_local_md5, "code": 200}
