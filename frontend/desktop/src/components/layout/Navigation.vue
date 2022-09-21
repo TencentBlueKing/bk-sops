@@ -43,6 +43,7 @@
                                 :disabled="child.disabled"
                                 :icon="child.icon"
                                 :default-active="child.active"
+                                :class="{ 'active-nav': currentNav === child.id }"
                                 :data-test-id="`navigation_list_${child.id}`"
                                 @click="changeRoute(routerList[groupIndex][routeIndex].children[childIndex])">
                                 <span>
