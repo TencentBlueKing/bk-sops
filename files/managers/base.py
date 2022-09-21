@@ -44,3 +44,6 @@ class Manager(object, metaclass=ABCMeta):
     @abstractmethod
     def get_push_job_state(self, esb_client, job_id):
         raise NotImplementedError()
+
+    def record_uploaded_data(self, data, *args, **kwargs):
+        pass
