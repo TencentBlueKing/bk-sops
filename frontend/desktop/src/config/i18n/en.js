@@ -1478,7 +1478,8 @@ const en = {
     '输入参数条件隐藏': 'Input parameter condition hidden',
     '支持DAT类型文件，文件小于2M': 'Support DAT type file, the file is less than 2M',
     '上传失败，DAT类型文件最大为2M': 'Upload failed, the maximum size of DAT type file is 2M',
-    '上传失败，YAML类型文件最大为2M': 'Upload failed, the maximum size of the YAML type file is 2M'
+    '上传失败，YAML类型文件最大为2M': 'Upload failed, the maximum size of the YAML type file is 2M',
+    '退出登录': 'Logout'
 }
 
 export default en
