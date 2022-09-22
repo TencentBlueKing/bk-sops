@@ -219,14 +219,17 @@
                 try {
                     this.subflowFormsLoading = true
                     const tpls = []
+                    const nodeList = Object.values(this.activities)
                     this.list.map(item => {
                         if (item.expired) {
+                            const nodeInfo = nodeList.find(node => node.id === item.subprocess_node_id)
+                            const template_source = nodeInfo ? nodeInfo.template_source : this.common ? 'common' : 'project'
                             tpls.push({
                                 id: item.template_id,
                                 nodeId: item.subprocess_node_id,
                                 version: item.version,
                                 scheme_id_list: item.scheme_id_list,
-                                template_source: this.common ? 'common' : 'project'
+                                template_source
                             })
                         }
                     })
