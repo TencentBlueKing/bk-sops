@@ -77,7 +77,7 @@
             viewValue () {
                 // 特殊处理只有一个可选项并且label为空的情况，兼容job快速执行脚本滚动执行
                 if (this.items.length === 1 && !this.items[0].label) {
-                    return this.checkedValue.length ? '是' : '否'
+                    return this.checkedValue.length ? gettext('是') : gettext('否')
                 }
 
                 if (!this.checkedValue.length) {
