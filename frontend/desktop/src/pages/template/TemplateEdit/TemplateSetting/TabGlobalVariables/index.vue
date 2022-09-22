@@ -146,7 +146,7 @@
                             </thead-popover>
                         </span>
                         <span class="col-show t-head">
-                            {{ $t('必填') }}
+                            {{ $t('显示') }}
                             <thead-popover
                                 :content-list="varShowList"
                                 type="show"

@@ -68,7 +68,7 @@
                                         :style="{ background: item.color }">
                                     </span>
                                     <span>{{item.name}}</span>
-                                    <i class="bk-option-icon bk-icon icon-check-1"></i>
+                                    <i v-if="selectedTplLabel.includes(item.id)" class="bk-option-icon bk-icon icon-check-1"></i>
                                 </div>
                             </bk-option>
                         </bk-select>
