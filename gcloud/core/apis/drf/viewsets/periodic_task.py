@@ -169,19 +169,26 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
         return serializer
 
     def list(self, request, *args, **kwargs):
-        project_id = int(request.query_params["project__id"])
-        order_by = request.query_params.get("order_by") or "-id"
-        orderings = ("-is_collected", order_by)
+        project_id = int(request.query_params.get("project__id", 0)) or None
 
-        collection_task_ids, collection_task_map = Collection.objects.get_user_project_collection_instance_info(
-            project_id=project_id, username=request.user.username, category="periodic_task"
-        )
+        if project_id:
+            order_by = request.query_params.get("order_by") or "-id"
+            orderings = ("-is_collected", order_by)
 
-        queryset = (
-            self.filter_queryset(self.get_queryset())
-            .annotate(is_collected=ExpressionWrapper(Q(id__in=collection_task_ids), output_field=BooleanField()))
-            .order_by(*orderings)
-        )
+            collection_task_ids, collection_task_map = Collection.objects.get_user_project_collection_instance_info(
+                project_id=project_id, username=request.user.username, category="periodic_task"
+            )
+
+            queryset = (
+                self.filter_queryset(self.get_queryset())
+                .annotate(is_collected=ExpressionWrapper(Q(id__in=collection_task_ids), output_field=BooleanField()))
+                .order_by(*orderings)
+            )
+        else:
+            # 后台管理页面没有对应传参
+            collection_task_ids, collection_task_map = [], {}
+            queryset = self.filter_queryset(self.get_queryset())
+
         # 支持使用方配置不分页
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page if page else queryset, many=True)

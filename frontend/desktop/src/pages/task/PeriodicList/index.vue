@@ -54,6 +54,7 @@
                                     <!--任务-->
                                     <div v-if="item.id === 'name'" class="task-name">
                                         <a
+                                            v-if="!adminView"
                                             data-test-id="periodic_task_collectBtn"
                                             v-cursor="{ active: !hasPermission(['periodic_task_edit'], row.auth_actions) }"
                                             href="javascript:void(0);"

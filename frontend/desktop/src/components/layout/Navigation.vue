@@ -31,6 +31,7 @@
                         :disabled="item.disabled"
                         :url="item.url"
                         :id="item.id"
+                        :class="{ 'active-nav': currentNav === item.id }"
                         :data-test-id="`navigation_list_${item.id}`"
                         @click="onHandleNavClick($event, groupIndex, routeIndex)">
                         <span>{{item.name}}</span>
@@ -42,6 +43,7 @@
                                 :disabled="child.disabled"
                                 :icon="child.icon"
                                 :default-active="child.active"
+                                :class="{ 'active-nav': currentNav === child.id }"
                                 :data-test-id="`navigation_list_${child.id}`"
                                 @click="changeRoute(routerList[groupIndex][routeIndex].children[childIndex])">
                                 <span>
@@ -120,9 +122,9 @@
             },
             subTitle () {
                 if (this.currentNav === 'appMakerList') {
-                    return this.$t('将流程快速⽣成⼀个蓝鲸SaaS 应⽤，可在蓝鲸应⽤市场进⾏搜索并添加到蓝鲸桌⾯。这种⽆需开发、快速⽣成的SaaS 应⽤称为 “轻应⽤”。')
+                    return this.$t('流程任务的一种快捷方式，它是基于流程生成并可直接在蓝鲸应用市场&桌面以SaaS方式搜索、添加及打开。这种无需开发、快速生成的类SaaS应用称为“轻应用”。')
                 } else if (this.currentNav === 'functionHome') {
-                    return this.$t('将流程的编排和执行进行角色分离，高阶人员负责编排流程，而日常执行这类简单任务交付给初阶人员，这种交付模式称为“职能化”。')
+                    return this.$t('拥有流程管理权限的人员，通过设置“执行代理人”功能，将流程任务的执行操作交由第三方人员（如：外包、外聘人员），帮助流程管理人员从繁重的执行工作中解放。')
                 }
                 return ''
             }
@@ -262,7 +264,6 @@
         color: #63656e;
         word-break: break-all;
         text-overflow: ellipsis;
-        display: -webkit-box;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
         overflow: hidden;
@@ -290,6 +291,9 @@
                 }
                 .navigation-nav {
                     z-index: 111;
+                    .nav-slider {
+                        background-color: #182132 !important;
+                    }
                     .nav-slider-list {
                         padding-top: 0;
                     }
@@ -307,6 +311,40 @@
             }
             .bk-navigation-menu-group {
                 border-top: 1px solid rgba(255,255,255,0.06);
+            }
+            .navigation-menu-item,
+            .navigation-sbmenu-title {
+                .navigation-menu-item-default-icon {
+                    height: 4px;
+                    width: 4px;
+                }
+                .navigation-menu-item-icon,
+                .navigation-sbmenu-title-icon {
+                    color: #979ba5 !important;
+                }
+                .navigation-menu-item-name,
+                .navigation-sbmenu-title-content {
+                    color: #96a2b9 !important;
+                }
+                &.active-nav,
+                &:hover {
+                    background: #2f3847 !important;
+                    .navigation-menu-item-icon,
+                    .navigation-menu-item-name,
+                    .navigation-sbmenu-title-icon,
+                    .navigation-sbmenu-title-content {
+                        color: #fff !important;
+                    }
+                }
+                &.active-nav {
+                    background: #3a84ff !important;
+                    &:hover {
+                        background: #3a84ff !important;
+                    }
+                }
+            }
+            .navigation-sbmenu-content {
+                background: #161c2c !important;
             }
         }
         .offline-tip {
