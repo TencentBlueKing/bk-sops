@@ -175,6 +175,9 @@
             margin-right: 18px;
             width: 240px;
             background: #f0f1f5;
+            &.read-only {
+                background: #fff;
+            }
         }
         .help-icon {
             display: flex;
