@@ -425,7 +425,7 @@
                         id: task_id || undefined,
                         create_method: create_method || undefined,
                         recorded_executor_proxy: recorded_executor_proxy || undefined,
-                        is_child_taskflow: this.isChildTaskflow || undefined
+                        is_child_taskflow: this.isChildTaskflow
                     }
 
                     if (start_time && start_time[0] && start_time[1]) {
