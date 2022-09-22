@@ -13,14 +13,16 @@
     <div class="appmaker-container">
         <skeleton :loading="firstLoading" loader="commonList">
             <div class="list-wrapper">
-                <advance-search-form
-                    id="appmakerHome"
-                    :open="isSearchFormOpen"
-                    :search-form="searchForm"
-                    :search-config="{ placeholder: $t('请输入任务名称'), value: requestData.taskName }"
-                    @onSearchInput="onSearchInput"
-                    @submit="onSearchFormSubmit">
-                </advance-search-form>
+                <div class="search-wrapper mb20">
+                    <search-select
+                        ref="searchSelect"
+                        id="appMarkerTaskList"
+                        :placeholder="$t('ID/任务名/执行人/状态')"
+                        v-model="searchSelectValue"
+                        :search-list="searchList"
+                        @change="handleSearchValueChange">
+                    </search-select>
+                </div>
                 <div class="appmaker-table-content" data-test-id="appTaskHome_table_appmakerList">
                     <bk-table
                         :data="appmakerList"
@@ -52,12 +54,12 @@
                                 </router-link>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('执行开始')" width="200">
+                        <bk-table-column :label="$t('执行开始')" width="200" :render-header="renderTableHeader">
                             <template slot-scope="props">
                                 {{ props.row.start_time || '--' }}
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('执行结束')" width="200">
+                        <bk-table-column :label="$t('执行结束')" width="200" :render-header="renderTableHeader">
                             <template slot-scope="props">
                                 {{ props.row.finish_time || '--' }}
                             </template>
@@ -77,7 +79,7 @@
                                 </div>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('操作')" width="100">
+                        <bk-table-column :label="$t('操作')" width="100" :fixed="appmakerList.length ? 'right' : false">
                             <template slot-scope="props">
                                 <a
                                     v-cursor="{ active: !hasPermission(['task_clone'], props.row.auth_actions) }"
@@ -109,56 +111,36 @@
     import { mapState, mapActions, mapMutations } from 'vuex'
     import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
-    import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import TaskCloneDialog from '@/pages/task/TaskList/TaskCloneDialog.vue'
+    import SearchSelect from '@/components/common/searchSelect/index.vue'
+    import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
 
-    const SEARCH_FORM = [
+    const SEARCH_LIST = [
         {
-            type: 'dateRange',
-            key: 'queryTime',
-            placeholder: i18n.t('选择日期时间范围'),
-            label: i18n.t('执行开始'),
-            value: ['', '']
+            id: 'task_id',
+            name: 'ID'
         },
         {
-            type: 'select',
-            label: i18n.t('任务分类'),
-            key: 'category',
-            loading: true,
-            placeholder: i18n.t('请选择分类'),
-            list: [],
-            value: ''
+            id: 'taskName',
+            name: i18n.t('任务名'),
+            isDefaultOption: true
         },
         {
-            type: 'input',
-            key: 'creator',
-            label: i18n.t('创建人'),
-            placeholder: i18n.t('请输入创建人'),
-            value: ''
+            id: 'executor',
+            name: i18n.t('执行人')
         },
         {
-            type: 'input',
-            key: 'executor',
-            label: i18n.t('执行人'),
-            placeholder: i18n.t('请输入执行人'),
-            value: ''
-        },
-        {
-            type: 'select',
-            label: i18n.t('状态'),
-            key: 'statusSync',
-            loading: false,
-            placeholder: i18n.t('请选择状态'),
-            list: [
-                { 'value': 'nonExecution', 'name': i18n.t('未执行') },
-                { 'value': 'runing', 'name': i18n.t('未完成') },
-                { 'value': 'finished', 'name': i18n.t('完成') }
-            ],
-            value: ''
+            id: 'statusSync',
+            name: i18n.t('状态'),
+            children: [
+                { id: 'nonExecution', name: i18n.t('未执行') },
+                { id: 'running', name: i18n.t('未完成') },
+                { id: 'finished', name: i18n.t('完成') }
+            ]
         }
     ]
 
@@ -166,8 +148,8 @@
         name: 'appmakerTaskHome',
         components: {
             Skeleton,
-            AdvanceSearchForm,
             TaskCloneDialog,
+            SearchSelect,
             NoData
         },
         mixins: [permission, task],
@@ -176,30 +158,36 @@
             const {
                 page = 1,
                 limit = 15,
-                category = '',
-                queryTime = '',
-                statusSync = '',
-                creator = '',
+                start_time = '',
+                finish_time = '',
                 executor = '',
-                keyword = ''
+                statusSync = '',
+                taskName = '',
+                task_id = ''
             } = this.$route.query
-            const searchForm = SEARCH_FORM.map(item => {
-                if (this.$route.query[item.key]) {
-                    if (Array.isArray(item.value)) {
-                        item.value = this.$route.query[item.key].split(',')
-                    } else {
-                        item.value = this.$route.query[item.key]
+            const searchList = [
+                ...SEARCH_LIST,
+                { id: 'start_time', name: i18n.t('执行开始'), type: 'dateRange' },
+                { id: 'finish_time', name: i18n.t('执行结束'), type: 'dateRange' }
+            ]
+            const searchSelectValue = searchList.reduce((acc, cur) => {
+                const values_text = this.$route.query[cur.id]
+                if (values_text) {
+                    let values = []
+                    if (!cur.children) {
+                        values = cur.type === 'dateRange' ? values_text.split(',') : [values_text]
+                        acc.push({ ...cur, values })
+                    } else if (cur.children.length) {
+                        const ids = values_text.split(',')
+                        values = cur.children.filter(item => ids.includes(String(item.id)))
+                        acc.push({ ...cur, values })
                     }
                 }
-                return item
-            })
-            const isSearchFormOpen = SEARCH_FORM.some(item => this.$route.query[item.key])
-
+                return acc
+            }, [])
             return {
                 firstLoading: true,
                 listLoading: false,
-                searchForm,
-                isSearchFormOpen,
                 isDeleteDialogShow: false,
                 taskBasicInfoLoading: true,
                 theDeleteTemplateId: undefined,
@@ -210,7 +198,6 @@
                 },
                 appmakerList: [],
                 executeStatus: [], // 任务执行状态
-                taskCategory: [],
                 isTaskCloneDialogShow: false,
                 theCloneTaskId: undefined,
                 theCloneTaskName: '',
@@ -220,20 +207,16 @@
                     limit: Number(limit),
                     'limit-list': [15, 30, 50, 100]
                 },
-                statusList: [
-                    { 'value': 'nonExecution', 'name': i18n.t('未执行') },
-                    { 'value': 'running', 'name': i18n.t('未完成') },
-                    { 'value': 'revoked', 'name': i18n.t('撤销') },
-                    { 'value': 'finished', 'name': i18n.t('完成') }
-                ],
                 requestData: {
-                    category,
-                    creator,
                     executor,
                     statusSync,
-                    queryTime: queryTime ? queryTime.split(',') : ['', ''],
-                    taskName: keyword
-                }
+                    start_time: start_time ? start_time.split(',') : ['', ''],
+                    finish_time: finish_time ? finish_time.split(',') : ['', ''],
+                    taskName,
+                    task_id
+                },
+                searchList: toolsUtils.deepClone(SEARCH_LIST),
+                searchSelectValue
             }
         },
         computed: {
@@ -243,7 +226,6 @@
         },
         async created () {
             this.getBizBaseInfo()
-            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             await this.getAppmakerList()
             this.firstLoading = false
         },
@@ -261,7 +243,7 @@
             async getAppmakerList () {
                 this.listLoading = true
                 try {
-                    const { queryTime, category, creator, executor, statusSync, taskName } = this.requestData
+                    const { start_time, finish_time, category, executor, statusSync, taskName, task_id } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
                     let pipeline_instance__is_revoked
@@ -287,9 +269,9 @@
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         create_method: 'app_maker',
                         create_info: this.app_id,
-                        q: taskName,
+                        pipeline_instance__name__icontains: taskName || undefined,
+                        id: task_id || undefined,
                         category: category || undefined,
-                        pipeline_instance__creator__contains: creator || undefined,
                         pipeline_instance__executor__contains: executor || undefined,
                         pipeline_instance__is_started,
                         pipeline_instance__is_finished,
@@ -297,9 +279,23 @@
                         project__id: this.project_id
                     }
 
-                    if (queryTime[0] && queryTime[1]) {
-                        data['pipeline_instance__start_time__gte'] = moment.tz(queryTime[0], this.businessTimezone).format('YYYY-MM-DD')
-                        data['pipeline_instance__start_time__lte'] = moment.tz(queryTime[1], this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                    if (start_time && start_time[0] && start_time[1]) {
+                        if (this.template_source === 'common') {
+                            data['pipeline_template__start_time__gte'] = moment(start_time[0]).format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__lte'] = moment(start_time[1]).add('1', 'd').format('YYYY-MM-DD')
+                        } else {
+                            data['pipeline_instance__start_time__gte'] = moment.tz(start_time[0], this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(start_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                        }
+                    }
+                    if (finish_time && finish_time[0] && finish_time[1]) {
+                        if (this.template_source === 'common') {
+                            data['pipeline_template__finish_time__gte'] = moment(finish_time[0]).format('YYYY-MM-DD')
+                            data['pipeline_template__finish_time__lte'] = moment(finish_time[1]).add('1', 'd').format('YYYY-MM-DD')
+                        } else {
+                            data['pipeline_instance__finish_time_gte'] = moment.tz(finish_time[0], this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__finish_time__lte'] = moment.tz(finish_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                        }
                     }
 
                     const appmakerListData = await this.loadTaskList(data)
@@ -317,12 +313,8 @@
             async getBizBaseInfo () {
                 try {
                     const res = await this.loadProjectBaseInfo()
-                    this.taskCategory = res.data.task_categories.map(m => ({ value: m.value, name: m.name }))
                     this.setProjectBaseInfo(res.data)
                     this.taskBasicInfoLoading = false
-                    const form = this.searchForm.find(item => item.key === 'category')
-                    form.list = this.taskCategory
-                    form.loading = false
                 } catch (e) {
                     console.log(e)
                 }
@@ -331,8 +323,19 @@
                 this.pagination.current = page
                 this.getAppmakerList()
             },
-            searchInputhandler (data) {
-                this.requestData.taskName = data
+            handleSearchValueChange (data) {
+                data = data.reduce((acc, cur) => {
+                    if (cur.type === 'dateRange') {
+                        acc[cur.id] = cur.values
+                    } else if (cur.multiable) {
+                        acc[cur.id] = cur.values.map(item => item.id)
+                    } else {
+                        const value = cur.values[0]
+                        acc[cur.id] = cur.children ? value.id : value
+                    }
+                    return acc
+                }, {})
+                this.requestData = data
                 this.pagination.current = 1
                 this.updateUrl()
                 this.getAppmakerList()
@@ -350,30 +353,55 @@
                 }
                 this.applyForPermission(required, [...task.auth_actions, ...this.$store.state.project.authActions], resourceData)
             },
-            onSearchFormSubmit (data) {
-                this.requestData = Object.assign({}, this.requestData, data)
-                this.pagination.current = 1
-                this.updateUrl()
-                this.getAppmakerList()
-            },
             handlePageLimitChange (val) {
                 this.pagination.limit = val
                 this.pagination.current = 1
                 this.updateUrl()
                 this.getAppmakerList()
             },
+            renderTableHeader (h, { column, $index }) {
+                const id = $index === 2 ? 'start_time' : 'finish_time'
+                const date = this.requestData[id]
+                return <TableRenderHeader
+                    name={ column.label }
+                    orderShow = { false }
+                    dateValue={ date }
+                    onDateChange={ data => this.handleDateTimeFilter(data, id) }>
+                </TableRenderHeader>
+            },
+            handleDateTimeFilter (date = [], id) {
+                const index = this.searchSelectValue.findIndex(item => item.id === id)
+                if (date.length) {
+                    if (index > -1) {
+                        this.searchSelectValue[index].values = date
+                    } else {
+                        const info = {
+                            id,
+                            type: 'dateRange',
+                            name: id === 'start_time' ? i18n.t('执行开始') : i18n.t('执行结束'),
+                            values: date
+                        }
+                        this.searchSelectValue.push(info)
+                        // 添加搜索记录
+                        const searchDom = this.$refs.searchSelect
+                        searchDom && searchDom.addSearchRecord(info)
+                    }
+                } else if (index > -1) {
+                    this.searchSelectValue.splice(index, 1)
+                }
+            },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { category, queryTime, creator, executor, statusSync, taskName } = this.requestData
+                const { start_time, finish_time, executor, statusSync, taskName, task_id } = this.requestData
                 const filterObj = {
                     limit,
-                    category,
-                    creator,
                     executor,
                     statusSync,
                     page: current,
-                    queryTime: queryTime.every(item => item) ? queryTime.join(',') : '',
-                    keyword: taskName
+                    start_time: start_time && start_time.every(item => item) ? start_time.join(',') : '',
+                    finish_time: finish_time && finish_time.every(item => item) ? finish_time.join(',') : '',
+                    taskName,
+                    task_id
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {
@@ -436,6 +464,10 @@
 }
 .app-search {
     @include advancedSearch;
+}
+.search-wrapper {
+    position: relative;
+    height: 32px;
 }
 .appmaker-table-content {
     background: #ffffff;
