@@ -155,7 +155,14 @@ class ClockedTaskResourceProvider(ResourceProvider):
         queryset = ClockedTask.objects.filter(id__in=ids)
         count = queryset.count()
 
-        results = [{"id": str(clocked_task.id), "display_name": clocked_task.task_name} for clocked_task in queryset]
+        results = [
+            {
+                "id": str(clocked_task.id),
+                "display_name": clocked_task.task_name,
+                "_bk_iam_approver_": clocked_task.creator,
+            }
+            for clocked_task in queryset
+        ]
         return ListResult(results=results, count=count)
 
     def list_instance_by_policy(self, filter, page, **options):

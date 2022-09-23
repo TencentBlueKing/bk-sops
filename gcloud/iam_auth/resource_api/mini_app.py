@@ -129,7 +129,10 @@ class MiniAppResourceProvider(ResourceProvider):
 
         queryset = AppMaker.objects.filter(id__in=ids)
         count = queryset.count()
-        results = [{"id": str(mini_app.id), "display_name": mini_app.name} for mini_app in queryset]
+        results = [
+            {"id": str(mini_app.id), "display_name": mini_app.name, "_bk_iam_approver_": mini_app.creator}
+            for mini_app in queryset
+        ]
         return ListResult(results=results, count=count)
 
     def list_instance_by_policy(self, filter, page, **options):
