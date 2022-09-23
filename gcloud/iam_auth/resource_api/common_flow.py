@@ -106,7 +106,10 @@ class CommonFlowResourceProvider(ResourceProvider):
         queryset = CommonTemplate.objects.filter(id__in=ids)
         count = queryset.count()
 
-        results = [{"id": str(common_flow.id), "display_name": common_flow.name} for common_flow in queryset]
+        results = [
+            {"id": str(common_flow.id), "display_name": common_flow.name, "_bk_iam_approver_": common_flow.creator}
+            for common_flow in queryset
+        ]
         return ListResult(results=results, count=count)
 
     def list_instance_by_policy(self, filter, page, **options):
