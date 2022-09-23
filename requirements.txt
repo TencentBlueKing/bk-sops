@@ -57,7 +57,7 @@ django-timezone-field==4.1.0
 importlib-metadata==3.7.3
 
 # otel
-protobuf==3.19.4
+protobuf==3.19.5
 
 # blueapps
 blueapps[opentelemetry]==4.4.7
