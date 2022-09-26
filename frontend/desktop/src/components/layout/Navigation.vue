@@ -324,6 +324,7 @@
             .bk-navigation-menu-group {
                 border-top: 1px solid rgba(255,255,255,0.06);
             }
+            .navigation-sbmenu .navigation-menu-item:hover,
             .navigation-sbmenu-title:hover {
                 background: #2f3847 !important;
                 .navigation-sbmenu-title-icon,
