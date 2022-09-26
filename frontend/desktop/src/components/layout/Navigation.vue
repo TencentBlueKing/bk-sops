@@ -18,7 +18,21 @@
             <navigator-head-right></navigator-head-right>
         </template>
         <template slot="menu">
-            <bk-navigation-menu :default-active="currentNav" :toggle-active="true">
+            <bk-navigation-menu
+                :default-active="currentNav"
+                :toggle-active="true"
+                item-default-icon-color="#949ba5"
+                item-child-icon-default-color="#949ba5"
+                item-default-color="#96a2b9"
+                item-hover-bg-color="#2f3847"
+                item-hover-color="#fff"
+                item-child-icon-hover-color="#fff"
+                item-hover-icon-color="#fff"
+                item-active-bg-color="#3a84ff"
+                item-active-icon-color="#fff"
+                item-active-color="#fff"
+                item-child-icon-active-color="#fff"
+                sub-menu-open-bg-color="#161c2c">
                 <bk-navigation-menu-group
                     v-for="(group, groupIndex) in routerList"
                     :key="groupIndex">
@@ -31,7 +45,6 @@
                         :disabled="item.disabled"
                         :url="item.url"
                         :id="item.id"
-                        :class="{ 'active-nav': currentNav === item.id }"
                         :data-test-id="`navigation_list_${item.id}`"
                         @click="onHandleNavClick($event, groupIndex, routeIndex)">
                         <span>{{item.name}}</span>
@@ -43,7 +56,6 @@
                                 :disabled="child.disabled"
                                 :icon="child.icon"
                                 :default-active="child.active"
-                                :class="{ 'active-nav': currentNav === child.id }"
                                 :data-test-id="`navigation_list_${child.id}`"
                                 @click="changeRoute(routerList[groupIndex][routeIndex].children[childIndex])">
                                 <span>
@@ -312,39 +324,16 @@
             .bk-navigation-menu-group {
                 border-top: 1px solid rgba(255,255,255,0.06);
             }
-            .navigation-menu-item,
-            .navigation-sbmenu-title {
-                .navigation-menu-item-default-icon {
-                    height: 4px;
-                    width: 4px;
-                }
-                .navigation-menu-item-icon,
-                .navigation-sbmenu-title-icon {
-                    color: #979ba5 !important;
-                }
-                .navigation-menu-item-name,
+            .navigation-sbmenu-title:hover {
+                background: #2f3847 !important;
+                .navigation-sbmenu-title-icon,
                 .navigation-sbmenu-title-content {
-                    color: #96a2b9 !important;
-                }
-                &.active-nav,
-                &:hover {
-                    background: #2f3847 !important;
-                    .navigation-menu-item-icon,
-                    .navigation-menu-item-name,
-                    .navigation-sbmenu-title-icon,
-                    .navigation-sbmenu-title-content {
-                        color: #fff !important;
-                    }
-                }
-                &.active-nav {
-                    background: #3a84ff !important;
-                    &:hover {
-                        background: #3a84ff !important;
-                    }
+                    color: #fff !important;
                 }
             }
-            .navigation-sbmenu-content {
-                background: #161c2c !important;
+            .navigation-menu-item-default-icon {
+                height: 4px;
+                width: 4px;
             }
         }
         .offline-tip {
