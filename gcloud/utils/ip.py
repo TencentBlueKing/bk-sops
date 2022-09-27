@@ -94,6 +94,9 @@ def get_ip_by_regex_type(regex_type, ip_str):
     if regex_type == IpRegexType.IPV6.value:
         ip_list = extend_ipv6(ip_list)
 
+    if regex_type == IpRegexType.HOST_ID.value:
+        ip_list = [int(host_id) for host_id in ip_list]
+
     return ip_list, new_ip_str
 
 
