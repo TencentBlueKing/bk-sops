@@ -38,6 +38,7 @@ from gcloud.core.apis.drf.serilaziers.task_template import (
     CreateTaskTemplateSerializer,
     TopCollectionTaskTemplateSerializer,
     ProjectInfoQuerySerializer,
+    ProjectFilterQuerySerializer,
 )
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.iam_auth import res_factory
@@ -75,6 +76,9 @@ class TaskTemplatePermission(IamPermission):
         "create": IamPermissionInfo(IAMMeta.FLOW_CREATE_ACTION, res_factory.resources_for_project, id_field="project"),
         "enable_independent_subprocess": IamPermissionInfo(
             IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project_id"
+        ),
+        "common_info": IamPermissionInfo(
+            IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project__id"
         ),
     }
 
@@ -324,3 +328,9 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         project_id = request.query_params.get("project_id")
         independent_subprocess_enable = TaskConfig.objects.enable_independent_subprocess(project_id, template_id)
         return Response({"enable": independent_subprocess_enable})
+
+    @swagger_auto_schema(method="GET", operation_summary="获取流程详情公开信息", query_serializer=ProjectFilterQuerySerializer)
+    @action(methods=["GET"], detail=True)
+    def common_info(self, request, *args, **kwargs):
+        template = self.get_object()
+        return Response({"name": template.name})
