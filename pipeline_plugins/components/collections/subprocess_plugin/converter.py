@@ -12,6 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 import copy
 
+from gcloud.common_template.models import CommonTemplate
+from gcloud.constants import COMMON
+from gcloud.tasktmpl3.models import TaskTemplate
+
 
 class PipelineTreeSubprocessConverter:
     CONVERT_FIELDS = {
@@ -55,10 +59,7 @@ class PipelineTreeSubprocessConverter:
         """
         在pipeline_tree转换前做一些预处理
         """
-        for act_id, act in self.pipeline_tree["activities"].items():
-            if act["type"] == "SubProcess":
-                act["original_template_id"] = act["template_id"]
-                act["original_template_version"] = act["version"]
+        pass
 
     def convert(self):
         """
@@ -75,6 +76,15 @@ class PipelineTreeSubprocessConverter:
                     for key, constant in self.pipeline_tree["constants"]:
                         if key in self.constants:
                             constant["value"] = self.constants[key]
+
+                # 添加原始模版id信息
+                pipeline_template_id = act["template_id"]
+                tmpl_model_cls = CommonTemplate if act["template_source"] == COMMON else TaskTemplate
+                template = tmpl_model_cls.objects.filter(pipeline_template_id=pipeline_template_id).first()
+                if not template:
+                    raise ValueError(f"Template with pipeline_template_id: {pipeline_template_id} not found")
+                self.pipeline_tree["activities"][act_id]["original_template_id"] = str(template.id)
+                self.pipeline_tree["activities"][act_id]["original_template_version"] = template.version
 
         for location in self.pipeline_tree["location"]:
             if location["type"] == "subflow":
