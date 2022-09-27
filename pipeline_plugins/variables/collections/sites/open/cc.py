@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+import ipaddress
 import logging
 import re
 from typing import List
@@ -135,9 +135,16 @@ class VarCmdbIpSelector(LazyVariable, SelfExplainVariable):
 
         # get for old value compatible
         if self.value.get("with_cloud_id", False):
-            ip = separator.join(
-                ["{}:{}".format(host["bk_cloud_id"], host["bk_host_innerip"]) for host in ip_result["data"]]
-            )
+            hosts = []
+            for host in ip_result["data"]:
+                p_address = ipaddress.ip_address(host["bk_host_innerip"])
+                # 如果是ipv6地址，则不携带云区域
+                if settings.ENABLE_IPV6 and p_address.version == 6:
+                    hosts.append(host["bk_host_innerip"])
+                else:
+                    hosts.append("{}:{}".format(host["bk_cloud_id"], host["bk_host_innerip"]))
+
+            ip = separator.join(hosts)
         else:
             ip = separator.join([host["bk_host_innerip"] for host in ip_result["data"]])
         return ip
@@ -215,7 +222,9 @@ class VarCmdbSetAllocation(LazyVariable, SelfExplainVariable):
             FieldExplain(key="${KEY._module}", type=Type.LIST, description="集群下的模块信息列表，元素类型为字典，键为模块名，值为模块下的主机列"),
             FieldExplain(key="${KEY.flat__ip_list}", type=Type.STRING, description="本次操作创建的所有集群下的主机（去重后），用 ',' 连接"),
             FieldExplain(
-                key="${KEY.flat__verbose_ip_list}", type=Type.STRING, description="返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接",
+                key="${KEY.flat__verbose_ip_list}",
+                type=Type.STRING,
+                description="返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接",
             ),
             FieldExplain(
                 key="${KEY.flat__verbose_ip_module_list}",

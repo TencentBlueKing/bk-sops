@@ -19,11 +19,11 @@ from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils import cmdb
-from gcloud.utils.ip import format_sundry_ip
+from gcloud.utils.ip import format_sundry_ip, extract_ip_from_ip_str
 from gcloud.utils.handlers import handle_api_error
 from .constants import NO_ERROR, ERROR_CODES
 from ..components.collections.sites.open.cc.base import cc_parse_path_text
-from ..components.utils.sites.open.utils import cc_get_ips_info_by_str
+from ..components.utils.sites.open.utils import cc_get_ips_info_by_str, cc_get_ips_info_by_str_ipv6
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -70,7 +70,10 @@ class IPPickerDataGenerator:
 
     def generate_ip_data(self):
         """根据字符串生成ip数据"""
-        result = cc_get_ips_info_by_str(self.username, self.request_kwargs["bk_biz_id"], self.raw_data)
+        if settings.ENABLE_IPV6:
+            result = cc_get_ips_info_by_str_ipv6(self.username, self.request_kwargs["bk_biz_id"], self.raw_data)
+        else:
+            result = cc_get_ips_info_by_str(self.username, self.request_kwargs["bk_biz_id"], self.raw_data)
         if result["invalid_ip"]:
             return {"result": False, "data": [], "message": f"ips: {result['invalid_ip']} invalid."}
         ips = [
@@ -181,9 +184,27 @@ class IPPickerHandler:
         operator = "in" if condition_type == "filter" else "not_in"
         hosts = condition_data.get("host", [])
         if hosts:
-            self.property_filters["host_property_filter"]["rules"].append(
-                {"field": "bk_host_innerip", "operator": operator, "value": hosts}
-            )
+            # 这里需要区分ipv4和ipv6的查询条件
+            if settings.ENABLE_IPV6:
+                ip_str = ",".join(hosts)
+                ipv6_list, ipv4_list, host_id_list, _ = extract_ip_from_ip_str(ip_str)
+                conditions = {"condition": "OR", "rules": []}
+                if ipv4_list:
+                    # 添加ipv4主机的条件
+                    conditions["rules"].append({"field": "bk_host_innerip", "operator": operator, "value": ipv4_list})
+                if ipv6_list:
+                    # 添加ipv6主机的构造条件
+                    conditions["rules"].append(
+                        {"field": "bk_host_innerip_v6", "operator": operator, "value": ipv6_list}
+                    )
+                if host_id_list:
+                    # 添加host_id_list主机的构造条件
+                    conditions["rules"].append({"field": "bk_host_id", "operator": operator, "value": host_id_list})
+                self.property_filters["host_property_filter"]["rules"].append(conditions)
+            else:
+                self.property_filters["host_property_filter"]["rules"].append(
+                    {"field": "bk_host_innerip", "operator": operator, "value": hosts}
+                )
         if set(condition_data.keys()) - {"host"}:
             # 把拓扑筛选条件转换成 modules 筛选条件
             filter_modules = get_modules_by_condition(self.biz_topo_tree, condition_data, "bk_inst_name")
@@ -285,11 +306,15 @@ class IPPickerHandler:
             if not self.property_filters[key]["rules"]:
                 self.property_filters.pop(key)
 
+        fields = ["bk_host_id", "bk_host_innerip", "bk_host_outerip", "bk_host_name", "bk_cloud_id"]
+        if settings.ENABLE_IPV6:
+            fields.append("bk_host_innerip_v6")
+
         host_info = cmdb.get_business_host_topo(
             self.username,
             self.bk_biz_id,
             self.bk_supplier_account,
-            ["bk_host_id", "bk_host_innerip", "bk_host_outerip", "bk_host_name", "bk_cloud_id"],
+            fields,
             property_filters=self.property_filters,
         )
         logger.info("[fetch_host_info] cmdb.get_business_host_topo return: {host_info}".format(host_info=host_info))
@@ -300,10 +325,13 @@ class IPPickerHandler:
     @staticmethod
     def format_host_info(host_info: list):
         """对返回的主机数据进行一些自定义格式化调整"""
-        formatted_host_info = [
-            {**host["host"], "bk_host_innerip": format_sundry_ip(host["host"].get("bk_host_innerip", ""))}
-            for host in host_info
-        ]
+        formatted_host_info = []
+        for host in host_info:
+            ip = format_sundry_ip(host["host"].get("bk_host_innerip", ""))
+            # 如果ipv4地址为空并开启了ipv6,则尝试去拿ip_v6地址，否则默认使用该主机的ip_v4地址
+            if not ip and settings.ENABLE_IPV6:
+                ip = format_sundry_ip(host["host"].get("bk_host_innerip_v6", ""))
+            formatted_host_info.append({**host["host"], "bk_host_innerip": ip})
         return formatted_host_info
 
 
