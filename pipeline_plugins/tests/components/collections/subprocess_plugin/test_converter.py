@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import json
+from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
 
@@ -411,6 +412,8 @@ class SubprocessPluginConverterTest(TestCase):
                 "outgoing": "l6dc4991c19238dca668a325a34fd61a",
                 "id": "n378d83bb3143087a0f9b85e836ad272",
                 "name": "公共子流程",
+                "original_template_id": "123",
+                "original_template_version": "tmpl_version",
                 "incoming": [
                     "l696528e3ac23ec19d555e84802e28df"
                 ],
@@ -508,7 +511,18 @@ class SubprocessPluginConverterTest(TestCase):
     )
 
     def test_convert(self):
+        tmpl_mocker = MagicMock()
+        tmpl_mocker.id = "123"
+        tmpl_mocker.version = "tmpl_version"
+        cls_mocker = MagicMock()
+        cls_mocker.objects = MagicMock()
+        qs_mocker = MagicMock()
+        qs_mocker.first = MagicMock(return_value=tmpl_mocker)
+        cls_mocker.objects.filter = MagicMock(return_value=qs_mocker)
+
         subprocess_data = self.SUBPROCESS_DATA
-        converter = PipelineTreeSubprocessConverter(subprocess_data)
-        converter.convert()
-        self.assertEqual(self.CONVERTED_DATA, subprocess_data)
+        with patch("pipeline_plugins.components.collections.subprocess_plugin.converter.CommonTemplate", cls_mocker):
+            with patch("pipeline_plugins.components.collections.subprocess_plugin.converter.TaskTemplate", cls_mocker):
+                converter = PipelineTreeSubprocessConverter(subprocess_data)
+                converter.convert()
+                self.assertEqual(self.CONVERTED_DATA, subprocess_data)
