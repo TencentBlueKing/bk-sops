@@ -79,7 +79,7 @@ class PipelineTreeSubprocessConverter:
 
                 # 添加原始模版id信息
                 pipeline_template_id = act["template_id"]
-                tmpl_model_cls = CommonTemplate if act["template_source"] == COMMON else TaskTemplate
+                tmpl_model_cls = CommonTemplate if act.get("template_source") == COMMON else TaskTemplate
                 template = tmpl_model_cls.objects.filter(pipeline_template_id=pipeline_template_id).first()
                 if not template:
                     raise ValueError(f"Template with pipeline_template_id: {pipeline_template_id} not found")
