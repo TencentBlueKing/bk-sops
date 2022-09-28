@@ -347,8 +347,7 @@
                 },
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
                 searchSelectValue,
-                isInitCreateMethod: false,
-                isChildTaskflow: false
+                isInitCreateMethod: false
             }
         },
         computed: {
@@ -425,7 +424,7 @@
                         id: task_id || undefined,
                         create_method: create_method || undefined,
                         recorded_executor_proxy: recorded_executor_proxy || undefined,
-                        is_child_taskflow: this.isChildTaskflow
+                        is_child_taskflow: false
                     }
 
                     if (start_time && start_time[0] && start_time[1]) {
@@ -731,12 +730,10 @@
             },
             onPageChange (page) {
                 this.pagination.current = page
-                this.isChildTaskflow = false
                 this.updateUrl()
                 this.getTaskList()
             },
             onPageLimitChange (val) {
-                this.isChildTaskflow = false
                 this.pagination.limit = val
                 this.pagination.current = 1
                 this.updateUrl()
@@ -839,14 +836,6 @@
                 this.createInfo = ''
                 this.templateId = ''
                 this.templateSource = ''
-                this.isChildTaskflow = false
-                const methodList = this.createMethodTabs.map(item => item.id)
-                if (Object.keys(data).length !== 0) {
-                    this.isChildTaskflow = ''
-                    if (Object.keys(data).length === 1 && methodList.includes(data.create_method)) {
-                        this.isChildTaskflow = false
-                    }
-                }
                 this.updateUrl()
                 this.getTaskList()
             }
@@ -864,11 +853,17 @@
     transform: rotate(90deg);
     display: inline-block;
     transition: 0.5s;
+    position: relative;
+    top: -2px;
+    cursor: pointer;
 }
 .close-chd {
     transform: rotate(0deg);
     display: inline-block;
     transition: 0.5s;
+    position: relative;
+    top: -1px;
+    cursor: pointer;
 }
 .task-container {
     height: 100%;
