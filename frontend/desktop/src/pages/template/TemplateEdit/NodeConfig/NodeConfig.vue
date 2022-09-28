@@ -956,9 +956,27 @@
             // 标准插件（子流程）选择面板切换插件（子流程）
             // isThirdParty 是否为第三方插件
             async onPluginOrTplChange (val) {
+                let inputs = this.inputs
+                if (this.isSubflow) {
+                    // 重置basicInfo, 避免基础信息面板因监听basicInfo导致重复调取接口，初始化时获取空值
+                    const { id, name, version } = val
+                    const config = {
+                        name,
+                        version,
+                        tpl: id,
+                        nodeName: name,
+                        selectable: true,
+                        alwaysUseLatest: false,
+                        schemeIdList: []
+                    }
+                    this.updateBasicInfo(config)
+                    // 清空输入参数，否则会先加载上一个的子流程的配置再去加载选中的子流程配置
+                    inputs = tools.deepClone(this.inputs)
+                    this.inputs = []
+                }
                 this.isSelectorPanelShow = false
                 this.isThirdParty = val.id === 'remote_plugin'
-                await this.clearParamsSourceInfo()
+                await this.clearParamsSourceInfo(inputs)
                 if (this.isSubflow) {
                     this.tplChange(val)
                 } else {
@@ -1044,23 +1062,12 @@
              * - 校验基础信息
              */
             async tplChange (data) {
-                const { id, name, version } = data
-                const config = {
-                    name,
-                    version,
-                    tpl: id,
-                    nodeName: name,
-                    selectable: true,
-                    alwaysUseLatest: false,
-                    schemeIdList: []
-                }
-                this.updateBasicInfo(config)
                 if ('project' in data && typeof data.project.id === 'number') {
                     this.$set(this.nodeConfig, 'template_source', 'business')
                 } else {
                     this.$set(this.nodeConfig, 'template_source', 'common')
                 }
-                await this.getSubflowDetail(id, version)
+                await this.getSubflowDetail(data.id, data.version)
                 this.inputs = await this.getSubflowInputsConfig()
                 this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms)
                 this.inputsRenderConfig = Object.keys(this.subflowForms).reduce((acc, crt) => {
@@ -1156,7 +1163,7 @@
                 this.isUpdateConstants = false
             },
             // 取消已勾选为全局变量的输入、输出参数勾选状态
-            async clearParamsSourceInfo () {
+            async clearParamsSourceInfo (inputs = this.inputs) {
                 this.isUpdateConstants = true
                 this.variableCited = await this.getVariableCitedData() || {}
                 const nodeId = this.nodeConfig.id
@@ -1166,7 +1173,7 @@
                     const sourceInfo = source_info[this.nodeId]
                     if (sourceInfo) {
                         if (source_type === 'component_inputs') {
-                            this.inputs.forEach(formItem => {
+                            inputs.forEach(formItem => {
                                 if (sourceInfo.includes(formItem.tag_code)) {
                                     this.setVariableSourceInfo({
                                         key,
