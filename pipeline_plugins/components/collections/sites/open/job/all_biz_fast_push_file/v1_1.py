@@ -118,4 +118,4 @@ class AllBizJobFastPushFileComponent(Component):
     bound_service = AllBizJobFastPushFileService
     form = "%scomponents/atoms/job/all_biz_fast_push_file/v1_1.js" % settings.STATIC_URL
     version = "v1.1"
-    desc = _("跨业务分发文件时需要在作业平台添加白名单, V1.1版本支持job滚动执行，要求作业平台天版本>=3.6.0.0")
+    desc = _("跨业务分发文件时需要在作业平台添加白名单, V1.1版本支持job滚动执行，要求作业平台版本>=3.6.0.0")
