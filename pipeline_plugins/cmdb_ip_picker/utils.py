@@ -188,7 +188,8 @@ class IPPickerHandler:
             if settings.ENABLE_IPV6:
                 ip_str = ",".join(hosts)
                 ipv6_list, ipv4_list, host_id_list, _ = extract_ip_from_ip_str(ip_str)
-                conditions = {"condition": "OR", "rules": []}
+                condition_map = {"in": "OR", "not_in": "AND"}
+                conditions = {"condition": condition_map.get(operator, "OR"), "rules": []}
                 if ipv4_list:
                     # 添加ipv4主机的条件
                     conditions["rules"].append({"field": "bk_host_innerip", "operator": operator, "value": ipv4_list})
