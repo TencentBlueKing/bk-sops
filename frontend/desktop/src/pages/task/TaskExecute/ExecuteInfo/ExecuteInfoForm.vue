@@ -163,7 +163,6 @@
                 } else {
                     templateData = await this.getTemplatePublicData(data)
                 }
-                console.log(templateData)
                 this.templateName = templateData.data.name
             },
             async getSchemeTextValue () {

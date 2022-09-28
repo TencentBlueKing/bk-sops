@@ -1045,7 +1045,7 @@ const template = {
             const { templateId, project__id } = data
             return axios.get(`/api/v3/template/${templateId}/common_info/`, { params: { project__id } }).then(response => response.data)
         },
-        // 获取流程详情公开信息
+        // 获取公共流程详情公开信息
         getCommonTemplatePublicData ({ commit }, data) {
             const { templateId } = data
             return axios.get(`/api/v3/common_template/${templateId}/common_info/`).then(response => response.data)
