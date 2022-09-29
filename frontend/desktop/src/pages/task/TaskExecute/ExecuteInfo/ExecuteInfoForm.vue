@@ -145,7 +145,8 @@
         },
         methods: {
             ...mapActions('template/', [
-                'loadTemplateData'
+                'getTemplatePublicData',
+                'getCommonTemplatePublicData'
             ]),
             ...mapActions('task/', [
                 'loadTaskScheme'
@@ -154,10 +155,15 @@
                 const { template_source } = this.componentValue
                 const data = {
                     templateId: this.nodeActivity.original_template_id,
-                    common: template_source === 'common'
+                    project__id: this.projectId
                 }
-                const templateData = await this.loadTemplateData(data)
-                this.templateName = templateData.name
+                let templateData = {}
+                if (template_source === 'common') {
+                    templateData = await this.getCommonTemplatePublicData(data)
+                } else {
+                    templateData = await this.getTemplatePublicData(data)
+                }
+                this.templateName = templateData.data.name
             },
             async getSchemeTextValue () {
                 const { scheme_id_list: schemeIds, template_source } = this.componentValue

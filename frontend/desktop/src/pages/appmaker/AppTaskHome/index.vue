@@ -30,65 +30,86 @@
                         v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1, zIndex: 100 }"
                         @page-change="onPageChange"
                         @page-limit-change="handlePageLimitChange">
-                        <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                        <bk-table-column :label="$t('任务名称')" min-width="200">
+                        <bk-table-column
+                            v-for="item in tableFields"
+                            :key="item.id"
+                            :label="item.label"
+                            :label-class-name="item.id === 'id' ? 'task-id' : ''"
+                            :prop="item.id"
+                            :render-header="renderTableHeader"
+                            :width="item.width"
+                            :min-width="item.min_width">
                             <template slot-scope="props">
-                                <a
-                                    v-if="!hasPermission(['task_view'], props.row.auth_actions)"
-                                    v-cursor
-                                    class="text-permission-disable"
-                                    :title="props.row.name"
-                                    @click="onTaskPermissonCheck(['task_view'], props.row)">
-                                    {{props.row.name}}
-                                </a>
-                                <router-link
-                                    v-else
-                                    class="task-name"
-                                    :title="props.row.name"
-                                    :to="{
-                                        name: 'appmakerTaskExecute',
-                                        params: { app_id: props.row.create_info, project_id: props.row.project.id },
-                                        query: { instance_id: props.row.id, template_id: props.row.template_id }
-                                    }">
-                                    {{props.row.name}}
-                                </router-link>
-                            </template>
-                        </bk-table-column>
-                        <bk-table-column :label="$t('执行开始')" width="200" :render-header="renderTableHeader">
-                            <template slot-scope="props">
-                                {{ props.row.start_time || '--' }}
-                            </template>
-                        </bk-table-column>
-                        <bk-table-column :label="$t('执行结束')" width="200" :render-header="renderTableHeader">
-                            <template slot-scope="props">
-                                {{ props.row.finish_time || '--' }}
-                            </template>
-                        </bk-table-column>
-                        <bk-table-column :label="$t('任务类型')" prop="category_name" width="140"></bk-table-column>
-                        <bk-table-column :label="$t('创建人')" prop="creator_name" width="140"></bk-table-column>
-                        <bk-table-column :label="$t('执行人')" width="140">
-                            <template slot-scope="props">
-                                {{ props.row.executor_name || '--' }}
-                            </template>
-                        </bk-table-column>
-                        <bk-table-column :label="$t('状态')" width="100">
-                            <template slot-scope="props">
-                                <div class="ui-task-status">
-                                    <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
-                                    <span class="task-status-text" v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
-                                </div>
+                                <!-- 任务ID -->
+                                <template v-if="item.id === 'id'">
+                                    <span v-if="props.row.isHasChild || (props.row.children && props.row.children.length !== 0)" :style="{ 'margin-left': `${(props.row.level) * 20}px` }">
+                                        <i
+                                            :class="['commonicon-icon', 'common-icon-next-triangle-shape', props.row.isOpen ? 'show-chd' : 'close-chd']"
+                                            @click="getCurProcessChdProcess(props.row)">
+                                        </i>
+                                    </span>
+                                    <span v-else :style="{ 'margin-left': `${(props.row.level) * 20}px`, width: '12px', display: 'inline-block' }"></span>
+                                    <span>{{ props.row[item.id] || '--' }}</span>
+                                </template>
+                                <!-- 任务名 -->
+                                <template v-else-if="item.id === 'name'">
+                                    <a
+                                        v-if="!hasPermission(['task_view'], props.row.auth_actions)"
+                                        v-cursor
+                                        class="text-permission-disable"
+                                        :title="props.row.name"
+                                        @click="onTaskPermissonCheck(['task_view'], props.row)">
+                                        {{props.row.name}}
+                                    </a>
+                                    <router-link
+                                        v-else
+                                        class="task-name"
+                                        :title="props.row.name"
+                                        :to="{
+                                            name: 'appmakerTaskExecute',
+                                            params: { app_id: props.row.create_info, project_id: props.row.project.id },
+                                            query: { instance_id: props.row.id, template_id: props.row.template_id }
+                                        }">
+                                        {{props.row.name}}
+                                    </router-link>
+                                </template>
+                                <!-- 状态 -->
+                                <template v-else-if="item.id === 'task_status'">
+                                    <div class="ui-task-status">
+                                        <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
+                                        <span class="task-status-text" v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
+                                    </div>
+                                </template>
+                                <!-- 其他 -->
+                                <template v-else>
+                                    {{ props.row[item.id] || '--' }}
+                                </template>
                             </template>
                         </bk-table-column>
                         <bk-table-column :label="$t('操作')" width="100" :fixed="appmakerList.length ? 'right' : false">
                             <template slot-scope="props">
+                                <!-- 事后鉴权，后续对接新版权限中心 -->
                                 <a
-                                    v-cursor="{ active: !hasPermission(['task_clone'], props.row.auth_actions) }"
-                                    :class="['task-operation-btn', {
-                                        'text-permission-disable': !hasPermission(['task_clone'], props.row.auth_actions)
-                                    }]"
-                                    href="javascript:void(0);"
-                                    @click="onCloneTaskClick(props.row, $event)">
-                                    {{ $t('克隆') }}
+                                    v-if="props.row.template_deleted || props.row.template_source === 'onetime'"
+                                    class="task-operation-btn disabled"
+                                    data-test-id="taskList_table_reexecuteBtn">
+                                    {{$t('重新执⾏')}}
+                                </a>
+                                <a
+                                    v-else-if="!hasCreateTaskPerm(props.row)"
+                                    v-cursor
+                                    class="text-permission-disable task-operation-btn"
+                                    data-test-id="taskList_table_reexecuteBtn"
+                                    @click="onTaskPermissonCheck(['flow_create_task'], props.row)">
+                                    {{$t('重新执⾏')}}
+                                </a>
+                                <a
+                                    v-else
+                                    v-bk-tooltips.top="$t('复⽤参数值并使⽤流程最新数据重新执⾏')"
+                                    class="task-operation-btn"
+                                    data-test-id="taskList_table_reexecuteBtn"
+                                    @click="getCreateTaskUrl(props.row)">
+                                    {{$t('重新执⾏')}}
                                 </a>
                             </template>
                         </bk-table-column>
@@ -97,13 +118,6 @@
                 </div>
             </div>
         </skeleton>
-        <TaskCloneDialog
-            :is-task-clone-dialog-show="isTaskCloneDialogShow"
-            :task-name="theCloneTaskName"
-            :pending="pending.clone"
-            @confirm="onCloneConfirm"
-            @cancel="onCloneCancel">
-        </TaskCloneDialog>
     </div>
 </template>
 <script>
@@ -111,7 +125,6 @@
     import { mapState, mapActions, mapMutations } from 'vuex'
     import Skeleton from '@/components/skeleton/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
-    import TaskCloneDialog from '@/pages/task/TaskList/TaskCloneDialog.vue'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     import toolsUtils from '@/utils/tools.js'
@@ -143,12 +156,54 @@
             ]
         }
     ]
+    const TABLE_FIELDS = [
+        {
+            id: 'id',
+            label: i18n.t('ID'),
+            width: 100
+        },
+        {
+            id: 'name',
+            label: i18n.t('任务名称'),
+            disabled: true,
+            min_width: 200
+        },
+        {
+            id: 'start_time',
+            label: i18n.t('执行开始'),
+            width: 200
+        },
+        {
+            id: 'finish_time',
+            label: i18n.t('执行结束'),
+            width: 200
+        },
+        {
+            id: 'category_name',
+            label: i18n.t('任务类型'),
+            width: 120
+        },
+        {
+            id: 'creator_name',
+            label: i18n.t('创建人'),
+            width: 120
+        },
+        {
+            id: 'executor_name',
+            label: i18n.t('执行人'),
+            width: 120
+        },
+        {
+            id: 'task_status',
+            label: i18n.t('状态'),
+            width: 120
+        }
+    ]
 
     export default {
         name: 'appmakerTaskHome',
         components: {
             Skeleton,
-            TaskCloneDialog,
             SearchSelect,
             NoData
         },
@@ -193,14 +248,10 @@
                 theDeleteTemplateId: undefined,
                 pending: {
                     delete: false,
-                    authority: false,
-                    clone: false
+                    authority: false
                 },
                 appmakerList: [],
                 executeStatus: [], // 任务执行状态
-                isTaskCloneDialogShow: false,
-                theCloneTaskId: undefined,
-                theCloneTaskName: '',
                 pagination: {
                     current: Number(page),
                     count: 0,
@@ -216,7 +267,8 @@
                     task_id
                 },
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
-                searchSelectValue
+                searchSelectValue,
+                tableFields: TABLE_FIELDS.slice(0)
             }
         },
         computed: {
@@ -231,11 +283,12 @@
         },
         methods: {
             ...mapActions('taskList/', [
-                'loadTaskList',
-                'cloneTask'
+                'loadTaskList'
             ]),
             ...mapActions('template/', [
-                'loadProjectBaseInfo'
+                'loadProjectBaseInfo',
+                'getTaskHasSubTaskList',
+                'getTaskHasSubTasks'
             ]),
             ...mapMutations('template/', [
                 'setProjectBaseInfo'
@@ -276,7 +329,8 @@
                         pipeline_instance__is_started,
                         pipeline_instance__is_finished,
                         pipeline_instance__is_revoked,
-                        project__id: this.project_id
+                        project__id: this.project_id,
+                        is_child_taskflow: false
                     }
 
                     if (start_time && start_time[0] && start_time[1]) {
@@ -300,15 +354,122 @@
 
                     const appmakerListData = await this.loadTaskList(data)
                     const list = appmakerListData.results
-                    this.appmakerList = list
+                    // 设置level初始值
+                    list.forEach(item => {
+                        item.level = 0
+                    })
+                    const result = await this.setListHaveChild(list)
+                    this.appmakerList = result
                     this.pagination.count = appmakerListData.count
                     // mixins getExecuteStatus
-                    this.getExecuteStatus('executeStatus', list)
+                    this.getExecuteStatus('executeStatus', result)
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.listLoading = false
                 }
+            },
+            // 设置每条记录是否有子流程
+            async setListHaveChild (list) {
+                const ids = list.map(item => item.id)
+                const checkStatus = await this.getTaskHasSubTasks({
+                    project_id: this.project_id,
+                    task_ids: ids.toString()
+                })
+                list.forEach(item => {
+                    item.isHasChild = checkStatus.data.has_children_taskflow[item.id]
+                })
+                return list
+            },
+            // 获取当前流程的子流程列表
+            async getCurProcessChdProcess (row) {
+                const curTaskList = toolsUtils.deepClone(this.appmakerList)
+                const curParent = curTaskList.find(item => item.id === row.id)
+                curParent.isOpen = !row.isOpen
+                curParent.maxLevel = ''
+                // table field
+                const curField = this.tableFields.find(item => item.id)
+                let result = []
+                if (curParent.isOpen) {
+                    // 处理task与relations
+                    const taskIds = [] // task id
+                    const taskIdList = []
+                    if (curParent.children && curParent.children.length !== 0) {
+                        curParent.children.forEach(item => {
+                            item.isOpen = false // 子流程默认icon close
+                            item.level = curParent.level + 1
+                            result.push(item)
+                        })
+                        curField.width = 20 * (curParent.level + 1) + 100
+                    } else {
+                        const params = {
+                            root_task_id: row.id,
+                            project_id: this.project_id
+                        }
+                        const res = await this.getTaskHasSubTaskList(params)
+                        const { tasks, relations } = res.data
+                        for (const key in relations) {
+                            taskIds.push({
+                                id: Number(key),
+                                children_id: [...relations[key]]
+                            })
+                        }
+                        taskIds.forEach(item => {
+                            item.children_id.forEach(ite => {
+                                taskIdList.push({
+                                    id: ite,
+                                    parent_id: item.id,
+                                    children: []
+                                })
+                            })
+                        })
+                        const arrToTree = (arr, parentId, level = 1) => {
+                            const result = []
+                            curParent.maxLevel = level
+                            arr.forEach(item => {
+                                if (item.parent_id === parentId) {
+                                    const task = tasks.find(task => task.id === item.id)
+                                    task.root_id = row.id
+                                    result.push({
+                                        ...item,
+                                        level: level,
+                                        ...task,
+                                        children: arrToTree(arr, item.id, level + 1)
+                                    })
+                                }
+                            })
+                            return result
+                        }
+                        result = arrToTree(taskIdList, Number(row.id))
+                        curField.width = 20 * curParent.maxLevel + 100
+                    }
+                    curTaskList.splice(curTaskList.findIndex(item => item.id === row.id) + 1, 0, ...result)
+                    this.getExecuteStatus('executeStatus', curTaskList)
+                    this.appmakerList = curTaskList
+                } else {
+                    // 关闭获取已展开列的最大level
+                    const MaxLevel = Math.max(...curTaskList.map(item => {
+                        if (item.isOpen) {
+                            return item.maxLevel
+                        } else {
+                            return 0
+                        }
+                    }))
+                    const filterArr = this.filterTaskList(curTaskList, curParent.id)
+                    this.getExecuteStatus('executeStatus', filterArr)
+                    this.appmakerList = filterArr
+                    curField.width = 20 * MaxLevel + 100
+                }
+            },
+            // 关闭展开icon过滤列表
+            filterTaskList (list, id, ids = []) {
+                list.map(item => {
+                    if (item.parent_id === id) {
+                        ids.push(item.id)
+                        this.filterTaskList(list, item.id, ids)
+                    }
+                })
+                return list.filter(item => !ids.includes(item.id))
             },
             async getBizBaseInfo () {
                 try {
@@ -351,6 +512,11 @@
                         name: task.project.name
                     }]
                 }
+                const flowKey = task.template_source === 'project' ? 'flow' : 'common_flow'
+                resourceData[flowKey] = [{
+                    id: task.template_id,
+                    name: task.template_name
+                }]
                 this.applyForPermission(required, [...task.auth_actions, ...this.$store.state.project.authActions], resourceData)
             },
             handlePageLimitChange (val) {
@@ -360,14 +526,18 @@
                 this.getAppmakerList()
             },
             renderTableHeader (h, { column, $index }) {
-                const id = $index === 2 ? 'start_time' : 'finish_time'
-                const date = this.requestData[id]
-                return <TableRenderHeader
-                    name={ column.label }
-                    orderShow = { false }
-                    dateValue={ date }
-                    onDateChange={ data => this.handleDateTimeFilter(data, id) }>
-                </TableRenderHeader>
+                if (['start_time', 'finish_time'].includes(column.property)) {
+                    const id = this.tableFields[$index].id
+                    const date = this.requestData[id]
+                    return <TableRenderHeader
+                        name={ column.label }
+                        orderShow = { false }
+                        dateValue={ date }
+                        onDateChange={ data => this.handleDateTimeFilter(data, id) }>
+                    </TableRenderHeader>
+                } else {
+                    return column.label
+                }
             },
             handleDateTimeFilter (date = [], id) {
                 const index = this.searchSelectValue.findIndex(item => item.id === id)
@@ -412,36 +582,21 @@
                 })
                 this.$router.replace({ name: 'appmakerTaskHome', params: { project_id: this.project_id }, query })
             },
-            onCloneTaskClick (task) {
-                if (!this.hasPermission(['task_clone'], task.auth_actions)) {
-                    this.onTaskPermissonCheck(['task_clone'], task)
-                    return
-                }
-                this.isTaskCloneDialogShow = true
-                this.theCloneTaskId = task.id
-                this.theCloneTaskName = task.name
+            hasCreateTaskPerm (task) {
+                const authActions = [...task.auth_actions, ...this.$store.state.project.authActions]
+                return this.hasPermission(['flow_create_task'], authActions)
             },
-            async onCloneConfirm (name) {
-                if (this.pending.clone) return
-                this.pending.clone = true
-                const config = {
-                    name,
-                    task_id: this.theCloneTaskId
+            getCreateTaskUrl (task) {
+                const { id, template_id, template_source } = task
+                const url = {
+                    name: 'taskCreate',
+                    query: { template_id: template_id, task_id: id, entrance: 'taskflow' },
+                    params: { project_id: this.project_id, step: 'selectnode' }
                 }
-                try {
-                    const data = await this.cloneTask(config)
-                    this.$router.push({
-                        name: 'appmakerTaskExecute',
-                        params: { app_id: this.app_id, project_id: this.project_id },
-                        query: { instance_id: data.data.new_instance_id, template_id: this.$route.query.template_id }
-                    })
-                } catch (e) {
-                    console.log(e)
+                if (template_source === 'common') {
+                    url.query.common = 1
                 }
-            },
-            onCloneCancel () {
-                this.isTaskCloneDialogShow = false
-                this.theCloneTaskName = ''
+                this.$router.push(url)
             }
         }
     }
@@ -483,6 +638,7 @@
     .task-operation-btn {
         color: #3a84ff;
         font-size: 12px;
+        cursor: pointer;
         &.disabled {
             color: #cccccc;
             cursor: not-allowed;
@@ -497,5 +653,24 @@
 }
 .primary {
     color: #4a9bff;
+}
+.show-chd {
+    transform: rotate(90deg);
+    display: inline-block;
+    transition: 0.5s;
+    position: relative;
+    top: -2px;
+    cursor: pointer;
+}
+.close-chd {
+    transform: rotate(0deg);
+    display: inline-block;
+    transition: 0.5s;
+    position: relative;
+    top: -1px;
+    cursor: pointer;
+}
+/deep/ .cell .task-id {
+    margin-left: 16px;
 }
 </style>

@@ -222,8 +222,8 @@
                     const nodeList = Object.values(this.activities)
                     this.list.map(item => {
                         if (item.expired) {
-                            const nodeInfo = nodeList.find(node => node.id === item.subprocess_node_id)
-                            const template_source = nodeInfo ? nodeInfo.template_source : this.common ? 'common' : 'project'
+                            const nodeInfo = nodeList.find(node => node.id === item.subprocess_node_id) || {}
+                            const template_source = nodeInfo.template_source && nodeInfo.template_source === 'common' ? 'common' : 'project'
                             tpls.push({
                                 id: item.template_id,
                                 nodeId: item.subprocess_node_id,

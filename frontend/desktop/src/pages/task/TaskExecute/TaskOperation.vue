@@ -1028,7 +1028,7 @@
                         if (!this.isTopTask) {
                             const selectedFlowIds = this.selectedFlowPath.reduce((acc, cur) => {
                                 if (cur.type !== 'root') {
-                                    acc = acc ? acc + '_' + cur.id : cur.id
+                                    acc = acc ? acc + ',' + cur.id : cur.id
                                 }
                                 return acc
                             }, '')
