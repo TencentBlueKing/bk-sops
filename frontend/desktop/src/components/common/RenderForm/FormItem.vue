@@ -37,17 +37,7 @@
         <template v-else>
             <!-- 表单作为全局变量时的名称 -->
             <div v-if="showFormTitle" :class="['rf-group-name', { 'not-reuse': showNotReuseTitle }]">
-                <span class="name">{{scheme.name || scheme.attrs.name}} ({{ scheme.tag_code }})</span>
-                <span v-if="scheme.attrs.desc" class="rf-group-desc">
-                    <i
-                        v-bk-tooltips="{
-                            content: scheme.attrs.desc,
-                            placements: ['right'],
-                            zIndex: 2006
-                        }"
-                        class="common-icon-info">
-                    </i>
-                </span>
+                <span class="name">{{scheme.name || scheme.attrs.name}} ({{ scheme.tag_code }}) </span>
                 <span v-if="showNotReuseTitle" class="not-reuse-tip">
                     <i class="common-icon-dark-circle-warning"></i>
                     {{ $t('未能重用') }}
@@ -57,6 +47,10 @@
                     {{ scheme.attrs.pre_mako_tip }}
                 </span>
             </div>
+            <p v-if="scheme.attrs.desc" class="rf-group-desc">
+                <i class="common-icon-info rf-group-desc-icon"></i>
+                <span>{{scheme.attrs.desc}}</span>
+            </p>
             <!-- 表单名称 -->
             <label
                 v-if="option.showLabel && scheme.attrs.name"
@@ -473,6 +467,16 @@
     }
     &.deleted {
         background: #ffeeec;
+    }
+    .rf-group-desc {
+        color: #666666;
+        font-size: 10px;
+        display: flex;
+        margin-bottom: 12px;
+        .rf-group-desc-icon {
+            margin-top: 2px;
+            margin-right: 8px;
+        }
     }
     .rf-tag-label {
         float: left;
