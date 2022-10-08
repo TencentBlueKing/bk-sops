@@ -15,6 +15,9 @@ import logging
 from functools import wraps
 from abc import ABCMeta, abstractmethod
 
+from iam.exceptions import AuthBaseException
+
+from gcloud import err_code
 
 logger = logging.getLogger("root")
 
@@ -26,7 +29,6 @@ class ViewInterceptor(object, metaclass=ABCMeta):
 
 
 def iam_intercept(interceptor):
-
     base_class = "gcloud.iam_auth.intercept.ViewInterceptor"
     if not isinstance(interceptor, ViewInterceptor):
         raise TypeError("interceptor's class must be subclass of {}".format(base_class))
@@ -34,8 +36,14 @@ def iam_intercept(interceptor):
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped_view(request, *args, **kwargs):
-
-            interceptor.process(request, *args, **kwargs)
+            try:
+                interceptor.process(request, *args, **kwargs)
+            except AuthBaseException as e:
+                return {
+                    "result": False,
+                    "message": e,
+                    "code": err_code.UNKNOWN_ERROR.code,
+                }
 
             return view_func(request, *args, **kwargs)
 
