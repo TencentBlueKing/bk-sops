@@ -64,6 +64,8 @@ class CommonTemplatePermission(IamPermission):
             IAMMeta.COMMON_FLOW_EDIT_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
         ),
         "create": IamPermissionInfo(IAMMeta.COMMON_FLOW_CREATE_ACTION),
+        "enable_independent_subprocess": IamPermissionInfo(pass_all=True),
+        "common_info": IamPermissionInfo(pass_all=True),
     }
 
 
@@ -270,3 +272,9 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         project_id = -1
         independent_subprocess_enable = TaskConfig.objects.enable_independent_subprocess(project_id, template_id)
         return Response({"enable": independent_subprocess_enable})
+
+    @swagger_auto_schema(method="GET", operation_summary="获取流程详情公开信息")
+    @action(methods=["GET"], detail=True)
+    def common_info(self, request, *args, **kwargs):
+        template = self.get_object()
+        return Response({"name": template.name})
