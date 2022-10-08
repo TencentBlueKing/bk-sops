@@ -39,6 +39,28 @@ class TaskFlowInstanceSerializer(TaskSerializer):
         fields = "__all__"
 
 
+class TaskFlowListSerializer(serializers.ModelSerializer):
+    # todo[API优化] 列表显示正常，但是状态显示异常,执行中
+
+    class Meta:
+        model = TaskFlowInstance
+        fields = [
+            "id",
+            "name",
+            "finish_time",
+            "creator_name",
+            "executor_name",
+            "is_deleted",
+            "is_expired",
+            "is_finished",
+            "is_revoked",
+            "is_started",
+            "template_id",
+            "template_source",
+            "create_time",
+        ]
+
+
 class RetrieveTaskFlowInstanceSerializer(TaskFlowInstanceSerializer):
     pipeline_tree = serializers.SerializerMethodField()
 
