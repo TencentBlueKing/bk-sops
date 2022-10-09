@@ -1494,7 +1494,8 @@ const en = {
     '“显示参数”条件隐藏': 'The Show Parameters condition is hidden',
     '当满足条件时，可将“执行时显示”的参数隐藏起来，实现变量联动': 'When the conditions are met, the parameters displayed in "execution" can be hidden to realize variable linkage',
     'ID/任务名/执行人/状态': 'ID/TaskName/Executor/Status',
-    '编辑周期任务成功': 'Edit cycle task succeeded'
+    '编辑周期任务成功': 'Edit cycle task succeeded',
+    '参数复用说明': 'Description of resource parameter reuse'
 }
 
 export default en
