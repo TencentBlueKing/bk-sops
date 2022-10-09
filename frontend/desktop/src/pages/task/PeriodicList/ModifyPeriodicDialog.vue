@@ -656,7 +656,7 @@
                                     value: this.constants[cur.key] ? this.constants[cur.key].value : cur.value
                                 }
                                 // 如果为元变量并且没有meta字段时自动补充上
-                                if (cur.is_meta && !('meta' in cur)) {
+                                if (this.isEdit && cur.is_meta && !('meta' in cur)) {
                                     acc[cur.key]['meta'] = cur
                                 }
                                 return acc
@@ -855,7 +855,7 @@
                         this.$emit('onConfirmSave')
                     }
                     this.$bkMessage({
-                        'message': i18n.t('流程更新成功'),
+                        'message': i18n.t('编辑周期任务成功'),
                         'theme': 'success'
                     })
                 } catch (error) {

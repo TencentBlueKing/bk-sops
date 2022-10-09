@@ -767,6 +767,7 @@
             },
             onCreatePeriodTask () {
                 this.curRow = {}
+                this.constants = {}
                 this.editTask = false
                 this.isModifyDialogShow = true
             },
