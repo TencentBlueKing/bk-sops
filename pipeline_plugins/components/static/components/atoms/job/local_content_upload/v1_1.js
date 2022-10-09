@@ -98,7 +98,7 @@
             attrs: {
                 name: gettext("滚动策略"),
                 placeholder: gettext("详情请查看JOB使用指引"),
-                hookable: true,
+                hookable: false,
                 validation: [
                     {
                         type: "custom",
@@ -153,7 +153,7 @@
             type: "select",
             attrs: {
                 name: gettext("滚动机制"),
-                hookable: true,
+                hookable: false,
                 default: 1,
                 validation: [
                     {

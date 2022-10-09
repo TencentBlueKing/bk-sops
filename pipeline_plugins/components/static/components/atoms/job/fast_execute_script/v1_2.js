@@ -374,7 +374,7 @@
             type: "input",
             attrs: {
                 name: gettext("执行账号"),
-                placeholder: gettext("请输入IP 地址，多IP可用空格、换行分隔, 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"),
+                placeholder: gettext("请输入在蓝鲸作业平台上注册的账户名"),
                 hookable: true,
                 validation: [
                     {
@@ -401,7 +401,7 @@
             attrs: {
                 name: gettext("滚动策略"),
                 placeholder: gettext("详情请查看JOB使用指引"),
-                hookable: true,
+                hookable: false,
                 validation: [
                     {
                         type: "custom",
@@ -456,7 +456,7 @@
             type: "select",
             attrs: {
                 name: gettext("滚动机制"),
-                hookable: true,
+                hookable: false,
                 default: 1,
                 validation: [
                     {

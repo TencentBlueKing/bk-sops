@@ -39,7 +39,7 @@
                 hookable: true,
                 auto_upload: true,
                 url: window.FILE_UPLOAD_ENTRY || $.context.get('site_url') + 'pipeline/file_upload/',
-                placeholder: $.context.getProjectId() == '' ? gettext("公共流程在编辑状态下无法直接上传文件，请勾选为全局变量后，在新建任务的参数填写阶段上传") : gettext("文件名不能包含特殊字符且大小不能超过2G"),
+                placeholder: $.context.getProjectId() == '' ? gettext("公共流程在编辑状态下无法直接上传文件，请勾选为全局变量后，在新建任务的参数填写阶段上传") : gettext("文件不能包含空格,支持中文文件名,本地上传文件大小不能超过 5GB"),
                 disabled: $.context.getProjectId() == '',
                 validation: [
                     {
