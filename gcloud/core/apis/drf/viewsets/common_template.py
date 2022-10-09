@@ -45,6 +45,7 @@ from gcloud.iam_auth import IAMMeta
 from gcloud.core.apis.drf.filtersets import PropertyFilterSet
 from gcloud.core.apis.drf.filters import BooleanPropertyFilter
 from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
+from pipeline.models import TemplateScheme
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=CommonTemplate)
@@ -277,4 +278,6 @@ class CommonTemplateViewSet(GcloudModelViewSet):
     @action(methods=["GET"], detail=True)
     def common_info(self, request, *args, **kwargs):
         template = self.get_object()
-        return Response({"name": template.name})
+        schemes = TemplateScheme.objects.filter(template_id=template.pipeline_template_id).values_list("id", "name")
+        schemes_info = [{"id": scheme_id, "name": scheme_name} for scheme_id, scheme_name in schemes]
+        return Response({"name": template.name, "schemes": schemes_info})
