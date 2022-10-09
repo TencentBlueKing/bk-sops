@@ -140,7 +140,6 @@
         mounted () {
             if (this.nodeActivity.original_template_id) {
                 this.getTemplateData()
-                this.getSchemeTextValue()
             }
         },
         methods: {
@@ -148,11 +147,8 @@
                 'getTemplatePublicData',
                 'getCommonTemplatePublicData'
             ]),
-            ...mapActions('task/', [
-                'loadTaskScheme'
-            ]),
             async getTemplateData () {
-                const { template_source } = this.componentValue
+                const { template_source, scheme_id_list: schemeIds } = this.componentValue
                 const data = {
                     templateId: this.nodeActivity.original_template_id,
                     project__id: this.projectId
@@ -164,15 +160,7 @@
                     templateData = await this.getTemplatePublicData(data)
                 }
                 this.templateName = templateData.data.name
-            },
-            async getSchemeTextValue () {
-                const { scheme_id_list: schemeIds, template_source } = this.componentValue
-                const schemeList = await this.loadTaskScheme({
-                    project_id: this.projectId,
-                    template_id: this.nodeActivity.original_template_id,
-                    isCommon: template_source === 'common'
-                }) || []
-                this.schemeTextValue = schemeList.reduce((acc, cur) => {
+                this.schemeTextValue = templateData.data.schemes.reduce((acc, cur) => {
                     if (schemeIds.includes(cur.id)) {
                         acc = acc ? acc + ',' + cur.name : cur.name
                     }
