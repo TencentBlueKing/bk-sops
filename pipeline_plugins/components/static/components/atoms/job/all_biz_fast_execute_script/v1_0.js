@@ -109,6 +109,7 @@
             type: "input",
             attrs: {
                 name: gettext("执行账号"),
+                placeholder: gettext("请输入在蓝鲸作业平台上注册的账户名"),
                 hookable: true,
                 validation: [
                     {

@@ -527,7 +527,10 @@ def list_business_set(request):
 
     count = count_resp["data"]["count"]
     resp = batch_request(client.cc.list_business_set, {}, check_iam_auth_fail=True, get_count=lambda x: count)
-    business_set = [{"value": item["bk_biz_set_id"], "text": item["bk_biz_set_name"]} for item in resp]
+    business_set = [
+        {"value": item["bk_biz_set_id"], "text": "{}({})".format(item["bk_biz_set_name"], item["bk_biz_set_id"])}
+        for item in resp
+    ]
     return JsonResponse({"result": True, "data": business_set})
 
 

@@ -120,6 +120,7 @@
             type: "input",
             attrs: {
                 name: gettext("执行账号"),
+                placeholder: gettext("请输入在蓝鲸作业平台上注册的账户名"),
                 hookable: true,
                 validation: [
                     {
@@ -197,7 +198,7 @@
             type: "checkbox",
             attrs: {
                 name: gettext("滚动执行"),
-                hookable: true,
+                hookable: false,
                 items: [
                     {name: gettext(""), value: "open"},
                 ],
@@ -210,7 +211,7 @@
             attrs: {
                 name: gettext("滚动策略"),
                 placeholder: gettext("详情请查看JOB使用指引"),
-                hookable: true,
+                hookable: false,
                 validation: [
                     {
                         type: "custom",
@@ -265,7 +266,7 @@
             type: "select",
             attrs: {
                 name: gettext("滚动机制"),
-                hookable: true,
+                hookable: false,
                 default: 1,
                 validation: [
                     {
