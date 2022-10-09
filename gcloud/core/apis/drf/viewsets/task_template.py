@@ -25,7 +25,7 @@ from django.db import transaction
 from django_filters import CharFilter
 
 from gcloud import err_code
-from pipeline.models import TemplateRelationship
+from pipeline.models import TemplateRelationship, TemplateScheme
 
 from gcloud.contrib.collection.models import Collection
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
@@ -333,4 +333,6 @@ class TaskTemplateViewSet(GcloudModelViewSet):
     @action(methods=["GET"], detail=True)
     def common_info(self, request, *args, **kwargs):
         template = self.get_object()
-        return Response({"name": template.name})
+        schemes = TemplateScheme.objects.filter(template_id=template.pipeline_template_id).values_list("id", "name")
+        schemes_info = [{"id": scheme_id, "name": scheme_name} for scheme_id, scheme_name in schemes]
+        return Response({"name": template.name, "schemes": schemes_info})
