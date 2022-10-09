@@ -970,6 +970,11 @@
                         schemeIdList: []
                     }
                     this.updateBasicInfo(config)
+                    if ('project' in val && typeof val.project.id === 'number') {
+                        this.$set(this.nodeConfig, 'template_source', 'business')
+                    } else {
+                        this.$set(this.nodeConfig, 'template_source', 'common')
+                    }
                     // 清空输入参数，否则会先加载上一个的子流程的配置再去加载选中的子流程配置
                     inputs = tools.deepClone(this.inputs)
                     this.inputs = []
@@ -1062,11 +1067,6 @@
              * - 校验基础信息
              */
             async tplChange (data) {
-                if ('project' in data && typeof data.project.id === 'number') {
-                    this.$set(this.nodeConfig, 'template_source', 'business')
-                } else {
-                    this.$set(this.nodeConfig, 'template_source', 'common')
-                }
                 await this.getSubflowDetail(data.id, data.version)
                 this.inputs = await this.getSubflowInputsConfig()
                 this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms)
