@@ -38,24 +38,17 @@
             <!-- 表单作为全局变量时的名称 -->
             <div v-if="showFormTitle" :class="['rf-group-name', { 'not-reuse': showNotReuseTitle }]">
                 <span class="name">{{scheme.name || scheme.attrs.name}} ({{ scheme.tag_code }})</span>
-                <span v-if="scheme.attrs.desc" class="rf-group-desc">
-                    <i
-                        v-bk-tooltips="{
-                            content: scheme.attrs.desc,
-                            placements: ['right'],
-                            zIndex: 2072
-                        }"
-                        class="common-icon-info">
-                    </i>
-                </span>
                 <span v-if="showNotReuseTitle" class="not-reuse-tip">
                     <i class="common-icon-dark-circle-warning"></i>
                     {{ $t('未能重用') }}
                 </span>
                 <span class="pre-mako-tip" v-if="scheme.attrs.pre_mako_tip">
-                    <i class="bk-icon icon-exclamation-circle"></i>
+                    <i class="common-icon-dark-circle-warning"></i>
                     {{ scheme.attrs.pre_mako_tip }}
                 </span>
+            </div>
+            <div v-if="scheme.attrs.desc" class="rf-group-desc">
+                {{ scheme.attrs.desc }}
             </div>
             <!-- 表单名称 -->
             <label

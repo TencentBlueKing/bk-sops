@@ -11,27 +11,21 @@
 */
 <template>
     <div class="rf-form-group" :class="[{ 'rf-has-hook': option.showHook }, scheme.status || '']" v-show="showForm">
-        <!-- 分组名称和描述 -->
+        <!-- 分组名称和提示 -->
         <div v-if="showFormTitle" :class="['rf-group-name', { 'not-reuse': showNotReuseTitle }]">
             <span class="name">{{scheme.name || scheme.attrs.name}} ({{ scheme.tag_code }})</span>
-            <span v-if="scheme.attrs.desc" class="rf-group-desc">
-                <i
-                    v-bk-tooltips="{
-                        content: scheme.attrs.desc,
-                        placements: ['right'],
-                        zIndex: 2006
-                    }"
-                    class="common-icon-info">
-                </i>
-            </span>
             <span v-if="showNotReuseTitle" class="not-reuse-tip">
                 <i class="common-icon-dark-circle-warning"></i>
                 {{ $t('未能重用') }}
             </span>
             <span class="pre-mako-tip" v-if="scheme.attrs.pre_mako_tip">
-                <i class="bk-icon icon-exclamation-circle"></i>
+                <i class="common-icon-dark-circle-warning"></i>
                 {{ scheme.attrs.pre_mako_tip }}
             </span>
+        </div>
+        <!-- 分组描述 -->
+        <div v-if="scheme.attrs.desc" class="rf-group-desc">
+            {{ scheme.attrs.desc }}
         </div>
         <!-- 分组勾选 -->
         <div v-if="hook" class="rf-form-item rf-has-hook show-label">
