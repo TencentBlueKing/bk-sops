@@ -333,6 +333,6 @@ class TaskTemplateViewSet(GcloudModelViewSet):
     @action(methods=["GET"], detail=True)
     def common_info(self, request, *args, **kwargs):
         template = self.get_object()
-        schemes = TemplateScheme.objects.filter(template_id=template.pipeline_template_id).values_list("id", "name")
+        schemes = TemplateScheme.objects.filter(template=template.pipeline_template).values_list("id", "name")
         schemes_info = [{"id": scheme_id, "name": scheme_name} for scheme_id, scheme_name in schemes]
         return Response({"name": template.name, "schemes": schemes_info})
