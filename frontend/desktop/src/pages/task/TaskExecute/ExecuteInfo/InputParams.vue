@@ -207,6 +207,18 @@
                     margin-left: 30%;
                     padding-left: 13px;
                 }
+                .el-table {
+                    tr,
+                    .el-table__cell {
+                        height: 42px;
+                        padding: 0;
+                        background-color: initial;
+                    }
+                    .cell {
+                        height: auto;
+                        line-height: 20px;
+                    }
+                }
             }
         }
         .no-data-wrapper {

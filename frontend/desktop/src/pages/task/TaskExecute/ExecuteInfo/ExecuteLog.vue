@@ -24,6 +24,10 @@
             @expand-change="onHistoryExpand">
             <bk-table-column type="expand" :width="30">
                 <div class="record-wrap" slot-scope="{ row }">
+                    <section class="info-section abnormal-section" data-test-id="taskExcute_form_exceptionInfo" v-if="row.ex_data">
+                        <h4 class="abnormal-label">{{ $t('异常信息') }}</h4>
+                        <div v-html="row.failInfo"></div>
+                    </section>
                     <InputParams
                         :inputs="row.inputs"
                         :render-config="row.renderConfig"
@@ -34,10 +38,6 @@
                         :outputs="row.outputsInfo"
                         :node-detail-config="nodeDetailConfig">
                     </OutputParams>
-                    <section class="info-section abnormal-section" data-test-id="taskExcute_form_exceptionInfo" v-if="row.ex_data">
-                        <h4 class="abnormal-label">{{ $t('异常信息') }}</h4>
-                        <div v-html="row.failInfo"></div>
-                    </section>
                     <NodeLog
                         ref="nodeLog"
                         :node-detail-config="nodeDetailConfig"
