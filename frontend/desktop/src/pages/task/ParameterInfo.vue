@@ -66,7 +66,9 @@
                 return this.getReferencedStatus(this.referencedVariable)
             },
             isUnreferencedShow () {
-                return this.getReferencedStatus(this.unReferencedVariable)
+                if (this.taskMessageLoading) return false
+                const unreferenced = Object.values(this.unReferencedVariable)
+                return unreferenced.length && unreferenced.filter(value => value.show_type === 'show').length
             },
             isParameterInfoLoading () {
                 return this.isRefVarLoading || this.isUnrefVarLoading
