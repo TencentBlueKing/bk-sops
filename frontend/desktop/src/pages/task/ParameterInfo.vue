@@ -67,8 +67,9 @@
             },
             isUnreferencedShow () {
                 if (this.taskMessageLoading) return false
-                const unreferenced = Object.values(this.unReferencedVariable)
-                return unreferenced.length && unreferenced.filter(value => value.show_type === 'show').length
+                const variableKeys = Object.keys(this.unReferencedVariable)
+                const unreferenced = variableKeys.filter(key => this.unReferencedVariable[key].show_type === 'show')
+                return !!unreferenced.length
             },
             isParameterInfoLoading () {
                 return this.isRefVarLoading || this.isUnrefVarLoading
