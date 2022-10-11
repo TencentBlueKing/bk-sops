@@ -19,5 +19,9 @@ class UploadRequestBartender(object, metaclass=ABCMeta):
         self.manager = manager
 
     @abstractmethod
-    def process_request(self, request):
+    def process_request(self, request, *args, **kwargs):
         raise NotImplementedError()
+
+    def post_handle_upload_process(self, data, *args, **kwargs):
+        if getattr(self.manager, "record_uploaded_data"):
+            getattr(self.manager, "record_uploaded_data")(data, *args, **kwargs)

@@ -37,6 +37,12 @@ class JobExecuteTaskService(JobExecuteTaskServiceBase, GetJobHistoryResultMixin)
                 type="boolean",
                 schema=BooleanItemSchema(description=_("是否对 IP 进行 Tag 分组")),
             ),
+            self.InputItem(
+                name=_("IP 存在性校验"),
+                key="ip_is_exist",
+                type="boolean",
+                schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
+            ),
         ]
 
     def outputs_format(self):

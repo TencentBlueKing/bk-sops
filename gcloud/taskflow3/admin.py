@@ -67,3 +67,9 @@ class TimeoutNodeRecordAdmin(admin.ModelAdmin):
 class TaskCallBackRecordAdmin(admin.ModelAdmin):
     list_display = ["id", "task_id", "url", "create_time", "status", "extra_info", "callback_time"]
     search_fields = ["task_id", "id"]
+
+
+@admin.register(models.TaskConfig)
+class TaskConfigAdmin(admin.ModelAdmin):
+    list_display = ["id", "scope_id", "scope", "config_type", "config_value"]
+    search_fields = ["scope", "scope_id"]

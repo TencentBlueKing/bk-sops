@@ -16,5 +16,5 @@ from .utils import common_process_request
 
 
 class JobRepoBartender(UploadRequestBartender):
-    def process_request(self, request):
-        return common_process_request(request, self.manager)
+    def process_request(self, request, *args, **kwargs):
+        return common_process_request(request, self.manager, *args, **kwargs)

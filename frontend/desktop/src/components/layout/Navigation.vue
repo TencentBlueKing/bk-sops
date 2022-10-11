@@ -18,7 +18,21 @@
             <navigator-head-right></navigator-head-right>
         </template>
         <template slot="menu">
-            <bk-navigation-menu :default-active="currentNav" :toggle-active="true">
+            <bk-navigation-menu
+                :default-active="currentNav"
+                :toggle-active="true"
+                item-default-icon-color="#949ba5"
+                item-child-icon-default-color="#949ba5"
+                item-default-color="#96a2b9"
+                item-hover-bg-color="#2f3847"
+                item-hover-color="#fff"
+                item-child-icon-hover-color="#fff"
+                item-hover-icon-color="#fff"
+                item-active-bg-color="#3a84ff"
+                item-active-icon-color="#fff"
+                item-active-color="#fff"
+                item-child-icon-active-color="#fff"
+                sub-menu-open-bg-color="#161c2c">
                 <bk-navigation-menu-group
                     v-for="(group, groupIndex) in routerList"
                     :key="groupIndex">
@@ -120,9 +134,9 @@
             },
             subTitle () {
                 if (this.currentNav === 'appMakerList') {
-                    return this.$t('将流程快速⽣成⼀个蓝鲸SaaS 应⽤，可在蓝鲸应⽤市场进⾏搜索并添加到蓝鲸桌⾯。这种⽆需开发、快速⽣成的SaaS 应⽤称为 “轻应⽤”。')
+                    return this.$t('流程任务的一种快捷方式，它是基于流程生成并可直接在蓝鲸应用市场&桌面以SaaS方式搜索、添加及打开。这种无需开发、快速生成的类SaaS应用称为“轻应用”。')
                 } else if (this.currentNav === 'functionHome') {
-                    return this.$t('将流程的编排和执行进行角色分离，高阶人员负责编排流程，而日常执行这类简单任务交付给初级人员使用。这种交付模式称为“职能化”。')
+                    return this.$t('拥有流程管理权限的人员，通过设置“执行代理人”功能，将流程任务的执行操作交由第三方人员（如：外包、外聘人员），帮助流程管理人员从繁重的执行工作中解放。')
                 }
                 return ''
             }
@@ -262,7 +276,6 @@
         color: #63656e;
         word-break: break-all;
         text-overflow: ellipsis;
-        display: -webkit-box;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
         overflow: hidden;
@@ -290,6 +303,9 @@
                 }
                 .navigation-nav {
                     z-index: 111;
+                    .nav-slider {
+                        background-color: #182132 !important;
+                    }
                     .nav-slider-list {
                         padding-top: 0;
                     }
@@ -307,6 +323,18 @@
             }
             .bk-navigation-menu-group {
                 border-top: 1px solid rgba(255,255,255,0.06);
+            }
+            .navigation-sbmenu .navigation-menu-item:hover,
+            .navigation-sbmenu-title:hover {
+                background: #2f3847 !important;
+                .navigation-sbmenu-title-icon,
+                .navigation-sbmenu-title-content {
+                    color: #fff !important;
+                }
+            }
+            .navigation-menu-item-default-icon {
+                height: 4px;
+                width: 4px;
             }
         }
         .offline-tip {

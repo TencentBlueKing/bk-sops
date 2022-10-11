@@ -68,7 +68,7 @@ class ITSMNodeTransitionView(APIView):
         subprocess_stack = []
         subprocess_id = serializer_data.get("subprocess_id")
         if subprocess_id is not None:
-            subprocess_stack.append(subprocess_id)
+            subprocess_stack = subprocess_id.split(",")
 
         # 获取节点详情
         node_detail = task_flow_instance_query.first().get_node_detail(

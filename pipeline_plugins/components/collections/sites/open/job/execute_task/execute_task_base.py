@@ -22,15 +22,10 @@ from pipeline.core.flow.io import (
     IntItemSchema,
     ArrayItemSchema,
     ObjectItemSchema,
-    BooleanItemSchema,
 )
 from pipeline_plugins.components.collections.sites.open.job import JobService
 from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
-from pipeline_plugins.components.utils import (
-    get_job_instance_url,
-    get_node_callback_url,
-    loose_strip,
-)
+from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, loose_strip
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
@@ -79,12 +74,6 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
                     ),
                 ),
             ),
-            self.InputItem(
-                name=_("IP 存在性校验"),
-                key="ip_is_exist",
-                type="boolean",
-                schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
-            ),
         ]
 
     def outputs_format(self):
@@ -105,6 +94,51 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
             ),
         ]
 
+    def check_ip_is_exist(self, data):
+        return data.get_one_of_inputs("ip_is_exist")
+
+    def build_ip_list(self, biz_across, val, executor, biz_cc_id, data, ip_is_exist):
+        if biz_across:
+            result, server = self.get_target_server(
+                ip_str=val,
+                executor=executor,
+                biz_cc_id=biz_cc_id,
+                data=data,
+                is_across=True,
+                logger_handle=self.logger,
+                ip_is_exist=ip_is_exist,
+                ignore_ex_data=True,
+            )
+
+            # 匹配不到云区域IP格式IP，尝试从当前业务下获取
+            if not result:
+                result, server = self.get_target_server(
+                    ip_str=val,
+                    executor=executor,
+                    biz_cc_id=biz_cc_id,
+                    data=data,
+                    logger_handle=self.logger,
+                    is_across=False,
+                    ip_is_exist=ip_is_exist,
+                )
+
+            if not result:
+                return []
+        else:
+            result, server = self.get_target_server(
+                ip_str=val,
+                executor=executor,
+                biz_cc_id=biz_cc_id,
+                data=data,
+                logger_handle=self.logger,
+                is_across=False,
+                ip_is_exist=ip_is_exist,
+            )
+            if not result:
+                return []
+
+        return server
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
@@ -116,54 +150,17 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         original_global_var = deepcopy(data.get_one_of_inputs("job_global_var"))
         global_vars = []
-        ip_is_exist = data.get_one_of_inputs("ip_is_exist")
+        ip_is_exist = self.check_ip_is_exist(data)
         biz_across = data.get_one_of_inputs("biz_across")
 
         for _value in original_global_var:
             val = loose_strip(_value["value"])
             # category为3,表示变量类型为IP
             if _value["category"] == 3:
-                if biz_across:
-                    result, server = self.get_target_server(
-                        ip_str=val,
-                        executor=executor,
-                        biz_cc_id=biz_cc_id,
-                        data=data,
-                        is_across=True,
-                        logger_handle=self.logger,
-                        ip_is_exist=ip_is_exist,
-                        ignore_ex_data=True,
-                    )
-
-                    # 匹配不到云区域IP格式IP，尝试从当前业务下获取
-                    if not result:
-                        result, server = self.get_target_server(
-                            ip_str=val,
-                            executor=executor,
-                            biz_cc_id=biz_cc_id,
-                            data=data,
-                            logger_handle=self.logger,
-                            is_across=False,
-                            ip_is_exist=ip_is_exist,
-                        )
-
-                    if not result:
-                        return False
-                else:
-                    result, server = self.get_target_server(
-                        ip_str=val,
-                        executor=executor,
-                        biz_cc_id=biz_cc_id,
-                        data=data,
-                        logger_handle=self.logger,
-                        is_across=False,
-                        ip_is_exist=ip_is_exist,
-                    )
-                    if not result:
-                        return False
-
-                if server:
-                    global_vars.append({"name": _value["name"], "server": server})
+                server = self.build_ip_list(biz_across, val, executor, biz_cc_id, data, ip_is_exist)
+                if not server:
+                    return False
+                global_vars.append({"name": _value["name"], "server": server})
             else:
                 global_vars.append({"name": _value["name"], "value": val})
 

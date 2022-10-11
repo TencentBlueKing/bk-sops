@@ -26,6 +26,7 @@ javascript_catalog = JavaScriptCatalog.as_view(
 
 urlpatterns = [
     url(r"^$", views.home),
+    url(r"^logout$", views.user_exit),
     url(r"^core/api/change_default_project/(?P<project_id>\d+)/$", api.change_default_project),
     url(r"^core/api/get_roles_and_personnel/(?P<biz_cc_id>\d+)/$", api.get_roles_and_personnel),
     url(r"^core/api/get_basic_info/$", api.get_basic_info),

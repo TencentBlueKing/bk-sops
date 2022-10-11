@@ -269,7 +269,6 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
     ip_input_list = get_ip_by_regex(ip_str)
 
     supplier_account = supplier_account_for_business(biz_cc_id)
-
     ip_list = cmdb.get_business_host_topo(
         username=username,
         bk_biz_id=biz_cc_id,
@@ -456,4 +455,61 @@ def get_biz_ip_from_frontend(
         if not ignore_ex_data:
             data.outputs.ex_data = _("IP 为空，请确认是否输入IP,请检查IP格式是否正确：{}".format(ip_str))
         return False, ip_list
+    return True, ip_list
+
+
+def get_biz_ip_from_frontend_hybrid(executor, ip_str, biz_cc_id, data, ignore_ex_data=False):
+    """
+    处理前端ip,云区域:ip 混合输入的情况，最终提取出来的格式为:
+    [
+        {
+            "bk_cloud_id": 0,
+            "ip": 127.0.0.1
+        }
+    ]
+    """
+    logger.info(
+        "[get_biz_ip_from_frontend_hybrid] -> start get ip from frontend, ip_str={}, biz_cc_id={}".format(
+            ip_str, biz_cc_id
+        )
+    )
+    # 先提取所有带云区域的ip
+    plat_ip = [match.group().split(":") for match in plat_ip_reg.finditer(ip_str)]
+    plat_ip_list = [{"ip": _ip, "bk_cloud_id": int(_cloud)} for _cloud, _ip in plat_ip]
+    logger.info(
+        "[get_biz_ip_from_frontend_hybrid] -> get_plat_ip_list, ip_str={}, plat_ip_list={}".format(ip_str, plat_ip_list)
+    )
+    # 替换掉所有的ip地址为空:
+    ip_str = plat_ip_reg.sub("", ip_str)
+
+    # 再提取所有非跨业务的ip,多一次匹配，但是如果without_plat_ip_list 为空，可以少一次查询
+    without_plat_ip_list = [match.group() for match in ip_pattern.finditer(ip_str)]
+    logger.info(
+        "[get_biz_ip_from_frontend_hybrid] -> get_without_plat_ip_list, ip_str={}, plat_ip_list={}".format(
+            ip_str, without_plat_ip_list
+        )
+    )
+    # 对于用户没有输入云区域的ip,则去当前业务下查询云区域
+    if not without_plat_ip_list:
+        return True, plat_ip_list
+
+    var_ip = cc_get_ips_info_by_str(
+        username=executor, biz_cc_id=biz_cc_id, ip_str=",".join(without_plat_ip_list), use_cache=False
+    )
+    ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in var_ip["ip_result"]]
+
+    err_msg = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： {}")
+
+    difference_ip_list = list(get_difference_ip_list(without_plat_ip_list, [ip_item["ip"] for ip_item in ip_list]))
+    if len(ip_list) != len(set(without_plat_ip_list)):
+        difference_ip_list.sort()
+        if not ignore_ex_data:
+            data.outputs.ex_data = err_msg.format(",".join(difference_ip_list))
+        return False, ip_list
+    if not ip_list:
+        if not ignore_ex_data:
+            data.outputs.ex_data = _("IP 为空，请确认是否输入IP,请检查IP格式是否正确：{}".format(ip_str))
+        return False, ip_list
+
+    ip_list.extend(plat_ip_list)
     return True, ip_list

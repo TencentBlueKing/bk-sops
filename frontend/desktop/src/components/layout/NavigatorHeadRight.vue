@@ -8,8 +8,10 @@
         <div
             :class="['help-icon', { active: isMoreOperateActive }]"
             v-bk-tooltips="{
-                placement: 'bottom',
+                placement: 'bottom-end',
                 allowHtml: 'true',
+                arrow: false,
+                distance: 17,
                 theme: 'light',
                 hideOnClick: false,
                 extCls: 'more-operation-tips',
@@ -23,7 +25,24 @@
             <div class="operate-item" data-test-id="navHeader_list_feedback" @click="goToFeedback">{{ $t('问题反馈') }}</div>
         </div>
         <!-- 用户icon -->
-        <div class="user-avatar">{{ username }}</div>
+        <div
+            class="user-avatar"
+            v-bk-tooltips="{
+                placement: 'bottom-end',
+                allowHtml: 'true',
+                arrow: false,
+                distance: 25,
+                theme: 'light',
+                hideOnClick: false,
+                extCls: 'logout-tips',
+                content: '#logout-html'
+            }">
+            {{ username }}
+            <i class="bk-icon icon-down-shape"></i>
+        </div>
+        <div id="logout-html">
+            <div class="operate-item" data-test-id="navHeader_list_logout" @click="handleLogout">{{ $t('退出登录') }}</div>
+        </div>
         <!-- 日志组件 -->
         <version-log
             ref="versionLog"
@@ -139,6 +158,10 @@
             },
             reloadHome () {
                 this.reload()
+            },
+            handleLogout () {
+                const newUrl = window.location.origin + (window.SITE_URL || '/') + 'logout'
+                window.location.replace(newUrl)
             }
         }
     }
@@ -149,7 +172,12 @@
         align-items: center;
         .project-select >>> .project-wrapper {
             margin-top: 0;
+            margin-right: 18px;
             width: 240px;
+            background: #f0f1f5;
+            &.read-only {
+                background: #fff;
+            }
         }
         .help-icon {
             display: flex;
@@ -158,7 +186,7 @@
             width: 32px;
             height: 32px;
             font-size: 16px;
-            color: #63656e;
+            color: #979ba5;
             border-radius: 50%;
             cursor: pointer;
             transition: brackground .2s;
@@ -170,11 +198,20 @@
             }
         }
         .user-avatar {
-            margin-left: 10px;
+            margin-left: 16px;
             font-size: 14px;
-            color: #747c85;
-            .common-icon-dark-circle-avatar {
-                cursor: text;
+            color: #96a2b9;
+            cursor: pointer;
+            .icon-down-shape {
+                position: relative;
+                top: -1px;
+                color: #979ba5;
+            }
+            &:hover {
+                color: #3a84ff;
+                i {
+                    color: #3a84ff;
+                }
             }
         }
         /deep/ .bk-select.is-disabled {
@@ -183,16 +220,21 @@
     }
 </style>
 <style lang="scss">
+    .tippy-popper.logout-tips,
     .tippy-popper.more-operation-tips {
         .tippy-tooltip {
             padding: 4px 0;
+            border: 1px solid #dcdee5;
+            box-shadow: 0 2px 6px 0 rgba(0,0,0,0.10);
+            border-radius: 2px;
         }
+        #logout-html,
         #more-operation-html {
             .operate-item {
                 display: block;
                 height: 32px;
                 line-height: 33px;
-                padding: 0 20px;
+                padding: 0 16px;
                 color: #63656e;
                 font-size: 12px;
                 text-decoration: none;

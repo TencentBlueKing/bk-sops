@@ -1,5 +1,5 @@
 spec_version: 2
-app_version: "3.25.7"
+app_version: "3.26.0-alpha3"
 app:
     region: default
     bk_app_code: bk_sops
@@ -208,6 +208,10 @@ modules:
                 replicas: 2
             stats-worker:
                 command: celery worker -A blueapps.core.celery -P threads -Q pipeline_statistics_priority -n default@%h -c 100 -l info
+                plan: 4C1G5R
+                replicas: 2
+            cleaner:
+                command: celery worker -A blueapps.core.celery -P threads -Q task_data_clean -n cleaner_worker@%h -c 100 -l info
                 plan: 4C1G5R
                 replicas: 2
             exporter:

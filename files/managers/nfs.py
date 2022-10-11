@@ -64,6 +64,7 @@ class HostNFSManager(Manager):
         timeout=None,
         bk_scope_type="biz",
         target_server=None,
+        rolling_config=None,
     ):
 
         if not all([tag["type"] == "host_nfs" for tag in file_tags]):
@@ -102,7 +103,8 @@ class HostNFSManager(Manager):
 
         if timeout is not None:
             job_kwargs["timeout"] = int(timeout)
-
+        if rolling_config is not None:
+            job_kwargs["rolling_config"] = rolling_config
         if callback_url:
             job_kwargs["callback_url"] = callback_url
 

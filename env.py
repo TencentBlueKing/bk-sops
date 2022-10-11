@@ -87,4 +87,14 @@ EXPIRED_SESSION_CLEAN_CRON = json.loads(
     os.getenv("BKAPP_EXPIRED_SESSION_CLEAN_CRON", '{"hour": "15", "minute": "0"}')
 )  # UTC time
 
+# V2引擎任务清理配置
+ENABLE_CLEAN_EXPIRED_V2_TASK = bool(os.getenv("BKAPP_ENABLE_CLEAN_EXPIRED_V2_TASK", False))
+CLEAN_EXPIRED_V2_TASK_CRON = tuple(os.getenv("BKAPP_CLEAN_EXPIRED_V2_TASK_CRON", "30 0 * * *").split())
+V2_TASK_VALIDITY_DAY = int(os.getenv("BKAPP_V2_TASK_VALIDITY_DAY", 730))
+CLEAN_EXPIRED_V2_TASK_BATCH_NUM = int(os.getenv("BKAPP_CLEAN_EXPIRED_V2_TASK_BATCH_NUM", 100))
+CLEAN_EXPIRED_V2_TASK_INSTANCE = bool(os.getenv("BKAPP_CLEAN_EXPIRED_V2_TASK_INSTANCE", False))
+
+# 是否启动swagger ui
+ENABLE_SWAGGER_UI = os.getenv("BKAPP_ENABLE_SWAGGER_UI", False)
+
 ENABLE_IPV6 = False if os.getenv("BKAPP_ENABLE_IPV6") is None else True

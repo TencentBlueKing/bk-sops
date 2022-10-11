@@ -29,6 +29,13 @@
             @onOperationClick="onOperationClick"
             @onTaskParamsClick="onTaskParamsClick">
         </task-operation-header>
+        <bk-alert v-if="isFailedSubproceeNodeInfo" type="error" class="subprocess-failed-tips">
+            <template slot="title">
+                <span>{{ $t('存在子流程节点执行失败，可从节点执行记录去往子任务处理，并及时') }}</span>
+                <bk-link theme="primary" @click="handleRefreshTaskStatus">{{ $t('刷新任务状态') }}</bk-link>
+                {{ $t('。') }}
+            </template>
+        </bk-alert>
         <div class="task-container">
             <div class="pipeline-nodes">
                 <TemplateCanvas
@@ -53,7 +60,7 @@
                 </TemplateCanvas>
             </div>
         </div>
-        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="true" @hidden="onHiddenSideslider" :before-close="onBeforeClose">
+        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="960" :quick-close="true" @hidden="onHiddenSideslider" :before-close="onBeforeClose">
             <div slot="header">{{sideSliderTitle}}</div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
                 <ModifyParams
@@ -372,7 +379,8 @@
                         }]
                     }
                 },
-                nodePipelineData: {}
+                nodePipelineData: {},
+                isFailedSubproceeNodeInfo: null
             }
         },
         computed: {
@@ -556,6 +564,9 @@
                             this.setRunningNode(instanceStatus.data.children)
                         }
                         this.updateNodeInfo()
+                        this.isFailedSubproceeNodeInfo = this.canvasData.locations.find(item => {
+                            return item.code === 'subprocess_plugin' && item.status === 'FAILED'
+                        })
                     } else {
                         // 查询流程状态接口返回失败后再请求一次
                         this.pollErrorTimes += 1
@@ -762,6 +773,7 @@
                 }
 
                 this.pending.skip = true
+                this.isFailedSubproceeNodeInfo = null
                 try {
                     const data = {
                         instance_id: this.instance_id,
@@ -1014,7 +1026,13 @@
                             node_id: id
                         }
                         if (!this.isTopTask) {
-                            params.subprocess_id = this.pipelineData.id
+                            const selectedFlowIds = this.selectedFlowPath.reduce((acc, cur) => {
+                                if (cur.type !== 'root') {
+                                    acc = acc ? acc + ',' + cur.id : cur.id
+                                }
+                                return acc
+                            }, '')
+                            params.subprocess_id = selectedFlowIds
                         }
                         await this.itsmTransition(params)
                         this.approval.id = ''
@@ -1148,7 +1166,7 @@
                             nodeData = null
                         } else {
                             subprocessStack.push(activityNode.id)
-                            nodeData = activityNode.children
+                            nodeData = null
                         }
                     }
                     this.defaultActiveId = firstTaskNode.id
@@ -1211,20 +1229,22 @@
                 this.defaultActiveId = id
                 if (type === 'subflow') {
                     this.handleSubflowCanvasChange(id)
-                } else {
-                    this.setNodeDetailConfig(id)
-                    if (this.nodeDetailConfig.node_id) {
-                        this.updateNodeActived(this.nodeDetailConfig.node_id, false)
-                    }
-                    this.updateNodeActived(id, true)
-                    // 如果为子流程节点则需要重置pipelineData的constants
-                    this.nodePipelineData = { ...this.pipelineData }
-                    if (type === 'subflowDetail') {
-                        const { constants } = this.pipelineData.activities[id].pipeline
-                        this.nodePipelineData['constants'] = constants
-                    }
-                    this.openNodeInfoPanel('executeInfo', i18n.t('节点参数'))
+                    return
                 }
+                this.setNodeDetailConfig(id)
+                if (this.nodeDetailConfig.node_id) {
+                    this.updateNodeActived(this.nodeDetailConfig.node_id, false)
+                }
+                this.updateNodeActived(id, true)
+                // 如果为子流程节点则需要重置pipelineData的constants
+                this.nodePipelineData = { ...this.pipelineData }
+                // 兼容旧版本子流程节点输出数据
+                const selectLocation = this.canvasData.locations.find(item => item.id === id)
+                if (selectLocation.type === 'subflow') {
+                    const { constants } = this.pipelineData.activities[id].pipeline
+                    this.nodePipelineData['constants'] = constants
+                }
+                this.openNodeInfoPanel('executeInfo', i18n.t('节点参数'))
             },
             onOpenConditionEdit (data) {
                 this.isShowConditionEdit = true
@@ -1331,7 +1351,9 @@
                 this.setNodeDetailConfig(selectNodeId, !nodeHeirarchy)
                 // 节点树切换时，如果为子流程节点则需要重置pipelineData的constants
                 this.nodePipelineData = { ...this.pipelineData }
-                if (nodeType === 'subflow') {
+                // 兼容旧版本子流程节点输出数据
+                const selectLocation = this.canvasData.locations.find(item => item.id === selectNodeId)
+                if (selectLocation.type === 'subflow') {
                     const { constants } = this.pipelineData.activities[selectNodeId].pipeline
                     this.nodePipelineData['constants'] = constants
                 }
@@ -1427,6 +1449,7 @@
             },
             onRetrySuccess (id) {
                 this.isNodeInfoPanelShow = false
+                this.isFailedSubproceeNodeInfo = null
                 this.setTaskStatusTimer()
                 this.updateNodeActived(id, false)
             },
@@ -1513,6 +1536,13 @@
                         && this.pipelineData.activities[key].component.code === 'pause_node'))
                         ? 'SUSPENDED'
                         : ''
+            },
+            // 刷新任务状态
+            handleRefreshTaskStatus () {
+                const nodeId = this.isFailedSubproceeNodeInfo.id
+                this.isFailedSubproceeNodeInfo = null
+                this.setTaskStatusTimer()
+                this.updateNodeActived(nodeId, false)
             }
         }
     }
@@ -1532,6 +1562,20 @@
     font-size: 12px;
 }
 
+.subprocess-failed-tips {
+    margin-top: -1px;
+    color: #63656e;
+    /deep/.bk-alert-title {
+        display: flex;
+    }
+    /deep/.bk-link {
+        vertical-align: initial;
+        line-height: 16px;
+        .bk-link-text {
+            font-size: 12px;
+        }
+    }
+}
 .task-container {
     position: relative;
     width: 100%;

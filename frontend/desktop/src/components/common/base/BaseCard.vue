@@ -142,13 +142,11 @@
         }
     }
      &.permission-disable {
-        background: #f7f7f7;
-        border: 1px solid #dcdee5;
+        background: #fafbfd;
         height: auto;
         .card-icon {
-            color: #dcdee5;
-            background: #f7f7f7;
-            border-right: 1px solid #dcdee5;
+            color: #fff;
+            background: #eaebf0;
         }
         .card-content {
             border-left: none;
@@ -156,7 +154,7 @@
         .text {
             color: #c4c6cc;
             &:after {
-                background: #f7f7f7;
+                background: #fafbfd;
             }
         }
         .apply-permission-mask {
