@@ -38,12 +38,14 @@ from gcloud.core.apis.drf.serilaziers.common_template import (
 from gcloud.common_template.signals import post_template_save_commit
 from gcloud.common_template.models import CommonTemplate
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
+from gcloud.taskflow3.models import TaskConfig
 from gcloud.template_base.domains.template_manager import TemplateManager
 from gcloud.iam_auth import res_factory, get_iam_client
 from gcloud.iam_auth import IAMMeta
 from gcloud.core.apis.drf.filtersets import PropertyFilterSet
 from gcloud.core.apis.drf.filters import BooleanPropertyFilter
 from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
+from pipeline.models import TemplateScheme
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=CommonTemplate)
@@ -63,6 +65,8 @@ class CommonTemplatePermission(IamPermission):
             IAMMeta.COMMON_FLOW_EDIT_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
         ),
         "create": IamPermissionInfo(IAMMeta.COMMON_FLOW_CREATE_ACTION),
+        "enable_independent_subprocess": IamPermissionInfo(pass_all=True),
+        "common_info": IamPermissionInfo(pass_all=True),
     }
 
 
@@ -261,3 +265,19 @@ class CommonTemplateViewSet(GcloudModelViewSet):
             instance_id=template.id,
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @swagger_auto_schema(method="GET", operation_summary="查询流程是否开启独立子流程")
+    @action(methods=["GET"], detail=True)
+    def enable_independent_subprocess(self, request, *args, **kwargs):
+        template_id = kwargs.get("pk")
+        project_id = -1
+        independent_subprocess_enable = TaskConfig.objects.enable_independent_subprocess(project_id, template_id)
+        return Response({"enable": independent_subprocess_enable})
+
+    @swagger_auto_schema(method="GET", operation_summary="获取流程详情公开信息")
+    @action(methods=["GET"], detail=True)
+    def common_info(self, request, *args, **kwargs):
+        template = self.get_object()
+        schemes = TemplateScheme.objects.filter(template=template.pipeline_template).values_list("id", "name")
+        schemes_info = [{"id": scheme_id, "name": scheme_name} for scheme_id, scheme_name in schemes]
+        return Response({"name": template.name, "schemes": schemes_info})

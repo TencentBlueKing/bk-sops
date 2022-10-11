@@ -27,6 +27,7 @@ from pipeline.models import PipelineInstance
 from pipeline.engine import states
 
 from gcloud.taskflow3.utils import parse_node_timeout_configs
+from pipeline_plugins.components.collections.subprocess_plugin.converter import PipelineTreeSubprocessConverter
 from pipeline_web.core.abstract import NodeAttr
 from pipeline.component_framework.models import ComponentModel
 from pipeline_web.core.models import NodeInInstance
@@ -566,7 +567,16 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
 class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
     @staticmethod
     def create_pipeline_instance(template, **kwargs):
+        independent_subprocess = kwargs.pop(
+            "independent_subprocess", False
+        ) or TaskConfig.objects.enable_independent_subprocess(getattr(template, "project_id", -1), template.id)
         pipeline_tree = kwargs["pipeline_tree"]
+
+        if independent_subprocess:
+            converter = PipelineTreeSubprocessConverter(pipeline_tree)
+            converter.pre_convert()
+            pipeline_tree = converter.pipeline_tree
+
         replace_template_id(template.__class__, pipeline_tree)
         pipeline_template_data = {
             "name": kwargs["name"],
@@ -576,7 +586,11 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree, template.__class__)
 
         pipeline_web_cleaner = PipelineWebTreeCleaner(pipeline_tree)
-        nodes_attr = pipeline_web_cleaner.clean(with_subprocess=True)
+        nodes_attr = pipeline_web_cleaner.clean(with_subprocess=(not independent_subprocess))
+
+        if independent_subprocess:
+            converter = PipelineTreeSubprocessConverter(pipeline_tree)
+            converter.convert()
 
         pipeline_instance, id_maps = PipelineInstance.objects.create_instance(
             template.pipeline_template if template else None, pipeline_tree, spread=True, **pipeline_template_data
@@ -710,6 +724,7 @@ class TaskFlowInstance(models.Model):
     is_deleted = models.BooleanField(_("是否删除"), default=False)
     engine_ver = models.IntegerField(_("引擎版本"), choices=EngineConfig.ENGINE_VER, default=2)
     recorded_executor_proxy = models.CharField(_("任务执行人代理"), max_length=255, default=None, blank=True, null=True)
+    is_child_taskflow = models.BooleanField(_("是否为子任务"), default=False)
 
     objects = TaskFlowInstanceManager()
 
@@ -1302,4 +1317,62 @@ class TaskCallBackRecord(models.Model):
 
     class Meta:
         verbose_name = verbose_name_plural = _("任务回调记录")
+        ordering = ["-id"]
+
+
+class TaskFlowRelation(models.Model):
+    id = models.BigAutoField(verbose_name="ID", primary_key=True)
+    task_id = models.BigIntegerField(verbose_name=_("任务ID"), db_index=True)
+    parent_task_id = models.BigIntegerField(verbose_name=_("父任务ID"), db_index=True)
+    root_task_id = models.BigIntegerField(verbose_name=_("根任务ID"), db_index=True)
+    create_time = models.DateTimeField(verbose_name=_("创建时间"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = verbose_name_plural = _("任务关系")
+
+
+class TaskConfigManager(models.Manager):
+    def enable_independent_subprocess(self, project_id, template_id) -> bool:
+        """
+        是否启用独立子进程
+        """
+        # 公共流程, 配置项template_id有-号前缀
+        if project_id and int(project_id) == -1:
+            template_id = -1 * int(template_id)
+        template_config = self.filter(
+            scope=TaskConfig.SCOPE_TYPE_TEMPLATE, scope_id=template_id, config_type=TaskConfig.CONFIG_TYPE_SUBPROCESS
+        ).only("config_value")
+        if template_config:
+            return template_config.first().config_value == TaskConfig.ENABLE_INDEPENDENT_SUBPROCESS
+
+        project_config = self.filter(
+            scope=TaskConfig.SCOPE_TYPE_PROJECT, scope_id=project_id, config_type=TaskConfig.CONFIG_TYPE_SUBPROCESS
+        ).only("config_value")
+        if project_config:
+            return project_config.first().config_value == TaskConfig.ENABLE_INDEPENDENT_SUBPROCESS
+
+        return False
+
+
+class TaskConfig(models.Model):
+    # 公共流程相关配置 project_id 记为-1, template_id 为-template_id
+    SCOPE_TYPE_PROJECT = 1
+    SCOPE_TYPE_TEMPLATE = 2
+    SCOPE_TYPES = ((SCOPE_TYPE_PROJECT, "project"), (SCOPE_TYPE_TEMPLATE, "template"))
+    CONFIG_TYPE_SUBPROCESS = 1
+    CONFIG_TYPES = ((CONFIG_TYPE_SUBPROCESS, "subprocess"),)
+    ENABLE_INDEPENDENT_SUBPROCESS = "enable_independent_subprocess"
+    DISABLE_INDEPENDENT_SUBPROCESS = "disable_independent_subprocess"
+    CONFIG_OPTIONS = ((ENABLE_INDEPENDENT_SUBPROCESS, _("启用独立子流程")), (DISABLE_INDEPENDENT_SUBPROCESS, _("禁用独立子流程")))
+
+    scope_id = models.IntegerField(_("范围对象ID"))
+    scope = models.IntegerField(_("配置范围"), choices=SCOPE_TYPES)
+    config_type = models.IntegerField(_("配置类型"), choices=CONFIG_TYPES)
+    config_value = models.CharField(_("配置值"), max_length=512, choices=CONFIG_OPTIONS)
+
+    objects = TaskConfigManager()
+
+    class Meta:
+        verbose_name = verbose_name_plural = _("任务配置 TaskConfig")
+        index_together = ["scope", "scope_id", "config_type"]
         ordering = ["-id"]

@@ -4,7 +4,7 @@
             ext-cls="operate-flow-table"
             :data="operateFlowData">
             <bk-table-column min-width="130" :label="$t('操作时间')" prop="operate_date"></bk-table-column>
-            <bk-table-column :label="$t('操作名称')" :prop="$store.state.lang === 'en' ? 'operate_type' : 'operate_type_name'"></bk-table-column>
+            <bk-table-column :label="$t('操作类型')" :prop="$store.state.lang === 'en' ? 'operate_type' : 'operate_type_name'"></bk-table-column>
             <bk-table-column v-if="!nodeId" :label="$t('节点名称')" prop="node_name"></bk-table-column>
             <bk-table-column :label="$t('操作来源')" :prop="$store.state.lang === 'en' ? 'operate_source' : 'operate_source_name'"></bk-table-column>
             <bk-table-column :label="$t('操作人')" prop="operator"></bk-table-column>
@@ -74,6 +74,7 @@
 <style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
 /deep/ .operate-flow-table {
+    margin-top: 16px;
     .bk-table-body-wrapper {
         max-height: calc(100vh - 145px);
         color: #63656e;

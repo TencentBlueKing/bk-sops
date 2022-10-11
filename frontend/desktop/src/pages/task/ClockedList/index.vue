@@ -68,7 +68,7 @@
                             </template>
                         </bk-table-column>
                         <bk-table-column :label="$t('操作')" width="230" :fixed="clockedList.length ? 'right' : false">
-                            <div class="clocked-operation" slot-scope="props">
+                            <div class="clocked-operation" slot-scope="props" :clocked-task-name="props.row.name">
                                 <a
                                     v-cursor="{ active: !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions) }"
                                     href="javascript:void(0);"

@@ -129,9 +129,9 @@ python manage.py collectstatic --noinput
 ```
 
 ```bash
-cp -r ./frontend/desktop/static ./staticfiles/bk_sops
+cp -r ./frontend/desktop/static ./static/bk_sops
 rm ./gcloud/core/templates/core/base_vue.html
-mv ./staticfiles/bk_sops/index.html ./gcloud/core/templates/core/base_vue.html
+mv ./static/bk_sops/index.html ./gcloud/core/templates/core/base_vue.html
 ```
 
 ## 配置本地 hosts  

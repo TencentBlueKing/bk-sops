@@ -229,16 +229,18 @@ const template = {
             state.default_flow_type = default_flow_type
         },
         setSubprocessUpdated (state, subflow) {
-            state.subprocess_info.details.some((item) => {
-                if (subflow.subprocess_node_id === item.subprocess_node_id) {
-                    item.expired = subflow.expired
-                    if (subflow.version) {
-                        item.version = subflow.version
+            if (state.subprocess_info) {
+                state.subprocess_info.details.some((item) => {
+                    if (subflow.subprocess_node_id === item.subprocess_node_id) {
+                        item.expired = subflow.expired
+                        if (subflow.version) {
+                            item.version = subflow.version
+                        }
+                        return true
                     }
-                    return true
-                }
-                return false
-            })
+                    return false
+                })
+            }
         },
         setPipelineTree (state, data) {
             const pipelineTreeOrder = [
@@ -1024,6 +1026,29 @@ const template = {
         },
         getVariableFieldExplain ({ commit }) {
             return axios.get('template/api/variable_field_explain/').then(response => response.data)
+        },
+        // 获取流程是否开启重试和超时控制
+        getProcessOpenRetryAndTimeout ({ commit }, data) {
+            const { id } = data
+            return axios.get(`/api/v3/template/${id}/enable_independent_subprocess/`, { params: data }).then(response => response.data)
+        },
+        // 批量获取任务是否有独立子任务
+        getTaskHasSubTasks ({ commit }, data) {
+            return axios.get(`/api/v3/taskflow/root_task_info/`, { params: data }).then(response => response.data)
+        },
+        // 获取某个任务的子任务列表
+        getTaskHasSubTaskList ({ commit }, data) {
+            return axios.get(`/api/v3/taskflow/list_children_taskflow/`, { params: data }).then(response => response.data)
+        },
+        // 获取流程详情公开信息
+        getTemplatePublicData ({ commit }, data) {
+            const { templateId, project__id } = data
+            return axios.get(`/api/v3/template/${templateId}/common_info/`, { params: { project__id } }).then(response => response.data)
+        },
+        // 获取公共流程详情公开信息
+        getCommonTemplatePublicData ({ commit }, data) {
+            const { templateId } = data
+            return axios.get(`/api/v3/common_template/${templateId}/common_info/`).then(response => response.data)
         }
     },
     getters: {

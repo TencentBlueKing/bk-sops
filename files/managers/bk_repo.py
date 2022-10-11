@@ -74,6 +74,7 @@ class BKRepoManager(Manager):
         timeout=None,
         bk_scope_type="biz",
         target_server=None,
+        rolling_config=None,
     ):
         try:
             file_source_id = BKJobFileSource.objects.get(bk_biz_id=env.JOB_FILE_BIZ_ID).file_source_id
@@ -120,6 +121,9 @@ class BKRepoManager(Manager):
 
         if timeout is not None:
             job_kwargs["timeout"] = int(timeout)
+
+        if rolling_config is not None:
+            job_kwargs["rolling_config"] = rolling_config
         if callback_url:
             job_kwargs["callback_url"] = callback_url
         job_result = esb_client.jobv3.fast_transfer_file(job_kwargs)

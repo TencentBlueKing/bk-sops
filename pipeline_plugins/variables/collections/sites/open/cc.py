@@ -130,7 +130,7 @@ class VarCmdbIpSelector(LazyVariable, SelfExplainVariable):
         ip_result = get_ip_picker_result(username, bk_biz_id, bk_supplier_account, ip_selector)
         if not ip_result["result"]:
             logger.error(f"[ip_selector get_value] error: {ip_result}")
-            raise Exception(f'ERROR: {ip_result["message"]}')
+            raise Exception(f'ERROR: {ip_result["message"]}, ip_selector_key: {self.original_value.key}')
         separator = self.value.get("separator", ",")
 
         # get for old value compatible

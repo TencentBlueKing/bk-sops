@@ -16,15 +16,15 @@ import traceback
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 from django.conf.urls import url
-from django.views.decorators.csrf import csrf_exempt
-
-from blueapps.account.decorators import login_exempt
+from iam import Subject, Action
+from iam.shortcuts import allow_or_raise_auth_failed
 
 from files.models import UploadTicket
 from files.factory import ManagerFactory, BartenderFactory
 
 from gcloud.conf import settings
 from gcloud.core.models import EnvironmentVariables
+from gcloud.iam_auth import IAMMeta, res_factory, get_iam_client
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -47,14 +47,19 @@ def _check_and_get_file_manager():
     return True, file_manager
 
 
-@login_exempt
-@csrf_exempt
 def file_upload(request):
     """
     @summary: 本地文件上传
     @param request:
     @return:
     """
+
+    project_id = request.META["HTTP_APP_PROJECTID"]
+    iam = get_iam_client()
+    subject = Subject("user", request.user.username)
+    action = Action(IAMMeta.PROJECT_VIEW_ACTION)
+    resources = res_factory.resources_for_project(project_id)
+    allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)
 
     ticket = request.META.get("HTTP_UPLOAD_TICKET", "")
     ok, err = UploadTicket.objects.check_ticket(ticket)
@@ -71,7 +76,13 @@ def file_upload(request):
 
     bartender = BartenderFactory.get_bartender(manager_type=file_manager.type, manager=file_manager)
 
-    return bartender.process_request(request)
+    kwargs = {"specific_username": settings.SYSTEM_USE_API_ACCOUNT}
+
+    result = bartender.process_request(request, **kwargs)
+
+    if result["result"] is True:
+        bartender.post_handle_upload_process(data=result["tag"], username=request.user.username)
+    return JsonResponse(result, status=result.pop("code", 200))
 
 
 def apply_upload_ticket(request):

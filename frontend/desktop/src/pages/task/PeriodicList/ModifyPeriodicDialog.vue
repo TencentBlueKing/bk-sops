@@ -650,9 +650,14 @@
                         this.previewData = resp.data.pipeline_tree
                         if (updateConstants) {
                             this.periodicConstants = Object.values(this.previewData.constants).reduce((acc, cur) => {
+                                // 切换执行方案时需要保留修改的变量值
                                 acc[cur.key] = {
                                     ...cur,
                                     value: this.constants[cur.key] ? this.constants[cur.key].value : cur.value
+                                }
+                                // 如果为元变量并且没有meta字段时自动补充上
+                                if (this.isEdit && cur.is_meta && !('meta' in cur)) {
+                                    acc[cur.key]['meta'] = cur
                                 }
                                 return acc
                             }, {})
@@ -850,7 +855,7 @@
                         this.$emit('onConfirmSave')
                     }
                     this.$bkMessage({
-                        'message': i18n.t('流程更新成功'),
+                        'message': i18n.t('编辑周期任务成功'),
                         'theme': 'success'
                     })
                 } catch (error) {

@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+import time
 from functools import wraps
 
 from django.http.response import JsonResponse
@@ -35,6 +35,23 @@ def request_validate(validator_cls):
                 )
 
             return view_func(request, *args, **kwargs)
+
+        return _wrapped_view
+
+    return decorator
+
+
+def time_record(logger):
+    """记录装饰函数的执行时间，并打印到日志中"""
+
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(*args, **kwargs):
+            start_time = time.time()
+            result = view_func(*args, **kwargs)
+            end_time = time.time()
+            logger.info(f"[{view_func.__name__} time_record] cost time: {end_time - start_time}, result: {result}")
+            return result
 
         return _wrapped_view
 

@@ -34,7 +34,7 @@
                     {
                         type: "add_row",
                         text: gettext("添加"),
-                        callback: function(){
+                        callback: function () {
                             this.add_row()
                         }
                     },
@@ -125,6 +125,26 @@
                 name: gettext("上传限速"),
                 placeholder: gettext("MB/s 若不限速则不填写"),
                 hookable: true,
+                validation: [
+                    {
+                        type: "custom",
+                        args: function (value) {
+                            let result = {
+                                result: true,
+                                error_message: ""
+                            };
+                            if (!value) {
+                                return result
+                            }
+                            var reg = /^[\d]+$/;
+                            if (!reg.test(value)) {
+                                result.result = false;
+                                result.error_message = gettext("上传限速必须为整数")
+                            }
+                            return result
+                        }
+                    }
+                ]
             }
         },
         {
@@ -134,6 +154,26 @@
                 name: gettext("下载限速"),
                 placeholder: gettext("MB/s 若不限速则不填写"),
                 hookable: true,
+                validation: [
+                    {
+                        type: "custom",
+                        args: function (value) {
+                            let result = {
+                                result: true,
+                                error_message: ""
+                            };
+                            if (!value) {
+                                return result
+                            }
+                            var reg = /^[\d]+$/;
+                            if (!reg.test(value)) {
+                                result.result = false;
+                                result.error_message = gettext("下载限速必须为整数")
+                            }
+                            return result
+                        }
+                    }
+                ]
             }
         },
         {
@@ -145,7 +185,7 @@
                     {
                         type: "add_row",
                         text: gettext("添加"),
-                        callback: function(){
+                        callback: function () {
                             this.add_row()
                         }
                     },
@@ -244,7 +284,7 @@
             type: "input",
             attrs: {
                 name: gettext("超时时间"),
-                placeholder: gettext("单位为秒(60 - 86400)，为空时使用JOB默认值"),
+                placeholder: gettext("单位为秒(1 - 86400)，为空时使用JOB默认值"),
                 hookable: true,
                 validation: [
                     {
@@ -257,9 +297,14 @@
                             if (!value) {
                                 return result
                             }
-                            if (+value < 60 || +value > 86400) {
+                            var reg = /^[\d]+$/;
+                            if (!reg.test(value)) {
                                 result.result = false;
-                                result.error_message = gettext("超时时间必须在 60 - 86400 范围内")
+                                result.error_message = gettext("超时时间必须为整数")
+                            }
+                            if (+value < 1 || +value > 86400) {
+                                result.result = false;
+                                result.error_message = gettext("超时时间必须在 1 - 86400 范围内")
                             }
                             return result
                         }

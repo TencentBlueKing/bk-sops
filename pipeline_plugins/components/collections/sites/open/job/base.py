@@ -249,6 +249,154 @@ def get_job_tagged_ip_dict(
     return True, tagged_ip_dict
 
 
+def get_job_tagged_ip_dict_complex(
+    client, service_logger, job_instance_id, bk_biz_id, job_scope_type=JobBizScopeType.BIZ.value
+):
+    """根据job步骤执行标签获取 IP 分组(该类型的会返回一个新的IP分组结构)，新的ip分组协议如下
+    {
+        "name": "JOB执行IP分组",
+        "key": "job_tagged_ip_dict",
+        "value": {
+            "SUCCESS": {
+                "DESC": "执行成功",
+                "TAGS": {
+                    "success-1": "127.0.0.1,127.0.0.1",
+                    "success-2": "127.0.0.1,127.0.0.1",
+                    "ALL": "127.0.0.1"
+                }
+            },
+            "SCRIPT_FAILED": {
+                "DESC": "脚本返回值非0",
+                "TAGS": {
+                    "failed-1": "127.0.0.1",
+                    "failed-2": "127.0.0.1",
+                    "ALL": "127.0.0.1"
+                }
+            },
+            "OTHER_FAILED": {
+                "desc": "其他报错",
+                "tags": {
+                    "TASK_TIMEOUT": "127.0.0.1",
+                    "LOG_ERROR": "127.0.0.1",
+                    "ALL": "127.0.0.1"
+                }
+            }
+        }
+    }
+    """
+
+    JOB_STEP_IP_RESULT_STATUS_MAP = {
+        0: "UNKNOWN_ERROR",
+        1: "AGENT_ERROR",
+        2: "HOST_NOT_EXIST",
+        3: "LAST_SUCCESS",
+        9: "SUCCESS",
+        11: "FAILED",
+        12: "SUBMIT_FAILED",
+        13: "TASK_TIMEOUT",
+        15: "LOG_ERROR",
+        16: "GSE_SCRIPT_TIMEOUT",
+        17: "GSE_FILE_TIMEOUT",
+        101: "SCRIPT_FAILED",
+        102: "SCRIPT_TIMEOUT",
+        103: "SCRIPT_TERMINATE",
+        104: "SCRIPT_NOT_ZERO_EXIT_CODE",
+        202: "COPYFILE_FAILED",
+        203: "COPYFILE_SOURCE_FILE_NOT_EXIST",
+        301: "FILE_ERROR_UNCLASSIFIED",
+        303: "GSE_TIMEOUT",
+        310: "GSE_AGENT_ERROR",
+        311: "GSE_USER_ERROR",
+        312: "GSE_USER_PWD_ERROR",
+        320: "GSE_FILE_ERROR",
+        321: "GSE_FILE_SIZE_EXCEED",
+        329: "GSE_FILE_TASK_ERROR",
+        399: "GSE_TASK_ERROR",
+        403: "GSE_TASK_TERMINATE_SUCCESS",
+        404: "GSE_TASK_TERMINATE_FAILED",
+        500: "UNKNOWN",
+    }
+
+    kwargs = {
+        "bk_scope_type": job_scope_type,
+        "bk_scope_id": str(bk_biz_id),
+        "bk_biz_id": bk_biz_id,
+        "job_instance_id": job_instance_id,
+        "return_ip_result": True,
+    }
+    result = client.jobv3.get_job_instance_status(kwargs)
+
+    if not result["result"]:
+        message = handle_api_error(
+            __group_name__,
+            "jobv3.get_job_instance_status",
+            kwargs,
+            result,
+        )
+        service_logger.warning(message)
+        return False, message
+
+    step_instance = result["data"]["step_instance_list"][-1]
+
+    step_ip_result_list = step_instance["step_ip_result_list"]
+
+    success_tags_dict = {}
+    success_ips = []
+
+    failed_tags_dict = {}
+    failed_ips = []
+
+    others_tags_dict = {}
+    others_ips = []
+
+    for step_ip_result in step_ip_result_list:
+        tag_key = step_ip_result["tag"]
+        status = step_ip_result["status"]
+        status_key = JOB_STEP_IP_RESULT_STATUS_MAP.get(status, status)
+        ip = step_ip_result["ip"]
+
+        # 执行成功的分类到执行成功里面，JOB_SUCCESS
+        if status == 9:
+            success_ips.append(ip)
+            if tag_key:
+                if tag_key in success_tags_dict:
+                    success_tags_dict[tag_key] += f",{ip}"
+                else:
+                    success_tags_dict[tag_key] = ip
+        # 当调用job_failed时，会有失败的tag信息
+        elif status == 104:
+            failed_ips.append(ip)
+            if tag_key:
+                if tag_key in failed_tags_dict:
+                    failed_tags_dict[tag_key] += f",{ip}"
+                else:
+                    failed_tags_dict[tag_key] = ip
+        else:
+            # 其他情况就是失败了
+            others_ips.append(ip)
+            if tag_key:
+                if status_key in others_tags_dict:
+                    others_tags_dict[status_key] += f",{ip}"
+                else:
+                    others_tags_dict[status_key] = ip
+
+    success_tags_dict["ALL"] = ",".join(success_ips)
+    failed_tags_dict["ALL"] = ",".join(failed_ips)
+    others_tags_dict["ALL"] = ",".join(others_ips)
+
+    tagged_ip_dict = {
+        "name": "JOB执行IP分组",
+        "key": "job_tagged_ip_dict",
+        "value": {
+            "SUCCESS": {"DESC": "执行成功", "TAGS": success_tags_dict},
+            "SCRIPT_NOT_ZERO_EXIT_CODE": {"DESC": "脚本返回值非零", "TAGS": failed_tags_dict},
+            "OTHER_FAILED": {"desc": "其他异常", "TAGS": others_tags_dict},
+        },
+    }
+
+    return True, tagged_ip_dict
+
+
 def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id, job_scope_type=JobBizScopeType.BIZ.value):
     """
     解析作业日志：默认取每个步骤/节点的第一个ip_logs
@@ -275,11 +423,26 @@ class JobService(Service):
     reload_outputs = True
 
     need_get_sops_var = False
+    # 是否IP分组
+    need_is_tagged_ip = False
 
     biz_scope_type = JobBizScopeType.BIZ.value
 
     def execute(self, data, parent_data):
         pass
+
+    def is_need_log_outputs_even_fail(self, data):
+        return data.get_one_of_inputs("need_log_outputs_even_fail", False)
+
+    def get_tagged_ip_dict(self, data, parent_data, job_instance_id):
+        result, tagged_ip_dict = get_job_tagged_ip_dict(
+            data.outputs.client,
+            self.logger,
+            job_instance_id,
+            data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+            job_scope_type=self.biz_scope_type,
+        )
+        return result, tagged_ip_dict
 
     def schedule(self, data, parent_data, callback_data=None):
 
@@ -298,8 +461,9 @@ class JobService(Service):
             return False
 
         job_success = status in JOB_SUCCESS
-        need_log_outputs_even_fail = data.get_one_of_inputs("need_log_outputs_even_fail", False)
-        if job_success or need_log_outputs_even_fail:
+        need_log_outputs_even_fail = self.is_need_log_outputs_even_fail(data)
+        # 失败情况下也需要要进行ip tag分组
+        if job_success or need_log_outputs_even_fail or self.need_is_tagged_ip:
 
             if not job_success:
                 data.set_outputs(
@@ -317,25 +481,18 @@ class JobService(Service):
 
                 client = data.outputs.client
 
-                # 判断是否对IP进行Tag分组
+                # 判断是否对IP进行Tag分组, 兼容之前的配置，默认从inputs拿
                 is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", False)
                 tagged_ip_dict = {}
-                if is_tagged_ip:
-                    result, tagged_ip_dict = get_job_tagged_ip_dict(
-                        data.outputs.client,
-                        self.logger,
-                        job_instance_id,
-                        data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
-                        job_scope_type=self.biz_scope_type,
-                    )
-
+                if is_tagged_ip or self.need_is_tagged_ip:
+                    result, tagged_ip_dict = self.get_tagged_ip_dict(data, parent_data, job_instance_id)
                     if not result:
                         self.logger.error(tagged_ip_dict)
                         data.outputs.ex_data = tagged_ip_dict
                         self.finish_schedule()
                         return False
 
-                if "is_tagged_ip" in data.get_inputs():
+                if "is_tagged_ip" in data.get_inputs() or self.need_is_tagged_ip:
                     data.set_outputs("job_tagged_ip_dict", tagged_ip_dict)
 
                 bk_biz_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
@@ -435,6 +592,8 @@ class JobScheduleService(JobService):
 
     interval = StaticIntervalGenerator(5)
 
+    need_show_failure_inst_url = False
+
     def schedule(self, data, parent_data, callback_data=None):
         if hasattr(data.outputs, "requests_error") and data.outputs.requests_error:
             data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
@@ -462,6 +621,8 @@ class JobScheduleService(JobService):
         # 解析查询结果
         running_task_list = []
 
+        failure_inst_url = []
+
         for job_result in batch_result_list:
             result = job_result["result"]
             job_id_str = job_result["params"]["job_instance_id"]
@@ -475,12 +636,14 @@ class JobScheduleService(JobService):
                 # 失败状态
                 elif job_status > 3:
                     # 出于性能考虑，不拉取对应主机IP的日志，引导用户跳转JOB平台查看
+                    failure_inst_url.append(job_detail_url)
                     data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
                         job_detail_url
                     )
                 else:
                     running_task_list.append(job_id_str)
             else:
+                failure_inst_url.append(job_detail_url)
                 data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
                     job_detail_url
                 )
@@ -492,7 +655,8 @@ class JobScheduleService(JobService):
             # 没有报错信息
             if not data.outputs.ex_data:
                 del data.outputs.ex_data
-
+            if self.need_show_failure_inst_url:
+                data.outputs.failure_inst_url = failure_inst_url
             self.finish_schedule()
             return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count
 
@@ -504,10 +668,26 @@ class Jobv3Service(Service):
 
     need_get_sops_var = False
 
+    # 是否IP分组
+    need_is_tagged_ip = False
+
     biz_scope_type = JobBizScopeType.BIZ.value
 
     def execute(self, data, parent_data):
         pass
+
+    def is_need_log_outputs_even_fail(self, data):
+        return data.get_one_of_inputs("need_log_outputs_even_fail", False)
+
+    def get_tagged_ip_dict(self, data, parent_data, job_instance_id):
+        result, tagged_ip_dict = get_job_tagged_ip_dict(
+            data.outputs.client,
+            self.logger,
+            job_instance_id,
+            data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+            job_scope_type=self.biz_scope_type,
+        )
+        return result, tagged_ip_dict
 
     def schedule(self, data, parent_data, callback_data=None):
 
@@ -526,8 +706,9 @@ class Jobv3Service(Service):
             return False
 
         job_success = status in JOB_SUCCESS
-        need_log_outputs_even_fail = data.get_one_of_inputs("need_log_outputs_even_fail", False)
-        if job_success or need_log_outputs_even_fail:
+        need_log_outputs_even_fail = self.is_need_log_outputs_even_fail(data)
+        # 如果打开了ip分组，失败的情况也需要进行ip分组
+        if job_success or need_log_outputs_even_fail or self.need_is_tagged_ip:
 
             if not job_success:
                 data.set_outputs(
@@ -547,22 +728,15 @@ class Jobv3Service(Service):
                 # 判断是否对IP进行Tag分组
                 is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", False)
                 tagged_ip_dict = {}
-                if is_tagged_ip:
-                    result, tagged_ip_dict = get_job_tagged_ip_dict(
-                        data.outputs.client,
-                        self.logger,
-                        job_instance_id,
-                        data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
-                        job_scope_type=self.biz_scope_type,
-                    )
-
+                if is_tagged_ip or self.need_is_tagged_ip:
+                    result, tagged_ip_dict = self.get_tagged_ip_dict(data, parent_data, job_instance_id)
                     if not result:
                         self.logger.error(tagged_ip_dict)
                         data.outputs.ex_data = tagged_ip_dict
                         self.finish_schedule()
                         return False
 
-                if "is_tagged_ip" in data.get_inputs():
+                if "is_tagged_ip" in data.get_inputs() or self.need_is_tagged_ip:
                     data.set_outputs("job_tagged_ip_dict", tagged_ip_dict)
 
                 # 全局变量重载
