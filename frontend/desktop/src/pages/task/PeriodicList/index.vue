@@ -618,7 +618,37 @@
                 this.getPeriodicList()
             },
             renderTableHeader (h, { column, $index }) {
-                if (['last_run_at', 'create_time', 'edit_time'].includes(column.property)) {
+                if (column.property === 'cron') {
+                    return h('span', {
+                        'class': 'cron-label'
+                    }, [
+                        column.label,
+                        h('bk-popover', {
+                            props: {
+                                placement: 'top',
+                                theme: 'light',
+                                distance: 0,
+                                'tippy-options': {
+                                    hideOnClick: false
+                                }
+                            }
+                        }, [
+                            h('i', {
+                                'class': 'common-icon-info table-header-tips'
+                            }),
+                            h('div', {
+                                slot: 'content'
+                            }, [
+                                h('img', {
+                                    'class': 'mode-item',
+                                    attrs: {
+                                        src: require('@/assets/images/' + i18n.t('task-zh') + '.png')
+                                    }
+                                }, [])
+                            ])
+                        ])
+                    ])
+                } else if (['last_run_at', 'create_time', 'edit_time'].includes(column.property)) {
                     const index = this.adminView ? $index : $index + 1
                     const id = this.setting.selectedFields[index].id
                     const date = this.requestData[id]
@@ -792,7 +822,14 @@
                 this.isDeleteDialogShow = false
             },
             splitPeriodicCron (cron) {
-                return cron.split('(')[0].trim()
+                const values = cron.split('(')[0].trim().split(' ')
+                const keys = cron.split('(')[1].split(')')[0].split('/')
+                const cronMap = {}
+                keys.forEach((key, index) => {
+                    cronMap[key] = values[index] || '*'
+                })
+                const cronRule = cronMap['m'] + ' ' + cronMap['h'] + ' ' + cronMap['MY'] + ' ' + cronMap['dM'] + ' ' + cronMap['d']
+                return cronRule
             },
             onCreatePeriodTask () {
                 this.curRow = {}
@@ -980,6 +1017,12 @@
             background: #dcdee5;
             border-radius: 50%;
         }
+    }
+    /deep/.table-header-tips {
+        margin-left: 4px;
+        font-size: 14px;
+        color: #c4c6cc;
+        cursor: pointer;
     }
     .empty-data {
         padding: 120px 0;

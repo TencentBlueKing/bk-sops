@@ -1468,7 +1468,14 @@ const en = {
     '输入参数可在填参页面自定义传值。非输入参数填参页面不显示，使用变量默认值': 'Input parameters can be custom passed values on the parameter filling page. The non-input parameter filling page is not displayed, use the default value of the variable',
     '是否为输入参数': 'Is it an input parameter',
     '当满足触发条件时，输入参数在填参页面将不显示。可实现不同条件下配置不同的输入参数': 'When the trigger conditions are met, the input parameters will not be displayed on the parameter filling page. Different input parameters can be configured under different conditions',
-    '输入参数条件隐藏': 'Input parameter condition hidden'
+    '输入参数条件隐藏': 'Input parameter condition hidden',
+    '分': 'Minute',
+    '时': 'Time',
+    '日': 'Day',
+    '周': 'Week',
+    '下次：': 'Next time:',
+    '以及当月': 'and the current month',
+    '使用了除“,-*/”以外的特殊字符，请修改规则': 'Special characters other than ",-*/" are used, please modify the rules'
 }
 
 export default en
