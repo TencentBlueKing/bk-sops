@@ -53,6 +53,7 @@ export BKAPP_API_JWT_EXEMPT="1"
 export BKAPP_IAM_SKIP="True"
 export BK_IAM_HOST="{开发环境 权限中心 域名}"
 ```
+注意：如果启动项目、登录成功后，转发《标准运维》页面失败，请给{开发环境PAAS域名}添加http协议
 
 
 2) 在项目根目录下添加本地配置 local_settings.py
@@ -133,6 +134,7 @@ cp -r ./frontend/desktop/static ./staticfiles/bk_sops
 rm ./gcloud/core/templates/core/base_vue.html
 mv ./staticfiles/bk_sops/index.html ./gcloud/core/templates/core/base_vue.html
 ```
+注意： ./gcloud/core该目录下可能没有templates/core路径，如果没有该路径请手动创建
 
 ## 配置本地 hosts  
 
@@ -148,6 +150,7 @@ mac: 执行 “sudo vim /etc/hosts”，添加“127.0.0.1 dev.{BK_PAAS_HOST}”
 python manage.py celery worker -l info -B
 python manage.py runserver 8000
 ```
+注意： 如果是windows下运行celery，请执行pip install eventlet，并在启动时通过 -P eventlet指定
 
 
 ## 访问页面  
