@@ -29,6 +29,13 @@
             @onOperationClick="onOperationClick"
             @onTaskParamsClick="onTaskParamsClick">
         </task-operation-header>
+        <bk-alert v-if="isFailedSubproceeNodeInfo" type="error" class="subprocess-failed-tips">
+            <template slot="title">
+                <span>{{ $t('存在子流程节点执行失败，可从节点执行记录去往子任务处理，并及时') }}</span>
+                <bk-link theme="primary" @click="handleRefreshTaskStatus">{{ $t('刷新任务状态') }}</bk-link>
+                {{ $t('。') }}
+            </template>
+        </bk-alert>
         <div class="task-container">
             <div class="pipeline-nodes">
                 <TemplateCanvas
@@ -372,7 +379,8 @@
                         }]
                     }
                 },
-                nodePipelineData: {}
+                nodePipelineData: {},
+                isFailedSubproceeNodeInfo: null
             }
         },
         computed: {
@@ -556,6 +564,9 @@
                             this.setRunningNode(instanceStatus.data.children)
                         }
                         this.updateNodeInfo()
+                        this.isFailedSubproceeNodeInfo = this.canvasData.locations.find(item => {
+                            return item.code === 'subprocess_plugin' && item.status === 'FAILED'
+                        })
                     } else {
                         // 查询流程状态接口返回失败后再请求一次
                         this.pollErrorTimes += 1
@@ -762,6 +773,7 @@
                 }
 
                 this.pending.skip = true
+                this.isFailedSubproceeNodeInfo = null
                 try {
                     const data = {
                         instance_id: this.instance_id,
@@ -1012,6 +1024,15 @@
                             project_id: this.project_id,
                             task_id: this.instance_id,
                             node_id: id
+                        }
+                        if (!this.isTopTask) {
+                            const selectedFlowIds = this.selectedFlowPath.reduce((acc, cur) => {
+                                if (cur.type !== 'root') {
+                                    acc = acc ? acc + ',' + cur.id : cur.id
+                                }
+                                return acc
+                            }, '')
+                            params.subprocess_id = selectedFlowIds
                         }
                         await this.itsmTransition(params)
                         this.approval.id = ''
@@ -1428,6 +1449,7 @@
             },
             onRetrySuccess (id) {
                 this.isNodeInfoPanelShow = false
+                this.isFailedSubproceeNodeInfo = null
                 this.setTaskStatusTimer()
                 this.updateNodeActived(id, false)
             },
@@ -1514,6 +1536,13 @@
                         && this.pipelineData.activities[key].component.code === 'pause_node'))
                         ? 'SUSPENDED'
                         : ''
+            },
+            // 刷新任务状态
+            handleRefreshTaskStatus () {
+                const nodeId = this.isFailedSubproceeNodeInfo.id
+                this.isFailedSubproceeNodeInfo = null
+                this.setTaskStatusTimer()
+                this.updateNodeActived(nodeId, false)
             }
         }
     }
@@ -1533,6 +1562,20 @@
     font-size: 12px;
 }
 
+.subprocess-failed-tips {
+    margin-top: -1px;
+    color: #63656e;
+    /deep/.bk-alert-title {
+        display: flex;
+    }
+    /deep/.bk-link {
+        vertical-align: initial;
+        line-height: 16px;
+        .bk-link-text {
+            font-size: 12px;
+        }
+    }
+}
 .task-container {
     position: relative;
     width: 100%;

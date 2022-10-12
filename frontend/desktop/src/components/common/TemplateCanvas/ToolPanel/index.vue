@@ -112,7 +112,7 @@
                     'actived': isPerspective
                 }]"
                 v-bk-tooltips="{
-                    content: $t('透视'),
+                    content: $t('⿏标移动到节点时展示引⽤和输出的变量'),
                     delay: 300,
                     placements: ['bottom']
                 }"

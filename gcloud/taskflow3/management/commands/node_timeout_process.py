@@ -43,7 +43,9 @@ class Command(BaseCommand):
                 start = time.time()
                 self._pop_timeout_nodes(redis_inst, nodes_pool)
                 end = time.time()
-                logger.info(f"[node_timeout_process] time consuming: {end-start}")
+                # 预期扫描时间在0.2秒以内
+                if end - start > 0.2:
+                    logger.warning(f"[node_timeout_process] time consuming: {end-start}")
             except Exception as e:
                 logger.exception(e)
             time.sleep(1)

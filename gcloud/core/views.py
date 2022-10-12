@@ -14,6 +14,9 @@ specific language governing permissions and limitations under the License.
 import logging
 from urllib.parse import quote
 
+from blueapps.account import ConfFixture
+from blueapps.account.handlers.response import ResponseHandler
+from django.contrib.auth import logout
 from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import render
 from django_prometheus.exports import ExportToDjangoView
@@ -50,6 +53,14 @@ def home(request):
     except Exception:
         logger.exception("user_enter signal send failed.")
     return render(request, "core/base_vue.html")
+
+
+def user_exit(request):
+    logout(request)
+    # 验证不通过，需要跳转至统一登录平台
+    request.path = request.path.replace("logout", "")
+    handler = ResponseHandler(ConfFixture, settings)
+    return handler.build_401_response(request)
 
 
 @login_exempt

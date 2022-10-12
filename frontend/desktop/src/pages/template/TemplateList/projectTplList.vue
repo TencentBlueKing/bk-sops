@@ -176,7 +176,7 @@
                                                 data-test-id="process_list__editLabel"
                                                 @click="onEditLabel">
                                                 <i class="bk-icon icon-plus-circle"></i>
-                                                <span>{{ $t('编辑标签') }}</span>
+                                                <span>{{ $t('新建标签') }}</span>
                                             </div>
                                         </bk-select>
                                     </div>
@@ -951,7 +951,7 @@
                         curRow.isSelectShow = false
                     })
                     this.$bkMessage({
-                        message: i18n.t('模板标签修改成功'),
+                        message: i18n.t('流程标签修改成功'),
                         theme: 'success'
                     })
                 } catch (error) {
@@ -1729,7 +1729,7 @@
         font-size: 14px;
         color: #c4c6cc;
         display: none;
-        &:hover, &.is-active {
+        &.is-active {
             display: block;
             color: #ff9c01;
         }

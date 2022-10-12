@@ -21,7 +21,7 @@ from gcloud.contrib.function.models import FunctionTask
 
 @receiver(post_save, sender=TaskFlowInstance)
 def function_task_create_handler(instance, created, **kwargs):
-    if created and instance.flow_type == "common_func":
+    if created and instance.flow_type == "common_func" and not instance.is_child_taskflow:
         FunctionTask.objects.create(
             task=instance, creator=instance.creator,
         )

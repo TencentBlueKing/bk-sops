@@ -229,8 +229,8 @@ const template = {
             state.default_flow_type = default_flow_type
         },
         setSubprocessUpdated (state, subflow) {
-            if (state.subprocess_info.loadTemplateData) {
-                state.subprocess_info.loadTemplateData.some((item) => {
+            if (state.subprocess_info) {
+                state.subprocess_info.details.some((item) => {
                     if (subflow.subprocess_node_id === item.subprocess_node_id) {
                         item.expired = subflow.expired
                         if (subflow.version) {
@@ -584,7 +584,18 @@ const template = {
                                 name = line.condition.name
                             } else {
                                 evaluate = Object.keys(conditions).length ? '1 == 0' : '1 == 1'
-                                name = evaluate
+                                const defaultName = i18n.t('条件')
+                                const regStr = `^${i18n.t('条件')}[0-9]*$`
+                                const reg = new RegExp(regStr)
+                                let maxCount = 0
+                                Object.values(conditions).forEach(item => {
+                                    if (reg.test(item.name)) {
+                                        let count = item.name.split(defaultName)[1]
+                                        count = Number(count)
+                                        maxCount = maxCount > count ? maxCount : count
+                                    }
+                                })
+                                name = defaultName + (maxCount + 1)
                             }
 
                             const conditionItem = {
@@ -1028,6 +1039,16 @@ const template = {
         // 获取某个任务的子任务列表
         getTaskHasSubTaskList ({ commit }, data) {
             return axios.get(`/api/v3/taskflow/list_children_taskflow/`, { params: data }).then(response => response.data)
+        },
+        // 获取流程详情公开信息
+        getTemplatePublicData ({ commit }, data) {
+            const { templateId, project__id } = data
+            return axios.get(`/api/v3/template/${templateId}/common_info/`, { params: { project__id } }).then(response => response.data)
+        },
+        // 获取公共流程详情公开信息
+        getCommonTemplatePublicData ({ commit }, data) {
+            const { templateId } = data
+            return axios.get(`/api/v3/common_template/${templateId}/common_info/`).then(response => response.data)
         }
     },
     getters: {

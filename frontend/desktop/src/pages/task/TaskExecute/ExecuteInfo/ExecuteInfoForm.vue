@@ -140,33 +140,27 @@
         mounted () {
             if (this.nodeActivity.original_template_id) {
                 this.getTemplateData()
-                this.getSchemeTextValue()
             }
         },
         methods: {
             ...mapActions('template/', [
-                'loadTemplateData'
-            ]),
-            ...mapActions('task/', [
-                'loadTaskScheme'
+                'getTemplatePublicData',
+                'getCommonTemplatePublicData'
             ]),
             async getTemplateData () {
-                const { template_source } = this.componentValue
+                const { template_source, scheme_id_list: schemeIds } = this.componentValue
                 const data = {
                     templateId: this.nodeActivity.original_template_id,
-                    common: template_source === 'common'
+                    project__id: this.projectId
                 }
-                const templateData = await this.loadTemplateData(data)
-                this.templateName = templateData.name
-            },
-            async getSchemeTextValue () {
-                const { scheme_id_list: schemeIds, template_source } = this.componentValue
-                const schemeList = await this.loadTaskScheme({
-                    project_id: this.projectId,
-                    template_id: this.nodeActivity.original_template_id,
-                    isCommon: template_source === 'common'
-                }) || []
-                this.schemeTextValue = schemeList.reduce((acc, cur) => {
+                let templateData = {}
+                if (template_source === 'common') {
+                    templateData = await this.getCommonTemplatePublicData(data)
+                } else {
+                    templateData = await this.getTemplatePublicData(data)
+                }
+                this.templateName = templateData.data.name
+                this.schemeTextValue = templateData.data.schemes.reduce((acc, cur) => {
                     if (schemeIds.includes(cur.id)) {
                         acc = acc ? acc + ',' + cur.name : cur.name
                     }
@@ -175,7 +169,7 @@
             },
             onSkipSubTemplate () {
                 const { href } = this.$router.resolve({
-                    name: 'templatePanel',
+                    name: this.componentValue.template_source === 'common' ? 'projectCommonTemplatePanel' : 'templatePanel',
                     params: { type: 'view' },
                     query: { template_id: this.nodeActivity.original_template_id }
                 })

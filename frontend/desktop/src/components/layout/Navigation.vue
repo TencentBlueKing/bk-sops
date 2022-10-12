@@ -11,10 +11,28 @@
         </div>
         <template slot="header">
             <div class="header-title">{{ title }}</div>
+            <p v-if="subTitle" class="header-sub-title">
+                <i class="bk-icon icon-info-circle"></i>
+                {{ subTitle }}
+            </p>
             <navigator-head-right></navigator-head-right>
         </template>
         <template slot="menu">
-            <bk-navigation-menu :default-active="currentNav" :toggle-active="true">
+            <bk-navigation-menu
+                :default-active="currentNav"
+                :toggle-active="true"
+                item-default-icon-color="#949ba5"
+                item-child-icon-default-color="#949ba5"
+                item-default-color="#96a2b9"
+                item-hover-bg-color="#2f3847"
+                item-hover-color="#fff"
+                item-child-icon-hover-color="#fff"
+                item-hover-icon-color="#fff"
+                item-active-bg-color="#3a84ff"
+                item-active-icon-color="#fff"
+                item-active-color="#fff"
+                item-child-icon-active-color="#fff"
+                sub-menu-open-bg-color="#161c2c">
                 <bk-navigation-menu-group
                     v-for="(group, groupIndex) in routerList"
                     :key="groupIndex">
@@ -40,7 +58,10 @@
                                 :default-active="child.active"
                                 :data-test-id="`navigation_list_${child.id}`"
                                 @click="changeRoute(routerList[groupIndex][routeIndex].children[childIndex])">
-                                <span>{{child.name}}</span>
+                                <span>
+                                    {{child.name}}
+                                    <span v-if="child.id === 'atomDev'" class="offline-tip">{{ $t('即将下线') }}</span>
+                                </span>
                             </bk-navigation-menu-item>
                         </div>
                     </bk-navigation-menu-item>
@@ -51,7 +72,7 @@
     </bk-navigation>
 </template>
 <script>
-    import { mapState } from 'vuex'
+    import { mapState, mapActions, mapMutations } from 'vuex'
     import { COMMON_ROUTE_LIST, ADMIN_ROUTE_LIST, APPMAKER_ROUTE_LIST } from '@/constants/routes.js'
     import tools from '@/utils/tools.js'
     import NavigatorHeadRight from '@/components/layout/NavigatorHeadRight.vue'
@@ -110,6 +131,14 @@
                     return commonRouteList.concat(adminRouteList)
                 }
                 return commonRouteList
+            },
+            subTitle () {
+                if (this.currentNav === 'appMakerList') {
+                    return this.$t('流程任务的一种快捷方式，它是基于流程生成并可直接在蓝鲸应用市场&桌面以SaaS方式搜索、添加及打开。这种无需开发、快速生成的类SaaS应用称为“轻应用”。')
+                } else if (this.currentNav === 'functionHome') {
+                    return this.$t('拥有流程管理权限的人员，通过设置“执行代理人”功能，将流程任务的执行操作交由第三方人员（如：外包、外聘人员），帮助流程管理人员从繁重的执行工作中解放。')
+                }
+                return ''
             }
         },
         watch: {
@@ -121,6 +150,12 @@
             }
         },
         methods: {
+            ...mapActions('project', [
+                'loadUserProjectList'
+            ]),
+            ...mapMutations('project', [
+                'setProjectId'
+            ]),
             setNavigationTitle (route) {
                 const nav = this.findCurrentNav(route)
                 if (nav) {
@@ -164,7 +199,7 @@
                 }
                 this.title = nav.name
             },
-            onHandleNavClick (id, groupIndex, routeIndex) {
+            async onHandleNavClick (id, groupIndex, routeIndex) {
                 if (this.view_mode === 'appmaker') { // 轻应用跳转特殊处理
                     const { template_id } = this.$route.query
                     if (id === 'appmakerTaskCreate') {
@@ -188,9 +223,20 @@
                         })
                     }
                 } else {
-                    this.changeRoute(this.routerList[groupIndex][routeIndex])
+                    const routeInfo = this.routerList[groupIndex][routeIndex]
+                    // 如果没有项目列表，切换路由时则去拉取用户项目列表
+                    if (!this.projectList.length && (routeInfo.hasProjectId || routeInfo.id === 'home')) {
+                        await this.loadUserProjectList({ is_disable: false })
+                        if (this.projectList.length && !this.project_id) {
+                            const projectId = this.projectList[0].id
+                            this.setProjectId(projectId)
+                        }
+                    }
+                    // 项目列表和默认项目id记录后再进下路由跳转
+                    this.$nextTick(() => {
+                        this.changeRoute(this.routerList[groupIndex][routeIndex])
+                    })
                 }
-                this.$emit('navChangeRoute')
             },
             // onHandleSubNavClick (groupIndex, routeIndex, childIndex) {
             //     if (this.$route.name === route.routerName) {
@@ -216,8 +262,26 @@
     @import '@/scss/mixins/scrollbar.scss';
 
     .header-title {
+        flex-shrink: 0;
         font-size: 16px;
         color: #313238;
+    }
+    .header-sub-title {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        font-size: 12px;
+        line-height: 20px;
+        margin: 0 15px;
+        color: #63656e;
+        word-break: break-all;
+        text-overflow: ellipsis;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+        .icon-info-circle {
+            margin-right: 9px;
+        }
     }
 
     .bk-navigation {
@@ -239,6 +303,9 @@
                 }
                 .navigation-nav {
                     z-index: 111;
+                    .nav-slider {
+                        background-color: #182132 !important;
+                    }
                     .nav-slider-list {
                         padding-top: 0;
                     }
@@ -257,6 +324,28 @@
             .bk-navigation-menu-group {
                 border-top: 1px solid rgba(255,255,255,0.06);
             }
+            .navigation-sbmenu .navigation-menu-item:hover,
+            .navigation-sbmenu-title:hover {
+                background: #2f3847 !important;
+                .navigation-sbmenu-title-icon,
+                .navigation-sbmenu-title-content {
+                    color: #fff !important;
+                }
+            }
+            .navigation-menu-item-default-icon {
+                height: 4px;
+                width: 4px;
+            }
+        }
+        .offline-tip {
+            display: inline-block;
+            line-height: 22px;
+            font-size: 12px;
+            transform: scale(.8);
+            color: #ff9c01;
+            padding: 0 4px;
+            border: 1px solid #ffb848;
+            border-radius: 2px;
         }
     }
 </style>

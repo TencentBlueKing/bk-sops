@@ -25,7 +25,7 @@ from django.db import transaction
 from django_filters import CharFilter
 
 from gcloud import err_code
-from pipeline.models import TemplateRelationship
+from pipeline.models import TemplateRelationship, TemplateScheme
 
 from gcloud.contrib.collection.models import Collection
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
@@ -38,6 +38,7 @@ from gcloud.core.apis.drf.serilaziers.task_template import (
     CreateTaskTemplateSerializer,
     TopCollectionTaskTemplateSerializer,
     ProjectInfoQuerySerializer,
+    ProjectFilterQuerySerializer,
 )
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.iam_auth import res_factory
@@ -75,6 +76,9 @@ class TaskTemplatePermission(IamPermission):
         "create": IamPermissionInfo(IAMMeta.FLOW_CREATE_ACTION, res_factory.resources_for_project, id_field="project"),
         "enable_independent_subprocess": IamPermissionInfo(
             IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project_id"
+        ),
+        "common_info": IamPermissionInfo(
+            IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project__id"
         ),
     }
 
@@ -164,20 +168,14 @@ class TaskTemplateViewSet(GcloudModelViewSet):
     )
     @action(methods=["GET"], detail=False)
     def list_with_top_collection(self, request, *args, **kwargs):
-        project_id = int(request.query_params["project__id"])
+        project_id = request.query_params["project__id"]
         order_by = request.query_params.get("order_by") or "-id"
         orderings = ("-is_collected", order_by)
 
-        user_collections = Collection.objects.filter(category="flow", username=request.user.username).values()
         # 取出用户在当前项目的收藏id
-        collection_template_ids = []
-        collection_id_template_id_map = {}
-        for user_collection in user_collections:
-            extra_info = json.loads(user_collection["extra_info"])
-            if int(extra_info["project_id"]) == project_id:
-                instance_id = user_collection["instance_id"]
-                collection_template_ids.append(instance_id)
-                collection_id_template_id_map[instance_id] = user_collection["id"]
+        collection_template_ids, collection_template_map = Collection.objects.get_user_project_collection_instance_info(
+            project_id=project_id, username=request.user.username, category="flow"
+        )
 
         queryset = (
             self.filter_queryset(self.get_queryset())
@@ -193,7 +191,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         for obj in data:
             obj["template_labels"] = templates_labels.get(obj["id"], [])
             obj["is_collected"] = 1 if obj["id"] in collection_template_ids else 0
-            obj["collection_id"] = collection_id_template_id_map.get(obj["id"], -1)
+            obj["collection_id"] = collection_template_map.get(obj["id"], -1)
         return self.get_paginated_response(data) if page is not None else Response(data)
 
     def retrieve(self, request, *args, **kwargs):
@@ -330,3 +328,11 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         project_id = request.query_params.get("project_id")
         independent_subprocess_enable = TaskConfig.objects.enable_independent_subprocess(project_id, template_id)
         return Response({"enable": independent_subprocess_enable})
+
+    @swagger_auto_schema(method="GET", operation_summary="获取流程详情公开信息", query_serializer=ProjectFilterQuerySerializer)
+    @action(methods=["GET"], detail=True)
+    def common_info(self, request, *args, **kwargs):
+        template = self.get_object()
+        schemes = TemplateScheme.objects.filter(template=template.pipeline_template).values_list("id", "name")
+        schemes_info = [{"id": scheme_id, "name": scheme_name} for scheme_id, scheme_name in schemes]
+        return Response({"name": template.name, "schemes": schemes_info})

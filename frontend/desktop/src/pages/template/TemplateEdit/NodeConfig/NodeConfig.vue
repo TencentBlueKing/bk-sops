@@ -81,7 +81,7 @@
                                                 <i
                                                     :class="[props.row.show_type === 'show' ? 'common-icon-eye-show' : 'common-icon-eye-hide color-org']"
                                                     v-bk-tooltips="{
-                                                        content: props.row.show_type === 'show' ? $t('必填') : $t('非必填'),
+                                                        content: props.row.show_type === 'show' ? $t('显示') : $t('隐藏'),
                                                         placements: ['bottom']
                                                     }">
                                                 </i>
@@ -114,9 +114,14 @@
                 </template>
             </div>
             <template slot="content">
+                <!-- 插件/插件版本不存在面板 -->
+                <bk-exception v-if="isNotExistAtomOrVerion" class="exception-wrap" type="500">
+                    <span>{{ $t('未找到可用的插件或插件版本') }}</span>
+                    <div class="text-wrap" @click="handleReslectPlugin">{{ $t('重选插件') }}</div>
+                </bk-exception>
                 <!-- 插件/子流程选择面板 -->
                 <select-panel
-                    v-if="isSelectorPanelShow"
+                    v-else-if="isSelectorPanelShow"
                     :project_id="project_id"
                     :template-labels="templateLabels"
                     :node-config="nodeConfig"
@@ -328,6 +333,7 @@
             common: [String, Number],
             subflowListLoading: Boolean,
             backToVariablePanel: Boolean,
+            isNotExistAtomOrVerion: Boolean,
             pluginLoading: Boolean,
             isViewMode: Boolean
         },
@@ -490,7 +496,6 @@
                 const nodeConfig = tools.deepClone(this.activities[this.nodeId])
                 const isThirdParty = nodeConfig.component && nodeConfig.component.code === 'remote_plugin'
                 if (nodeConfig.type === 'ServiceActivity') {
-                    await this.setThirdPartyList(nodeConfig)
                     this.basicInfo = await this.getNodeBasic(nodeConfig)
                 } else {
                     this.isSelectorPanelShow = !nodeConfig.template_id
@@ -628,7 +633,7 @@
                             desc = descList.join('<br>')
                         }
                         this.updateBasicInfo({ desc })
-                        if (forms.renderFrom) {
+                        if (forms.renderform) {
                             if (!this.isSubflow) {
                                 // 获取第三方插件公共输出参数
                                 if (!this.pluginOutput['remote_plugin']) {
@@ -779,7 +784,7 @@
                     let desc = ''
                     let version = ''
                     // 节点已选择标准插件
-                    if (component.code) {
+                    if (component.code && !this.isNotExistAtomOrVerion) { // 节点插件存在
                         if (component.code === 'remote_plugin') {
                             const atom = this.$parent.thirdPartyList[this.nodeId]
                             code = component.data.plugin_code.value
@@ -867,7 +872,7 @@
              * 获取某一标准插件所有版本列表
              */
             getAtomVersions (code, isThirdParty = false) {
-                if (!code) {
+                if (!code || this.isNotExistAtomOrVerion) {
                     return []
                 }
                 let atom
@@ -951,9 +956,32 @@
             // 标准插件（子流程）选择面板切换插件（子流程）
             // isThirdParty 是否为第三方插件
             async onPluginOrTplChange (val) {
+                let inputs = this.inputs
+                if (this.isSubflow) {
+                    // 重置basicInfo, 避免基础信息面板因监听basicInfo导致重复调取接口，初始化时获取空值
+                    const { id, name, version } = val
+                    const config = {
+                        name,
+                        version,
+                        tpl: id,
+                        nodeName: name,
+                        selectable: true,
+                        alwaysUseLatest: false,
+                        schemeIdList: []
+                    }
+                    this.updateBasicInfo(config)
+                    if ('project' in val && typeof val.project.id === 'number') {
+                        this.$set(this.nodeConfig, 'template_source', 'business')
+                    } else {
+                        this.$set(this.nodeConfig, 'template_source', 'common')
+                    }
+                    // 清空输入参数，否则会先加载上一个的子流程的配置再去加载选中的子流程配置
+                    inputs = tools.deepClone(this.inputs)
+                    this.inputs = []
+                }
                 this.isSelectorPanelShow = false
                 this.isThirdParty = val.id === 'remote_plugin'
-                await this.clearParamsSourceInfo()
+                await this.clearParamsSourceInfo(inputs)
                 if (this.isSubflow) {
                     this.tplChange(val)
                 } else {
@@ -1039,23 +1067,7 @@
              * - 校验基础信息
              */
             async tplChange (data) {
-                const { id, name, version } = data
-                const config = {
-                    name,
-                    version,
-                    tpl: id,
-                    nodeName: name,
-                    selectable: true,
-                    alwaysUseLatest: false,
-                    schemeIdList: []
-                }
-                this.updateBasicInfo(config)
-                if ('project' in data && typeof data.project.id === 'number') {
-                    this.$set(this.nodeConfig, 'template_source', 'business')
-                } else {
-                    this.$set(this.nodeConfig, 'template_source', 'common')
-                }
-                await this.getSubflowDetail(id, version)
+                await this.getSubflowDetail(data.id, data.version)
                 this.inputs = await this.getSubflowInputsConfig()
                 this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms)
                 this.inputsRenderConfig = Object.keys(this.subflowForms).reduce((acc, crt) => {
@@ -1151,7 +1163,7 @@
                 this.isUpdateConstants = false
             },
             // 取消已勾选为全局变量的输入、输出参数勾选状态
-            async clearParamsSourceInfo () {
+            async clearParamsSourceInfo (inputs = this.inputs) {
                 this.isUpdateConstants = true
                 this.variableCited = await this.getVariableCitedData() || {}
                 const nodeId = this.nodeConfig.id
@@ -1161,7 +1173,7 @@
                     const sourceInfo = source_info[this.nodeId]
                     if (sourceInfo) {
                         if (source_type === 'component_inputs') {
-                            this.inputs.forEach(formItem => {
+                            inputs.forEach(formItem => {
                                 if (sourceInfo.includes(formItem.tag_code)) {
                                     this.setVariableSourceInfo({
                                         key,
@@ -1188,6 +1200,11 @@
                 }
                 this.variableCited = {}
                 this.isUpdateConstants = false
+            },
+            // 重选插件
+            handleReslectPlugin () {
+                this.$parent.isNotExistAtomOrVerion = false
+                this.isSelectorPanelShow = true
             },
             // 查看子流程模板
             onViewSubflow (id) {
@@ -1284,7 +1301,7 @@
                             sourceInfo[id].splice(atomIndex, 1)
                         }
                         const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
-                        refDom && refDom.setFromData()
+                        refDom && refDom.setFormData()
                     }
                 }
             },
@@ -1309,7 +1326,7 @@
                 const { key, source } = this.unhookingVarForm
                 this.$delete(this.localConstants, key)
                 const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
-                refDom && refDom.setFromData({ ...this.unhookingVarForm })
+                refDom && refDom.setFormData({ ...this.unhookingVarForm })
                 this.isCancelGloVarDialogShow = false
             },
             onCancelVarConfirmClick () {
@@ -1317,7 +1334,7 @@
                 const constant = this.localConstants[key]
                 constant.source_info = {}
                 const refDom = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
-                refDom && refDom.setFromData({ ...this.unhookingVarForm })
+                refDom && refDom.setFormData({ ...this.unhookingVarForm })
                 this.isCancelGloVarDialogShow = false
             },
             // 删除全局变量
@@ -1349,7 +1366,7 @@
                     const { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, version, tpl, executor_proxy, retryable, skippable, ignorable, autoRetry, timeoutConfig } = this.basicInfo
                     const constants = {}
                     Object.keys(this.subflowForms).forEach(key => {
-                        const constant = this.subflowForms[key]
+                        const constant = tools.deepClone(this.subflowForms[key])
                         if (constant.show_type === 'show') {
                             constant.value = key in this.inputsParamValue ? tools.deepClone(this.inputsParamValue[key]) : constant.value
                             constant.need_render = key in this.inputsRenderConfig ? this.inputsRenderConfig[key] : true
@@ -1707,6 +1724,23 @@
     .variable-edit-panel {
         height: calc(100vh - 60px);
         overflow: hidden;
+    }
+    .exception-wrap {
+        margin-top: 146px;
+        .bk-exception-img {
+            width: 220px;
+            height: 110px;
+            margin-bottom: 12px;
+        }
+        .bk-exception-text {
+            font-size: 12px;
+            color: #444444;
+        }
+        .text-wrap {
+            color: #3a84ff;
+            margin-top: 5px;
+            cursor: pointer;
+        }
     }
 }
 </style>

@@ -52,12 +52,12 @@ class SubprocessPluginService(Service):
 
     def outputs_format(self):
         return [
-            self.OutputItem(name="Task ID", key="task_id", type="int", schema=IntItemSchema(description="Task ID")),
+            self.OutputItem(name="任务ID", key="task_id", type="int", schema=IntItemSchema(description="Task ID")),
             self.OutputItem(
-                name="Task URL", key="task_url", type="string", schema=StringItemSchema(description="Task URL")
+                name="任务URL", key="task_url", type="string", schema=StringItemSchema(description="Task URL")
             ),
             self.OutputItem(
-                name="Task Name", key="task_name", type="string", schema=StringItemSchema(description="Task Name")
+                name="任务名", key="task_name", type="string", schema=StringItemSchema(description="Task Name")
             ),
         ]
 
@@ -177,6 +177,8 @@ class SubprocessPluginService(Service):
         task_id = data.get_one_of_outputs("task_id")
         self.finish_schedule()
         if not task_success:
+            task_url = data.get_one_of_outputs("task_url")
+            data.set_outputs("ex_data", f'子流程节点执行异常，请<a href="{task_url}">去往子任务</a>查看详情')
             return False
         try:
             subprocess_task = TaskFlowInstance.objects.get(id=task_id)

@@ -341,6 +341,7 @@
                 }
             },
             onToggleMapShow () {
+                this.isShowHotKey = false
                 this.showSmallMap = !this.showSmallMap
                 this.smallMapLoading = true
                 this.smallMapImg = ''
@@ -365,7 +366,6 @@
                 }
                 this.clearReferenceLine()
                 this.zoomRatio = Math.round(this.$refs.jsFlow.zoom * 100)
-                this.showSmallMap = false
             },
             onZoomOut (pos) {
                 if (pos) {
@@ -376,7 +376,6 @@
                 }
                 this.clearReferenceLine()
                 this.zoomRatio = Math.round(this.$refs.jsFlow.zoom * 100)
-                this.showSmallMap = false
             },
             onResetPosition () {
                 this.$refs.jsFlow.resetPosition()
@@ -819,8 +818,8 @@
                         // 更新本地condition配置
                         if (this.conditionInfo) {
                             this.$emit('updateCondition', condition)
-                            this.conditionInfo = null
                         }
+                        this.conditionInfo = null
                         this.setLabelDraggable({ ...line, id: lineId }, condition)
                     }
                 })
@@ -890,6 +889,7 @@
                 if (isGatewayNode) {
                     nodeConfig = gateways[node.id]
                 }
+                this.showShortcutPanel = false
                 this.$refs.jsFlow.removeNode(node)
                 this.$emit('templateDataChanged')
                 this.$emit('onLocationChange', 'delete', node)
@@ -902,14 +902,17 @@
                 // 被删除的节点只存在一条输入连线和输出连线时才允许自动连线
                 const { incoming, outgoing } = nodeConfig
                 if (
-                    !['startpoint', 'endpoint'].includes(node.type)
+                    (!['startpoint', 'endpoint'].includes(node.type))
                     && incoming.length === 1
-                    && Array.isArray(outgoing) ? outgoing.length === 1 : outgoing) {
+                    && (Array.isArray(outgoing) ? outgoing.length === 1 : outgoing)) {
                     let { source } = lines.find(item => item.id === incoming[0])
                     const outlinesId = Array.isArray(outgoing) ? outgoing[0] : outgoing
                     let { target } = lines.find(item => item.id === outlinesId)
-                    // 当之上没有任务节点时，不自动连线
-                    if (!activities[source.id] && !activities[target.id]) return
+                    // 当分支上只剩网关节点时，不自动连线
+                    if (gateways[source.id] && gateways[target.id]) return
+                    // 当需要生成的连线已存在，不自动连线
+                    const isExist = lines.find(item => item.source.id === source.id && item.target.id === target.id)
+                    if (isExist) return
                     // 先更新数据再进行连线
                     this.$nextTick(() => {
                         const sourcePosition = this.getNodeEndpointPosition(source.id, 'source')
@@ -937,13 +940,17 @@
                         if (!sourceArrow || !sourceArrow) return
                         source = { ...source, arrow: sourceArrow }
                         target = { ...target, arrow: targetArrow }
-                        this.createLine(source, target)
+                        // 创建连线状态
+                        const createResult = this.createLine(source, target)
                         // 删除节点时，若起始节点为网关节点则保留分支表达式
-                        if (source.id in gateways) {
+                        if (createResult && source.id in gateways) {
                             const branchInfo = gateways[source.id]
                             const { conditions, default_condition } = branchInfo
+                            const tagCode = `branch_${source.id}_${target.id}`
+                            conditions.tag = tagCode
                             this.conditionInfo = conditions[incoming[0]]
-                            if (default_condition) {
+                            if (default_condition && default_condition.flow_id === incoming[0]) {
+                                default_condition.tag = tagCode
                                 this.conditionInfo = { ...default_condition, default_condition }
                             }
                         }
@@ -1154,9 +1161,10 @@
                     this.clearReferenceLine()
                     return false
                 }
-                this.createReferenceLine()
+                // 触发端点拖拽事件
+                const endPointDom = event.target.parentNode.parentNode
+                Object.values(endPointDom.__ta.mousedown)[0](event)
                 this.referenceLine = { x: bX, y: bY, id: edp.elementId, arrow: type }
-                document.getElementById('canvasContainer').addEventListener('mousemove', this.handleReferenceLine, false)
             },
             // 鼠标移动更新参考线
             handleReferenceLine (e) {
@@ -1184,11 +1192,13 @@
                     this.$emit('onLineChange', 'add', line)
                     this.$refs.jsFlow.createConnector(line)
                     this.referenceLine.id = ''
+                    return true
                 } else {
                     this.$bkMessage({
                         message: validateMessage.message,
                         theme: 'warning'
                     })
+                    return false
                 }
             },
             onSubflowPauseResumeClick (id, value) {
@@ -1280,6 +1290,7 @@
                     }
                     this.$refs.jsFlow.addLineOverlay(line, labelData)
                     this.setLabelDraggable(line, { ...data, nodeId: line.source.id })
+                    this.conditionInfo = null
                 })
             },
             // node mousedown
@@ -1295,10 +1306,7 @@
                     return
                 }
                 if (this.referenceLine.id) {
-                    // 自动连线
-                    this.onConnectionDragStop({ id: this.referenceLine.id, arrow: this.referenceLine.arrow }, id, event)
-                    // 移出参考线
-                    this.clearReferenceLine()
+                    this.referenceLine = {}
                     return
                 }
                 // 快捷菜单面板
@@ -1342,6 +1350,7 @@
                             left = x + offsetX + NODES_SIZE_POSITION.GATEWAY_SIZE[0] / 2 + 80
                             top = y + offsetY + NODES_SIZE_POSITION.GATEWAY_SIZE[1] + 10
                     }
+                    this.shortcutPanelDeleteLine = false
                 } else {
                     const wrapGap = dom.getElementScrollCoords(this.$refs.jsFlow.$el)
                     const { pageX, pageY } = e
@@ -1372,6 +1381,10 @@
                 this.$emit('onLocationChange', type, location)
                 this.$emit('onLineChange', 'add', line)
                 this.$nextTick(() => {
+                    // 添加网关节点时禁止对该节点操作
+                    if (location.type.includes('gateway') > -1) {
+                        this.shortcutPanelNodeOperate = false
+                    }
                     this.$refs.jsFlow.createConnector(line)
                     this.activeNode = location
                     this.openShortcutPanel('node')
@@ -1418,6 +1431,10 @@
                 this.$emit('onLineChange', 'add', startLine)
                 this.$emit('onLineChange', 'add', endLine)
                 this.$nextTick(() => {
+                    // 添加网关节点时禁止对该节点操作
+                    if (location.type.includes('gateway') > -1) {
+                        this.shortcutPanelNodeOperate = false
+                    }
                     this.$refs.jsFlow.createConnector(startLine)
                     this.$refs.jsFlow.createConnector(endLine)
                     this.activeNode = location
@@ -1427,8 +1444,11 @@
                 if (startNodeId in gateways) {
                     const branchInfo = gateways[startNodeId]
                     const { conditions, default_condition } = branchInfo
+                    const tagCode = `branch_${startNodeId}_${location.id}`
+                    conditions.tag = tagCode
                     this.conditionInfo = conditions[deleteLine.id]
-                    if (default_condition) {
+                    if (default_condition && default_condition.flow_id === deleteLine.id) {
+                        default_condition.tag = tagCode
                         this.conditionInfo = { ...default_condition, default_condition }
                     }
                 }
@@ -1564,6 +1584,7 @@
                     const { pageX, pageY } = e
                     const nodeId = this.activeCon.sourceId
                     this.activeNode = this.canvasData.locations.find(item => item.id === nodeId)
+                    this.shortcutPanelNodeOperate = false
                     this.shortcutPanelDeleteLine = true
                     const left = pageX - wrapGap.x + 10
                     const top = pageY - wrapGap.y - 50

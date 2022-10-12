@@ -119,3 +119,11 @@ class BKJobFileSource(models.Model):
     bk_biz_id = models.IntegerField("CC business id", primary_key=True)
     file_source_id = models.IntegerField("JOB file source id")
     objects = BKJobFileSourceManager()
+
+
+class FileUploadRecord(models.Model):
+    username = models.CharField("User name", max_length=64)
+    file_name = models.TextField("File name")
+    file_path = models.TextField("File locate path")
+    extra_info = models.TextField("Extra info", blank=True, null=True)
+    record_time = models.DateTimeField("Record time", auto_now=True)

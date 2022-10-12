@@ -32,9 +32,9 @@ const admin = {
         },
         // 周期任务启动记录
         periodTaskHistory ({ commit }, data) {
-            const { task_id, limit, offset } = data
+            const { task__id, limit, offset } = data
             return axios.get('admin/api/v3/periodic_task_history/', {
-                params: { task_id, limit, offset }
+                params: { task__id, limit, offset }
             }).then(response => response.data.data)
         },
         // 恢复模板
