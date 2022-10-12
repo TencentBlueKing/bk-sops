@@ -1,33 +1,33 @@
 <template>
-    <section class="info-section" data-test-id="taskExecute_form_outputParams">
-        <div class="common-section-title output-parameter">
-            <div class="output-title">{{ $t('输出参数') }}</div>
-            <div class="origin-value" v-if="!adminView">
-                <bk-switcher @change="outputSwitcher" v-model="isShowOutputOrigin"></bk-switcher>
-                {{ $t('原始值') }}
-            </div>
+    <section class="info-section outputs-section" data-test-id="taskExecute_form_outputParams">
+        <h4 class="outputs-label">{{ $t('输出参数') }}</h4>
+        <div class="origin-value" v-if="!adminView">
+            <bk-switcher size="small" @change="outputSwitcher" v-model="isShowOutputOrigin"></bk-switcher>
+            {{ $t('原始值') }}
         </div>
-        <div v-if="!adminView">
+        <template v-if="!adminView">
             <table class="operation-table outputs-table" v-if="!isShowOutputOrigin">
                 <thead>
                     <tr>
                         <th class="output-name">{{ $t('参数名') }}</th>
+                        <th class="output-key">{{ $t('参数Key') }}</th>
                         <th class="output-value">{{ $t('参数值') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="(output, index) in outputsInfo" :key="index">
                         <td class="output-name">{{ getOutputName(output) }}</td>
+                        <td class="output-key">{{ output.key }}</td>
                         <td v-if="isUrl(output.value)" class="output-value" v-html="getOutputValue(output)"></td>
                         <td v-else class="output-value">{{ getOutputValue(output) }}</td>
                     </tr>
                     <tr v-if="Object.keys(outputsInfo).length === 0">
-                        <td colspan="2"><no-data></no-data></td>
+                        <td colspan="3"><no-data></no-data></td>
                     </tr>
                 </tbody>
             </table>
             <full-code-editor v-else :value="outputsInfo"></full-code-editor>
-        </div>
+        </template>
         <div class="code-block-wrap" v-else>
             <VueJsonPretty :data="outputsInfo" v-if="outputsInfo"></VueJsonPretty>
             <NoData v-else></NoData>
@@ -108,6 +108,30 @@
     }
 </script>
 
-<style>
-
+<style lang="scss" scoped>
+    .outputs-section {
+        display: flex;
+        position: relative;
+    }
+    .outputs-section .operation-table {
+        flex: 1;
+        margin-left: 24px;
+        padding-top: 18px;
+        border: none;
+        border-collapse: initial;
+        th, td {
+            width: 30%;
+            padding: 16px 13px;
+            color: #313238;
+            background: #f5f7fa;
+            border: none;
+            border-bottom: 1px solid #dcdee5;
+        }
+        td {
+            color: #63656e;
+        }
+        .output-value {
+            width: 50%;
+        }
+    }
 </style>

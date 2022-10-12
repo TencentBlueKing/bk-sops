@@ -1,0 +1,233 @@
+# -*- coding: utf-8 -*-
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://opensource.org/licenses/MIT
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+from django.test import TestCase
+
+from mock import MagicMock
+
+from pipeline.component_framework.test import (
+    ComponentTestMixin,
+    ComponentTestCase,
+    CallAssertion,
+    ExecuteAssertion,
+    ScheduleAssertion,
+    Call,
+    Patcher,
+)
+
+from pipeline_plugins.components.collections.sites.open.job.fast_push_file.v2_1 import JobFastPushFileComponent
+
+
+class JobFastPushFilesComponentTest(TestCase, ComponentTestMixin):
+    def cases(self):
+        return [
+            PUSH_FILE_TO_IPS_FAIL_CASE(),
+        ]
+
+    def component_cls(self):
+        return JobFastPushFileComponent
+
+
+class MockClient(object):
+    def __init__(self, fast_push_file_return=None, get_job_instance_status_return=None, list_business_set_return=None):
+        self.jobv3 = MagicMock()
+        self.jobv3.fast_transfer_file = MagicMock(side_effect=fast_push_file_return)
+        self.jobv3.get_job_instance_status = MagicMock(side_effect=get_job_instance_status_return)
+        self.cc = MagicMock()
+        self.cc.list_business_set = MagicMock(return_value=list_business_set_return)
+
+
+# mock path
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.fast_push_file.v2_1.get_client_by_user"
+BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_user"
+
+GET_JOB_INSTANCE_URL = "pipeline_plugins.components.collections.sites.open.job.fast_push_file.v2_1.get_job_instance_url"
+
+JOB_HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.job.fast_push_file.v2_1.job_handle_api_error"
+
+UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_user"
+
+INPUT = {
+    "biz_cc_id": 1,
+    "job_source_files": [
+        {"ip": "0:127.0.0.1", "files": "/tmp/aa\n/tmp/bb", "account": "root"},
+    ],
+    "upload_speed_limit": "100",
+    "download_speed_limit": "100",
+    "job_dispatch_attr": [
+        {
+            "job_ip_list": "0:127.0.0.3,0:127.0.0.4,0:127.0.0.5",
+            "job_target_path": "/tmp/ee/",
+            "job_account": "root",
+        },
+        {
+            "job_ip_list": "0:200.0.0.1,0:200.0.0.2,0:200.0.0.3",
+            "job_target_path": "/tmp/200/",
+            "job_account": "user01",
+            "bk_cloud_id": "0",
+        },
+    ],
+    "job_rolling_execute": ["1"],
+    "job_rolling_expression": "10%",
+    "job_rolling_mode": "1",
+    "job_timeout": "100",
+}
+
+FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT = MockClient(
+    fast_push_file_return=[
+        {
+            "result": True,
+            "code": 0,
+            "message": "success",
+            "data": {"job_instance_name": "API Quick Distribution File1521101427176", "job_instance_id": 10000},
+        },
+        {
+            "result": False,
+            "code": 1,
+            "message": "failed",
+            "data": {"job_instance_name": "API Quick Distribution File1521101427176"},
+        },
+    ],
+    get_job_instance_status_return=[
+        {"data": {"finished": True, "job_instance": {"status": 3}}, "result": True},
+        {"data": {"finished": True, "job_instance": {"status": 3}}, "result": True},
+    ],
+    list_business_set_return={"result": True, "data": {"info": []}},
+)
+
+FAST_PUSH_FILE_BIZ_SET_REQUEST_FAILURE_CLIENT = MockClient(
+    fast_push_file_return=[
+        {
+            "result": True,
+            "code": 0,
+            "message": "success",
+            "data": {"job_instance_name": "API Quick Distribution File1521101427176", "job_instance_id": 10000},
+        },
+        {
+            "result": False,
+            "code": 1,
+            "message": "failed",
+            "data": {"job_instance_name": "API Quick Distribution File1521101427176"},
+        },
+    ],
+    get_job_instance_status_return=[
+        {"data": {"finished": True, "job_instance": {"status": 3}}, "result": True},
+        {"data": {"finished": True, "job_instance": {"status": 3}}, "result": True},
+        {"data": {"finished": True, "job_instance": {"status": 3}}, "result": True},
+    ],
+    list_business_set_return={"result": True, "data": {"info": ["biz_set"]}},
+)
+
+CLL_INFO = MagicMock(
+    side_effect=[
+        {
+            "bk_scope_type": "biz",
+            "bk_scope_id": "1",
+            "bk_biz_id": 1,
+            "file_source_list": [
+                {
+                    "file_list": ["/tmp/aa", "/tmp/bb"],
+                    "server": {"ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}]},
+                    "account": {"alias": "root"},
+                }
+            ],
+            "target_server": {
+                "ip_list": [
+                    {"ip": "127.0.0.3", "bk_cloud_id": 0},
+                    {"ip": "127.0.0.4", "bk_cloud_id": 0},
+                    {"ip": "127.0.0.5", "bk_cloud_id": 0},
+                ]
+            },
+            "account_alias": "root",
+            "file_target_path": "/tmp/ee/",
+            "upload_speed_limit": 100,
+            "download_speed_limit": 100,
+            "timeout": 100,
+            "rolling_config": {"expression": "10%", "mode": "1"},
+        },
+        {
+            "bk_scope_type": "biz",
+            "bk_scope_id": "1",
+            "bk_biz_id": 1,
+            "file_source_list": [
+                {
+                    "file_list": ["/tmp/aa", "/tmp/bb"],
+                    "server": {"ip_list": [{"ip": "127.0.0.1", "bk_cloud_id": 0}]},
+                    "account": {"alias": "root"},
+                }
+            ],
+            "target_server": {
+                "ip_list": [
+                    {"ip": "200.0.0.1", "bk_cloud_id": 0},
+                    {"ip": "200.0.0.2", "bk_cloud_id": 0},
+                    {"ip": "200.0.0.3", "bk_cloud_id": 0},
+                ]
+            },
+            "account_alias": "user01",
+            "file_target_path": "/tmp/200/",
+            "upload_speed_limit": 100,
+            "download_speed_limit": 100,
+            "timeout": 100,
+            "rolling_config": {"expression": "10%", "mode": "1"},
+        },
+    ]
+)
+
+
+def PUSH_FILE_TO_IPS_FAIL_CASE():
+    return ComponentTestCase(
+        name="all biz fast_push_files v2_1  call fail case",
+        inputs=INPUT,
+        parent_data={"executor": "executor", "project_id": "project_id", "biz_cc_id": 1},
+        execute_assertion=ExecuteAssertion(
+            success=True,
+            outputs={
+                "requests_error": "Request Error:\nfailed\n",
+                "task_count": 2,
+                "job_instance_id_list": [10000],
+                "job_id_of_batch_execute": [10000],
+                "job_inst_url": ["job.com/api_execute/"],
+                "request_success_count": 1,
+                "success_count": 0,
+                "final_res": False,
+            },
+        ),
+        execute_call_assertion=[
+            CallAssertion(
+                func=FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT.jobv3.fast_transfer_file,
+                calls=[Call(**CLL_INFO()), Call(**CLL_INFO())],
+            ),
+        ],
+        schedule_assertion=ScheduleAssertion(
+            success=False,
+            outputs={
+                "requests_error": "Request Error:\nfailed\n",
+                "task_count": 2,
+                "job_instance_id_list": [10000],
+                "job_id_of_batch_execute": [],
+                "job_inst_url": ["job.com/api_execute/"],
+                "request_success_count": 1,
+                "success_count": 1,
+                "final_res": False,
+                "ex_data": "Request Error:\nfailed\n\n Get Result Error:\n",
+                "failure_inst_url": [],
+            },
+            schedule_finished=True,
+        ),
+        patchers=[
+            Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT),
+            Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT),
+            Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT),
+            Patcher(target=JOB_HANDLE_API_ERROR, return_value="failed"),
+            Patcher(target=GET_JOB_INSTANCE_URL, return_value="job.com/api_execute/"),
+        ],
+    )

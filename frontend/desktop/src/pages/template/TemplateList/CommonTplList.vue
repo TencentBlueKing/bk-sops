@@ -89,7 +89,7 @@
                         </bk-table-column>
                         <bk-table-column :label="$t('操作')" width="190" class="operation-cell" :fixed="templateList.length ? 'right' : false">
                             <template slot-scope="props">
-                                <div class="template-operation">
+                                <div class="template-operation" :template-name="props.row.name">
                                     <template>
                                         <a
                                             v-cursor="{ active: !props.row.auth_actions.includes('common_flow_create_task') }"

@@ -1458,6 +1458,19 @@ const en = {
     '查看更多': 'See more',
     '请求异常（外部系统错误或非法操作）': 'Request exception (external system error or illegal operation)',
     '请求异常（内部系统发生未知错误）': 'Request exception (an unknown error occurred in the internal system)',
+    '节点基础信息': 'Node basic information',
+    '节点执行记录': 'Node execution record',
+    '节点操作记录': 'Node operation record',
+    '参数Key': 'Parameter Key',
+    '详情': 'Detail',
+    '展开日志': 'Expand log',
+    '收起日志': 'Collapse log',
+    '输入参数可在填参页面自定义传值。非输入参数填参页面不显示，使用变量默认值': 'Input parameters can be custom passed values on the parameter filling page. The non-input parameter filling page is not displayed, use the default value of the variable',
+    '是否为输入参数': 'Is it an input parameter',
+    '当满足触发条件时，输入参数在填参页面将不显示。可实现不同条件下配置不同的输入参数': 'When the trigger conditions are met, the input parameters will not be displayed on the parameter filling page. Different input parameters can be configured under different conditions',
+    '输入参数条件隐藏': 'Input parameter condition hidden',
+    '存在子流程节点执行失败，可从节点执行记录去往子任务处理，并及时': 'There is a subprocess node execution failure, you can go from the node execution record to the sub-task processing, and timely',
+    '刷新任务状态': 'Refresh task status',
     '计划执行': 'Planly',
     '⿏标移动到节点时展示引⽤和输出的变量': '⏏Display variables referenced and output when the mouse moves to a node',
     '重新执⾏': 'reExecute',
@@ -1472,10 +1485,6 @@ const en = {
     '未找到可用的插件或插件版本': 'No available plugin or plugin version found',
     '重选插件': 'Reselect plugin',
     '复⽤参数值并使⽤流程最新数据重新执⾏': 'Reuse parameter values and re-execute using the latest data of the process',
-    '输入参数可在填参页面自定义传值。非输入参数填参页面不显示，使用变量默认值': 'Input parameters can be custom passed values on the parameter filling page. The non-input parameter filling page is not displayed, use the default value of the variable',
-    '是否为输入参数': 'Is it an input parameter',
-    '当满足触发条件时，输入参数在填参页面将不显示。可实现不同条件下配置不同的输入参数': 'When the trigger conditions are met, the input parameters will not be displayed on the parameter filling page. Different input parameters can be configured under different conditions',
-    '输入参数条件隐藏': 'Input parameter condition hidden',
     '支持DAT类型文件，文件小于2M': 'Support DAT type file, the file is less than 2M',
     '上传失败，DAT类型文件最大为2M': 'Upload failed, the maximum size of DAT type file is 2M',
     '上传失败，YAML类型文件最大为2M': 'Upload failed, the maximum size of the YAML type file is 2M',
@@ -1483,7 +1492,10 @@ const en = {
     '执行时显示': 'Display when executed',
     '配置为“是”可在执行时填参页面覆盖变量默认值，配置为“否”则使用变量默认值': 'Set to "Yes" to override the default value of the variable when filling in the parameter page during execution, and set to "No" to use the default value of the variable',
     '“显示参数”条件隐藏': 'The Show Parameters condition is hidden',
-    '当满足条件时，可将“执行时显示”的参数隐藏起来，实现变量联动': 'When the conditions are met, the parameters displayed in "execution" can be hidden to realize variable linkage'
+    '当满足条件时，可将“执行时显示”的参数隐藏起来，实现变量联动': 'When the conditions are met, the parameters displayed in "execution" can be hidden to realize variable linkage',
+    'ID/任务名/执行人/状态': 'ID/TaskName/Executor/Status',
+    '编辑周期任务成功': 'Edit cycle task succeeded',
+    '参数复用说明': 'Description of resource parameter reuse'
 }
 
 export default en

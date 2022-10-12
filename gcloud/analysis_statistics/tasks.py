@@ -185,7 +185,7 @@ def taskflowinstance_post_save_statistics_task(task_instance_id, created):
             kwargs["task_instance_id"] = taskflow_instance.id
             TaskflowStatistics.objects.create(**kwargs)
         else:
-            TaskflowStatistics.objects.update(task_instance_id=taskflow_instance.id, defaults=kwargs)
+            TaskflowStatistics.objects.filter(task_instance_id=taskflow_instance.id).update(**kwargs)
         return True
     except Exception as e:
         logger.exception(

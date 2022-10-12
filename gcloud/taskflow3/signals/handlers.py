@@ -57,9 +57,9 @@ def _finish_taskflow_and_send_signal(instance_id, sig, task_success=False):
 
     TaskFlowInstance.objects.filter(id=task_id).update(current_flow="finished")
     sig.send(TaskFlowInstance, task_id=task_id)
-    _check_and_callback(task_id, task_success=task_success)
 
     if task_success:
+        _check_and_callback(task_id, task_success=task_success)
         try:
             send_taskflow_message.delay(task_id=task_id, msg_type=TASK_FINISHED)
         except Exception as e:

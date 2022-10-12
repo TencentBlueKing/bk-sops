@@ -25,18 +25,20 @@ from django.db import transaction
 from django_filters import CharFilter
 
 from gcloud import err_code
-from pipeline.models import TemplateRelationship
+from pipeline.models import TemplateRelationship, TemplateScheme
 
 from gcloud.contrib.collection.models import Collection
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.label.models import TemplateLabelRelation, Label
 from gcloud.tasktmpl3.signals import post_template_save_commit
-from gcloud.taskflow3.models import TaskTemplate
+from gcloud.taskflow3.models import TaskTemplate, TaskConfig
 from gcloud.core.apis.drf.serilaziers.task_template import (
     TaskTemplateListSerializer,
     TaskTemplateSerializer,
     CreateTaskTemplateSerializer,
     TopCollectionTaskTemplateSerializer,
+    ProjectInfoQuerySerializer,
+    ProjectFilterQuerySerializer,
 )
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.iam_auth import res_factory
@@ -72,6 +74,12 @@ class TaskTemplatePermission(IamPermission):
             IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
         ),
         "create": IamPermissionInfo(IAMMeta.FLOW_CREATE_ACTION, res_factory.resources_for_project, id_field="project"),
+        "enable_independent_subprocess": IamPermissionInfo(
+            IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project_id"
+        ),
+        "common_info": IamPermissionInfo(
+            IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project__id"
+        ),
     }
 
 
@@ -312,3 +320,19 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             project_id=template.project.id,
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @swagger_auto_schema(method="GET", operation_summary="查询流程是否开启独立子流程", query_serializer=ProjectInfoQuerySerializer)
+    @action(methods=["GET"], detail=True)
+    def enable_independent_subprocess(self, request, *args, **kwargs):
+        template_id = kwargs.get("pk")
+        project_id = request.query_params.get("project_id")
+        independent_subprocess_enable = TaskConfig.objects.enable_independent_subprocess(project_id, template_id)
+        return Response({"enable": independent_subprocess_enable})
+
+    @swagger_auto_schema(method="GET", operation_summary="获取流程详情公开信息", query_serializer=ProjectFilterQuerySerializer)
+    @action(methods=["GET"], detail=True)
+    def common_info(self, request, *args, **kwargs):
+        template = self.get_object()
+        schemes = TemplateScheme.objects.filter(template=template.pipeline_template).values_list("id", "name")
+        schemes_info = [{"id": scheme_id, "name": scheme_name} for scheme_id, scheme_name in schemes]
+        return Response({"name": template.name, "schemes": schemes_info})

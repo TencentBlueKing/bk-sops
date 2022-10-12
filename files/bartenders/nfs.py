@@ -16,5 +16,5 @@ from .utils import common_process_request
 
 
 class HostNFSBartender(UploadRequestBartender):
-    def process_request(self, request):
+    def process_request(self, request, *args, **kwargs):
         return common_process_request(request, self.manager)

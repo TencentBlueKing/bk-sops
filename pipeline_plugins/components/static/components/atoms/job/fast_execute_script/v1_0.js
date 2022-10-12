@@ -318,7 +318,7 @@
             type: "input",
             attrs: {
                 name: gettext("脚本参数"),
-                placeholder: gettext("可为空"),
+                placeholder: gettext("可为空, 脚本执行时传入的参数，同脚本在终端执行时的传参格式， 如:./test.sh xxxx xxx xxx"),
                 hookable: true
             },
         },
@@ -327,7 +327,7 @@
             type: "input",
             attrs: {
                 name: gettext("超时时间"),
-                placeholder: gettext("单位为秒(60 - 86400)，为空时使用JOB默认值"),
+                placeholder: gettext("单位为秒(1 - 86400)，为空时使用JOB默认值"),
                 hookable: true,
                 validation: [
                     {
@@ -340,9 +340,14 @@
                             if (!value) {
                                 return result
                             }
-                            if (+value < 60 || +value > 86400) {
+                            var reg = /^[\d]+$/;
+                            if (!reg.test(value)) {
                                 result.result = false;
-                                result.error_message = gettext("超时时间必须在 60 - 86400 范围内")
+                                result.error_message = gettext("超时时间必须为整数")
+                            }
+                            if (+value < 1 || +value > 86400) {
+                                result.result = false;
+                                result.error_message = gettext("超时时间必须在 1 - 86400 范围内")
                             }
                             return result
                         }
@@ -399,8 +404,8 @@
             tag_code: "job_ip_list",
             type: "textarea",
             attrs: {
-                name: gettext("目标IP"),
-                placeholder: gettext("输入IP, 多个用英文逗号 `,` 或换行分隔"),
+                name: gettext("目标服务器"),
+                placeholder: gettext("请输入IP 地址，多IP可用空格、换行分隔\n 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"),
                 hookable: true,
                 validation: [
                     {
@@ -426,7 +431,7 @@
             tag_code: "job_account",
             type: "input",
             attrs: {
-                name: gettext("目标账户"),
+                name: gettext("执行账号"),
                 placeholder: gettext("请输入在蓝鲸作业平台上注册的账户名"),
                 hookable: true,
                 validation: [

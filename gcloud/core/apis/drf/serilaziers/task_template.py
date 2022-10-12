@@ -92,3 +92,11 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
             "project",
             "template_id",
         ]
+
+
+class ProjectInfoQuerySerializer(serializers.Serializer):
+    project_id = serializers.IntegerField(help_text="项目ID")
+
+
+class ProjectFilterQuerySerializer(serializers.Serializer):
+    project__id = serializers.IntegerField(help_text="项目ID")

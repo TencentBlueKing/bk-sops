@@ -113,6 +113,9 @@
         },
         computed: {
             nodeTemplate () {
+                if (this.node.code === 'subprocess_plugin') {
+                    return this.components.subflow
+                }
                 return this.components[this.node.type.toLowerCase()]
             },
             nodeVar () {
@@ -268,7 +271,7 @@
             height: 34px;
             background: #96a1b9;
             border-radius: 50%;
-            box-shadow: 0 0 0 5px #96a1b9;
+            box-shadow: 0 0 0 2px #96a1b9;
             &.finished {
                 @include circleStatusStyle($greenDark, $greenShadow)
             }
