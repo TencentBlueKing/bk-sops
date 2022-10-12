@@ -52,7 +52,7 @@ class JobPushLocalFilesService(BaseJobPushLocalFilesService):
         clean_result, target_server = self.get_target_server_hybrid(executor, biz_cc_id, data, target_ip_list)
         return clean_result, target_server
 
-    def get_params_list(self, client, data, ip_list, local_files_and_target_path):
+    def get_params_list(self, client, data, target_server, local_files_and_target_path):
         biz_cc_id = data.inputs.biz_cc_id
         job_rolling_execute = data.get_one_of_inputs("job_rolling_execute", [])
         # 如果开启了滚动执行，填充rolling_config配置
@@ -75,7 +75,8 @@ class JobPushLocalFilesService(BaseJobPushLocalFilesService):
                     if _file["response"]["result"] is True
                 ],
                 "target_path": push_files_info["target_path"],
-                "ips": ip_list,
+                "ips": None,
+                "target_server": target_server,
                 "account": target_account,
                 "rolling_config": rolling_config,
             }

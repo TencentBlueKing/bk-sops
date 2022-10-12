@@ -130,9 +130,7 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
 
         file_source = []
         for item in original_source_files:
-            clean_source_ip_result, server = self.get_target_server(
-                executor, biz_cc_id, data, item["ip"], False, logger_handle=self.logger, is_across=True
-            )
+            clean_source_ip_result, server = self.get_target_server_hybrid(executor, biz_cc_id, data, item["ip"])
             if not clean_source_ip_result:
                 return False
             file_source.append(
@@ -174,9 +172,7 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
         for attr in attr_list:
             # 获取目标IP
             original_ip_list = attr["job_ip_list"]
-            clean_result, target_server = self.get_target_server(
-                executor, biz_cc_id, data, original_ip_list, False, logger_handle=self.logger, is_across=False
-            )
+            clean_result, target_server = self.get_target_server_hybrid(executor, biz_cc_id, data, original_ip_list)
             if not clean_result:
                 return False
             job_kwargs = {
