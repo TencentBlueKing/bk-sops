@@ -17,7 +17,6 @@ from pipeline.core.flow.io import StringItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
 
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.base_service import (
     BaseAllBizJobFastPushFileService,
 )
@@ -26,7 +25,7 @@ from gcloud.conf import settings
 __group_name__ = _("作业平台(JOB)")
 
 
-class AllBizJobFastPushFileService(BaseAllBizJobFastPushFileService, GetJobTargetServerMixin):
+class AllBizJobFastPushFileService(BaseAllBizJobFastPushFileService):
     need_show_failure_inst_url = True
 
     def inputs_format(self):

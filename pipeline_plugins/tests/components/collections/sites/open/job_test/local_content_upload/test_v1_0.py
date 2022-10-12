@@ -62,9 +62,7 @@ GET_CLIENT_BY_USER = (
 GET_NODE_CALLBACK_URL = (
     "pipeline_plugins.components.collections.sites.open.job.local_content_upload.base_service.get_node_callback_url"
 )
-CC_GET_IPS_INFO_BY_STR = (
-    "pipeline_plugins.components.collections.sites.open.job.local_content_upload.base_service.cc_get_ips_info_by_str"
-)
+CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
 JOB_HANDLE_API_ERROR = (
     "pipeline_plugins.components.collections.sites.open.job.local_content_upload.base_service.job_handle_api_error"
 )

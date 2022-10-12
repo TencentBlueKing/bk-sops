@@ -18,6 +18,7 @@ from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemS
 
 from gcloud.constants import JobBizScopeType
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
 from pipeline_plugins.components.utils import has_biz_set, batch_execute_func, get_job_instance_url, loose_strip
 from gcloud.conf import settings
@@ -29,8 +30,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class BaseAllBizJobFastPushFileService(JobScheduleService):
-
+class BaseAllBizJobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
     biz_scope_type = JobBizScopeType.BIZ_SET.value
 
     def inputs_format(self):
@@ -101,7 +101,7 @@ class BaseAllBizJobFastPushFileService(JobScheduleService):
         for item in data.get_one_of_inputs("job_source_files", []):
             result, server = self.get_target_server_biz_set(executor, [item], supplier_account)
             if not result:
-                return False
+                raise Exception("源文件信息处理失败")
 
             file_source.append(
                 {

@@ -16,7 +16,6 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.component import Component
 
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.base_service import (
     BaseAllBizJobFastPushFileService,
 )
@@ -25,7 +24,7 @@ from gcloud.conf import settings
 __group_name__ = _("作业平台(JOB)")
 
 
-class AllBizJobFastPushFileService(BaseAllBizJobFastPushFileService, GetJobTargetServerMixin):
+class AllBizJobFastPushFileService(BaseAllBizJobFastPushFileService):
     def get_params_list(self, data, parent_data):
         biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
         upload_speed_limit = data.get_one_of_inputs("upload_speed_limit")
