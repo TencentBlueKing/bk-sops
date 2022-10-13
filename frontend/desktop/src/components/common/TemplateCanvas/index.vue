@@ -908,6 +908,9 @@
                     let { source } = lines.find(item => item.id === incoming[0])
                     const outlinesId = Array.isArray(outgoing) ? outgoing[0] : outgoing
                     let { target } = lines.find(item => item.id === outlinesId)
+                    // 当分支上只剩开始结束节点时，不自动连线
+                    const { start_event, end_event } = this.$store.state.template
+                    if (source.id === start_event.id && target.id === end_event.id) return
                     // 当分支上只剩网关节点时，不自动连线
                     if (gateways[source.id] && gateways[target.id]) return
                     // 当需要生成的连线已存在，不自动连线
