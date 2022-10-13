@@ -474,6 +474,7 @@
                     } else {
                         item.key = key
                         item.index = maxIndex + index + 1
+                        item.source_info = {}
                     }
                     return item
                 })
