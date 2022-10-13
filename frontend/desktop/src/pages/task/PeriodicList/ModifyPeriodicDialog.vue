@@ -117,14 +117,15 @@
                                     :placeholder="$t('请选择')"
                                     :multiple="true"
                                     :clearable="false"
-                                    :disabled="formData.is_latest !== true || !formData.template_id"
+                                    :disabled="formData.is_latest !== true || !formData.template_id || previewDataLoading"
                                     :loading="isLoading || schemeLoading"
                                     @selected="onSelectScheme">
                                     <bk-option
                                         v-for="(option, index) in schemeList"
                                         :key="index"
                                         :id="option.id"
-                                        :name="option.name">
+                                        :name="option.name"
+                                        :disabled="previewDataLoading">
                                         <span>{{ option.name }}</span>
                                         <span v-if="option.isDefault" class="default-label">{{$t('默认')}}</span>
                                         <i v-if="formData.schemeId.includes(option.id)" class="bk-icon icon-check-line"></i>
@@ -592,6 +593,7 @@
                 }
             },
             onSelectScheme (ids, options, updateConstants = true) {
+                if (this.previewDataLoading) return
                 this.isUpdatePipelineTree = true
                 // 切换执行方案时取消<不使用执行方案>
                 const lastId = options.length ? options[options.length - 1].id : undefined
