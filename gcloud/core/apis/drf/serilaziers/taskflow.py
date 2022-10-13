@@ -17,7 +17,6 @@ from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
 
 
 class TaskSerializer(serializers.ModelSerializer):
-
     create_time = serializers.DateTimeField(
         format="%Y-%m-%d %H:%M:%S %z", read_only=True, source="pipeline_instance.create_time"
     )

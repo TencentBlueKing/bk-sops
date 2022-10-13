@@ -38,6 +38,7 @@ from gcloud.core.apis.drf.serilaziers.periodic_task import (
     PeriodicTaskReadOnlySerializer,
     CreatePeriodicTaskSerializer,
     PatchUpdatePeriodicTaskSerializer,
+    PeriodicTaskListReadOnlySerializer,
 )
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.iam_auth import res_factory
@@ -167,6 +168,11 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
         serializer.validated_data["template_source"] = template_source
         serializer.validated_data["template_version"] = template.version
         return serializer
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return PeriodicTaskListReadOnlySerializer
+        return PeriodicTaskReadOnlySerializer
 
     def list(self, request, *args, **kwargs):
         project_id = int(request.query_params.get("project__id", 0)) or None

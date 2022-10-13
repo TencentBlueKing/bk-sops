@@ -103,6 +103,31 @@ class PeriodicTaskReadOnlySerializer(serializers.ModelSerializer):
         ]
 
 
+class PeriodicTaskListReadOnlySerializer(PeriodicTaskReadOnlySerializer):
+    class Meta:
+        model = PeriodicTask
+        fields = [
+            "project",
+            "id",
+            "task",
+            "creator",
+            "editor",
+            "create_time",
+            "edit_time",
+            "cron",
+            "enabled",
+            "last_run_at",
+            "name",
+            "task_template_name",
+            "template_id",
+            "template_source",
+            "total_run_count",
+            "is_latest",
+            "template_scheme_ids",
+            "template_version",
+        ]
+
+
 class CreatePeriodicTaskSerializer(serializers.ModelSerializer):
     project = serializers.IntegerField(write_only=True)
     cron = serializers.DictField(write_only=True)

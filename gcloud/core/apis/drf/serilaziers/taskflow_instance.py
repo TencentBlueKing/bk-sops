@@ -15,6 +15,7 @@ import json
 
 from rest_framework import serializers
 
+from gcloud.core.apis.drf.serilaziers import ProjectSerializer
 from gcloud.core.models import Project
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.common_template.models import CommonTemplate
@@ -40,7 +41,7 @@ class TaskFlowInstanceSerializer(TaskSerializer):
 
 
 class TaskFlowListSerializer(serializers.ModelSerializer):
-    # todo[API优化] 列表显示正常，但是状态显示异常,执行中
+    project = ProjectSerializer()
 
     class Meta:
         model = TaskFlowInstance
@@ -58,6 +59,8 @@ class TaskFlowListSerializer(serializers.ModelSerializer):
             "template_id",
             "template_source",
             "create_time",
+            "start_time",
+            "project",
         ]
 
 
