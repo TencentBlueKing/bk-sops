@@ -12,15 +12,18 @@ specific language governing permissions and limitations under the License.
 """
 
 import ujson as json
+from bamboo_engine.eri import ContextValue, ContextValueType
 
 from django.views.decorators.http import require_GET, require_POST
 from django.http.response import JsonResponse
 
+from gcloud.core.models import EngineConfig
 from gcloud.utils.handlers import handle_plain_log
 from pipeline.engine.models import PipelineModel, PipelineProcess, Status, ScheduleService
 from pipeline.core.pipeline import PipelineShell
 from pipeline.engine.utils import calculate_elapsed_time
 from pipeline.core.data.var import Variable
+from pipeline.eri.runtime import BambooDjangoRuntime
 from pipeline.service import task_service
 from pipeline.core.flow.activity import Activity
 from pipeline.core.flow.gateway import Gateway
@@ -107,13 +110,18 @@ def serialize_process_data(process):
 
 @require_GET
 @iam_intercept(AdminViewViewInterceptor())
-def get_taskflow_detail(request):
+def get_taskflow_v1_detail(request):
     task_id = request.GET.get("task_id")
 
     try:
         taskflow = TaskFlowInstance.objects.get(id=task_id)
     except TaskFlowInstance.DoesNotExist:
         return {"result": False, "message": f"task {task_id} not exist"}
+
+    if taskflow.engine_ver != EngineConfig.ENGINE_VER_V1:
+        return JsonResponse(
+            {"result": False, "message": f"only support task with engine version {EngineConfig.ENGINE_VER_V1}"}
+        )
 
     process_data = "pipeline not run"
     if taskflow.pipeline_instance.is_started:
@@ -136,7 +144,7 @@ def hydrate_inputs(inputs):
 
 @require_GET
 @iam_intercept(AdminViewViewInterceptor())
-def get_taskflow_node_detail(request):
+def get_taskflow_v1_node_detail(request):
     task_id = request.GET.get("task_id")
     node_id = request.GET.get("node_id")
     subprocess_stack = json.loads(request.GET.get("subprocess_stack", "[]"))
@@ -151,6 +159,11 @@ def get_taskflow_node_detail(request):
     }
 
     taskflow = TaskFlowInstance.objects.get(id=task_id)
+
+    if taskflow.engine_ver != EngineConfig.ENGINE_VER_V1:
+        return JsonResponse(
+            {"result": False, "message": f"only support task with engine version {EngineConfig.ENGINE_VER_V1}"}
+        )
 
     if not taskflow.pipeline_instance.is_started:
         return JsonResponse({"result": False, "message": f"task[{task_id}] is not start"})
@@ -245,7 +258,7 @@ def get_taskflow_node_detail(request):
 
 @require_GET
 @iam_intercept(AdminViewViewInterceptor())
-def get_node_history_log(request):
+def get_node_v1_history_log(request):
     node_id = request.GET.get("node_id")
     history_id = request.GET.get("history_id")
 
@@ -256,20 +269,15 @@ def get_node_history_log(request):
 
 @require_POST
 @iam_intercept(AdminEditViewInterceptor())
-def force_fail_node(request):
+def upsert_taskflow_v2_context(request):
     data = json.loads(request.body)
-
+    context = data.get("context")
     task_id = data.get("task_id")
-    node_id = data.get("node_id")
 
     taskflow = TaskFlowInstance.objects.get(id=task_id)
-
-    if not taskflow.pipeline_instance.is_started:
-        return JsonResponse({"result": False, "message": f"task[{task_id}] is not start"})
-
-    if not taskflow.has_node(node_id):
-        return JsonResponse({"result": False, "message": f"task[{task_id}] does not have node[{node_id}]"})
-
-    result = task_service.forced_fail(node_id)
-
-    return JsonResponse({"result": result.result, "message": result.message})
+    runtime = BambooDjangoRuntime()
+    context_values = {
+        key: ContextValue(key=key, type=ContextValueType.PLAIN, value=value) for key, value in context.items()
+    }
+    runtime.upsert_plain_context_values(pipeline_id=taskflow.pipeline_instance.instance_id, update=context_values)
+    return JsonResponse({"result": True, "message": "upsert taskflow_context done"})
