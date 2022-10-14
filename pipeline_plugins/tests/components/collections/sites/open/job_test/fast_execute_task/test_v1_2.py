@@ -226,7 +226,7 @@ BASE_INPUTS = {
     "job_script_list_public": "",
     "job_script_list_general": "",
     "custom_task_name": "",
-    "job_rolling_execute": True,
+    "job_rolling_execute": ["1"],
     "job_rolling_expression": "10%",
     "job_rolling_mode": "1",
 }

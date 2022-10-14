@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="tag-panel">
+    <div class="tag-panel" @mouseleave="handleMenuLeave">
         <draggable
             :group="{
                 name: 'tag',
@@ -27,14 +27,13 @@
             :list="tagMenu"
             :clone="handleTagClone"
             @end="handleDragEnd">
-            <template v-for="menuItem in tagMenu">
+            <template v-for="(menuItem, index) in tagMenu">
                 <li
                     :class="['menu-item', 'has-sub-menu', { 'disabled': disabled }]"
                     v-if="menuItem.group"
                     :key="menuItem.group"
                     :draggable="false"
-                    @mouseenter="handleMenuEnter($event, menuItem)"
-                    @mouseleave="handleMenuLeave">
+                    @mouseenter="handleMenuEnter(menuItem, index)">
                     <i :class="['menu-icon', 'tag-default-icon', `common-icon-tag-${menuItem.group}`]"></i>
                     <i class="sub-icon common-icon-right-triangle"></i>
                     <div>{{ menuItem.group }}</div>
@@ -43,7 +42,8 @@
                     v-else
                     :class="['menu-item', 'drag-entry', { 'disabled': disabled }]"
                     :key="menuItem.tag"
-                    :draggable="true">
+                    :draggable="true"
+                    @mouseenter="handleMenuLeave">
                     <div class="content">
                         <i :class="['menu-icon', 'tag-default-icon', `common-icon-tag-${menuItem.config.type}`]"></i>
                         <div>{{ menuItem.tag }}</div>
@@ -52,12 +52,9 @@
             </template>
         </draggable>
         <div
-            v-if="isSubMenuShow"
+            v-if="activeSubMenu"
             class="sub-menu"
-            ref="subMenu"
-            :style="subMenuStyle"
-            @mouseenter="isSubMenuShow = true"
-            @mouseleave="isSubMenuShow = false">
+            :style="subMenuStyle">
             <draggable
                 :group="{
                     name: 'tag',
@@ -126,7 +123,7 @@
         data () {
             return {
                 draggedCount: 1,
-                isSubMenuShow: false,
+                activeSubMenu: null,
                 subMenu: [],
                 subMenuStyle: {}
             }
@@ -177,27 +174,15 @@
                     this.draggedCount += 1
                 }
             },
-            handleMenuEnter (event, group) {
-                this.subMenu = group.items
-                this.isSubMenuShow = true
+            handleMenuEnter (menu, index) {
+                this.subMenu = menu.items
+                this.activeSubMenu = menu.group
                 this.$nextTick(() => {
-                    let verticalPos
-                    const memuEl = event.target
-                    const topGap = memuEl.offsetTop - this.$refs.tagList.$el.scrollTop
-                    const tagListRect = this.$refs.tagList.$el.getBoundingClientRect()
-                    const subMenuRect = this.$refs.subMenu.getBoundingClientRect()
-                    if (topGap < 0) {
-                        verticalPos = { top: '10px' }
-                    } else if (subMenuRect.height + topGap > tagListRect.height) {
-                        verticalPos = { bottom: '10px' }
-                    } else {
-                        verticalPos = { top: `${topGap + 10}px` }
-                    }
-                    this.subMenuStyle = verticalPos
+                    this.subMenuStyle = { top: `${68 * index + 10}px` }
                 })
             },
             handleMenuLeave (event) {
-                this.isSubMenuShow = false
+                this.activeSubMenu = null
             }
         }
     }

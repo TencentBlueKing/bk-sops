@@ -219,14 +219,17 @@
                 try {
                     this.subflowFormsLoading = true
                     const tpls = []
+                    const nodeList = Object.values(this.activities)
                     this.list.map(item => {
                         if (item.expired) {
+                            const nodeInfo = nodeList.find(node => node.id === item.subprocess_node_id) || {}
+                            const template_source = nodeInfo.template_source && nodeInfo.template_source === 'common' ? 'common' : 'project'
                             tpls.push({
                                 id: item.template_id,
                                 nodeId: item.subprocess_node_id,
                                 version: item.version,
                                 scheme_id_list: item.scheme_id_list,
-                                template_source: this.common ? 'common' : 'project'
+                                template_source
                             })
                         }
                     })
@@ -484,7 +487,7 @@
                         }
                         const index = this.subflowForms.findIndex(item => item.id === id)
                         const refDoms = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
-                        refDoms && refDoms[index].setFromData()
+                        refDoms && refDoms[index].setFormData()
                     }
                 }
             },
@@ -524,7 +527,7 @@
                 }
                 const index = this.subflowForms.findIndex(item => item.id === id)
                 const refDoms = source === 'input' ? this.$refs.inputParams : this.$refs.outputParams
-                refDoms && refDoms[index].setFromData({ ...this.unhookingVarForm })
+                refDoms && refDoms[index].setFormData({ ...this.unhookingVarForm })
                 this.isCancelGloVarDialogShow = false
             },
             updateInputsValue (subflowId, value) {

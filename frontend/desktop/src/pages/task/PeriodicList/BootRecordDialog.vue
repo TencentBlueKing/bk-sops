@@ -132,7 +132,7 @@
                         this.loading = true
                     }
                     const resp = await this.periodTaskHistory({
-                        task_id: this.id,
+                        task__id: this.id,
                         limit: this.pageSize,
                         offset: this.currentPage * this.pageSize
                     })

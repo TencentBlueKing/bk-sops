@@ -254,7 +254,7 @@ MANUAL_INPUTS = {
     "job_content": "cd /aa",
     "job_script_param": " bbb",
     "job_script_timeout": "80",
-    "job_rolling_execute": True,
+    "job_rolling_execute": ["1"],
     "job_rolling_expression": "10%",
     "job_rolling_mode": "1",
     "job_target_ip_table": [

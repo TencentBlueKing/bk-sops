@@ -167,7 +167,7 @@
                 if (this.templateSource === 'business' || this.templateSource === 'project') {
                     routerData = `/template/view/${this.project_id}/?template_id=${this.template_id}`
                 } else if (this.templateSource === 'common') {
-                    routerData = `/common/view/?template_id=${this.template_id}&common=1`
+                    routerData = `/template/common/view/${this.project_id}/?template_id=${this.template_id}&common=1`
                 }
                 return routerData
             },
@@ -198,7 +198,9 @@
                         name: 'auditHome'
                     })
                 }
-                if (this.$route.name === 'taskExecute' && window.history.length > 2) {
+                // 当任务执行页由创建任务路由过来时，应该返回到任务列表页
+                const isFromCreate = this.$route.query.from === 'create'
+                if (!isFromCreate && this.$route.name === 'taskExecute' && window.history.length > 2) {
                     return this.$router.back()
                 }
                 this.$router.push({

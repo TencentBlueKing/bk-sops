@@ -17,6 +17,7 @@ from django.core.files.base import File
 
 from files.exceptions import InvalidOperationError, ApiResultError
 from files.managers.base import Manager
+from files.models import FileUploadRecord
 from gcloud.conf import settings
 from gcloud.core.models import Project
 
@@ -28,10 +29,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 class JobRepoStorage:
     @staticmethod
     def generate_temporary_upload_url(
-        username: str,
-        bk_biz_id: int,
-        file_names: list,
-        bk_scope_type: str = "biz",
+        username: str, bk_biz_id: int, file_names: list, bk_scope_type: str = "biz",
     ):
         esb_client = get_client_by_user(username)
         job_kwargs = {
@@ -94,6 +92,7 @@ class JobRepoManager(Manager):
         callback_url=None,
         timeout=None,
         bk_scope_type="biz",
+        rolling_config=None,
     ):
 
         if not all([tag["type"] == "job_repo" for tag in file_tags]):
@@ -110,6 +109,8 @@ class JobRepoManager(Manager):
         }
         if timeout is not None:
             job_kwargs["timeout"] = int(timeout)
+        if rolling_config is not None:
+            job_kwargs["rolling_config"] = rolling_config
         if callback_url:
             job_kwargs["callback_url"] = callback_url
 
@@ -127,3 +128,13 @@ class JobRepoManager(Manager):
 
     def get_push_job_state(self, esb_client, job_id):
         raise NotImplementedError()
+
+    def record_uploaded_data(self, data, *args, **kwargs):
+        """
+        :param data: 传入save函数的返回即可
+        :param kwargs: 需要包含username
+        :return: None
+        """
+        FileUploadRecord.objects.create(
+            username=kwargs["username"], file_path=data["tags"]["file_path"], file_name=data["tags"]["name"]
+        )

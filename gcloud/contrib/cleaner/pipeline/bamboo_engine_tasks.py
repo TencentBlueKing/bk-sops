@@ -14,6 +14,7 @@ from typing import List, Dict
 
 from django.db.models import QuerySet
 
+from pipeline.contrib.periodic_task.models import PeriodicTaskHistory
 from pipeline.eri.models import (
     ContextValue,
     ContextOutputs,
@@ -50,6 +51,7 @@ def get_clean_pipeline_instance_data(instance_ids: List[str]) -> Dict[str, Query
     context_value = ContextValue.objects.filter(pipeline_id__in=pipeline_ids)
     context_outputs = ContextOutputs.objects.filter(pipeline_id__in=pipeline_ids)
     process = Process.objects.filter(root_pipeline_id__in=pipeline_ids)
+    periodic_task_history = PeriodicTaskHistory.objects.filter(pipeline_instance_id__in=pipeline_ids)
 
     node_ids = list(nodes_in_pipeline.values_list("node_id", flat=True)) + instance_ids
     nodes = Node.objects.filter(node_id__in=node_ids)
@@ -61,7 +63,6 @@ def get_clean_pipeline_instance_data(instance_ids: List[str]) -> Dict[str, Query
     schedules = Schedule.objects.filter(node_id__in=node_ids)
 
     return {
-        "pipeline_instances": pipeline_instances,
         "tree_info": tree_info,
         "nodes_in_pipeline": nodes_in_pipeline,
         "execution_snapshot": execution_snapshot,
@@ -75,4 +76,6 @@ def get_clean_pipeline_instance_data(instance_ids: List[str]) -> Dict[str, Query
         "execution_data": execution_data,
         "callback_data": callback_data,
         "schedules": schedules,
+        "periodic_task_history": periodic_task_history,
+        "pipeline_instances": pipeline_instances,
     }

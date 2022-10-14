@@ -251,9 +251,10 @@
                     this.$emit('hookChange', 'delete', config)
                 }
             },
-            setFromData (data = {}) {
+            // 变量勾选/取消勾选后，需重新对form进行赋值
+            setFormData (data = {}) {
                 const form = this.unhookingVarForm
-                this.formData[form] = tools.deepClone(data.value)
+                this.formData[form] = tools.deepClone(data.value) || ''
                 this.hooked[form] = false
                 this.$emit('update', tools.deepClone(this.formData))
             },
@@ -263,7 +264,7 @@
                     name,
                     key: variableKey,
                     source_info: { [this.nodeId]: [this.hookingVarForm] },
-                    value: tools.deepClone(this.formData[this.hookingVarForm]),
+                    value: tools.deepClone(this.formData[this.hookingVarForm]) || '',
                     form_schema: formSchema.getSchema(this.hookingVarForm, this.scheme),
                     plugin_code: this.thirdPartyCode || ''
                 }

@@ -20,8 +20,9 @@ class CollectionConfig(AppConfig):
 
     def ready(self):
         from gcloud.contrib.collection.handlers import (  # noqa
-            common_template_collection_delete_handler,
-            task_template_collection_delete_handler,
-            app_maker_collection_delete_handler,
+            common_template_collection_post_save_handler,
+            task_template_collection_post_save_handler,
+            app_maker_collection_post_save_handler,
             periodic_task_collection_delete_handler,
+            periodic_task_collection_post_save_handler,
         )

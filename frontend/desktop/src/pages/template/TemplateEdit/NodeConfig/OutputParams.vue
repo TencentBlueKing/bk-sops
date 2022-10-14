@@ -238,7 +238,8 @@
                     this.$emit('hookChange', 'delete', config)
                 }
             },
-            setFromData () {
+            // 变量勾选/取消勾选后，需重新对form进行赋值
+            setFormData () {
                 const index = this.unhookingVarIndex
                 this.list[index].key = this.params[index].key
                 this.list[index].name = this.params[index].name

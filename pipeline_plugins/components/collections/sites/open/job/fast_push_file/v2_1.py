@@ -127,7 +127,7 @@ class JobFastPushFileService(JobScheduleService):
         upload_speed_limit = data.get_one_of_inputs("upload_speed_limit")
         download_speed_limit = data.get_one_of_inputs("download_speed_limit")
         job_timeout = data.get_one_of_inputs("job_timeout")
-        job_rolling_execute = data.get_one_of_inputs("job_rolling_execute", False)
+        job_rolling_execute = data.get_one_of_inputs("job_rolling_execute", [])
 
         file_source = []
         for item in original_source_files:
@@ -272,5 +272,5 @@ class JobFastPushFileComponent(Component):
         "2. 使用单行自动扩展模式时，每一行支持填写多个已自定义分隔符或是英文逗号分隔的数据，"
         '插件后台会自动将其扩展成多行，如 "1,2,3,4" 会被扩展成四行：1 2 3 4\n'
         "3. 结合模板生成（单行自动扩展）当有一列有多条数据时，其他列要么也有相等个数的数据，要么只有一条数据\n"
-        "4. V2.1版本支持job滚动执行，要求作业平台天版本>=3.6.0.0"
+        "4. V2.1版本支持job滚动执行，要求作业平台版本>=3.6.0.0"
     )

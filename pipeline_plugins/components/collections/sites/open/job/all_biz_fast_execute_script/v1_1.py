@@ -94,7 +94,7 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService):
         script_param = str(data.get_one_of_inputs("job_script_param"))
         job_script_timeout = data.get_one_of_inputs("job_script_timeout")
         ip_info = data.get_one_of_inputs("job_target_ip_table")
-        job_rolling_execute = data.get_one_of_inputs("job_rolling_execute", False)
+        job_rolling_execute = data.get_one_of_inputs("job_rolling_execute", [])
 
         # 拼装ip_list， bk_cloud_id为空则值为0
         ip_list = [

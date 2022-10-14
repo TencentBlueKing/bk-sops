@@ -53,7 +53,7 @@
                     <OperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></OperationFlow>
                 </section>
             </div>
-            <div v-if="executeInfo.state === 'RUNNING'" class="action-wrapper">
+            <div v-if="executeInfo.state === 'RUNNING' && !isSubProcessNode" class="action-wrapper">
                 <bk-button
                     v-if="nodeDetailConfig.component_code === 'pause_node'"
                     theme="primary"
@@ -303,7 +303,7 @@
                     this.executeInfo = respData
                     this.historyInfo = [respData]
                     if (respData.histories) {
-                        this.historyInfo.push(...respData.histories)
+                        this.historyInfo.push(...respData.histories.reverse())
                     }
                     this.executeInfo.name = this.location.name || NODE_DICT[this.location.type]
                     const { component_code: componentCode, version } = this.nodeDetailConfig
@@ -434,12 +434,15 @@
                         })
                     } else if (islegacySubProcess) {
                         // 兼容旧版本子流程节点输出数据
-                        outputsInfo = outputs.map(item => {
-                            const { value, key } = item
-                            const constants = this.nodeActivity.pipeline.constants
-                            const name = constants[key] ? constants[key].name : key
-                            return { value, name, key }
-                        })
+                        outputsInfo = outputs.reduce((acc, cur) => {
+                            const { value, key } = cur
+                            if (key !== 'ex_data') {
+                                const constants = this.nodeActivity.pipeline.constants
+                                const name = constants[key] ? constants[key].name : key
+                                acc.push({ value, name, key })
+                            }
+                            return acc
+                        }, [])
                     } else { // 普通插件展示 preset 为 true 的输出参数
                         outputsInfo = outputs.filter(output => output.preset)
                     }

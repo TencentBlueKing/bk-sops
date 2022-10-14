@@ -15,6 +15,7 @@ import logging
 
 from celery import task
 from django.db import transaction
+from pipeline.models import MAX_LEN_OF_NAME
 
 from gcloud.clocked_task.models import ClockedTask
 from gcloud.constants import CLOCKED_TASK_STARTED, CLOCKED_TASK_START_FAILED
@@ -52,9 +53,11 @@ def clocked_task_start(clocked_task_id, *args, **kwargs):
         logger.warning(f"[clocked_task_start] clocked task {clocked_task_id} not found, may be deleted.")
         return
     try:
+        timestamp = Project.objects.get_timezone_based_timestamp(project_id=clocked_task.project_id)
+        task_name = f"{clocked_task.task_name}_{timestamp}"[:MAX_LEN_OF_NAME]
         task_params = json.loads(clocked_task.task_params)
         pipeline_instance_kwargs = {
-            "name": clocked_task.task_name,
+            "name": task_name,
             "creator": clocked_task.creator,
             "description": task_params.get("description", ""),
         }

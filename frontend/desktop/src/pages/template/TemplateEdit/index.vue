@@ -101,6 +101,7 @@
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
                     :back-to-variable-panel="backToVariablePanel"
+                    :is-not-exist-atom-or-verion="isNotExistAtomOrVerion"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
                     @templateDataChanged="templateDataChanged"
@@ -311,7 +312,8 @@
                 nodeVariableInfo: {}, // 节点输入输出变量
                 initType: '', // 记录最初的流程类型
                 isMultipleTabCount: 0,
-                isRouterPush: false
+                isRouterPush: false,
+                isNotExistAtomOrVerion: false // 选中的节点插件/插件版本是否存在
             }
         },
         computed: {
@@ -1182,18 +1184,15 @@
             async onShowNodeConfig (id) {
                 // 判断节点配置的插件是否存在
                 const nodeConfig = this.$store.state.template.activities[id]
-                if (nodeConfig.type === 'ServiceActivity' && nodeConfig.name) {
+                if (nodeConfig && nodeConfig.type === 'ServiceActivity' && nodeConfig.name && nodeConfig.component.code !== 'remote_plugin') {
                     let atom = true
-                    if (nodeConfig.component.code !== 'remote_plugin') {
-                        atom = this.atomList.find(item => item.code === nodeConfig.component.code)
-                    }
+                    atom = this.atomList.find(item => item.code === nodeConfig.component.code)
+                    this.isNotExistAtomOrVerion = false
                     if (!atom) {
-                        this.validateConnectFailList.push(nodeConfig.id)
-                        this.$bkMessage({
-                            message: '该节点配置的插件不存在，请检查流程数据',
-                            theme: 'error'
-                        })
-                        return
+                        this.isNotExistAtomOrVerion = true
+                    } else {
+                        const matchResult = atom.list.find(item => item.version === nodeConfig.component.version)
+                        this.isNotExistAtomOrVerion = !matchResult
                     }
                 }
                 // 点击节点时，清除校验异常状态
@@ -1209,6 +1208,12 @@
                         && nodeConfig.component.code === 'remote_plugin'
                         && !this.thirdPartyList[id]) {
                         const resp = await this.loadPluginServiceMeta({ plugin_code: nodeConfig.component.data.plugin_code.value })
+                        // 第三方插件是否存在
+                        if (!resp.result && resp.message.indexOf('404') > -1) {
+                            this.isNotExistAtomOrVerion = true
+                            this.showConfigPanel(id)
+                            return
+                        }
                         const { code, versions, description } = resp.data
                         const versionList = versions.map(version => {
                             return { version }
@@ -1222,7 +1227,12 @@
                             version,
                             desc: description
                         }
-                        this.thirdPartyList[id] = group
+                        // 第三方插件版本是否存在
+                        if (versions.includes(version)) {
+                            this.thirdPartyList[id] = group
+                        } else {
+                            this.isNotExistAtomOrVerion = true
+                        }
                     }
                     this.showConfigPanel(id)
                 }
@@ -1372,7 +1382,7 @@
                     const nodeList = this.validateConnectFailList.filter(val => idList.includes(val))
                     if (!nodeList || !nodeList.length) return
                     nodeList.forEach(node => {
-                        let nodeInfo = this.activities[node] || this.locations[node]
+                        let nodeInfo = this.activities[node] || this.locations[node] || this.gateways[node]
                         if (!nodeInfo) {
                             nodeInfo = node === this.start_event.id ? this.start_event : node === this.end_event.id ? this.end_event : {}
                         }
