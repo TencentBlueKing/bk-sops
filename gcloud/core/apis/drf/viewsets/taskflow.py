@@ -143,6 +143,15 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     filter_class = TaskFlowFilterSet
     permission_classes = [permissions.IsAuthenticated, TaskFlowInstancePermission]
 
+    def get_serializer_class(self, *args, **kwargs):
+        if self.action == "create":
+            return CreateTaskFlowInstanceSerializer
+        elif self.action == "list":
+            return TaskFlowListSerializer
+        elif self.action == "retrieve":
+            return RetrieveTaskFlowInstanceSerializer
+        return super().get_serializer_class(*args, **kwargs)
+
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
@@ -163,7 +172,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             page = list(queryset)
         else:
             page = self.paginate_queryset(queryset)
-        serializer = TaskFlowListSerializer(page, many=True)
+        serializer = self.get_serializer_class(page, many=True)
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, page)
         self._inject_template_related_info(request, data)
@@ -306,13 +315,6 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             project_id=instance.project.id,
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def get_serializer_class(self, *args, **kwargs):
-        if self.action == "create":
-            return CreateTaskFlowInstanceSerializer
-        elif self.action == "retrieve":
-            return RetrieveTaskFlowInstanceSerializer
-        return super().get_serializer_class(*args, **kwargs)
 
     @staticmethod
     def _optimized_my_dynamic_query(queryset, username, limit, offset, create_method=None):
