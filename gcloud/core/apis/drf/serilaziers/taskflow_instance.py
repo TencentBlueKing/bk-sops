@@ -40,7 +40,7 @@ class TaskFlowInstanceSerializer(TaskSerializer):
         fields = "__all__"
 
 
-class TaskFlowListSerializer(serializers.ModelSerializer):
+class TaskFlowInstanceListSerializer(serializers.ModelSerializer):
     project = ProjectSerializer()
 
     class Meta:

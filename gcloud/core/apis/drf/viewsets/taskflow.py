@@ -34,7 +34,7 @@ from gcloud.core.apis.drf.serilaziers import (
     ListChildrenTaskFlowResponseSerializer,
     RootTaskflowQuerySerializer,
     RootTaskflowResponseSerializer,
-    TaskFlowListSerializer,
+    TaskFlowInstanceListSerializer,
 )
 from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig, TaskFlowRelation
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -147,7 +147,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         if self.action == "create":
             return CreateTaskFlowInstanceSerializer
         elif self.action == "list":
-            return TaskFlowListSerializer
+            return TaskFlowInstanceListSerializer
         elif self.action == "retrieve":
             return RetrieveTaskFlowInstanceSerializer
         return super().get_serializer_class(*args, **kwargs)
@@ -172,7 +172,8 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             page = list(queryset)
         else:
             page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer_class(page, many=True)
+        serializer = self.get_serializer(page, many=True)
+
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, page)
         self._inject_template_related_info(request, data)
