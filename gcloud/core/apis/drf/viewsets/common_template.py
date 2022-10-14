@@ -98,7 +98,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
     ordering = ["-id"]
 
     def get_serializer_class(self):
-        if self.action == "list":
+        if self.action in ["list", "list_with_top_collection"]:
             return CommonTemplateListSerializer
         return CommonTemplateSerializer
 
