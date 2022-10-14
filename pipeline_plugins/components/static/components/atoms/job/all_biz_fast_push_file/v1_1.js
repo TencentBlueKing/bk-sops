@@ -15,7 +15,7 @@
             tag_code: "all_biz_cc_id",
             type: "select",
             attrs: {
-                name: gettext("业务集ID"),
+                name: gettext("业务集"),
                 hookable: true,
                 remote_url: function () {
                     const url = $.context.get('site_url') + 'pipeline/list_business_set/'
@@ -45,7 +45,7 @@
                     {
                         type: "add_row",
                         text: gettext("添加"),
-                        callback: function(){
+                        callback: function () {
                             this.add_row()
                         }
                     },
@@ -136,6 +136,26 @@
                 name: gettext("上传限速"),
                 placeholder: gettext("MB/s 若不限速则不填写"),
                 hookable: true,
+                validation: [
+                    {
+                        type: "custom",
+                        args: function (value) {
+                            let result = {
+                                result: true,
+                                error_message: ""
+                            };
+                            if (!value) {
+                                return result
+                            }
+                            var reg = /^[\d]+$/;
+                            if (!reg.test(value)) {
+                                result.result = false;
+                                result.error_message = gettext("上传限速必须为整数")
+                            }
+                            return result
+                        }
+                    }
+                ]
             }
         },
         {
@@ -145,6 +165,26 @@
                 name: gettext("下载限速"),
                 placeholder: gettext("MB/s 若不限速则不填写"),
                 hookable: true,
+                validation: [
+                    {
+                        type: "custom",
+                        args: function (value) {
+                            let result = {
+                                result: true,
+                                error_message: ""
+                            };
+                            if (!value) {
+                                return result
+                            }
+                            var reg = /^[\d]+$/;
+                            if (!reg.test(value)) {
+                                result.result = false;
+                                result.error_message = gettext("下载限速必须为整数")
+                            }
+                            return result
+                        }
+                    }
+                ]
             }
         },
         {
@@ -156,7 +196,7 @@
                     {
                         type: "add_row",
                         text: gettext("添加"),
-                        callback: function(){
+                        callback: function () {
                             this.add_row()
                         }
                     },
@@ -255,7 +295,7 @@
             type: "input",
             attrs: {
                 name: gettext("超时时间"),
-                placeholder: gettext("单位为秒(60 - 86400)，为空时使用JOB默认值"),
+                placeholder: gettext("单位为秒(1 - 86400)，为空时使用JOB默认值"),
                 hookable: true,
                 validation: [
                     {
@@ -268,9 +308,14 @@
                             if (!value) {
                                 return result
                             }
+                            var reg = /^[\d]+$/;
+                            if (!reg.test(value)) {
+                                result.result = false;
+                                result.error_message = gettext("超时时间必须为整数")
+                            }
                             if (+value < 60 || +value > 86400) {
                                 result.result = false;
-                                result.error_message = gettext("超时时间必须在 60 - 86400 范围内")
+                                result.error_message = gettext("超时时间必须在 1 - 86400 范围内")
                             }
                             return result
                         }
@@ -280,29 +325,23 @@
         },
         {
             tag_code: "job_rolling_execute",
-            type: "radio",
+            type: "checkbox",
             attrs: {
                 name: gettext("滚动执行"),
                 hookable: true,
                 items: [
-                    {value: false, name: gettext("否")},
-                    {value: true, name: gettext("是")},
+                    {name: gettext(""), value: "open"},
                 ],
-                default: false,
-                validation: [
-                    {
-                        type: "required"
-                    }
-                ]
+                validation: []
             }
         },
-         {
+        {
             tag_code: "job_rolling_expression",
             type: "input",
             attrs: {
                 name: gettext("滚动策略"),
                 placeholder: gettext("详情请查看JOB使用指引"),
-                hookable: true,
+                hookable: false,
                 validation: [
                     {
                         type: "custom",
@@ -315,7 +354,7 @@
                             if (!self.get_parent) {
                                 return result
                             } else if (self.get_parent().get_child('job_rolling_execute')) {
-                                if (self.get_parent().get_child('job_rolling_execute').value && !value.toString()) {
+                                if (self.get_parent().get_child('job_rolling_execute').value.includes("open") && !value.toString()) {
                                     result.result = false;
                                     result.error_message = gettext("滚动执行开启时滚动策略为必填项");
                                 }
@@ -331,8 +370,7 @@
                     type: "change",
                     action: function (value) {
                         var self = this
-                        console.log(value);
-                        if (value) {
+                        if (value.includes("open")) {
                             self.show()
                         } else {
                             self.hide()
@@ -344,7 +382,7 @@
                     type: "init",
                     action: function () {
                         const job_rolling_execute = this.get_parent && this.get_parent().get_child('job_rolling_execute')._get_value();
-                        if (job_rolling_execute) {
+                        if (job_rolling_execute.includes("open")) {
                             this.show()
                         } else {
                             this.hide()
@@ -358,7 +396,7 @@
             type: "select",
             attrs: {
                 name: gettext("滚动机制"),
-                hookable: true,
+                hookable: false,
                 default: 1,
                 validation: [
                     {
@@ -372,7 +410,7 @@
                             if (!self.get_parent) {
                                 return result
                             } else if (self.get_parent().get_child('job_rolling_execute')) {
-                                if (self.get_parent().get_child('job_rolling_execute').value && !value.toString()) {
+                                if (self.get_parent().get_child('job_rolling_execute').value.includes("open") && !value.toString()) {
                                     result.result = false;
                                     result.error_message = gettext("滚动执行开启时滚动机制为必填项");
                                 }
@@ -393,7 +431,7 @@
                     type: "change",
                     action: function (value) {
                         var self = this
-                        if (value) {
+                        if (value.includes("open")) {
                             self.show()
                         } else {
                             self.hide()
@@ -405,7 +443,7 @@
                     type: "init",
                     action: function () {
                         const job_rolling_execute = this.get_parent && this.get_parent().get_child('job_rolling_execute')._get_value();
-                        if (job_rolling_execute) {
+                        if (job_rolling_execute.includes("open")) {
                             this.show()
                         } else {
                             this.hide()

@@ -339,7 +339,7 @@
                         const relatedVarInfo = this.changeVarInfo[item.target_key]
                         // 计算输入值是否匹配
                         isEqual = (item.operator === '=' && isEqual) || (item.operator === '!=' && !isEqual)
-                        relatedVarInfo[item.key] = isEqual
+                        relatedVarInfo[key] = isEqual
                         // 相关运算逻辑
                         let isMatch = false
                         const relatedVarValues = Object.values(relatedVarInfo)

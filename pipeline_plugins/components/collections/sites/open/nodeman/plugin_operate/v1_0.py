@@ -130,6 +130,10 @@ class NodemanPluginOperateService(NodeManBaseService):
         if plugin_version:
             params["plugin_params"]["version"] = plugin_version
 
+        # 如果插件操作类型为停止，则固定版本传`latest`,
+        if op_type == "MAIN_STOP_PLUGIN":
+            params["plugin_params"]["version"] = "latest"
+
         if op_type == "MAIN_INSTALL_PLUGIN" and install_config:
             if "keep_config" in install_config:
                 params["plugin_params"].update({"keep_config": 1})

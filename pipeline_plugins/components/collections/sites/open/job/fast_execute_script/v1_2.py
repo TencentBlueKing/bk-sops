@@ -195,7 +195,7 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         script_source = data.get_one_of_inputs("job_script_source")
         ip_info = data.get_one_of_inputs("job_ip_list")
-        job_rolling_execute = data.get_one_of_inputs("job_rolling_execute", False)
+        job_rolling_execute = data.get_one_of_inputs("job_rolling_execute", [])
         # 获取 IP
         result, ip_list = get_biz_ip_from_frontend_hybrid(executor, ip_info, biz_cc_id, data)
         if not result:

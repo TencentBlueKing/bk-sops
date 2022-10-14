@@ -12,7 +12,7 @@
 <template>
     <bk-dialog
         width="800"
-        ext-cls="common-dialog"
+        ext-cls="common-dialog app-edit-dialog"
         :theme="'primary'"
         :mask-close="false"
         :header-position="'left'"
@@ -563,6 +563,11 @@
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
+/deep/.app-edit-dialog {
+    .bk-dialog {
+        top: 15%;
+    }
+}
 .common-error-tip {
     position: absolute;
     left: 0;

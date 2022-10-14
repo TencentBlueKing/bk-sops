@@ -255,6 +255,12 @@
             hide () {
                 this.showForm = false
             },
+            onShowForm () {
+                this.show()
+            },
+            onHideForm () {
+                this.hide()
+            },
             validate () {
                 let isValid = true
                 // 表单未被勾选并且为显示状态

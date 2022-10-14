@@ -565,16 +565,8 @@
             } else {
                 if (this.basicInfo.tpl) {
                     this.getSubflowSchemeList()
+                    this.judgeFailTimeoutShow()
                 }
-            }
-        },
-        async mounted () {
-            if (this.isSubflow) {
-                const res = await this.getProcessOpenRetryAndTimeout({
-                    project_id: this.projectId,
-                    id: this.formData.tpl
-                })
-                this.isShowFailTimeoutHandle = res.data.enable
             }
         },
         methods: {
@@ -793,6 +785,17 @@
                 const comp = this.isSubflow ? this.$refs.subflowForm : this.$refs.pluginForm
                 comp.clearError()
                 return comp.validate()
+            },
+            async judgeFailTimeoutShow () {
+                try {
+                    const res = await this.getProcessOpenRetryAndTimeout({
+                        project_id: this.projectId,
+                        id: this.basicInfo.tpl
+                    })
+                    this.isShowFailTimeoutHandle = res.data.enable
+                } catch (error) {
+                    console.warn(error)
+                }
             }
         }
     }

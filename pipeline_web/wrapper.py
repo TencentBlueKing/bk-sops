@@ -116,6 +116,13 @@ class PipelineTemplateWebWrapper(object):
                     ).get_pipeline_tree_by_version(version)
 
                     if "constants" in subproc_data:
+                        # 处理子流程中为下拉框并且隐藏的变量:
+                        for key, constant in subproc_data.get("constants", {}).items():
+
+                            # 如果是下拉框并且设置了隐藏, 则自动获取默认值
+                            if constant.get("is_meta") and constant.get("show_type") == "hide":
+                                constant["value"] = constant.get("value", {}).get("default")
+
                         subproc_inputs = act.pop("constants")
                         # replace show constants with inputs
                         subproc_constants = {}

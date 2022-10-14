@@ -76,7 +76,7 @@ INPUT = {
             "bk_cloud_id": "0",
         },
     ],
-    "job_rolling_execute": True,
+    "job_rolling_execute": ["1"],
     "job_rolling_expression": "10%",
     "job_rolling_mode": "1",
     "job_timeout": "100",

@@ -43,9 +43,13 @@ def clean_expired_v2_task_data():
 
         batch_num = settings.CLEAN_EXPIRED_V2_TASK_BATCH_NUM
 
-        ids = TaskFlowInstance.objects.filter(
-            pipeline_instance__create_time__lt=expire_time, engine_ver=2, pipeline_instance__is_expired=False
-        ).values("id", "pipeline_instance__instance_id")[:batch_num]
+        ids = (
+            TaskFlowInstance.objects.filter(
+                pipeline_instance__create_time__lt=expire_time, engine_ver=2, pipeline_instance__is_expired=False
+            )
+            .order_by("id")
+            .values("id", "pipeline_instance__instance_id")[:batch_num]
+        )
         task_ids = [item["id"] for item in ids]
         logger.info(f"Clean expired task data, task_ids: {task_ids}")
         pipeline_instance_ids = [item["pipeline_instance__instance_id"] for item in ids]
@@ -62,5 +66,6 @@ def clean_expired_v2_task_data():
                     qs.delete()
                 elif field == "pipeline_instances":
                     qs.update(is_expired=True)
+        logger.info(f"[clean_expired_v2_task_data] success clean tasks: {task_ids}")
     except Exception as e:
         logger.exception(f"[clean_expired_v2_task_data] error: {e}")
