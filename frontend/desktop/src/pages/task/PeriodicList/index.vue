@@ -118,7 +118,7 @@
                         </template>
                         <bk-table-column :label="$t('操作')" width="220" :fixed="periodicList.length ? 'right' : false">
                             <template slot-scope="props">
-                                <div class="periodic-operation">
+                                <div class="periodic-operation" :periodic-task-name="props.row.name">
                                     <template v-if="!adminView">
                                         <bk-switcher
                                             :value="props.row.enabled"
@@ -767,6 +767,7 @@
             },
             onCreatePeriodTask () {
                 this.curRow = {}
+                this.constants = {}
                 this.editTask = false
                 this.isModifyDialogShow = true
             },

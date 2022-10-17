@@ -117,14 +117,15 @@
                                     :placeholder="$t('请选择')"
                                     :multiple="true"
                                     :clearable="false"
-                                    :disabled="formData.is_latest !== true || !formData.template_id"
+                                    :disabled="formData.is_latest !== true || !formData.template_id || previewDataLoading"
                                     :loading="isLoading || schemeLoading"
                                     @selected="onSelectScheme">
                                     <bk-option
                                         v-for="(option, index) in schemeList"
                                         :key="index"
                                         :id="option.id"
-                                        :name="option.name">
+                                        :name="option.name"
+                                        :disabled="previewDataLoading">
                                         <span>{{ option.name }}</span>
                                         <span v-if="option.isDefault" class="default-label">{{$t('默认')}}</span>
                                         <i v-if="formData.schemeId.includes(option.id)" class="bk-icon icon-check-line"></i>
@@ -591,6 +592,7 @@
                 }
             },
             onSelectScheme (ids, options, updateConstants = true) {
+                if (this.previewDataLoading) return
                 this.isUpdatePipelineTree = true
                 // 切换执行方案时取消<不使用执行方案>
                 const lastId = options.length ? options[options.length - 1].id : undefined
@@ -650,9 +652,14 @@
                         this.previewData = resp.data.pipeline_tree
                         if (updateConstants) {
                             this.periodicConstants = Object.values(this.previewData.constants).reduce((acc, cur) => {
+                                // 切换执行方案时需要保留修改的变量值
                                 acc[cur.key] = {
                                     ...cur,
                                     value: this.constants[cur.key] ? this.constants[cur.key].value : cur.value
+                                }
+                                // 如果为元变量并且没有meta字段时自动补充上
+                                if (this.isEdit && cur.is_meta && !('meta' in cur)) {
+                                    acc[cur.key]['meta'] = cur
                                 }
                                 return acc
                             }, {})
@@ -850,7 +857,7 @@
                         this.$emit('onConfirmSave')
                     }
                     this.$bkMessage({
-                        'message': i18n.t('流程更新成功'),
+                        'message': i18n.t('编辑周期任务成功'),
                         'theme': 'success'
                     })
                 } catch (error) {

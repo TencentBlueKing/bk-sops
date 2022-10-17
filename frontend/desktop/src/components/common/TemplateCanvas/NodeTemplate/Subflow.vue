@@ -40,21 +40,30 @@
             <div class="ripple"></div>
         </div>
         <!-- 节点右上角执行相关的icon区域 -->
-        <div class="node-execute-icon">
-            <div v-if="node.status === 'SUSPENDED' || node.status === 'RUNNING'" class="task-status-icon subflow-status">
-                <i v-if="node.status === 'SUSPENDED'" class="common-icon-double-vertical-line"></i>
-                <i v-if="node.status === 'RUNNING'" class="common-icon-loading"></i>
-            </div>
-        </div>
+        <node-right-icon-status :node="node"></node-right-icon-status>
         <!-- tooltip提示 -->
         <div class="state-icon">
-            <el-tooltip placement="bottom" :content="$t('节点参数')">
+            <template v-if="node.status === 'FAILED'">
+                <el-tooltip v-if="isShowRetryBtn" placement="bottom" :content="$t('重试')">
+                    <span
+                        class="common-icon-retry"
+                        @click.stop="$emit('onRetryClick', node.id)">
+                    </span>
+                </el-tooltip>
+                <el-tooltip v-if="isShowSkipBtn" placement="bottom" :content="$t('跳过')">
+                    <span
+                        class="common-icon-skip"
+                        @click.stop="$emit('onSkipClick', node.id)">
+                    </span>
+                </el-tooltip>
+            </template>
+            <el-tooltip v-if="!isSubProcessNode" placement="bottom" :content="$t('节点参数')">
                 <span
                     class="common-icon-bkflow-setting"
                     @click.stop="$emit('onSubflowDetailClick', node.id)">
                 </span>
             </el-tooltip>
-            <template v-if="node.status === 'RUNNING'">
+            <template v-if="!isSubProcessNode && node.status === 'RUNNING'">
                 <el-tooltip placement="bottom" :content="$t('暂停')">
                     <span
                         class="common-icon-resume"
@@ -68,7 +77,7 @@
                     </span>
                 </el-tooltip>
             </template>
-            <el-tooltip v-if="node.status === 'SUSPENDED'" placement="bottom" :content="$t('继续')">
+            <el-tooltip v-if="!isSubProcessNode && node.status === 'SUSPENDED'" placement="bottom" :content="$t('继续')">
                 <span
                     class="common-icon-play"
                     @click.stop="onSubflowPauseResumeClick('resume')">
@@ -78,9 +87,12 @@
     </div>
 </template>
 <script>
-
+    import NodeRightIconStatus from './NodeRightIconStatus.vue'
     export default {
         name: 'Subflow',
+        components: {
+            NodeRightIconStatus
+        },
         props: {
             hasAdminPerm: {
                 type: Boolean,
@@ -91,6 +103,32 @@
                 default () {
                     return {}
                 }
+            }
+        },
+        computed: {
+            isOpenTooltip () {
+                if (this.node.mode === 'execute') {
+                    if (this.node.status === 'RUNNING') {
+                        return ['sleep_timer', 'pause_node'].indexOf(this.node.code) > -1
+                    }
+                    return this.node.status === 'FAILED'
+                }
+                return false
+            },
+            isShowSkipBtn () {
+                if (this.node.status === 'FAILED' && (this.node.skippable || this.node.errorIgnorable)) {
+                    return true
+                }
+                return false
+            },
+            isShowRetryBtn () {
+                if (this.node.status === 'FAILED' && (this.node.retryable || this.node.errorIgnorable)) {
+                    return true
+                }
+                return false
+            },
+            isSubProcessNode () {
+                return this.node.code === 'subprocess_plugin'
             }
         },
         methods: {

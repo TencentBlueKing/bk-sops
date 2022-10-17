@@ -46,13 +46,24 @@
                                 v-for="item in setting.selectedFields"
                                 :key="item.id"
                                 :label="item.label"
+                                :label-class-name="item.id === 'id' ? 'task-id' : ''"
                                 :prop="item.id"
                                 :render-header="renderTableHeader"
                                 :width="item.width"
                                 :min-width="item.min_width">
                                 <template slot-scope="props">
                                     <!--任务名称-->
-                                    <div v-if="item.id === 'name'">
+                                    <div v-if="item.id === 'id'">
+                                        <span v-if="props.row.isHasChild || (props.row.children && props.row.children.length !== 0)" :style="{ 'margin-left': `${(props.row.level) * 20}px` }">
+                                            <i
+                                                :class="['commonicon-icon', 'common-icon-next-triangle-shape', props.row.isOpen ? 'show-chd' : 'close-chd']"
+                                                @click="getCurProcessChdProcess(props.row)">
+                                            </i>
+                                        </span>
+                                        <span v-else :style="{ 'margin-left': `${(props.row.level) * 20}px`, width: '12px', display: 'inline-block' }"></span>
+                                        <span>{{ props.row[item.id] || '--' }}</span>
+                                    </div>
+                                    <div v-else-if="item.id === 'name'">
                                         <a
                                             v-if="!hasPermission(['task_view'], props.row.auth_actions)"
                                             v-cursor
@@ -88,9 +99,9 @@
                                     </template>
                                 </template>
                             </bk-table-column>
-                            <bk-table-column :label="$t('操作')" width="190" :fixed="taskList.length ? 'right' : false">
+                            <bk-table-column :label="$t('操作')" width="150" :fixed="taskList.length ? 'right' : false">
                                 <template slot-scope="props">
-                                    <div class="task-operation">
+                                    <div class="task-operation" :task-name="props.row.name">
                                         <!-- 事后鉴权，后续对接新版权限中心 -->
                                         <a v-if="props.row.template_deleted || props.row.template_source === 'onetime'" class="task-operation-btn disabled" data-test-id="taskList_table_reexecuteBtn">{{$t('重新执⾏')}}</a>
                                         <a
@@ -109,6 +120,24 @@
                                             @click="getCreateTaskUrl(props.row)">
                                             {{$t('重新执⾏')}}
                                         </a>
+                                        <a
+                                            v-if="executeStatus[props.$index] && executeStatus[props.$index].text === $t('未执行')"
+                                            v-cursor="{ active: !hasPermission(['task_delete'], props.row.auth_actions) }"
+                                            :class="['task-operation-btn', {
+                                                'text-permission-disable': !hasPermission(['task_delete'], props.row.auth_actions)
+                                            }]"
+                                            href="javascript:void(0);"
+                                            data-test-id="taskList_table_deleteBtn"
+                                            @click="onDeleteTask(props.row, $event)">
+                                            {{ $t('删除') }}
+                                        </a>
+                                        <a
+                                            v-else
+                                            v-bk-tooltips.top="$t('仅“未执行”的任务才可删除')"
+                                            class="task-operation-btn disabled"
+                                            data-test-id="taskList_table_deleteBtn">
+                                            {{ $t('删除') }}
+                                        </a>
                                     </div>
                                 </template>
                             </bk-table-column>
@@ -126,6 +155,20 @@
                 </div>
             </skeleton>
         </div>
+        <bk-dialog
+            width="400"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="$t('删除')"
+            :value="isDeleteDialogShow"
+            @confirm="onDeleteConfirm"
+            @cancel="onDeleteCancel">
+            <div class="dialog-content" v-bkloading="{ isLoading: deletaLoading, opacity: 1, zIndex: 100 }">
+                {{$t('确认删除') + '"' + theDeleteTaskName + '"?'}}
+            </div>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -309,7 +352,7 @@
                     executor,
                     statusSync,
                     taskName,
-                    id: task_id,
+                    task_id,
                     create_method,
                     recorded_executor_proxy
                 },
@@ -336,7 +379,11 @@
                 },
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
                 searchSelectValue,
-                isInitCreateMethod: false
+                isInitCreateMethod: false,
+                isDeleteDialogShow: false,
+                deletaLoading: false,
+                theDeleteTaskId: undefined,
+                theDeleteTaskName: ''
             }
         },
         computed: {
@@ -355,13 +402,16 @@
         },
         methods: {
             ...mapActions('template/', [
-                'loadProjectBaseInfo'
+                'loadProjectBaseInfo',
+                'getTaskHasSubTaskList',
+                'getTaskHasSubTasks'
             ]),
             ...mapActions('task/', [
                 'loadCreateMethod'
             ]),
             ...mapActions('taskList/', [
-                'loadTaskList'
+                'loadTaskList',
+                'deleteTask'
             ]),
             ...mapMutations('template/', [
                 'setProjectBaseInfo'
@@ -374,7 +424,7 @@
                 this.listLoading = true
                 this.executeStatus = []
                 try {
-                    const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, id, create_method, recorded_executor_proxy } = this.requestData
+                    const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, task_id, create_method, recorded_executor_proxy } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
                     let pipeline_instance__is_revoked
@@ -408,9 +458,10 @@
                         create_info: this.createInfo || undefined,
                         project__id: this.project_id,
                         template_source: this.templateSource || undefined,
-                        id: id || undefined,
+                        id: task_id || undefined,
                         create_method: create_method || undefined,
-                        recorded_executor_proxy: recorded_executor_proxy || undefined
+                        recorded_executor_proxy: recorded_executor_proxy || undefined,
+                        is_child_taskflow: false
                     }
 
                     if (start_time && start_time[0] && start_time[1]) {
@@ -442,6 +493,10 @@
                     }
                     const taskListData = await this.loadTaskList(data)
                     const list = taskListData.results
+                    // 设置level初始值
+                    list.forEach(item => {
+                        item.level = 0
+                    })
                     this.pagination.count = taskListData.count
                     this.totalCount = taskListData.count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
@@ -450,14 +505,117 @@
                     } else {
                         this.totalPage = totalPage
                     }
+                    const result = await this.setListHaveChild(list)
                     // mixins getExecuteStatus
-                    this.getExecuteStatus('executeStatus', list)
-                    this.setTaskListData(list)
+                    this.getExecuteStatus('executeStatus', result)
+                    this.setTaskListData(result)
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.listLoading = false
                 }
+            },
+            // 设置每条记录是否有子流程
+            async setListHaveChild (list) {
+                const ids = list.map(item => item.id)
+                const checkStatus = await this.getTaskHasSubTasks({
+                    project_id: this.project_id,
+                    task_ids: ids.toString()
+                })
+                list.forEach(item => {
+                    item.isHasChild = checkStatus.data.has_children_taskflow[item.id]
+                })
+                return list
+            },
+            // 获取当前流程的子流程列表
+            async getCurProcessChdProcess (row) {
+                const curTaskList = toolsUtils.deepClone(this.$store.state.taskList.taskListData)
+                const curParent = curTaskList.find(item => item.id === row.id)
+                curParent.isOpen = !row.isOpen
+                curParent.maxLevel = ''
+                // table field
+                const curField = this.setting.fieldList.find(item => item.id)
+                let result = []
+                if (curParent.isOpen) {
+                    // 处理task与relations
+                    const taskIds = [] // task id
+                    const taskIdList = []
+                    if (curParent.children && curParent.children.length !== 0) {
+                        curParent.children.forEach(item => {
+                            item.isOpen = false // 子流程默认icon close
+                            item.level = curParent.level + 1
+                            result.push(item)
+                        })
+                        curField.width = 20 * (curParent.level + 1) + 100
+                    } else {
+                        const params = {
+                            root_task_id: row.id,
+                            project_id: this.project_id
+                        }
+                        const res = await this.getTaskHasSubTaskList(params)
+                        const { tasks, relations } = res.data
+                        for (const key in relations) {
+                            taskIds.push({
+                                id: Number(key),
+                                children_id: [...relations[key]]
+                            })
+                        }
+                        taskIds.forEach(item => {
+                            item.children_id.forEach(ite => {
+                                taskIdList.push({
+                                    id: ite,
+                                    parent_id: item.id,
+                                    children: []
+                                })
+                            })
+                        })
+                        const arrToTree = (arr, parentId, level = 1) => {
+                            const result = []
+                            curParent.maxLevel = level
+                            arr.forEach(item => {
+                                if (item.parent_id === parentId) {
+                                    const task = tasks.find(task => task.id === item.id)
+                                    task.root_id = row.id
+                                    result.push({
+                                        ...item,
+                                        level: level,
+                                        ...task,
+                                        children: arrToTree(arr, item.id, level + 1)
+                                    })
+                                }
+                            })
+                            return result
+                        }
+                        result = arrToTree(taskIdList, Number(row.id))
+                        curField.width = 20 * curParent.maxLevel + 100
+                    }
+                    curTaskList.splice(curTaskList.findIndex(item => item.id === row.id) + 1, 0, ...result)
+                    this.getExecuteStatus('executeStatus', curTaskList)
+                    this.setTaskListData(curTaskList)
+                } else {
+                    // 关闭获取已展开列的最大level
+                    const MaxLevel = Math.max(...curTaskList.map(item => {
+                        if (item.isOpen) {
+                            return item.maxLevel
+                        } else {
+                            return 0
+                        }
+                    }))
+                    const filterArr = this.filterTaskList(curTaskList, curParent.id)
+                    this.getExecuteStatus('executeStatus', filterArr)
+                    this.setTaskListData(filterArr)
+                    curField.width = 20 * MaxLevel + 100
+                }
+            },
+            // 关闭展开icon过滤列表
+            filterTaskList (list, id, ids = []) {
+                list.map(item => {
+                    if (item.parent_id === id) {
+                        ids.push(item.id)
+                        this.filterTaskList(list, item.id, ids)
+                    }
+                })
+                return list.filter(item => !ids.includes(item.id))
             },
             async getBizBaseInfo () {
                 try {
@@ -517,6 +675,47 @@
                     url.query.common = 1
                 }
                 this.$router.push(url)
+            },
+            onDeleteTask (task) {
+                if (!this.hasPermission(['task_delete'], task.auth_actions)) {
+                    this.onTaskPermissonCheck(['task_delete'], task)
+                    return
+                }
+                this.theDeleteTaskId = task.id
+                this.theDeleteTaskName = task.name
+                this.isDeleteDialogShow = true
+            },
+            async onDeleteConfirm () {
+                if (this.deletaLoading) return
+                this.deletaLoading = true
+                try {
+                    await this.deleteTask(this.theDeleteTaskId)
+                    this.theDeleteTaskId = undefined
+                    this.theDeleteTaskName = ''
+                    // 最后一页最后一条删除后，往前翻一页
+                    if (
+                        this.pagination.current > 1
+                        && this.totalPage === this.pagination.current
+                        && this.pagination.count - (this.totalPage - 1) * this.pagination.limit === 1
+                    ) {
+                        this.pagination.current -= 1
+                    }
+                    await this.getTaskList()
+                    this.$bkMessage({
+                        message: i18n.t('任务') + i18n.t('删除成功！'),
+                        theme: 'success'
+                    })
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.isDeleteDialogShow = false
+                    this.deletaLoading = false
+                }
+            },
+            onDeleteCancel () {
+                this.theDeleteTaskId = undefined
+                this.theDeleteTaskName = ''
+                this.isDeleteDialogShow = false
             },
             /**
              * 单个任务操作项点击时校验
@@ -620,7 +819,7 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, id, create_method, recorded_executor_proxy } = this.requestData
+                const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, task_id, create_method, recorded_executor_proxy } = this.requestData
                 const filterObj = {
                     limit,
                     creator,
@@ -631,7 +830,7 @@
                     create_time: create_time && create_time.every(item => item) ? create_time.join(',') : '',
                     finish_time: finish_time && finish_time.every(item => item) ? finish_time.join(',') : '',
                     taskName,
-                    task_id: id,
+                    task_id,
                     create_method,
                     recorded_executor_proxy
                 }
@@ -728,6 +927,22 @@
 @import '@/scss/mixins/scrollbar.scss';
 @include advancedSearch;
 
+.show-chd {
+    transform: rotate(90deg);
+    display: inline-block;
+    transition: 0.5s;
+    position: relative;
+    top: -2px;
+    cursor: pointer;
+}
+.close-chd {
+    transform: rotate(0deg);
+    display: inline-block;
+    transition: 0.5s;
+    position: relative;
+    top: -1px;
+    cursor: pointer;
+}
 .task-container {
     height: 100%;
 }
@@ -817,6 +1032,9 @@
         font-size: 14px;
         color: #c4c6cc;
         cursor: pointer;
+    }
+    /deep/ .cell .task-id {
+        margin-left: 16px;
     }
 }
 </style>

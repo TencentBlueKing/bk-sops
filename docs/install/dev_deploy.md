@@ -130,9 +130,9 @@ python manage.py collectstatic --noinput
 ```
 
 ```bash
-cp -r ./frontend/desktop/static ./staticfiles/bk_sops
+cp -r ./frontend/desktop/static ./static/bk_sops
 rm ./gcloud/core/templates/core/base_vue.html
-mv ./staticfiles/bk_sops/index.html ./gcloud/core/templates/core/base_vue.html
+mv ./static/bk_sops/index.html ./gcloud/core/templates/core/base_vue.html
 ```
 注意： ./gcloud/core该目录下可能没有templates/core路径，如果没有该路径请手动创建
 

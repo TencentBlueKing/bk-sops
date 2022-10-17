@@ -10,7 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import re
+
 from django.db.models import Q
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import ErrorDetail
 from rest_framework import serializers, generics, permissions, status
@@ -26,8 +30,12 @@ from gcloud.core.apis.drf.serilaziers import (
     TaskFlowInstanceSerializer,
     CreateTaskFlowInstanceSerializer,
     RetrieveTaskFlowInstanceSerializer,
+    ListChildrenTaskFlowQuerySerializer,
+    ListChildrenTaskFlowResponseSerializer,
+    RootTaskflowQuerySerializer,
+    RootTaskflowResponseSerializer,
 )
-from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
+from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig, TaskFlowRelation
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.common_template.models import CommonTemplate
 from gcloud.iam_auth.conf import TASK_ACTIONS
@@ -70,6 +78,7 @@ class TaskFlowFilterSet(FilterSet):
             "pipeline_instance__start_time": ["gte", "lte"],
             "pipeline_instance__finish_time": ["gte", "lte"],
             "pipeline_instance__create_time": ["gte", "lte"],
+            "is_child_taskflow": ["exact"],
         }
 
 
@@ -116,11 +125,9 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
                     resources = res_factory.resources_for_common_flow_obj(template)
                     if request.data.get("project"):
                         resources.extend(res_factory.resources_for_project(request.data["project"]))
-                self.iam_auth_check(
-                    request=request, action=iam_action, resources=resources,
-                )
+                self.iam_auth_check(request=request, action=iam_action, resources=resources)
                 return True
-        elif view.action == "list":
+        elif view.action in ["list", "list_children_taskflow", "root_task_info"]:
             user_type_validator = IamUserTypeBasedValidator()
             return user_type_validator.validate(request)
         return super().has_permission(request, view)
@@ -128,7 +135,9 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
 
 class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, generics.DestroyAPIView):
     serializer_class = TaskFlowInstanceSerializer
-    queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False, is_deleted=False).order_by("-id")
+    queryset = TaskFlowInstance.objects.filter(
+        pipeline_instance__isnull=False, is_deleted=False, pipeline_instance__is_expired=False
+    ).order_by("-id")
     iam_resource_helper = ViewSetResourceHelper(resource_func=res_factory.resources_for_task_obj, actions=TASK_ACTIONS)
     filter_class = TaskFlowFilterSet
     permission_classes = [permissions.IsAuthenticated, TaskFlowInstancePermission]
@@ -146,12 +155,21 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             self.paginator.limit = self.paginator.get_limit(request)
             self.paginator.offset = self.paginator.get_offset(request)
             self.paginator.count = -1
-            page = list(queryset[self.paginator.offset : self.paginator.offset + self.paginator.limit])
+            create_method = request.query_params.get("create_method")
+            queryset = self._optimized_my_dynamic_query(
+                queryset, request.user.username, self.paginator.limit, self.paginator.offset, create_method
+            )
+            page = list(queryset)
         else:
             page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page, many=True)
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, page)
+        self._inject_template_related_info(request, data)
+        return self.get_paginated_response(data) if page is not None else Response(data)
+
+    @staticmethod
+    def _inject_template_related_info(request, data):
         # 注入template_info（name、deleted
         # 项目流程
         template_ids = [
@@ -204,7 +222,15 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
                 for act, allowed in common_templates_allowed_actions.get(str(instance["template_id"]), {}).items():
                     if allowed:
                         instance["auth_actions"].append(act)
-        return self.get_paginated_response(data) if page is not None else Response(data)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.pipeline_instance.is_expired:
+            return Response({"detail": ErrorDetail("任务已过期", err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+        serializer = self.get_serializer(instance)
+        # 注入权限
+        data = self.injection_auth_actions(request, serializer.data, instance)
+        return Response(data)
 
     @staticmethod
     def handle_task_name_attr(data):
@@ -286,3 +312,64 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         elif self.action == "retrieve":
             return RetrieveTaskFlowInstanceSerializer
         return super().get_serializer_class(*args, **kwargs)
+
+    @staticmethod
+    def _optimized_my_dynamic_query(queryset, username, limit, offset, create_method=None):
+        """
+        优化我的动态接口查询速度
+        """
+        original_query = str(queryset.query)
+        new_query = re.sub(
+            "FROM (.*?) ON",
+            "FROM `pipeline_pipelineinstance` STRAIGHT_JOIN `taskflow3_taskflowinstance` ON",
+            original_query,
+        )
+        new_query = re.sub("ORDER BY (.*?) DESC", "ORDER BY `pipeline_pipelineinstance`.`id` DESC", new_query)
+        new_query = new_query.replace(username, f"'{username}'")
+        if create_method:
+            new_query = new_query.replace(create_method, f"'{create_method}'")
+        new_query += f" LIMIT {limit} OFFSET {offset}"
+        return TaskFlowInstance.objects.raw(new_query)
+
+    @swagger_auto_schema(
+        method="GET",
+        operation_summary="获取某个任务的子任务列表",
+        query_serializer=ListChildrenTaskFlowQuerySerializer,
+        responses={200: ListChildrenTaskFlowResponseSerializer},
+    )
+    @action(methods=["GET"], detail=False)
+    def list_children_taskflow(self, request, *args, **kwargs):
+        root_task_id = request.query_params.get("root_task_id")
+        children_task_info = TaskFlowRelation.objects.filter(root_task_id=root_task_id).values(
+            "task_id", "parent_task_id"
+        )
+        children_task_ids = [info["task_id"] for info in children_task_info]
+        queryset = TaskFlowInstance.objects.filter(
+            id__in=children_task_ids, pipeline_instance__isnull=False, is_deleted=False
+        )
+        queryset = self.filter_queryset(queryset)
+        serializer = self.get_serializer(queryset, many=True)
+        data = self.injection_auth_actions(request, serializer.data, queryset)
+        self._inject_template_related_info(request, data)
+
+        relations = {}
+        for info in children_task_info:
+            relations.setdefault(info["parent_task_id"], []).append(info["task_id"])
+        return Response({"tasks": data, "relations": relations})
+
+    @swagger_auto_schema(
+        method="GET",
+        operation_summary="批量获取任务是否有独立子任务",
+        query_serializer=RootTaskflowQuerySerializer,
+        responses={200: RootTaskflowResponseSerializer},
+    )
+    @action(methods=["GET"], detail=False)
+    def root_task_info(self, request, *args, **kwargs):
+        task_ids = request.query_params.get("task_ids") or []
+        if task_ids:
+            task_ids = [int(task_id) for task_id in task_ids.split(",")]
+        root_task_ids = TaskFlowRelation.objects.filter(root_task_id__in=task_ids).values_list(
+            "root_task_id", flat=True
+        )
+        root_task_info = {task_id: True if task_id in root_task_ids else False for task_id in task_ids}
+        return Response({"has_children_taskflow": root_task_info})

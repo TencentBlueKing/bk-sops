@@ -479,7 +479,8 @@
             ]),
             ...mapActions('template/', [
                 'loadTemplateData',
-                'getVariableCite'
+                'getVariableCite',
+                'getProcessOpenChdProcess'
             ]),
             ...mapActions('task', [
                 'loadSubflowConfig'
@@ -668,7 +669,6 @@
                         await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id })
                     }
                     const config = $.atoms[plugin]
-                    console.log(config)
                     return config
                 } catch (e) {
                     console.log(e)
@@ -826,7 +826,10 @@
                         executor_proxy: executorProxy
                     }
                 } else {
-                    const { template_id, name, stage_name = '', labels, optional, always_use_latest, scheme_id_list, executor_proxy } = config
+                    const {
+                        template_id, name, stage_name = '', labels, optional, always_use_latest, scheme_id_list, executor_proxy,
+                        auto_retry, timeout_config, error_ignorable, isSkipped, skippable, can_retry, retryable
+                    } = config
                     let templateName = i18n.t('请选择子流程')
 
                     if (template_id) {
@@ -856,6 +859,11 @@
                         alwaysUseLatest: always_use_latest || false, // 兼容旧数据，该字段为新增
                         schemeIdList: scheme_id_list || [], // 兼容旧数据，该字段为后面新增
                         version: config.hasOwnProperty('version') ? config.version : '', // 子流程版本，区别于标准插件版本
+                        ignorable: error_ignorable,
+                        skippable: isSkipped === undefined ? skippable : isSkipped,
+                        retryable: can_retry === undefined ? retryable : can_retry,
+                        autoRetry: Object.assign({}, { enable: false, interval: 0, times: 1 }, auto_retry),
+                        timeoutConfig: timeout_config || { enable: false, seconds: 10, action: 'forced_fail' },
                         executor_proxy: executorProxy
                     }
                 }
@@ -945,13 +953,35 @@
                     this.isSelectorPanelShow = false
                 }
             },
-
             // 标准插件（子流程）选择面板切换插件（子流程）
             // isThirdParty 是否为第三方插件
             async onPluginOrTplChange (val) {
+                let inputs = this.inputs
+                if (this.isSubflow) {
+                    // 重置basicInfo, 避免基础信息面板因监听basicInfo导致重复调取接口，初始化时获取空值
+                    const { id, name, version } = val
+                    const config = {
+                        name,
+                        version,
+                        tpl: id,
+                        nodeName: name,
+                        selectable: true,
+                        alwaysUseLatest: false,
+                        schemeIdList: []
+                    }
+                    this.updateBasicInfo(config)
+                    if ('project' in val && typeof val.project.id === 'number') {
+                        this.$set(this.nodeConfig, 'template_source', 'business')
+                    } else {
+                        this.$set(this.nodeConfig, 'template_source', 'common')
+                    }
+                    // 清空输入参数，否则会先加载上一个的子流程的配置再去加载选中的子流程配置
+                    inputs = tools.deepClone(this.inputs)
+                    this.inputs = []
+                }
                 this.isSelectorPanelShow = false
                 this.isThirdParty = val.id === 'remote_plugin'
-                await this.clearParamsSourceInfo()
+                await this.clearParamsSourceInfo(inputs)
                 if (this.isSubflow) {
                     this.tplChange(val)
                 } else {
@@ -996,10 +1026,12 @@
                 this.updateBasicInfo(config)
                 this.inputsParamValue = {}
                 await this.getPluginDetail()
-                this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
-                    acc[crt.tag_code] = true
-                    return acc
-                }, {})
+                if (Array.isArray(this.inputs)) {
+                    this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
+                        acc[crt.tag_code] = true
+                        return acc
+                    }, {})
+                }
                 this.$refs.basicInfo && this.$refs.basicInfo.validate() // 清除节点保存报错时的错误信息
             },
             /**
@@ -1020,10 +1052,12 @@
                 await this.clearParamsSourceInfo()
                 this.inputsParamValue = {}
                 await this.getPluginDetail()
-                this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
-                    acc[crt.tag_code] = true
-                    return acc
-                }, {})
+                if (Array.isArray(this.inputs)) {
+                    this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
+                        acc[crt.tag_code] = true
+                        return acc
+                    }, {})
+                }
             },
             /**
              * 子流程切换
@@ -1033,23 +1067,7 @@
              * - 校验基础信息
              */
             async tplChange (data) {
-                const { id, name, version } = data
-                const config = {
-                    name,
-                    version,
-                    tpl: id,
-                    nodeName: name,
-                    selectable: true,
-                    alwaysUseLatest: false,
-                    schemeIdList: []
-                }
-                this.updateBasicInfo(config)
-                if ('project' in data && typeof data.project.id === 'number') {
-                    this.$set(this.nodeConfig, 'template_source', 'business')
-                } else {
-                    this.$set(this.nodeConfig, 'template_source', 'common')
-                }
-                await this.getSubflowDetail(id, version)
+                await this.getSubflowDetail(data.id, data.version)
                 this.inputs = await this.getSubflowInputsConfig()
                 this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms)
                 this.inputsRenderConfig = Object.keys(this.subflowForms).reduce((acc, crt) => {
@@ -1145,7 +1163,7 @@
                 this.isUpdateConstants = false
             },
             // 取消已勾选为全局变量的输入、输出参数勾选状态
-            async clearParamsSourceInfo () {
+            async clearParamsSourceInfo (inputs = this.inputs) {
                 this.isUpdateConstants = true
                 this.variableCited = await this.getVariableCitedData() || {}
                 const nodeId = this.nodeConfig.id
@@ -1155,7 +1173,7 @@
                     const sourceInfo = source_info[this.nodeId]
                     if (sourceInfo) {
                         if (source_type === 'component_inputs') {
-                            this.inputs.forEach(formItem => {
+                            inputs.forEach(formItem => {
                                 if (sourceInfo.includes(formItem.tag_code)) {
                                     this.setVariableSourceInfo({
                                         key,
@@ -1345,10 +1363,10 @@
             getNodeFullConfig () {
                 let config
                 if (this.isSubflow) {
-                    const { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, version, tpl, executor_proxy } = this.basicInfo
+                    const { nodeName, stageName, nodeLabel, selectable, alwaysUseLatest, schemeIdList, version, tpl, executor_proxy, retryable, skippable, ignorable, autoRetry, timeoutConfig } = this.basicInfo
                     const constants = {}
                     Object.keys(this.subflowForms).forEach(key => {
-                        const constant = this.subflowForms[key]
+                        const constant = tools.deepClone(this.subflowForms[key])
                         if (constant.show_type === 'show') {
                             constant.value = key in this.inputsParamValue ? tools.deepClone(this.inputsParamValue[key]) : constant.value
                             constant.need_render = key in this.inputsRenderConfig ? this.inputsRenderConfig[key] : true
@@ -1364,7 +1382,12 @@
                         template_id: tpl,
                         optional: selectable,
                         always_use_latest: alwaysUseLatest,
-                        scheme_id_list: schemeIdList
+                        scheme_id_list: schemeIdList,
+                        retryable,
+                        skippable,
+                        error_ignorable: ignorable,
+                        auto_retry: autoRetry,
+                        timeout_config: timeoutConfig
                     })
                     if (this.common) {
                         config['executor_proxy'] = executor_proxy.join(',')

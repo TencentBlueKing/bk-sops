@@ -286,7 +286,9 @@
                 connectorOptions,
                 nodeOptions,
                 zoomRatio: 100,
-                labelDrag: false // 标识分支条件是否为拖动触发
+                labelDrag: false, // 标识分支条件是否为拖动触发
+                connectorPosition: {}, // 鼠标hover的连线的坐标
+                conditionInfo: null
             }
         },
         watch: {
@@ -309,7 +311,7 @@
             const canvasPaintArea = document.querySelector('.canvas-flow-wrap')
             canvasPaintArea.addEventListener('mousewheel', this.onMouseWheel, false)
             canvasPaintArea.addEventListener('DOMMouseScroll', this.onMouseWheel, false) // 单独处理firefox
-            canvasPaintArea.addEventListener('mousemove', this.onCanvasMouseMove, false)
+            canvasPaintArea.addEventListener('mousemove', tools.debounce(this.onCanvasMouseMove, 300), false)
             // 监听页面视图变化
             window.addEventListener('resize', this.onWindowResize, false)
         },
@@ -638,12 +640,7 @@
                 }
             },
             onConnectionClick (conn, e) {
-                if (!this.editable || e.target.tagName !== 'path') {
-                    return
-                }
-                this.activeNode = null
                 this.activeCon = conn
-                this.openShortcutPanel('line', e)
                 // const [sEdp, tEdp] = conn.endpoints
                 // const { sourceId, targetId } = conn
                 // this.replaceEndpoint(sEdp, sourceId, true)
@@ -778,21 +775,18 @@
                     }
                     // 增加连线删除 icon
                     this.$refs.jsFlow.addLineOverlay(line, {
-                        type: 'Label',
-                        name: '<i class="common-icon-dark-circle-close"></i>',
-                        location: 0.5,
-                        cls: 'delete-line-circle-icon',
-                        id: `close_${lineId}`
+                        type: 'Label'
                     })
                     const branchInfo = this.canvasData.branchConditions[line.source.id]
                     // 增加分支网关 label
                     if (branchInfo && Object.keys(branchInfo).length > 0) {
-                        const labelValue = branchInfo[lineId].evaluate
+                        const conditionInfo = this.conditionInfo || branchInfo[lineId]
+                        const labelValue = conditionInfo.evaluate
                         // 兼容旧数据，分支条件里没有 name 属性的情况
-                        const labelName = branchInfo[lineId].name || labelValue
-                        const loc = ('loc' in branchInfo[lineId]) ? branchInfo[lineId].loc : -70
+                        const labelName = conditionInfo.name || labelValue
+                        const loc = ('loc' in conditionInfo) ? conditionInfo.loc : -70
                         const gatewayInfo = this.$store.state.template.gateways[line.source.id]
-                        let defaultCls = ''
+                        let defaultCls = conditionInfo.default_condition ? 'default-branch' : ''
                         if (gatewayInfo && gatewayInfo.default_condition && gatewayInfo.default_condition.flow_id === lineId) {
                             defaultCls = 'default-branch'
                         }
@@ -810,10 +804,22 @@
                         const condition = {
                             id: lineId,
                             nodeId: line.source.id,
-                            name: branchInfo[lineId].name,
-                            tag: branchInfo[lineId].tag,
-                            value: branchInfo[lineId].evaluate
+                            name: conditionInfo.name,
+                            tag: conditionInfo.tag,
+                            value: conditionInfo.evaluate
                         }
+                        if (conditionInfo.default_condition) {
+                            condition.default_condition = {
+                                name: conditionInfo.name,
+                                tag: conditionInfo.tag,
+                                flow_id: lineId
+                            }
+                        }
+                        // 更新本地condition配置
+                        if (this.conditionInfo) {
+                            this.$emit('updateCondition', condition)
+                        }
+                        this.conditionInfo = null
                         this.setLabelDraggable({ ...line, id: lineId }, condition)
                     }
                 })
@@ -873,6 +879,17 @@
                 }
             },
             onNodeRemove (node) {
+                // 拷贝数据更新前的数据
+                const canvasData = tools.deepClone(this.canvasData)
+                const { activities, lines } = canvasData
+                let nodeConfig = activities[node.id] || {}
+                const isGatewayNode = node.type.indexOf('gateway') > -1
+                let gateways = this.$store.state.template.gateways
+                gateways = tools.deepClone(gateways)
+                if (isGatewayNode) {
+                    nodeConfig = gateways[node.id]
+                }
+                this.showShortcutPanel = false
                 this.$refs.jsFlow.removeNode(node)
                 this.$emit('templateDataChanged')
                 this.$emit('onLocationChange', 'delete', node)
@@ -882,6 +899,98 @@
                 } else if (node.type === 'endpoint') {
                     this.isDisableEndPoint = false
                 }
+                // 被删除的节点只存在一条输入连线和输出连线时才允许自动连线
+                const { incoming, outgoing } = nodeConfig
+                if (
+                    (!['startpoint', 'endpoint'].includes(node.type))
+                    && incoming.length === 1
+                    && (Array.isArray(outgoing) ? outgoing.length === 1 : outgoing)) {
+                    let { source } = lines.find(item => item.id === incoming[0])
+                    const outlinesId = Array.isArray(outgoing) ? outgoing[0] : outgoing
+                    let { target } = lines.find(item => item.id === outlinesId)
+                    // 两端的节点必须有个任务节点时才允许自动连线，否则不连线
+                    if (!activities[source.id] && !activities[target.id]) return
+                    // 当需要生成的连线已存在，不自动连线
+                    const isExist = lines.find(item => item.source.id === source.id && item.target.id === target.id)
+                    if (isExist) return
+                    // 先更新数据再进行连线
+                    this.$nextTick(() => {
+                        const sourcePosition = this.getNodeEndpointPosition(source.id, 'source')
+                        const targetPosition = this.getNodeEndpointPosition(target.id, 'target')
+                        const instance = this.$refs.jsFlow.instance
+                        const eps = instance.selectEndpoints({ source: source.id })
+                        const oEps = instance.selectEndpoints({ target: target.id })
+                        let sourceArrow, targetArrow
+                        let minDis = Infinity
+                        // 排除源头节点输入连线的端点和目标短线输出连线的端点
+                        eps.each(e => {
+                            if (sourcePosition.includes(e.anchor.type)) return
+                            oEps.each(oe => {
+                                if (targetPosition.includes(oe.anchor.type)) return
+                                const [eX, eY] = e.anchor.lastReturnValue
+                                const [tEpX, tEpY] = oe.anchor.lastReturnValue
+                                const distance = Math.sqrt(Math.pow((tEpX - eX), 2) + Math.pow((tEpY - eY), 2))
+                                if (distance < minDis) {
+                                    minDis = distance
+                                    sourceArrow = e.anchor.type
+                                    targetArrow = oe.anchor.type
+                                }
+                            })
+                        })
+                        if (!sourceArrow || !sourceArrow) return
+                        source = { ...source, arrow: sourceArrow }
+                        target = { ...target, arrow: targetArrow }
+                        // 创建连线状态
+                        const createResult = this.createLine(source, target)
+                        // 删除节点时，若起始节点为网关节点则保留分支表达式
+                        if (createResult && source.id in gateways) {
+                            const branchInfo = gateways[source.id]
+                            const { conditions, default_condition } = branchInfo
+                            const tagCode = `branch_${source.id}_${target.id}`
+                            conditions.tag = tagCode
+                            this.conditionInfo = conditions[incoming[0]]
+                            if (default_condition && default_condition.flow_id === incoming[0]) {
+                                default_condition.tag = tagCode
+                                this.conditionInfo = { ...default_condition, default_condition }
+                            }
+                        }
+                    })
+                }
+            },
+            // 获取节点端点被占用情况
+            getNodeEndpointPosition (nodeId, type) {
+                const { activities, lines } = this.canvasData
+                const { start_event, gateways, end_event } = this.$store.state.template
+                let nodeConfig = {}
+                // 获取节点配置
+                if (start_event.id === nodeId) {
+                    nodeConfig = start_event
+                } else if (end_event.id === nodeId) {
+                    nodeConfig = end_event
+                } else if (nodeId in activities) {
+                    nodeConfig = activities[nodeId]
+                } else if (nodeId in gateways) {
+                    nodeConfig = gateways[nodeId]
+                }
+                let { incoming, outgoing } = nodeConfig
+                // 统一incoming, outgoing数据格式为数组
+                if (!Array.isArray(incoming)) {
+                    incoming = incoming ? [incoming] : []
+                }
+                if (!Array.isArray(outgoing)) {
+                    outgoing = outgoing ? [outgoing] : []
+                }
+                const position = []
+                // 计算源头节点输入连线的端点和目标短线输出连线的端点
+                lines.forEach(item => {
+                    if (type === 'source' && incoming.includes(item.id)) {
+                        position.push(item.target.arrow)
+                    }
+                    if (type === 'target' && outgoing.includes(item.id)) {
+                        position.push(item.source.arrow)
+                    }
+                })
+                return position
             },
             onBeforeDrag (data) {
                 if (this.referenceLine.id && this.referenceLine.id === data.sourceId) {
@@ -924,8 +1033,13 @@
                     const cEndpoint = type === 'source' ? item.endpoints[0] : item.endpoints[1]
                     const oEndpoint = type === 'source' ? item.endpoints[1] : item.endpoints[0]
                     const oEps = type === 'source' ? instance.selectEndpoints({ target: item.target.id }) : instance.selectEndpoints({ source: item.source.id })
+                    // targetId恒为移动的节点id
+                    const targetPosition = this.getNodeEndpointPosition(item.targetId, type)
+                    const sourcePosition = this.getNodeEndpointPosition(item.sourceId, type === 'target' ? 'source' : 'target')
                     eps.each(e => {
+                        if (targetPosition.includes(e.anchor.type)) return
                         oEps.each(oe => {
+                            if (sourcePosition.includes(oe.anchor.type)) return
                             const [eX, eY] = e.anchor.lastReturnValue
                             const [tEpX, tEpY] = oe.anchor.lastReturnValue
                             const distance = Math.sqrt(Math.pow((tEpX - eX), 2) + Math.pow((tEpY - eY), 2))
@@ -936,6 +1050,7 @@
                             }
                         })
                     })
+                    if (!cep || !oep) return
                     if (cep !== cEndpoint || oep !== oEndpoint) {
                         // 保留分支网关连线上的分支条件
                         let condition, sId, sType, tId, tType
@@ -1046,9 +1161,10 @@
                     this.clearReferenceLine()
                     return false
                 }
-                this.createReferenceLine()
+                // 触发端点拖拽事件
+                const endPointDom = event.target.parentNode.parentNode
+                Object.values(endPointDom.__ta.mousedown)[0](event)
                 this.referenceLine = { x: bX, y: bY, id: edp.elementId, arrow: type }
-                document.getElementById('canvasContainer').addEventListener('mousemove', this.handleReferenceLine, false)
             },
             // 鼠标移动更新参考线
             handleReferenceLine (e) {
@@ -1076,11 +1192,13 @@
                     this.$emit('onLineChange', 'add', line)
                     this.$refs.jsFlow.createConnector(line)
                     this.referenceLine.id = ''
+                    return true
                 } else {
                     this.$bkMessage({
                         message: validateMessage.message,
                         theme: 'warning'
                     })
+                    return false
                 }
             },
             onSubflowPauseResumeClick (id, value) {
@@ -1172,6 +1290,7 @@
                     }
                     this.$refs.jsFlow.addLineOverlay(line, labelData)
                     this.setLabelDraggable(line, { ...data, nodeId: line.source.id })
+                    this.conditionInfo = null
                 })
             },
             // node mousedown
@@ -1187,10 +1306,7 @@
                     return
                 }
                 if (this.referenceLine.id) {
-                    // 自动连线
-                    this.onConnectionDragStop({ id: this.referenceLine.id, arrow: this.referenceLine.arrow }, id, event)
-                    // 移出参考线
-                    this.clearReferenceLine()
+                    this.referenceLine = {}
                     return
                 }
                 // 快捷菜单面板
@@ -1201,6 +1317,7 @@
                         this.onUpdateNodeInfo(id, { isActived: true })
                         this.toggleNodeLevel(id, true)
                     }
+                    this.activeCon = null
                     this.activeNode = this.canvasData.locations.find(item => item.id === id)
                     this.openShortcutPanel('node')
                 }
@@ -1233,6 +1350,7 @@
                             left = x + offsetX + NODES_SIZE_POSITION.GATEWAY_SIZE[0] / 2 + 80
                             top = y + offsetY + NODES_SIZE_POSITION.GATEWAY_SIZE[1] + 10
                     }
+                    this.shortcutPanelDeleteLine = false
                 } else {
                     const wrapGap = dom.getElementScrollCoords(this.$refs.jsFlow.$el)
                     const { pageX, pageY } = e
@@ -1242,6 +1360,7 @@
                     left = pageX - wrapGap.x + 10
                     top = pageY - wrapGap.y + 10
                 }
+                this.connectorPosition = {}
                 this.shortcutPanelPosition = { left, top }
                 this.showShortcutPanel = true
             },
@@ -1262,6 +1381,10 @@
                 this.$emit('onLocationChange', type, location)
                 this.$emit('onLineChange', 'add', line)
                 this.$nextTick(() => {
+                    // 添加网关节点时禁止对该节点操作
+                    if (location.type.includes('gateway') > -1) {
+                        this.shortcutPanelNodeOperate = false
+                    }
                     this.$refs.jsFlow.createConnector(line)
                     this.activeNode = location
                     this.openShortcutPanel('node')
@@ -1279,6 +1402,9 @@
                 if (!deleteLine) {
                     return false
                 }
+                // 拷贝插入节点前网关的配置
+                let gateways = this.$store.state.template.gateways
+                gateways = tools.deepClone(gateways)
                 this.$refs.jsFlow.removeConnector(deleteLine)
                 const startLine = {
                     source: {
@@ -1305,11 +1431,27 @@
                 this.$emit('onLineChange', 'add', startLine)
                 this.$emit('onLineChange', 'add', endLine)
                 this.$nextTick(() => {
+                    // 添加网关节点时禁止对该节点操作
+                    if (location.type.includes('gateway') > -1) {
+                        this.shortcutPanelNodeOperate = false
+                    }
                     this.$refs.jsFlow.createConnector(startLine)
                     this.$refs.jsFlow.createConnector(endLine)
                     this.activeNode = location
                     this.openShortcutPanel('node')
                 })
+                // 插入节点时，若起始节点为网关节点则保留分支表达式
+                if (startNodeId in gateways) {
+                    const branchInfo = gateways[startNodeId]
+                    const { conditions, default_condition } = branchInfo
+                    const tagCode = `branch_${startNodeId}_${location.id}`
+                    conditions.tag = tagCode
+                    this.conditionInfo = conditions[deleteLine.id]
+                    if (default_condition && default_condition.flow_id === deleteLine.id) {
+                        default_condition.tag = tagCode
+                        this.conditionInfo = { ...default_condition, default_condition }
+                    }
+                }
             },
             // 通过快捷面板删除连线
             onShortcutDeleteLine () {
@@ -1329,6 +1471,7 @@
                 }
                 this.activeNode = null
                 this.activeCon = null
+                this.connectorPosition = {}
                 this.showShortcutPanel = false
                 this.shortcutPanelNodeOperate = false
                 this.shortcutPanelDeleteLine = false
@@ -1416,6 +1559,38 @@
                 const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
                 this.zoomOriginPosition.x = e.pageX - offsetX
                 this.zoomOriginPosition.y = e.pageY - offsetY
+                // 监听鼠标是否hover到连线上
+                if (!this.editable || e.target.tagName !== 'path') {
+                    return
+                }
+                const connectorDom = document.querySelector('svg.bk-sops-connector-hover')
+                if (!connectorDom) return
+                // 当鼠标hover到新的连线时关闭旧的快捷面板
+                const { top, left } = connectorDom.style
+                if (tools.isDataEqual({ top, left }, this.connectorPosition)) {
+                    return
+                } else {
+                    this.connectorPosition = { top, left }
+                    this.showShortcutPanel = false
+                }
+                if (!this.showShortcutPanel) {
+                    // 手动触发path元素的click事件
+                    const pathDom = connectorDom.querySelector('path')
+                    const event = document.createEvent('MouseEvent')
+                    event.initMouseEvent('click', true, true)
+                    pathDom.dispatchEvent(event)
+                    // 打开快捷面板
+                    const wrapGap = dom.getElementScrollCoords(this.$refs.jsFlow.$el)
+                    const { pageX, pageY } = e
+                    const nodeId = this.activeCon.sourceId
+                    this.activeNode = this.canvasData.locations.find(item => item.id === nodeId)
+                    this.shortcutPanelNodeOperate = false
+                    this.shortcutPanelDeleteLine = true
+                    const left = pageX - wrapGap.x + 10
+                    const top = pageY - wrapGap.y - 50
+                    this.shortcutPanelPosition = { left, top }
+                    this.showShortcutPanel = true
+                }
             },
             /**
              * 设置画布偏移量
@@ -1690,12 +1865,6 @@
             &.delete-line-circle-icon {
                 display: none;
             }
-            .common-icon-dark-circle-close{
-                font-size: 16px;
-                color: #63656e;
-                background: #ffffff;
-                border-radius: 50%;
-            }
             .branch-condition {
                 padding: 4px 6px;
                 min-width: 60px;
@@ -1731,32 +1900,35 @@
             }
             .jtk-endpoint {
                 cursor: pointer;
-                &.template-canvas-endpoint:not(.jtk-dragging) {
-                    height: 32px;
-                    width: 32px;
-                    &:hover,
+                &.template-canvas-endpoint {
+                    background-repeat: no-repeat;
+                    background-size: 24px;
                     &.jtk-endpoint-highlight {
-                        box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.10);
-                        border-radius: 50%;
-                        &[data-pos="Top"] {
-                            transform: translateY(-22px) rotate(-90deg);
-                        }
-                        &[data-pos="Bottom"] {
-                            transform: translateY(22px) rotate(90deg);
-                        }
-                        &[data-pos="Left"] {
-                            transform: translateX(-22px) rotate(-180deg);
-                        }
-                        &[data-pos="Right"] {
-                            transform: translateX(22px);
-                        }
+                        background-image: url('~@/assets/images/endpoint.png');
+                    }
+                    &[data-pos="Top"] {
+                        transform: rotate(90deg);
+                        background-position: bottom 50% left 0;
+                    }
+                    &[data-pos="Bottom"] {
+                        transform: rotate(-90deg);
+                        background-position: bottom 50% left 0;
+                    }
+                    &[data-pos="Left"] {
+                        background-position: top 50% left 0;
+                    }
+                    &[data-pos="Right"] {
+                        transform: rotate(180deg);
+                        background-position: top 50% left 0;
                     }
                     &:hover {
-                        background: url('~@/assets/images/endpoint-hover.png') center/32px no-repeat;
+                        background-image: url('~@/assets/images/endpoint-hover.png');
                     }
-                    &.jtk-endpoint-highlight {
-                        background: url('~@/assets/images/endpoint.png') center/32px no-repeat;
-                    }
+                }
+                &.template-canvas-endpoint.jtk-dragging {
+                    background-image: url('~@/assets/images/endpoint-dragging.png');
+                    background-position: bottom 50% left 50%;
+                    z-index: 3;
                 }
             }
         }

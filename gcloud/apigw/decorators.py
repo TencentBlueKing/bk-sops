@@ -17,6 +17,7 @@ import pytz
 import ujson as json
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
+from iam.exceptions import AuthBaseException
 
 from gcloud import err_code
 from gcloud.apigw.exceptions import InvalidUserError
@@ -86,7 +87,15 @@ def return_json_response(view_func):
 
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
-        result = view_func(request, *args, **kwargs)
+
+        try:
+            result = view_func(request, *args, **kwargs)
+        except AuthBaseException as e:
+            result = {
+                "result": False,
+                "message": e,
+                "code": err_code.UNKNOWN_ERROR.code,
+            }
 
         # 如果返回的是dict且request中有trace_id，则在响应中加上
         if isinstance(result, dict):
