@@ -21,6 +21,7 @@ from rest_framework.exceptions import APIException
 from rest_framework.pagination import LimitOffsetPagination
 
 from gcloud.contrib.collection.models import Collection
+from gcloud.core.apis.drf.exceptions import ValidationException
 from gcloud.core.models import Project
 from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user, get_common_flow_allowed_actions_for_user
 from pipeline_web.parser.validator import validate_web_pipeline_tree
@@ -223,8 +224,11 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = CreatePeriodicTaskSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self._handle_serializer(request, serializer)
-        instance = serializer.save()
+        try:
+            self._handle_serializer(request, serializer)
+            instance = serializer.save()
+        except PipelineException as e:
+            raise ValidationException(e)
         instance.set_enabled(True)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
@@ -233,8 +237,11 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
         instance = self.get_object()
         serializer = CreatePeriodicTaskSerializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
-        self._handle_serializer(request, serializer)
-        instance = PeriodicTask.objects.update(instance, **serializer.validated_data)
+        try:
+            self._handle_serializer(request, serializer)
+            instance = PeriodicTask.objects.update(instance, **serializer.validated_data)
+        except PipelineException as e:
+            raise ValidationException(e)
         return Response(PeriodicTaskReadOnlySerializer(instance=instance).data)
 
     def partial_update(self, request, *args, **kwargs):
