@@ -191,7 +191,7 @@ class SubprocessPluginService(Service):
         self.finish_schedule()
         if not task_success:
             task_url = data.get_one_of_outputs("task_url")
-            data.set_outputs("ex_data", f'子流程节点执行异常，请<a href="{task_url}">去往子任务</a>查看详情')
+            data.set_outputs("ex_data", f'子流程节点执行异常，请<a href="{task_url}" target="_blank">去往子任务</a>查看详情')
             return False
         try:
             subprocess_task = TaskFlowInstance.objects.get(id=task_id)
