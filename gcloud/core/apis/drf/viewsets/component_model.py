@@ -45,7 +45,9 @@ class ComponentModelSetViewSet(GcloudReadOnlyViewSet):
     queryset = (
         ComponentModel.objects.filter(status=True)
         .exclude(code__in=["remote_plugin", "subprocess_plugin"])
-        .order_by("name")
+        .extra(
+            select={"converted_name": "CONVERT(SUBSTRING_INDEX(name, '-', -1) USING gbk)"}, order_by=["converted_name"]
+        )
     )
     retrieve_queryset = ComponentModel.objects.filter(status=True).order_by("name")
     serializer_class = ComponentModelListSerializer
