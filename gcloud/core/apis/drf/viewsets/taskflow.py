@@ -17,11 +17,12 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import ErrorDetail
-from rest_framework import serializers, generics, permissions, status
+from rest_framework import generics, permissions, status
 from django_filters import FilterSet
 
 from gcloud.constants import TASK_NAME_MAX_LENGTH
 from gcloud import err_code
+from gcloud.core.apis.drf.exceptions import ValidationException
 from gcloud.core.apis.drf.viewsets import IAMMixin
 from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
 from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
@@ -252,7 +253,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         try:
             pipeline_instance = TaskFlowInstance.objects.create_pipeline_instance(template, **pipeline_instance_kwargs)
         except PipelineException as e:
-            raise serializers.ValidationError(str(e))
+            raise ValidationException(e)
         # set engine_ver
         serializer.validated_data["engine_ver"] = EngineConfig.objects.get_engine_ver(
             project_id=project.id, template_id=template.id, template_source=serializer.validated_data["template_source"]
