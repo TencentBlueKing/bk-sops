@@ -59,9 +59,9 @@
                 <div slot-scope="{ row }" v-bk-overflow-tips> {{ row.finish_time }} </div>
             </bk-table-column>
             <bk-table-column :label="$t('耗时')" :width="60">
-                <template slot-scope="{ row }">
+                <div slot-scope="{ row }" v-bk-overflow-tips>
                     {{ getLastTime(row.elapsed_time) }}
-                </template>
+                </div>
             </bk-table-column>
             <bk-table-column v-if="isSubProcessNode" :label="$t('操作')" :width="60">
                 <template slot-scope="{ row }">
