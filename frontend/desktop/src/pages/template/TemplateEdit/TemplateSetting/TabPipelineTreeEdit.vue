@@ -14,7 +14,7 @@
         :is-show="true"
         :width="800"
         :title="$t('模板数据')"
-        :quick-close="!hasAdminPerm"
+        :quick-close="true"
         :before-close="closeTab">
         <div class="pipeline-tree-wrap" slot="content">
             <div class="code-wrapper">
@@ -48,12 +48,14 @@
         data () {
             return {
                 template: this.transPipelineTreeStr(),
-                errorMessage: ''
+                errorMessage: '',
+                isDataChange: false
             }
         },
         computed: {
             ...mapState({
-                hasAdminPerm: state => state.hasAdminPerm
+                hasAdminPerm: state => state.hasAdminPerm,
+                infoBasicConfig: state => state.infoBasicConfig
             })
         },
         methods: {
@@ -67,6 +69,7 @@
             onDataChange (value) {
                 if (value !== this.template) {
                     this.template = value
+                    this.isDataChange = true
                 }
             },
             onConfirm () {
@@ -94,7 +97,16 @@
                 this.closeTab()
             },
             closeTab () {
-                this.$emit('closeTab')
+                if (this.isDataChange) {
+                    this.$bkInfo({
+                        ...this.infoBasicConfig,
+                        cancelFn: () => {
+                            this.$emit('closeTab')
+                        }
+                    })
+                } else {
+                    this.$emit('closeTab')
+                }
             }
         }
     }
