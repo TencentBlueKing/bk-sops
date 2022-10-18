@@ -101,7 +101,11 @@
                             </bk-table-column>
                             <bk-table-column :label="$t('操作')" width="150" :fixed="taskList.length ? 'right' : false">
                                 <template slot-scope="props">
-                                    <div class="task-operation" :task-name="props.row.name">
+                                    <div v-if="props.row.is_child_taskflow" class="task-operation">
+                                        <span class="default">{{ '--' }}</span>
+                                        <span>{{ '--' }}</span>
+                                    </div>
+                                    <div v-else class="task-operation" :task-name="props.row.name">
                                         <!-- 事后鉴权，后续对接新版权限中心 -->
                                         <a v-if="props.row.template_deleted || props.row.template_source === 'onetime'" class="task-operation-btn disabled" data-test-id="taskList_table_reexecuteBtn">{{$t('重新执⾏')}}</a>
                                         <a
@@ -1019,6 +1023,10 @@
                 color: #cccccc;
                 cursor: not-allowed;
             }
+        }
+        .default {
+            padding-left: 7px;
+            margin-right: 47px;
         }
     }
     .empty-data {
