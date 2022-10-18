@@ -908,8 +908,8 @@
                     let { source } = lines.find(item => item.id === incoming[0])
                     const outlinesId = Array.isArray(outgoing) ? outgoing[0] : outgoing
                     let { target } = lines.find(item => item.id === outlinesId)
-                    // 当分支上只剩网关节点时，不自动连线
-                    if (gateways[source.id] && gateways[target.id]) return
+                    // 两端的节点必须有个任务节点时才允许自动连线，否则不连线
+                    if (!activities[source.id] && !activities[target.id]) return
                     // 当需要生成的连线已存在，不自动连线
                     const isExist = lines.find(item => item.source.id === source.id && item.target.id === target.id)
                     if (isExist) return

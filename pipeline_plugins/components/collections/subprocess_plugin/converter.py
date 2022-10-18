@@ -35,10 +35,11 @@ class PipelineTreeSubprocessConverter:
         "incoming",
         "original_template_id",
         "original_template_version",
+        "timeout_config",
+        "auto_retry",
     }
     DEFAULT_VALUES = {
         "error_ignorable": False,
-        "always_use_latest": False,
         "auto_retry": {"enabled": False, "interval": 0, "times": 1},
         "timeout_config": {"enabled": False, "seconds": 10, "action": "forced_fail"},
         "skippable": True,

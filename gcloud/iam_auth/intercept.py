@@ -15,7 +15,6 @@ import logging
 from functools import wraps
 from abc import ABCMeta, abstractmethod
 
-
 logger = logging.getLogger("root")
 
 
@@ -26,7 +25,6 @@ class ViewInterceptor(object, metaclass=ABCMeta):
 
 
 def iam_intercept(interceptor):
-
     base_class = "gcloud.iam_auth.intercept.ViewInterceptor"
     if not isinstance(interceptor, ViewInterceptor):
         raise TypeError("interceptor's class must be subclass of {}".format(base_class))

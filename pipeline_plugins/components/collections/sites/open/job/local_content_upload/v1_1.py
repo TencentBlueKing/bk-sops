@@ -52,7 +52,7 @@ class JobLocalContentUploadService(BaseJobLocalContentUploadService):
         original_ip_list = data.get_one_of_inputs("job_ip_list")
         clean_result, ip_list = get_biz_ip_from_frontend_hybrid(executor, original_ip_list, biz_cc_id, data)
         if not clean_result:
-            return Exception("[get_ip_list] 从CMDB查询IP失败")
+            raise Exception("[get_ip_list] 从CMDB查询IP失败")
         return ip_list
 
     def get_job_kwargs(self, biz_cc_id, data, ip_list):
