@@ -79,7 +79,7 @@
                                             :to="{
                                                 name: 'taskExecute',
                                                 params: { project_id: project_id },
-                                                query: { instance_id: props.row.id }
+                                                query: { instance_id: props.row.id, root_id: props.row.root_id }
                                             }">
                                             {{props.row.name}}
                                         </router-link>
@@ -387,7 +387,8 @@
                 isDeleteDialogShow: false,
                 deletaLoading: false,
                 theDeleteTaskId: undefined,
-                theDeleteTaskName: ''
+                theDeleteTaskName: '',
+                initOpenTask: []
             }
         },
         computed: {
@@ -400,6 +401,8 @@
             })
         },
         async created () {
+            const { root_id } = this.$route.params
+            this.initOpenTask = root_id ? String(root_id).split(',') : []
             this.getFields()
             await this.getData()
             this.firstLoading = false
@@ -510,6 +513,14 @@
                         this.totalPage = totalPage
                     }
                     const result = await this.setListHaveChild(list)
+                    // 当存在默认打开的子流程时，需手动打开
+                    if (this.initOpenTask.length) {
+                        this.setTaskListData(result)
+                        const task = result.find(item => item.id === Number(this.initOpenTask[0]))
+                        task && await this.getCurProcessChdProcess(task)
+                        this.initOpenTask = []
+                        return
+                    }
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', result)
                     this.setTaskListData(result)
@@ -564,11 +575,14 @@
                                 children_id: [...relations[key]]
                             })
                         }
+                        const rootObj = {}
                         taskIds.forEach(item => {
                             item.children_id.forEach(ite => {
+                                rootObj[ite] = item.id in rootObj ? rootObj[item.id] + ',' + item.id : item.id
                                 taskIdList.push({
                                     id: ite,
                                     parent_id: item.id,
+                                    root_id: rootObj[ite],
                                     children: []
                                 })
                             })
@@ -579,7 +593,7 @@
                             arr.forEach(item => {
                                 if (item.parent_id === parentId) {
                                     const task = tasks.find(task => task.id === item.id)
-                                    task.root_id = row.id
+                                    task.root_id = item.root_id
                                     result.push({
                                         ...item,
                                         level: level,
@@ -596,6 +610,14 @@
                     curTaskList.splice(curTaskList.findIndex(item => item.id === row.id) + 1, 0, ...result)
                     this.getExecuteStatus('executeStatus', curTaskList)
                     this.setTaskListData(curTaskList)
+                    // 当存在默认打开的子流程时，需手动打开
+                    if (this.initOpenTask.length) {
+                        result.forEach(task => {
+                            if (this.initOpenTask.includes(String(task.id))) {
+                                this.getCurProcessChdProcess(task)
+                            }
+                        })
+                    }
                 } else {
                     // 关闭获取已展开列的最大level
                     const MaxLevel = Math.max(...curTaskList.map(item => {
