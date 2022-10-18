@@ -10,6 +10,122 @@
  * specific language governing permissions and limitations under the License.
  */
 (function () {
+
+    var fixed = /^([1-9]\d*)$/;
+    var fixedIn = /^\+([1-9]\d*)$/;
+    var fixedMu = /^\*([1-9]\d*)$/;
+    var per = /^([1-9]\d?)%$/;
+    var all = /^100%$/;
+
+    function validate_job_rolling_expression(exprStr) {
+        var batchStack = exprStr.trim().split(' ');
+        if (batchStack.length < 1) {
+            return '';
+        }
+
+        var lastFixedNum = 0;
+        var lastPerNum = '';
+
+        var lastBatchPre = batchStack.length > 1 ? '后面' : '';
+
+        var translateSequence = (value) => {
+            var batchTotal = value.length;
+
+            var parse = (atoms, batchNum) => {
+                var fixedData = atoms.match(fixed);
+                if (fixedData) {
+                    var fixedNum = parseInt(fixedData[1], 10);
+
+                    lastPerNum = '';
+                    lastFixedNum = fixedNum;
+
+                    if (batchNum === batchTotal) {
+                        return [`${lastBatchPre}按每${fixedNum}台一批直至结束`];
+                    }
+                    return [`第${batchNum}批${fixedNum}台`];
+                }
+
+                var perData = atoms.match(per);
+                if (perData) {
+                    var perNum = parseInt(perData[1], 10);
+
+                    lastFixedNum = 0;
+                    lastPerNum = perNum;
+
+                    if (batchNum === batchTotal) {
+                        return [`${lastBatchPre}按每${perNum}%台一批直至结束`];
+                    }
+                    return [`第${batchNum}批${perNum}%台`];
+                }
+
+                var fixedInData = atoms.match(fixedIn);
+                if (fixedInData) {
+                    if (batchNum === 1) {
+                        throw new Error(`${atoms} 不能出现在开头`);
+                    }
+                    if (batchNum < batchTotal) {
+                        throw new Error(`${atoms} 必须出现在最后一位`);
+                    }
+
+                    var step = parseInt(fixedInData[1], 10);
+
+                    var textQueue = [];
+                    if (lastPerNum) {
+                        textQueue.push(`第${batchNum}批${lastPerNum}%+${step}台`);
+                        textQueue.push(`第${batchNum + 1}批${lastPerNum}%+${step + step}台`);
+                    } else if (lastFixedNum) {
+                        textQueue.push(`第${batchNum}批${step + lastFixedNum}台`);
+                        textQueue.push(`第${batchNum + 1}批${step + step + lastFixedNum}台`);
+                    }
+                    textQueue.push(`...之后“每批增加${step}”台直至结束`);
+                    return textQueue;
+                }
+
+                var fixedMuData = atoms.match(fixedMu);
+                if (fixedMuData) {
+                    if (batchNum === 1) {
+                        throw new Error(`${atoms} 不能出现在开头`);
+                    }
+                    if (batchNum < batchTotal) {
+                        throw new Error(`${atoms} 必须出现在最后一位`);
+                    }
+
+                    var rate = parseInt(fixedMuData[1], 10);
+                    var textQueue = [];
+                    if (lastPerNum) {
+                        textQueue.push(`第${batchNum}批${rate * lastPerNum}%台`);
+                        textQueue.push(`第${batchNum + 1}批${rate * rate * lastPerNum}%台`);
+                    } else if (lastFixedNum) {
+                        textQueue.push(`第${batchNum}批${rate * lastFixedNum}台`);
+                        textQueue.push(`第${batchNum + 1}批${rate * rate * lastFixedNum}台`);
+                    }
+                    textQueue.push(`...之后“每批乘于${rate}”台直至结束`);
+                    return textQueue;
+                }
+
+                if (all.test(atoms)) {
+                    if (batchNum < batchTotal) {
+                        throw new Error(`${atoms} 必须出现在最后一位`);
+                    }
+                    if (batchNum === 1) {
+                        return ['全部执行'];
+                    }
+
+                    return [`第${batchNum}批执行所有剩余主机`];
+                }
+
+                throw new Error(`不支持的配置规则 ${atoms}`);
+            };
+            var result = [];
+            value.forEach((atoms, index) => {
+                result.push.apply(result, parse(atoms, index + 1));
+            });
+            return result.join('，');
+        };
+
+        return translateSequence(batchStack);
+    }
+
     $.atoms.all_biz_job_fast_push_file = [
         {
             tag_code: "all_biz_cc_id",
@@ -364,6 +480,14 @@
                                             if (self.get_parent().get_child('job_rolling_execute').value.includes("open") && !value.toString()) {
                                                 result.result = false;
                                                 result.error_message = gettext("滚动执行开启时滚动策略为必填项");
+                                            }
+                                        }
+                                        if (value) {
+                                            try {
+                                                validate_job_rolling_expression(value)
+                                            } catch (err) {
+                                                result.result = false;
+                                                result.error_message = err.message;
                                             }
                                         }
                                         return result
