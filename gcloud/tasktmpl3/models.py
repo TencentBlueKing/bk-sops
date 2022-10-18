@@ -34,8 +34,7 @@ from gcloud.utils.managermixins import ClassificationCountMixin
 from gcloud.utils.dates import format_datetime
 from gcloud.analysis_statistics.models import TemplateStatistics, TemplateNodeStatistics, TaskflowStatistics
 from gcloud.utils.components import format_component_name_with_remote
-from gcloud.analysis_statistics.models import ProjectStatisticsDimension, TaskTmplExecuteTopN
-from gcloud.shortcuts.cmdb import get_business_attrinfo
+from gcloud.analysis_statistics.models import TaskTmplExecuteTopN
 
 logger = logging.getLogger("root")
 
@@ -362,29 +361,30 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         proj_task_count = dict(
             tasktmpl.values_list("project__bk_biz_id").annotate(value=Count("project__id")).order_by("value")
         )
-        proj_dimension_dict = dict(ProjectStatisticsDimension.objects.values_list("dimension_id", "dimension_name"))
-        proj_dimension_id_list = proj_dimension_dict.keys()
-        # 获取全部业务对应维度信息
-        total = len(proj_dimension_id_list)
         groups = []
-        proj_attr_info = get_business_attrinfo(proj_dimension_id_list)
-        for dimension in proj_dimension_id_list:
+        bk_biz_ids = []
+        for info in tasktmpl:
+            project_id = info.project.bk_biz_id
+            project_name = info.project.name
             result = {}
-            # 对应统计维度cmdb总数
-            dimension_total = 0
-            for info in proj_attr_info:
-                value = proj_task_count.get(info["bk_biz_id"], 0)
-                result.setdefault(info[dimension], {"project_id": info["bk_biz_id"], "value": 0})["value"] += value
-                dimension_total += value
-            info = [{"name": key, "value": value["value"]} for key, value in result.items()]
-            groups.append(
-                {
-                    "dimension_id": dimension,
-                    "dimension_name": proj_dimension_dict[dimension],
-                    "dimension_total": dimension_total,
-                    "info": sorted(info, key=lambda item: item["value"], reverse=True),
-                }
-            )
+            dimension_total = proj_task_count.get(project_id, 0)
+            dimension_percent = f"{int(round(dimension_total / len(tasktmpl), 2) * 100)}%"
+
+            result.setdefault(project_name, {"project_id": project_id, "value": 0})["value"] += dimension_total
+            infos = [{"name": key, "value": value["value"]} for key, value in result.items()]
+            res = {
+                "dimension_id": str(project_id),
+                "dimension_name": project_name,
+                "dimension_total": dimension_total,
+                "dimension_percent": dimension_percent,
+                "info": sorted(infos, key=lambda item: item["value"], reverse=True),
+            }
+            if res not in groups:
+                groups.append(res)
+            if project_id not in bk_biz_ids:
+                bk_biz_ids.append(project_id)
+        # 获取全部业务对应维度信息
+        total = len(bk_biz_ids)
         return total, groups
 
     def general_group_by(self, prefix_filters, group_by):
