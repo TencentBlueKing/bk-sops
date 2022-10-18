@@ -194,133 +194,143 @@
             },
         },
         {
-            tag_code: "job_rolling_execute",
-            type: "checkbox",
+            tag_code: "job_rolling_config",
+            type: "combine",
             attrs: {
-                name: gettext("滚动执行"),
-                hookable: false,
-                items: [
-                    {name: gettext(""), value: "open"},
-                ],
-                validation: []
+                name: "滚动执行配置",
+                hookable: true,
+                children: [
+                    {
+                        tag_code: "job_rolling_execute",
+                        type: "checkbox",
+                        attrs: {
+                            name: gettext("滚动执行"),
+                            hookable: false,
+                            items: [
+                                {name: gettext(""), value: "open"},
+                            ],
+                            validation: []
+                        }
+                    },
+                    {
+                        tag_code: "job_rolling_expression",
+                        type: "input",
+                        attrs: {
+                            name: gettext("滚动策略"),
+                            placeholder: gettext("详情请查看JOB使用指引"),
+                            hookable: false,
+                            validation: [
+                                {
+                                    type: "custom",
+                                    args: function (value) {
+                                        let self = this
+                                        let result = {
+                                            result: true,
+                                            error_message: ""
+                                        }
+                                        if (!self.get_parent) {
+                                            return result
+                                        } else if (self.get_parent().get_child('job_rolling_execute')) {
+                                            if (self.get_parent().get_child('job_rolling_execute').value.includes("open") && !value.toString()) {
+                                                result.result = false;
+                                                result.error_message = gettext("滚动执行开启时滚动策略为必填项");
+                                            }
+                                        }
+                                        return result
+                                    }
+                                }
+                            ]
+                        },
+                        events: [
+                            {
+                                source: "job_rolling_execute",
+                                type: "change",
+                                action: function (value) {
+                                    var self = this
+                                    if (value.includes("open")) {
+                                        self.show()
+                                    } else {
+                                        self.hide()
+                                    }
+                                }
+                            },
+                            {
+                                source: "job_rolling_execute",
+                                type: "init",
+                                action: function () {
+                                    const job_rolling_execute = this.get_parent && this.get_parent().get_child('job_rolling_execute')._get_value();
+                                    if (job_rolling_execute.includes("open")) {
+                                        this.show()
+                                    } else {
+                                        this.hide()
+                                    }
+                                }
+                            },
+                        ]
+                    },
+                    {
+                        tag_code: "job_rolling_mode",
+                        type: "select",
+                        attrs: {
+                            name: gettext("滚动机制"),
+                            hookable: false,
+                            default: 1,
+                            validation: [
+                                {
+                                    type: "custom",
+                                    args: function (value) {
+                                        let self = this
+                                        let result = {
+                                            result: true,
+                                            error_message: ""
+                                        }
+                                        if (!self.get_parent) {
+                                            return result
+                                        } else if (self.get_parent().get_child('job_rolling_execute')) {
+                                            if (self.get_parent().get_child('job_rolling_execute').value.includes("open") && !value.toString()) {
+                                                result.result = false;
+                                                result.error_message = gettext("滚动执行开启时滚动机制为必填项");
+                                            }
+                                        }
+                                        return result
+                                    }
+                                }
+                            ],
+                            items: [
+                                {text: '默认（执行失败则暂停）', value: 1},
+                                {text: '忽略失败，自动滚动下一批', value: 2},
+                                {text: '不自动，每批次都人工确认', value: 3},
+                            ]
+                        },
+                        events: [
+                            {
+                                source: "job_rolling_execute",
+                                type: "change",
+                                action: function (value) {
+                                    var self = this
+                                    if (value.includes("open")) {
+                                        self.show()
+                                    } else {
+                                        self.hide()
+                                    }
+                                }
+                            },
+                            {
+                                source: "job_rolling_execute",
+                                type: "init",
+                                action: function () {
+                                    const job_rolling_execute = this.get_parent && this.get_parent().get_child('job_rolling_execute')._get_value();
+                                    if (job_rolling_execute.includes("open")) {
+                                        this.show()
+                                    } else {
+                                        this.hide()
+                                    }
+                                }
+                            },
+                        ]
+                    },
+                ]
             }
-        },
-        {
-            tag_code: "job_rolling_expression",
-            type: "input",
-            attrs: {
-                name: gettext("滚动策略"),
-                placeholder: gettext("详情请查看JOB使用指引"),
-                hookable: false,
-                validation: [
-                    {
-                        type: "custom",
-                        args: function (value) {
-                            let self = this
-                            let result = {
-                                result: true,
-                                error_message: ""
-                            }
-                            if (!self.get_parent) {
-                                return result
-                            } else if (self.get_parent().get_child('job_rolling_execute')) {
-                                if (self.get_parent().get_child('job_rolling_execute').value.includes("open") && !value.toString()) {
-                                    result.result = false;
-                                    result.error_message = gettext("滚动执行开启时滚动策略为必填项");
-                                }
-                            }
-                            return result
-                        }
-                    }
-                ]
-            },
-            events: [
-                {
-                    source: "job_rolling_execute",
-                    type: "change",
-                    action: function (value) {
-                        var self = this
-                        if (value.includes("open")) {
-                            self.show()
-                        } else {
-                            self.hide()
-                        }
-                    }
-                },
-                {
-                    source: "job_rolling_execute",
-                    type: "init",
-                    action: function () {
-                        const job_rolling_execute = this.get_parent && this.get_parent().get_child('job_rolling_execute')._get_value();
-                        if (job_rolling_execute.includes("open")) {
-                            this.show()
-                        } else {
-                            this.hide()
-                        }
-                    }
-                },
-            ]
-        },
-        {
-            tag_code: "job_rolling_mode",
-            type: "select",
-            attrs: {
-                name: gettext("滚动机制"),
-                hookable: false,
-                default: 1,
-                validation: [
-                    {
-                        type: "custom",
-                        args: function (value) {
-                            let self = this
-                            let result = {
-                                result: true,
-                                error_message: ""
-                            }
-                            if (!self.get_parent) {
-                                return result
-                            } else if (self.get_parent().get_child('job_rolling_execute')) {
-                                if (self.get_parent().get_child('job_rolling_execute').value.includes("open") && !value.toString()) {
-                                    result.result = false;
-                                    result.error_message = gettext("滚动执行开启时滚动机制为必填项");
-                                }
-                            }
-                            return result
-                        }
-                    }
-                ],
-                items: [
-                    {text: '默认（执行失败则暂停）', value: 1},
-                    {text: '忽略失败，自动滚动下一批', value: 2},
-                    {text: '不自动，每批次都人工确认', value: 3},
-                ]
-            },
-            events: [
-                {
-                    source: "job_rolling_execute",
-                    type: "change",
-                    action: function (value) {
-                        var self = this
-                        if (value.includes("open")) {
-                            self.show()
-                        } else {
-                            self.hide()
-                        }
-                    }
-                },
-                {
-                    source: "job_rolling_execute",
-                    type: "init",
-                    action: function () {
-                        const job_rolling_execute = this.get_parent && this.get_parent().get_child('job_rolling_execute')._get_value();
-                        if (job_rolling_execute.includes("open")) {
-                            this.show()
-                        } else {
-                            this.hide()
-                        }
-                    }
-                },
-            ]
-        },
+        }
     ]
 })();

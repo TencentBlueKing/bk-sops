@@ -226,9 +226,7 @@ BASE_INPUTS = {
     "job_script_list_public": "",
     "job_script_list_general": "",
     "custom_task_name": "",
-    "job_rolling_execute": ["1"],
-    "job_rolling_expression": "10%",
-    "job_rolling_mode": "1",
+    "job_rolling_config": {"job_rolling_execute": ["1"], "job_rolling_expression": "10%", "job_rolling_mode": "1"},
 }
 # manual inputs
 MANUAL_INPUTS = BASE_INPUTS
@@ -247,9 +245,7 @@ IP_EXIST_INPUTS = {
     "job_script_source": "manual",
     "job_script_type": "1",
     "job_content": "echo",
-    "job_rolling_execute": True,
-    "job_rolling_expression": "10%",
-    "job_rolling_mode": "1",
+    "job_rolling_config": {"job_rolling_execute": ["1"], "job_rolling_expression": "10%", "job_rolling_mode": "1"},
 }
 
 # MANUAL_KWARGS
