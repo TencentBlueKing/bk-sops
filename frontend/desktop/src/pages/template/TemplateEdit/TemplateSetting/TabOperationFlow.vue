@@ -38,6 +38,7 @@
             async getOperationTemplateData () {
                 const { params, query } = this.$route
                 try {
+                    if (!query.template_id) return
                     const resp = await this.getOperationRecordTemplate({
                         project_id: params.project_id,
                         instance_id: query.template_id
