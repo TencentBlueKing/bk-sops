@@ -109,16 +109,40 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
             order_by = order_by.replace("create_time", "template_create_time")
         # 获取到组件code对应的template_id_list
         if component_code:
-            template_node_template_data = TemplateNodeStatistics.objects.filter(
-                task_template_id__in=tasktmpl_id_list,
-                component_code=component_code,
-                version=version,
-                is_remote=is_remote,
-            ).order_by(order_by)
+            template_node_template_data = (
+                TemplateNodeStatistics.objects.filter(
+                    task_template_id__in=tasktmpl_id_list,
+                    component_code=component_code,
+                    version=version,
+                    is_remote=is_remote,
+                )
+                .values(
+                    "template_id",
+                    "task_template_id",
+                    "project_id",
+                    "category",
+                    "template_create_time",
+                    "template_creator",
+                )
+                .annotate(count=Count("template_id"))
+                .order_by(order_by)
+            )
         else:
-            template_node_template_data = TemplateNodeStatistics.objects.filter(
-                task_template_id__in=tasktmpl_id_list,
-            ).order_by(order_by)
+            template_node_template_data = (
+                TemplateNodeStatistics.objects.filter(
+                    task_template_id__in=tasktmpl_id_list,
+                )
+                .values(
+                    "template_id",
+                    "task_template_id",
+                    "project_id",
+                    "category",
+                    "template_create_time",
+                    "template_creator",
+                )
+                .annotate(count=Count("template_id"))
+                .order_by(order_by)
+            )
         total = template_node_template_data.count()
         atom_template_data = template_node_template_data.values(
             "template_id",
@@ -127,6 +151,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
             "category",
             "template_create_time",
             "template_creator",
+            "count",
         )[(page - 1) * limit : page * limit]
         groups = []
         # 在template_node_tempalte_data中注入project_name和template_name
@@ -145,6 +170,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                     "category": category_dict[data["category"]],  # 需要将code转为名称
                     "create_time": format_datetime(data["template_create_time"]),
                     "creator": data["template_creator"],
+                    "count": data["count"],
                 }
             )
         return total, groups
