@@ -55,7 +55,7 @@
                     </template>
                     <template v-if="nodeActivity.auto_retry && nodeActivity.auto_retry.enable">
                         <span class="error-handle-icon"><span class="text">AR</span></span>
-                        {{ $t('在') + $tc('秒', 0) + $t('后') + $t('，') + $t('自动重试') + ' ' + nodeActivity.auto_retry.times + ' ' + $t('次') }}
+                        {{ $t('在') + $tc('秒', nodeActivity.auto_retry.interval) + $t('后') + $t('，') + $t('自动重试') + ' ' + nodeActivity.auto_retry.times + ' ' + $t('次') }}
                     </template>
                 </td>
                 <td v-else>{{ '--' }}</td>
