@@ -35,7 +35,7 @@ from gcloud.core.apis.drf.serilaziers import (
     RootTaskflowQuerySerializer,
     RootTaskflowResponseSerializer,
 )
-from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig, TaskFlowRelation
+from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig, TaskFlowRelation, TaskConfig
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.common_template.models import CommonTemplate
 from gcloud.iam_auth.conf import TASK_ACTIONS
@@ -90,6 +90,7 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
         "destroy": IamPermissionInfo(
             IAMMeta.TASK_DELETE_ACTION, res_factory.resources_for_task_obj, HAS_OBJECT_PERMISSION
         ),
+        "enable_fill_retry_params": IamPermissionInfo(pass_all=True),
     }
 
     def has_permission(self, request, view):
@@ -373,3 +374,9 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         )
         root_task_info = {task_id: True if task_id in root_task_ids else False for task_id in task_ids}
         return Response({"has_children_taskflow": root_task_info})
+
+    @swagger_auto_schema(method="GET", operation_summary="查询任务是否支持重试填参")
+    @action(methods=["GET"], detail=True)
+    def enable_fill_retry_params(self, request, *args, **kwargs):
+        task_id = kwargs["pk"]
+        return Response({"enable": TaskConfig.objects.enable_fill_retry_params(task_id)})
