@@ -15,11 +15,13 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions, status
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
+from rest_framework.decorators import action
 
 from gcloud.clocked_task.models import ClockedTask
 from gcloud.clocked_task.permissions import ClockedTaskPermissions
 from gcloud.clocked_task.serializer import ClockedTaskSerializer, ClockedTaskPatchSerializer
 from gcloud.core.apis.drf.viewsets import ApiMixin, IAMMixin
+from gcloud.core.models import Project
 from gcloud.iam_auth import get_iam_client, IAMMeta
 from gcloud.iam_auth.resource_helpers.clocked_task import ClockedTaskResourceHelper
 from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user
@@ -54,8 +56,7 @@ class ClockedTaskViewSet(ApiMixin, IAMMixin, viewsets.ModelViewSet):
         ],
     )
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+    def construct_response_data(self, request, queryset):
         page = self.paginate_queryset(queryset)
         instances = page if page is not None else list(queryset)
         serializer = self.get_serializer(instances, many=True)
@@ -75,6 +76,18 @@ class ClockedTaskViewSet(ApiMixin, IAMMixin, viewsets.ModelViewSet):
             if page is not None
             else Response(deserialized_instances)
         )
+
+    @action(methods=["GET"], detail=False)
+    def list_all(self, request):
+        if Project.objects.filter(pk=request.query_params.get("project_id")).exists():
+            queryset = self.filter_queryset(self.get_queryset())
+        else:
+            queryset = self.get_queryset()
+        return self.construct_response_data(request, queryset)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        return self.construct_response_data(request, queryset)
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
