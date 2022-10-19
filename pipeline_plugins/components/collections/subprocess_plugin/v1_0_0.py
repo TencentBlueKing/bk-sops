@@ -106,7 +106,8 @@ class SubprocessPluginService(Service):
             if (
                 raw_constant_value
                 and parent_constants.get(raw_constant_value)
-                and parent_constants[raw_constant_value]["source_type"] == "component_inputs"
+                and self.id in parent_constants[raw_constant_value]["source_info"]
+                and key in parent_constants[raw_constant_value]["source_info"][self.id]
             ):
                 constant["value"] = context_mappings[raw_subprocess_inputs[key]].value
             elif constant.get("need_render") and key in parsed_subprocess_inputs:
