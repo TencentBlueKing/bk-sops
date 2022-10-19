@@ -178,7 +178,7 @@
                 return this.isTemplateDataChanged === true || this.type === 'new' || this.type === 'clone'
             },
             createTaskBtnText () {
-                return this.isSaveAndCreateTaskType ? i18n.t('保存并新建任务') : i18n.t('新建任务')
+                return !this.isViewMode ? i18n.t('保存并新建任务') : i18n.t('新建任务')
             },
             saveRequiredPerm () {
                 if (['new', 'clone'].includes(this.type)) {
@@ -286,6 +286,13 @@
                         this.applyTplPerm(this.saveAndCreateRequiredPerm)
                     }
                 } else {
+                    if (!this.isTemplateDataChanged) {
+                        this.$bkMessage({
+                            theme: 'warning',
+                            message: i18n.t('流程未修改')
+                        })
+                        return
+                    }
                     if (this.saveBtnActive) {
                         this.saveTemplate(saveAndCreate)
                     } else {
