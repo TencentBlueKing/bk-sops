@@ -94,6 +94,10 @@
                 type: Number,
                 default: 1
             },
+            theExecuteTime: {
+                type: Number,
+                default: 1
+            },
             historyInfo: {
                 type: Array,
                 default: () => ([])
@@ -121,7 +125,6 @@
         },
         data () {
             return {
-                theExecuteTime: this.loop,
                 historyList: []
             }
         },
@@ -180,9 +183,7 @@
                 return tools.timeTransform(time)
             },
             onSelectExecuteTime (val) {
-                this.theExecuteTime = val
-                this.randomKey = new Date().getTime()
-                this.$parent.loadNodeInfo()
+                this.$emit('onSelectExecuteTime', val)
             },
             onSkipSubProcess (row) {
                 const taskInfo = row.outputsInfo.find(item => item.key === 'task_url')
