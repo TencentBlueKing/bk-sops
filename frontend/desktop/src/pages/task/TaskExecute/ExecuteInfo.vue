@@ -307,7 +307,7 @@
                         this.theExecuteTime = respData.loop
                     }
                     this.executeInfo = respData
-                    this.historyInfo = [respData]
+                    this.historyInfo = respData.skip ? [] : [respData]
                     if (respData.histories) {
                         this.historyInfo.push(...respData.histories.reverse())
                     }
