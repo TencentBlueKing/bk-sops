@@ -1353,17 +1353,37 @@ class TaskConfigManager(models.Manager):
 
         return False
 
+    def enable_fill_retry_params(self, task_id) -> bool:
+        """
+        是否启用任务节点重试调参，默认为否，仅识别任务级别配置
+        """
+        return self.filter(
+            scope=TaskConfig.SCOPE_TYPE_TASK,
+            scope_id=task_id,
+            config_type=TaskConfig.CONFIG_TYPE_RETRY_PARAMS,
+            config_value=TaskConfig.ENABLE_FILL_RETRY_PARAMS,
+        ).exists()
+
 
 class TaskConfig(models.Model):
     # 公共流程相关配置 project_id 记为-1, template_id 为-template_id
     SCOPE_TYPE_PROJECT = 1
     SCOPE_TYPE_TEMPLATE = 2
-    SCOPE_TYPES = ((SCOPE_TYPE_PROJECT, "project"), (SCOPE_TYPE_TEMPLATE, "template"))
+    SCOPE_TYPE_TASK = 3
+    SCOPE_TYPES = ((SCOPE_TYPE_PROJECT, "project"), (SCOPE_TYPE_TEMPLATE, "template"), (SCOPE_TYPE_TASK, "task"))
     CONFIG_TYPE_SUBPROCESS = 1
-    CONFIG_TYPES = ((CONFIG_TYPE_SUBPROCESS, "subprocess"),)
+    CONFIG_TYPE_RETRY_PARAMS = 2
+    CONFIG_TYPES = ((CONFIG_TYPE_SUBPROCESS, "subprocess"), (CONFIG_TYPE_RETRY_PARAMS, "retry_params"))
     ENABLE_INDEPENDENT_SUBPROCESS = "enable_independent_subprocess"
     DISABLE_INDEPENDENT_SUBPROCESS = "disable_independent_subprocess"
-    CONFIG_OPTIONS = ((ENABLE_INDEPENDENT_SUBPROCESS, _("启用独立子流程")), (DISABLE_INDEPENDENT_SUBPROCESS, _("禁用独立子流程")))
+    ENABLE_FILL_RETRY_PARAMS = "enable_fill_retry_params"
+    DISABLE_FILL_RETRY_PARAMS = "disable_fill_retry_params"
+    CONFIG_OPTIONS = (
+        (ENABLE_INDEPENDENT_SUBPROCESS, _("启用独立子流程")),
+        (DISABLE_INDEPENDENT_SUBPROCESS, _("禁用独立子流程")),
+        (ENABLE_FILL_RETRY_PARAMS, _("启用节点重试填参")),
+        (DISABLE_FILL_RETRY_PARAMS, _("禁用节点重试填参")),
+    )
 
     scope_id = models.IntegerField(_("范围对象ID"))
     scope = models.IntegerField(_("配置范围"), choices=SCOPE_TYPES)
