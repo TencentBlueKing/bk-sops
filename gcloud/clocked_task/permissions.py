@@ -27,6 +27,7 @@ class ClockedTaskPermissions(IAMMixin, permissions.BasePermission):
         "partial_update": IAMMeta.CLOCKED_TASK_EDIT_ACTION,
         "retrieve": IAMMeta.CLOCKED_TASK_VIEW_ACTION,
         "destroy": IAMMeta.CLOCKED_TASK_DELETE_ACTION,
+        "list_all": IAMMeta.ADMIN_VIEW_ACTION,
     }
 
     def has_permission(self, request, view):
@@ -48,6 +49,12 @@ class ClockedTaskPermissions(IAMMixin, permissions.BasePermission):
                 request,
                 action=self.actions[view.action],
                 resources=res_factory.resources_for_flow(template_id),
+            )
+        elif view.action == "list_all":
+            self.iam_auth_check(
+                request,
+                action=self.actions[view.action],
+                resources=[],
             )
         return True
 
