@@ -17,7 +17,7 @@ KEY_PATTERN = r"^(\$\{(?!_env_|_system\.)[a-zA-Z0-9_]+\})$"
 KEY_PATTERN_RE = re.compile(KEY_PATTERN)
 
 ACT_MAX_LENGTH = 50
-CONSTANT_MAX_LENGTH = 30
+CONSTANT_MAX_LENGTH = 50
 ONE_FLOW = {
     "anyOf": [
         {"type": "string"},

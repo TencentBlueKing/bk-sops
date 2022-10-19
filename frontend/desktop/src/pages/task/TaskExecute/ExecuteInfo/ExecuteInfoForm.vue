@@ -60,10 +60,10 @@
                 </td>
                 <td v-else>{{ '--' }}</td>
             </tr>
-            <tr>
+            <!-- <tr>
                 <th>{{ $t('超时控制') }}</th>
                 <td>{{ timeoutTextValue }}</td>
-            </tr>
+            </tr> -->
             <tr v-if="isSubProcessNode">
                 <th>{{ $t('总是使用最新版本') }}</th>
                 <td>{{ !('always_use_latest' in nodeActivity) ? '--' : nodeActivity.always_use_latest ? $t('是') : $t('否') }}</td>

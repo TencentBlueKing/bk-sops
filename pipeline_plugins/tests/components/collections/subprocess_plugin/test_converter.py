@@ -259,7 +259,6 @@ class SubprocessPluginConverterTest(TestCase):
         "activities": {
             "n378d83bb3143087a0f9b85e836ad272": {
                 "error_ignorable": false,
-                "always_use_latest": false,
                 "auto_retry": {
                     "enabled": false,
                     "interval": 0,
