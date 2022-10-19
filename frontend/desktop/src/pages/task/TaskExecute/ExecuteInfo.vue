@@ -41,12 +41,14 @@
                     v-if="isReadyStatus"
                     :is-ready-status="isReadyStatus"
                     :loop="loop"
+                    :the-execute-time="theExecuteTime"
                     :history-info="historyInfo"
                     :is-third-party-node="isThirdPartyNode"
                     :third-party-node-code="thirdPartyNodeCode"
                     :node-detail-config="nodeDetailConfig"
                     :is-sub-process-node="isSubProcessNode"
-                    :engine-ver="engineVer">
+                    :engine-ver="engineVer"
+                    @onSelectExecuteTime="onSelectExecuteTime">
                 </ExecuteLog>
                 <section class="info-section" data-test-id="taskExcute_form_operatFlow" v-if="isReadyStatus && executeInfo.id">
                     <h4 class="common-section-title">{{ $t('节点操作记录') }}</h4>
@@ -300,6 +302,10 @@
                     this.isReadyStatus = ['RUNNING', 'SUSPENDED', 'FINISHED', 'FAILED'].indexOf(state) > -1
 
                     await this.setFillRecordField(respData)
+                    if (this.theExecuteTime === undefined) {
+                        this.loop = respData.loop
+                        this.theExecuteTime = respData.loop
+                    }
                     this.executeInfo = respData
                     this.historyInfo = [respData]
                     if (respData.histories) {
@@ -634,6 +640,11 @@
                 } else {
                     return data
                 }
+            },
+            onSelectExecuteTime (time) {
+                this.theExecuteTime = time
+                this.randomKey = new Date().getTime()
+                this.loadNodeInfo()
             },
             onSelectNode (nodeHeirarchy, selectNodeId, nodeType) {
                 this.editScrollDom = null
