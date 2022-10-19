@@ -237,6 +237,12 @@
             min_width: 240
         },
         {
+            id: 'task_status',
+            label: i18n.t('状态'),
+            disabled: true,
+            width: 120
+        },
+        {
             id: 'start_time',
             label: i18n.t('执行开始'),
             width: 200
@@ -271,11 +277,6 @@
             id: 'create_method',
             label: i18n.t('创建方式'),
             width: 100
-        },
-        {
-            id: 'task_status',
-            label: i18n.t('状态'),
-            width: 120
         },
         {
             id: 'engine_ver',
