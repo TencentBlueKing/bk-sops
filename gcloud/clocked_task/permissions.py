@@ -14,7 +14,6 @@ from gcloud.core.apis.drf.viewsets import IAMMixin
 from gcloud.iam_auth import get_iam_client, res_factory, IAMMeta
 from rest_framework import permissions
 
-from .serializer import ClockedTaskListPermissionSerializer
 
 iam = get_iam_client()
 
@@ -27,19 +26,23 @@ class ClockedTaskPermissions(IAMMixin, permissions.BasePermission):
         "partial_update": IAMMeta.CLOCKED_TASK_EDIT_ACTION,
         "retrieve": IAMMeta.CLOCKED_TASK_VIEW_ACTION,
         "destroy": IAMMeta.CLOCKED_TASK_DELETE_ACTION,
-        "list_all": IAMMeta.ADMIN_VIEW_ACTION,
     }
 
     def has_permission(self, request, view):
         if view.action == "list":
-            serializer = ClockedTaskListPermissionSerializer(data=request.query_params)
-            serializer.is_valid(raise_exception=True)
-
-            self.iam_auth_check(
-                request,
-                action=self.actions[view.action],
-                resources=res_factory.resources_for_project(serializer.validated_data["project_id"]),
-            )
+            project_id = request.query_params.get("project_id")
+            if project_id:
+                self.iam_auth_check(
+                    request,
+                    action=self.actions[view.action],
+                    resources=res_factory.resources_for_project(project_id),
+                )
+            else:
+                self.iam_auth_check(
+                    request,
+                    action=IAMMeta.ADMIN_VIEW_ACTION,
+                    resources=[],
+                )
         elif view.action == "create":
             serializer = view.serializer_class(data=request.data)
             serializer.is_valid(raise_exception=True)
@@ -49,12 +52,6 @@ class ClockedTaskPermissions(IAMMixin, permissions.BasePermission):
                 request,
                 action=self.actions[view.action],
                 resources=res_factory.resources_for_flow(template_id),
-            )
-        elif view.action == "list_all":
-            self.iam_auth_check(
-                request,
-                action=self.actions[view.action],
-                resources=[],
             )
         return True
 
