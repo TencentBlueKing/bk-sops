@@ -57,15 +57,16 @@ class JobLocalContentUploadService(BaseJobLocalContentUploadService):
 
     def get_job_kwargs(self, biz_cc_id, data, ip_list):
 
-        job_rolling_execute = data.get_one_of_inputs("job_rolling_execute", [])
+        job_rolling_config = data.get_one_of_inputs("job_rolling_config", {})
+        job_rolling_execute = job_rolling_config.get("job_rolling_execute", None)
         job_kwargs = super(JobLocalContentUploadService, self).get_job_kwargs(biz_cc_id, data, ip_list)
 
         # 如果开启了滚动执行，填充rolling_config配置
         if job_rolling_execute:
             # 滚动策略
-            job_rolling_expression = data.get_one_of_inputs("job_rolling_expression")
+            job_rolling_expression = job_rolling_config.get("job_rolling_expression")
             # 滚动机制
-            job_rolling_mode = data.get_one_of_inputs("job_rolling_mode")
+            job_rolling_mode = job_rolling_config.get("job_rolling_mode")
             rolling_config = {"expression": job_rolling_expression, "mode": job_rolling_mode}
             job_kwargs.update({"rolling_config": rolling_config})
 
