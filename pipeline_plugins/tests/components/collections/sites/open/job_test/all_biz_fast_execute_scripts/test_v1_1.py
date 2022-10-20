@@ -81,7 +81,6 @@ GET_JOB_INSTANCE_URL = (
 )
 UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_user"
 
-
 # success result
 SUCCESS_RESULT = {
     "result": True,
@@ -254,9 +253,7 @@ MANUAL_INPUTS = {
     "job_content": "cd /aa",
     "job_script_param": " bbb",
     "job_script_timeout": "80",
-    "job_rolling_execute": ["1"],
-    "job_rolling_expression": "10%",
-    "job_rolling_mode": "1",
+    "job_rolling_config": {"job_rolling_execute": ["1"], "job_rolling_expression": "10%", "job_rolling_mode": "1"},
     "job_target_ip_table": [
         {"bk_cloud_id": "0", "ip": "127.0.0.1;127.0.0.2;127.0.0.3"},
         {"bk_cloud_id": "1", "ip": "200.0.0.1;200.0.0.2;200.0.0.3"},
