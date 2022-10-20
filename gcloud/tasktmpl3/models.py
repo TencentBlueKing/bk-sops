@@ -119,8 +119,8 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
             template_node_template_data = TemplateNodeStatistics.objects.filter(
                 task_template_id__in=tasktmpl_id_list,
             )
-        total = template_node_template_data.count()
-        atom_template_data = (
+        # 查询数据去重处理
+        distinct_template_data = (
             template_node_template_data.values(
                 "template_id",
                 "task_template_id",
@@ -129,9 +129,11 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                 "template_create_time",
                 "template_creator",
             )
-            .annotate(count=Count("template_id"))
-            .order_by(order_by)[(page - 1) * limit : page * limit]
+            .distinct()
+            .order_by(order_by)
         )
+        total = distinct_template_data.count()
+        atom_template_data = distinct_template_data[(page - 1) * limit : page * limit]
         groups = []
         # 在template_node_tempalte_data中注入project_name和template_name
         project_id_list = template_node_template_data.values_list("project_id", flat=True)
@@ -149,7 +151,6 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
                     "category": category_dict[data["category"]],  # 需要将code转为名称
                     "create_time": format_datetime(data["template_create_time"]),
                     "creator": data["template_creator"],
-                    "count": data["count"],
                 }
             )
         return total, groups
