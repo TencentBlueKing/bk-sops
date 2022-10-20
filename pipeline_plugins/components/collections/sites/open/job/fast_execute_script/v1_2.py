@@ -169,6 +169,12 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
             ),
         ]
 
+    def is_need_log_outputs_even_fail(self, data):
+        """
+        默认开启失败时提取变量
+        """
+        return True
+
     def get_tagged_ip_dict(self, data, parent_data, job_instance_id):
         result, tagged_ip_dict = get_job_tagged_ip_dict_complex(
             data.outputs.client,
