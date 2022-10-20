@@ -43,7 +43,7 @@
         <node-right-icon-status :node="node"></node-right-icon-status>
         <!-- tooltip提示 -->
         <div class="state-icon">
-            <template v-if="node.status === 'FAILED'">
+            <template v-if="node.status === 'FAILED' && node.type === 'tasknode'">
                 <el-tooltip v-if="isShowRetryBtn" placement="bottom" :content="$t('重试')">
                     <span
                         class="common-icon-retry"
