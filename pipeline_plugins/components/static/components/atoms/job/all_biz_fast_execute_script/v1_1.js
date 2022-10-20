@@ -448,17 +448,33 @@
         },
         {
             tag_code: "job_target_account",
-            type: "input",
+            type: "select",
             attrs: {
                 name: gettext("执行账号"),
                 placeholder: gettext("请输入在蓝鲸作业平台上注册的账户名"),
                 hookable: true,
+                remote_url: "",
+                remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
+                    return resp.data;
+                },
                 validation: [
                     {
                         type: "required"
                     }
                 ]
             },
+            events: [
+                {
+                    source: "all_biz_cc_id",
+                    type: "change",
+                    action: function (value) {
+                        this.remote_url = $.context.get('site_url') + 'pipeline/get_job_account_list/' + value + '/?bk_scope_type=biz_set';
+                        this.remoteMethod();
+                    }
+                }]
         },
         {
             tag_code: "job_target_ip_table",
