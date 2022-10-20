@@ -18,7 +18,7 @@
                     <tr v-for="(output, index) in outputsInfo" :key="index">
                         <td class="output-name">{{ getOutputName(output) }}</td>
                         <td class="output-key">{{ output.key }}</td>
-                        <td v-if="isUrl(output.value)" class="output-value" v-html="getOutputValue(output)"></td>
+                        <td v-if="isUrl(output.value) || Array.isArray(output.value)" class="output-value" v-html="getOutputValue(output)"></td>
                         <td v-else class="output-value">{{ getOutputValue(output) }}</td>
                     </tr>
                     <tr v-if="Object.keys(outputsInfo).length === 0">
@@ -97,6 +97,16 @@
                     return '--'
                 } else if (!output.preset && this.nodeDetailConfig.component_code === 'job_execute_task') {
                     return output.value
+                } else if (Array.isArray(output.value)) {
+                    if (!output.value.length) return '--'
+                    return output.value.reduce((acc, cur) => {
+                        let str = cur
+                        if (this.isUrl(cur)) {
+                            str = `<a class="info-link" target="_blank" href="${cur}">${cur}</a>`
+                        }
+                        acc = acc ? acc + ',' + str : str
+                        return acc
+                    }, '')
                 } else {
                     if (this.isUrl(output.value)) {
                         return `<a class="info-link" target="_blank" href="${output.value}">${output.value}</a>`
