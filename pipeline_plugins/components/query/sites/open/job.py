@@ -193,6 +193,8 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
     global_var_list = task_detail.get("global_var_list") or []
     for var in global_var_list:
         # 1-字符串, 2-IP, 3-索引数组, 4-关联数组
+        if not var.get("used", True):
+            continue
         if var["type"] in JOB_VAR_CATEGORY_GLOBAL_VARS:
             value = var.get("value", "")
         elif var["type"] == JOB_VAR_CATEGORY_IP:
