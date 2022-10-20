@@ -27,6 +27,7 @@ from gcloud.constants import BUSINESS, COMMON
 from gcloud.apigw.views.utils import logger
 from gcloud.apigw.schemas import APIGW_CREATE_AND_START_TASK_PARAMS
 from gcloud.common_template.models import CommonTemplate
+from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.celery.tasks import prepare_and_start_task
 from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver
@@ -149,6 +150,10 @@ def create_and_start_task(request, template_id, project_id):
     queue, routing_key = PrepareAndStartTaskQueueResolver(
         settings.API_TASK_QUEUE_NAME_V2
     ).resolve_task_queue_and_routing_key()
+
+    # crete auto retry strategy
+    arn_creator = AutoRetryNodeStrategyCreator(taskflow_id=task.id, root_pipeline_id=task.pipeline_instance.instance_id)
+    arn_creator.batch_create_strategy(task.pipeline_instance.execution_data)
 
     prepare_and_start_task.apply_async(
         kwargs=dict(task_id=task.id, project_id=project.id, username=request.user.username),
