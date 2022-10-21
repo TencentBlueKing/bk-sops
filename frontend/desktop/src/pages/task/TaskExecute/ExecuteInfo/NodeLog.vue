@@ -30,7 +30,7 @@
 <script>
     import { mapActions } from 'vuex'
     import NoData from '@/components/common/base/NoData.vue'
-    import FullCodeEditor from '../FullCodeEditor.vue'
+    import FullCodeEditor from '@/components/common/FullCodeEditor.vue'
     export default {
         name: 'NodeLog',
         components: {
@@ -237,6 +237,9 @@
         }
         .no-data-wrapper {
             margin-top: 15px;
+        }
+        .full-code-editor {
+            height: 300px;
         }
     }
 </style>
