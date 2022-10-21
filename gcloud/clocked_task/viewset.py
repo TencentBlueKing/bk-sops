@@ -69,7 +69,6 @@ class ClockedTaskViewSet(ApiMixin, IAMMixin, viewsets.ModelViewSet):
             tmpl_id = str(deserialized_instance["template_id"])
             if tmpl_id in template_view_actions and template_view_actions[tmpl_id][IAMMeta.FLOW_VIEW_ACTION]:
                 deserialized_instance["auth_actions"].append(IAMMeta.FLOW_VIEW_ACTION)
-
         return (
             self.get_paginated_response(deserialized_instances)
             if page is not None
