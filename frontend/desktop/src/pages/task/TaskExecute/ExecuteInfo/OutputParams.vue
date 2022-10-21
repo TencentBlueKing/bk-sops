@@ -38,7 +38,7 @@
 <script>
     import VueJsonPretty from 'vue-json-pretty'
     import NoData from '@/components/common/base/NoData.vue'
-    import FullCodeEditor from '../FullCodeEditor.vue'
+    import FullCodeEditor from '@/components/common/FullCodeEditor.vue'
     import { URL_REG } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
     export default {
@@ -143,5 +143,8 @@
         .output-value {
             width: 50%;
         }
+    }
+    .full-code-editor {
+        height: 300px;
     }
 </style>

@@ -18,11 +18,11 @@
         :before-close="closeTab">
         <div class="pipeline-tree-wrap" slot="content">
             <div class="code-wrapper">
-                <code-editor
+                <full-code-editor
                     :value="template"
                     :options="{ readOnly: (isViewMode || !hasAdminPerm), language: 'json' }"
                     @input="onDataChange">
-                </code-editor>
+                </full-code-editor>
             </div>
             <div class="btn-wrap">
                 <template v-if="hasAdminPerm">
@@ -36,13 +36,13 @@
 </template>
 
 <script>
-    import CodeEditor from '@/components/common/CodeEditor.vue'
+    import FullCodeEditor from '@/components/common/FullCodeEditor.vue'
     import { mapState, mapGetters } from 'vuex'
     import validatePipeline from '@/utils/validatePipeline.js'
     export default {
         name: 'TabPipelineTreeEdit',
         components: {
-            CodeEditor
+            FullCodeEditor
         },
         props: ['isShow', 'isViewMode'],
         data () {

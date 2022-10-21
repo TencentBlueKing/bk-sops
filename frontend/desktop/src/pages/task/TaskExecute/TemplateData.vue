@@ -1,11 +1,11 @@
 <template>
     <div class="pipeline-tree-wrap">
         <div class="code-wrapper">
-            <code-editor
+            <full-code-editor
                 v-if="templateData"
                 :value="templateData"
                 :options="{ readOnly: true, language: 'json' }">
-            </code-editor>
+            </full-code-editor>
             <no-data v-else></no-data>
         </div>
         <div class="action-wrapper">
@@ -14,12 +14,12 @@
     </div>
 </template>
 <script>
-    import CodeEditor from '@/components/common/CodeEditor.vue'
+    import FullCodeEditor from '@/components/common/FullCodeEditor.vue'
     import NoData from '@/components/common/base/NoData.vue'
     export default {
         name: 'TemplateData',
         components: {
-            CodeEditor,
+            FullCodeEditor,
             NoData
         },
         props: {
