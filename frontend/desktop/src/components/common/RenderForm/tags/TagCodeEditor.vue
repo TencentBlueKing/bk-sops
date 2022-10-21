@@ -31,7 +31,7 @@
         <div
             :style="{ height: height }"
             class="code-editor-wrap">
-            <code-editor
+            <full-code-editor
                 v-if="!editorReload"
                 ref="tagCodeEditor"
                 :value="value"
@@ -43,7 +43,7 @@
                     }
                 }"
                 @input="contentUpdate">
-            </code-editor>
+            </full-code-editor>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
     </div>
@@ -51,7 +51,7 @@
 <script>
     import '@/utils/i18n.js'
     import { getFormMixins } from '../formMixins.js'
-    import CodeEditor from '@/components/common/CodeEditor.vue'
+    import FullCodeEditor from '@/components/common/FullCodeEditor.vue'
     export const attrs = {
         language: {
             type: String,
@@ -86,7 +86,7 @@
     export default {
         name: 'TagCodeEditor',
         components: {
-            CodeEditor
+            FullCodeEditor
         },
         mixins: [getFormMixins(attrs)],
         data () {
