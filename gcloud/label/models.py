@@ -18,8 +18,6 @@ from django.db import models
 from django.db.models import Count
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.tasktmpl3.models import TaskTemplate
-
 logger = logging.getLogger("root")
 
 
@@ -100,13 +98,15 @@ class TemplateLabelManager(models.Manager):
         return template_ids
 
     def fetch_label_template_ids(self, label_ids):
-        relations = self.filter(label_id__in=label_ids)
+        condition_label_ids = ",".join([str(label_id) for label_id in label_ids])
+        relations = TemplateLabelRelation.objects.raw(
+            f"select t1.* from label_templatelabelrelation t1 join tasktmpl3_tasktemplate t2 "
+            f"on t1.template_id=t2.id where t2.is_deleted=0 and t1.label_id in ({condition_label_ids})"
+        )
         label_template_ids = defaultdict(list)
-        template_queryset = TaskTemplate.objects.all()
-        enable_template_ids = [item.id for item in template_queryset if not item.is_deleted]
+        # 获取所有未删除的流程模板id
         for relation in relations:
-            if relation.template_id in enable_template_ids:
-                label_template_ids[relation.label_id].append(relation.template_id)
+            label_template_ids[relation.label_id].append(relation.template_id)
         return label_template_ids
 
     def delete_relations_based_on_template(self, template_id):
