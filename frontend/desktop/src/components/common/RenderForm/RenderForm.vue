@@ -430,38 +430,26 @@
             height: 20px;
             background: #a3c5fd;
         }
-        .rf-group-desc {
-            color: #c4c6cc;
-            font-size: 14px;
-            cursor: pointer;
-            &:hover {
-                color: #f4aa1a;
-            }
-        }
         &.not-reuse {
             &:before {
-                background: #fffd69;
-            }
-            .not-reuse-tip {
-                color: #c4c6cc;
-                margin-left: 10px;
-                i {
-                    font-size: 14px;
-                    color: #ff9c01;
-                }
+                background: #ffd695;
             }
         }
+        .not-reuse-tip,
         .pre-mako-tip {
-            position: absolute;
-            right: 0;
-            top: 6px;
-            color: #63566e;
+            color: #979ba5;
             font-size: 12px;
-            .icon-exclamation-circle {
+            margin-left: 10px;
+            i {
                 font-size: 14px;
                 color: #ff9c01;
             }
         }
+    }
+    /deep/ .rf-group-desc {
+        color: #63656e;
+        font-size: 12px;
+        margin-bottom: 12px;
     }
 
 }
