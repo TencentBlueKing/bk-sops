@@ -14,15 +14,15 @@
         :is-show="true"
         :width="800"
         :title="$t('模板数据')"
-        :quick-close="!hasAdminPerm"
+        :quick-close="true"
         :before-close="closeTab">
         <div class="pipeline-tree-wrap" slot="content">
             <div class="code-wrapper">
-                <code-editor
+                <full-code-editor
                     :value="template"
                     :options="{ readOnly: (isViewMode || !hasAdminPerm), language: 'json' }"
                     @input="onDataChange">
-                </code-editor>
+                </full-code-editor>
             </div>
             <div class="btn-wrap">
                 <template v-if="hasAdminPerm">
@@ -36,24 +36,26 @@
 </template>
 
 <script>
-    import CodeEditor from '@/components/common/CodeEditor.vue'
+    import FullCodeEditor from '@/components/common/FullCodeEditor.vue'
     import { mapState, mapGetters } from 'vuex'
     import validatePipeline from '@/utils/validatePipeline.js'
     export default {
         name: 'TabPipelineTreeEdit',
         components: {
-            CodeEditor
+            FullCodeEditor
         },
         props: ['isShow', 'isViewMode'],
         data () {
             return {
                 template: this.transPipelineTreeStr(),
-                errorMessage: ''
+                errorMessage: '',
+                isDataChange: false
             }
         },
         computed: {
             ...mapState({
-                hasAdminPerm: state => state.hasAdminPerm
+                hasAdminPerm: state => state.hasAdminPerm,
+                infoBasicConfig: state => state.infoBasicConfig
             })
         },
         methods: {
@@ -67,6 +69,7 @@
             onDataChange (value) {
                 if (value !== this.template) {
                     this.template = value
+                    this.isDataChange = true
                 }
             },
             onConfirm () {
@@ -94,7 +97,16 @@
                 this.closeTab()
             },
             closeTab () {
-                this.$emit('closeTab')
+                if (this.isDataChange) {
+                    this.$bkInfo({
+                        ...this.infoBasicConfig,
+                        cancelFn: () => {
+                            this.$emit('closeTab')
+                        }
+                    })
+                } else {
+                    this.$emit('closeTab')
+                }
             }
         }
     }

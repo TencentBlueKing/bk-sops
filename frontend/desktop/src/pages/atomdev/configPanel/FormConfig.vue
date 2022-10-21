@@ -12,22 +12,22 @@
 <template>
     <div class="form-config">
         <div class="code-area">
-            <code-editor
+            <full-code-editor
                 :value="value"
                 :options="options"
                 @input="contentUpdate">
-            </code-editor>
+            </full-code-editor>
             <div class="disable-mask" v-if="readOnly"></div>
         </div>
     </div>
 </template>
 <script>
-    import CodeEditor from '@/components/common/CodeEditor.vue'
+    import FullCodeEditor from '@/components/common/FullCodeEditor.vue'
 
     export default {
         name: 'FormConfig',
         components: {
-            CodeEditor
+            FullCodeEditor
         },
         props: {
             value: {

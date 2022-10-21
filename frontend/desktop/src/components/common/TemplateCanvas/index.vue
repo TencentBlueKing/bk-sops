@@ -908,8 +908,13 @@
                     let { source } = lines.find(item => item.id === incoming[0])
                     const outlinesId = Array.isArray(outgoing) ? outgoing[0] : outgoing
                     let { target } = lines.find(item => item.id === outlinesId)
-                    // 两端的节点必须有个任务节点时才允许自动连线，否则不连线
-                    if (!activities[source.id] && !activities[target.id]) return
+                    // 当分支上只剩开始/结束节点时，不自动连线
+                    const { start_event, end_event } = this.$store.state.template
+                    if (source.id === start_event.id && target.id === end_event.id) return
+                    // 当分支上只剩网关节点时，不自动连线
+                    if (gateways[source.id] && gateways[target.id]) return
+                    // 当两端为汇聚节点和结束节点时，自动连线
+                    if (gateways[source.id] && gateways[source.id].type !== 'ConvergeGateway' && target.id === end_event.id) return
                     // 当需要生成的连线已存在，不自动连线
                     const isExist = lines.find(item => item.source.id === source.id && item.target.id === target.id)
                     if (isExist) return
@@ -946,6 +951,7 @@
                         if (createResult && source.id in gateways) {
                             const branchInfo = gateways[source.id]
                             const { conditions, default_condition } = branchInfo
+                            if (!conditions) return
                             const tagCode = `branch_${source.id}_${target.id}`
                             conditions.tag = tagCode
                             this.conditionInfo = conditions[incoming[0]]
@@ -1444,6 +1450,7 @@
                 if (startNodeId in gateways) {
                     const branchInfo = gateways[startNodeId]
                     const { conditions, default_condition } = branchInfo
+                    if (!conditions) return
                     const tagCode = `branch_${startNodeId}_${location.id}`
                     conditions.tag = tagCode
                     this.conditionInfo = conditions[deleteLine.id]
