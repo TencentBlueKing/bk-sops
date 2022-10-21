@@ -152,10 +152,10 @@
                             <bk-input v-model="formData.name"></bk-input>
                         </bk-form-item>
                         <bk-form-item :label="$t('周期表达式')" :required="true" property="loop" data-test-id="periodicEdit_form_loop">
-                            <LoopRuleSelect
-                                ref="loopRuleSelect"
+                            <CronRuleSelect
+                                ref="cronRuleSelect"
                                 class="loop-rule"
-                                :manual-input-value="cron" />
+                                v-model="cronExpression" />
                         </bk-form-item>
                     </bk-form>
                 </section>
@@ -227,7 +227,7 @@
     import { mapState, mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import { PERIODIC_REG, NAME_REG, STRING_LENGTH } from '@/constants/index.js'
-    import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
+    import CronRuleSelect from '@/components/common/Individualization/cronRuleSelect.vue'
     import TaskParamEdit from '@/pages/task/TaskParamEdit.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import NotifyTypeConfig from '@/pages/template/TemplateEdit/TemplateSetting/NotifyTypeConfig.vue'
@@ -239,7 +239,7 @@
         components: {
             TaskParamEdit,
             NoData,
-            LoopRuleSelect,
+            CronRuleSelect,
             NotifyTypeConfig,
             NodePreview
         },
@@ -354,7 +354,8 @@
                 },
                 flowName: '',
                 isTplDeleted: false, // 旧数据模板是否被删除
-                hasDeleteScheme: false // 是否存在执行方案被删除
+                hasDeleteScheme: false, // 是否存在执行方案被删除
+                cronExpression: this.cron // 周期表达式
             }
         },
         computed: {
@@ -778,8 +779,8 @@
                     this.applyForPermission(['flow_create_periodic_task'], auth_actions, resourceData)
                     return
                 }
-                const loopRule = this.$refs.loopRuleSelect.validationExpression()
-                if (!loopRule.check) return
+                const isCronError = this.$refs.cronRuleSelect.isError
+                if (isCronError) return
                 const paramEditComp = this.$refs.TaskParamEdit
                 this.$refs.basicConfigForm.validate().then(async (result) => {
                     let formValid = true
@@ -789,7 +790,7 @@
                         constants = formData
                         formValid = paramEditComp.validate()
                     }
-                    const cronArray = loopRule.rule.split(' ')
+                    const cronArray = this.cronExpression.split(' ')
                     if (cronArray.length !== 5) {
                         this.$bkMessage({
                             'message': i18n.t('输入周期表达式非法，请校验'),
@@ -804,9 +805,9 @@
                     const jsonCron = {
                         'minute': cronArray[0],
                         'hour': cronArray[1],
-                        'day_of_week': cronArray[2],
+                        'day_of_week': cronArray[4],
                         'day_of_month': cronArray[3],
-                        'month_of_year': cronArray[4]
+                        'month_of_year': cronArray[2]
                     }
                     const pipelineData = {
                         ...this.previewData,
@@ -892,8 +893,7 @@
                 const taskParamEdit = this.$refs.TaskParamEdit
                 const sameRenderData = taskParamEdit ? taskParamEdit.judgeDataEqual() : true
                 const sameFormData = tools.isDataEqual(this.formData, this.initFormData)
-                const loopRule = this.$refs.loopRuleSelect.validationExpression()
-                const sameCronDate = this.cron ? this.cron === loopRule.rule : true
+                const sameCronDate = this.cron ? this.cron === this.cronExpression : true
                 const same = sameFormData && sameCronDate && sameRenderData
                 return same
             },
@@ -934,7 +934,7 @@
     z-index: 3000;
 }
 .loop-rule {
-    width: 530px;
+    padding: 16px 20px;
 }
 
 .config-section {
@@ -965,12 +965,6 @@
         }
         .bk-form-content {
             width: 598px;
-        }
-        .loop-rule-select {
-            width: 555px;
-        }
-        .rule-tips {
-            top: 6px;
         }
         .scheme-form-item {
             .tooltips-icon {
