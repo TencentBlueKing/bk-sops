@@ -529,7 +529,9 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         proj_task_count = dict(
             taskflow.values_list("project__bk_biz_id").annotate(value=Count("project__id")).order_by("value")
         )
-        proj_dimension_dict = dict(ProjectStatisticsDimension.objects.values_list("dimension_id", "dimension_name"))
+        proj_dimension_dict = dict(
+            ProjectStatisticsDimension.objects.values_list("dimension_id", "dimension_name")
+        ) or {"bk_biz_name": "业务"}
         proj_dimension_id_list = proj_dimension_dict.keys()
         # 获取全部业务对应维度信息
         total = len(proj_dimension_id_list)
