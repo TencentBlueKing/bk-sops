@@ -104,7 +104,6 @@ class TemplateLabelManager(models.Manager):
             f"on t1.template_id=t2.id where t2.is_deleted=0 and t1.label_id in ({condition_label_ids})"
         )
         label_template_ids = defaultdict(list)
-        # 获取所有未删除的流程模板id
         for relation in relations:
             label_template_ids[relation.label_id].append(relation.template_id)
         return label_template_ids
