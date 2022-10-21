@@ -22,10 +22,6 @@ from gcloud.clocked_task.models import ClockedTask
 from gcloud.utils.drf.serializer import ReadWriteSerializerMethodField
 
 
-class ClockedTaskListPermissionSerializer(serializers.Serializer):
-    project_id = serializers.IntegerField()
-
-
 class ClockedTaskSerializer(serializers.ModelSerializer):
     task_parameters = ReadWriteSerializerMethodField(help_text="任务创建相关数据")
     creator = serializers.CharField(help_text="计划任务创建人", read_only=True)
