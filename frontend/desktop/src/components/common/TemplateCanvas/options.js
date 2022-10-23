@@ -29,7 +29,13 @@
  */
 export const endpointOptions = {
     endpoint: ['Dot', { radius: 12 }],
-    connector: ['Flowchart', { stub: [10, 10], alwaysRespectStubs: true, gap: 0, cornerRadius: 10 }], // 'Bezier'、'Straight'、'Flowchart'、'State Machine'，格式 [ type, params]
+    anchors: {
+        'Top': [0.5, 0, 0, -1, 0, -12, 'Top'],
+        'Right': [1, 0.5, 1, 0, 12, 0, 'Right'],
+        'Bottom': [0.5, 1, 0, 1, 0, 12, 'Bottom'],
+        'Left': [0, 0.5, -1, 0, -12, 0, 'Left']
+    },
+    connector: ['Flowchart', { stub: [10, 10], alwaysRespectStubs: true, gap: -12, cornerRadius: 10 }], // 'Bezier'、'Straight'、'Flowchart'、'State Machine'，格式 [ type, params]
     connectorOverlays: [
         ['PlainArrow', { width: 8, length: 6, location: 1, id: 'arrow' }]
     ],
