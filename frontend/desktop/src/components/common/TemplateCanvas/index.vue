@@ -652,7 +652,7 @@
             },
             replaceEndpoint (oEdp, nodeId, draggable = false) {
                 const oldConnections = tools.deepClone(oEdp.connections)
-                const anchor = oEdp.anchor.type
+                const anchor = this.endpointOptions.anchors[oEdp.anchor.cssClass]
                 const conditions = []
                 oldConnections.forEach(conn => {
                     const { sourceId, targetId } = conn
@@ -678,6 +678,7 @@
                     anchor: anchor,
                     uuid: anchor + nodeId
                 }, this.endpointOptions)
+                delete endpointOptions.anchors
                 this.$refs.jsFlow.instance.deleteEndpoint(oEdp)
                 if (draggable) {
                     delete endpointOptions.isSource
@@ -698,11 +699,11 @@
                         const condition = lineCondition ? lineCondition.data : undefined
                         const source = {
                             id: sourceId,
-                            arrow: endpoints[0].anchor.type
+                            arrow: endpoints[0].anchor.cssClass
                         }
                         const target = {
                             id: targetId,
-                            arrow: endpoints[1].anchor.type
+                            arrow: endpoints[1].anchor.cssClass
                         }
                         this.createLine(source, target, condition)
                     })
@@ -716,8 +717,8 @@
                 }
 
                 const [sourceEndpoint, targetEndpoint] = connection.endpoints
-                const sourceType = sourceEndpoint.anchor.type || dropEndpoint.anchor.type
-                const targetType = targetEndpoint.anchor.type || dropEndpoint.anchor.type
+                const sourceType = sourceEndpoint.anchor.cssClass || dropEndpoint.anchor.cssClass
+                const targetType = targetEndpoint.anchor.cssClass || dropEndpoint.anchor.cssClass
 
                 const data = {
                     source: {
@@ -929,16 +930,16 @@
                         let minDis = Infinity
                         // 排除源头节点输入连线的端点和目标短线输出连线的端点
                         eps.each(e => {
-                            if (sourcePosition.includes(e.anchor.type)) return
+                            if (sourcePosition.includes(e.anchor.cssClass)) return
                             oEps.each(oe => {
-                                if (targetPosition.includes(oe.anchor.type)) return
+                                if (targetPosition.includes(oe.anchor.cssClass)) return
                                 const [eX, eY] = e.anchor.lastReturnValue
                                 const [tEpX, tEpY] = oe.anchor.lastReturnValue
                                 const distance = Math.sqrt(Math.pow((tEpX - eX), 2) + Math.pow((tEpY - eY), 2))
                                 if (distance < minDis) {
                                     minDis = distance
-                                    sourceArrow = e.anchor.type
-                                    targetArrow = oe.anchor.type
+                                    sourceArrow = e.anchor.cssClass
+                                    targetArrow = oe.anchor.cssClass
                                 }
                             })
                         })
@@ -1043,9 +1044,9 @@
                     const targetPosition = this.getNodeEndpointPosition(item.targetId, type)
                     const sourcePosition = this.getNodeEndpointPosition(item.sourceId, type === 'target' ? 'source' : 'target')
                     eps.each(e => {
-                        if (targetPosition.includes(e.anchor.type)) return
+                        if (targetPosition.includes(e.anchor.cssClass)) return
                         oEps.each(oe => {
-                            if (sourcePosition.includes(oe.anchor.type)) return
+                            if (sourcePosition.includes(oe.anchor.cssClass)) return
                             const [eX, eY] = e.anchor.lastReturnValue
                             const [tEpX, tEpY] = oe.anchor.lastReturnValue
                             const distance = Math.sqrt(Math.pow((tEpX - eX), 2) + Math.pow((tEpY - eY), 2))
@@ -1062,14 +1063,14 @@
                         let condition, sId, sType, tId, tType
                         if (type === 'source') {
                             sId = cep.elementId
-                            sType = cep.anchor.type
+                            sType = cep.anchor.cssClass
                             tId = oep.elementId
-                            tType = oep.anchor.type
+                            tType = oep.anchor.cssClass
                         } else {
                             sId = oep.elementId
-                            sType = oep.anchor.type
+                            sType = oep.anchor.cssClass
                             tId = cep.elementId
-                            tType = cep.anchor.type
+                            tType = cep.anchor.cssClass
                         }
                         const line = this.canvasData.lines.find(item => {
                             return item.source.id === sId && item.target.id === tId
@@ -1155,7 +1156,7 @@
                 }
                 const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
                 const { left, top, width, height } = edp.canvas.getBoundingClientRect()
-                const type = edp.anchor.type
+                const type = edp.anchor.cssClass
                 const bX = left + width / 2 - offsetX
                 const bY = top + height / 2 - offsetY
                 // 第二次点击
@@ -1911,7 +1912,7 @@
                     background-repeat: no-repeat;
                     background-size: 24px;
                     &.jtk-endpoint-highlight {
-                        background-image: url('~@/assets/images/endpoint.png');
+                        background-image: url('~@/assets/images/endpoint.svg');
                     }
                     &[data-pos="Top"] {
                         transform: rotate(90deg);
@@ -1929,7 +1930,7 @@
                         background-position: top 50% left 0;
                     }
                     &:hover {
-                        background-image: url('~@/assets/images/endpoint-hover.png');
+                        background-image: url('~@/assets/images/endpoint-hover.svg');
                     }
                 }
                 &.template-canvas-endpoint.jtk-dragging {
