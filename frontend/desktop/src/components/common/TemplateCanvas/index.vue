@@ -1912,7 +1912,7 @@
                     background-repeat: no-repeat;
                     background-size: 24px;
                     &.jtk-endpoint-highlight {
-                        background-image: url('~@/assets/images/endpoint.png');
+                        background-image: url('~@/assets/images/endpoint.svg');
                     }
                     &[data-pos="Top"] {
                         transform: rotate(90deg);
@@ -1930,7 +1930,7 @@
                         background-position: top 50% left 0;
                     }
                     &:hover {
-                        background-image: url('~@/assets/images/endpoint-hover.png');
+                        background-image: url('~@/assets/images/endpoint-hover.svg');
                     }
                 }
                 &.template-canvas-endpoint.jtk-dragging {
