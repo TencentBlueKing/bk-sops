@@ -16,6 +16,7 @@
             'task-node',
             'process-node',
             node.status ? node.status.toLowerCase() : '',
+            { 'fail-skip': node.status === 'FINISHED' && node.skip },
             { 'actived': node.isActived }
         ]">
         <!-- 节点左侧的色块区域 -->
