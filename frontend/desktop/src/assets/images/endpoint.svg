@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>编组 8</title>
+    <defs>
+        <circle id="path-1" cx="16" cy="16" r="16"></circle>
+        <filter x="-18.8%" y="-18.8%" width="137.5%" height="137.5%" filterUnits="objectBoundingBox" id="filter-2">
+            <feOffset dx="0" dy="0" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="2" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="02.项目流程" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="项目流程-画布连接线操作优化" transform="translate(-723.000000, -1060.000000)">
+            <g id="Page"></g>
+            <g id="Page"></g>
+            <g id="Page"></g>
+            <g id="修订历史记录备份-2" transform="translate(48.000000, 604.000000)">
+                <g id="编组" transform="translate(93.000000, 211.000000)">
+                    <g id="编组-8" transform="translate(586.000000, 249.000000)">
+                        <g id="椭圆形备份">
+                            <use fill="black" fill-opacity="1" filter="url(#filter-2)" xlink:href="#path-1"></use>
+                            <use fill="#FFFFFF" fill-rule="evenodd" xlink:href="#path-1"></use>
+                        </g>
+                        <g id="编组-4备份-10" transform="translate(7.000000, 12.000000)" fill="#3A84FF">
+                            <rect id="矩形" x="0" y="0" width="8" height="8" rx="1"></rect>
+                            <rect id="矩形备份-2" x="7" y="3" width="10" height="2" rx="1"></rect>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
