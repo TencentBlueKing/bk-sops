@@ -485,7 +485,7 @@
                         },
                         {
                             validator: (val) => {
-                                return this.labelList.every(label => label.name !== val)
+                                return this.labelList.every(label => this.labelDetail.id === label.id || label.name !== val)
                             },
                             message: i18n.t('标签已存在，请重新输入'),
                             trigger: 'blur'
@@ -774,6 +774,7 @@
                 }
                 this.pending.label = true
                 try {
+                    console.log(this.labelDetail)
                     this.$refs.labelForm.validate().then(async result => {
                         if (result) {
                             let resp
