@@ -1512,7 +1512,9 @@ const en = {
     '通过': 'Pass',
     '拒绝': 'Reject',
     '重试节点': 'Retry node',
-    '按照节点配置重新执行当前步骤，如果配置引用了变量且设置为"执行时显示"，可先修改"输入参数"在重试': 'Re-execute the current step according to the node configuration. If the configuration refers to a variable and is set to "display during execution", you can modify the "input parameter" first and try again'
+    '按照节点配置重新执行当前步骤，如果配置引用了变量且设置为"执行时显示"，可先修改"输入参数"在重试': 'Re-execute the current step according to the node configuration. If the configuration refers to a variable and is set to "display during execution", you can modify the "input parameter" first and try again',
+    '当前已选择 x 条数据': 'Currently {num} pieces of data are selected',
+    '清除选择': 'Clear selection'
 }
 
 export default en
