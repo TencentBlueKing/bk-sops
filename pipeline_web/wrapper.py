@@ -18,12 +18,13 @@ import logging
 
 import ujson as json
 from django.apps import apps
+from django.conf import settings
 from django.db.models import Q
 
 from pipeline.utils.uniqid import uniqid
 from pipeline.parser.utils import replace_all_id
 from pipeline.models import PipelineTemplate, Snapshot, TemplateScheme
-from pipeline.exceptions import SubprocessExpiredError
+from pipeline.exceptions import SubprocessExpiredError, PipelineException
 
 from gcloud.utils.algorithms import topology_sort
 from pipeline_web.constants import PWE
@@ -89,14 +90,19 @@ class PipelineTemplateWebWrapper(object):
         :type template_model: TaskTemplate or CommonTemplate
         """
 
-        def _unfold_subprocess(pipeline_data, template_model):
+        def _unfold_subprocess(pipeline_data, template_model, recursive_limit):
             """内部递归调用函数
 
             :param pipeline_data: pipeline tree
             :type pipeline_data: dict
             :param template_model: 用于获取子流程 tree 的 Model
             :type template_model: TaskTemplate or CommonTemplate
+            :param recursive_limit: 最大递归层数
+            :type recursive_limit: int
             """
+            if recursive_limit >= settings.TEMPLATE_MAX_RECURSIVE_NUMBER:
+                raise PipelineException("Template recursive number exceeds limit.")
+
             activities = pipeline_data[PWE.activities]
 
             for act_id, act in list(activities.items()):
@@ -153,12 +159,19 @@ class PipelineTemplateWebWrapper(object):
                         subproc_data, exclude_task_nodes_id, False
                     )
 
-                    _unfold_subprocess(subproc_data, subprocess_template_model)
+                    _unfold_subprocess(subproc_data, subprocess_template_model, recursive_limit=recursive_limit + 1)
 
                     subproc_data["id"] = act_id
                     act["pipeline"] = subproc_data
 
-        return _unfold_subprocess(pipeline_data, template_model)
+        try:
+            return _unfold_subprocess(pipeline_data, template_model, recursive_limit=0)
+        except Exception as e:
+            logger.error(
+                f"[unfold_subprocess] pipeline with start_event "
+                f'{pipeline_data.get("start_event", {"id", None})["id"]} error: {e}'
+            )
+            raise
 
     @classmethod
     def _export_template(cls, template_obj, subprocess, refs, template_versions, root=True):

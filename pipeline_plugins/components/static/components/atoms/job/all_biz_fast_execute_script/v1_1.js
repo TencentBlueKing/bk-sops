@@ -10,6 +10,326 @@
  * specific language governing permissions and limitations under the License.
  */
 (function () {
+    function getScriptContent(language) {
+        // {value: "1", name: "shell"},
+        // {value: "2", name: "bat"},
+        // {value: "3", name: "perl"},
+        // {value: "4", name: "python"},
+        // {value: "5", name: "powershell"}
+        // bash
+        if (language === "1") {
+            return '#!/bin/bash\n' +
+                '\n' +
+                'anynowtime="date +\'%Y-%m-%d %H:%M:%S\'"\n' +
+                'NOW="echo [\\`$anynowtime\\`][PID:$$]"\n' +
+                '\n' +
+                '##### 可在脚本开始运行时调用，打印当时的时间戳及PID。\n' +
+                'function job_start\n' +
+                '{\n' +
+                '    echo "`eval $NOW` job_starts"\n' +
+                '}\n' +
+                '\n' +
+                '##### 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。 \n' +
+                'function job_success\n' +
+                '{\n' +
+                '    MSG="$*"\n' +
+                '    echo "`eval $NOW` job_success:[$MSG]"\n' +
+                '    exit 0\n' +
+                '}\n' +
+                '\n' +
+                '##### 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。\n' +
+                'function job_fail\n' +
+                '{\n' +
+                '    MSG="$*"\n' +
+                '    echo "`eval $NOW` job_fail:[$MSG]"\n' +
+                '    exit 1\n' +
+                '}\n' +
+                '\n' +
+                'job_start\n' +
+                '\n' +
+                '###### 作业平台中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值\n' +
+                '###### 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败\n' +
+                '###### 可在此处开始编写您的脚本逻辑代码\n' +
+                '\n'
+        } else if (language === "2") {
+            return '@echo on\n' +
+                'setlocal enabledelayedexpansion\n' +
+                'call:job_start\n' +
+                '\n' +
+                'REM 作业平台中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值\n' +
+                'REM 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败\n' +
+                'REM 可在此处开始编写您的脚本逻辑代码\n' +
+                '\n' +
+                '\n' +
+                '\n' +
+                'REM 函数定定义区域，不要把正文写到函数区下面 \n' +
+                'goto:eof\n' +
+                'REM 可在脚本开始运行时调用，打印当时的时间戳及PID。\n' +
+                ':job_start\n' +
+                '    set cu_time=[%date:~0,10% %time:~0,8%]\n' +
+                '    for /F "skip=3 tokens=2" %%i in (\'tasklist /v /FI "IMAGENAME eq cmd.exe" /FI "STATUS eq Unknown"\') do (\n' +
+                '        set pid=[PID:%%i]\n' +
+                '        goto:break\n' +
+                '    )\n' +
+                '    :break\n' +
+                '    echo %cu_time%%pid% job_start\n' +
+                '    goto:eof\n' +
+                '    \n' +
+                'REM 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。 \n' +
+                ':job_success\n' +
+                '    set cu_time=[%date:~0,10% %time:~0,8%]\n' +
+                '    for /F "skip=3 tokens=2" %%i in (\'tasklist /v /FI "IMAGENAME eq cmd.exe" /FI "STATUS eq Unknown"\') do (\n' +
+                '        set pid=[PID:%%i]\n' +
+                '        goto:break\n' +
+                '    )\n' +
+                '    :break\n' +
+                '    echo %cu_time%%pid% job_success:[%*]\n' +
+                '    exit 0\n' +
+                '    \n' +
+                'REM 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。\n' +
+                ':job_fail\n' +
+                '    set cu_time=[%date:~0,10% %time:~0,8%]\n' +
+                '    for /F "skip=3 tokens=2" %%i in (\'tasklist /v /FI "IMAGENAME eq cmd.exe" /FI "STATUS eq Unknown"\') do (\n' +
+                '        set pid=[PID:%%i]\n' +
+                '        goto:break\n' +
+                '    )\n' +
+                '    :break\n' +
+                '    echo %cu_time%%pid% job_fail:[%*]\n' +
+                '    exit 1\n' +
+                '\n' +
+                'REM admin'
+        } else if (language === "3") {
+            return '#!/usr/bin/perl\n' +
+                '\n' +
+                'use strict;\n' +
+                '\n' +
+                'sub job_localtime {\n' +
+                '    my @n = localtime();\n' +
+                '    return sprintf("%04d-%02d-%02d %02d:%02d:%02d",$n[5]+1900,$n[4]+1,$n[3], $n[2], $n[1], $n[0] );\n' +
+                '}\n' +
+                '\n' +
+                '##### 可在脚本开始运行时调用，打印当时的时间戳及PID。\n' +
+                'sub job_start {\n' +
+                '    print "[",&job_localtime,"][PID:$$] job_start\\n";\n' +
+                '}\n' +
+                '\n' +
+                '##### 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。 \n' +
+                'sub job_success {\n' +
+                '    print "[",&job_localtime,"][PID:$$] job_success:[@_]\\n";\n' +
+                '    exit 0;\n' +
+                '}\n' +
+                '\n' +
+                '##### 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。\n' +
+                'sub job_fail {\n' +
+                '    print "[",&job_localtime,"][PID:$$] job_fail:[@_]\\n";\n' +
+                '    exit 1;\n' +
+                '}\n' +
+                '\n' +
+                'job_start;\n' +
+                '\n' +
+                '###### iJobs中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值\n' +
+                '###### 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败\n' +
+                '###### 可在此处开始编写您的脚本逻辑代码\n' +
+                '\n'
+        } else if (language === "4") {
+            return '#!/usr/bin/env python\n' +
+                '# -*- coding: utf8 -*-\n' +
+                '\n' +
+                'import datetime\n' +
+                'import os\n' +
+                'import sys\n' +
+                '\n' +
+                'def _now(format="%Y-%m-%d %H:%M:%S"):\n' +
+                '    return datetime.datetime.now().strftime(format)\n' +
+                '\n' +
+                '##### 可在脚本开始运行时调用，打印当时的时间戳及PID。\n' +
+                'def job_start():\n' +
+                '    print("[%s][PID:%s] job_start" % (_now(), os.getpid()))\n' +
+                '\n' +
+                '##### 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。 \n' +
+                'def job_success(msg):\n' +
+                '    print("[%s][PID:%s] job_success:[%s]" % (_now(), os.getpid(), msg))\n' +
+                '    sys.exit(0)\n' +
+                '\n' +
+                '##### 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。\n' +
+                'def job_fail(msg):\n' +
+                '    print("[%s][PID:%s] job_fail:[%s]" % (_now(), os.getpid(), msg))\n' +
+                '    sys.exit(1)\n' +
+                '\n' +
+                'if __name__ == \'__main__\':\n' +
+                '\n' +
+                '    job_start()\n' +
+                '\n' +
+                '###### iJobs中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值\n' +
+                '###### 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败\n' +
+                '###### 可在此处开始编写您的脚本逻辑代码\n' +
+                '\n'
+        } else if (language === "5") {
+            return '##### 可在脚本开始运行时调用，打印当时的时间戳及PID。\n' +
+                'function job_start\n' +
+                '{\n' +
+                '    $cu_date = Get-Date -Format "yyyy-MM-dd HH:mm:ss"    \n' +
+                '    "[{0}][PID:{1}] job_start1" -f $cu_date,$pid\n' +
+                '}\n' +
+                '\n' +
+                '##### 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。 \n' +
+                'function job_success\n' +
+                '{\n' +
+                '    $cu_date = Get-Date -Format "yyyy-MM-dd HH:mm:ss"\n' +
+                '    if($args.count -ne 0)\n' +
+                '    {\n' +
+                '        $args | foreach {$arg_str=$arg_str + " " + $_}\n' +
+                '        "[{0}][PID:{1}] job_success:[{2}]" -f $cu_date,$pid,$arg_str.TrimStart(\' \')\n' +
+                '    }\n' +
+                '    else\n' +
+                '    {\n' +
+                '        "[{0}][PID:{1}] job_success:[]" -f $cu_date,$pid\n' +
+                '    }\n' +
+                '    exit 0\n' +
+                '}\n' +
+                '\n' +
+                '##### 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。\n' +
+                'function job_fail\n' +
+                '{\n' +
+                '    $cu_date = Get-Date -Format "yyyy-MM-dd HH:mm:ss"\n' +
+                '    if($args.count -ne 0)\n' +
+                '    {\n' +
+                '        $args | foreach {$arg_str=$arg_str + " " + $_}\n' +
+                '        "[{0}][PID:{1}] job_fail:[{2}]" -f $cu_date,$pid,$arg_str.TrimStart(\' \')\n' +
+                '    }\n' +
+                '    else\n' +
+                '    {\n' +
+                '        "[{0}][PID:{1}] job_fail:[]" -f $cu_date,$pid\n' +
+                '    }\n' +
+                '    exit 1\n' +
+                '}\n' +
+                '\n' +
+                'job_start\n' +
+                '\n' +
+                '###### 作业平台中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值\n' +
+                '###### 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败\n' +
+                '###### 可在此处开始编写您的脚本逻辑代码\n' +
+                '\n'
+        }
+        return ""
+    }
+
+    var fixed = /^([1-9]\d*)$/;
+    var fixedIn = /^\+([1-9]\d*)$/;
+    var fixedMu = /^\*([1-9]\d*)$/;
+    var per = /^([1-9]\d?)%$/;
+    var all = /^100%$/;
+
+    function validate_job_rolling_expression(exprStr) {
+        var batchStack = exprStr.trim().split(' ');
+        if (batchStack.length < 1) {
+            return '';
+        }
+
+        var lastFixedNum = 0;
+        var lastPerNum = '';
+
+        var lastBatchPre = batchStack.length > 1 ? '后面' : '';
+
+        var translateSequence = (value) => {
+            var batchTotal = value.length;
+
+            var parse = (atoms, batchNum) => {
+                var fixedData = atoms.match(fixed);
+                if (fixedData) {
+                    var fixedNum = parseInt(fixedData[1], 10);
+
+                    lastPerNum = '';
+                    lastFixedNum = fixedNum;
+
+                    if (batchNum === batchTotal) {
+                        return [`${lastBatchPre}按每${fixedNum}台一批直至结束`];
+                    }
+                    return [`第${batchNum}批${fixedNum}台`];
+                }
+
+                var perData = atoms.match(per);
+                if (perData) {
+                    var perNum = parseInt(perData[1], 10);
+
+                    lastFixedNum = 0;
+                    lastPerNum = perNum;
+
+                    if (batchNum === batchTotal) {
+                        return [`${lastBatchPre}按每${perNum}%台一批直至结束`];
+                    }
+                    return [`第${batchNum}批${perNum}%台`];
+                }
+
+                var fixedInData = atoms.match(fixedIn);
+                if (fixedInData) {
+                    if (batchNum === 1) {
+                        throw new Error(`${atoms} 不能出现在开头`);
+                    }
+                    if (batchNum < batchTotal) {
+                        throw new Error(`${atoms} 必须出现在最后一位`);
+                    }
+
+                    var step = parseInt(fixedInData[1], 10);
+
+                    var textQueue = [];
+                    if (lastPerNum) {
+                        textQueue.push(`第${batchNum}批${lastPerNum}%+${step}台`);
+                        textQueue.push(`第${batchNum + 1}批${lastPerNum}%+${step + step}台`);
+                    } else if (lastFixedNum) {
+                        textQueue.push(`第${batchNum}批${step + lastFixedNum}台`);
+                        textQueue.push(`第${batchNum + 1}批${step + step + lastFixedNum}台`);
+                    }
+                    textQueue.push(`...之后“每批增加${step}”台直至结束`);
+                    return textQueue;
+                }
+
+                var fixedMuData = atoms.match(fixedMu);
+                if (fixedMuData) {
+                    if (batchNum === 1) {
+                        throw new Error(`${atoms} 不能出现在开头`);
+                    }
+                    if (batchNum < batchTotal) {
+                        throw new Error(`${atoms} 必须出现在最后一位`);
+                    }
+
+                    var rate = parseInt(fixedMuData[1], 10);
+                    var textQueue = [];
+                    if (lastPerNum) {
+                        textQueue.push(`第${batchNum}批${rate * lastPerNum}%台`);
+                        textQueue.push(`第${batchNum + 1}批${rate * rate * lastPerNum}%台`);
+                    } else if (lastFixedNum) {
+                        textQueue.push(`第${batchNum}批${rate * lastFixedNum}台`);
+                        textQueue.push(`第${batchNum + 1}批${rate * rate * lastFixedNum}台`);
+                    }
+                    textQueue.push(`...之后“每批乘于${rate}”台直至结束`);
+                    return textQueue;
+                }
+
+                if (all.test(atoms)) {
+                    if (batchNum < batchTotal) {
+                        throw new Error(`${atoms} 必须出现在最后一位`);
+                    }
+                    if (batchNum === 1) {
+                        return ['全部执行'];
+                    }
+
+                    return [`第${batchNum}批执行所有剩余主机`];
+                }
+
+                throw new Error(`不支持的配置规则 ${atoms}`);
+            };
+            var result = [];
+            value.forEach((atoms, index) => {
+                result.push.apply(result, parse(atoms, index + 1));
+            });
+            return result.join('，');
+        };
+
+        return translateSequence(batchStack);
+    }
+
+
     $.atoms.all_biz_job_fast_execute_script = [
         {
             tag_code: "all_biz_cc_id",
@@ -65,6 +385,7 @@
                 placeholder: gettext("填写执行脚本内容"),
                 language: "shell",
                 showLanguageSwitch: false,
+                default: getScriptContent("1"),
                 height: "400px",
                 validation: [
                     {
@@ -72,6 +393,16 @@
                     }
                 ]
             },
+            events: [
+                {
+                    source: "job_script_type",
+                    type: "change",
+                    action: function (value) {
+                        let content = getScriptContent(value)
+                        this.value = content
+                    }
+                }
+            ]
         },
         {
             tag_code: "job_script_param",
@@ -117,17 +448,33 @@
         },
         {
             tag_code: "job_target_account",
-            type: "input",
+            type: "select",
             attrs: {
                 name: gettext("执行账号"),
                 placeholder: gettext("请输入在蓝鲸作业平台上注册的账户名"),
                 hookable: true,
+                remote_url: "",
+                remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
+                    return resp.data;
+                },
                 validation: [
                     {
                         type: "required"
                     }
                 ]
             },
+            events: [
+                {
+                    source: "all_biz_cc_id",
+                    type: "change",
+                    action: function (value) {
+                        this.remote_url = $.context.get('site_url') + 'pipeline/get_job_account_list/' + value + '/?bk_scope_type=biz_set';
+                        this.remoteMethod();
+                    }
+                }]
         },
         {
             tag_code: "job_target_ip_table",
@@ -194,133 +541,151 @@
             },
         },
         {
-            tag_code: "job_rolling_execute",
-            type: "checkbox",
+            tag_code: "job_rolling_config",
+            type: "combine",
             attrs: {
-                name: gettext("滚动执行"),
-                hookable: false,
-                items: [
-                    {name: gettext(""), value: "open"},
-                ],
-                validation: []
+                name: "滚动执行配置",
+                hookable: true,
+                children: [
+                    {
+                        tag_code: "job_rolling_execute",
+                        type: "checkbox",
+                        attrs: {
+                            name: gettext("滚动执行"),
+                            hookable: false,
+                            items: [
+                                {name: gettext(""), value: "open"},
+                            ],
+                            validation: []
+                        }
+                    },
+                    {
+                        tag_code: "job_rolling_expression",
+                        type: "input",
+                        attrs: {
+                            name: gettext("滚动策略"),
+                            placeholder: gettext("详情请查看JOB使用指引"),
+                            hookable: false,
+                            validation: [
+                                {
+                                    type: "custom",
+                                    args: function (value) {
+                                        let self = this
+                                        let result = {
+                                            result: true,
+                                            error_message: ""
+                                        }
+                                        if (!self.get_parent) {
+                                            return result
+                                        } else if (self.get_parent().get_child('job_rolling_execute')) {
+                                            if (self.get_parent().get_child('job_rolling_execute').value.includes("open") && !value.toString()) {
+                                                result.result = false;
+                                                result.error_message = gettext("滚动执行开启时滚动策略为必填项");
+                                            }
+                                        }
+                                        if (value) {
+                                            try {
+                                                validate_job_rolling_expression(value)
+                                            } catch (err) {
+                                                result.result = false;
+                                                result.error_message = err.message;
+                                            }
+                                        }
+                                        return result
+                                    }
+                                }
+                            ]
+                        },
+                        events: [
+                            {
+                                source: "job_rolling_execute",
+                                type: "change",
+                                action: function (value) {
+                                    var self = this
+                                    if (value.includes("open")) {
+                                        self.show()
+                                    } else {
+                                        self.hide()
+                                    }
+                                }
+                            },
+                            {
+                                source: "job_rolling_execute",
+                                type: "init",
+                                action: function () {
+                                    const job_rolling_execute = this.get_parent && this.get_parent().get_child('job_rolling_execute')._get_value();
+                                    if (job_rolling_execute.includes("open")) {
+                                        this.show()
+                                    } else {
+                                        this.hide()
+                                    }
+                                }
+                            },
+                        ]
+                    },
+                    {
+                        tag_code: "job_rolling_mode",
+                        type: "select",
+                        attrs: {
+                            name: gettext("滚动机制"),
+                            hookable: false,
+                            default: 1,
+                            validation: [
+                                {
+                                    type: "custom",
+                                    args: function (value) {
+                                        let self = this
+                                        let result = {
+                                            result: true,
+                                            error_message: ""
+                                        }
+                                        if (!self.get_parent) {
+                                            return result
+                                        } else if (self.get_parent().get_child('job_rolling_execute')) {
+                                            if (self.get_parent().get_child('job_rolling_execute').value.includes("open") && !value.toString()) {
+                                                result.result = false;
+                                                result.error_message = gettext("滚动执行开启时滚动机制为必填项");
+                                            }
+                                        }
+                                        return result
+                                    }
+                                }
+                            ],
+                            items: [
+                                {text: '默认（执行失败则暂停）', value: 1},
+                                {text: '忽略失败，自动滚动下一批', value: 2},
+                                {text: '不自动，每批次都人工确认', value: 3},
+                            ]
+                        },
+                        events: [
+                            {
+                                source: "job_rolling_execute",
+                                type: "change",
+                                action: function (value) {
+                                    var self = this
+                                    if (value.includes("open")) {
+                                        self.show()
+                                    } else {
+                                        self.hide()
+                                    }
+                                }
+                            },
+                            {
+                                source: "job_rolling_execute",
+                                type: "init",
+                                action: function () {
+                                    const job_rolling_execute = this.get_parent && this.get_parent().get_child('job_rolling_execute')._get_value();
+                                    if (job_rolling_execute.includes("open")) {
+                                        this.show()
+                                    } else {
+                                        this.hide()
+                                    }
+                                }
+                            },
+                        ]
+                    },
+                ]
             }
-        },
-        {
-            tag_code: "job_rolling_expression",
-            type: "input",
-            attrs: {
-                name: gettext("滚动策略"),
-                placeholder: gettext("详情请查看JOB使用指引"),
-                hookable: false,
-                validation: [
-                    {
-                        type: "custom",
-                        args: function (value) {
-                            let self = this
-                            let result = {
-                                result: true,
-                                error_message: ""
-                            }
-                            if (!self.get_parent) {
-                                return result
-                            } else if (self.get_parent().get_child('job_rolling_execute')) {
-                                if (self.get_parent().get_child('job_rolling_execute').value.includes("open") && !value.toString()) {
-                                    result.result = false;
-                                    result.error_message = gettext("滚动执行开启时滚动策略为必填项");
-                                }
-                            }
-                            return result
-                        }
-                    }
-                ]
-            },
-            events: [
-                {
-                    source: "job_rolling_execute",
-                    type: "change",
-                    action: function (value) {
-                        var self = this
-                        if (value.includes("open")) {
-                            self.show()
-                        } else {
-                            self.hide()
-                        }
-                    }
-                },
-                {
-                    source: "job_rolling_execute",
-                    type: "init",
-                    action: function () {
-                        const job_rolling_execute = this.get_parent && this.get_parent().get_child('job_rolling_execute')._get_value();
-                        if (job_rolling_execute.includes("open")) {
-                            this.show()
-                        } else {
-                            this.hide()
-                        }
-                    }
-                },
-            ]
-        },
-        {
-            tag_code: "job_rolling_mode",
-            type: "select",
-            attrs: {
-                name: gettext("滚动机制"),
-                hookable: false,
-                default: 1,
-                validation: [
-                    {
-                        type: "custom",
-                        args: function (value) {
-                            let self = this
-                            let result = {
-                                result: true,
-                                error_message: ""
-                            }
-                            if (!self.get_parent) {
-                                return result
-                            } else if (self.get_parent().get_child('job_rolling_execute')) {
-                                if (self.get_parent().get_child('job_rolling_execute').value.includes("open") && !value.toString()) {
-                                    result.result = false;
-                                    result.error_message = gettext("滚动执行开启时滚动机制为必填项");
-                                }
-                            }
-                            return result
-                        }
-                    }
-                ],
-                items: [
-                    {text: '默认（执行失败则暂停）', value: 1},
-                    {text: '忽略失败，自动滚动下一批', value: 2},
-                    {text: '不自动，每批次都人工确认', value: 3},
-                ]
-            },
-            events: [
-                {
-                    source: "job_rolling_execute",
-                    type: "change",
-                    action: function (value) {
-                        var self = this
-                        if (value.includes("open")) {
-                            self.show()
-                        } else {
-                            self.hide()
-                        }
-                    }
-                },
-                {
-                    source: "job_rolling_execute",
-                    type: "init",
-                    action: function () {
-                        const job_rolling_execute = this.get_parent && this.get_parent().get_child('job_rolling_execute')._get_value();
-                        if (job_rolling_execute.includes("open")) {
-                            this.show()
-                        } else {
-                            this.hide()
-                        }
-                    }
-                },
-            ]
-        },
+        }
     ]
 })();

@@ -699,7 +699,6 @@
                 if (is_latest === null && template_source === 'common') {
                     return
                 }
-                this.curRow = item
                 const splitCron = this.splitPeriodicCron(cron)
                 this.selectedCron = splitCron
                 this.selectedPeriodicId = taskId
@@ -726,6 +725,7 @@
                     'taskId': taskId
                 }
                 const periodic = await this.getPeriodic(data)
+                this.curRow = periodic
                 this.constants = periodic.form
                 this.modifyDialogLoading = false
             },

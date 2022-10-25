@@ -73,9 +73,11 @@ def FILE_MANAGER_NOT_CONFIG_CASE():
             "job_target_ip_list": "job_target_ip_list",
             "job_target_account": "job_target_account",
             "job_local_files_info": {"job_push_multi_local_files_table": [{""}]},
-            "job_rolling_execute": ["1"],
-            "job_rolling_expression": "10%",
-            "job_rolling_mode": "1",
+            "job_rolling_config": {
+                "job_rolling_execute": ["1"],
+                "job_rolling_expression": "10%",
+                "job_rolling_mode": "1",
+            },
         },
         parent_data={"executor": "executor", "project_id": "project_id"},
         execute_assertion=ExecuteAssertion(
@@ -98,9 +100,11 @@ def FILE_MANAGER_TYPE_ERR_CASE():
             "job_target_ip_list": "job_target_ip_list",
             "job_target_account": "job_target_account",
             "job_local_files_info": {"job_push_multi_local_files_table": [{""}]},
-            "job_rolling_execute": ["1"],
-            "job_rolling_expression": "10%",
-            "job_rolling_mode": "1",
+            "job_rolling_config": {
+                "job_rolling_execute": ["1"],
+                "job_rolling_expression": "10%",
+                "job_rolling_mode": "1",
+            },
         },
         parent_data={"executor": "executor", "project_id": "project_id"},
         execute_assertion=ExecuteAssertion(
@@ -137,9 +141,11 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
             "biz_cc_id": "1",
             "job_target_ip_list": "1.1.1.1",
             "job_target_account": "job_target_account",
-            "job_rolling_execute": ["1"],
-            "job_rolling_expression": "10%",
-            "job_rolling_mode": "1",
+            "job_rolling_config": {
+                "job_rolling_execute": ["1"],
+                "job_rolling_expression": "10%",
+                "job_rolling_mode": "1",
+            },
             "job_local_files_info": {
                 "job_push_multi_local_files_table": [
                     {
@@ -219,9 +225,11 @@ def SCHEDULE_FAILURE_CASE():
             "biz_cc_id": "1",
             "job_target_ip_list": "1.1.1.1",
             "job_target_account": "job_target_account",
-            "job_rolling_execute": ["1"],
-            "job_rolling_expression": "10%",
-            "job_rolling_mode": "1",
+            "job_rolling_config": {
+                "job_rolling_execute": ["1"],
+                "job_rolling_expression": "10%",
+                "job_rolling_mode": "1",
+            },
             "job_local_files_info": {
                 "job_push_multi_local_files_table": [
                     {
@@ -320,9 +328,11 @@ def SUCCESS_MULTI_CASE():
             "biz_cc_id": "biz_cc_id",
             "job_target_ip_list": "1.1.1.1",
             "job_target_account": "job_target_account",
-            "job_rolling_execute": ["1"],
-            "job_rolling_expression": "10%",
-            "job_rolling_mode": "1",
+            "job_rolling_config": {
+                "job_rolling_execute": ["1"],
+                "job_rolling_expression": "10%",
+                "job_rolling_mode": "1",
+            },
             "job_local_files_info": {
                 "job_push_multi_local_files_table": [
                     {
@@ -463,9 +473,11 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
             "biz_cc_id": "biz_cc_id",
             "job_target_ip_list": "1.1.1.1",
             "job_target_account": "job_target_account",
-            "job_rolling_execute": ["1"],
-            "job_rolling_expression": "10%",
-            "job_rolling_mode": "1",
+            "job_rolling_config": {
+                "job_rolling_execute": ["1"],
+                "job_rolling_expression": "10%",
+                "job_rolling_mode": "1",
+            },
             "job_local_files_info": {
                 "job_push_multi_local_files_table": [
                     {

@@ -48,10 +48,10 @@
                 </div>
                 <p class="tpl-type-title">{{ $t('顶层流程（n）', { n: topFlowList.length }) }}</p>
                 <bk-table :data="topFlowTableList" :key="Math.random()">
-                    <bk-table-column :label="$t('流程名称')" show-overflow-tooltip>
-                        <template slot-scope="props">
+                    <bk-table-column :label="$t('流程名称')">
+                        <div slot-scope="props" v-bk-overflow-tips>
                             {{ props.row.meta.name }}
-                        </template>
+                        </div>
                     </bk-table-column>
                     <bk-table-column :label="$t('是否覆盖已有流程')" :width="400">
                         <template slot-scope="{ row }">
@@ -109,15 +109,15 @@
                 <template v-if="subFlowList.length > 0">
                     <p class="tpl-type-title">{{ $t('子流程（n）', { n: subFlowList.length }) }}</p>
                     <bk-table :data="subFlowTableList" :key="Math.random()">
-                        <bk-table-column :label="$t('流程名称')" show-overflow-tooltip>
-                            <template slot-scope="props">
+                        <bk-table-column :label="$t('流程名称')">
+                            <div slot-scope="props" v-bk-overflow-tips>
                                 {{ props.row.meta.name }}
-                            </template>
+                            </div>
                         </bk-table-column>
-                        <bk-table-column :label="$t('父流程')" show-overflow-tooltip>
-                            <template slot-scope="props">
+                        <bk-table-column :label="$t('父流程')">
+                            <div slot-scope="props" v-bk-overflow-tips>
                                 {{ importData.relations[props.row.meta.id] ? importData.relations[props.row.meta.id].map(item => item.name).join(',') : '--' }}
-                            </template>
+                            </div>
                         </bk-table-column>
                         <bk-table-column :label="$t('是否覆盖已有子流程（实验功能，请谨慎使用并选择正确的流程）')" :width="400">
                             <template slot-scope="{ row }">

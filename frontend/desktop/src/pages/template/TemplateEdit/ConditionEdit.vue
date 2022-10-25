@@ -75,13 +75,13 @@
                             <p>{{ $t('数值比较：') }} ${int(key)} >= 3</p>
                             <p>{{ $t('包含：') }} ${key} in (1,2,3)</p>
                         </div>
-                        <code-editor
+                        <full-code-editor
                             v-validate="expressionRule"
                             name="expression"
                             :value="expression"
                             :options="{ language: 'python', readOnly: isReadonly }"
                             @input="onDataChange">
-                        </code-editor>
+                        </full-code-editor>
                     </div>
                     <span v-show="veeErrors.has('expression')" class="common-error-tip error-msg">{{ veeErrors.first('expression') }}</span>
                 </div>
@@ -98,12 +98,12 @@
     import i18n from '@/config/i18n/index.js'
     import { mapMutations } from 'vuex'
     import { NAME_REG } from '@/constants/index.js'
-    import CodeEditor from '@/components/common/CodeEditor.vue'
+    import FullCodeEditor from '@/components/common/FullCodeEditor.vue'
 
     export default {
         name: 'conditionEdit',
         components: {
-            CodeEditor
+            FullCodeEditor
         },
         props: {
             isShow: Boolean,
@@ -245,7 +245,6 @@
                 }
             }
             .code-wrapper {
-                height: 300px;
                 .condition-tips {
                     margin-bottom: 10px;
                     font-size: 12px;
@@ -256,6 +255,9 @@
                             font-size: 12px;
                         }
                     }
+                }
+                .full-code-editor {
+                    height: 300px;
                 }
             }
             .bk-form-radio {

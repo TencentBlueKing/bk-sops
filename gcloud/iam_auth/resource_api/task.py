@@ -168,7 +168,9 @@ class TaskResourceProvider(ResourceProvider):
         queryset = TaskFlowInstance.objects.filter(id__in=ids)
 
         count = queryset.count()
-        results = [{"id": str(task.id), "display_name": task.name} for task in queryset]
+        results = [
+            {"id": str(task.id), "display_name": task.name, "_bk_iam_approver_": task.creator} for task in queryset
+        ]
         return ListResult(results=results, count=count)
 
     def list_instance_by_policy(self, filter, page, **options):

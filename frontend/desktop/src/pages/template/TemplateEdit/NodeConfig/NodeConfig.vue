@@ -62,10 +62,12 @@
                                         <bk-link v-if="!isViewMode" theme="primary" icon="bk-icon icon-plus" @click="openVariablePanel">{{ $t('新建变量') }}</bk-link>
                                     </div>
                                     <bk-table :data="variableList" :outer-border="false" :max-height="400">
-                                        <bk-table-column :label="$t('名称')" prop="name" width="165" :show-overflow-tooltip="true"></bk-table-column>
-                                        <bk-table-column label="KEY" :show-overflow-tooltip="true" width="209">
+                                        <bk-table-column :label="$t('名称')" prop="name" width="165">
+                                            <div slot-scope="props" v-bk-overflow-tips>{{ props.row.name }}</div>
+                                        </bk-table-column>
+                                        <bk-table-column label="KEY" width="209">
                                             <template slot-scope="props" width="165">
-                                                <div class="key">{{ props.row.key }}</div>
+                                                <div v-bk-overflow-tips class="key">{{ props.row.key }}</div>
                                                 <i class="copy-icon common-icon-double-paper-2" @click="onCopyKey(props.row.key)"></i>
                                             </template>
                                         </bk-table-column>

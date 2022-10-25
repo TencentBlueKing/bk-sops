@@ -10,6 +10,210 @@
  * specific language governing permissions and limitations under the License.
  */
 (function () {
+    function getScriptContent(language) {
+        // {value: "1", name: "shell"},
+        // {value: "2", name: "bat"},
+        // {value: "3", name: "perl"},
+        // {value: "4", name: "python"},
+        // {value: "5", name: "powershell"}
+        // bash
+        if (language === "1") {
+            return '#!/bin/bash\n' +
+                '\n' +
+                'anynowtime="date +\'%Y-%m-%d %H:%M:%S\'"\n' +
+                'NOW="echo [\\`$anynowtime\\`][PID:$$]"\n' +
+                '\n' +
+                '##### 可在脚本开始运行时调用，打印当时的时间戳及PID。\n' +
+                'function job_start\n' +
+                '{\n' +
+                '    echo "`eval $NOW` job_starts"\n' +
+                '}\n' +
+                '\n' +
+                '##### 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。 \n' +
+                'function job_success\n' +
+                '{\n' +
+                '    MSG="$*"\n' +
+                '    echo "`eval $NOW` job_success:[$MSG]"\n' +
+                '    exit 0\n' +
+                '}\n' +
+                '\n' +
+                '##### 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。\n' +
+                'function job_fail\n' +
+                '{\n' +
+                '    MSG="$*"\n' +
+                '    echo "`eval $NOW` job_fail:[$MSG]"\n' +
+                '    exit 1\n' +
+                '}\n' +
+                '\n' +
+                'job_start\n' +
+                '\n' +
+                '###### 作业平台中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值\n' +
+                '###### 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败\n' +
+                '###### 可在此处开始编写您的脚本逻辑代码\n' +
+                '\n'
+        } else if (language === "2") {
+            return '@echo on\n' +
+                'setlocal enabledelayedexpansion\n' +
+                'call:job_start\n' +
+                '\n' +
+                'REM 作业平台中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值\n' +
+                'REM 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败\n' +
+                'REM 可在此处开始编写您的脚本逻辑代码\n' +
+                '\n' +
+                '\n' +
+                '\n' +
+                'REM 函数定定义区域，不要把正文写到函数区下面 \n' +
+                'goto:eof\n' +
+                'REM 可在脚本开始运行时调用，打印当时的时间戳及PID。\n' +
+                ':job_start\n' +
+                '    set cu_time=[%date:~0,10% %time:~0,8%]\n' +
+                '    for /F "skip=3 tokens=2" %%i in (\'tasklist /v /FI "IMAGENAME eq cmd.exe" /FI "STATUS eq Unknown"\') do (\n' +
+                '        set pid=[PID:%%i]\n' +
+                '        goto:break\n' +
+                '    )\n' +
+                '    :break\n' +
+                '    echo %cu_time%%pid% job_start\n' +
+                '    goto:eof\n' +
+                '    \n' +
+                'REM 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。 \n' +
+                ':job_success\n' +
+                '    set cu_time=[%date:~0,10% %time:~0,8%]\n' +
+                '    for /F "skip=3 tokens=2" %%i in (\'tasklist /v /FI "IMAGENAME eq cmd.exe" /FI "STATUS eq Unknown"\') do (\n' +
+                '        set pid=[PID:%%i]\n' +
+                '        goto:break\n' +
+                '    )\n' +
+                '    :break\n' +
+                '    echo %cu_time%%pid% job_success:[%*]\n' +
+                '    exit 0\n' +
+                '    \n' +
+                'REM 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。\n' +
+                ':job_fail\n' +
+                '    set cu_time=[%date:~0,10% %time:~0,8%]\n' +
+                '    for /F "skip=3 tokens=2" %%i in (\'tasklist /v /FI "IMAGENAME eq cmd.exe" /FI "STATUS eq Unknown"\') do (\n' +
+                '        set pid=[PID:%%i]\n' +
+                '        goto:break\n' +
+                '    )\n' +
+                '    :break\n' +
+                '    echo %cu_time%%pid% job_fail:[%*]\n' +
+                '    exit 1\n' +
+                '\n' +
+                'REM admin'
+        } else if (language === "3") {
+            return '#!/usr/bin/perl\n' +
+                '\n' +
+                'use strict;\n' +
+                '\n' +
+                'sub job_localtime {\n' +
+                '    my @n = localtime();\n' +
+                '    return sprintf("%04d-%02d-%02d %02d:%02d:%02d",$n[5]+1900,$n[4]+1,$n[3], $n[2], $n[1], $n[0] );\n' +
+                '}\n' +
+                '\n' +
+                '##### 可在脚本开始运行时调用，打印当时的时间戳及PID。\n' +
+                'sub job_start {\n' +
+                '    print "[",&job_localtime,"][PID:$$] job_start\\n";\n' +
+                '}\n' +
+                '\n' +
+                '##### 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。 \n' +
+                'sub job_success {\n' +
+                '    print "[",&job_localtime,"][PID:$$] job_success:[@_]\\n";\n' +
+                '    exit 0;\n' +
+                '}\n' +
+                '\n' +
+                '##### 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。\n' +
+                'sub job_fail {\n' +
+                '    print "[",&job_localtime,"][PID:$$] job_fail:[@_]\\n";\n' +
+                '    exit 1;\n' +
+                '}\n' +
+                '\n' +
+                'job_start;\n' +
+                '\n' +
+                '###### iJobs中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值\n' +
+                '###### 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败\n' +
+                '###### 可在此处开始编写您的脚本逻辑代码\n' +
+                '\n'
+        } else if (language === "4") {
+            return '#!/usr/bin/env python\n' +
+                '# -*- coding: utf8 -*-\n' +
+                '\n' +
+                'import datetime\n' +
+                'import os\n' +
+                'import sys\n' +
+                '\n' +
+                'def _now(format="%Y-%m-%d %H:%M:%S"):\n' +
+                '    return datetime.datetime.now().strftime(format)\n' +
+                '\n' +
+                '##### 可在脚本开始运行时调用，打印当时的时间戳及PID。\n' +
+                'def job_start():\n' +
+                '    print("[%s][PID:%s] job_start" % (_now(), os.getpid()))\n' +
+                '\n' +
+                '##### 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。 \n' +
+                'def job_success(msg):\n' +
+                '    print("[%s][PID:%s] job_success:[%s]" % (_now(), os.getpid(), msg))\n' +
+                '    sys.exit(0)\n' +
+                '\n' +
+                '##### 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。\n' +
+                'def job_fail(msg):\n' +
+                '    print("[%s][PID:%s] job_fail:[%s]" % (_now(), os.getpid(), msg))\n' +
+                '    sys.exit(1)\n' +
+                '\n' +
+                'if __name__ == \'__main__\':\n' +
+                '\n' +
+                '    job_start()\n' +
+                '\n' +
+                '###### iJobs中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值\n' +
+                '###### 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败\n' +
+                '###### 可在此处开始编写您的脚本逻辑代码\n' +
+                '\n'
+        } else if (language === "5") {
+            return '##### 可在脚本开始运行时调用，打印当时的时间戳及PID。\n' +
+                'function job_start\n' +
+                '{\n' +
+                '    $cu_date = Get-Date -Format "yyyy-MM-dd HH:mm:ss"    \n' +
+                '    "[{0}][PID:{1}] job_start1" -f $cu_date,$pid\n' +
+                '}\n' +
+                '\n' +
+                '##### 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。 \n' +
+                'function job_success\n' +
+                '{\n' +
+                '    $cu_date = Get-Date -Format "yyyy-MM-dd HH:mm:ss"\n' +
+                '    if($args.count -ne 0)\n' +
+                '    {\n' +
+                '        $args | foreach {$arg_str=$arg_str + " " + $_}\n' +
+                '        "[{0}][PID:{1}] job_success:[{2}]" -f $cu_date,$pid,$arg_str.TrimStart(\' \')\n' +
+                '    }\n' +
+                '    else\n' +
+                '    {\n' +
+                '        "[{0}][PID:{1}] job_success:[]" -f $cu_date,$pid\n' +
+                '    }\n' +
+                '    exit 0\n' +
+                '}\n' +
+                '\n' +
+                '##### 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。\n' +
+                'function job_fail\n' +
+                '{\n' +
+                '    $cu_date = Get-Date -Format "yyyy-MM-dd HH:mm:ss"\n' +
+                '    if($args.count -ne 0)\n' +
+                '    {\n' +
+                '        $args | foreach {$arg_str=$arg_str + " " + $_}\n' +
+                '        "[{0}][PID:{1}] job_fail:[{2}]" -f $cu_date,$pid,$arg_str.TrimStart(\' \')\n' +
+                '    }\n' +
+                '    else\n' +
+                '    {\n' +
+                '        "[{0}][PID:{1}] job_fail:[]" -f $cu_date,$pid\n' +
+                '    }\n' +
+                '    exit 1\n' +
+                '}\n' +
+                '\n' +
+                'job_start\n' +
+                '\n' +
+                '###### 作业平台中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值\n' +
+                '###### 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败\n' +
+                '###### 可在此处开始编写您的脚本逻辑代码\n' +
+                '\n'
+        }
+        return ""
+    }
+
     $.atoms.job_fast_execute_script = [
         {
             tag_code: "biz_cc_id",
@@ -160,6 +364,14 @@
                 ]
             },
             events: [
+                {
+                    source: "job_script_type",
+                    type: "change",
+                    action: function (value) {
+                        let content = getScriptContent(value)
+                        this.value = content
+                    }
+                },
                 {
                     source: "job_script_source",
                     type: "change",

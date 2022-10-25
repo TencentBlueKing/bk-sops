@@ -178,6 +178,10 @@ def task_callback(task_id, retry_times=0, *args, **kwargs):
     except Exception as e:
         logger.exception(f"[task_callback] task_id {task_id}, retry_times {retry_times} callback error: {e}")
         result = False
+
+    if result is None:
+        return
+
     if not result and retry_times < settings.REQUEST_RETRY_NUMBER:
         task_callback.apply_async(
             kwargs=dict(task_id=task_id, retry_times=retry_times + 1, **kwargs),

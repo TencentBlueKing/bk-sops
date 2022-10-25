@@ -44,7 +44,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import JsonschemaForm from './JsonschemaForm.vue'
-    import FullCodeEditor from '../FullCodeEditor.vue'
+    import FullCodeEditor from '@/components/common/FullCodeEditor.vue'
     import tools from '@/utils/tools.js'
     export default {
         components: {
@@ -225,5 +225,8 @@
             padding: 16px 13px;
             border-bottom: 1px solid #dcdee5;
         }
+    }
+    .full-code-editor {
+        height: 300px;
     }
 </style>

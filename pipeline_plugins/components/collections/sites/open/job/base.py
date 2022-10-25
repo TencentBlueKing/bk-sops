@@ -524,10 +524,9 @@ class JobService(Service):
                             data.set_outputs(global_var["name"], global_var["value"])
 
             # 无需提取全局变量的Service直接返回
-            if not self.need_get_sops_var:
+            if not self.need_get_sops_var and not need_log_outputs_even_fail:
                 self.finish_schedule()
                 return True if job_success else False
-
             get_job_sops_var_dict_return = get_job_sops_var_dict(
                 data.outputs.client,
                 self.logger,
