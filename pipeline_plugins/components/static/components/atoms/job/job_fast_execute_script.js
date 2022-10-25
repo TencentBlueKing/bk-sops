@@ -336,6 +336,7 @@
                 hookable: true,
                 placeholder: gettext("填写执行脚本内容"),
                 language: "shell",
+                default: getScriptContent("1"),
                 showLanguageSwitch: false,
                 height: "400px",
                 validation: [
