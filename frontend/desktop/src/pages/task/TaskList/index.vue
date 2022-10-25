@@ -39,7 +39,9 @@
                             :data="taskList"
                             :pagination="pagination"
                             :size="setting.size"
+                            :row-class-name="getRowClassName"
                             v-bkloading="{ isLoading: !firstLoading && listLoading, opacity: 1, zIndex: 100 }"
+                            @row-click="selectedTaskId = ''"
                             @page-change="onPageChange"
                             @page-limit-change="onPageLimitChange">
                             <bk-table-column
@@ -389,7 +391,8 @@
                 deletaLoading: false,
                 theDeleteTaskId: undefined,
                 theDeleteTaskName: '',
-                initOpenTask: []
+                initOpenTask: [],
+                selectedTaskId: ''
             }
         },
         computed: {
@@ -402,8 +405,9 @@
             })
         },
         async created () {
-            const { root_id } = this.$route.params
+            const { root_id, task_id } = this.$route.params
             this.initOpenTask = root_id ? String(root_id).split(',') : []
+            this.selectedTaskId = task_id || ''
             this.getFields()
             await this.getData()
             this.firstLoading = false
@@ -833,6 +837,9 @@
                     this.searchSelectValue.splice(index, 1)
                 }
             },
+            getRowClassName ({ row }) {
+                return this.selectedTaskId === row.id ? 'selected-row' : row.is_child_taskflow ? 'expand-row' : ''
+            },
             onPageChange (page) {
                 this.pagination.current = page
                 this.updateUrl()
@@ -1051,6 +1058,12 @@
             padding-left: 7px;
             margin-right: 47px;
         }
+    }
+    /deep/.selected-row {
+        background: #f0f5ff;
+    }
+    /deep/.expand-row {
+        background: #fafbfd;
     }
     .empty-data {
         padding: 120px 0;
