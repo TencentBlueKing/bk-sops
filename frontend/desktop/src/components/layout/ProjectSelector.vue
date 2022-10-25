@@ -49,7 +49,6 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import bus from '@/utils/bus.js'
     import { mapState } from 'vuex'
     import openOtherApp from '@/utils/openOtherApp.js'
 
@@ -110,44 +109,18 @@
                 return projects
             }
         },
-        created () {
-            bus.$on('resetProjectChange', (id) => {
-                this.crtProject = id
-            })
-        },
         methods: {
             async onProjectChange (id) {
-                if (this.crtProject === id) {
+                if (this.project_id === id) {
                     return false
                 }
-                this.crtProject = id
-                const redirectMap = {
-                    '/template': {
-                        name: 'processHome',
-                        params: { project_id: id }
-                    },
-                    '/taskflow': {
-                        name: 'taskList',
-                        params: { project_id: id }
-                    },
-                    '/appmaker': {
-                        name: 'appMakerList',
-                        params: { project_id: id }
-                    }
-                }
-                const key = Object.keys(redirectMap).find(path => this.$route.path.indexOf(path) === 0)
-                if (key) {
-                    if (this.$route.name === redirectMap[key].name) {
-                        this.$router.push(redirectMap[key])
-                        this.$nextTick(() => {
-                            this.$emit('reloadHome')
-                        })
-                    } else {
-                        this.$router.push(redirectMap[key])
-                    }
-                } else { // 默认跳转到项目流程页面
-                    this.$router.push(redirectMap['/template'])
-                }
+                this.$router.push({
+                    name: this.$route.name,
+                    params: { project_id: id }
+                })
+                this.$nextTick(() => {
+                    this.$emit('reloadHome')
+                })
             },
             // 这里统一直接用后端提供的 host 跳转
             jumpToOther () {
