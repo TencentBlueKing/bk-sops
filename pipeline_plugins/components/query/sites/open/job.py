@@ -425,23 +425,23 @@ def jobv3_get_instance_list(request, biz_cc_id, type, status):
 
 def get_job_account_list(request, biz_cc_id):
     bk_scope_type = request.GET.get("bk_scope_type", JobBizScopeType.BIZ.value)
-    job_kwargs = {"bk_scope_id": biz_cc_id, "bk_scope_type": bk_scope_type}
+    job_kwargs = {"bk_scope_id": biz_cc_id, "bk_scope_type": bk_scope_type, "category": 1}
     client = get_client_by_user(request.user.username)
-    job_result = client.jobv3.get_account_list(job_kwargs)
-    if not job_result["result"]:
-        message = _("查询作业平台(JOB)的作业模板[biz_cc_id=%s]接口jobv3.get_account_list返回失败: %s") % (
-            biz_cc_id,
-            job_result["message"],
-        )
-        check_and_raise_raw_auth_fail_exception(job_result, message)
-        logger.error(message)
-        return JsonResponse(
-            {"result": False, "message": "job get_account_list fetch error: {}".format(job_result["message"])}
-        )
-    result_data = job_result["data"]["data"]
-    if not result_data:
+    account_list = batch_request(
+        client.jobv3.get_account_list,
+        job_kwargs,
+        get_data=lambda x: x["data"]["data"],
+        get_count=lambda x: x["data"]["total"],
+        limit=500,
+        page_param={"cur_page_param": "start", "page_size_param": "length"},
+        is_page_merge=True,
+        check_iam_auth_fail=True,
+    )
+
+    if not account_list:
         return JsonResponse({"result": True, "data": []})
-    data = [{"text": job["account"], "value": job["account"]} for job in result_data]
+
+    data = [{"text": account["alias"], "value": account["alias"]} for account in account_list]
     return JsonResponse({"result": True, "data": data})
 
 
