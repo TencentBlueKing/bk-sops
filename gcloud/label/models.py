@@ -98,14 +98,15 @@ class TemplateLabelManager(models.Manager):
         return template_ids
 
     def fetch_label_template_ids(self, label_ids):
-        condition_label_ids = f'({",".join([str(label_id) for label_id in label_ids])})'
+        build_condition_string = ("%s, " * len(label_ids)).strip(", ")
         relations = TemplateLabelRelation.objects.extra(
             tables=["tasktmpl3_tasktemplate"],
             where=[
                 "label_templatelabelrelation.template_id=tasktmpl3_tasktemplate.id",
                 "tasktmpl3_tasktemplate.is_deleted=0",
-                "label_templatelabelrelation.label_id in %s" % condition_label_ids,
+                f"label_templatelabelrelation.label_id in ({build_condition_string})",
             ],
+            params=label_ids,
         )
         label_template_ids = defaultdict(list)
         for relation in relations:
