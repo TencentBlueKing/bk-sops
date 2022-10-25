@@ -74,6 +74,14 @@ def replace_template_id(template_model, pipeline_data, reverse=False):
                 act["template_id"] = str(template.pk)
 
 
+def inject_template_node_id(pipeline_tree: dict):
+    """pipeline_tree需要在unfold_subprocess之后才可递归处理"""
+    for act_id, act in pipeline_tree[PE.activities].items():
+        act["template_node_id"] = act.get("template_node_id") or act_id
+        if act[PE.type] == PE.SubProcess and "pipeline_tree" in act:
+            inject_template_node_id(act["pipeline_tree"])
+
+
 def replace_biz_id_value(pipeline_tree: dict, bk_biz_id: int):
     service_acts = [act for act in pipeline_tree["activities"].values() if act["type"] == "ServiceActivity"]
     for act in service_acts:

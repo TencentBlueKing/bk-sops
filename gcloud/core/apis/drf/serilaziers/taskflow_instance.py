@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import json
 
+from django.utils import timezone
 from rest_framework import serializers
 
 from gcloud.core.models import Project
@@ -20,7 +21,7 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.common_template.models import CommonTemplate
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.constants import TASK_CREATE_METHOD, TASK_FLOW_TYPE, TEMPLATE_SOURCE
+from gcloud.constants import TASK_CREATE_METHOD, TASK_FLOW_TYPE, TEMPLATE_SOURCE, DATETIME_FORMAT
 from gcloud.core.apis.drf.serilaziers.taskflow import TaskSerializer
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 from pipeline.exceptions import PipelineException
@@ -115,3 +116,18 @@ class RootTaskflowQuerySerializer(serializers.Serializer):
 
 class RootTaskflowResponseSerializer(serializers.Serializer):
     has_children_taskflow = serializers.DictField(help_text="是否有子任务流, key为任务ID, value为是否有子任务")
+
+
+class NodeExecutionRecordQuerySerializer(serializers.Serializer):
+    template_node_id = serializers.CharField(help_text="查询节点对应的流程节点 ID")
+
+
+class NodeExecutionTimeSerializer(serializers.Serializer):
+    archived_time = serializers.DateTimeField(
+        help_text="归档时间", default_timezone=timezone.get_current_timezone(), format=DATETIME_FORMAT
+    )
+    elapsed_time = serializers.IntegerField(help_text="执行耗时")
+
+
+class NodeExecutionRecordResponseSerializer(serializers.Serializer):
+    execution_time = serializers.ListField(child=NodeExecutionTimeSerializer(help_text="执行时间"))

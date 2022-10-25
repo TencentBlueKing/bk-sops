@@ -46,6 +46,7 @@ class TaskflowExecutedNodeStatistics(models.Model):
     component_code = models.CharField(_("组件编码"), max_length=255, db_index=True)
     instance_id = models.BigIntegerField(_("Pipeline实例ID"), db_index=True)
     task_instance_id = models.BigIntegerField(_("Task实例ID"), db_index=True)
+    template_node_id = models.CharField(_("流程节点ID"), max_length=32, db_index=True, blank=True, null=True)
     node_id = models.CharField(_("节点ID"), max_length=32)
     is_sub = models.BooleanField(_("是否子流程引用"), default=False)
     subprocess_stack = models.TextField(_("子流程堆栈"), default="[]", help_text=_("JSON 格式的列表"))

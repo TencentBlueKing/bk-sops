@@ -18,6 +18,7 @@ from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 
+from gcloud.template_base.utils import inject_template_node_id
 from gcloud.utils.strings import django_celery_beat_cron_time_format_fit
 from pipeline.contrib.periodic_task.models import BAMBOO_ENGINE_TRIGGER_TASK
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
@@ -120,6 +121,8 @@ class PeriodicTaskManager(models.Manager):
             pipeline_tree = converter.pipeline_tree
 
         PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree, template.__class__)
+        inject_template_node_id(pipeline_tree)
+
         PipelineTemplate.objects.replace_id(pipeline_tree)
 
         if independent_subprocess:
