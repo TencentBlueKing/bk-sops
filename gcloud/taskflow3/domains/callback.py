@@ -43,6 +43,9 @@ class TaskCallBacker:
         self.record.save(update_fields=list(kwargs.keys()))
 
     def callback(self):
+        """
+        :return: 返回True代表回调成功，False代表回调失败，None代表忽略本次回调
+        """
         if self.record.url:
             return self._url_callback()
         return self._subprocess_callback()
@@ -58,7 +61,7 @@ class TaskCallBacker:
                 if not acquired_result:
                     # 如果对应节点已经在回调，则直接忽略本次回调
                     logger.error(f"[TaskCallBacker _subprocess_callback] get lock error: {err}")
-                    return True
+                    return None
                 parent_task_id = TaskFlowRelation.objects.filter(task_id=self.task_id).first().parent_task_id
                 dispatcher = NodeCommandDispatcher(engine_ver=engine_ver, node_id=node_id, taskflow_id=parent_task_id)
                 runtime = BambooDjangoRuntime()
@@ -85,16 +88,21 @@ class TaskCallBacker:
         return True
 
     def _url_callback(self):
-        url = self.record.url
-        response = None
-        try:
-            response = requests.post(url, data=self.extra_info)
-            response.raise_for_status()
-        except HTTPError as e:
-            message = (
-                f"[TaskCallBacker call_back] {url}, data: {self.extra_info}, "
-                f"response: {getattr(response, 'content', None)}, error: {e}"
-            )
-            logger.exception(message)
-            return False
-        return True
+        with redis_lock(settings.redis_inst, key=f"url_callback_lock_{self.task_id}") as (acquired_result, err):
+            if not acquired_result:
+                # 如果对应节点已经在回调，则直接忽略本次回调
+                logger.error(f"[TaskCallBacker _url_callback] get lock error: {err}")
+                return None
+            url = self.record.url
+            response = None
+            try:
+                response = requests.post(url, data=self.extra_info)
+                response.raise_for_status()
+            except HTTPError as e:
+                message = (
+                    f"[TaskCallBacker _url_callback] {url}, data: {self.extra_info}, "
+                    f"response: {getattr(response, 'content', None)}, error: {e}"
+                )
+                logger.exception(message)
+                return False
+            return True

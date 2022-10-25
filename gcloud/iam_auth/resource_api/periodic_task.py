@@ -138,7 +138,14 @@ class PeriodicTaskResourceProvider(ResourceProvider):
         queryset = PeriodicTask.objects.filter(id__in=ids)
         count = queryset.count()
 
-        results = [{"id": str(periodic_task.id), "display_name": periodic_task.name} for periodic_task in queryset]
+        results = [
+            {
+                "id": str(periodic_task.id),
+                "display_name": periodic_task.name,
+                "_bk_iam_approver_": periodic_task.creator,
+            }
+            for periodic_task in queryset
+        ]
         return ListResult(results=results, count=count)
 
     def list_instance_by_policy(self, filter, page, **options):

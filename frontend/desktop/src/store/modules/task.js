@@ -499,6 +499,9 @@ const task = {
         // itsm 节点审批
         itsmTransition ({ commit }, params) {
             return axios.post('pipeline/itsm/node_transition/', params).then(response => response.data)
+        },
+        getInstanceRetryParams ({ commit }, data) {
+            return axios.get(`api/v3/taskflow/${data.id}/enable_fill_retry_params/`).then(response => response.data)
         }
     }
 }

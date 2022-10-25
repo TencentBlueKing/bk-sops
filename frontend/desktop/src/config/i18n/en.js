@@ -1495,7 +1495,17 @@ const en = {
     '当满足条件时，可将“执行时显示”的参数隐藏起来，实现变量联动': 'When the conditions are met, the parameters displayed in "execution" can be hidden to realize variable linkage',
     'ID/任务名/执行人/状态': 'ID/TaskName/Executor/Status',
     '编辑周期任务成功': 'Edit cycle task succeeded',
-    '参数复用说明': 'Description of resource parameter reuse'
+    '参数复用说明': 'Description of resource parameter reuse',
+    '仅“未执行”的任务才可删除': 'Only "unexecuted" tasks can be deleted',
+    '打开此功能后，每次创建任务会尝试使用子流程的最新版本，并且不会再提示该节点需要更新。': 'When this feature is turned on, each task creation will try to use the latest version of the subprocess and will no longer be prompted that the node needs to be updated.',
+    '若子流程中发生变动，标准运维会采用以下处理策略，如处理不符合预期，请谨慎使用。': 'If there are changes in the sub-process, the standard operation and maintenance will adopt the following processing strategies. If the processing does not meet expectations, please use it with caution.',
+    '1. 若子流程中增加了新的变量，在未手动更新子流程版本的情况下，将使用新变量默认值。': '1. If a new variable is added to the sub-process, the default value of the new variable will be used without manually updating the sub-process version.',
+    '2. 若子流程中修改了变量的默认值，在未手动更新子流程版本的情况下，将继续使用修改前变量的原有值。': '2. If the default value of the variable is modified in the sub-process, the original value of the variable before the modification will continue to be used without manually updating the sub-process version.',
+    '流程未修改': 'Process not modified',
+    '通过': 'Pass',
+    '拒绝': 'Reject',
+    '重试节点': 'Retry node',
+    '按照节点配置重新执行当前步骤，如果配置引用了变量且设置为"执行时显示"，可先修改"输入参数"在重试': 'Re-execute the current step according to the node configuration. If the configuration refers to a variable and is set to "display during execution", you can modify the "input parameter" first and try again'
 }
 
 export default en

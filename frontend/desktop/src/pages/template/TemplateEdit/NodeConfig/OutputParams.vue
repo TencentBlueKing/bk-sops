@@ -12,19 +12,19 @@
     <div class="output-params">
         <bk-table :data="list" :col-border="false" :row-class-name="getRowClassName">
             <bk-table-column :label="$t('名称')" :width="180" prop="name"></bk-table-column>
-            <bk-table-column :label="$t('说明')" show-overflow-tooltip>
+            <bk-table-column :label="$t('说明')">
                 <template slot-scope="props">
-                    <span
+                    <div
                         v-if="props.row.description"
-                        :title="props.row.description">
+                        v-bk-overflow-tips>
                         {{ props.row.description }}
-                    </span>
+                    </div>
                     <span v-else>--</span>
                 </template>
             </bk-table-column>
-            <bk-table-column label="KEY" class-name="param-key" :width="260" show-overflow-tooltip>
+            <bk-table-column label="KEY" class-name="param-key" :width="260">
                 <template slot-scope="props">
-                    <span :style="{ color: props.row.hooked ? '#3a84ff' : '#63656e' }">{{ props.row.key }}</span>
+                    <div v-bk-overflow-tips :style="{ color: props.row.hooked ? '#3a84ff' : '#63656e' }">{{ props.row.key }}</div>
                     <span class="hook-icon-wrap">
                         <i
                             :class="['common-icon-variable-cite hook-icon', {

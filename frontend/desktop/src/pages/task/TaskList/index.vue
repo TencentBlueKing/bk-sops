@@ -79,7 +79,7 @@
                                             :to="{
                                                 name: 'taskExecute',
                                                 params: { project_id: project_id },
-                                                query: { instance_id: props.row.id }
+                                                query: { instance_id: props.row.id, root_id: props.row.root_id }
                                             }">
                                             {{props.row.name}}
                                         </router-link>
@@ -99,9 +99,13 @@
                                     </template>
                                 </template>
                             </bk-table-column>
-                            <bk-table-column :label="$t('操作')" width="130" :fixed="taskList.length ? 'right' : false">
+                            <bk-table-column :label="$t('操作')" width="150" :fixed="taskList.length ? 'right' : false">
                                 <template slot-scope="props">
-                                    <div class="task-operation" :task-name="props.row.name">
+                                    <div v-if="props.row.is_child_taskflow" class="task-operation">
+                                        <span class="default">{{ '--' }}</span>
+                                        <span>{{ '--' }}</span>
+                                    </div>
+                                    <div v-else class="task-operation" :task-name="props.row.name">
                                         <!-- 事后鉴权，后续对接新版权限中心 -->
                                         <a v-if="props.row.template_deleted || props.row.template_source === 'onetime'" class="task-operation-btn disabled" data-test-id="taskList_table_reexecuteBtn">{{$t('重新执⾏')}}</a>
                                         <a
@@ -120,6 +124,24 @@
                                             @click="getCreateTaskUrl(props.row)">
                                             {{$t('重新执⾏')}}
                                         </a>
+                                        <a
+                                            v-if="executeStatus[props.$index] && executeStatus[props.$index].text === $t('未执行')"
+                                            v-cursor="{ active: !hasPermission(['task_delete'], props.row.auth_actions) }"
+                                            :class="['task-operation-btn', {
+                                                'text-permission-disable': !hasPermission(['task_delete'], props.row.auth_actions)
+                                            }]"
+                                            href="javascript:void(0);"
+                                            data-test-id="taskList_table_deleteBtn"
+                                            @click="onDeleteTask(props.row, $event)">
+                                            {{ $t('删除') }}
+                                        </a>
+                                        <a
+                                            v-else
+                                            v-bk-tooltips.top="$t('仅“未执行”的任务才可删除')"
+                                            class="task-operation-btn disabled"
+                                            data-test-id="taskList_table_deleteBtn">
+                                            {{ $t('删除') }}
+                                        </a>
                                     </div>
                                 </template>
                             </bk-table-column>
@@ -137,6 +159,20 @@
                 </div>
             </skeleton>
         </div>
+        <bk-dialog
+            width="400"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="$t('删除')"
+            :value="isDeleteDialogShow"
+            @confirm="onDeleteConfirm"
+            @cancel="onDeleteCancel">
+            <div class="dialog-content" v-bkloading="{ isLoading: deletaLoading, opacity: 1, zIndex: 100 }">
+                {{$t('确认删除') + '"' + theDeleteTaskName + '"?'}}
+            </div>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -201,6 +237,12 @@
             min_width: 240
         },
         {
+            id: 'task_status',
+            label: i18n.t('状态'),
+            disabled: true,
+            width: 120
+        },
+        {
             id: 'start_time',
             label: i18n.t('执行开始'),
             width: 200
@@ -235,11 +277,6 @@
             id: 'create_method',
             label: i18n.t('创建方式'),
             width: 100
-        },
-        {
-            id: 'task_status',
-            label: i18n.t('状态'),
-            width: 120
         },
         {
             id: 'engine_ver',
@@ -347,7 +384,12 @@
                 },
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
                 searchSelectValue,
-                isInitCreateMethod: false
+                isInitCreateMethod: false,
+                isDeleteDialogShow: false,
+                deletaLoading: false,
+                theDeleteTaskId: undefined,
+                theDeleteTaskName: '',
+                initOpenTask: []
             }
         },
         computed: {
@@ -360,6 +402,8 @@
             })
         },
         async created () {
+            const { root_id } = this.$route.params
+            this.initOpenTask = root_id ? String(root_id).split(',') : []
             this.getFields()
             await this.getData()
             this.firstLoading = false
@@ -374,7 +418,8 @@
                 'loadCreateMethod'
             ]),
             ...mapActions('taskList/', [
-                'loadTaskList'
+                'loadTaskList',
+                'deleteTask'
             ]),
             ...mapMutations('template/', [
                 'setProjectBaseInfo'
@@ -469,6 +514,14 @@
                         this.totalPage = totalPage
                     }
                     const result = await this.setListHaveChild(list)
+                    // 当存在默认打开的子流程时，需手动打开
+                    if (this.initOpenTask.length) {
+                        this.setTaskListData(result)
+                        const task = result.find(item => item.id === Number(this.initOpenTask[0]))
+                        task && await this.getCurProcessChdProcess(task)
+                        this.initOpenTask = []
+                        return
+                    }
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', result)
                     this.setTaskListData(result)
@@ -523,11 +576,14 @@
                                 children_id: [...relations[key]]
                             })
                         }
+                        const rootObj = {}
                         taskIds.forEach(item => {
                             item.children_id.forEach(ite => {
+                                rootObj[ite] = item.id in rootObj ? rootObj[item.id] + ',' + item.id : item.id
                                 taskIdList.push({
                                     id: ite,
                                     parent_id: item.id,
+                                    root_id: rootObj[ite],
                                     children: []
                                 })
                             })
@@ -538,7 +594,7 @@
                             arr.forEach(item => {
                                 if (item.parent_id === parentId) {
                                     const task = tasks.find(task => task.id === item.id)
-                                    task.root_id = row.id
+                                    task.root_id = item.root_id
                                     result.push({
                                         ...item,
                                         level: level,
@@ -555,6 +611,14 @@
                     curTaskList.splice(curTaskList.findIndex(item => item.id === row.id) + 1, 0, ...result)
                     this.getExecuteStatus('executeStatus', curTaskList)
                     this.setTaskListData(curTaskList)
+                    // 当存在默认打开的子流程时，需手动打开
+                    if (this.initOpenTask.length) {
+                        result.forEach(task => {
+                            if (this.initOpenTask.includes(String(task.id))) {
+                                this.getCurProcessChdProcess(task)
+                            }
+                        })
+                    }
                 } else {
                     // 关闭获取已展开列的最大level
                     const MaxLevel = Math.max(...curTaskList.map(item => {
@@ -638,6 +702,47 @@
                     url.query.common = 1
                 }
                 this.$router.push(url)
+            },
+            onDeleteTask (task) {
+                if (!this.hasPermission(['task_delete'], task.auth_actions)) {
+                    this.onTaskPermissonCheck(['task_delete'], task)
+                    return
+                }
+                this.theDeleteTaskId = task.id
+                this.theDeleteTaskName = task.name
+                this.isDeleteDialogShow = true
+            },
+            async onDeleteConfirm () {
+                if (this.deletaLoading) return
+                this.deletaLoading = true
+                try {
+                    await this.deleteTask(this.theDeleteTaskId)
+                    this.theDeleteTaskId = undefined
+                    this.theDeleteTaskName = ''
+                    // 最后一页最后一条删除后，往前翻一页
+                    if (
+                        this.pagination.current > 1
+                        && this.totalPage === this.pagination.current
+                        && this.pagination.count - (this.totalPage - 1) * this.pagination.limit === 1
+                    ) {
+                        this.pagination.current -= 1
+                    }
+                    await this.getTaskList()
+                    this.$bkMessage({
+                        message: i18n.t('任务') + i18n.t('删除成功！'),
+                        theme: 'success'
+                    })
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.isDeleteDialogShow = false
+                    this.deletaLoading = false
+                }
+            },
+            onDeleteCancel () {
+                this.theDeleteTaskId = undefined
+                this.theDeleteTaskName = ''
+                this.isDeleteDialogShow = false
             },
             /**
              * 单个任务操作项点击时校验
@@ -941,6 +1046,10 @@
                 color: #cccccc;
                 cursor: not-allowed;
             }
+        }
+        .default {
+            padding-left: 7px;
+            margin-right: 47px;
         }
     }
     .empty-data {

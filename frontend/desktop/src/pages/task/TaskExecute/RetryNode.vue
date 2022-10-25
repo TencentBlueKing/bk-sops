@@ -52,13 +52,11 @@
             RenderForm,
             NoData
         },
-        props: ['nodeDetailConfig', 'engineVer'],
+        props: ['nodeDetailConfig', 'engineVer', 'nodeInputs', 'retrying', 'nodeInfo'],
         data () {
             return {
                 loading: false,
-                retrying: false,
                 bkMessageInstance: null,
-                nodeInfo: {},
                 renderOption: {
                     showGroup: false,
                     showLabel: true,
@@ -87,67 +85,36 @@
                 return {}
             }
         },
+        watch: {
+            nodeInputs: {
+                handler (value) {
+                    this.initalRenderData = tools.deepClone(value)
+                    this.renderData = tools.deepClone(value)
+                },
+                immediate: true
+            }
+        },
         mounted () {
             $.context.exec_env = 'NODE_RETRY'
-            if (this.nodeDetailConfig.component_code) {
-                this.loadNodeInfo()
+            const { version, component_code } = this.nodeDetailConfig
+            if (component_code) {
+                this.getNodeConfig(component_code, version)
             }
         },
         beforeDestroy () {
             $.context.exec_env = ''
         },
         methods: {
-            ...mapActions('task/', [
-                'getNodeActInfo',
-                'instanceRetry',
-                'subflowNodeRetry'
-            ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig',
                 'loadPluginServiceDetail'
             ]),
-            async loadNodeInfo () {
-                this.loading = true
-                try {
-                    const { version, componentData } = this.nodeDetailConfig
-                    this.nodeInfo = await this.getNodeActInfo(this.nodeDetailConfig)
-                    await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
-                    if (this.nodeInfo.result) {
-                        for (const key in this.nodeInfo.data.inputs) {
-                            if (this.engineVer === 1) {
-                                this.$set(this.renderData, key, this.nodeInfo.data.inputs[key])
-                            } else if (this.nodeDetailConfig.component_code === 'subprocess_plugin') { // 新版子流程任务节点输入参数处理
-                                const value = this.nodeInfo.data.inputs[key]
-                                if (key === 'subprocess') {
-                                    Object.keys(value.pipeline.constants).forEach(key => {
-                                        const data = value.pipeline.constants[key]
-                                        this.$set(this.renderData, key, data.value)
-                                    })
-                                } else {
-                                    this.$set(this.renderData, key, value)
-                                }
-                            } else if (componentData[key]) {
-                                const { hook, value } = componentData[key]
-                                if (hook) {
-                                    this.$set(this.renderData, key, this.nodeInfo.data.inputs[key])
-                                } else {
-                                    this.$set(this.renderData, key, value)
-                                }
-                            }
-                        }
-                        this.initalRenderData = tools.deepClone(this.renderData)
-                    }
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.loading = false
-                }
-            },
             async getNodeConfig (type, version) {
                 if (atomFilter.isConfigExists(type, version, this.atomFormConfig)) {
                     this.renderConfig = this.atomFormConfig[type][version]
                 } else {
                     try {
+                        this.loading = true
                         // 第三方插件节点拼接输出参数
                         if (this.nodeDetailConfig.component_code === 'remote_plugin') {
                             const { inputs } = this.nodeInfo.data
@@ -179,6 +146,8 @@
                         }
                     } catch (e) {
                         console.log(e)
+                    } finally {
+                        this.loading = false
                     }
                 }
             },
@@ -266,14 +235,9 @@
                 if (!formvalid || this.retrying) return false
 
                 const { instance_id, component_code, node_id } = this.nodeDetailConfig
-                this.retrying = true
                 try {
-                    let res
                     if (this.nodeDetailConfig.component_code) {
                         const data = {
-                            instance_id,
-                            node_id,
-                            component_code,
                             inputs: this.renderData
                         }
                         if (component_code === 'subprocess_plugin') {
@@ -284,22 +248,12 @@
                             })
                             data.inputs = inputs
                         }
-                        res = await this.instanceRetry(data)
+                        this.$emit('retrySuccess', data.inputs)
                     } else {
-                        res = await this.subflowNodeRetry({ instance_id, node_id })
-                    }
-                    if (res.result) {
-                        this.$bkMessage({
-                            message: i18n.t('重试成功'),
-                            theme: 'success'
-                        })
-                        this.$emit('retrySuccess', node_id)
-                        return true
+                        this.$emit('retrySuccess', { instance_id, node_id })
                     }
                 } catch (e) {
                     console.log(e)
-                } finally {
-                    this.retrying = false
                 }
             },
             onCancelRetry () {

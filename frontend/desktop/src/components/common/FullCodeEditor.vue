@@ -25,12 +25,13 @@
         <code-editor
             :key="isFullScreen"
             :value="value"
-            :options="{ readOnly: true, language: 'json' }">
+            :options="options"
+            @input="onDataChange">
         </code-editor>
     </div>
 </template>
 <script>
-    import CodeEditor from '@/components/common/CodeEditor.vue'
+    import CodeEditor from './CodeEditor.vue'
 
     export default {
         name: 'FullCodeEditor',
@@ -38,7 +39,14 @@
             CodeEditor
         },
         props: {
-            value: String
+            value: String,
+            options: {
+                type: Object,
+                default: () => ({
+                    readOnly: true,
+                    language: 'json'
+                })
+            }
         },
         data () {
             return {
@@ -66,12 +74,16 @@
                 if (e.keyCode === 27) {
                     this.isFullScreen = false
                 }
+            },
+            onDataChange (val) {
+                this.$emit('input', val)
             }
         }
     }
 </script>
 <style lang="scss" scoped>
     .full-code-editor {
+        height: 100%;
         background: #ffffff;
         &.full-status {
             position: fixed;
@@ -82,9 +94,6 @@
             height: 100vh;
             z-index: 3000;
             margin: 0 !important;
-            .code-editor {
-                height: calc(100% - 38px);
-            }
         }
         .tool-area {
             padding: 0 20px;
@@ -99,7 +108,7 @@
             }
         }
         .code-editor {
-            height: 300px;
+            height: calc(100% - 38px);
         }
     }
 </style>

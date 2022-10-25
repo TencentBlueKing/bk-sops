@@ -931,7 +931,7 @@
             .rf-tag-label {
                 width: 120px;
             }
-            .rf-tag-form {
+            .show-label > .rf-tag-form {
                 margin-left: 140px;
             }
         }
@@ -1010,7 +1010,7 @@
             background: #b8b8b8;
         }
         .variable-type-desc {
-            margin: 0 0 0 80px;
+            margin: 0 0 0 140px;
             font-size: 12px;
             color: #666;
             word-break: break-all;
