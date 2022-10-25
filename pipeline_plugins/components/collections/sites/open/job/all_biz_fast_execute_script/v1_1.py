@@ -99,7 +99,6 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService, G
         ip_info = data.get_one_of_inputs("job_target_ip_table")
         job_rolling_config = data.get_one_of_inputs("job_rolling_config", {})
         job_rolling_execute = job_rolling_config.get("job_rolling_execute", None)
-
         supplier_account = supplier_account_for_business(biz_cc_id)
 
         # 拼装ip_list， bk_cloud_id为空则值为0
