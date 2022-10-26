@@ -27,6 +27,8 @@ from gcloud.openapi.schema import AnnotationAutoSchema
 from iam import Subject, Action
 from iam.shortcuts import allow_or_raise_auth_failed
 
+from gcloud.utils.models import Convert
+
 iam = get_iam_client()
 
 
@@ -38,7 +40,7 @@ class NewLabelViewSet(ApiMixin, ModelViewSet):
     update: 标签修改接口，不允许修改默认标签
     """
 
-    queryset = Label.objects.all()
+    queryset = Label.objects.all().order_by(Convert("name", "gbk"))
     serializer_class = NewLabelSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
@@ -117,7 +119,7 @@ class NewLabelViewSet(ApiMixin, ModelViewSet):
             action=Action(IAMMeta.PROJECT_VIEW_ACTION),
             resources=res_factory.resources_for_project(project_id),
         )
-        queryset = Label.objects.filter(Q(project_id=project_id) | Q(is_default=True))
+        queryset = Label.objects.filter(Q(project_id=project_id) | Q(is_default=True)).order_by(Convert("name", "gbk"))
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
