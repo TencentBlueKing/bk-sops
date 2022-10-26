@@ -13,6 +13,7 @@
     <div
         class="canvas-node-item"
         @mousedown="onMousedown"
+        @mouseenter="$emit('onMouseEnter')"
         @click="onNodeClick"
         @dblclick="onNodeDblclick">
         <div class="canvas-node-content">
@@ -30,11 +31,6 @@
                 @onForceFail="$emit('onForceFail', $event)"
                 @onSubflowPauseResumeClick="onSubflowPauseResumeClick"
                 @onSubflowDetailClick="onSubflowDetailClick" />
-            <i
-                v-if="editable"
-                class="common-icon-dark-circle-close close-icon"
-                @click.stop="$emit('onNodeRemove', node)">
-            </i>
         </div>
         <!-- 节点输入输出变量(node.name用来判断节点是否选择过插件) -->
         <div class="perspective-tips-context" v-if="isPerspective && node.name && ['tasknode', 'subflow'].includes(node.type)">
