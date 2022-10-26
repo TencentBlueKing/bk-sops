@@ -103,6 +103,20 @@ class PeriodicTaskReadOnlySerializer(serializers.ModelSerializer):
         ]
 
 
+def check_cron_params(value):
+    from rest_framework.validators import ValidationError
+
+    max_length = 92
+    sum_length = 0
+    for unit_name, unit_value in value.items():
+        length = len(unit_value.encode())
+        sum_length += length
+        if length > max_length:
+            raise ValidationError(f"[{unit_name}]周期任务时间格式过长")
+    if sum_length > max_length:
+        raise ValidationError("周期任务时间格式过长")
+
+
 class CreatePeriodicTaskSerializer(serializers.ModelSerializer):
     project = serializers.IntegerField(write_only=True)
     cron = serializers.DictField(write_only=True)
@@ -140,6 +154,10 @@ class CreatePeriodicTaskSerializer(serializers.ModelSerializer):
         except Project.DoesNotExist:
             raise serializers.ValidationError(_("project不存在"))
 
+    def validate_cron(self, value):
+        check_cron_params(value)
+        return value
+
     class Meta:
         model = PeriodicTask
         fields = ["project", "cron", "name", "template_id", "pipeline_tree", "template_source", "template_scheme_ids"]
@@ -150,3 +168,7 @@ class PatchUpdatePeriodicTaskSerializer(serializers.Serializer):
     project = serializers.IntegerField(help_text="项目ID", required=False)
     constants = serializers.DictField(help_text="执行参数", required=False)
     name = serializers.CharField(help_text="任务名", required=False)
+
+    def validate_cron(self, value):
+        check_cron_params(value)
+        return value
