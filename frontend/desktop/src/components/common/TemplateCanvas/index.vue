@@ -82,8 +82,8 @@
                     @onNodeDblclick="onNodeDblclick"
                     @onNodeClick="onNodeClick"
                     @onNodeMousedown="onNodeMousedown"
+                    @onMouseEnter="onMouseEnter"
                     @onNodeCheckClick="onNodeCheckClick"
-                    @onNodeRemove="onNodeRemove"
                     @onRetryClick="$emit('onRetryClick', $event)"
                     @onForceFail="$emit('onForceFail', $event)"
                     @onSkipClick="$emit('onSkipClick', $event)"
@@ -106,6 +106,7 @@
             :canvas-data="canvasData"
             @onAppendNode="onAppendNode"
             @onInsertNode="onInsertNode"
+            @onNodeRemove="onNodeRemove"
             @onConfigBtnClick="onShowNodeConfig"
             @onDeleteLineClick="onShortcutDeleteLine">
         </ShortcutPanel>
@@ -1303,6 +1304,10 @@
             // node mousedown
             onNodeMousedown (id) {
                 this.$emit('onNodeMousedown', id)
+            },
+            // node mouseenter
+            onMouseEnter () {
+                this.closeShortcutPanel()
             },
             // 点击节点
             onNodeClick (id, type, event) {
