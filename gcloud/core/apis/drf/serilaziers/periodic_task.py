@@ -15,7 +15,8 @@ from rest_framework.fields import SerializerMethodField
 import env
 import ujson as json
 from rest_framework import serializers
-from django_celery_beat.models import PeriodicTask as CeleryTask
+from rest_framework.validators import ValidationError
+from django_celery_beat.models import PeriodicTask as CeleryTask, CrontabSchedule as DjangoCeleryBeatCrontabSchedule
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud.core.models import Project
@@ -103,17 +104,17 @@ class PeriodicTaskReadOnlySerializer(serializers.ModelSerializer):
         ]
 
 
-def check_cron_params(value):
-    from rest_framework.validators import ValidationError
-
-    max_length = 92
-    sum_length = 0
-    for unit_name, unit_value in value.items():
-        length = len(unit_value.encode())
-        sum_length += length
-        if length > max_length:
-            raise ValidationError(f"[{unit_name}]周期任务时间格式过长")
-    if sum_length > max_length:
+def check_cron_params(cron, project):
+    max_length = 128
+    schedule, _ = DjangoCeleryBeatCrontabSchedule.objects.get_or_create(
+        minute=cron.get("minute", "*"),
+        hour=cron.get("hour", "*"),
+        day_of_week=cron.get("day_of_week", "*"),
+        day_of_month=cron.get("day_of_month", "*"),
+        month_of_year=cron.get("month_of_year", "*"),
+        timezone=Project.objects.filter(id=project).first().time_zone,
+    )
+    if len(schedule.__str__()) > max_length:
         raise ValidationError("周期任务时间格式过长")
 
 
@@ -154,9 +155,9 @@ class CreatePeriodicTaskSerializer(serializers.ModelSerializer):
         except Project.DoesNotExist:
             raise serializers.ValidationError(_("project不存在"))
 
-    def validate_cron(self, value):
-        check_cron_params(value)
-        return value
+    def validate(self, attrs):
+        check_cron_params(attrs.get("cron"), attrs.get("project"))
+        return attrs
 
     class Meta:
         model = PeriodicTask
@@ -169,6 +170,6 @@ class PatchUpdatePeriodicTaskSerializer(serializers.Serializer):
     constants = serializers.DictField(help_text="执行参数", required=False)
     name = serializers.CharField(help_text="任务名", required=False)
 
-    def validate_cron(self, value):
-        check_cron_params(value)
-        return value
+    def validate(self, attrs):
+        check_cron_params(attrs.get("cron"), attrs.get("project"))
+        return attrs
