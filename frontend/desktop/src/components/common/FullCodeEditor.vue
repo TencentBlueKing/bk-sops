@@ -13,6 +13,14 @@
     <div class="full-code-editor" :class="{ 'full-status': isFullScreen }">
         <div class="tool-area">
             <i
+                class="bk-icon icon-copy mr20"
+                v-bk-tooltips="{
+                    boundary: 'window',
+                    content: $t('复制')
+                }"
+                @click="onCopyClick(value)">
+            </i>
+            <i
                 class="bk-icon zoom-icon"
                 :class="isFullScreen ? 'icon-un-full-screen' : 'icon-full-screen'"
                 v-bk-tooltips="{
@@ -31,6 +39,7 @@
     </div>
 </template>
 <script>
+    import i18n from '@/config/i18n/index.js'
     import CodeEditor from './CodeEditor.vue'
 
     export default {
@@ -50,6 +59,7 @@
         },
         data () {
             return {
+                copyText: '',
                 isFullScreen: false
             }
         },
@@ -57,6 +67,28 @@
             document.body.removeEventListener('keyup', this.handleQuick, false)
         },
         methods: {
+            /**
+             * 变量 key 复制
+             */
+            onCopyClick (key) {
+                this.copyText = key
+                document.addEventListener('copy', this.copyHandler)
+                document.execCommand('copy')
+                document.removeEventListener('copy', this.copyHandler)
+                this.copyText = ''
+            },
+            /**
+             * 复制操作回调函数
+             */
+            copyHandler (e) {
+                e.preventDefault()
+                e.clipboardData.setData('text/html', this.copyText)
+                e.clipboardData.setData('text/plain', this.copyText)
+                this.$bkMessage({
+                    message: i18n.t('已复制'),
+                    theme: 'success'
+                })
+            },
             onToggleFullScreen () {
                 this.isFullScreen = !this.isFullScreen
                 if (this.isFullScreen) {
@@ -103,6 +135,11 @@
             background: #202024;
             .zoom-icon {
                 font-size: 14px;
+                color: #ffffff;
+                cursor: pointer;
+            }
+            .icon-copy {
+                font-size: 18px;
                 color: #ffffff;
                 cursor: pointer;
             }
