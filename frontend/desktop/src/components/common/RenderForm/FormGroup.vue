@@ -36,7 +36,19 @@
         <!-- 分组勾选 -->
         <div v-if="hook" class="rf-form-item rf-has-hook show-label">
             <label v-if="option.showLabel" class="rf-tag-label">
-                {{scheme.attrs.name}}
+                <span
+                    v-bk-tooltips="{
+                        html: scheme.attrs.tips,
+                        placement: 'top',
+                        theme: 'light',
+                        extCls: 'rf-label-tips',
+                        boundary: 'window',
+                        zIndex: 2072,
+                        disabled: !!!scheme.attrs.tips
+                    }"
+                    :class="{ 'tag-label-tips': scheme.attrs.tips }">
+                    {{scheme.attrs.name}}
+                </span>
             </label>
             <div class="rf-tag-form rf-has-hook">
                 <bk-input :disabled="true" :value="String(value)"></bk-input>
@@ -335,6 +347,25 @@
         .hook-icon {
             font-size: 19px;
         }
+    }
+    .tag-label-tips {
+        position: relative;
+        &::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -3px;
+            border-top: 1px dashed #979ba5;
+            width: 100%
+        }
+    }
+}
+.rf-label-tips {
+    max-width: 240px;
+    .tippy-tooltip {
+        color: #63656e;
+        border: 1px solid #dcdee5;
+        box-shadow: 0 0 5px 0 rgba(0,0,0,0.09);
     }
 }
 </style>
