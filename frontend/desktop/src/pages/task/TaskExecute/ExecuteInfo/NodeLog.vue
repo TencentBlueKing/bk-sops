@@ -1,27 +1,26 @@
 <template>
     <section class="info-section log-section" data-test-id="taskExecute_form_nodeLog">
-        <h4 class="log-label">{{ $t('节点日志') }}</h4>
-        <div :class="['log-wrap', { 'tab-active': isThirdPartyNode }]">
-            <p class="log-switch" @click="toggleLogSwitch">
-                {{ isExpand ? $t('收起日志') : $t('展开日志') }}
-                <i v-if="isExpand" class="bk-icon icon-angle-up"></i>
-                <i v-else class="bk-icon icon-angle-down"></i>
-            </p>
+        <div class="log-wrap">
             <!-- 内置插件/第三方插件tab -->
-            <bk-tab v-if="isExpand && isThirdPartyNode" :active.sync="curPluginTab" type="unborder-card">
+            <bk-tab
+                v-if="isThirdPartyNode"
+                :active-bar="{
+                    position: 'top',
+                    height: '2px'
+                }"
+                :active.sync="curPluginTab"
+                type="unborder-card">
                 <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('节点日志') }"></bk-tab-panel>
                 <bk-tab-panel
                     v-bind="{ name: 'third_party_plugin', label: $t('第三方节点日志') }">
                 </bk-tab-panel>
             </bk-tab>
-            <div v-if="isExpand" class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
+            <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
                 <full-code-editor
-                    v-if="curPluginTab === 'build_in_plugin' ? logInfo : thirdPartyNodeLog"
                     class="scroll-editor"
                     :key="curPluginTab"
                     :value="curPluginTab === 'build_in_plugin' ? logInfo : thirdPartyNodeLog">
                 </full-code-editor>
-                <NoData v-else></NoData>
             </div>
         </div>
     </section>
@@ -29,12 +28,10 @@
 
 <script>
     import { mapActions } from 'vuex'
-    import NoData from '@/components/common/base/NoData.vue'
     import FullCodeEditor from '@/components/common/FullCodeEditor.vue'
     export default {
         name: 'NodeLog',
         components: {
-            NoData,
             FullCodeEditor
         },
         props: {
@@ -57,7 +54,6 @@
         },
         data () {
             return {
-                isExpand: false,
                 curPluginTab: 'build_in_plugin',
                 isLogLoading: false,
                 logInfo: '',
@@ -80,6 +76,12 @@
                 if (val === 'third_party_plugin' || this.nodeLogPageInfo) {
                     this.watchEditorScroll()
                 }
+            },
+            executeInfo: {
+                handler (val) {
+                    this.initLog()
+                },
+                deep: true
             }
         },
         beforeDestroy () {
@@ -90,7 +92,7 @@
             }
         },
         mounted () {
-
+            this.initLog()
         },
         methods: {
             ...mapActions('task/', [
@@ -100,6 +102,17 @@
             ...mapActions('atomForm/', [
                 'loadPluginServiceLog'
             ]),
+            initLog () {
+                const { state, history_id, version } = this.executeInfo
+                // 获取节点日志
+                if (state && !['READY', 'CREATED'].includes(state)) {
+                    const query = Object.assign({}, this.nodeDetailConfig, {
+                        history_id: history_id,
+                        version: version
+                    })
+                    this.getPerformLog(query)
+                }
+            },
             // 非admin 用户执行记录
             async getPerformLog (query) {
                 try {
@@ -187,20 +200,6 @@
                 } finally {
                     this.isLogLoading = false
                 }
-            },
-            toggleLogSwitch () {
-                this.isExpand = !this.isExpand
-                if (this.isExpand) {
-                    const { state, history_id, version } = this.executeInfo
-                    // 获取节点日志
-                    if (state && !['READY', 'CREATED'].includes(state)) {
-                        const query = Object.assign({}, this.nodeDetailConfig, {
-                            history_id: history_id,
-                            version: version
-                        })
-                        this.getPerformLog(query)
-                    }
-                }
             }
         }
     }
@@ -208,38 +207,44 @@
 
 <style lang="scss" scoped>
     .log-section {
-        display: flex;
+        height: 100%;
         .log-wrap {
-            flex: 1;
-            margin-left: 24px;
-            .log-switch {
-                line-height: 20px;
-                color: #3a84ff;
-                cursor: pointer;
-                i {
-                    font-size: 16px;
-                }
-            }
+            height: calc(100% - 10px);
+            display: flex;
+            flex-direction: column;
+            position: relative;
             /deep/.bk-tab {
-                .bk-tab-section {
-                    padding: 6px 0;
+                position: absolute;
+                z-index: 2;
+                height: 40px;
+                .bk-tab-header,
+                .bk-tab-label-list {
+                    height: 40px !important;
                 }
-            }
-            .perform-log {
-                margin-top: 8px;
+                .bk-tab-label-item {
+                    line-height: 40px !important;
+                    &.active {
+                        color: #fff;
+                    }
+                }
+                .bk-tab-section {
+                    padding: 0;
+                }
             }
             .full-code-editor {
                 margin: 0 !important;
+                /deep/.tool-area {
+                    height: 40px;
+                    line-height: 40px;
+                    background: #2e2e2e;
+                    .bk-icon {
+                        color: #979ba5;
+                    }
+                }
             }
         }
-        .tab-active {
-            transform: translateY(-15px);
-        }
-        .no-data-wrapper {
-            margin-top: 15px;
-        }
-        .full-code-editor {
-            height: 300px;
+        .perform-log {
+            height: 100%;
         }
     }
 </style>
