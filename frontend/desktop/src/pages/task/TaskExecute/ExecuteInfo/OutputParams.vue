@@ -1,9 +1,9 @@
 <template>
     <section class="info-section outputs-section" data-test-id="taskExecute_form_outputParams">
-        <h4 class="outputs-label">{{ $t('输出参数') }}</h4>
+        <h4 class="common-section-title">{{ $t('输出参数') }}</h4>
         <div class="origin-value" v-if="!adminView">
             <bk-switcher size="small" @change="outputSwitcher" v-model="isShowOutputOrigin"></bk-switcher>
-            {{ $t('原始值') }}
+            {{ 'Json' }}
         </div>
         <template v-if="!adminView">
             <table class="operation-table outputs-table" v-if="!isShowOutputOrigin">
@@ -102,14 +102,14 @@
                     return output.value.reduce((acc, cur) => {
                         let str = cur
                         if (this.isUrl(cur)) {
-                            str = `<a class="info-link" target="_blank" href="${cur}">${cur}</a>`
+                            str = `<a style="color: #3a84ff; word-break: break-all;" target="_blank" href="${cur}">${cur}</a>`
                         }
-                        acc = acc ? acc + ',' + str : str
+                        acc = acc ? acc + '</br>' + str : str
                         return acc
                     }, '')
                 } else {
                     if (this.isUrl(output.value)) {
-                        return `<a class="info-link" target="_blank" href="${output.value}">${output.value}</a>`
+                        return `<a style="color: #3a84ff; word-break: break-all;" target="_blank" href="${output.value}">${output.value}</a>`
                     }
                     return output.value
                 }
@@ -119,19 +119,12 @@
 </script>
 
 <style lang="scss" scoped>
-    .outputs-section {
-        display: flex;
-        position: relative;
-    }
     .outputs-section .operation-table {
         flex: 1;
-        margin-left: 24px;
-        padding-top: 18px;
-        border: none;
-        border-collapse: initial;
         th, td {
             width: 30%;
             padding: 16px 13px;
+            font-weight: normal;
             color: #313238;
             background: #f5f7fa;
             border: none;
@@ -139,12 +132,13 @@
         }
         td {
             color: #63656e;
+            background: #fff;
         }
         .output-value {
             width: 50%;
         }
     }
     .full-code-editor {
-        height: 300px;
+        height: 400px;
     }
 </style>
