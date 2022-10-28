@@ -41,7 +41,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
         "SubProcess": ["id", "type", "name", "template_id"],
         "EmptyEndEvent": ["id", "type"],
         "EmptyStartEvent": ["id", "type"],
-        "ExclusiveGateway": ["id", "type", "conditions"],
+        "ExclusiveGateway": ["id", "type", "conditions", "default_condition"],
         "ConditionalParallelGateway": ["id", "type", "conditions"],
         "ConvergeGateway": ["id", "type"],
         "ParallelGateway": ["id", "type", "converge_gateway_id"],
@@ -373,7 +373,8 @@ class YamlSchemaConverter(BaseSchemaConverter):
         if "constants" in template:
             for constant_key, constant_attrs in template["constants"].items():
                 reconverted_constant, is_create = self._reconvert_constant(
-                    constant={**constant_attrs, "key": constant_key}, cur_constants=reconverted_tree["constants"],
+                    constant={**constant_attrs, "key": constant_key},
+                    cur_constants=reconverted_tree["constants"],
                 )
                 if is_create:
                     reconverted_tree["constants"][constant_key] = reconverted_constant
@@ -470,6 +471,16 @@ class YamlSchemaConverter(BaseSchemaConverter):
                     if node["type"] == "SubProcess":
                         node["template_id"] = template_key_mapping[node["template_id"]]
                     if node["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
+                        # 兼容导入功能逻辑default_condition属性不能缺少，当该属性不存在的时候，填充默认值
+                        if node.get("default_condition"):
+                            node["default_condition"] = dict(
+                                [
+                                    (node_key_mapping[node_id], data)
+                                    for node_id, data in node["default_condition"].items()
+                                ]
+                            )
+                        else:
+                            node["default_condition"] = ""
                         node["conditions"] = dict(
                             [(node_key_mapping[node_id], data) for node_id, data in node["conditions"].items()]
                         )
@@ -504,8 +515,12 @@ class YamlSchemaConverter(BaseSchemaConverter):
             nodes[flow["source"]].setdefault("next", []).append(flow["target"])
             nodes[flow["target"]].setdefault("last", []).append(flow["source"])
             if nodes[flow["source"]]["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
-                condition = nodes[flow["source"]]["conditions"].pop(flow["id"])
-                nodes[flow["source"]]["conditions"][flow["target"]] = condition
+                default_condition = nodes[flow["source"]].get("default_condition")
+                if default_condition and default_condition["flow_id"] == flow["id"]:
+                    nodes[flow["source"]]["default_condition"] = {flow["target"]: default_condition}
+                else:
+                    condition = nodes[flow["source"]]["conditions"].pop(flow["id"])
+                    nodes[flow["source"]]["conditions"][flow["target"]] = condition
         nodes[start_node_id]["last"] = []
         nodes[end_node_id]["next"] = []
 
@@ -537,7 +552,11 @@ class YamlSchemaConverter(BaseSchemaConverter):
         converted_node = {}
         for field in self.NODE_NECESSARY_FIELDS.get(node["type"], []):
             converted_field = field if field not in self.NODE_FIELD_MAPPING else self.NODE_FIELD_MAPPING[field]
-            converted_node[converted_field] = node[field]
+            # default_condition 属性是非必传，所以要兼容该属性未定义的情况
+            try:
+                converted_node[converted_field] = node[field]
+            except Exception:
+                pass
         if node["type"] == "ServiceActivity":
             # 处理component和outputs
             component_data = converted_node["component"]["data"]
@@ -560,6 +579,10 @@ class YamlSchemaConverter(BaseSchemaConverter):
             for form_key, constant in param_constants["component_outputs"].get(node["id"], {}).items():
                 converted_node.setdefault("output", {})[form_key] = constant
         elif node["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
+            if node.get("default_condition"):
+                for default_condition in node["default_condition"].values():
+                    default_condition.pop("flow_id", None)
+                    default_condition.pop("tag", None)
             for condition in node["conditions"].values():
                 condition.pop("tag", None)
         sorted_node = dict(
