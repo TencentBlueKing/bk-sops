@@ -71,6 +71,8 @@
                     :instance-actions="instanceActions"
                     :instance-name="instanceName"
                     :instance_id="instance_id"
+                    :retry-node-id="retryNodeId"
+                    @nodeTaskRetry="nodeTaskRetry"
                     @packUp="packUp">
                 </ModifyParams>
                 <ExecuteInfo
@@ -220,20 +222,6 @@
                 </bk-form-item>
             </bk-form>
         </bk-dialog>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            header-position="left"
-            :mask-close="false"
-            :auto-close="false"
-            :title="$t('重试节点')"
-            :loading="pending.retry"
-            :value="isRetryDialogShow"
-            data-test-id="taskExcute_dialog_retryNodeDialog"
-            @confirm="nodeTaskRetry"
-            @cancel="onRetryDialogCancel">
-            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('按照节点配置重新执行当前步骤，如果配置引用了变量且设置为"执行时显示"，可先修改"输入参数"在重试') }}</div>
-        </bk-dialog>
     </div>
 </template>
 <script>
@@ -370,7 +358,6 @@
                 isRevokeDialogShow: false,
                 isSkipDialogShow: false,
                 skipNodeId: undefined,
-                isRetryDialogShow: false,
                 retryNodeId: undefined,
                 isForceFailDialogShow: false,
                 forceFailId: undefined,
@@ -994,7 +981,7 @@
                             await this.loadNodeInfo()
                         }
                     } else {
-                        this.isRetryDialogShow = true
+                        this.openNodeInfoPanel('modifyParams', i18n.t('重试任务'))
                         this.retryNodeId = id
                     }
                 } catch (error) {
@@ -1086,16 +1073,13 @@
                     this.setNodeDetailConfig(this.retryNodeId)
                     await this.loadNodeInfo()
                     await this.onRetryTask()
-                    this.onRetryDialogCancel()
+                    this.isNodeInfoPanelShow = false
+                    this.retryNodeId = undefined
                 } catch (error) {
                     console.warn(error)
                 } finally {
                     this.pending.retry = false
                 }
-            },
-            onRetryDialogCancel () {
-                this.isRetryDialogShow = false
-                this.retryNodeId = undefined
             },
             onForceFailClick (id) {
                 this.forceFailId = id
@@ -1590,6 +1574,7 @@
             },
             onRetryCancel (id) {
                 this.isNodeInfoPanelShow = false
+                this.retryNodeId = undefined
                 this.updateNodeActived(id, false)
             },
             onModifyTimeSuccess (id) {
@@ -1635,6 +1620,7 @@
             },
             packUp () {
                 this.isNodeInfoPanelShow = false
+                this.retryNodeId = undefined
             },
             onshutDown () {
                 this.isNodeInfoPanelShow = false
@@ -1648,11 +1634,13 @@
                     const isEqual = this.$refs[this.nodeInfoType].judgeDataEqual()
                     if (isEqual === true) {
                         this.isNodeInfoPanelShow = false
+                        this.retryNodeId = undefined
                     } else if (isEqual === false) {
                         this.$bkInfo({
                             ...this.infoBasicConfig,
                             cancelFn: () => {
                                 this.isNodeInfoPanelShow = false
+                                this.retryNodeId = undefined
                             }
                         })
                     }

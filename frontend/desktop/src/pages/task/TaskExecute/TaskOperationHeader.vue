@@ -79,10 +79,10 @@
                         }
                     ]"
                     v-bk-tooltips="{
-                        content: $t('修改参数'),
+                        content: $t('修改任务参数'),
                         placements: ['bottom']
                     }"
-                    @click="onTaskParamsClick('modifyParams', $t('修改参数'))">
+                    @click="onTaskParamsClick('modifyParams', $t('修改任务参数'))">
                 </i>
                 <bk-popover placement="bottom-left" theme="light" ext-cls="operate-tip">
                     <i class="bk-icon icon-more drop-icon-ellipsis"></i>

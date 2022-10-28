@@ -14,7 +14,13 @@
         class="modify-params-container"
         v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }"
         @click="e => e.stopPropagation()">
-        <div v-if="state !== 'CREATED'" class="panel-notice-task-run">
+        <div v-if="retryNodeId" class="panel-notice-task-run">
+            <p>
+                <i class="common-icon-info ui-notice"></i>
+                {{ $t('可在此修改任务的参数值，对所有修改后执行的步骤生效') }}
+            </p>
+        </div>
+        <div v-else-if="state !== 'CREATED'" class="panel-notice-task-run">
             <p>
                 <i class="common-icon-info ui-notice"></i>
                 {{ paramsCanBeModify ? $t('已开始执行的任务，修改参数值仅对还未执行的步骤生效') : $t('已执行完毕的任务不能修改参数') }}
@@ -32,7 +38,7 @@
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper">
-            <div v-if="!isParamsEmpty && paramsCanBeModify">
+            <div v-if="retryNodeId || (!isParamsEmpty && paramsCanBeModify)">
                 <bk-button
                     theme="primary"
                     :class="{
@@ -42,7 +48,7 @@
                     v-cursor="{ active: !hasSavePermission }"
                     data-test-id="taskExecute_form_saveModifyParamsBtn"
                     @click="onModifyParams">
-                    {{ $t('保存') }}
+                    {{ retryNodeId ? $t('重试') : $t('保存') }}
                 </bk-button>
                 <bk-button theme="default" data-test-id="taskExecute_form_cancelBtn" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
             </div>
@@ -67,7 +73,7 @@
             NoData
         },
         mixins: [permission],
-        props: ['state', 'instanceName', 'instance_id', 'paramsCanBeModify', 'instanceActions'],
+        props: ['state', 'instanceName', 'instance_id', 'paramsCanBeModify', 'instanceActions', 'retryNodeId'],
         data () {
             return {
                 bkMessageInstance: null,
@@ -148,6 +154,11 @@
                 if (this.pending) {
                     return
                 }
+                if (this.isParamsEmpty && this.retryNodeId) {
+                    this.pending = true
+                    await this.$emit('nodeTaskRetry')
+                    return
+                }
                 const paramEditComp = this.$refs.TaskParamEdit
                 const formData = {}
                 const metaConstants = {}
@@ -182,6 +193,10 @@
                     this.pending = true
                     const res = await this.instanceModifyParams(data)
                     if (res.result) {
+                        if (this.retryNodeId) {
+                            await this.$emit('nodeTaskRetry')
+                            return
+                        }
                         this.$bkMessage({
                             message: i18n.t('参数修改成功'),
                             theme: 'success'
