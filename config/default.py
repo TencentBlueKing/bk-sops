@@ -503,7 +503,7 @@ for _setting in dir(ver_settings):
         locals()[_setting] = getattr(ver_settings, _setting)
 
 # version log config
-VERSION_LOG = {"FILE_TIME_FORMAT": "%Y-%m-%d"}
+VERSION_LOG = {"FILE_TIME_FORMAT": "%Y-%m-%d", "LATEST_VERSION_INFORM": True}
 
 # migrate api token
 MIGRATE_TOKEN = env.MIGRATE_TOKEN
