@@ -774,7 +774,6 @@
                 }
                 this.pending.label = true
                 try {
-                    console.log(this.labelDetail)
                     this.$refs.labelForm.validate().then(async result => {
                         if (result) {
                             let resp
