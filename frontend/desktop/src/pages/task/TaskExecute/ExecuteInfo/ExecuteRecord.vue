@@ -1,9 +1,10 @@
 <template>
     <div class="execute-record">
         <template v-if="isReadyStatus">
-            <section class="info-section abnormal-section" data-test-id="taskExcute_form_exceptionInfo" v-if="executeInfo.ex_data">
+            <section class="info-section abnormal-section" data-test-id="taskExcute_form_exceptionInfo">
                 <h4 class="common-section-title">{{ $t('异常信息') }}</h4>
-                <div class="fail-text" v-html="executeInfo.failInfo"></div>
+                <div class="fail-text" v-if="executeInfo.ex_data" v-html="executeInfo.failInfo"></div>
+                <p class="fail-text" v-else>{{ $t('暂无异常') }}</p>
             </section>
             <section class="info-section" data-test-id="taskExcute_form_excuteInfo">
                 <h4 class="common-section-title">{{ $t('执行信息') }}</h4>
