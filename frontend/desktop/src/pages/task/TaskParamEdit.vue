@@ -19,7 +19,7 @@
             :form-option="renderOption"
             v-model="renderData">
         </RenderForm>
-        <NoData v-if="isNoData && !isConfigLoading"></NoData>
+        <NoData v-if="isNoData && !isConfigLoading" :message="$t('没有参数需要配置')"></NoData>
     </div>
 </template>
 <script>
