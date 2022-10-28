@@ -35,7 +35,7 @@
                 :editable="paramsCanBeModify"
                 @onChangeConfigLoading="onChangeConfigLoading">
             </TaskParamEdit>
-            <NoData v-else></NoData>
+            <NoData v-else :message="$t('没有参数需要配置')"></NoData>
         </div>
         <div class="action-wrapper">
             <div v-if="retryNodeId || (!isParamsEmpty && paramsCanBeModify)">

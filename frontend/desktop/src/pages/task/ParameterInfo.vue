@@ -40,7 +40,7 @@
                 @onChangeConfigLoading="onUnrefVarLoadingChange">
             </TaskParamEdit>
         </div>
-        <NoData v-if="isNoData"></NoData>
+        <NoData v-if="isNoData" :message="$t('没有参数需要配置')"></NoData>
     </div>
 </template>
 <script>
