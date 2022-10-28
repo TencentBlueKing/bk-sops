@@ -1514,7 +1514,9 @@ const en = {
     '调用日志': 'Call log',
     '暂无执行数据': 'No execution data yet',
     '修改任务参数': 'Modify task parameters',
-    '可在此修改任务的参数值，对所有修改后执行的步骤生效': 'You can modify the parameter values of the task here, and it will take effect for all steps executed after the modification.'
+    '可在此修改任务的参数值，对所有修改后执行的步骤生效': 'You can modify the parameter values of the task here, and it will take effect for all steps executed after the modification.',
+    '暂无异常': 'No abnormality',
+    '没有参数需要配置': 'No parameters to configure'
 }
 
 export default en

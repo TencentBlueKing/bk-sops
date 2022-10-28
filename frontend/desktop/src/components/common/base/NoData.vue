@@ -50,6 +50,7 @@
     }
     .no-data-wording {
         margin-top: 20px;
-        font-size: 14px;
+        font-size: 12px;
+        color: #63656e;
     }
 </style>
