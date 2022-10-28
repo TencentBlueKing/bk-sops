@@ -339,6 +339,16 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                 )
                 return False, "_format_outputs fail", []
 
+        # 尝试搜索并替换变量重命名的值
+        runtime = BambooDjangoRuntime()
+        outputs = runtime.get_data(self.node_id).outputs
+
+        for item in outputs_table:
+            key = item.get("key")
+            if key in outputs:
+                # 替换key值
+                item["key"] = outputs[key][2:-1]
+
         return True, "", outputs_table
 
     def get_node_data_v1(
