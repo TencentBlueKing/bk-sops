@@ -105,7 +105,9 @@ class PeriodicTaskReadOnlySerializer(serializers.ModelSerializer):
 
 
 def check_cron_params(cron, project):
+    # DB cron 属性最大允许字符长度数量
     max_length = 128
+    # 计算周期任务拼接字符串长度
     schedule, _ = DjangoCeleryBeatCrontabSchedule.objects.get_or_create(
         minute=cron.get("minute", "*"),
         hour=cron.get("hour", "*"),
