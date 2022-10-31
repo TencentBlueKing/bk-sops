@@ -75,12 +75,14 @@
                         'params-btn',
                         'common-icon-edit',
                         {
+                            'disabled': !paramsCanBeModify,
                             actived: nodeInfoType === 'modifyParams'
                         }
                     ]"
                     v-bk-tooltips="{
-                        content: $t('修改任务参数'),
-                        placements: ['bottom']
+                        content: !paramsCanBeModify ? $t('已完成的任务不能修改任务参数') : $t('修改任务参数'),
+                        placements: ['bottom'],
+                        hideOnClick: false
                     }"
                     @click="onTaskParamsClick('modifyParams', $t('修改任务参数'))">
                 </i>
@@ -139,7 +141,8 @@
             'stateStr',
             'isBreadcrumbShow',
             'isTaskOperationBtnsShow',
-            'isShowViewProcess'
+            'isShowViewProcess',
+            'paramsCanBeModify'
         ],
         data () {
             return {
@@ -178,6 +181,10 @@
                 this.$emit('onOperationClick', action)
             },
             onTaskParamsClick (type, name) {
+                // 已完成的任务不能修改任务参数
+                if (type === 'modifyParams' && !this.paramsCanBeModify) {
+                    return
+                }
                 this.$emit('onTaskParamsClick', type, name)
             },
             onBack () {
@@ -383,6 +390,10 @@
                 }
                 &:hover {
                     color: #63656e;
+                }
+                &.disabled {
+                    color: #c4c6cc;
+                    cursor: not-allowed;
                 }
             }
             .back-button {
