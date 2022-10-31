@@ -339,15 +339,31 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                 )
                 return False, "_format_outputs fail", []
 
-        # 尝试搜索并替换变量重命名的值
-        runtime = BambooDjangoRuntime()
-        outputs = runtime.get_data(self.node_id).outputs
+        try:
+            # 尝试搜索并替换变量重命名的值
+            constants = pipeline_instance.execution_data.get("constants", {})
+            node_id_constants_map = {}
+
+            for key, value in constants.items():
+                # 只对输出进行重命名，如果变量来源非输出，则跳过
+                if not value.get("source_type") == "component_outputs":
+                    continue
+                # 搜索这些新变量的来源
+                source_info = value.get("source_info", {})
+                # 查看来源中是否有自己
+                if self.node_id in source_info.keys():
+                    if len(source_info[self.node_id]) > 0:
+                        # key = ${key}, key[2:-1] = key
+                        node_id_constants_map[source_info[self.node_id][0]] = key[2:-1]
+        except Exception as e:
+            logger.exception("[_format_outputs]变量重命名格式化失败，error={}".format(e))
+            return True, "", outputs_table
 
         for item in outputs_table:
             key = item.get("key")
-            if key in outputs:
+            if key in node_id_constants_map:
                 # 替换key值
-                item["key"] = outputs[key][2:-1]
+                item["key"] = node_id_constants_map[key]
 
         return True, "", outputs_table
 
