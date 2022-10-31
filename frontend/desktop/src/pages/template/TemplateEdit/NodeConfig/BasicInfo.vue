@@ -63,7 +63,10 @@
                     @clear="onLabelClear">
                 </bk-search-select>
             </bk-form-item> -->
-            <bk-form-item :label="$t('失败处理')">
+            <bk-form-item>
+                <div slot="tip" class="bk-label slot-bk-label">
+                    <span v-bk-tooltips="errorHandleTipsConfig" class="form-item-tips">{{ $t('失败处理') }}</span>
+                </div>
                 <div class="error-handle">
                     <bk-checkbox
                         :value="formData.ignorable"
@@ -136,7 +139,6 @@
                     <p>{{ $t('手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。') }}</p>
                     <p>{{ $t('自动重试：标准插件节点如果执行失败，系统会自动以原参数进行重试。') }}</p>
                 </div>
-                <i v-bk-tooltips="errorHandleTipsConfig" ref="tooltipsHtml" class="bk-icon icon-question-circle form-item-tips"></i>
             </bk-form-item>
             <!-- <bk-form-item :label="$t('超时控制')">
                 <div class="timeout-setting-wrap">
@@ -232,7 +234,18 @@
             <bk-form-item :label="$t('步骤名称')" property="stageName">
                 <bk-input :readonly="isViewMode" v-model="formData.stageName" @change="updateData"></bk-input>
             </bk-form-item>
-            <bk-form-item :label="$t('执行方案')">
+            <bk-form-item>
+                <div slot="tip" class="bk-label slot-bk-label">
+                    <span
+                        v-bk-tooltips="{
+                            width: 300,
+                            placement: 'bottom-end',
+                            content: $t('每次创建任务会使用选中执行方案的最新版本且不会提示该节点需要更新')
+                        }"
+                        class="form-item-tips">
+                        {{ $t('执行方案') }}
+                    </span>
+                </div>
                 <bk-select
                     :value="formData.schemeIdList"
                     :clearable="false"
@@ -242,17 +255,14 @@
                     @selected="onSelectTaskScheme">
                     <bk-option v-for="item in schemeList" :key="item.id" :id="item.id" :name="item.name"></bk-option>
                 </bk-select>
-                <i
-                    v-bk-tooltips="{
-                        width: 300,
-                        placement: 'bottom-end',
-                        content: $t('每次创建任务会使用选中执行方案的最新版本且不会提示该节点需要更新')
-                    }"
-                    class="bk-icon icon-question-circle form-item-tips">
-                </i>
             </bk-form-item>
             <template v-if="isShowFailTimeoutHandle">
-                <bk-form-item :label="$t('失败处理')">
+                <bk-form-item>
+                    <div slot="tip" class="bk-label slot-bk-label">
+                        <span v-bk-tooltips="errorHandleTipsConfig" class="form-item-tips">
+                            {{ $t('失败处理') }}
+                        </span>
+                    </div>
                     <div class="error-handle">
                         <bk-checkbox
                             :value="formData.ignorable"
@@ -325,7 +335,6 @@
                         <p>{{ $t('手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。') }}</p>
                         <p>{{ $t('自动重试：标准插件节点如果执行失败，系统会自动以原参数进行重试。') }}</p>
                     </div>
-                    <i v-bk-tooltips="errorHandleTipsConfig" ref="tooltipsHtml" class="bk-icon icon-question-circle form-item-tips"></i>
                 </bk-form-item>
                 <!-- <bk-form-item :label="$t('超时控制')">
                     <div class="timeout-setting-wrap">
@@ -378,7 +387,12 @@
                     @change="onSelectableChange">
                 </bk-switcher>
             </bk-form-item>
-            <bk-form-item :label="$t('总是使用最新版本')">
+            <bk-form-item>
+                <div slot="tip" class="bk-label slot-bk-label">
+                    <span v-bk-tooltips="alwaysUseLastestTipsConfig" class="form-item-tips">
+                        {{ $t('总是使用最新版本') }}
+                    </span>
+                </div>
                 <bk-switcher
                     theme="primary"
                     size="small"
@@ -392,10 +406,6 @@
                     <p>{{ $t('1. 若子流程中增加了新的变量，在未手动更新子流程版本的情况下，将使用新变量默认值。') }}</p>
                     <p>{{ $t('2. 若子流程中修改了变量的默认值，在未手动更新子流程版本的情况下，将继续使用修改前变量的原有值。') }}</p>
                 </div>
-                <i
-                    v-bk-tooltips="alwaysUseLastestTipsConfig"
-                    class="bk-icon icon-question-circle form-item-tips">
-                </i>
             </bk-form-item>
             <bk-form-item v-if="common" :label="$t('执行代理人')" data-test-id="templateEdit_form_executor_proxy">
                 <bk-user-selector
@@ -869,6 +879,7 @@
         font-size: 12px;
         line-height: 1;
         color: #ffb400;
+        margin-top: 2px;
     }
     .timeout-setting-wrap {
         display: flex;
@@ -910,13 +921,21 @@
             border: none;
             z-index: 11;
         }
-        .form-item-tips {
+        .slot-bk-label {
             position: absolute;
-            left: -24px;
-            top: 7px;
-            color: #c4c6cc;
-            &:hover {
-                color: #f4aa1a;
+            top: 0;
+            left: -150px;
+            .form-item-tips {
+                position: relative;
+                line-height: 21px;
+                &::after {
+                    content: '';
+                    position: absolute;
+                    left: 0;
+                    bottom: -3px;
+                    border-top: 1px dashed #979ba5;
+                    width: 100%
+                }
             }
         }
         .view-subflow {
