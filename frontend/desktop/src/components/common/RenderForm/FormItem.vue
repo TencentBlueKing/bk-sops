@@ -63,8 +63,8 @@
                 :class="['rf-tag-label', { 'required': isRequired() }]">
                 <span
                     v-bk-tooltips="{
-                        html: scheme.attrs.tips,
-                        placement: 'top',
+                        content: scheme.attrs.tips,
+                        placement: 'top-start',
                         theme: 'light',
                         extCls: 'rf-label-tips',
                         boundary: 'window',
@@ -617,7 +617,7 @@
     line-height: 32px;
 }
 .rf-label-tips {
-    max-width: 240px;
+    max-width: 480px;
     .tippy-tooltip {
         color: #63656e;
         border: 1px solid #dcdee5;
