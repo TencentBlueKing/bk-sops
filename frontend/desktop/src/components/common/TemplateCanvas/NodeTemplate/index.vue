@@ -167,6 +167,7 @@
 
     $grayDark: #979ba5;
     $blueDark: #699df4;
+    $defaultColor: #738abe;
     $redDark: #ea3636;
     $yellowDark: #ff9c01;
     $greenDark: #2dcb56;
@@ -294,6 +295,9 @@
                     display: block;
                 }
             }
+            &.reday {
+                @include gatewayStyle($grayDark);
+            }
             &.failed {
                 @include gatewayStyle($redDark);
             }
@@ -335,7 +339,7 @@
             height: 32px;
             line-height: 32px;
             font-size: 24px;
-            color: $grayDark;
+            color: $defaultColor;
             text-align: center;
         }
         .task-node {
@@ -349,13 +353,19 @@
             cursor: pointer;
             &:hover {
                 .node-name {
-                    border-color: $grayDark;
+                    border-color: $defaultColor;
                 }
             }
             &.actived {
                 box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
             }
             &.default {
+                @include taskNodeStyle ($defaultColor);
+                &.actived {
+                     @include nodeClick ($defaultColor);
+                }
+            }
+            &.reday {
                 @include taskNodeStyle ($grayDark);
                 &.actived {
                      @include nodeClick ($grayDark);
@@ -400,7 +410,7 @@
                 align-items: center;
                 padding: 0 8px;
                 height: 20px;
-                background: $grayDark;
+                background: $defaultColor;
                 text-align: left;
                 border-top-left-radius: 4px;
                 border-top-right-radius: 4px;
@@ -573,7 +583,7 @@
             i {
                 font-size: 14px;
                 &.phase-warn {
-                    color: $blueDark;
+                    color: $yellowDark;
                 }
                 &.phase-error {
                     color: $redDark;

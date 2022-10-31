@@ -17,6 +17,7 @@
             'process-node',
             node.status ? node.status.toLowerCase() : '',
             { 'fail-skip': node.status === 'FINISHED' && node.skip },
+            { 'reday': !('status' in node) },
             { 'actived': node.isActived }
         ]">
         <!-- 节点左侧的色块区域 -->
