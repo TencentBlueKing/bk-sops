@@ -367,7 +367,7 @@
                     this.executeInfo = respData
                     this.historyInfo = respData.skip ? [] : [respData]
                     if (respData.histories) {
-                        this.historyInfo.push(...respData.histories)
+                        this.historyInfo.unshift(...respData.histories)
                     }
                     // 记录当前循环下，总共执行的次数
                     this.theExecuteRecord = this.historyInfo.length
