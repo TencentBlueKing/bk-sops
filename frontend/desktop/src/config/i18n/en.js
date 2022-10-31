@@ -1519,7 +1519,8 @@ const en = {
     '没有参数需要配置': 'No parameters to configure',
     '已完成的任务不能修改任务参数': 'Completed tasks cannot modify task parameters',
     '重试任务': 'Retry task',
-    '任务操作记录': 'Task operation record'
+    '任务操作记录': 'Task operation record',
+    '配置快照': 'Config snapshot'
 }
 
 export default en

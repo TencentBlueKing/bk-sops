@@ -36,7 +36,7 @@
                     ext-cls="execute-info-tab"
                     @tab-change="onTabChange">
                     <bk-tab-panel name="record" :label="$t('执行记录')"></bk-tab-panel>
-                    <bk-tab-panel name="config" :label="$t('节点配置')"></bk-tab-panel>
+                    <bk-tab-panel name="config" :label="$t('配置快照')"></bk-tab-panel>
                     <bk-tab-panel name="history" :label="$t('操作历史')"></bk-tab-panel>
                     <bk-tab-panel name="log" :label="$t('调用日志')"></bk-tab-panel>
                 </bk-tab>
