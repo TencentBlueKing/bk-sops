@@ -58,7 +58,7 @@ const Guide = function (config = {}) {
             theme: 'guide',
             animation: 'shift-away',
             content: this.int.$el.innerHTML,
-            zIndex: 2100,
+            zIndex: 10,
             onHidden: () => {
                 if (once) {
                     this.instance.destroy()
