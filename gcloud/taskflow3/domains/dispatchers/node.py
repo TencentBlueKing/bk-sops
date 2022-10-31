@@ -339,10 +339,10 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                 )
                 return False, "_format_outputs fail", []
 
+        node_id_constants_map = {}
         try:
             # 尝试搜索并替换变量重命名的值
             constants = pipeline_instance.execution_data.get("constants", {})
-            node_id_constants_map = {}
 
             for key, value in constants.items():
                 # 只对输出进行重命名，如果变量来源非输出，则跳过
@@ -361,7 +361,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
 
         for item in outputs_table:
             key = item.get("key")
-            if key in node_id_constants_map:
+            if key in node_id_constants_map.keys():
                 # 替换key值
                 item["key"] = node_id_constants_map[key]
 
