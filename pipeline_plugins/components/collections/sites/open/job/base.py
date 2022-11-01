@@ -209,6 +209,14 @@ def get_job_instance_log(
     return {"result": True, "data": log_text}
 
 
+def get_ip_from_step_ip_result(step_ip_result):
+    ip = step_ip_result.get("ip")
+    if not ip:
+        ip = step_ip_result.get("ipv6", "")
+    # 防止极端情况下，ipv6 仍然不可用
+    return ip or ""
+
+
 def get_job_tagged_ip_dict(
     client, service_logger, job_instance_id, bk_biz_id, job_scope_type=JobBizScopeType.BIZ.value
 ):
@@ -241,10 +249,11 @@ def get_job_tagged_ip_dict(
         tag_key = step_ip_result["tag"]
         if not tag_key:
             continue
+        ip = get_ip_from_step_ip_result(step_ip_result)
         if tag_key in tagged_ip_dict:
-            tagged_ip_dict[tag_key] += f",{step_ip_result['ip']}"
+            tagged_ip_dict[tag_key] += f",{ip}"
         else:
-            tagged_ip_dict[tag_key] = step_ip_result["ip"]
+            tagged_ip_dict[tag_key] = ip
 
     return True, tagged_ip_dict
 
@@ -353,7 +362,7 @@ def get_job_tagged_ip_dict_complex(
         tag_key = step_ip_result["tag"]
         status = step_ip_result["status"]
         status_key = JOB_STEP_IP_RESULT_STATUS_MAP.get(status, status)
-        ip = step_ip_result["ip"]
+        ip = get_ip_from_step_ip_result(step_ip_result)
 
         # 执行成功的分类到执行成功里面，JOB_SUCCESS
         if status == 9:
