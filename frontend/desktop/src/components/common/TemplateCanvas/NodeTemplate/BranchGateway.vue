@@ -14,16 +14,15 @@
         :class="[
             'gateway-node',
             'branch-gateway',
+            { 'reday': !('status' in node) },
             node.status ? node.status.toLowerCase() : ''
         ]">
         <div class="node-type-icon common-icon-node-branchgateway"></div>
-        <div class="state-icon" v-if="isOpenTooltip">
-            <el-tooltip placement="bottom" :content="$t('跳过')">
-                <span
-                    class="common-icon-skip"
-                    @click.stop="onGatewaySelectionClick">
-                </span>
-            </el-tooltip>
+        <div class="state-icon">
+            <span @click.stop="onGatewaySelectionClick">
+                <i class="common-icon-skip"></i>
+                {{ $t('跳过') }}
+            </span>
         </div>
     </div>
 </template>

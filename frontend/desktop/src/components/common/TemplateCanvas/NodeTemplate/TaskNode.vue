@@ -17,6 +17,7 @@
             'process-node',
             node.status ? node.status.toLowerCase() : '',
             { 'fail-skip': node.status === 'FINISHED' && node.skip },
+            { 'reday': !('status' in node) },
             { 'actived': node.isActived }
         ]">
         <!-- 节点左侧的色块区域 -->
@@ -49,51 +50,31 @@
         <node-right-icon-status :node="node"></node-right-icon-status>
         <!-- tooltip提示 -->
         <div class="state-icon" v-if="node.mode === 'execute'">
-            <el-tooltip v-if="isShowRetryBtn" placement="bottom" :content="$t('重试')">
-                <span
-                    class="common-icon-retry"
-                    @click.stop="$emit('onRetryClick', node.id)">
-                </span>
-            </el-tooltip>
-            <el-tooltip v-if="isShowSkipBtn" placement="bottom" :content="$t('跳过')">
-                <span
-                    class="common-icon-skip"
-                    @click.stop="$emit('onSkipClick', node.id)">
-                </span>
-            </el-tooltip>
-            <el-tooltip
-                v-if="node.status === 'FAILED' && !isShowSkipBtn && !isShowRetryBtn"
-                placement="bottom"
-                :content="$t('流程模板中该标准插件节点未配置失败处理方式，不可操作')">
-                <span
-                    class="common-icon-mandatory-failure">
-                </span>
-            </el-tooltip>
+            <span v-if="isShowRetryBtn" @click.stop="$emit('onRetryClick', node.id)">
+                <i class="common-icon-retry"></i>
+                {{ $t('重试') }}
+            </span>
+            <span v-if="isShowSkipBtn" @click.stop="$emit('onSkipClick', node.id)">
+                <i class="common-icon-skip"></i>
+                {{ $t('跳过') }}
+            </span>
             <template v-if="node.status === 'RUNNING'">
-                <el-tooltip v-if="node.code === 'sleep_timer'" placement="bottom" :content="$t('修改时间')">
-                    <span
-                        class="common-icon-clock"
-                        @click.stop="$emit('onModifyTimeClick', node.id)">
-                    </span>
-                </el-tooltip>
-                <el-tooltip v-if="node.code === 'pause_node'" placement="bottom" :content="$t('继续执行')">
-                    <span
-                        class="common-icon-play"
-                        @click.stop="$emit('onTaskNodeResumeClick', node.id)">
-                    </span>
-                </el-tooltip>
-                <el-tooltip v-if="node.code === 'bk_approve'" placement="bottom" :content="$t('审批')">
-                    <span
-                        class="common-icon-circulation"
-                        @click.stop="$emit('onApprovalClick', node.id)">
-                    </span>
-                </el-tooltip>
-                <el-tooltip placement="bottom" :content="$t('强制失败')">
-                    <span
-                        class="common-icon-mandatory-failure"
-                        @click.stop="$emit('onForceFail', node.id)">
-                    </span>
-                </el-tooltip>
+                <span v-if="node.code === 'sleep_timer'" @click.stop="$emit('onModifyTimeClick', node.id)">
+                    <i class="common-icon-clock"></i>
+                    {{ $t('修改时间') }}
+                </span>
+                <span v-if="node.code === 'pause_node'" @click.stop="$emit('onTaskNodeResumeClick', node.id)">
+                    <i class="common-icon-play"></i>
+                    {{ $t('继续执行') }}
+                </span>
+                <span v-if="node.code === 'bk_approve'" @click.stop="$emit('onApprovalClick', node.id)">
+                    <i class="common-icon-circulation"></i>
+                    {{ $t('审批') }}
+                </span>
+                <span @click.stop="$emit('onForceFail', node.id)">
+                    <i class="common-icon-mandatory-failure"></i>
+                    {{ $t('强制失败') }}
+                </span>
             </template>
         </div>
     </div>

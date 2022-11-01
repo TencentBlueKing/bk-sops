@@ -38,15 +38,15 @@
             <label v-if="option.showLabel" class="rf-tag-label">
                 <span
                     v-bk-tooltips="{
-                        html: scheme.attrs.tips,
-                        placement: 'top',
+                        content: scheme.attrs.tips,
+                        placement: 'top-start',
                         theme: 'light',
                         extCls: 'rf-label-tips',
                         boundary: 'window',
                         zIndex: 2072,
-                        disabled: !!!scheme.attrs.tips
+                        disabled: !option.formEdit || !!!scheme.attrs.tips
                     }"
-                    :class="{ 'tag-label-tips': scheme.attrs.tips }">
+                    :class="{ 'tag-label-tips': option.formEdit && scheme.attrs.tips }">
                     {{scheme.attrs.name}}
                 </span>
             </label>
@@ -361,7 +361,7 @@
     }
 }
 .rf-label-tips {
-    max-width: 240px;
+    max-width: 480px;
     .tippy-tooltip {
         color: #63656e;
         border: 1px solid #dcdee5;

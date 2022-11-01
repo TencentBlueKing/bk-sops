@@ -25,6 +25,7 @@
             :is-breadcrumb-show="isBreadcrumbShow"
             :is-show-view-process="isShowViewProcess"
             :is-task-operation-btns-show="isTaskOperationBtnsShow"
+            :params-can-be-modify="paramsCanBeModify"
             @onSelectSubflow="onSelectSubflow"
             @onOperationClick="onOperationClick"
             @onTaskParamsClick="onTaskParamsClick">
@@ -1075,6 +1076,10 @@
                     await this.onRetryTask()
                     this.isNodeInfoPanelShow = false
                     this.retryNodeId = undefined
+                    // 重新轮询任务状态
+                    this.isFailedSubproceeNodeInfo = null
+                    this.setTaskStatusTimer()
+                    this.updateNodeActived(this.nodeDetailConfig.id, false)
                 } catch (error) {
                     console.warn(error)
                 } finally {

@@ -165,11 +165,12 @@
     @import '@/scss/mixins/multiLineEllipsis.scss';
     @import '@/scss/mixins/scrollbar.scss';
 
-    $grayDark: #979ba5;
+    $grayDark: #c4c6cc;
     $blueDark: #699df4;
+    $defaultColor: #738abe;
     $redDark: #ea3636;
     $yellowDark: #ff9c01;
-    $greenDark: #2dcb56;
+    $greenDark: #a5e8a9;
     $brightRedDark: #fd9c9c;
     $whiteColor: #ffffff;
     $defaultShadow: rgba(0, 0, 0, 0.15);
@@ -179,9 +180,8 @@
     $greenShadow: rgba(48, 216, 120, 0.15);
     $blueShadow: rgba(58, 132, 255, 0.15);
 
-    @mixin circleStatusStyle ($color, $shadow) {
+    @mixin circleStatusStyle ($color) {
         background-color: $color;
-        box-shadow: 0 0 0 5px $color;
         .circle-node-text {
             color: $whiteColor;
         }
@@ -265,19 +265,24 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 34px;
-            height: 34px;
+            width: 40px;
+            height: 40px;
             background: #96a1b9;
             border-radius: 50%;
-            box-shadow: 0 0 0 2px #96a1b9;
+            &.reday {
+                @include circleStatusStyle($grayDark);
+            }
             &.finished {
-                @include circleStatusStyle($greenDark, $greenShadow)
+                @include circleStatusStyle($greenDark);
+                &.end-point {
+                    background-color: #2dcb56;
+                }
             }
             &.running {
-                @include circleStatusStyle($blueDark, $yellowShadow)
+                @include circleStatusStyle($blueDark)
             }
             &.failed {
-                @include circleStatusStyle($redDark, $redShadow)
+                @include circleStatusStyle($redDark)
             }
         }
         .circle-node-text {
@@ -293,6 +298,9 @@
                 .state-icon {
                     display: block;
                 }
+            }
+            &.reday {
+                @include gatewayStyle($grayDark);
             }
             &.failed {
                 @include gatewayStyle($redDark);
@@ -314,19 +322,26 @@
             }
             .state-icon {
                 position: absolute;
-                right: 7px;
+                right: -5px;
                 bottom: -20px;
                 display: none;
+                width: max-content;
+                color: #63656e;
+                font-size: 12px;
                 z-index: 5;
-                .el-tooltip {
-                   font-size: 14px;
-                   color: #52699D;
-                   vertical-align: middle;
-                    &:hover {
-                        color: #4b85f7;
+                > span {
+                    display: flex;
+                    align-items: center;
+                    i {
+                        color: #979ba5;
+                        margin-right: 5px;
                     }
-                    &.common-icon-play {
-                        font-size: 18px;
+                    &:hover {
+                        cursor: pointer;
+                        color: #3a84ff;
+                        i {
+                            color: #3a84ff;
+                        }
                     }
                 }
             }
@@ -335,7 +350,7 @@
             height: 32px;
             line-height: 32px;
             font-size: 24px;
-            color: $grayDark;
+            color: $defaultColor;
             text-align: center;
         }
         .task-node {
@@ -349,13 +364,19 @@
             cursor: pointer;
             &:hover {
                 .node-name {
-                    border-color: $grayDark;
+                    border-color: $defaultColor;
                 }
             }
             &.actived {
                 box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
             }
             &.default {
+                @include taskNodeStyle ($defaultColor);
+                &.actived {
+                     @include nodeClick ($defaultColor);
+                }
+            }
+            &.reday {
                 @include taskNodeStyle ($grayDark);
                 &.actived {
                      @include nodeClick ($grayDark);
@@ -400,7 +421,7 @@
                 align-items: center;
                 padding: 0 8px;
                 height: 20px;
-                background: $grayDark;
+                background: $defaultColor;
                 text-align: left;
                 border-top-left-radius: 4px;
                 border-top-right-radius: 4px;
@@ -479,6 +500,36 @@
                 right: 5px;
                 bottom: -20px;
                 display: none;
+                color: #63656e;
+                font-size: 12px;
+                padding-top: 5px;
+                > span {
+                    &:not(:last-child) {
+                        margin-right: 23px;
+                        position: relative;
+                        &::after {
+                            content: '';
+                            position: absolute;
+                            top: 0;
+                            right: -11px;
+                            display: inline-block;
+                            height: 16px;
+                            width: 1px;
+                            background: #979ba5;
+                        }
+                    }
+                    i {
+                        color: #979ba5;
+                        margin-right: 5px;
+                    }
+                    &:hover {
+                        cursor: pointer;
+                        color: #3a84ff;
+                        i {
+                            color: #3a84ff;
+                        }
+                    }
+                }
                 .el-tooltip {
                    font-size: 14px;
                    margin-left: 5px;
@@ -573,7 +624,7 @@
             i {
                 font-size: 14px;
                 &.phase-warn {
-                    color: $blueDark;
+                    color: $yellowDark;
                 }
                 &.phase-error {
                     color: $redDark;
