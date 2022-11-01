@@ -330,9 +330,16 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 nodes[next_node_id].setdefault("incoming", []).append(line_id)
                 replace_outgoing.append(line_id)
                 if node["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
-                    condition = node["conditions"].pop(next_node_id)
-                    condition["tag"] = "branch_{}_{}".format(node_id, next_node_id)
-                    node["conditions"][line_id] = condition
+                    default_condition = node.get("default_condition")
+                    if default_condition and default_condition.get(next_node_id, ""):
+                        default_condition[next_node_id]["tag"] = "branch_{}_{}".format(node_id, next_node_id)
+                        node["default_condition"] = default_condition[next_node_id]
+                        node["default_condition"]["flow_id"] = line_id
+                    else:
+                        condition = node["conditions"].pop(next_node_id)
+                        condition["tag"] = "branch_{}_{}".format(node_id, next_node_id)
+                        node["conditions"][line_id] = condition
+
             node["outgoing"] = replace_outgoing
         reconverted_tree["flows"] = flows
 
