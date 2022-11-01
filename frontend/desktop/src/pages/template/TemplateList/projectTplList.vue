@@ -48,8 +48,8 @@
                                 <i :class="['bk-icon icon-angle-down']"></i>
                             </div>
                             <ul class="export-option-list" slot="dropdown-content">
-                                <li data-test-id="process_list_exportYamlFile" @click="onExportTemplate('exportYamlFile')">{{ $t('导出') }}YAML{{ $t('文件') }}</li>
-                                <li data-test-id="process_list_exportDatFile" @click="onExportTemplate('exportDatFile')">{{ $t('导出') }}DAT{{ $t('文件') }}</li>
+                                <li data-test-id="process_list_exportYamlFile" @click="onExportTemplate('exportYamlFile')">{{ $t('导出为') }}YAML{{ $t('文件') }}</li>
+                                <li data-test-id="process_list_exportDatFile" @click="onExportTemplate('exportDatFile')">{{ $t('导出为') }}DAT{{ $t('文件') }}</li>
                             </ul>
                         </bk-dropdown-menu>
                         <bk-button
