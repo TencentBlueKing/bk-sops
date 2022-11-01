@@ -14,6 +14,7 @@
         :class="[
             'gateway-node',
             'branch-gateway',
+            { 'reday': !('status' in node) },
             node.status ? node.status.toLowerCase() : ''
         ]">
         <div class="node-type-icon common-icon-node-conditionalparallelgateway"></div>

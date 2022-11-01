@@ -14,16 +14,10 @@
         class="modify-params-container"
         v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }"
         @click="e => e.stopPropagation()">
-        <div v-if="retryNodeId" class="panel-notice-task-run">
+        <div v-if="retryNodeId || (state !== 'CREATED' && paramsCanBeModify)" class="panel-notice-task-run">
             <p>
                 <i class="common-icon-info ui-notice"></i>
-                {{ $t('可在此修改任务的参数值，对所有修改后执行的步骤生效') }}
-            </p>
-        </div>
-        <div v-else-if="state !== 'CREATED'" class="panel-notice-task-run">
-            <p>
-                <i class="common-icon-info ui-notice"></i>
-                {{ paramsCanBeModify ? $t('已开始执行的任务，修改参数值仅对还未执行的步骤生效') : $t('已执行完毕的任务不能修改参数') }}
+                {{ $t('仅对「保存」后启动的节点 / 表达式生效。请尽量在「暂停 / 失败 / 审批」等状态下完成编辑，以确保效果符合预期。') }}
             </p>
         </div>
         <div :class="['edit-wrapper', { 'cancel-check': state !== 'CREATED' }]">
