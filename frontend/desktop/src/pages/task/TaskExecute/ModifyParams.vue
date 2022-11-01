@@ -17,7 +17,7 @@
         <div v-if="retryNodeId || (state !== 'CREATED' && paramsCanBeModify)" class="panel-notice-task-run">
             <p>
                 <i class="common-icon-info ui-notice"></i>
-                {{ $t('可在此修改任务的参数值，对所有修改后执行的步骤生效') }}
+                {{ $t('仅对「保存」后启动的节点 / 表达式生效。请尽量在「暂停 / 失败 / 审批」等状态下完成编辑，以确保效果符合预期。') }}
             </p>
         </div>
         <div :class="['edit-wrapper', { 'cancel-check': state !== 'CREATED' }]">

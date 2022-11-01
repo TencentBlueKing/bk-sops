@@ -19,7 +19,7 @@
                 <full-code-editor
                     class="scroll-editor"
                     :key="curPluginTab"
-                    :value="curPluginTab === 'build_in_plugin' ? logInfo : thirdPartyNodeLog">
+                    :value="(curPluginTab === 'build_in_plugin' ? logInfo : thirdPartyNodeLog) || $t('暂无日志')">
                 </full-code-editor>
             </div>
         </div>

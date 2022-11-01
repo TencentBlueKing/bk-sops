@@ -80,11 +80,11 @@
                         }
                     ]"
                     v-bk-tooltips="{
-                        content: !paramsCanBeModify ? $t('已完成的任务不能修改任务参数') : $t('修改任务参数'),
+                        content: !paramsCanBeModify ? $t('「未完成」任务才可编辑参数') : $t('编辑任务参数'),
                         placements: ['bottom'],
                         hideOnClick: false
                     }"
-                    @click="onTaskParamsClick('modifyParams', $t('修改任务参数'))">
+                    @click="onTaskParamsClick('modifyParams', $t('编辑任务参数'))">
                 </i>
                 <bk-popover placement="bottom-left" theme="light" ext-cls="operate-tip">
                     <i class="bk-icon icon-more drop-icon-ellipsis"></i>

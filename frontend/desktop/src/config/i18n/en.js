@@ -1513,14 +1513,18 @@ const en = {
     '操作历史': 'Operation history',
     '调用日志': 'Call log',
     '暂无执行数据': 'No execution data yet',
-    '修改任务参数': 'Modify task parameters',
+    '编辑任务参数': 'Edit task parameters',
     '可在此修改任务的参数值，对所有修改后执行的步骤生效': 'You can modify the parameter values of the task here, and it will take effect for all steps executed after the modification.',
     '暂无异常': 'No abnormality',
     '没有参数需要配置': 'No parameters to configure',
     '已完成的任务不能修改任务参数': 'Completed tasks cannot modify task parameters',
     '重试任务': 'Retry task',
     '任务操作记录': 'Task operation record',
-    '配置快照': 'Config snapshot'
+    '配置快照': 'Config snapshot',
+    '暂无执行信息': 'No execution information yet',
+    '暂无日志': 'No log yet',
+    '仅对「保存」后启动的节点 / 表达式生效。请尽量在「暂停 / 失败 / 审批」等状态下完成编辑，以确保效果符合预期。': 'Only valid for nodes/expressions started after "Save". Please try to complete the editing in the status of "paused/failed/approved" to ensure the effect is as expected.',
+    '「未完成」任务才可编辑参数': 'Unfinished" tasks can only edit parameters'
 }
 
 export default en

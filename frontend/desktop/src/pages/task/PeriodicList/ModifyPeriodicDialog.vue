@@ -163,7 +163,7 @@
                 <section class="config-section">
                     <p class="title">{{$t('参数信息')}}</p>
                     <div v-bkloading="{ isLoading: isLoading || previewDataLoading }">
-                        <NoData v-if="isVariableEmpty"></NoData>
+                        <NoData v-if="isVariableEmpty" :message="$t('没有参数需要配置')"></NoData>
                         <TaskParamEdit
                             v-else
                             ref="TaskParamEdit"
@@ -209,7 +209,7 @@
                         :class="{ 'btn-permission-disable': hasNoCreatePerm }"
                         v-cursor="{ active: hasNoCreatePerm }"
                         @click="onPeriodicConfirm">
-                        {{ isEdit ? $t('保存') : $t('创建') }}
+                        {{ isEdit ? $t('保存') : $t('提交') }}
                     </bk-button>
                     <bk-button
                         theme="default"
@@ -372,7 +372,7 @@
                 return this.curRow.template_source === 'common'
             },
             sideSliderTitle () {
-                return this.isEdit ? i18n.t('编辑周期任务') : i18n.t('创建周期任务')
+                return this.isEdit ? i18n.t('编辑周期任务') : i18n.t('新建周期任务')
             },
             previewScheme () {
                 if (this.formData.is_latest === null) {

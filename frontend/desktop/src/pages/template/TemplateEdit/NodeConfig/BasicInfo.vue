@@ -238,8 +238,9 @@
                 <div slot="tip" class="bk-label slot-bk-label">
                     <span
                         v-bk-tooltips="{
-                            width: 300,
-                            placement: 'bottom-end',
+                            theme: 'light',
+                            extCls: 'info-label-tips',
+                            placement: 'top-start',
                             content: $t('每次创建任务会使用选中执行方案的最新版本且不会提示该节点需要更新')
                         }"
                         class="form-item-tips">
@@ -529,15 +530,17 @@
                 },
                 errorHandleTipsConfig: {
                     allowHtml: true,
-                    width: 400,
+                    theme: 'light',
+                    extCls: 'info-label-tips',
                     content: '#html-error-ingored-tootip',
-                    placement: 'top'
+                    placement: 'top-start'
                 },
                 alwaysUseLastestTipsConfig: {
                     allowHtml: true,
-                    width: 540,
+                    theme: 'light',
+                    extCls: 'info-label-tips',
                     content: '#html-always-use-latest-tootip',
-                    placement: 'bottom-end'
+                    placement: 'top-start'
                 },
                 userApi: `${window.MEMBER_SELECTOR_DATA_HOST}/api/c/compapi/v2/usermanage/fs_list_users/`
             }
@@ -818,6 +821,16 @@
         }
     }
 </script>
+<style lang="scss">
+    .info-label-tips {
+        max-width: 480px;
+        .tippy-tooltip {
+            color: #63656e;
+            border: 1px solid #dcdee5;
+            box-shadow: 0 0 5px 0 rgba(0,0,0,0.09);
+        }
+    }
+</style>
 <style lang="scss" scoped>
     .basic-info {
         padding-right: 30px;
