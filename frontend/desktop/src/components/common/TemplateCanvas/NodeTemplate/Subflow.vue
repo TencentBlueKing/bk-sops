@@ -15,7 +15,7 @@
             'task-node',
             'subflow-node',
             node.status ? node.status.toLowerCase() : '',
-            { 'reday': !('status' in node) },
+            { 'ready': node.ready },
             { 'actived': node.isActived }
         ]">
         <div class="node-status-block">

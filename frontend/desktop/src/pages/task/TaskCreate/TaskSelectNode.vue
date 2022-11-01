@@ -354,7 +354,7 @@
                     lines: line,
                     locations: location.map(item => {
                         const code = item.type === 'tasknode' ? activities[item.id].component.code : ''
-                        return { ...item, mode, code, status: '' }
+                        return { ...item, mode, code }
                     }),
                     branchConditions
                 }
