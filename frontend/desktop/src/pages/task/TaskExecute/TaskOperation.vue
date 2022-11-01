@@ -1076,6 +1076,10 @@
                     await this.onRetryTask()
                     this.isNodeInfoPanelShow = false
                     this.retryNodeId = undefined
+                    // 重新轮询任务状态
+                    this.isFailedSubproceeNodeInfo = null
+                    this.setTaskStatusTimer()
+                    this.updateNodeActived(this.nodeDetailConfig.id, false)
                 } catch (error) {
                     console.warn(error)
                 } finally {

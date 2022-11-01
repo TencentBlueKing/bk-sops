@@ -32,34 +32,30 @@
                                 <i :class="['bk-icon icon-angle-down']"></i>
                             </div>
                             <ul class="import-option-list" slot="dropdown-content">
-                                <li data-test-id="commonProcess_list_importDatFile" @click="isImportDialogShow = true">{{ $t('导入') }}DAT{{ $t('文件') }}</li>
                                 <li data-test-id="commonProcess_list_importYamlFile" @click="isImportYamlDialogShow = true">{{ $t('导入') }}YAML{{ $t('文件') }}</li>
+                                <li data-test-id="commonProcess_list_importDatFile" @click="isImportDialogShow = true">{{ $t('导入') }}DAT{{ $t('文件') }}</li>
                             </ul>
                         </bk-dropdown-menu>
-                        <bk-dropdown-menu>
+                        <bk-dropdown-menu
+                            style="margin-right: 14px;"
+                            :trigger="selectedTpls.length ? 'mouseover' : 'click'"
+                            :disabled="!selectedTpls.length">
                             <div class="export-tpl-btn" slot="dropdown-trigger">
-                                <span>{{ $t('批量操作') }}</span>
+                                <span>{{ $t('导出') }}</span>
                                 <i :class="['bk-icon icon-angle-down']"></i>
                             </div>
-                            <ul class="batch-operation-list" slot="dropdown-content">
-                                <template v-for="operat in operatList">
-                                    <li
-                                        :key="operat.type"
-                                        v-bk-tooltips="{
-                                            content: operat.content,
-                                            disabled: !selectedTpls.length || (operat.isOther ? hasBatchEditAuth : hasBatchViewAuth) }"
-                                        :class="{ 'disabled': operat.isOther ? !hasBatchEditAuth : !hasBatchViewAuth }"
-                                        :data-test-id="`commonProcess_list_${operat.customAttr}`"
-                                        @click="onOperatClick(operat.type)">
-                                        {{ operat.value }}
-                                    </li>
-                                </template>
+                            <ul class="export-option-list" slot="dropdown-content">
+                                <li data-test-id="commonProcess_list_exportYamlFile" @click="onExportTemplate('exportYamlFile')">{{ $t('导出') }}YAML{{ $t('文件') }}</li>
+                                <li data-test-id="commonProcess_list_exportDatFile" @click="onExportTemplate('exportDatFile')">{{ $t('导出') }}DAT{{ $t('文件') }}</li>
                             </ul>
                         </bk-dropdown-menu>
-                        <div v-if="selectedTpls.length > 0" class="selected-tpl-num">
-                            {{ $t('已选择') }}{{ selectedTpls.length }}{{ $t('项') }}
-                            <bk-link theme="primary" @click="selectedTpls = []">{{ $t('清空') }}</bk-link>
-                        </div>
+                        <bk-button
+                            class="batch-delete"
+                            data-test-id="commonProcess_form_deleteProcess"
+                            :disabled="!selectedTpls.length"
+                            @click="onBatchDelete">
+                            {{$t('删除')}}
+                        </bk-button>
                     </div>
                     <bk-button
                         class="my-create-btn"
@@ -219,6 +215,10 @@
                                 @setting-change="handleSettingChange">
                             </table-setting-content>
                         </bk-table-column>
+                        <div class="selected-tpl-num" slot="prepend" v-if="selectedTpls.length > 0">
+                            {{ $t('当前已选择 x 条数据', { num: selectedTpls.length }) }}{{ $t('，') }}
+                            <bk-link theme="primary" @click="selectedTpls = []">{{ $t('清除选择') }}</bk-link>
+                        </div>
                         <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
                     </bk-table>
                 </div>
@@ -803,7 +803,7 @@
                     data.limit = 0
                     data.offset = 0
                     const res = await this.loadTemplateList(data)
-                    this.selectedTpls = res.results.slice(0)
+                    this.selectedTpls = res.slice(0)
                 } else {
                     this.templateList.forEach(item => {
                         if (!this.selectedTpls.find(tpl => tpl.id === item.id)) {
@@ -915,27 +915,11 @@
                 this.isImportYamlDialogShow = false
                 this.getTemplateList()
             },
-            onOperatClick (type) {
-                switch (type) {
-                    case 'collect':
-                        if (!this.hasBatchViewAuth) return
-                        this.onBatchCollect()
-                        break
-                    case 'delete':
-                        if (!this.hasBatchEditAuth) return
-                        this.onBatchDelete()
-                        break
-                    default:
-                        if (!this.hasBatchViewAuth) return
-                        this.onExportTemplate(type)
-                        break
-                }
-                return Promise.resolve()
-            },
             onImportCancel () {
                 this.isImportDialogShow = false
             },
             onExportTemplate (type) {
+                if (!this.hasBatchViewAuth) return
                 this.exportType = type
                 this.isExportDialogShow = true
             },
@@ -1306,7 +1290,7 @@ a {
     align-items: center;
     padding: 0 4px 0 20px;
     height: 32px;
-    line-height: 32px;
+    line-height: 30px;
     min-width: 88px;
     text-align: center;
     font-size: 14px;
@@ -1320,6 +1304,7 @@ a {
     }
 }
 .bk-dropdown-menu{
+    height: 32px !important;
     &:hover {
         .export-tpl-btn,
         .import-tpl-btn {
@@ -1329,11 +1314,17 @@ a {
             }
         }
     }
+    .bk-icon {
+        margin-left: 3px;
+    }
+    &.disabled .export-tpl-btn {
+        cursor: not-allowed;
+    }
     /deep/.bk-dropdown-content {
         z-index: 1;
     }
 }
-.batch-operation-list,
+.export-option-list,
 .import-option-list {
     & > li {
         padding: 0 10px;
@@ -1354,12 +1345,20 @@ a {
         }
     }
 }
+.batch-delete {
+    &.is-disabled {
+        border-color: #dcdee5 !important;
+        background-color: #fafafa !important;
+    }
+}
 .selected-tpl-num {
+    height: 32px;
     display: flex;
     align-items: center;
-    margin-left: 10px;
+    justify-content: center;
     font-size: 12px;
-    line-height: 1;
+    background: #f0f1f5;
+    border-bottom: 1px solid #dfe0e5;
     /deep/.bk-link-text {
         margin-left: 6px;
         font-size: 12px;
