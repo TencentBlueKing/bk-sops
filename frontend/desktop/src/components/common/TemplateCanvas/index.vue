@@ -766,8 +766,8 @@
                             'Flowchart',
                             {
                                 stub: [10, 10],
-                                alwaysRespectStub: true,
-                                gap: 0,
+                                alwaysRespectStubs: true,
+                                gap: -12,
                                 cornerRadius: 10,
                                 midpoint: lineInCanvasData.midpoint
                             }
