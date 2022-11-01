@@ -29,7 +29,7 @@
             </li>
         </ul>
         <ul class="operate-btns" v-if="nodeOperate || deleteLine">
-            <template v-if="nodeOperate">
+            <template v-if="nodeOperate && ['tasknode', 'subflow'].includes(node.type)">
                 <li
                     v-bk-tooltips="{
                         content: $t('节点配置'),
@@ -46,15 +46,16 @@
                     class="btn-item common-icon-bkflow-copy"
                     @click.stop="onCopyBtnClick">
                 </li>
-                <li
-                    v-bk-tooltips="{
-                        content: $t('删除节点'),
-                        delay: 500
-                    }"
-                    class="btn-item common-icon-bkflow-delete"
-                    @click.stop="$emit('onNodeRemove', node)">
-                </li>
             </template>
+            <li
+                v-if="nodeOperate"
+                v-bk-tooltips="{
+                    content: $t('删除节点'),
+                    delay: 500
+                }"
+                class="btn-item common-icon-bkflow-delete"
+                @click.stop="$emit('onNodeRemove', node)">
+            </li>
             <li
                 v-if="deleteLine"
                 v-bk-tooltips="{
