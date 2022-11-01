@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 
 import copy
 
+from pipeline.utils.uniqid import line_uniqid
+
 from pipeline_web.constants import PWE
 
 from pipeline_web.drawing_new.constants import (
@@ -23,8 +25,31 @@ from pipeline_web.drawing_new.constants import (
 )
 
 
-def position(pipeline, orders, activity_size, event_size, gateway_size, start, canvas_width, more_flows=None):
+def upsert_orders(orders, gateway_dummy_nums):
+    new_orders = copy.deepcopy(orders)
+    dummy_nodes = []
+    for order in orders:
+        if order in gateway_dummy_nums.keys():
+            dummy_nodes_list = [line_uniqid() for i in range(0, gateway_dummy_nums[order])]
+            dummy_nodes.extend(dummy_nodes_list)
+            index = new_orders.index(order)
+            new_orders = new_orders[: index + 1] + dummy_nodes_list + new_orders[index + 1 :]
+    return new_orders, dummy_nodes
+
+
+def position(
+    pipeline,
+    orders,
+    activity_size,
+    event_size,
+    gateway_size,
+    start,
+    canvas_width,
+    more_flows=None,
+    gateway_dummy_nums=None,
+):
     """
+    @param gateway_dummy_nums:
     @summary：将后台 pipeline tree 转换成带前端 location、line 画布信息的数据
     @param pipeline: 后台流程树
     @param orders: 层级和同一层级内节点顺序
@@ -79,6 +104,8 @@ def position(pipeline, orders, activity_size, event_size, gateway_size, start, c
         # 记录当前层节点微调的最大值
         shift_x = 0
         layer_nodes = orders[rk]
+        layer_nodes, dummy_nodes = upsert_orders(layer_nodes, gateway_dummy_nums)
+        # dummy_nodes = upsert_orders(orders, gateway_dummy_nums)
         # 当前 rank 首个节点位置
         order_x, order_y = rank_x, rank_y
         # 记录当前行的最大纵坐标，当需要换行时赋值给下一行起始点
@@ -95,14 +122,15 @@ def position(pipeline, orders, activity_size, event_size, gateway_size, start, c
                     locations[node_id] = copy.deepcopy(old_locations[node_id])
                     locations[node_id].update({"x": node_x, "y": node_y})
                 else:
-                    locations[node_id] = {
-                        "id": node_id,
-                        "type": PIPELINE_ELEMENT_TO_WEB.get(node[PWE.type], node[PWE.type]),
-                        "name": node.get(PWE.name, ""),
-                        "status": "",
-                        "x": node_x,
-                        "y": node_y,
-                    }
+                    if node_id not in dummy_nodes:
+                        locations[node_id] = {
+                            "id": node_id,
+                            "type": PIPELINE_ELEMENT_TO_WEB.get(node[PWE.type], node[PWE.type]),
+                            "name": node.get(PWE.name, ""),
+                            "status": "",
+                            "x": node_x,
+                            "y": node_y,
+                        }
                 if node_y >= new_line_y:
                     new_line_y = node_y + shift_y
             order_y += shift_y

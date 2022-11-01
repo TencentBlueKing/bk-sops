@@ -12,25 +12,20 @@ specific language governing permissions and limitations under the License.
 """
 
 from pipeline_web.drawing_new.constants import POSITION, CANVAS_WIDTH
-from pipeline_web.drawing_new import (
-    normalize,
-    acyclic,
-    position
-)
+from pipeline_web.drawing_new import normalize, acyclic, position
 from pipeline_web.drawing_new.rank import tight_tree
 from pipeline_web.drawing_new.order import order
-from pipeline_web.drawing_new.dummy import (
-    replace_long_path_with_dummy,
-    remove_dummy
-)
+from pipeline_web.drawing_new.dummy import compute_gateways_detail, replace_long_path_with_dummy, remove_dummy
 
 
-def draw_pipeline(pipeline,
-                  activity_size=POSITION['activity_size'],
-                  event_size=POSITION['event_size'],
-                  gateway_size=POSITION['gateway_size'],
-                  start=POSITION['start'],
-                  canvas_width=CANVAS_WIDTH):
+def draw_pipeline(
+    pipeline,
+    activity_size=POSITION["activity_size"],
+    event_size=POSITION["event_size"],
+    gateway_size=POSITION["gateway_size"],
+    start=POSITION["start"],
+    canvas_width=CANVAS_WIDTH,
+):
     """
     @summary：将后台 pipeline tree 转换成带前端 location、line 画布信息的数据
     @param pipeline: 后台流程树
@@ -51,7 +46,9 @@ def draw_pipeline(pipeline,
     ranks = tight_tree.tight_tree_ranker(pipeline)
     # 使用虚拟节点替换长度大于 MIN_LEN 的边
     real_flows_chain = replace_long_path_with_dummy(pipeline, ranks)
-    # 使用中位数法分配层级内节点顺序，使交叉最小
+    # 计算每个网关应该填充的相邻节点的数量
+    gateway_dummy_nums = compute_gateways_detail(pipeline)
+    # # 使用中位数法分配层级内节点顺序，使交叉最小
     orders = order.ordering(pipeline, ranks)
     # 还原自环边
     acyclic.insert_self_edges(pipeline, self_edges)
@@ -60,14 +57,17 @@ def draw_pipeline(pipeline,
     more_flows = {}
     more_flows.update(real_flows_chain)
     more_flows.update(reversed_flows)
-    locations, lines = position.position(pipeline=pipeline,
-                                         orders=orders,
-                                         activity_size=activity_size,
-                                         event_size=event_size,
-                                         gateway_size=gateway_size,
-                                         start=start,
-                                         canvas_width=canvas_width,
-                                         more_flows=more_flows)
+    locations, lines = position.position(
+        pipeline=pipeline,
+        orders=orders,
+        activity_size=activity_size,
+        event_size=event_size,
+        gateway_size=gateway_size,
+        start=start,
+        canvas_width=canvas_width,
+        more_flows=more_flows,
+        gateway_dummy_nums=gateway_dummy_nums,
+    )
     # 删除虚拟节点并恢复长边
     remove_dummy(pipeline, real_flows_chain, dummy_nodes_included=[locations], dummy_flows_included=[lines])
     # 恢复反向边
@@ -75,7 +75,4 @@ def draw_pipeline(pipeline,
     # 数据格式还原
     normalize.normalize_undo(pipeline)
     # 添加画布信息
-    pipeline.update({
-        'location': list(locations.values()),
-        'line': list(lines.values())
-    })
+    pipeline.update({"location": list(locations.values()), "line": list(lines.values())})

@@ -39,11 +39,11 @@ def replace_long_path_with_dummy(pipeline, ranks):
                 PWE.id: incoming_flow_id,
                 PWE.type: DUMMY_FLOW_TYPE,
                 PWE.source: flow[PWE.source],
-                PWE.target: dummy_node_id
+                PWE.target: dummy_node_id,
             }
             # change outgoing of flow.source node
-            delete_flow_id_from_node_io(pipeline['all_nodes'][flow[PWE.source]], flow_id, PWE.outgoing)
-            add_flow_id_to_node_io(pipeline['all_nodes'][flow[PWE.source]], incoming_flow_id, PWE.outgoing)
+            delete_flow_id_from_node_io(pipeline["all_nodes"][flow[PWE.source]], flow_id, PWE.outgoing)
+            add_flow_id_to_node_io(pipeline["all_nodes"][flow[PWE.source]], incoming_flow_id, PWE.outgoing)
             # delete long path flow from pipeline
             pipeline[PWE.flows].pop(flow_id)
             for node_rank in dummy_nodes_ranks:
@@ -54,11 +54,11 @@ def replace_long_path_with_dummy(pipeline, ranks):
                     PWE.type: DUMMY_NODE_TYPE,
                     PWE.name: DUMMY_NODE_TYPE,
                     PWE.incoming: incoming_flow_id,
-                    PWE.outgoing: outgoing_flow_id
+                    PWE.outgoing: outgoing_flow_id,
                 }
 
                 # add dummy to pipeline
-                pipeline['all_nodes'].update({dummy_node_id: dummy_node})
+                pipeline["all_nodes"].update({dummy_node_id: dummy_node})
                 pipeline[PWE.flows].update({incoming_flow_id: dummy_flow})
 
                 # add dummy to ranks
@@ -71,16 +71,48 @@ def replace_long_path_with_dummy(pipeline, ranks):
                     PWE.id: incoming_flow_id,
                     PWE.type: DUMMY_FLOW_TYPE,
                     PWE.source: dummy_node[PWE.id],
-                    PWE.target: dummy_node_id
+                    PWE.target: dummy_node_id,
                 }
 
             # add last dummy flow to pipeline
             dummy_flow[PWE.target] = flow[PWE.target]
             pipeline[PWE.flows].update({incoming_flow_id: dummy_flow})
             # change incoming of flow.target node
-            delete_flow_id_from_node_io(pipeline['all_nodes'][flow[PWE.target]], flow_id, PWE.incoming)
-            add_flow_id_to_node_io(pipeline['all_nodes'][flow[PWE.target]], incoming_flow_id, PWE.incoming)
+            delete_flow_id_from_node_io(pipeline["all_nodes"][flow[PWE.target]], flow_id, PWE.incoming)
+            add_flow_id_to_node_io(pipeline["all_nodes"][flow[PWE.target]], incoming_flow_id, PWE.incoming)
     return real_flows_chain
+
+
+def compute_gateways_detail(pipeline):
+    # 1. 搜索所有被嵌套的网关，记录他的上层网关
+    gateways = pipeline["gateways"]
+    gateway_dummy_nums = {}
+    for gateway_id, gateway in gateways.items():
+        if gateway["type"] in ["ExclusiveGateway", "ParallelGateway"]:
+            gateway_dummy_nums[gateway_id] = len(gateway["outgoing"]) - 1
+
+    # todo 使用深度搜索
+    # for gateway_node, attr in gateways.items():
+    #     if gateway_node not in gateways_graph:
+    #         gateways_graph[gateway_node] = GateWayGraph(node_id=gateway_node, target=None, num=0)
+    #     if attr["type"] == "ExclusiveGateway":
+    #         for out in attr["conditions"]:
+    #             line = [line for line in pipeline["line"] if line["id"] == out]
+    #             target_id = line[0]["target"]["id"]
+    #             if target_id in gateways.keys():
+    #                 target = gateways_graph[gateway_node]
+    #                 target.target = GateWayGraph(node_id=target_id, target=None,
+    #                                              num=len(gateways[target_id]["outgoing"]) - 1)
+    #                 gateways_graph[target_id] = target.target
+    #
+    # gateway_dummy_nums = {}
+    # # 先不考虑其他网关的情况
+    # for gateway_node, target in gateways_graph.items():
+    #     nodes_number = get_gateway_dummy_nums(target.target, 0)
+    #     if nodes_number != 0:
+    #         # 一个网关下需要生成的虚拟节点的总数
+    #         gateway_dummy_nums[target.target.node_id] = get_gateway_dummy_nums(target.target, 0)
+    return gateway_dummy_nums
 
 
 def remove_dummy(pipeline, real_flows_chain, dummy_nodes_included=None, dummy_flows_included=None):
@@ -95,9 +127,9 @@ def remove_dummy(pipeline, real_flows_chain, dummy_nodes_included=None, dummy_fl
     # 删除虚拟节点
     if dummy_nodes_included is None:
         dummy_nodes_included = []
-    for node_id, node in list(pipeline['all_nodes'].items()):
+    for node_id, node in list(pipeline["all_nodes"].items()):
         if node.get(PWE.type) == DUMMY_NODE_TYPE:
-            pipeline['all_nodes'].pop(node_id)
+            pipeline["all_nodes"].pop(node_id)
             for dummy_included in dummy_nodes_included:
                 if isinstance(dummy_included, dict) and node_id in dummy_included:
                     dummy_included.pop(node_id)
@@ -113,13 +145,13 @@ def remove_dummy(pipeline, real_flows_chain, dummy_nodes_included=None, dummy_fl
                     dummy_included.pop(flow_id)
 
             # 虚拟边起始点如果是真实节点，需要把节点引用的虚拟边删除
-            if flow[PWE.source] in pipeline['all_nodes']:
-                delete_flow_id_from_node_io(pipeline['all_nodes'][flow[PWE.source]], flow_id, PWE.outgoing)
-            if flow[PWE.target] in pipeline['all_nodes']:
-                delete_flow_id_from_node_io(pipeline['all_nodes'][flow[PWE.target]], flow_id, PWE.incoming)
+            if flow[PWE.source] in pipeline["all_nodes"]:
+                delete_flow_id_from_node_io(pipeline["all_nodes"][flow[PWE.source]], flow_id, PWE.outgoing)
+            if flow[PWE.target] in pipeline["all_nodes"]:
+                delete_flow_id_from_node_io(pipeline["all_nodes"][flow[PWE.target]], flow_id, PWE.incoming)
 
     # 添加真实长边到节点引用中
     pipeline[PWE.flows].update(real_flows_chain)
     for flow_id, flow in real_flows_chain.items():
-        add_flow_id_to_node_io(pipeline['all_nodes'][flow[PWE.source]], flow_id, PWE.outgoing)
-        add_flow_id_to_node_io(pipeline['all_nodes'][flow[PWE.target]], flow_id, PWE.incoming)
+        add_flow_id_to_node_io(pipeline["all_nodes"][flow[PWE.source]], flow_id, PWE.outgoing)
+        add_flow_id_to_node_io(pipeline["all_nodes"][flow[PWE.target]], flow_id, PWE.incoming)
