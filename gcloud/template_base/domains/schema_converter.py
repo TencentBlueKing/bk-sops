@@ -41,7 +41,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
         "SubProcess": ["id", "type", "name", "template_id"],
         "EmptyEndEvent": ["id", "type"],
         "EmptyStartEvent": ["id", "type"],
-        "ExclusiveGateway": ["id", "type", "conditions", "default_condition"],
+        "ExclusiveGateway": ["id", "type", "conditions"],
         "ConditionalParallelGateway": ["id", "type", "conditions"],
         "ConvergeGateway": ["id", "type"],
         "ParallelGateway": ["id", "type", "converge_gateway_id"],
@@ -471,7 +471,6 @@ class YamlSchemaConverter(BaseSchemaConverter):
                     if node["type"] == "SubProcess":
                         node["template_id"] = template_key_mapping[node["template_id"]]
                     if node["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
-                        # 兼容导入功能逻辑default_condition属性不能缺少，当该属性不存在的时候，填充默认值
                         if node.get("default_condition"):
                             node["default_condition"] = dict(
                                 [
@@ -479,8 +478,6 @@ class YamlSchemaConverter(BaseSchemaConverter):
                                     for node_id, data in node["default_condition"].items()
                                 ]
                             )
-                        else:
-                            node["default_condition"] = ""
                         node["conditions"] = dict(
                             [(node_key_mapping[node_id], data) for node_id, data in node["conditions"].items()]
                         )
@@ -550,13 +547,11 @@ class YamlSchemaConverter(BaseSchemaConverter):
     def _convert_node(self, node: dict, param_constants: dict):
         """将节点数据从原始字段转换为YAML字段"""
         converted_node = {}
+        if node.get("default_condition"):
+            converted_node["default_condition"] = node.get("default_condition")
         for field in self.NODE_NECESSARY_FIELDS.get(node["type"], []):
             converted_field = field if field not in self.NODE_FIELD_MAPPING else self.NODE_FIELD_MAPPING[field]
-            # default_condition 属性是非必传，所以要兼容该属性未定义的情况
-            try:
-                converted_node[converted_field] = node[field]
-            except Exception:
-                pass
+            converted_node[converted_field] = node[field]
         if node["type"] == "ServiceActivity":
             # 处理component和outputs
             component_data = converted_node["component"]["data"]
