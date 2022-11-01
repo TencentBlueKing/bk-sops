@@ -1329,7 +1329,7 @@ a {
     & > li {
         padding: 0 10px;
         height: 32px;
-        line-height: 32px;
+        line-height: 30px;
         font-size: 12px;
         text-align: left;
         white-space: nowrap;

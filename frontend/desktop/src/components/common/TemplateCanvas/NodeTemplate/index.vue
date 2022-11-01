@@ -322,19 +322,26 @@
             }
             .state-icon {
                 position: absolute;
-                right: 7px;
+                right: -5px;
                 bottom: -20px;
                 display: none;
+                width: max-content;
+                color: #63656e;
+                font-size: 12px;
                 z-index: 5;
-                .el-tooltip {
-                   font-size: 14px;
-                   color: #52699D;
-                   vertical-align: middle;
-                    &:hover {
-                        color: #4b85f7;
+                > span {
+                    display: flex;
+                    align-items: center;
+                    i {
+                        color: #979ba5;
+                        margin-right: 5px;
                     }
-                    &.common-icon-play {
-                        font-size: 18px;
+                    &:hover {
+                        cursor: pointer;
+                        color: #3a84ff;
+                        i {
+                            color: #3a84ff;
+                        }
                     }
                 }
             }
@@ -493,6 +500,36 @@
                 right: 5px;
                 bottom: -20px;
                 display: none;
+                color: #63656e;
+                font-size: 12px;
+                padding-top: 5px;
+                > span {
+                    &:not(:last-child) {
+                        margin-right: 23px;
+                        position: relative;
+                        &::after {
+                            content: '';
+                            position: absolute;
+                            top: 0;
+                            right: -11px;
+                            display: inline-block;
+                            height: 16px;
+                            width: 1px;
+                            background: #979ba5;
+                        }
+                    }
+                    i {
+                        color: #979ba5;
+                        margin-right: 5px;
+                    }
+                    &:hover {
+                        cursor: pointer;
+                        color: #3a84ff;
+                        i {
+                            color: #3a84ff;
+                        }
+                    }
+                }
                 .el-tooltip {
                    font-size: 14px;
                    margin-left: 5px;
