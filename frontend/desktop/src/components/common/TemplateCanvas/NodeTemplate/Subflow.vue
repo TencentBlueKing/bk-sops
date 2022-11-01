@@ -45,45 +45,33 @@
         <!-- tooltip提示 -->
         <div class="state-icon">
             <template v-if="node.status === 'FAILED' && node.type === 'tasknode'">
-                <el-tooltip v-if="isShowRetryBtn" placement="bottom" :content="$t('重试')">
-                    <span
-                        class="common-icon-retry"
-                        @click.stop="$emit('onRetryClick', node.id)">
-                    </span>
-                </el-tooltip>
-                <el-tooltip v-if="isShowSkipBtn" placement="bottom" :content="$t('跳过')">
-                    <span
-                        class="common-icon-skip"
-                        @click.stop="$emit('onSkipClick', node.id)">
-                    </span>
-                </el-tooltip>
-            </template>
-            <el-tooltip v-if="!isSubProcessNode" placement="bottom" :content="$t('节点参数')">
-                <span
-                    class="common-icon-bkflow-setting"
-                    @click.stop="$emit('onSubflowDetailClick', node.id)">
+                <span v-if="isShowRetryBtn" @click.stop="$emit('onRetryClick', node.id)">
+                    <i class="common-icon-retry"></i>
+                    {{ $t('重试') }}
                 </span>
-            </el-tooltip>
+                <span v-if="isShowSkipBtn" @click.stop="$emit('onSkipClick', node.id)">
+                    <i class="common-icon-skip"></i>
+                    {{ $t('跳过') }}
+                </span>
+            </template>
+            <span v-if="!isSubProcessNode" @click.stop="$emit('onSubflowDetailClick', node.id)">
+                <i class="common-icon-bkflow-setting"></i>
+                {{ $t('节点参数') }}
+            </span>
             <template v-if="!isSubProcessNode && node.status === 'RUNNING'">
-                <el-tooltip placement="bottom" :content="$t('暂停')">
-                    <span
-                        class="common-icon-resume"
-                        @click.stop="onSubflowPauseResumeClick('pause')">
-                    </span>
-                </el-tooltip>
-                <el-tooltip v-if="hasAdminPerm" placement="bottom" :content="$t('强制失败')">
-                    <span
-                        class="common-icon-mandatory-failure"
-                        @click.stop="$emit('onForceFail', node.id)">
-                    </span>
-                </el-tooltip>
-            </template>
-            <el-tooltip v-if="!isSubProcessNode && node.status === 'SUSPENDED'" placement="bottom" :content="$t('继续')">
-                <span
-                    class="common-icon-play"
-                    @click.stop="onSubflowPauseResumeClick('resume')">
+                <span @click.stop="onSubflowPauseResumeClick('pause')">
+                    <i class="common-icon-mandatory-failure"></i>
+                    {{ $t('暂停') }}
                 </span>
-            </el-tooltip>
+                <span v-if="hasAdminPerm" @click.stop="$emit('onForceFail', node.id)">
+                    <i class="common-icon-resume"></i>
+                    {{ $t('强制失败') }}
+                </span>
+            </template>
+            <span v-if="!isSubProcessNode && node.status === 'SUSPENDED'" @click.stop="onSubflowPauseResumeClick('resume')">
+                <i class="common-icon-play"></i>
+                {{ $t('继续') }}
+            </span>
         </div>
     </div>
 </template>
