@@ -13,6 +13,7 @@
     <div
         class="canvas-node-item"
         @mousedown="onMousedown"
+        @mouseenter="$emit('onMouseEnter')"
         @click="onNodeClick"
         @dblclick="onNodeDblclick">
         <div class="canvas-node-content">
@@ -30,11 +31,6 @@
                 @onForceFail="$emit('onForceFail', $event)"
                 @onSubflowPauseResumeClick="onSubflowPauseResumeClick"
                 @onSubflowDetailClick="onSubflowDetailClick" />
-            <i
-                v-if="editable"
-                class="common-icon-dark-circle-close close-icon"
-                @click.stop="$emit('onNodeRemove', node)">
-            </i>
         </div>
         <!-- 节点输入输出变量(node.name用来判断节点是否选择过插件) -->
         <div class="perspective-tips-context" v-if="isPerspective && node.name && ['tasknode', 'subflow'].includes(node.type)">
@@ -169,10 +165,12 @@
     @import '@/scss/mixins/multiLineEllipsis.scss';
     @import '@/scss/mixins/scrollbar.scss';
 
-    $blueDark: #738abe;
+    $grayDark: #979ba5;
+    $blueDark: #699df4;
     $redDark: #ea3636;
     $yellowDark: #ff9c01;
     $greenDark: #2dcb56;
+    $brightRedDark: #fd9c9c;
     $whiteColor: #ffffff;
     $defaultShadow: rgba(0, 0, 0, 0.15);
     $activeShadow: rgba(0, 0, 0, 0.3);
@@ -276,7 +274,7 @@
                 @include circleStatusStyle($greenDark, $greenShadow)
             }
             &.running {
-                @include circleStatusStyle($yellowDark, $yellowShadow)
+                @include circleStatusStyle($blueDark, $yellowShadow)
             }
             &.failed {
                 @include circleStatusStyle($redDark, $redShadow)
@@ -337,7 +335,7 @@
             height: 32px;
             line-height: 32px;
             font-size: 24px;
-            color: $blueDark;
+            color: $grayDark;
             text-align: center;
         }
         .task-node {
@@ -351,16 +349,16 @@
             cursor: pointer;
             &:hover {
                 .node-name {
-                    border-color: $blueDark;
+                    border-color: $grayDark;
                 }
             }
             &.actived {
                 box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
             }
             &.default {
-                @include taskNodeStyle ($blueDark);
+                @include taskNodeStyle ($grayDark);
                 &.actived {
-                     @include nodeClick ($blueDark);
+                     @include nodeClick ($grayDark);
                 }
             }
             &.failed {
@@ -370,21 +368,30 @@
                 }
             }
             &.suspended {
-                @include taskNodeStyle ($yellowDark);
+                @include taskNodeStyle ($blueDark);
                 &.actived {
-                    @include nodeClick ($yellowDark);
+                    @include nodeClick ($blueDark);
                 }
             }
             &.running {
-                @include taskNodeStyle ($yellowDark);
+                @include taskNodeStyle ($blueDark);
                 &.actived {
-                    @include nodeClick ($yellowDark);
+                    @include nodeClick ($blueDark);
                 }
             }
             &.finished {
                 @include taskNodeStyle ($greenDark);
                 &.actived {
-                     @include nodeClick ($greenDark);
+                    @include nodeClick ($greenDark);
+                }
+            }
+            &.fail-skip {
+                @include taskNodeStyle ($brightRedDark);
+                .node-name .name-text {
+                    color: #c4c6cc;
+                }
+                &.actived {
+                    @include nodeClick ($brightRedDark);
                 }
             }
 
@@ -393,7 +400,7 @@
                 align-items: center;
                 padding: 0 8px;
                 height: 20px;
-                background: $blueDark;
+                background: $grayDark;
                 text-align: left;
                 border-top-left-radius: 4px;
                 border-top-right-radius: 4px;
@@ -566,7 +573,7 @@
             i {
                 font-size: 14px;
                 &.phase-warn {
-                    color: $yellowDark;
+                    color: $blueDark;
                 }
                 &.phase-error {
                     color: $redDark;

@@ -11,51 +11,100 @@
 */
 <template>
     <div class="parameter-details">
-        <NodeTree
-            class="nodeTree"
-            :data="nodeData"
-            :selected-flow-path="selectedFlowPath"
-            :default-active-id="defaultActiveId"
-            @onSelectNode="onSelectNode">
-        </NodeTree>
-        <div
-            v-if="location"
-            :class="['execute-info', { 'loading': loading }]"
-            v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
-            <div class="execute-head">
-                <span class="node-name">{{executeInfo.name}}</span>
-                <div class="node-state">
-                    <span :class="displayStatus"></span>
-                    <span class="status-text-messages">{{nodeState}}</span>
+        <div class="details-wrapper">
+            <NodeTree
+                class="nodeTree"
+                :data="nodeData"
+                :selected-flow-path="selectedFlowPath"
+                :default-active-id="defaultActiveId"
+                @onSelectNode="onSelectNode">
+            </NodeTree>
+            <div
+                v-if="location"
+                :class="['execute-info', { 'loading': loading }]"
+                v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
+                <div class="execute-head">
+                    <span class="node-name">{{executeInfo.name}}</span>
+                    <div class="node-state">
+                        <span :class="displayStatus"></span>
+                        <span class="status-text-messages">{{nodeState}}</span>
+                    </div>
+                </div>
+                <bk-tab
+                    :active.sync="curActiveTab"
+                    type="unborder-card"
+                    ext-cls="execute-info-tab"
+                    @tab-change="onTabChange">
+                    <bk-tab-panel name="record" :label="$t('执行记录')"></bk-tab-panel>
+                    <bk-tab-panel name="config" :label="$t('节点配置')"></bk-tab-panel>
+                    <bk-tab-panel name="history" :label="$t('操作历史')"></bk-tab-panel>
+                    <bk-tab-panel name="log" :label="$t('调用日志')"></bk-tab-panel>
+                </bk-tab>
+                <div class="scroll-area" :key="randomKey">
+                    <section class="execute-time-section" v-if="isExecuteTimeShow">
+                        <div class="cycle-wrap" v-if="loop > 1">
+                            <span>{{$t('第')}}</span>
+                            <bk-select
+                                :clearable="false"
+                                :value="theExecuteTime"
+                                @selected="onSelectExecuteTime">
+                                <bk-option
+                                    v-for="index in loop"
+                                    :key="index"
+                                    :id="index"
+                                    :name="index">
+                                </bk-option>
+                            </bk-select>
+                            <span>{{$t('次循环')}}</span>
+                        </div>
+                        <span class="divid-line" v-if="loop > 1 && historyInfo.length > 1"></span>
+                        <div class="time-wrap" v-if="historyInfo.length > 1">
+                            <span>{{$t('第')}}</span>
+                            <bk-select
+                                :clearable="false"
+                                :value="theExecuteRecord"
+                                @selected="onSelectExecuteRecord">
+                                <bk-option
+                                    v-for="index in historyInfo.length"
+                                    :key="index"
+                                    :id="index"
+                                    :name="index">
+                                </bk-option>
+                            </bk-select>
+                            <span>{{$t('次执行')}}</span>
+                        </div>
+                    </section>
+                    <ExecuteRecord
+                        v-if="curActiveTab === 'record'"
+                        :is-ready-status="isReadyStatus"
+                        :node-activity="nodeActivity"
+                        :execute-info="executeRecord"
+                        :node-detail-config="nodeDetailConfig"
+                        :is-sub-process-node="isSubProcessNode">
+                    </ExecuteRecord>
+                    <ExecuteInfoForm
+                        v-else-if="curActiveTab === 'config'"
+                        :node-activity="nodeActivity"
+                        :execute-info="executeInfo"
+                        :node-detail-config="nodeDetailConfig"
+                        :is-sub-process-node="isSubProcessNode">
+                    </ExecuteInfoForm>
+                    <section class="info-section" data-test-id="taskExcute_form_operatFlow" v-else-if="curActiveTab === 'history'">
+                        <OperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></OperationFlow>
+                    </section>
+                    <NodeLog
+                        v-else-if="curActiveTab === 'log'"
+                        ref="nodeLog"
+                        :node-detail-config="nodeDetailConfig"
+                        :execute-info="executeRecord"
+                        :third-party-node-code="thirdPartyNodeCode"
+                        :engine-ver="engineVer">
+                    </NodeLog>
                 </div>
             </div>
-            <div class="scroll-area" :key="randomKey">
-                <ExecuteInfoForm
-                    :is-ready-status="isReadyStatus"
-                    :node-activity="nodeActivity"
-                    :execute-info="executeInfo"
-                    :node-detail-config="nodeDetailConfig"
-                    :is-sub-process-node="isSubProcessNode">
-                </ExecuteInfoForm>
-                <ExecuteLog
-                    v-if="isReadyStatus"
-                    :is-ready-status="isReadyStatus"
-                    :loop="loop"
-                    :the-execute-time="theExecuteTime"
-                    :history-info="historyInfo"
-                    :is-third-party-node="isThirdPartyNode"
-                    :third-party-node-code="thirdPartyNodeCode"
-                    :node-detail-config="nodeDetailConfig"
-                    :is-sub-process-node="isSubProcessNode"
-                    :engine-ver="engineVer"
-                    @onSelectExecuteTime="onSelectExecuteTime">
-                </ExecuteLog>
-                <section class="info-section" data-test-id="taskExcute_form_operatFlow" v-if="isReadyStatus && executeInfo.id">
-                    <h4 class="common-section-title">{{ $t('节点操作记录') }}</h4>
-                    <OperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></OperationFlow>
-                </section>
-            </div>
-            <div v-if="executeInfo.state === 'RUNNING' && !isSubProcessNode" class="action-wrapper">
+        </div>
+        <div class="action-wrapper" v-if="(executeInfo.state === 'RUNNING' && !isSubProcessNode) || isShowRetryBtn || isShowSkipBtn">
+            <template v-if="executeInfo.state === 'RUNNING' && !isSubProcessNode">
                 <bk-button
                     v-if="nodeDetailConfig.component_code === 'pause_node'"
                     theme="primary"
@@ -91,8 +140,8 @@
                     @click="mandatoryFailure">
                     {{ $t('强制失败') }}
                 </bk-button>
-            </div>
-            <div class="action-wrapper" v-if="isShowRetryBtn || isShowSkipBtn">
+            </template>
+            <template v-if="isShowRetryBtn || isShowSkipBtn">
                 <bk-button
                     theme="primary"
                     v-if="isShowRetryBtn"
@@ -107,7 +156,7 @@
                     @click="onSkipClick">
                     {{ $t('跳过') }}
                 </bk-button>
-            </div>
+            </template>
         </div>
     </div>
 </template>
@@ -119,16 +168,18 @@
     import { TASK_STATE_DICT, NODE_DICT } from '@/constants/index.js'
     import NodeTree from './NodeTree'
     import OperationFlow from './OperationFlow.vue'
+    import ExecuteRecord from './ExecuteInfo/ExecuteRecord.vue'
+    import NodeLog from './ExecuteInfo/NodeLog.vue'
     import ExecuteInfoForm from './ExecuteInfo/ExecuteInfoForm.vue'
-    import ExecuteLog from './ExecuteInfo/ExecuteLog.vue'
 
     export default {
         name: 'ExecuteInfo',
         components: {
             NodeTree,
             OperationFlow,
-            ExecuteInfoForm,
-            ExecuteLog
+            ExecuteRecord,
+            NodeLog,
+            ExecuteInfoForm
         },
         props: {
             adminView: {
@@ -192,7 +243,10 @@
                 theExecuteTime: undefined,
                 isReadyStatus: true,
                 isShowSkipBtn: false,
-                isShowRetryBtn: false
+                isShowRetryBtn: false,
+                curActiveTab: 'record',
+                theExecuteRecord: 0,
+                executeRecord: {}
             }
         },
         computed: {
@@ -227,7 +281,8 @@
                 if (this.state === 'CREATED') return i18n.t('未执行')
                 // 如果整体任务执行完毕但有的节点没执行的话不展示描述
                 if (['FAILED', 'FINISHED'].includes(this.state) && this.executeInfo.state === 'READY') return i18n.t('未执行')
-                return this.executeInfo.state && TASK_STATE_DICT[this.executeInfo.state]
+                const { state, skip } = this.executeInfo
+                return skip ? i18n.t('失败后跳过') : state && TASK_STATE_DICT[state]
             },
             location () {
                 const { node_id, subprocess_stack } = this.nodeDetailConfig
@@ -259,6 +314,9 @@
             },
             componentValue () {
                 return this.isSubProcessNode ? this.nodeActivity.component.data.subprocess.value : {}
+            },
+            isExecuteTimeShow () {
+                return ['record', 'log'].includes(this.curActiveTab) && (this.loop > 1 || this.historyInfo.length > 1)
             }
         },
         watch: {
@@ -267,8 +325,8 @@
                     this.theExecuteTime = undefined
                     this.executeInfo = {}
                     this.historyInfo = []
-                    this.randomKey = new Date().getTime()
                     this.loadNodeInfo()
+                    this.randomKey = new Date().getTime()
                 }
             }
         },
@@ -309,8 +367,12 @@
                     this.executeInfo = respData
                     this.historyInfo = respData.skip ? [] : [respData]
                     if (respData.histories) {
-                        this.historyInfo.push(...respData.histories.reverse())
+                        this.historyInfo.push(...respData.histories)
                     }
+                    // 记录当前循环下，总共执行的次数
+                    this.theExecuteRecord = this.historyInfo.length
+                    // 获取记录详情
+                    await this.onSelectExecuteRecord(this.theExecuteRecord)
                     this.executeInfo.name = this.location.name || NODE_DICT[this.location.type]
                     const { component_code: componentCode, version } = this.nodeDetailConfig
                     this.executeInfo.plugin_version = this.isThirdPartyNode ? respData.inputs.plugin_version : version
@@ -643,11 +705,33 @@
             },
             onSelectExecuteTime (time) {
                 this.theExecuteTime = time
-                this.randomKey = new Date().getTime()
                 this.loadNodeInfo()
+                this.randomKey = new Date().getTime()
+            },
+            async onSelectExecuteRecord (time) {
+                this.theExecuteRecord = time
+                const record = this.historyInfo[time - 1]
+                if (record) {
+                    if (!('isExpand' in record)) {
+                        await this.setFillRecordField(record)
+                    }
+                    this.executeRecord = record
+                } else {
+                    this.executeRecord = {}
+                }
+                this.randomKey = new Date().getTime()
+            },
+            onTabChange (name) {
+                this.curActiveTab = name
+                if (['record', 'log'].includes(name)) {
+                    this.theExecuteTime = this.loop
+                    this.theExecuteRecord = this.historyInfo.length
+                    this.onSelectExecuteRecord(this.theExecuteRecord)
+                }
             },
             onSelectNode (nodeHeirarchy, selectNodeId, nodeType) {
                 this.editScrollDom = null
+                this.curActiveTab = 'record'
                 this.$emit('onClickTreeNode', nodeHeirarchy, selectNodeId, nodeType)
             },
             onRetryClick () {
@@ -688,10 +772,28 @@
 @import '@/scss/mixins/scrollbar.scss';
 @import '@/scss/config.scss';
 .parameter-details{
-    display: flex;
     height: 100%;
+    display: flex;
+    flex-direction: column;
     .nodeTree{
         border-right: 1px solid #DCDEE5;
+    }
+    .details-wrapper {
+        display: flex;
+        flex: 1;
+        height: calc(100% - 48px);
+        border-bottom: 1px solid $commonBorderColor;
+    }
+    .action-wrapper {
+        padding-left: 20px;
+        height: 48px;
+        line-height: 48px;
+        background: #fafbfd;
+        box-shadow: 0 -1px 0 0 #dcdee5;
+        .bk-button {
+            min-width: 88px;
+            margin-right: 5px;
+        }
     }
 }
 .execute-info {
@@ -721,15 +823,64 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        line-height: 20px;
         font-size: 14px;
-        padding: 16px;
-        border-bottom: 1px solid #dcdee5;
+        padding: 15px 16px 16px;
+        .node-name {
+            font-weight: 600;
+            word-break: break-all;
+        }
+        .node-state {
+            display: flex;
+            align-items: center;
+            :first-child {
+                margin: 0 5px;
+            }
+        }
+    }
+    /deep/.execute-info-tab .bk-tab-section{
+        padding: 0;
     }
     .scroll-area {
         flex: 1;
+        display: flex;
+        flex-direction: column;
         overflow-y: auto;
-        padding: 0 16px;
+        padding: 16px 24px 16px 16px;
         @include scrollbar;
+    }
+    .execute-time-section {
+        display: flex;
+        align-items: center;
+        height: 40px;
+        font-size: 12px;
+        padding: 8px 16px;
+        background: #f5f7fa;
+        margin-bottom: 24px;
+        .cycle-wrap,
+        .time-wrap {
+            display: flex;
+            align-items: center;
+            /deep/.bk-select {
+                width: 64px;
+                height: 24px;
+                line-height: 22px !important;
+                margin: 0 8px;
+                .bk-select-angle {
+                    top: 0;
+                }
+                .bk-select-name {
+                    height: 24px;
+                }
+            }
+        }
+        .divid-line {
+            display: inline-block;
+            width: 1px;
+            height: 16px;
+            margin: 0 16px;
+            background: #dcdee5;
+        }
     }
     .panel-title {
         margin: 0;
@@ -737,39 +888,17 @@
         font-size: 14px;
         font-weight: 600;
     }
-    .node-name {
-        font-weight: 600;
-        word-break: break-all;
-    }
-    .node-state {
-        display: inline-block;
-        white-space: nowrap;
-        :first-child {
-            position: relative;
-            top: -1px;
-            margin: 0 6px;
-            vertical-align: middle;
-        }
-    }
-    .info-section {
-        font-size: 12px;
-        margin: 24px 0 32px;
-        word-wrap: break-word;
-        word-break: break-all;
-        /deep/ a {
-            color: #4b9aff;
-        }
-    }
     /deep/.common-section-title {
-        
         color: #313238;
-        font-size: 14px;
-        line-height: 20px;
+        font-weight: 600;
+        line-height: 18px;
+        font-size: 12px;
+        margin-bottom: 16px;
         &::before {
+            height: 18px;
             top: 0;
         }
     }
-    
     .common-icon-dark-circle-ellipsis {
         font-size: 14px;
         color: #3a84ff;
@@ -788,8 +917,8 @@
     }
     .icon-circle-shape {
         display: inline-block;
-        height: 8px;
-        width: 8px;
+        height: 14px;
+        width: 14px;
         background: #f0f1f5;
         border: 1px solid #c4c6cc;
         border-radius: 50%;
@@ -799,15 +928,6 @@
     }
     /deep/ .primary-value.code-editor {
         height: 300px;
-    }
-    .action-wrapper {
-        padding-left: 20px;
-        height: 60px;
-        line-height: 60px;
-        border-top: 1px solid $commonBorderColor;
-        .bk-button {
-            margin-right: 5px;
-        }
     }
 }
 </style>

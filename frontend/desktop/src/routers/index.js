@@ -192,6 +192,7 @@ const routers = new VueRouter({
                             beforeEnter: (to, form, next) => {
                                 if (form.name === 'taskExecute' && 'root_id' in form.query) {
                                     to.params['root_id'] = form.query.root_id
+                                    to.params['task_id'] = form.query.instance_id
                                 }
                                 next()
                             }

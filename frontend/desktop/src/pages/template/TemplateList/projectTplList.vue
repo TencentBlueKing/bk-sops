@@ -39,30 +39,25 @@
                                 <li data-test-id="process_list_importYamlFile" @click="isImportYamlDialogShow = true">{{ $t('导入') }}YAML{{ $t('文件') }}</li>
                             </ul>
                         </bk-dropdown-menu>
-                        <bk-dropdown-menu>
+                        <bk-dropdown-menu
+                            style="margin-right: 14px;"
+                            :trigger="selectedTpls.length ? 'mouseover' : 'click'"
+                            :disabled="!selectedTpls.length">
                             <div class="export-tpl-btn" slot="dropdown-trigger">
-                                <span>{{ $t('批量操作') }}</span>
+                                <span>{{ $t('导出') }}</span>
                                 <i :class="['bk-icon icon-angle-down']"></i>
                             </div>
-                            <ul class="batch-operation-list" slot="dropdown-content">
-                                <template v-for="operate in operateList">
-                                    <li
-                                        :key="operate.type"
-                                        v-bk-tooltips="{
-                                            content: operate.content,
-                                            disabled: !selectedTpls.length || (operate.isOther ? hasBatchEditAuth : hasBatchViewAuth) }"
-                                        :class="{ 'disabled': operate.isOther ? !hasBatchEditAuth : !hasBatchViewAuth }"
-                                        :data-test-id="`process_list_${operate.customAttr}`"
-                                        @click="onOperateClick(operate.type)">
-                                        {{ operate.value }}
-                                    </li>
-                                </template>
+                            <ul class="export-option-list" slot="dropdown-content">
+                                <li data-test-id="process_list_exportDatFile" @click="onExportTemplate('exportDatFile')">{{ $t('导出') }}DAT{{ $t('文件') }}</li>
+                                <li data-test-id="process_list_exportYamlFile" @click="onExportTemplate('exportYamlFile')">{{ $t('导出') }}YAML{{ $t('文件') }}</li>
                             </ul>
                         </bk-dropdown-menu>
-                        <div v-if="selectedTpls.length > 0" class="selected-tpl-num">
-                            {{ $t('已选择') }}{{ selectedTpls.length }}{{ $t('项') }}
-                            <bk-link theme="primary" @click="selectedTpls = []">{{ $t('清空') }}</bk-link>
-                        </div>
+                        <bk-button
+                            data-test-id="process_form_deleteProcess"
+                            :disabled="!selectedTpls.length"
+                            @click="onBatchDelete">
+                            {{$t('删除')}}
+                        </bk-button>
                     </div>
                     <bk-button
                         class="my-create-btn"
@@ -301,6 +296,10 @@
                                 @setting-change="handleSettingChange">
                             </table-setting-content>
                         </bk-table-column>
+                        <div class="selected-tpl-num" slot="prepend" v-if="selectedTpls.length > 0">
+                            {{ $t('当前已选择 x 条数据', { num: selectedTpls.length }) }}{{ $t('，') }}
+                            <bk-link theme="primary" @click="selectedTpls = []">{{ $t('清除选择') }}</bk-link>
+                        </div>
                         <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
                     </bk-table>
                 </div>
@@ -1157,54 +1156,6 @@
                     this.selectedTpls.splice(index, 1)
                 }
             },
-            async onBatchCollect () {
-                if (this.selectedTpls.length === 0 || !this.hasBatchViewAuth) {
-                    return
-                }
-                this.batchCollectPending = true
-                try {
-                    const data = this.selectedTpls.filter(tpl => !tpl.is_collected).map(tpl => {
-                        return {
-                            extra_info: {
-                                project_id: this.project_id,
-                                project_name: tpl.project.name,
-                                template_id: tpl.id,
-                                name: tpl.name,
-                                id: tpl.id
-                            },
-                            instance_id: tpl.id,
-                            username: this.username,
-                            category: 'flow'
-                        }
-                    })
-                    if (data.length === 0) { // 所选流程都已是收藏状态
-                        this.$bkMessage({ message: i18n.t('添加收藏成功！'), theme: 'success' })
-                        return
-                    }
-                    const res = await this.addToCollectList(data)
-                    res.data.forEach(item => {
-                        // 修改对应的流程（用于单个取消收藏）
-                        const tempInfo = this.templateList.find(val => val.id === item.instance_id)
-                        if (tempInfo) {
-                            tempInfo.is_collected = 1
-                            tempInfo.collection_id = item.id
-                        }
-                        // 修改对应勾选中的流程（用于批量取消收藏）
-                        const selectInfo = this.selectedTpls.find(val => val.id === item.instance_id)
-                        if (selectInfo) {
-                            selectInfo.is_collected = 1
-                            selectInfo.collection_id = item.id
-                        }
-                    })
-                    if (res.data.length) {
-                        this.$bkMessage({ message: i18n.t('添加收藏成功！'), theme: 'success' })
-                    }
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.batchCollectPending = false
-                }
-            },
             onBatchDelete () {
                 if (this.selectedTpls.length === 0 || this.batchDeletePending || !this.hasBatchEditAuth) {
                     return
@@ -1253,27 +1204,8 @@
                 this.isImportYamlDialogShow = false
                 this.getTemplateList()
             },
-            onOperateClick (type) {
-                switch (type) {
-                    case 'collect':
-                        if (!this.hasBatchViewAuth) return
-                        this.onBatchCollect()
-                        break
-                    case 'cancelCollect':
-                        if (!this.hasBatchViewAuth) return
-                        this.onBatchCancelCollect()
-                        break
-                    case 'delete':
-                        if (!this.hasBatchEditAuth) return
-                        this.onBatchDelete()
-                        break
-                    default:
-                        if (!this.hasBatchViewAuth) return
-                        this.onExportTemplate(type)
-                        break
-                }
-            },
             onExportTemplate (type) {
+                if (!this.hasBatchViewAuth) return
                 this.exportType = type
                 this.isExportDialogShow = true
             },
@@ -1553,39 +1485,6 @@
                     this.collectingId = ''
                 }
             },
-            // 批量取消收藏
-            async onBatchCancelCollect () {
-                if (this.selectedTpls.length === 0 || !this.hasBatchViewAuth) {
-                    return
-                }
-
-                try {
-                    const cancelList = this.selectedTpls.reduce((acc, cur) => {
-                        if (cur.is_collected) {
-                            acc.push(cur.collection_id)
-                        }
-                        return acc
-                    }, []) || []
-                    if (cancelList.length === 0) { // 所选流程都已是取消收藏状态
-                        this.$bkMessage({ message: i18n.t('取消收藏成功！'), theme: 'success' })
-                        return
-                    }
-                    await this.batchCancelCollectTpl({
-                        projectId: Number(this.project_id),
-                        cancelList
-                    })
-                    // 不重新拉取流程列表，只针对匹配的进行处理
-                    this.templateList.forEach(item => {
-                        if (cancelList.includes(item.collection_id)) {
-                            item.collection_id = 0
-                            item.is_collected = 0
-                        }
-                    })
-                    this.$bkMessage({ message: i18n.t('取消收藏成功！'), theme: 'success' })
-                } catch (error) {
-                    console.warn(error)
-                }
-            },
             // 缓存记录访问过的流程 id
             pushToVisitedFlow (id) {
                 const saveId = `${this.username}_${this.project_id}_${id}`
@@ -1642,7 +1541,7 @@
     align-items: center;
     padding: 0 4px 0 20px;
     height: 32px;
-    line-height: 32px;
+    line-height: 30px;
     min-width: 88px;
     text-align: center;
     font-size: 14px;
@@ -1666,12 +1565,18 @@
             }
         }
     }
+    .bk-icon {
+        margin-left: 3px;
+    }
+    &.disabled .export-tpl-btn {
+        cursor: not-allowed;
+    }
     /deep/.bk-dropdown-content {
         z-index: 1;
     }
 }
-.batch-operation-list,
-.import-option-list {
+.import-option-list,
+.export-option-list {
     & > li {
         padding: 0 10px;
         height: 32px;
@@ -1691,12 +1596,17 @@
         }
     }
 }
+/deep/.bk-table-header-append .is-prepend {
+    height: 32px !important;
+}
 .selected-tpl-num {
+    height: 32px;
     display: flex;
     align-items: center;
-    margin-left: 10px;
+    justify-content: center;
     font-size: 12px;
-    line-height: 1;
+    background: #f0f1f5;
+    border-bottom: 1px solid #dfe0e5;
     /deep/.bk-link-text {
         margin-left: 6px;
         font-size: 12px;

@@ -18,6 +18,7 @@
                 v-loading="loading"
                 v-markTag="{ multiple, hasGroup, seletedValue, options: items }"
                 filterable
+                default-first-option
                 :clearable="clearable"
                 popper-class="tag-component-popper"
                 :allow-create="allowCreate"

@@ -1505,7 +1505,18 @@ const en = {
     '通过': 'Pass',
     '拒绝': 'Reject',
     '重试节点': 'Retry node',
-    '按照节点配置重新执行当前步骤，如果配置引用了变量且设置为"执行时显示"，可先修改"输入参数"在重试': 'Re-execute the current step according to the node configuration. If the configuration refers to a variable and is set to "display during execution", you can modify the "input parameter" first and try again'
+    '按照节点配置重新执行当前步骤，如果配置引用了变量且设置为"执行时显示"，可先修改"输入参数"在重试': 'Re-execute the current step according to the node configuration. If the configuration refers to a variable and is set to "display during execution", you can modify the "input parameter" first and try again',
+    '当前已选择 x 条数据': 'Currently {num} pieces of data are selected',
+    '清除选择': 'Clear selection',
+    '次执行': 'execution',
+    '子流程详情': 'Subprocess details',
+    '操作历史': 'Operation history',
+    '调用日志': 'Call log',
+    '暂无执行数据': 'No execution data yet',
+    '修改任务参数': 'Modify task parameters',
+    '可在此修改任务的参数值，对所有修改后执行的步骤生效': 'You can modify the parameter values of the task here, and it will take effect for all steps executed after the modification.',
+    '暂无异常': 'No abnormality',
+    '没有参数需要配置': 'No parameters to configure'
 }
 
 export default en

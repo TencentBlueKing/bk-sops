@@ -150,7 +150,7 @@
                         </bk-form-item>
                         <p class="title">{{$t('任务信息')}}</p>
                         <bk-form-item :label="$t('任务名称')" :required="true" property="taskName" data-test-id="periodicEdit_form_taskName">
-                            <bk-input v-model="formData.name"></bk-input>
+                            <bk-input :clearable="true" v-model="formData.name"></bk-input>
                         </bk-form-item>
                         <bk-form-item :label="$t('周期表达式')" :required="true" property="loop" data-test-id="periodicEdit_form_loop">
                             <LoopRuleSelect
@@ -161,7 +161,7 @@
                     </bk-form>
                 </section>
                 <section class="config-section">
-                    <p class="title">{{$t('执行参数')}}</p>
+                    <p class="title">{{$t('参数信息')}}</p>
                     <div v-bkloading="{ isLoading: isLoading || previewDataLoading }">
                         <NoData v-if="isVariableEmpty"></NoData>
                         <TaskParamEdit
@@ -538,6 +538,8 @@
                 }
             },
             onSelectTemplate (id) {
+                // 清除表单错误提示
+                this.$refs.basicConfigForm.clearError()
                 // 自动填充任务名称
                 const templateInfo = this.templateList.find(item => item.id === id)
                 this.formData.name = templateInfo ? templateInfo.name + '_' + i18n.t('周期执行') : ''

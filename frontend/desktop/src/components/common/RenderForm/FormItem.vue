@@ -61,7 +61,19 @@
             <label
                 v-if="option.showLabel && scheme.attrs.name"
                 :class="['rf-tag-label', { 'required': isRequired() }]">
-                {{scheme.attrs.name}}
+                <span
+                    v-bk-tooltips="{
+                        html: scheme.attrs.tips,
+                        placement: 'top',
+                        theme: 'light',
+                        extCls: 'rf-label-tips',
+                        boundary: 'window',
+                        zIndex: 2072,
+                        disabled: !!!scheme.attrs.tips
+                    }"
+                    :class="{ 'tag-label-tips': scheme.attrs.tips }">
+                    {{scheme.attrs.name}}
+                </span>
             </label>
             <!-- 表单勾选为全局变量 -->
             <div v-show="hook" class="rf-tag-form">
@@ -494,6 +506,17 @@
                 font-family: "SimSun";
             }
         }
+        .tag-label-tips {
+            position: relative;
+            &::after {
+                content: '';
+                position: absolute;
+                left: 0;
+                bottom: -3px;
+                border-top: 1px dashed #979ba5;
+                width: 100%
+            }
+        }
     }
     &.show-label > .rf-tag-form {
         margin-left: 130px;
@@ -592,5 +615,13 @@
 }
 .el-input__icon {
     line-height: 32px;
+}
+.rf-label-tips {
+    max-width: 240px;
+    .tippy-tooltip {
+        color: #63656e;
+        border: 1px solid #dcdee5;
+        box-shadow: 0 0 5px 0 rgba(0,0,0,0.09);
+    }
 }
 </style>

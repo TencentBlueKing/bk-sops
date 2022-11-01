@@ -169,6 +169,11 @@
             min_width: 200
         },
         {
+            id: 'task_status',
+            label: i18n.t('状态'),
+            width: 120
+        },
+        {
             id: 'start_time',
             label: i18n.t('执行开始'),
             width: 200
@@ -194,8 +199,9 @@
             width: 120
         },
         {
-            id: 'task_status',
-            label: i18n.t('状态'),
+            id: 'recorded_executor_proxy',
+            label: i18n.t('执行代理人'),
+            disabled: true,
             width: 120
         }
     ]
@@ -526,7 +532,20 @@
                 this.getAppmakerList()
             },
             renderTableHeader (h, { column, $index }) {
-                if (['start_time', 'finish_time'].includes(column.property)) {
+                if (column.property === 'recorded_executor_proxy') {
+                    return h('span', {
+                        'class': 'recorded_executor_proxy-label'
+                    }, [
+                        column.label,
+                        h('i', {
+                            'class': 'common-icon-info table-header-tips',
+                            directives: [{
+                                name: 'bk-tooltips',
+                                value: i18n.t('执行代理人在任务开始执行时确定，未执行任务不展示')
+                            }]
+                        })
+                    ])
+                } else if (['start_time', 'finish_time'].includes(column.property)) {
                     const id = this.tableFields[$index].id
                     const date = this.requestData[id]
                     return <TableRenderHeader
@@ -668,6 +687,12 @@
     transition: 0.5s;
     position: relative;
     top: -1px;
+    cursor: pointer;
+}
+/deep/.table-header-tips {
+    margin-left: 4px;
+    font-size: 14px;
+    color: #c4c6cc;
     cursor: pointer;
 }
 /deep/ .cell .task-id {

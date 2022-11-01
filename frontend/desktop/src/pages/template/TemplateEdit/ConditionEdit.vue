@@ -256,9 +256,6 @@
                         }
                     }
                 }
-                .full-code-editor {
-                    height: 300px;
-                }
             }
             .bk-form-radio {
                 margin-right: 48px;
@@ -285,5 +282,8 @@
             border-top: 1px solid #cacedb;
             background: #fff;
         }
+    }
+    .full-code-editor {
+        height: 300px;
     }
 </style>
