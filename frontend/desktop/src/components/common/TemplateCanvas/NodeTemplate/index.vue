@@ -165,12 +165,12 @@
     @import '@/scss/mixins/multiLineEllipsis.scss';
     @import '@/scss/mixins/scrollbar.scss';
 
-    $grayDark: #979ba5;
+    $grayDark: #c4c6cc;
     $blueDark: #699df4;
     $defaultColor: #738abe;
     $redDark: #ea3636;
     $yellowDark: #ff9c01;
-    $greenDark: #2dcb56;
+    $greenDark: #a5e8a9;
     $brightRedDark: #fd9c9c;
     $whiteColor: #ffffff;
     $defaultShadow: rgba(0, 0, 0, 0.15);
@@ -180,9 +180,8 @@
     $greenShadow: rgba(48, 216, 120, 0.15);
     $blueShadow: rgba(58, 132, 255, 0.15);
 
-    @mixin circleStatusStyle ($color, $shadow) {
+    @mixin circleStatusStyle ($color) {
         background-color: $color;
-        box-shadow: 0 0 0 5px $color;
         .circle-node-text {
             color: $whiteColor;
         }
@@ -266,19 +265,24 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 34px;
-            height: 34px;
+            width: 40px;
+            height: 40px;
             background: #96a1b9;
             border-radius: 50%;
-            box-shadow: 0 0 0 2px #96a1b9;
+            &.reday {
+                @include circleStatusStyle($grayDark);
+            }
             &.finished {
-                @include circleStatusStyle($greenDark, $greenShadow)
+                @include circleStatusStyle($greenDark);
+                &.end-point {
+                    background-color: #2dcb56;
+                }
             }
             &.running {
-                @include circleStatusStyle($blueDark, $yellowShadow)
+                @include circleStatusStyle($blueDark)
             }
             &.failed {
-                @include circleStatusStyle($redDark, $redShadow)
+                @include circleStatusStyle($redDark)
             }
         }
         .circle-node-text {

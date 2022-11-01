@@ -395,7 +395,7 @@
                             status.cls = 'loading common-icon-loading'
                             this.getExecuteDetail(item, index)
                         } else {
-                            status.cls = 'created common-icon-dark-circle-shape'
+                            status.cls = 'created common-icon-waitting'
                             status.text = i18n.t('未执行')
                         }
                         return status
@@ -563,6 +563,7 @@
         .task-status {
             width: 105px;
             text-align: left;
+            .common-icon-waitting,
             .common-icon-dark-circle-shape {
                 display: inline-block;
                 font-size: 14px;

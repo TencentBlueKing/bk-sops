@@ -75,12 +75,12 @@
                         'params-btn',
                         'common-icon-edit',
                         {
-                            'disabled': !paramsCanBeModify,
+                            'disabled': state !== 'CREATED' && !paramsCanBeModify,
                             actived: nodeInfoType === 'modifyParams'
                         }
                     ]"
                     v-bk-tooltips="{
-                        content: !paramsCanBeModify ? $t('「未完成」任务才可编辑参数') : $t('编辑任务参数'),
+                        content: state !== 'CREATED' && !paramsCanBeModify ? $t('「未完成」任务才可编辑参数') : $t('编辑任务参数'),
                         placements: ['bottom'],
                         hideOnClick: false
                     }"
@@ -182,7 +182,7 @@
             },
             onTaskParamsClick (type, name) {
                 // 已完成的任务不能修改任务参数
-                if (type === 'modifyParams' && !this.paramsCanBeModify) {
+                if (type === 'modifyParams' && this.state !== 'CREATED' && !this.paramsCanBeModify) {
                     return
                 }
                 this.$emit('onTaskParamsClick', type, name)

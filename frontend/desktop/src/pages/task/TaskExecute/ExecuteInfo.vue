@@ -266,13 +266,13 @@
                 } else if (this.executeInfo.state === 'SUSPENDED') {
                     state = 'common-icon-dark-circle-pause'
                 } else if (this.executeInfo.state === 'FINISHED') {
-                    state = 'bk-icon icon-check-circle-shape'
+                    state = this.executeInfo.skip ? 'common-icon-fail-skip' : 'bk-icon icon-check-circle-shape'
                 } else if (this.executeInfo.state === 'FAILED') {
                     state = 'common-icon-dark-circle-close'
                 } else if (this.executeInfo.state === 'CREATED') {
-                    state = 'icon-circle-shape'
+                    state = 'common-icon-waitting'
                 } else if (this.executeInfo.state === 'READY') {
-                    state = 'icon-circle-shape'
+                    state = 'common-icon-waitting'
                 }
                 return state
             },
@@ -834,7 +834,7 @@
             display: flex;
             align-items: center;
             :first-child {
-                margin: 0 5px;
+                margin: 2px 5px 0;
             }
         }
     }
@@ -914,6 +914,14 @@
     .common-icon-dark-circle-close {
         font-size: 14px;
         color: #ff5757;
+    }
+    .common-icon-waitting {
+        font-size: 16px;
+        color: #dcdee5;
+    }
+    .common-icon-fail-skip {
+        font-size: 14px;
+        color: #f7b6b6;
     }
     .icon-circle-shape {
         display: inline-block;
