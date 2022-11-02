@@ -138,7 +138,7 @@
                 </div>
                 <i v-bk-tooltips="errorHandleTipsConfig" ref="tooltipsHtml" class="bk-icon icon-question-circle form-item-tips"></i>
             </bk-form-item>
-            <bk-form-item :label="$t('超时控制')">
+            <!-- <bk-form-item :label="$t('超时控制')">
                 <div class="timeout-setting-wrap">
                     <bk-switcher
                         theme="primary"
@@ -178,7 +178,7 @@
                 <p v-if="formData.timeoutConfig.enable" class="error-handle-tips" style="margin-top: 6px;">
                     {{ $t('该功能仅对V2引擎生效') }}
                 </p>
-            </bk-form-item>
+            </bk-form-item> -->
             <bk-form-item :label="$t('是否可选')">
                 <bk-switcher
                     theme="primary"
@@ -327,7 +327,7 @@
                     </div>
                     <i v-bk-tooltips="errorHandleTipsConfig" ref="tooltipsHtml" class="bk-icon icon-question-circle form-item-tips"></i>
                 </bk-form-item>
-                <bk-form-item :label="$t('超时控制')">
+                <!-- <bk-form-item :label="$t('超时控制')">
                     <div class="timeout-setting-wrap">
                         <bk-switcher
                             theme="primary"
@@ -367,7 +367,7 @@
                     <p v-if="formData.timeoutConfig.enable" class="error-handle-tips" style="margin-top: 6px;">
                         {{ $t('该功能仅对V2引擎生效') }}
                     </p>
-                </bk-form-item>
+                </bk-form-item> -->
             </template>
             <bk-form-item :label="$t('是否可选')">
                 <bk-switcher
@@ -386,12 +386,14 @@
                     :value="formData.alwaysUseLatest"
                     @change="onAlwaysUseLatestChange">
                 </bk-switcher>
+                <div id="html-always-use-latest-tootip" class="tips-item" style="white-space: normal;">
+                    <p>{{ $t('打开此功能后，每次创建任务会尝试使用子流程的最新版本，并且不会再提示该节点需要更新。') }}</p>
+                    <p>{{ $t('若子流程中发生变动，标准运维会采用以下处理策略，如处理不符合预期，请谨慎使用。') }}</p>
+                    <p>{{ $t('1. 若子流程中增加了新的变量，在未手动更新子流程版本的情况下，将使用新变量默认值。') }}</p>
+                    <p>{{ $t('2. 若子流程中修改了变量的默认值，在未手动更新子流程版本的情况下，将继续使用修改前变量的原有值。') }}</p>
+                </div>
                 <i
-                    v-bk-tooltips="{
-                        width: 540,
-                        placement: 'bottom-end',
-                        content: $t('打开该开关后，每次创建任务会尝试使用子流程的最新版本，并且不会再提示该节点需要更新，如果子流程中增加了新的变量，在不更新子流程版本的情况下，会使用变量默认值')
-                    }"
+                    v-bk-tooltips="alwaysUseLastestTipsConfig"
                     class="bk-icon icon-question-circle form-item-tips">
                 </i>
             </bk-form-item>
@@ -520,6 +522,12 @@
                     width: 400,
                     content: '#html-error-ingored-tootip',
                     placement: 'top'
+                },
+                alwaysUseLastestTipsConfig: {
+                    allowHtml: true,
+                    width: 540,
+                    content: '#html-always-use-latest-tootip',
+                    placement: 'bottom-end'
                 },
                 userApi: `${window.MEMBER_SELECTOR_DATA_HOST}/api/c/compapi/v2/usermanage/fs_list_users/`
             }

@@ -71,6 +71,8 @@
                     :instance-actions="instanceActions"
                     :instance-name="instanceName"
                     :instance_id="instance_id"
+                    :retry-node-id="retryNodeId"
+                    @nodeTaskRetry="nodeTaskRetry"
                     @packUp="packUp">
                 </ModifyParams>
                 <ExecuteInfo
@@ -96,6 +98,9 @@
                     v-if="nodeInfoType === 'retryNode'"
                     :node-detail-config="nodeDetailConfig"
                     :engine-ver="engineVer"
+                    :node-info="nodeInfo"
+                    :retrying="pending.retry"
+                    :node-inputs="nodeInputs"
                     @retrySuccess="onRetrySuccess"
                     @retryCancel="onRetryCancel">
                 </RetryNode>
@@ -208,8 +213,8 @@
                 :rules="approval.rules">
                 <bk-form-item label="审批意见" :required="true">
                     <bk-radio-group v-model="approval.is_passed" @change="$refs.approvalForm.clearError()">
-                        <bk-radio :value="true">通过</bk-radio>
-                        <bk-radio :value="false">拒绝</bk-radio>
+                        <bk-radio :value="true">{{ $t('通过') }}</bk-radio>
+                        <bk-radio :value="false">{{ $t('拒绝') }}</bk-radio>
                     </bk-radio-group>
                 </bk-form-item>
                 <bk-form-item label="备注" property="message" :required="!approval.is_passed">
@@ -341,6 +346,7 @@
                 canvasMountedQueues: [], // canvas pending queues
                 pending: {
                     skip: false,
+                    retry: false,
                     forceFail: false,
                     selectGateway: false,
                     task: false,
@@ -352,6 +358,7 @@
                 isRevokeDialogShow: false,
                 isSkipDialogShow: false,
                 skipNodeId: undefined,
+                retryNodeId: undefined,
                 isForceFailDialogShow: false,
                 forceFailId: undefined,
                 isNodeResumeDialogShow: false,
@@ -380,7 +387,9 @@
                     }
                 },
                 nodePipelineData: {},
-                isFailedSubproceeNodeInfo: null
+                isFailedSubproceeNodeInfo: null,
+                nodeInfo: {},
+                nodeInputs: {}
             }
         },
         computed: {
@@ -508,7 +517,11 @@
                 'pauseNodeResume',
                 'getNodeActInfo',
                 'forceFail',
-                'itsmTransition'
+                'itsmTransition',
+                'getInstanceRetryParams',
+                'getNodeActInfo',
+                'instanceRetry',
+                'subflowNodeRetry'
             ]),
             ...mapActions('atomForm/', [
                 'loadSingleAtomList'
@@ -958,9 +971,93 @@
                     componentData
                 }
             },
-            onRetryClick (id) {
-                this.openNodeInfoPanel('retryNode', i18n.t('重试'))
-                this.setNodeDetailConfig(id)
+            async onRetryClick (id) {
+                try {
+                    const resp = await this.getInstanceRetryParams({ id: this.instance_id })
+                    if (resp.data.enable) {
+                        this.openNodeInfoPanel('retryNode', i18n.t('重试'))
+                        this.setNodeDetailConfig(id)
+                        if (this.nodeDetailConfig.component_code) {
+                            await this.loadNodeInfo()
+                        }
+                    } else {
+                        this.openNodeInfoPanel('modifyParams', i18n.t('重试任务'))
+                        this.retryNodeId = id
+                    }
+                } catch (error) {
+                    console.warn(error)
+                }
+            },
+            async loadNodeInfo () {
+                try {
+                    const nodeInputs = {}
+                    const { componentData } = this.nodeDetailConfig
+                    const nodeInfo = await this.getNodeActInfo(this.nodeDetailConfig)
+                    if (nodeInfo.result) {
+                        for (const key in nodeInfo.data.inputs) {
+                            if (this.engineVer === 1) {
+                                nodeInputs[key] = nodeInfo.data.inputs[key]
+                            } else if (this.nodeDetailConfig.component_code === 'subprocess_plugin') { // 新版子流程任务节点输入参数处理
+                                const value = nodeInfo.data.inputs[key]
+                                if (key === 'subprocess') {
+                                    Object.keys(value.pipeline.constants).forEach(key => {
+                                        const data = value.pipeline.constants[key]
+                                        nodeInputs[key] = data.value
+                                    })
+                                } else {
+                                    nodeInputs[key] = value
+                                }
+                            } else if (componentData[key]) {
+                                const { hook, value } = componentData[key]
+                                if (hook) {
+                                    nodeInputs[key] = nodeInfo.data.inputs[key]
+                                } else {
+                                    nodeInputs[key] = value
+                                }
+                            }
+                        }
+                        this.nodeInputs = nodeInputs
+                    }
+                    this.nodeInfo = nodeInfo
+                } catch (e) {
+                    console.warn(e)
+                }
+            },
+            async onRetryTask (renderData = this.nodeInputs) {
+                const { instance_id, component_code, node_id } = this.nodeDetailConfig
+                try {
+                    let res
+                    if (component_code) {
+                        const data = {
+                            instance_id,
+                            node_id,
+                            component_code,
+                            inputs: renderData
+                        }
+                        if (component_code === 'subprocess_plugin') {
+                            const { inputs } = this.nodeInfo.data
+                            const constants = inputs.subprocess ? inputs.subprocess.pipeline.constants : {}
+                            Object.keys(constants).forEach(key => {
+                                constants[key].value = renderData[key]
+                            })
+                            data.inputs = inputs
+                        }
+                        res = await this.instanceRetry(data)
+                    } else {
+                        res = await this.subflowNodeRetry({ instance_id, node_id })
+                    }
+                    if (res.result) {
+                        this.$bkMessage({
+                            message: i18n.t('重试成功'),
+                            theme: 'success'
+                        })
+                        this.nodeInfo = {}
+                        this.nodeInputs = {}
+                        return true
+                    }
+                } catch (e) {
+                    console.warn(e)
+                }
             },
             onSkipClick (id) {
                 this.isSkipDialogShow = true
@@ -969,6 +1066,20 @@
             onSkipCancel () {
                 this.isSkipDialogShow = false
                 this.skipNodeId = undefined
+            },
+            async nodeTaskRetry () {
+                try {
+                    this.pending.retry = true
+                    this.setNodeDetailConfig(this.retryNodeId)
+                    await this.loadNodeInfo()
+                    await this.onRetryTask()
+                    this.isNodeInfoPanelShow = false
+                    this.retryNodeId = undefined
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.pending.retry = false
+                }
             },
             onForceFailClick (id) {
                 this.forceFailId = id
@@ -1447,14 +1558,23 @@
                 })
                 this.canvasMountedQueues = []
             },
-            onRetrySuccess (id) {
-                this.isNodeInfoPanelShow = false
-                this.isFailedSubproceeNodeInfo = null
-                this.setTaskStatusTimer()
-                this.updateNodeActived(id, false)
+            async onRetrySuccess (data) {
+                try {
+                    this.pending.retry = true
+                    await this.onRetryTask(data)
+                    this.isNodeInfoPanelShow = false
+                    this.isFailedSubproceeNodeInfo = null
+                    this.setTaskStatusTimer()
+                    this.updateNodeActived(this.nodeDetailConfig.id, false)
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.pending.retry = false
+                }
             },
             onRetryCancel (id) {
                 this.isNodeInfoPanelShow = false
+                this.retryNodeId = undefined
                 this.updateNodeActived(id, false)
             },
             onModifyTimeSuccess (id) {
@@ -1500,6 +1620,7 @@
             },
             packUp () {
                 this.isNodeInfoPanelShow = false
+                this.retryNodeId = undefined
             },
             onshutDown () {
                 this.isNodeInfoPanelShow = false
@@ -1513,11 +1634,13 @@
                     const isEqual = this.$refs[this.nodeInfoType].judgeDataEqual()
                     if (isEqual === true) {
                         this.isNodeInfoPanelShow = false
+                        this.retryNodeId = undefined
                     } else if (isEqual === false) {
                         this.$bkInfo({
                             ...this.infoBasicConfig,
                             cancelFn: () => {
                                 this.isNodeInfoPanelShow = false
+                                this.retryNodeId = undefined
                             }
                         })
                     }

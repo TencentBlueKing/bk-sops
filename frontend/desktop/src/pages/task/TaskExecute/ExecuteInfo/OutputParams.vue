@@ -1,9 +1,9 @@
 <template>
     <section class="info-section outputs-section" data-test-id="taskExecute_form_outputParams">
-        <h4 class="outputs-label">{{ $t('输出参数') }}</h4>
+        <h4 class="common-section-title">{{ $t('输出参数') }}</h4>
         <div class="origin-value" v-if="!adminView">
             <bk-switcher size="small" @change="outputSwitcher" v-model="isShowOutputOrigin"></bk-switcher>
-            {{ $t('原始值') }}
+            {{ 'Json' }}
         </div>
         <template v-if="!adminView">
             <table class="operation-table outputs-table" v-if="!isShowOutputOrigin">
@@ -18,7 +18,7 @@
                     <tr v-for="(output, index) in outputsInfo" :key="index">
                         <td class="output-name">{{ getOutputName(output) }}</td>
                         <td class="output-key">{{ output.key }}</td>
-                        <td v-if="isUrl(output.value)" class="output-value" v-html="getOutputValue(output)"></td>
+                        <td v-if="isUrl(output.value) || Array.isArray(output.value)" class="output-value" v-html="getOutputValue(output)"></td>
                         <td v-else class="output-value">{{ getOutputValue(output) }}</td>
                     </tr>
                     <tr v-if="Object.keys(outputsInfo).length === 0">
@@ -38,7 +38,7 @@
 <script>
     import VueJsonPretty from 'vue-json-pretty'
     import NoData from '@/components/common/base/NoData.vue'
-    import FullCodeEditor from '../FullCodeEditor.vue'
+    import FullCodeEditor from '@/components/common/FullCodeEditor.vue'
     import { URL_REG } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
     export default {
@@ -97,9 +97,19 @@
                     return '--'
                 } else if (!output.preset && this.nodeDetailConfig.component_code === 'job_execute_task') {
                     return output.value
+                } else if (Array.isArray(output.value)) {
+                    if (!output.value.length) return '--'
+                    return output.value.reduce((acc, cur) => {
+                        let str = cur
+                        if (this.isUrl(cur)) {
+                            str = `<a style="color: #3a84ff; word-break: break-all;" target="_blank" href="${cur}">${cur}</a>`
+                        }
+                        acc = acc ? acc + '</br>' + str : str
+                        return acc
+                    }, '')
                 } else {
                     if (this.isUrl(output.value)) {
-                        return `<a class="info-link" target="_blank" href="${output.value}">${output.value}</a>`
+                        return `<a style="color: #3a84ff; word-break: break-all;" target="_blank" href="${output.value}">${output.value}</a>`
                     }
                     return output.value
                 }
@@ -109,19 +119,12 @@
 </script>
 
 <style lang="scss" scoped>
-    .outputs-section {
-        display: flex;
-        position: relative;
-    }
     .outputs-section .operation-table {
         flex: 1;
-        margin-left: 24px;
-        padding-top: 18px;
-        border: none;
-        border-collapse: initial;
         th, td {
             width: 30%;
             padding: 16px 13px;
+            font-weight: normal;
             color: #313238;
             background: #f5f7fa;
             border: none;
@@ -129,9 +132,13 @@
         }
         td {
             color: #63656e;
+            background: #fff;
         }
         .output-value {
             width: 50%;
         }
+    }
+    .full-code-editor {
+        height: 400px;
     }
 </style>

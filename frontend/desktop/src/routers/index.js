@@ -188,7 +188,14 @@ const routers = new VueRouter({
                             props: route => ({
                                 project_id: route.params.project_id
                             }),
-                            meta: { project: true }
+                            meta: { project: true },
+                            beforeEnter: (to, form, next) => {
+                                if (form.name === 'taskExecute' && 'root_id' in form.query) {
+                                    to.params['root_id'] = form.query.root_id
+                                    to.params['task_id'] = form.query.instance_id
+                                }
+                                next()
+                            }
                         },
                         {
                             path: 'periodic/:project_id/',

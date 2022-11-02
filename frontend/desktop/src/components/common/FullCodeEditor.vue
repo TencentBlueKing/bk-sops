@@ -13,6 +13,14 @@
     <div class="full-code-editor" :class="{ 'full-status': isFullScreen }">
         <div class="tool-area">
             <i
+                class="bk-icon icon-copy mr20"
+                v-bk-tooltips="{
+                    boundary: 'window',
+                    content: $t('复制')
+                }"
+                @click="onCopyClick(value)">
+            </i>
+            <i
                 class="bk-icon zoom-icon"
                 :class="isFullScreen ? 'icon-un-full-screen' : 'icon-full-screen'"
                 v-bk-tooltips="{
@@ -25,12 +33,14 @@
         <code-editor
             :key="isFullScreen"
             :value="value"
-            :options="{ readOnly: true, language: 'json' }">
+            :options="options"
+            @input="onDataChange">
         </code-editor>
     </div>
 </template>
 <script>
-    import CodeEditor from '@/components/common/CodeEditor.vue'
+    import i18n from '@/config/i18n/index.js'
+    import CodeEditor from './CodeEditor.vue'
 
     export default {
         name: 'FullCodeEditor',
@@ -38,10 +48,18 @@
             CodeEditor
         },
         props: {
-            value: String
+            value: String,
+            options: {
+                type: Object,
+                default: () => ({
+                    readOnly: true,
+                    language: 'json'
+                })
+            }
         },
         data () {
             return {
+                copyText: '',
                 isFullScreen: false
             }
         },
@@ -49,6 +67,28 @@
             document.body.removeEventListener('keyup', this.handleQuick, false)
         },
         methods: {
+            /**
+             * 变量 key 复制
+             */
+            onCopyClick (key) {
+                this.copyText = key
+                document.addEventListener('copy', this.copyHandler)
+                document.execCommand('copy')
+                document.removeEventListener('copy', this.copyHandler)
+                this.copyText = ''
+            },
+            /**
+             * 复制操作回调函数
+             */
+            copyHandler (e) {
+                e.preventDefault()
+                e.clipboardData.setData('text/html', this.copyText)
+                e.clipboardData.setData('text/plain', this.copyText)
+                this.$bkMessage({
+                    message: i18n.t('已复制'),
+                    theme: 'success'
+                })
+            },
             onToggleFullScreen () {
                 this.isFullScreen = !this.isFullScreen
                 if (this.isFullScreen) {
@@ -66,12 +106,16 @@
                 if (e.keyCode === 27) {
                     this.isFullScreen = false
                 }
+            },
+            onDataChange (val) {
+                this.$emit('input', val)
             }
         }
     }
 </script>
 <style lang="scss" scoped>
     .full-code-editor {
+        height: 100%;
         background: #ffffff;
         &.full-status {
             position: fixed;
@@ -82,9 +126,6 @@
             height: 100vh;
             z-index: 3000;
             margin: 0 !important;
-            .code-editor {
-                height: calc(100% - 38px);
-            }
         }
         .tool-area {
             padding: 0 20px;
@@ -97,9 +138,14 @@
                 color: #ffffff;
                 cursor: pointer;
             }
+            .icon-copy {
+                font-size: 18px;
+                color: #ffffff;
+                cursor: pointer;
+            }
         }
         .code-editor {
-            height: 300px;
+            height: calc(100% - 38px);
         }
     }
 </style>

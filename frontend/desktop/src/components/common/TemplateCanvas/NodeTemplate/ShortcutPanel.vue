@@ -46,6 +46,14 @@
                     class="btn-item common-icon-bkflow-copy"
                     @click.stop="onCopyBtnClick">
                 </li>
+                <li
+                    v-bk-tooltips="{
+                        content: $t('删除节点'),
+                        delay: 500
+                    }"
+                    class="btn-item common-icon-bkflow-delete"
+                    @click.stop="$emit('onNodeRemove', node)">
+                </li>
             </template>
             <li
                 v-if="deleteLine"
@@ -160,7 +168,7 @@
                 const isGatewayCurrNode = this.isGatewayNode(currType)
                 const isGatewayAppendNode = this.isGatewayNode(type)
                 if (currType === 'startpoint') {
-                    location.y += isGatewayAppendNode ? 10 : -10
+                    location.y += isGatewayAppendNode ? 0 : -10
                 } else {
                     if (isGatewayCurrNode && !isGatewayAppendNode) {
                         location.y -= 10

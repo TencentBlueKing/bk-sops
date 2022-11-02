@@ -18,12 +18,13 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import ErrorDetail
-from rest_framework import serializers, generics, permissions, status
+from rest_framework import generics, permissions, status
 from django_filters import FilterSet
 
 from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics
 from gcloud.constants import TASK_NAME_MAX_LENGTH
 from gcloud import err_code
+from gcloud.core.apis.drf.exceptions import ValidationException
 from gcloud.core.apis.drf.viewsets import IAMMixin
 from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
 from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
@@ -39,7 +40,7 @@ from gcloud.core.apis.drf.serilaziers import (
     NodeExecutionRecordQuerySerializer,
     NodeExecutionRecordResponseSerializer,
 )
-from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig, TaskFlowRelation
+from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig, TaskFlowRelation, TaskConfig
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.common_template.models import CommonTemplate
 from gcloud.iam_auth.conf import TASK_ACTIONS
@@ -94,6 +95,7 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
         "destroy": IamPermissionInfo(
             IAMMeta.TASK_DELETE_ACTION, res_factory.resources_for_task_obj, HAS_OBJECT_PERMISSION
         ),
+        "enable_fill_retry_params": IamPermissionInfo(pass_all=True),
     }
 
     def has_permission(self, request, view):
@@ -256,7 +258,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         try:
             pipeline_instance = TaskFlowInstance.objects.create_pipeline_instance(template, **pipeline_instance_kwargs)
         except PipelineException as e:
-            raise serializers.ValidationError(str(e))
+            raise ValidationException(e)
         # set engine_ver
         serializer.validated_data["engine_ver"] = EngineConfig.objects.get_engine_ver(
             project_id=project.id, template_id=template.id, template_source=serializer.validated_data["template_source"]
@@ -397,3 +399,9 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         )
         node_execution_record_serializer.is_valid(raise_exception=True)
         return Response(node_execution_record_serializer.validated_data)
+
+    @swagger_auto_schema(method="GET", operation_summary="查询任务是否支持重试填参")
+    @action(methods=["GET"], detail=True)
+    def enable_fill_retry_params(self, request, *args, **kwargs):
+        task_id = kwargs["pk"]
+        return Response({"enable": TaskConfig.objects.enable_fill_retry_params(task_id)})
