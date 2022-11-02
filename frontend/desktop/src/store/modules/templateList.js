@@ -140,7 +140,7 @@ const templateList = {
                 template_id_list: list,
                 is_full
             }
-            if (type === 'dat') {
+            if (type === 'exportDatFile') {
                 url = common ? 'common_template/api/export/' : `/template/api/export/${project_id}/`
             } else {
                 url = '/template/api/export_yaml_templates/'
