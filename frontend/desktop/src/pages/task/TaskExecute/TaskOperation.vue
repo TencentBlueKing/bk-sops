@@ -428,7 +428,7 @@
                     lines: line,
                     locations: location.map(item => {
                         const code = item.type === 'tasknode' ? activities[item.id].component.code : ''
-                        return { ...item, mode: 'execute', checked: true, code }
+                        return { ...item, mode: 'execute', checked: true, code, ready: true }
                     }),
                     branchConditions
                 }
@@ -941,7 +941,8 @@
                         retry: currentNode.retry,
                         error_ignored: currentNode.error_ignored,
                         error_ignorable: errorIgnorable,
-                        auto_retry: autoRetry
+                        auto_retry: autoRetry,
+                        ready: false
                     }
 
                     this.setTaskNodeStatus(id, data)
