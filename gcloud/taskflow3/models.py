@@ -49,7 +49,7 @@ from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.utils.dates import timestamp_to_datetime, format_datetime
 from gcloud.utils.managermixins import ClassificationCountMixin
 from gcloud.common_template.models import CommonTemplate
-from gcloud.template_base.utils import replace_template_id
+from gcloud.template_base.utils import replace_template_id, inject_template_node_id
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.taskflow3.domains.context import TaskContext
@@ -586,6 +586,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
             "description": kwargs.get("description", ""),
         }
         PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree, template.__class__)
+        inject_template_node_id(pipeline_tree)
 
         pipeline_web_cleaner = PipelineWebTreeCleaner(pipeline_tree)
         nodes_attr = pipeline_web_cleaner.clean(with_subprocess=(not independent_subprocess))

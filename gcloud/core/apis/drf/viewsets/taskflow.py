@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import re
 
+from django.conf import settings
 from django.db.models import Q
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
@@ -20,6 +21,7 @@ from rest_framework.exceptions import ErrorDetail
 from rest_framework import generics, permissions, status
 from django_filters import FilterSet
 
+from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics
 from gcloud.constants import TASK_NAME_MAX_LENGTH
 from gcloud import err_code
 from gcloud.core.apis.drf.exceptions import ValidationException
@@ -35,6 +37,8 @@ from gcloud.core.apis.drf.serilaziers import (
     ListChildrenTaskFlowResponseSerializer,
     RootTaskflowQuerySerializer,
     RootTaskflowResponseSerializer,
+    NodeExecutionRecordQuerySerializer,
+    NodeExecutionRecordResponseSerializer,
 )
 from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig, TaskFlowRelation, TaskConfig
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -129,7 +133,7 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
                         resources.extend(res_factory.resources_for_project(request.data["project"]))
                 self.iam_auth_check(request=request, action=iam_action, resources=resources)
                 return True
-        elif view.action in ["list", "list_children_taskflow", "root_task_info"]:
+        elif view.action in ["list", "list_children_taskflow", "root_task_info", "node_execution_record"]:
             user_type_validator = IamUserTypeBasedValidator()
             return user_type_validator.validate(request)
         return super().has_permission(request, view)
@@ -375,6 +379,26 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         )
         root_task_info = {task_id: True if task_id in root_task_ids else False for task_id in task_ids}
         return Response({"has_children_taskflow": root_task_info})
+
+    @swagger_auto_schema(
+        methods=["GET"],
+        operation_summary="获取节点历史执行记录数据",
+        query_serializer=NodeExecutionRecordQuerySerializer,
+        responses={200: NodeExecutionRecordResponseSerializer},
+    )
+    @action(methods=["GET"], detail=False)
+    def node_execution_record(self, request, *args, **kwargs):
+        template_node_id = request.query_params.get("template_node_id")
+        execution_time_data = (
+            TaskflowExecutedNodeStatistics.objects.filter(template_node_id=template_node_id, status=True, is_skip=False)
+            .order_by("-archived_time")
+            .values("archived_time", "elapsed_time")
+        )[: settings.MAX_RECORDED_NODE_EXECUTION_TIMES]
+        node_execution_record_serializer = NodeExecutionRecordResponseSerializer(
+            data={"execution_time": execution_time_data}
+        )
+        node_execution_record_serializer.is_valid(raise_exception=True)
+        return Response(node_execution_record_serializer.validated_data)
 
     @swagger_auto_schema(method="GET", operation_summary="查询任务是否支持重试填参")
     @action(methods=["GET"], detail=True)

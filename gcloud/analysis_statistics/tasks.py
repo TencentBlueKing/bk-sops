@@ -92,6 +92,7 @@ def recursive_collect_components_execution(activities, status_tree, task_instanc
                         "instance_id": instance.id,
                         "task_instance_id": task_instance_id,
                         "is_sub": is_sub,
+                        "template_node_id": act.get("template_node_id") or "",
                         "node_id": act_id,
                         "subprocess_stack": json.dumps(stack),
                         "started_time": format_date_time(exec_act["start_time"]),
