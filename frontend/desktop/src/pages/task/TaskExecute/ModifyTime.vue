@@ -176,7 +176,7 @@
             @include scrollbar;
         }
         .action-wrapper {
-            padding-left: 55px;
+            padding-left: 20px;
             height: 60px;
             line-height: 60px;
             border-top: 1px solid $commonBorderColor;
