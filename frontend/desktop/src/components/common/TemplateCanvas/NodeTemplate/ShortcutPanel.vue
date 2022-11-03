@@ -192,6 +192,15 @@
                         const fstNodeLine = this.canvasData.lines.find(line => line.source.id === id)
                         endNodeId = fstNodeLine.target.id
                     }
+                    if (['parallelgateway', 'branchgateway', 'conditionalparallelgateway'].indexOf(currType) > -1 && isHaveNodeBehind) {
+                        const conditions = this.canvasData.branchConditions
+                        if (Object.keys(conditions[id]).length > 1) {
+                            // 拿到并行中最靠下的节点
+                            const { x: parallelX, y: parallelY } = this.getParallelNodeMinDistance(id)
+                            location.y = parallelY + 100
+                            location.x = parallelX
+                        }
+                    }
                     this.$emit('onInsertNode', {
                         startNodeId: id,
                         endNodeId,
@@ -222,13 +231,13 @@
              */
             getParallelNodeMinDistance (nodeId) {
                 const { lines, locations } = this.canvasData
-                const { y } = locations.find(m => m.id === nodeId)
+                const { x, y } = locations.find(m => m.id === nodeId)
                 const parallelNodes = lines.filter(m => m.source.id === nodeId).map(m => m.target.id)
                 let maxDistance = null
                 // 距离网管节点垂直距离最近的节点
-                let needNodeLocation = null
+                let needNodeLocation = { x: x + 200, y } // 默认新增节点坐标
                 locations.forEach((m, index) => {
-                    if (parallelNodes.indexOf(m.id) > -1) {
+                    if (m.type === 'tasknode' && parallelNodes.indexOf(m.id) > -1) {
                         if (maxDistance === null) {
                             maxDistance = m.y - y
                             needNodeLocation = m
