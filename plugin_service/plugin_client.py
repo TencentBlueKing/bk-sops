@@ -241,7 +241,7 @@ class PluginServiceApiClient:
     @staticmethod
     @json_response_decoder
     def get_paas_plugin_tags(environment=None, **kwargs):
-        """通过PaaS平台查询插件服务日志"""
+        """通过PaaS获取插件分类列表"""
         url, params = PluginServiceApiClient._prepare_paas_api_request(
             path_params=["system/bk_plugin_tags"], environment=environment
         )
