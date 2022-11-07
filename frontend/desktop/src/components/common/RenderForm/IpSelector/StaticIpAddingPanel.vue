@@ -18,65 +18,17 @@
         </ip-search-input>
         <div class="ip-list-wrap">
             <template v-if="type === 'select'">
-                <table class="ip-table">
-                    <thead>
-                        <tr>
-                            <th width="40">
-                                <span
-                                    :class="['checkbox', {
-                                        'checked': listAllSelected,
-                                        'half-checked': selectedIp.length > 0 && selectedIp.length < list.length
-                                    }]"
-                                    @click="onSelectAllClick">
-                                </span>
-                            </th>
-                            <th>{{i18n.cloudArea}}</th>
-                            <th width="120">
-                                IP
-                                <span class="sort-group">
-                                    <i :class="['sort-icon', 'up', { 'active': ipSortActive === 'up' }]" @click="onIpSort('up')"></i>
-                                    <i :class="['sort-icon', { 'active': ipSortActive === 'down' }]" @click="onIpSort('down')"></i>
-                                </span>
-                            </th>
-                            <th width="160">
-                                {{i18n.hostName}}
-                                <span class="sort-group">
-                                    <i :class="['sort-icon', 'up', { 'active': hostNameSortActive === 'up' }]" @click="onHostNameSort('up')"></i>
-                                    <i :class="['sort-icon', { 'active': hostNameSortActive === 'down' }]" @click="onHostNameSort('down')"></i>
-                                </span>
-                            </th>
-                            <th width="160">Agent {{i18n.status}}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <template v-if="listInPage.length">
-                            <tr v-for="item in listInPage" :key="item.bk_host_id">
-                                <td>
-                                    <span
-                                        :class="['checkbox', { 'checked': selectedIp.findIndex(el => el.bk_host_id === item.bk_host_id) > -1 }]"
-                                        @click="onHostItemClick(item)">
-                                    </span>
-                                </td>
-                                <td
-                                    class="ui-ellipsis"
-                                    :title="item.cloud[0] && item.cloud[0].bk_inst_name">
-                                    {{ item.cloud[0] && item.cloud[0].bk_inst_name }}
-                                </td>
-                                <td>{{item.bk_host_innerip}}</td>
-                                <td>{{item.bk_host_name}}</td>
-                                <td
-                                    class="ui-ellipsis"
-                                    :class="item.agent ? 'agent-normal' : 'agent-failed'"
-                                    :title="item.agent ? 'Agent' + i18n.normal : 'Agent' + i18n.error">
-                                    {{item.agent ? 'Agent' + i18n.normal : 'Agent' + i18n.error}}
-                                </td>
-                            </tr>
-                        </template>
-                        <tr v-else>
-                            <td class="static-ip-empty" colspan="4"><no-data></no-data></td>
-                        </tr>
-                    </tbody>
-                </table>
+                <IpSelectorTable
+                    :selection="true"
+                    :editable="true"
+                    :operate="false"
+                    :is-search-mode="isSearchMode"
+                    :list-in-page="listInPage"
+                    @onIpSort="onIpSort"
+                    @onHostNameSort="onHostNameSort"
+                    @handleSelectionChange="handleSelectionChange">
+                </IpSelectorTable>
+                
                 <bk-pagination
                     v-if="isPaginationShow"
                     class="table-pagination"
@@ -123,7 +75,7 @@
     import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
 
     import IpSearchInput from './IpSearchInput.vue'
-    import NoData from '@/components/common/base/NoData.vue'
+    import IpSelectorTable from './IpSelectorTable.vue'
 
     const i18n = {
         add: gettext('添加'),
@@ -146,7 +98,7 @@
         name: 'StaticIpAddingPanel',
         components: {
             IpSearchInput,
-            NoData
+            IpSelectorTable
         },
         props: {
             allowUnfoldInput: Boolean,
@@ -160,7 +112,6 @@
             const totalPage = Math.ceil(this.staticIpList.length / listCountPerPage)
 
             return {
-                listAllSelected: false,
                 isPaginationShow: totalPage > 1,
                 selectedIp: this.staticIps.slice(0),
                 isSearchMode: false,
@@ -235,28 +186,8 @@
                     this.isSearchMode = false
                 }
             },
-            onSelectAllClick () {
-                if (this.listAllSelected) {
-                    this.selectedIp = []
-                    this.listAllSelected = false
-                } else {
-                    this.selectedIp = [...this.list]
-                    this.listAllSelected = true
-                }
-            },
-            onHostItemClick (host) {
-                const index = this.selectedIp.findIndex(el => el.bk_host_id === host.bk_host_id)
-                if (index > -1) {
-                    this.selectedIp.splice(index, 1)
-                } else {
-                    this.selectedIp.push(host)
-                }
-                const half = this.selectedIp.length > 0 && this.selectedIp.length < this.list.length
-                if (half || this.selectedIp.length === 0) {
-                    this.listAllSelected = false
-                } else {
-                    this.listAllSelected = true
-                }
+            handleSelectionChange (ips) {
+                this.selectedIp = ips
             },
             getSortIpList (list, way = 'up') {
                 const srotList = list.slice(0)
@@ -288,18 +219,10 @@
             },
             onIpSort (way) {
                 this.hostNameSortActive = ''
-                if (this.ipSortActive === way) {
-                    this.ipSortActive = ''
-                    return
-                }
                 this.ipSortActive = way
             },
             onHostNameSort (way) {
                 this.ipSortActive = ''
-                if (this.hostNameSortActive === way) {
-                    this.hostNameSortActive = ''
-                    return
-                }
                 this.hostNameSortActive = way
             },
             onPageChange (page) {
@@ -366,108 +289,6 @@
 }
 .ip-list-wrap {
     position: relative;
-    .ip-table {
-        width: 100%;
-        border: 1px solid #dde4eb;
-        border-collapse: collapse;
-        table-layout:fixed;
-        tr {
-            border-bottom: 1px solid #dde4eb;
-        }
-        th {
-            color: #313238;
-        }
-        th,td {
-            padding: 12px 8px;
-            line-height: 1;
-            font-size: 12px;
-            font-weight: normal;
-            text-align: left;
-            &.agent-normal {
-                color: #22a945;
-            }
-            &.agent-failed {
-                color: #ea3636;
-            }
-        }
-        .loading-wraper {
-            height: 300px;
-        }
-        .static-ip-empty {
-            height: 300px;
-            text-align: center;
-            color: #c4c6cc;
-            .add-ip-btn {
-                color: #3a84ff;
-                cursor: pointer;
-            }
-        }
-        .checkbox {
-            display: inline-block;
-            position: relative;
-            width: 14px;
-            height: 14px;
-            border: 1px solid #c4c6cc;
-            border-radius: 2px;
-            vertical-align: middle;
-            cursor: pointer;
-            &.checked {
-                background: #3a84ff;
-                border-color: #3a84ff;
-                &:before {
-                    content: '';
-                    position: absolute;
-                    left: 2px;
-                    top: 2px;
-                    height: 4px;
-                    width: 8px;
-                    border-left: 1px solid;
-                    border-bottom: 1px solid;
-                    border-color: #ffffff;
-                    transform: rotate(-45deg);
-                }
-            }
-            &.half-checked {
-                background: #3a84ff;
-                border-color: #3a84ff;
-                &:before {
-                    content: '';
-                    position: absolute;
-                    left: 2px;
-                    top: 5px;
-                    height: 1px;
-                    width: 8px;
-                    background: #ffffff;
-                }
-            }
-        }
-        .sort-group {
-            display: inline-block;
-            margin-left: 6px;
-            vertical-align: top;
-            .sort-icon {
-                display: block;
-                width: 0;
-                height: 0;
-                border-style: solid;
-                border-width: 5px 5px 0 5px;
-                border-color: #c4c6cc transparent transparent transparent;
-                cursor: pointer;
-                &.up {
-                    margin-bottom: 2px;
-                    transform: rotate(180deg);
-                }
-                &.active {
-                    border-color: #3a84ff transparent transparent transparent;
-                }
-            }
-        }
-        .ui-ellipsis {
-            overflow:hidden;
-            text-overflow:ellipsis;
-            white-space:nowrap;
-        }
-    }
     .table-pagination {
         position: absolute;
         right: 0;

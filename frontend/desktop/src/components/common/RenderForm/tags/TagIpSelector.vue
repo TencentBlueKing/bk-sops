@@ -80,7 +80,7 @@
         {
             type: 'dynamicIp',
             id: 'topo',
-            name: gettext('动态 IP'),
+            name: gettext('动态拓扑'),
             hasDiff: false
         },
         {
@@ -149,7 +149,7 @@
                 'getDynamicGroup'
             ]),
             getData () {
-                const staticIpExtraFields = ['agent']
+                const staticIpExtraFields = ['agent', 'bk_host_innerip_v6']
                 const urls = typeof this.remote_url === 'function' ? this.remote_url() : Object.assign({}, this.remote_url)
                 if (!urls['cc_search_host'] || !urls['cc_search_topo_tree'] || !urls['cc_get_mainline_object_topo']) {
                     return
