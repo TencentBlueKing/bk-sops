@@ -2,7 +2,8 @@ import functools
 import logging
 
 from . import env
-from plugin_service.conf import PLUGIN_CLIENT_LOGGER
+from .conf import PLUGIN_CLIENT_LOGGER
+from .utils import handle_plain_message
 
 logger = logging.getLogger(PLUGIN_CLIENT_LOGGER)
 
@@ -43,7 +44,7 @@ def json_response_decoder(func):
             for auth_item in inject_authorization:
                 inject_authorization[auth_item] = "******"
 
-            message = (
+            message = handle_plain_message(
                 f"{func.__name__} gets error status code [{response.status_code}], "
                 f"request with params: {args} and kwargs: {kwargs}. "
             )
