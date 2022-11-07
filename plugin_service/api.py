@@ -35,6 +35,8 @@ from plugin_service.serializers import (
     PluginAppDetailResponseSerializer,
     PluginDetailListQuerySerializer,
     PluginDetailListResponseSerializer,
+    PluginTagListResponseSerializer,
+    PluginTagsListQuerySerializer,
 )
 
 logger = logging.getLogger(PLUGIN_LOGGER)
@@ -53,9 +55,25 @@ def get_plugin_list(request: Request):
     search_term = request.validated_data.get("search_term")
     limit = request.validated_data.get("limit")
     offset = request.validated_data.get("offset")
+    tag = request.validated_data.get("tag")
     result = PluginServiceApiClient.get_plugin_list(
-        search_term=search_term, limit=limit, offset=offset, distributor_code_name=PLUGIN_DISTRIBUTOR_NAME
+        search_term=search_term, limit=limit, offset=offset, distributor_code_name=PLUGIN_DISTRIBUTOR_NAME, tag=tag
     )
+    return JsonResponse(result)
+
+
+@swagger_auto_schema(
+    method="GET",
+    operation_summary="获取插件Tag列表信息",
+    query_serializer=PluginTagsListQuerySerializer,
+    responses={200: PluginTagListResponseSerializer},
+)
+@api_view(["GET"])
+def get_plugin_tags(request: Request):
+    """获取插件tag列表信息"""
+    result = PluginServiceApiClient.get_plugin_tags_list()
+    if request.query_params.get("with_unknown_tag") and result.get("result"):
+        result["data"].append({"code_name": "OTHER", "name": "未分类", "id": -1})
     return JsonResponse(result)
 
 
@@ -73,6 +91,7 @@ def get_plugin_detail_list(request: Request):
     limit = request.validated_data.get("limit")
     offset = request.validated_data.get("offset")
     exclude_not_deployed = request.validated_data.get("exclude_not_deployed")
+    tag = request.validated_data.get("tag")
 
     if exclude_not_deployed:
         plugins = []
@@ -87,6 +106,7 @@ def get_plugin_detail_list(request: Request):
                 order_by="name",
                 include_addresses=0,
                 distributor_code_name=PLUGIN_DISTRIBUTOR_NAME,
+                tag=tag,
             )
             if not result["result"]:
                 return JsonResponse(result)
