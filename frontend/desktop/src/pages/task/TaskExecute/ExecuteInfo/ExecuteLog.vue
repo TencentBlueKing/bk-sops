@@ -32,10 +32,12 @@
                         :inputs="row.inputs"
                         :render-config="row.renderConfig"
                         :constants="row.constants"
+                        :admin-view="adminView"
                         :render-data="row.renderData">
                     </InputParams>
                     <OutputParams
                         :outputs="row.outputsInfo"
+                        :admin-view="adminView"
                         :node-detail-config="nodeDetailConfig">
                     </OutputParams>
                     <NodeLog
@@ -43,6 +45,7 @@
                         :node-detail-config="nodeDetailConfig"
                         :execute-info="row"
                         :third-party-node-code="thirdPartyNodeCode"
+                        :admin-view="adminView"
                         :engine-ver="engineVer">
                     </NodeLog>
                 </div>
@@ -121,6 +124,10 @@
             engineVer: {
                 type: Number,
                 required: true
+            },
+            adminView: {
+                type: Boolean,
+                required: false
             }
         },
         data () {
@@ -303,6 +310,9 @@
         }
         .perform-log {
             width: 100%;
+        }
+        .code-block-wrap {
+            margin-left: 24px;
         }
     }
 </style>
