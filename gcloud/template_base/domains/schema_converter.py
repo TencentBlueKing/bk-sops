@@ -554,8 +554,6 @@ class YamlSchemaConverter(BaseSchemaConverter):
     def _convert_node(self, node: dict, param_constants: dict):
         """将节点数据从原始字段转换为YAML字段"""
         converted_node = {}
-        if node.get("default_condition"):
-            converted_node["default_condition"] = node.get("default_condition")
         for field in self.NODE_NECESSARY_FIELDS.get(node["type"], []):
             converted_field = field if field not in self.NODE_FIELD_MAPPING else self.NODE_FIELD_MAPPING[field]
             converted_node[converted_field] = node[field]
@@ -582,6 +580,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 converted_node.setdefault("output", {})[form_key] = constant
         elif node["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
             if node.get("default_condition"):
+                converted_node["default_condition"] = node.get("default_condition")
                 for default_condition in node["default_condition"].values():
                     default_condition.pop("flow_id", None)
                     default_condition.pop("tag", None)
