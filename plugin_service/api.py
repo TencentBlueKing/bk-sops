@@ -55,9 +55,16 @@ def get_plugin_list(request: Request):
     search_term = request.validated_data.get("search_term")
     limit = request.validated_data.get("limit")
     offset = request.validated_data.get("offset")
-    tag = request.validated_data.get("tag")
+    tag_id = request.validated_data.get("tag_id")
+    extra_kwargs = {}
+    if tag_id is not None:
+        extra_kwargs["tag_id"] = tag_id
     result = PluginServiceApiClient.get_plugin_list(
-        search_term=search_term, limit=limit, offset=offset, distributor_code_name=PLUGIN_DISTRIBUTOR_NAME, tag=tag
+        search_term=search_term,
+        limit=limit,
+        offset=offset,
+        distributor_code_name=PLUGIN_DISTRIBUTOR_NAME,
+        **extra_kwargs,
     )
     return JsonResponse(result)
 
@@ -91,7 +98,10 @@ def get_plugin_detail_list(request: Request):
     limit = request.validated_data.get("limit")
     offset = request.validated_data.get("offset")
     exclude_not_deployed = request.validated_data.get("exclude_not_deployed")
-    tag = request.validated_data.get("tag")
+    tag_id = request.validated_data.get("tag_id")
+    extra_kwargs = {}
+    if tag_id is not None:
+        extra_kwargs["tag_id"] = tag_id
 
     if exclude_not_deployed:
         plugins = []
@@ -106,7 +116,7 @@ def get_plugin_detail_list(request: Request):
                 order_by="name",
                 include_addresses=0,
                 distributor_code_name=PLUGIN_DISTRIBUTOR_NAME,
-                tag=tag,
+                **extra_kwargs,
             )
             if not result["result"]:
                 return JsonResponse(result)
@@ -140,6 +150,7 @@ def get_plugin_detail_list(request: Request):
             order_by="name",
             include_addresses=0,
             distributor_code_name=PLUGIN_DISTRIBUTOR_NAME,
+            **extra_kwargs,
         )
         if not result["result"]:
             return JsonResponse(result)
