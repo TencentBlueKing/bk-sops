@@ -94,10 +94,16 @@
             }
         },
         created () {
+            if (this.retryNodeId) {
+                $.context.exec_env = 'NODE_RETRY'
+            }
             bus.$on('tagRemoteLoaded', (code, data) => {
                 this.remoteData[code] = data
             })
             this.getTaskData()
+        },
+        beforeDestroy () {
+            $.context.exec_env = ''
         },
         methods: {
             ...mapActions('task/', [

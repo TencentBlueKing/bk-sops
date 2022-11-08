@@ -32,7 +32,7 @@ export const setConfigContext = (site_url, project) => {
         variable: site_url + 'api/v3/variable/',
         template: site_url + 'api/v3/template/',
         instance: site_url + 'api/v3/taskflow/',
-        exec_env: '', // 'NODE_CONFIG'、'NODE_RETRY'
+        exec_env: '', // 'NODE_CONFIG'、'NODE_RETRY'、'NODE_EXEC_DETAIL'
         input_form: {
             inputs: undefined
         },

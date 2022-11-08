@@ -714,6 +714,8 @@ const template = {
                             template_id: location.atomId,
                             version: location.atomVersion,
                             type: 'SubProcess',
+                            retryable: true,
+                            skippable: true,
                             always_use_latest: false,
                             scheme_id_list: [],
                             template_source: location.tplSource || 'business'
