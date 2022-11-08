@@ -473,7 +473,6 @@
                 position: absolute;
                 top: -20px;
                 left: 0;
-                height: 18px;
                 overflow: hidden;
                 .bk-form-checkbox,
                 .dark-circle {
