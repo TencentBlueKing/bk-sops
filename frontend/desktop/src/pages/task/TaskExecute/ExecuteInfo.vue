@@ -76,6 +76,7 @@
                     </section>
                     <ExecuteRecord
                         v-if="curActiveTab === 'record'"
+                        :admin-view="adminView"
                         :is-ready-status="isReadyStatus"
                         :node-activity="nodeActivity"
                         :execute-info="executeRecord"
@@ -95,6 +96,7 @@
                     <NodeLog
                         v-else-if="curActiveTab === 'log'"
                         ref="nodeLog"
+                        :admin-view="adminView"
                         :node-detail-config="nodeDetailConfig"
                         :execute-info="executeRecord"
                         :third-party-node-code="thirdPartyNodeCode"
@@ -349,15 +351,14 @@
                 this.loading = true
                 try {
                     this.renderConfig = []
-                    const respData = await this.getTaskNodeDetail()
+                    let respData = await this.getTaskNodeDetail()
                     if (!respData) {
                         this.isReadyStatus = false
                         this.executeInfo = {}
                         return
                     }
-                    const { execution_info } = respData
-                    const state = this.adminView ? execution_info.state : respData.state
-                    this.isReadyStatus = ['RUNNING', 'SUSPENDED', 'FINISHED', 'FAILED'].indexOf(state) > -1
+                    respData = this.adminView && this.engineVer === 1 ? { ...respData, ...respData.execution_info } : respData
+                    this.isReadyStatus = ['RUNNING', 'SUSPENDED', 'FINISHED', 'FAILED'].indexOf(respData.state) > -1
 
                     await this.setFillRecordField(respData)
                     if (this.theExecuteTime === undefined) {
@@ -404,7 +405,7 @@
                 const { inputs, state } = record
                 let outputs = record.outputs
                 // 执行记录的outputs可能为Object格式，需要转为Array格式
-                if (!Array.isArray(outputs)) {
+                if (!this.adminView && !Array.isArray(outputs)) {
                     const executeOutputs = this.executeInfo.outputs
                     outputs = Object.keys(outputs).reduce((acc, key) => {
                         const outputInfo = executeOutputs.find(item => item.key === key)
@@ -511,6 +512,8 @@
                             }
                             return acc
                         }, [])
+                    } else if (this.adminView) {
+                        outputsInfo = outputs
                     } else { // 普通插件展示 preset 为 true 的输出参数
                         outputsInfo = outputs.filter(output => output.preset)
                     }
@@ -541,7 +544,7 @@
                         delete query.component_code
                     }
 
-                    if (this.adminView) {
+                    if (this.adminView && this.engineVer === 1) {
                         const { instance_id: task_id, node_id, subprocess_stack } = this.nodeDetailConfig
                         query = { task_id, node_id, subprocess_stack }
                         res = await this.taskflowNodeDetail(query)
