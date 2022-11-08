@@ -57,7 +57,7 @@ def create_periodic_task(request, template_id, project_id):
     if project_config and project_config.max_periodic_task_num > 0:
         periodic_task_limit = project_config.max_periodic_task_num
     if PeriodicTask.objects.filter(project__id=project.id).count() >= periodic_task_limit:
-        message = "Periodic task number reaches limit: {}".format(periodic_task_limit)
+        message = "周期任务创建失败: 项目内的周期任务数不可超过: {}".format(periodic_task_limit)
         return {"result": False, "message": message, "code": err_code.INVALID_OPERATION.code}
 
     params = json.loads(request.body)
@@ -88,7 +88,7 @@ def create_periodic_task(request, template_id, project_id):
         except CommonTemplate.DoesNotExist:
             result = {
                 "result": False,
-                "message": "common template[id={template_id}] does not exist".format(template_id=template_id),
+                "message": "任务创建失败: 任务关联的公共流程[ID: {}]已不存在, 请检查流程是否存在".format(template_id),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return result

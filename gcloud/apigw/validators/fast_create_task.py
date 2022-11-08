@@ -29,7 +29,7 @@ class FastCreateTaskValidator(ObjectJsonBodyValidator):
         try:
             params = json.loads(request.body)
         except Exception:
-            return False, "invalid json format"
+            return False, "非法请求: 数据错误, 请求不是合法的Json格式"
 
         try:
             pipeline_tree = params["pipeline_tree"]

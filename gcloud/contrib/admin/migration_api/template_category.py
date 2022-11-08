@@ -33,11 +33,11 @@ from gcloud.tasktmpl3.models import TaskTemplate
 def migrate_template_category(request):
     try:
         params = json.loads(request.body)
-    except Exception as e:
+    except Exception:
         return JsonResponse(
             {
                 "result": False,
-                "message": "request body is not a valid json: {}".format(str(e)),
+                "message": "非法请求: 数据错误, 请求不是合法的Json格式",
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
         )

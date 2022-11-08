@@ -42,7 +42,7 @@ def preview_task_tree(request, project_id, template_id):
     except Exception:
         return {
             "result": False,
-            "message": "request body is not a valid json",
+            "message": "非法请求: 数据错误, 请求不是合法的Json格式",
             "code": err_code.REQUEST_PARAM_INVALID.code,
         }
 

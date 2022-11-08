@@ -46,7 +46,7 @@ def operate_task(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
-        return {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
+        return {"result": False, "message": "非法请求: 数据错误, 请求不是合法的Json格式", "code": err_code.REQUEST_PARAM_INVALID.code}
     action = params.get("action")
     username = request.user.username
     project = request.project
@@ -60,7 +60,7 @@ def operate_task(request, task_id, project_id):
 
     if action == "start":
         if TaskFlowInstance.objects.is_task_started(project_id=project.id, id=task_id):
-            return {"result": False, "code": err_code.INVALID_OPERATION.code, "message": "task already started"}
+            return {"result": False, "code": err_code.INVALID_OPERATION.code, "message": "任务操作失败: 已启动的任务不可再次启动"}
 
         queue, routing_key = PrepareAndStartTaskQueueResolver(
             settings.API_TASK_QUEUE_NAME_V2

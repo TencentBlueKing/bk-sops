@@ -433,9 +433,7 @@ def get_node_log(request, project_id, node_id):
             {
                 "result": False,
                 "data": None,
-                "message": "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
-                    node_id=node_id, task_id=task.id
-                ),
+                "message": "节点状态请求失败: 任务[ID: {}]中未找到节点[ID: {}]. 请重试, 如持续失败可联系管理员处理".format(task_id, node_id),
             }
         )
 

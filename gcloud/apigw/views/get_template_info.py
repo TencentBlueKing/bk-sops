@@ -46,12 +46,7 @@ def get_template_info(request, template_id, project_id):
         except TaskTemplate.DoesNotExist:
             result = {
                 "result": False,
-                "message": "template[id={template_id}] of project[project_id={project_id}, biz_id={biz_id}] "
-                "does not exist".format(
-                    template_id=template_id,
-                    project_id=project.id,
-                    biz_id=project.bk_biz_id,
-                ),
+                "message": "任务创建失败: 任务关联的流程[ID: {}]已不存在, 请检查流程是否存在".format(template_id),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return result
@@ -61,7 +56,7 @@ def get_template_info(request, template_id, project_id):
         except CommonTemplate.DoesNotExist:
             result = {
                 "result": False,
-                "message": "common template[id={template_id}] does not exist".format(template_id=template_id),
+                "message": "任务创建失败: 任务关联的公共流程[ID: {}]已不存在, 请检查流程是否存在".format(template_id),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return result

@@ -36,7 +36,7 @@ class CCGetHostIdByInnerIpTestCase(TestCase):
             self.executor, self.bk_biz_id, self.supplier_account, ["bk_host_id", "bk_host_innerip"], self.ip_list
         )
         self.assertFalse(data["result"])
-        self.assertEqual(data["message"], "list_biz_hosts query failed, return empty list")
+        self.assertEqual(data["message"], f"IP [{self.ip_list}] 在本业务下不存在: 请检查配置, 修复后重新执行任务")
 
     def test__return_host_list_gt_ip_list(self):
         mock_cmdb = MagicMock()

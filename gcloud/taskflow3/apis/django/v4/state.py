@@ -34,7 +34,7 @@ def root_state(request, project_id):
     try:
         task = TaskFlowInstance.objects.get(pk=instance_id, project_id=project_id, is_deleted=False)
     except Exception as e:
-        message = "task[id={task_id}] get status error: {error}".format(task_id=instance_id, error=e)
+        message = "任务状态请求失败: 请求任务[ID: {}]的状态发生错误: {}. 请重试, 如持续失败可联系管理员处理".format(instance_id, e)
         logger.error(message)
         return {
             "result": False,

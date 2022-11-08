@@ -5,16 +5,19 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from gcloud.contrib.function.models import FunctionTask
-from gcloud.contrib.function.serializers import FunctionTaskClaimantTransferRequestSerializer, \
-    FunctionTaskClaimantTransferResponse
+from gcloud.contrib.function.serializers import (
+    FunctionTaskClaimantTransferRequestSerializer,
+    FunctionTaskClaimantTransferResponse,
+)
 from gcloud.core.api_adapter.user_role import is_user_role
 from gcloud.iam_auth import IAMMeta
 
 
 class FunctionTaskClaimantTransferView(APIView):
-
     @swagger_auto_schema(
-        method="POST", operation_summary="职能转交", request_body=FunctionTaskClaimantTransferRequestSerializer,
+        method="POST",
+        operation_summary="职能转交",
+        request_body=FunctionTaskClaimantTransferRequestSerializer,
         responses={200: FunctionTaskClaimantTransferResponse},
     )
     @action(methods=["POST"], detail=False)
@@ -32,14 +35,14 @@ class FunctionTaskClaimantTransferView(APIView):
         serializer_data = serializer.data
         function_task_query = FunctionTask.objects.filter(id=serializer_data["id"]).values("claimant")
         if not function_task_query.count():
-            return Response({"result": False, "message": "该id查询不到职能化任务"})
+            return Response({"result": False, "message": "任务转交失败, 当前转交的任务已不存在, 请检查任务是否存在"})
 
         # 查询当前任务是否有认领人判断是否已认领,并且请求的用户是否是认领人
         claimant = function_task_query.first().get("claimant")
         if not claimant:
-            return Response({"result": False, "message": "查询不到该职能化任务认领人"})
+            return Response({"result": False, "message": "任务转交失败: 未查询到任务认领人, 请检查任务后重试"})
         elif claimant != username:
-            return Response({"result": False, "message": "非该职能化任务认领人无法转交"})
+            return Response({"result": False, "message": f"任务转交失败: 仅[{claimant}]才可转交任务, 请检查是否已认领该任务"})
 
         # 修改并返回结果
         FunctionTask.objects.filter(id=serializer_data["id"]).update(claimant=serializer_data["claimant"])

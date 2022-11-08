@@ -176,7 +176,7 @@ def base_import_templates(request: Request, template_model_cls: object, import_k
         return JsonResponse(
             {
                 "result": False,
-                "message": "invalid flow data or error occur, please contact administrator",
+                "message": "流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理",
                 "code": err_code.UNKNOWN_ERROR.code,
                 "data": None,
             }

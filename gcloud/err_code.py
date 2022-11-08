@@ -25,7 +25,7 @@ class ErrorCode(object):
 
 SUCCESS = ErrorCode(code="0", description="success", ignore_prefix=True)
 
-REQUEST_PARAM_INVALID = ErrorCode(code="40000", description="the content of param in your request is invalid")
+REQUEST_PARAM_INVALID = ErrorCode(code="40000", description="非法请求: 请求的接口, 参数校验失败")
 REQUEST_FORBIDDEN_INVALID = ErrorCode(code="40100", description="you have no permission")
 CONTENT_NOT_EXIST = ErrorCode(code="40400", description="the content you reqeust does not exist")
 INVALID_OPERATION = ErrorCode(code="45000", description="invalid operation")

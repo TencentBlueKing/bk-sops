@@ -918,9 +918,7 @@ class TaskFlowInstance(models.Model):
 
     def get_node_data(self, node_id, username, component_code=None, subprocess_stack=None, loop=None):
         if not self.has_node(node_id):
-            message = "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
-                node_id=node_id, task_id=self.id
-            )
+            message = "节点状态请求失败: 任务[ID: {}]中未找到节点[ID: {}]. 请重试, 如持续失败可联系管理员处理".format(self.id, node_id)
             return {"result": False, "message": message, "data": {}, "code": err_code.REQUEST_PARAM_INVALID.code}
 
         dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
@@ -937,9 +935,7 @@ class TaskFlowInstance(models.Model):
         self, node_id, username, component_code=None, subprocess_stack=None, loop=None, include_data=True, **kwargs
     ):
         if not self.has_node(node_id):
-            message = "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
-                node_id=node_id, task_id=self.id
-            )
+            message = "节点状态请求失败: 任务[ID: {}]中未找到节点[ID: {}]. 请重试, 如持续失败可联系管理员处理".format(self.id, node_id)
             return {"result": False, "message": message, "data": {}, "code": err_code.REQUEST_PARAM_INVALID.code}
 
         dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
@@ -1034,9 +1030,7 @@ class TaskFlowInstance(models.Model):
 
     def nodes_action(self, action, node_id, username, **kwargs):
         if not self.has_node(node_id):
-            message = "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
-                node_id=node_id, task_id=self.id
-            )
+            message = "节点状态请求失败: 任务[ID: {}]中未找到节点[ID: {}]. 请重试, 如持续失败可联系管理员处理".format(self.id, node_id)
             return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
         dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)
@@ -1080,9 +1074,7 @@ class TaskFlowInstance(models.Model):
 
     def spec_nodes_timer_reset(self, node_id, username, inputs):
         if not self.has_node(node_id):
-            message = "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
-                node_id=node_id, task_id=self.id
-            )
+            message = "节点状态请求失败: 任务[ID: {}]中未找到节点[ID: {}]. 请重试, 如持续失败可联系管理员处理".format(self.id, node_id)
             return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
         dispatcher = NodeCommandDispatcher(engine_ver=self.engine_ver, node_id=node_id, taskflow_id=self.id)

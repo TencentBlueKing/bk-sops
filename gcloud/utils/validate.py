@@ -31,7 +31,7 @@ class ObjectJsonBodyValidator(RequestValidator):
         try:
             data = json.loads(request.body)
         except Exception:
-            return False, "request body is not a valid json"
+            return False, "非法请求: 数据错误, 请求不是合法的Json格式"
 
         if not isinstance(data, dict):
             return False, "request body must be a object"

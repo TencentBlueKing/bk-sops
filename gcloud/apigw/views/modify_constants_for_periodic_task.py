@@ -39,7 +39,7 @@ def modify_constants_for_periodic_task(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
-        return {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
+        return {"result": False, "message": "非法请求: 数据错误, 请求不是合法的Json格式", "code": err_code.REQUEST_PARAM_INVALID.code}
 
     constants = params.get("constants", {})
 

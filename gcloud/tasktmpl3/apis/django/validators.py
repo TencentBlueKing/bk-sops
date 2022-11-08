@@ -81,7 +81,7 @@ class DrawPipelineValidator(RequestValidator):
         try:
             data = json.loads(request.body)
         except Exception:
-            return False, "request body is not a valid json"
+            return False, "非法请求: 数据错误, 请求不是合法的Json格式"
 
         pipeline_tree = data.get("pipeline_tree")
 

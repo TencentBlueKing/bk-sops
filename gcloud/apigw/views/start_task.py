@@ -52,7 +52,7 @@ def start_task(request, task_id, project_id):
         }
 
     if TaskFlowInstance.objects.is_task_started(project_id=project.id, id=task_id):
-        return {"result": False, "code": err_code.INVALID_OPERATION.code, "message": "task already started"}
+        return {"result": False, "code": err_code.INVALID_OPERATION.code, "message": "任务操作失败: 已启动的任务不可再次启动"}
 
     queue, routing_key = PrepareAndStartTaskQueueResolver(
         settings.API_TASK_QUEUE_NAME_V2

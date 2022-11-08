@@ -46,7 +46,7 @@ def dispatch_plugin_query(request):
     except Exception:
         return {
             "result": False,
-            "message": "invalid json format",
+            "message": "非法请求: 数据错误, 请求不是合法的Json格式",
             "code": err_code.REQUEST_PARAM_INVALID.code,
         }
 

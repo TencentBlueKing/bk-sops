@@ -171,7 +171,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
         }
     )
     if not job_result["result"]:
-        message = _("查询作业平台(JOB)的作业模板详情[app_id=%s]接口jobv3.get_job_plan_detail返回失败: %s") % (
+        message = _("请求执行方案失败: 请求[作业平台]的执行方案[ID: %s]返回失败: %s请重试, 如持续失败请联系管理员处理") % (
             biz_cc_id,
             job_result["message"],
         )
@@ -186,7 +186,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
     global_var = []
     steps = []
     if not task_detail:
-        message = "请求作业平台执行方案详情返回数据为空: {}".format(job_result)
+        message = "请求执行方案失败: 请求[作业平台]的执行方案[ID: {}]返回为空. 请重试, 如持续失败请联系管理员处理".format(job_result)
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
 
@@ -353,7 +353,7 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
     plan_detail = jobv3_result["data"]
     global_var = []
     if not plan_detail:
-        message = _("请求作业平台执行方案详情返回数据为空: {}").format(jobv3_result)
+        message = _("请求执行方案失败: 请求[作业平台]的执行方案[ID: {}]返回为空. 请重试, 如持续失败请联系管理员处理").format(jobv3_result)
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
 
@@ -427,7 +427,10 @@ job_urlpatterns = [
     url(r"^job_get_public_script_name_list/$", job_get_public_script_name_list),
     url(r"^job_get_script_by_script_version/(?P<biz_cc_id>\d+)/$", job_get_script_by_script_version),
     url(r"^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$", job_get_job_tasks_by_biz),
-    url(r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_job_task_detail,),
+    url(
+        r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$",
+        job_get_job_task_detail,
+    ),
     url(r"^job_get_instance_detail/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_instance_detail),
     # jobv3接口
     url(r"^jobv3_get_job_template_list/(?P<biz_cc_id>\d+)/$", jobv3_get_job_template_list),

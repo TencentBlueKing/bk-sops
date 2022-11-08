@@ -72,7 +72,7 @@ class IPPickerDataGenerator:
         """根据字符串生成ip数据"""
         result = cc_get_ips_info_by_str(self.username, self.request_kwargs["bk_biz_id"], self.raw_data)
         if result["invalid_ip"]:
-            return {"result": False, "data": [], "message": f"ips: {result['invalid_ip']} invalid."}
+            return {"result": False, "data": [], "message": f"IP [{result['invalid_ip']}] 在本业务下不存在: 请检查配置, 修复后重新执行任务"}
         ips = [
             {
                 "bk_host_innerip": ip["InnerIP"],

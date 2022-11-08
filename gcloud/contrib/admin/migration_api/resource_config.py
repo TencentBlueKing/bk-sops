@@ -32,11 +32,11 @@ from gcloud import err_code
 def register_resource_config(request):
     try:
         params = json.loads(request.body)
-    except Exception as e:
+    except Exception:
         return JsonResponse(
             {
                 "result": False,
-                "message": "request body is not a valid json: {}".format(str(e)),
+                "message": "非法请求: 数据错误, 请求不是合法的Json格式",
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
         )

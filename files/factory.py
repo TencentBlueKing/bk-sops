@@ -27,7 +27,7 @@ class ManagerFactory(object):
     def get_manager(cls, manager_type):
         creator = getattr(cls, "_create_{}_manager".format(manager_type), None)
         if not creator or not callable(creator):
-            raise LookupError("Can not find manager for type: {}".format(manager_type))
+            raise LookupError("文件上传失败: 请重试, 如持续失败可联系管理员处理")
 
         return creator()
 

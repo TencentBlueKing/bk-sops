@@ -165,7 +165,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         )
 
         if not update_success:
-            return {"result": False, "message": "task already started", "code": err_code.INVALID_OPERATION.code}
+            return {"result": False, "message": "任务操作失败: 已启动的任务不可再次启动", "code": err_code.INVALID_OPERATION.code}
 
         try:
             # convert web pipeline to pipeline
@@ -191,7 +191,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         except Exception as e:
             logger.exception("run pipeline failed")
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
-                start_time=None, is_started=False, executor="",
+                start_time=None,
+                is_started=False,
+                executor="",
             )
             return {
                 "result": False,
@@ -201,7 +203,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         if not result.result:
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
-                start_time=None, is_started=False, executor="",
+                start_time=None,
+                is_started=False,
+                executor="",
             )
             logger.error("run_pipeline fail: {}, exception: {}".format(result.message, result.exc_trace))
         else:
