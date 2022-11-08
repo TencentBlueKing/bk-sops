@@ -478,7 +478,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                     if node["type"] == "SubProcess":
                         node["template_id"] = template_key_mapping[node["template_id"]]
                     if node["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
-                        if node.get("default_condition"):
+                        if "default_condition" in node:
                             node["default_condition"] = dict(
                                 [
                                     (node_key_mapping[node_id], data)
@@ -579,7 +579,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
             for form_key, constant in param_constants["component_outputs"].get(node["id"], {}).items():
                 converted_node.setdefault("output", {})[form_key] = constant
         elif node["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
-            if node.get("default_condition"):
+            if "default_condition" in node:
                 converted_node["default_condition"] = node.get("default_condition")
                 for default_condition in node["default_condition"].values():
                     default_condition.pop("flow_id", None)
