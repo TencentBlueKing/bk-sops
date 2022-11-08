@@ -110,7 +110,7 @@ def cc_attribute_type_to_table_type(attribute):
             item_name = item["name"].strip()
             if item["is_default"] is True:
                 result["attrs"]["default"] = item_name
-            result["attrs"]["items"].append({"text": item_name, "value": item_name})
+            result["attrs"]["items"].append({"text": item_name, "value": item["id"]})
     return result
 
 

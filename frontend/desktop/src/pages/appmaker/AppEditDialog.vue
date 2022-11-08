@@ -202,7 +202,7 @@
                     v-cursor="{ active: appData.appTemplate && !hasConfirmPerm }"
                     data-test-id="appmaker_form_confirmEditBtn"
                     @click="onConfirm">
-                    {{$t('提交')}}
+                    {{ isCreateNewApp ? $t('提交') : $t('保存') }}
                 </bk-button>
                 <bk-button type="default" data-test-id="appmaker_form_cancelEditBtn" @click="onCancel">{{$t('取消')}}</bk-button>
             </div>

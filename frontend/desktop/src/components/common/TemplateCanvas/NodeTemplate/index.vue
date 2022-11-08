@@ -182,6 +182,7 @@
 
     @mixin circleStatusStyle ($color) {
         background-color: $color;
+        box-shadow: 0 0 0 5px $color;
         .circle-node-text {
             color: $whiteColor;
         }
@@ -265,17 +266,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 40px;
-            height: 40px;
+            width: 34px;
+            height: 34px;
             background: #96a1b9;
             border-radius: 50%;
-            &.reday {
+            box-shadow: 0 0 0 2px #96a1b9;
+            &.ready {
                 @include circleStatusStyle($grayDark);
             }
             &.finished {
                 @include circleStatusStyle($greenDark);
                 &.end-point {
-                    background-color: #2dcb56;
+                    @include circleStatusStyle(#2dcb56);
                 }
             }
             &.running {
@@ -299,7 +301,7 @@
                     display: block;
                 }
             }
-            &.reday {
+            &.ready {
                 @include gatewayStyle($grayDark);
             }
             &.failed {
@@ -376,7 +378,7 @@
                      @include nodeClick ($defaultColor);
                 }
             }
-            &.reday {
+            &.ready {
                 @include taskNodeStyle ($grayDark);
                 &.actived {
                      @include nodeClick ($grayDark);
@@ -502,6 +504,7 @@
                 display: none;
                 color: #63656e;
                 font-size: 12px;
+                width: max-content;
                 padding-top: 5px;
                 > span {
                     &:not(:last-child) {

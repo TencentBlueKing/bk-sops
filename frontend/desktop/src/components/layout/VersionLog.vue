@@ -172,8 +172,9 @@
         }
         &-right {
             flex: 1;
-            padding: 25px 30px 50px 45px;
+            padding: 25px 0 50px;
             .detail-container {
+                padding: 0 30px 0 45px;
                 max-height: 525px;
                 overflow: auto;
             }

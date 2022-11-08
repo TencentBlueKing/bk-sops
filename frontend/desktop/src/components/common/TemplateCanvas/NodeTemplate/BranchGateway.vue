@@ -14,11 +14,11 @@
         :class="[
             'gateway-node',
             'branch-gateway',
-            { 'reday': !('status' in node) },
+            { 'ready': node.ready },
             node.status ? node.status.toLowerCase() : ''
         ]">
         <div class="node-type-icon common-icon-node-branchgateway"></div>
-        <div class="state-icon">
+        <div class="state-icon" v-if="isOpenTooltip">
             <span @click.stop="onGatewaySelectionClick">
                 <i class="common-icon-skip"></i>
                 {{ $t('跳过') }}
