@@ -140,13 +140,13 @@ class PluginServiceApiClient:
         return {"result": True, "message": None, "data": result}
 
     @staticmethod
-    def get_plugin_detail_list(search_term=None, limit=100, offset=0, **kwargs):
+    def get_plugin_detail_list(search_term=None, **kwargs):
         """获取插件服务列表及详情信息"""
         # 如果不启动插件服务，直接返回空列表
         if not env.USE_PLUGIN_SERVICE == "1":
             return {"result": True, "message": "插件服务未启用，请联系管理员进行配置", "data": {"count": 0, "plugins": []}}
         result = PluginServiceApiClient.batch_get_paas_plugin_detailed_info(
-            search_term=search_term, environment="prod", limit=limit, offset=offset, **kwargs
+            search_term=search_term, environment="prod", **kwargs
         )
         if result.get("result") is False:
             return result
@@ -212,14 +212,12 @@ class PluginServiceApiClient:
 
     @staticmethod
     @json_response_decoder
-    def batch_get_paas_plugin_detailed_info(
-        environment=None, limit=100, offset=0, search_term=None, distributor_code_name=None, **kwargs
-    ):
+    def batch_get_paas_plugin_detailed_info(environment=None, search_term=None, distributor_code_name=None, **kwargs):
         """通过PaaS平台批量请求插件服务列表及对应详情"""
         url, params = PluginServiceApiClient._prepare_paas_api_request(
             path_params=["system/bk_plugins/batch/detailed"], environment=environment
         )
-        params.update({"limit": limit, "offset": offset, "has_deployed": True, **kwargs})
+        params.update({"has_deployed": True, **kwargs})
         if search_term:
             params.update({"search_term": search_term})
         if distributor_code_name:

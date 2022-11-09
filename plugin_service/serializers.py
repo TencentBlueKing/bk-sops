@@ -113,6 +113,12 @@ class PluginListQuerySerializer(serializers.Serializer):
 
 class PluginDetailListQuerySerializer(PluginListQuerySerializer):
     exclude_not_deployed = serializers.BooleanField(help_text="是否排除当前环境未部署数据", required=False, default=True)
+    fetch_all = serializers.BooleanField(help_text="是否一次性获取全部数据", required=False, default=False)
+
+    def validate(self, data):
+        if data.get("fetch_all") and not data.get("search_term"):
+            raise serializers.ValidationError("cannot fetch all plugins without search_term params")
+        return data
 
 
 class PluginTagsListQuerySerializer(serializers.Serializer):
