@@ -112,7 +112,7 @@ class CCBatchUpdateHostService(Service):
             for column in host_property_custom:
                 column_result = chunk_table_data(column, separator)
                 if not column_result["result"]:
-                    message = _("单行扩展失败，请检查输入参数格式是否合法, error={}".format(column_result["message"]))
+                    message = _("主机属性更新失败: 插件配置的主机属性不合法, 请修复后重试")
                     data.outputs.ex_data = message
                     self.logger.error(message)
                     return False
@@ -146,7 +146,7 @@ class CCBatchUpdateHostService(Service):
             if ":" in inner_host_ip:
                 inner_host_ip = inner_host_ip.split(":")[1]
             if inner_host_ip not in ip_dir:
-                message = _("innerip【{}】找不到对应的host_id".format(inner_host_ip))
+                message = _("主机属性更新失败: [配置平台]未找到待更新主机, 请假查配置")
                 data.outputs.ex_data = message
                 self.logger.error(message)
                 return False

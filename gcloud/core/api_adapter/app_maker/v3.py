@@ -49,7 +49,7 @@ def _request_paasv3_light_app_api(url, method, params=None, data=None):
     try:
         response = method_func(url, data=json.dumps(data or {}), headers=headers, params=params or {})
     except Exception as e:
-        message = "paasv3 request({url}) error: {e}".format(url=url, e=e)
+        message = "轻应用请求Paas接口报错: 请求url: {}, 报错内容: {}".format(url, e)
         logger.error(message)
 
         return {"result": False, "message": message}
@@ -57,9 +57,7 @@ def _request_paasv3_light_app_api(url, method, params=None, data=None):
     try:
         response.raise_for_status()
     except requests.HTTPError as e:
-        message = "paasv3 request({url}) error: {e}, response: {response}".format(
-            url=response.request.url, e=e, response=response.text
-        )
+        message = "轻应用请求Paas接口报错: 请求url: {}, 报错内容: {}, 响应内容: {}".format(response.request.url, e, response.text)
         logger.error(message)
 
         return {"result": False, "message": message}
@@ -84,16 +82,21 @@ def _request_paasv3_light_app_api(url, method, params=None, data=None):
             resp_data["message"] = resp_data.get("bk_error_msg")
         return resp_data
     except Exception as e:
-        message = "paasv3 request({url}) error, response json convert failed: {e}, response: {response}".format(
-            url=response.request.url, e=e, response=response.content
-        )
+        message = "轻应用请求PaaS接口报错: 请求url {}, 接口响应json格式转换失败 {}，响应内容 {}".format(response.request.url, e, response.content)
         logger.error(message)
 
         return {"result": False, "message": message}
 
 
 def create_maker_app(
-    creator, app_name, app_url, developer="", app_tag="", introduction="", add_user="", company_code="",
+    creator,
+    app_name,
+    app_url,
+    developer="",
+    app_tag="",
+    introduction="",
+    add_user="",
+    company_code="",
 ):
     """
     @summary: 创建 maker app

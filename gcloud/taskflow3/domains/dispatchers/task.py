@@ -188,7 +188,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 queue=self.queue,
                 cycle_tolerate=True,
             )
-        except Exception as e:
+        except Exception:
             logger.exception("run pipeline failed")
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
                 start_time=None,
@@ -197,7 +197,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             )
             return {
                 "result": False,
-                "message": "run pipeline failed: {}".format(e),
+                "message": "任务启动失败: 引擎启动失败, 请重试. 如持续失败可联系管理员处理",
                 "code": err_code.UNKNOWN_ERROR.code,
             }
 
@@ -284,8 +284,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         if pre_render_constants or hide_constants or component_outputs:
             return {
                 "result": False,
-                "message": "can't modify consntans, pre-render: %s hided: %s output: %s"
-                % (pre_render_constants, hide_constants, component_outputs),
+                "message": "任务参数设置失败: 常量、输出参数、隐藏变量不可修改值, 请检查变量配置",
                 "data": None,
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
@@ -307,7 +306,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             )
             return {
                 "result": False,
-                "message": "constants is not valid",
+                "message": "任务参数设置失败: 非法的任务参数, 请修改后重试",
                 "data": None,
                 "code": err_code.UNKNOWN_ERROR.code,
             }
@@ -345,7 +344,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                     return {
                         "result": False,
                         "data": "",
-                        "message": "update pipeline context value failed: %s" % update_res.message,
+                        "message": "任务参数设置失败: 更新引擎上下文发生异常: %s. 请重试, 如持续失败可联系管理员处理" % update_res.message,
                         "code": err_code.UNKNOWN_ERROR.code,
                     }
             self.pipeline_instance.set_execution_data(exec_data)
@@ -403,10 +402,10 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 logger.error(f"node relationship does not exist: {e}")
                 task_status = self.CREATED_STATUS
             except Exception:
-                logger.exception("task.get_status fail")
+                logger.exception("任务数据请求失败: 请重试, 如持续失败可联系管理员处理")
                 return {
                     "result": False,
-                    "message": "task.get_status fail",
+                    "message": "任务数据请求失败: 请重试, 如持续失败可联系管理员处理",
                     "data": {},
                     "code": err_code.UNKNOWN_ERROR.code,
                 }
@@ -418,10 +417,10 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 # do not raise error when subprocess not exist or has not been executed
                 task_status = self.CREATED_STATUS
             except Exception:
-                logger.exception("pipeline_api.get_status_tree(subprocess_id:{}) fail".format(subprocess_id))
+                logger.exception("任务数据请求失败: 请重试, 如持续失败可联系管理员处理")
                 return {
                     "result": False,
-                    "message": "pipeline_api.get_status_tree(subprocess_id:{}) fail",
+                    "message": "任务数据请求失败: 请重试, 如持续失败可联系管理员处理",
                     "data": {},
                     "code": err_code.UNKNOWN_ERROR.code,
                 }

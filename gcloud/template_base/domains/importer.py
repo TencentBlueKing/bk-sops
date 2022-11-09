@@ -89,7 +89,7 @@ class TemplateImporter:
                             {
                                 "result": False,
                                 "data": "",
-                                "message": f"Template does not exist with id {template_id}",
+                                "message": f"流程导入失败: 文件解析异常, [ID: {template_id}]的流程不存在. 请修复后重试或联系管理员处理",
                                 "verbose_message": e,
                             }
                         )
@@ -162,10 +162,8 @@ class TemplateImporter:
                     return {
                         "result": False,
                         "data": None,
-                        "message": "can not find {} in pipeline_id_map".format(act["template_id"]),
-                        "verbose_message": "can not find {} in pipeline_id_map: {}".format(
-                            act["template_id"], pipeline_id_map
-                        ),
+                        "message": "流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员",
+                        "verbose_message": "流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员",
                     }
                 imported_template_id = act["template_id"]
                 act["template_id"] = pipeline_id_map[imported_template_id]

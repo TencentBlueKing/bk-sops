@@ -104,7 +104,7 @@ def parse_node_timeout_configs(pipeline_tree: dict) -> list:
             timeout_seconds = timeout_config.get("seconds")
             action = timeout_config.get("action")
             if not timeout_seconds or not isinstance(timeout_seconds, int):
-                message = f"node {act_id} has a illegal timemout seconds: {timeout_seconds}"
+                message = "节点执行失败: 节点配置了非法的超时时间, 请修改配置后重试"
                 logger.error(message)
                 # 对于不符合格式要求的情况，则不设置对应超时时间
                 continue

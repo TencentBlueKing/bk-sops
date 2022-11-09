@@ -102,7 +102,7 @@ def status(request, project_id):
         return JsonResponse(
             {
                 "result": False,
-                "message": "task with instance_id({}) not exist".format(instance_id),
+                "message": "任务查询失败: 任务[ID: {}]不存在, 请检查".format(instance_id),
                 "data": None,
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
@@ -212,7 +212,7 @@ def get_job_instance_log(request, biz_cc_id):
     job_result = client.job.get_job_instance_log(log_kwargs)
 
     if not job_result["result"]:
-        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (biz_cc_id, job_result["message"])
+        message = _("执行历史请求失败: 请求[作业平台] 执行历史发生异常: %s") % (job_result["message"])
 
         if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
             logger.warning(message)
@@ -376,7 +376,7 @@ def preview_task_tree(request, project_id):
     try:
         data = preview_template_tree(project_id, template_source, template_id, version, exclude_task_nodes_id)
     except Exception as e:
-        err_msg = "preview_template_tree fail: {}".format(e)
+        err_msg = "任务数据请求失败: 请求任务数据发生异常: {}. 请重试, 如多次失败可联系管理员处理".format(e)
         logger.exception(err_msg)
         return JsonResponse({"result": False, "message": err_msg})
 
@@ -469,7 +469,7 @@ def node_callback(request, token):
         callback_data = json.loads(request.body)
     except Exception:
         logger.warning("node callback error: %s" % traceback.format_exc())
-        return JsonResponse({"result": False, "message": "invalid request body"}, status=400)
+        return JsonResponse({"result": False, "message": "非法请求: 无效的请求, 请重试. 如持续失败可联系管理员处理"}, status=400)
 
     # 老的回调接口，一定是老引擎的接口
     dispatcher = NodeCommandDispatcher(engine_ver=EngineConfig.ENGINE_VER_V1, node_id=node_id)

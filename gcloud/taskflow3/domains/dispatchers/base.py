@@ -44,6 +44,6 @@ class EngineCommandDispatcher(metaclass=ABCMeta):
     def _unsupported_engine_ver_result(self):
         return {
             "result": False,
-            "message": "Unsupported engine version: {}".format(self.engine_ver),
+            "message": "非法请求: 不支持的引擎版本[{}], 请联系管理员升级".format(self.engine_ver),
             "code": err_code.UNKNOWN_ERROR.code,
         }

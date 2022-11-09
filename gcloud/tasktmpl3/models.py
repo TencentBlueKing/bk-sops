@@ -442,7 +442,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
         if override and (not check_info["can_override"]):
             return {
                 "result": False,
-                "message": _("跨业务导入模版不支持覆盖相同ID"),
+                "message": _("流程导入失败: 跨业务导入流程不支持覆盖相同ID, 请检查配置"),
                 "data": 0,
                 "code": err_code.INVALID_OPERATION.code,
             }

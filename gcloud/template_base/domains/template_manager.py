@@ -29,7 +29,13 @@ class TemplateManager:
     def __init__(self, template_model_cls):
         self.template_model_cls = template_model_cls
 
-    def create_pipeline(self, name: str, creator: str, pipeline_tree: dict, description: str = "",) -> dict:
+    def create_pipeline(
+        self,
+        name: str,
+        creator: str,
+        pipeline_tree: dict,
+        description: str = "",
+    ) -> dict:
         """
         创建 pipeline 层模板
 
@@ -53,10 +59,8 @@ class TemplateManager:
             return {
                 "result": False,
                 "data": None,
-                "message": "[TemplateManager]validate_web_pipeline_tree failed: {}".format(str(e)),
-                "verbose_message": "[TemplateManager]validate_web_pipeline_tree failed: {}".format(
-                    traceback.format_exc()
-                ),
+                "message": "流程树合法性校验失败, 失败原因: {}".format(str(e)),
+                "verbose_message": "流程树合法性校验失败, 失败原因: {}".format(traceback.format_exc()),
             }
 
         create_template_kwargs = {
@@ -71,10 +75,10 @@ class TemplateManager:
             return {
                 "result": False,
                 "data": None,
-                "message": "[TemplateManager]create_pipeline_template({kwargs}) failed: {e}".format(
+                "message": "创建Pipeline流程失败: 创建参数[{kwargs}], 失败原因: [{e}]".format(
                     kwargs=create_template_kwargs, e=str(e)
                 ),
-                "verbose_message": "[TemplateManager]create_pipeline_template({kwargs}) failed: {trace}".format(
+                "verbose_message": "创建Pipeline流程失败: 创建参数[{kwargs}], 失败原因: [{trace}]".format(
                     kwargs=create_template_kwargs, trace=traceback.format_exc()
                 ),
             }
@@ -82,7 +86,12 @@ class TemplateManager:
         return {"result": True, "data": pipeline_template, "message": "success", "verbose_message": "success"}
 
     def create(
-        self, name: str, creator: str, pipeline_tree: dict, template_kwargs: dict, description: str = "",
+        self,
+        name: str,
+        creator: str,
+        pipeline_tree: dict,
+        template_kwargs: dict,
+        description: str = "",
     ) -> dict:
         """
         创建 template 层模板
@@ -113,10 +122,8 @@ class TemplateManager:
             return {
                 "result": False,
                 "data": None,
-                "message": "[TemplateManager]create objects.create({kwargs}) failed: {e}".format(
-                    kwargs=template_kwargs, e=str(e)
-                ),
-                "verbose_message": "[TemplateManager]create objects.create({kwargs}) failed: {trace}".format(
+                "message": "创建流程失败: 创建参数[{kwargs}], 失败原因: [{e}]".format(kwargs=template_kwargs, e=str(e)),
+                "verbose_message": "创建流程失败: 创建参数[{kwargs}], 失败原因: [{trace}]".format(
                     kwargs=template_kwargs, trace=traceback.format_exc()
                 ),
             }
@@ -162,10 +169,8 @@ class TemplateManager:
                 return {
                     "result": False,
                     "data": None,
-                    "message": "[TemplateManager]validate_web_pipeline_tree failed: {}".format(str(e)),
-                    "verbose_message": "[TemplateManager]validate_web_pipeline_tree failed: {}".format(
-                        traceback.format_exc()
-                    ),
+                    "message": "流程树合法性校验失败, 失败原因: {}".format(str(e)),
+                    "verbose_message": "流程树合法性校验失败, 失败原因: {}".format(traceback.format_exc()),
                 }
 
             replace_template_id(self.template_model_cls, pipeline_tree)
@@ -180,10 +185,10 @@ class TemplateManager:
                 return {
                     "result": False,
                     "data": None,
-                    "message": "[TemplateManager]update_template({update_kwargs}) failed: {e}".format(
+                    "message": "更新Pipeline流程失败: 更新参数: [{update_kwargs}], 失败原因: [{e}]".format(
                         update_kwargs=update_kwargs, e=str(e)
                     ),
-                    "verbose_message": "[TemplateManager]update_template({update_kwargs}) failed: {trace}".format(
+                    "verbose_message": "更新Pipeline流程失败: 更新参数: [{update_kwargs}], 失败原因: [{trace}]".format(
                         update_kwargs=update_kwargs, trace=traceback.format_exc()
                     ),
                 }
@@ -198,7 +203,12 @@ class TemplateManager:
         return {"result": True, "data": pipeline_template, "message": "success", "verbose_message": "success"}
 
     def update(
-        self, template: object, editor: str, name: str = "", pipeline_tree: str = None, description: str = "",
+        self,
+        template: object,
+        editor: str,
+        name: str = "",
+        pipeline_tree: str = None,
+        description: str = "",
     ) -> dict:
         """
         更新 template 层模板
@@ -244,7 +254,7 @@ class TemplateManager:
         if referencer:
             return (
                 False,
-                "flow template are referenced by other templates[{}], please delete them first".format(
+                "流程删除失败: 流程已被其他流程引用[{}], 暂不可删除, 请处理后重试".format(
                     ",".join([f'{item["template_type"]}:{item["id"]}:{item["name"]}' for item in referencer])
                 ),
             )
@@ -253,7 +263,7 @@ class TemplateManager:
         if appmaker_referencer:
             return (
                 False,
-                "flow template are referenced by mini apps[{}], please delete them first".format(
+                "流程删除失败: 流程已被其他轻应用引用[{}], 暂不可删除, 请处理后重试".format(
                     ",".join(["{}:{}".format(item["id"], item["name"]) for item in appmaker_referencer])
                 ),
             )
@@ -262,7 +272,7 @@ class TemplateManager:
         if clocked_task_referencer:
             return (
                 False,
-                "flow template are referenced by clocked tasks[{}], please delete them first".format(
+                "流程删除失败: 流程已被计划任务引用: [{}], 暂不可删除, 请处理后重试".format(
                     ",".join(["{}:{}".format(item["id"], item["name"]) for item in clocked_task_referencer])
                 ),
             )
@@ -271,7 +281,7 @@ class TemplateManager:
         if periodic_task_referencer:
             return (
                 False,
-                "flow template are referenced by periodic tasks[{}], please delete them first".format(
+                "流程删除失败: 流程已被定时任务引用[{}], 暂不可删除, 请处理后重试".format(
                     ",".join(["{}:{}".format(item["id"], item["name"]) for item in periodic_task_referencer])
                 ),
             )

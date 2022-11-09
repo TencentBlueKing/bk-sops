@@ -67,7 +67,7 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
         )
         if not template:
             template_type = f'project[{kwargs["project_id"]}]' if "project_id" in kwargs else "common_template"
-            message = "flow template[id={template_id}] in {template_type} does not exist".format(
+            message = "获取流程失败: 流程ID为[{template_id}]]的[{template_type}]类型流程不存在".format(
                 template_id=template_id, template_type=template_type
             )
             logger.error(message)
@@ -142,7 +142,7 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
 
         quote_scheme_ids_set = set(self.get_scheme_quote_count_dict(pipeline_template_template_id).keys())
         if remove_scheme_ids_set & quote_scheme_ids_set:
-            message = "被子流程节点引用的执行方案禁止删除"
+            message = "执行方案删除失败: 待删除的[执行方案]已被引用[{}], 请处理后重试".format(quote_scheme_ids_set)
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
         remove_scheme_ids = list(remove_scheme_ids_set)
@@ -156,7 +156,7 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
                 # 批量创建scheme
                 TemplateScheme.objects.bulk_create(create_schemes)
         except Exception as e:
-            message = "create template({}) scheme failed: {}".format(template_id, str(e))
+            message = "执行方案批量操作失败: 流程ID: {}, 失败原因: {}".format(template_id, str(e))
             logger.error(message)
             return Response({"detail": ErrorDetail(message, err_code.UNKNOWN_ERROR.code)}, exception=True)
 
@@ -196,7 +196,7 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
         scheme_quote_num = TemplateRelationship.objects.filter(templatescheme__id=kwargs["pk"]).count()
 
         if scheme_quote_num != 0:
-            message = "该执行方案被{}个子流程节点引用,禁止删除".format(scheme_quote_num)
+            message = "执行方案删除失败: 待删除的[执行方案]已被引用[{}], 请处理后重试".format(scheme_quote_num)
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
         return super(TemplateSchemeViewSet, self).destroy(request, *args, **kwargs)

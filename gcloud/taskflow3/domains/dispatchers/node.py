@@ -192,7 +192,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
     def retry_subprocess_v1(self, operator: str, **kwargs) -> dict:
         return {
             "result": False,
-            "message": "v1 engine do not support subprocess retry",
+            "message": "非法请求: 当前引擎不支持子流程重试, 请联系管理员升级",
             "code": err_code.INVALID_OPERATION.code,
         }
 
@@ -538,7 +538,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     return {
                         "result": False,
                         "data": {},
-                        "message": f"fail to preview node inputs: {preview_result.exc}",
+                        "message": "节点数据请求失败: 请重试, 如多次失败可联系管理员处理",
                         "code": err_code.UNKNOWN_ERROR.code,
                     }
 

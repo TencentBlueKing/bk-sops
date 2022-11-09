@@ -971,11 +971,11 @@ class TaskFlowInstance(models.Model):
 
     def task_claim(self, username, constants, name):
         if self.flow_type != "common_func":
-            return {"result": False, "message": "task is not functional", "data": None}
+            return {"result": False, "message": "任务认领失败: 仅职能化任务才能认领, 请检查任务类型", "data": None}
         elif self.current_flow != "func_claim":
             return {
                 "result": False,
-                "message": "task with current_flow:%s cannot be claimed" % self.current_flow,
+                "message": "任务认领失败: 仅职能化任务才能认领, 请检查任务类型",
                 "data": None,
             }
 
@@ -1023,8 +1023,8 @@ class TaskFlowInstance(models.Model):
 
         try:
             return dispatcher.dispatch(action, username)
-        except Exception as e:
-            message = "task[id=%s] action failed:%s" % (self.id, e)
+        except Exception:
+            message = "任务操作失败: 任务[ID: %s]操作失败. 请重试, 持续失败可联系管理员处理" % (self.id)
             logger.exception(traceback.format_exc())
             return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
 
@@ -1037,8 +1037,8 @@ class TaskFlowInstance(models.Model):
 
         try:
             return dispatcher.dispatch(action, username, **kwargs)
-        except Exception as e:
-            message = "task[id=%s] node[id=%s] action failed: %s" % (self.id, node_id, e)
+        except Exception:
+            message = "节点操作失败: 节点[名称: {}]操作失败, 请重试. 如持续失败可联系管理员处理".format(self.name)
             logger.exception(traceback.format_exc())
             return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
 

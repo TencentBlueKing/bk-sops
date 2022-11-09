@@ -183,7 +183,7 @@ class SubprocessPluginService(Service):
         try:
             subprocess_task = TaskFlowInstance.objects.get(id=task_id)
         except TaskFlowInstance.DoesNotExist:
-            message = f"subprocess task {task_id} not found"
+            message = f"子任务[{task_id}]不存在"
             self.logger.error(message)
             data.set_outputs("ex_data", message)
             return False

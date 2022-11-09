@@ -50,14 +50,14 @@ class RemotePluginService(Service):
         try:
             plugin_client = PluginServiceApiClient(plugin_code)
         except PluginServiceException as e:
-            message = f"[remote plugin service client] error: {e}"
+            message = f"第三方插件client初始化失败, 错误内容: {e}"
             logger.error(message)
             data.set_outputs("ex_data", message)
             return False
 
         detail_result = plugin_client.get_detail(plugin_version)
         if not detail_result["result"]:
-            message = f"[remote plugin service detail] error: {detail_result['message']}"
+            message = f"获取第三方插件详情失败, 错误内容: {detail_result['message']}"
             logger.error(message)
             data.set_outputs("ex_data", message)
             return False
@@ -71,10 +71,7 @@ class RemotePluginService(Service):
         )
         ok, result_data = plugin_client.invoke(plugin_version, {"inputs": data.inputs, "context": plugin_context})
         if not ok:
-            message = (
-                f"[remote plugin service invoke] error: {result_data['message']}, "
-                f"trace_id: {result_data.get('trace_id')}"
-            )
+            message = f"调用第三方插件invoke接口错误, 错误内容: {result_data['message']}, trace_id: {result_data.get('trace_id')}"
             logger.error(message)
             data.set_outputs("ex_data", message)
             return False
@@ -97,7 +94,7 @@ class RemotePluginService(Service):
         try:
             plugin_client = PluginServiceApiClient(plugin_code)
         except PluginServiceException as e:
-            message = f"[remote plugin service client] error: {e}"
+            message = f"第三方插件client初始化失败, 错误内容: {e}"
             logger.error(message)
             data.set_outputs("ex_data", message)
             return False
@@ -117,7 +114,7 @@ class RemotePluginService(Service):
 
         state = result_data["state"]
         if state == State.FAIL:
-            default_message = "please check the logs for the reason of task failure."
+            default_message = "请通过节点日志查看任务失败原因"
             logger.error(f"[remote plugin service state failed]: {result_data}")
             data.set_outputs("ex_data", result_data["outputs"].get("err") or default_message)
             return False

@@ -396,7 +396,7 @@ def cc_get_editable_module_attribute(request, biz_cc_id):
     result = client.cc.search_object_attribute(kwargs)
     if not result["result"]:
         check_and_raise_raw_auth_fail_exception(result)
-        return JsonResponse({"result": False, "data": "调用cc接口失败，message={}".format(result["message"])})
+        return JsonResponse({"result": False, "data": "业务配置数据请求失败: 请求[配置平台]接口发生异常: {}".format(result["message"])})
     data = result["data"]
     module_attribute = []
     for module_item in data:
@@ -438,7 +438,7 @@ def cc_get_editable_set_attribute(request, biz_cc_id):
     result = client.cc.search_object_attribute(kwargs)
     if not result["result"]:
         check_and_raise_raw_auth_fail_exception(result)
-        return JsonResponse({"result": False, "data": "调用cc接口失败，message={}".format(result["message"])})
+        return JsonResponse({"result": False, "data": "业务配置数据请求失败: 请求[配置平台]接口发生异常: {}".format(result["message"])})
     data = result["data"]
     set_attribute = []
     for set_item in data:

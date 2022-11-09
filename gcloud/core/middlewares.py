@@ -66,7 +66,7 @@ class ObjectDoesNotExistExceptionMiddleware(MiddlewareMixin):
             return JsonResponse(
                 {
                     "result": False,
-                    "message": "Object not found: %s" % exception,
+                    "message": "数据不存在错误: 数据不存在错误, 错误内容 %s" % exception,
                     "data": None,
                     "code": err_code.CONTENT_NOT_EXIST.code,
                 }

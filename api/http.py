@@ -94,11 +94,11 @@ def _http_request(
             return {"result": False, "message": "非法请求: 请求不是合法的HTTP Method: %s" % method}
     except Exception as e:
         logger.exception("Error occurred when requesting method=%s url=%s" % (method, url))
-        return {"result": False, "message": "Request API error, exception: %s" % str(e)}
+        return {"result": False, "message": "请求API错误: 请求API错误, 报错内容: %s" % str(e)}
     else:
 
         if not resp.ok:
-            message = "Request API error, status_code: %s" % resp.status_code
+            message = "请求API错误: 请求API错误, 状态码: %s" % resp.status_code
             logger.error(message)
             return {"result": False, "message": message}
 

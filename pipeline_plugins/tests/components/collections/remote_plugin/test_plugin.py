@@ -60,7 +60,7 @@ BASE_INPUTS = {"plugin_code": "code", "plugin_version": "version"}
 BASE_OUTPUTS = {"output": "output"}
 INVOKE_FAIL_EX_DATA_OUTPUTS = {"ex_data": "[remote plugin service invoke] error: ex_data, trace_id: trace_id"}
 STATE_FAIL_EX_DATA_OUTPUTS = {"ex_data": "state fail"}
-SCHEDULE_FAIL_EX_DATA_OUTPUTS = {"ex_data": "please check the logs for the reason of task failure."}
+SCHEDULE_FAIL_EX_DATA_OUTPUTS = {"ex_data": "请通过节点日志查看任务失败原因"}
 TRACE_ID_OUTPUTS = {"trace_id": "trace_id"}
 
 # mock clients

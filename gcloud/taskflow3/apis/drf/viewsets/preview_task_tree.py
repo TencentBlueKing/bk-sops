@@ -74,9 +74,7 @@ class PreviewTaskTreeWithSchemesView(APIView):
             else:
                 template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
         except TaskTemplate.DoesNotExist:
-            err_msg = "[preview_task_tree_with_schemes] project[{}] template[{}] doesn't exist".format(
-                project_id, template_id
-            )
+            err_msg = "请求任务数据失败: 任务关联的流程[ID: {}]已不存在, 请检查".format(template_id)
             logger.exception(err_msg)
             return Response({"result": False, "message": err_msg, "data": {}})
         except CommonTemplate.DoesNotExist:
@@ -87,7 +85,7 @@ class PreviewTaskTreeWithSchemesView(APIView):
         try:
             data = preview_template_tree_with_schemes(template, version, scheme_id_list)
         except Exception as e:
-            err_msg = "preview_template_tree_with_schemes fail: {}".format(e)
+            err_msg = "任务数据请求失败: 请求任务树数据发生异常: {}, 请重试. 如多次失败可联系管理员处理".format(e)
             logger.exception(err_msg)
             return Response({"result": False, "message": err_msg, "data": {}})
 

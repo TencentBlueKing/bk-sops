@@ -66,8 +66,8 @@ def batch_request(
         try:
             cur_page_param = page_param["cur_page_param"]
             page_size_param = page_param["page_size_param"]
-        except Exception as e:
-            message = "[batch_request] please input correct page param, {}".format(e)
+        except Exception:
+            message = "批量请求接口分页参数错误"
             logger.error(message)
             raise ApiRequestError(message)
     else:
