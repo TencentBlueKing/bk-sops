@@ -188,6 +188,7 @@ class PluginServiceApiClient:
                 "code": plugin["code"],
                 "updated": plugin["updated"],
                 "apigw_name": profile["api_gw_name"],
+                "tag_info": plugin.get("tag_info"),
             },
         }
 
