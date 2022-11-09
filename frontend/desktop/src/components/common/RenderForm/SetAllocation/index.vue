@@ -63,7 +63,7 @@
                     return {
                         set_template_id: '',
                         host_resources: [],
-                        set_count: 0,
+                        set_count: 1,
                         module_detail: []
                     }
                 }
