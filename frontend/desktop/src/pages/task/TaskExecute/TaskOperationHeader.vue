@@ -89,8 +89,8 @@
                 <bk-popover placement="bottom-left" theme="light" ext-cls="operate-tip">
                     <i class="bk-icon icon-more drop-icon-ellipsis"></i>
                     <template slot="content">
-                        <p class="operate-item" @click="onTaskParamsClick('operateFlow', $t('流水操作记录'))">
-                            {{ $t('流水操作记录') }}
+                        <p class="operate-item" @click="onTaskParamsClick('operateFlow', $t('任务操作记录'))">
+                            {{ $t('任务操作记录') }}
                         </p>
                         <p
                             v-if="['SUSPENDED', 'FAILED', 'RUNNING'].includes(state)"
