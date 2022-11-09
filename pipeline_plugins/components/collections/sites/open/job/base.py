@@ -920,7 +920,7 @@ class GetJobHistoryResultMixin(object):
 
         # judge success status
         if job_result["data"]["job_instance"]["status"] not in JOB_SUCCESS:
-            message = "[get_job_instance_status] Job_instance:{id} is not success.".format(id=job_success_id)
+            message = "执行历史请求失败: 请求[作业平台]执行历史发生异常: {}".format(job_result["result"])
             self.logger.error(message)
             data.outputs.ex_data = message
             self.logger.info(data.outputs)

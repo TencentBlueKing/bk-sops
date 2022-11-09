@@ -59,8 +59,8 @@ class TemplateManager:
             return {
                 "result": False,
                 "data": None,
-                "message": "流程树合法性校验失败, 失败原因: {}".format(str(e)),
-                "verbose_message": "流程树合法性校验失败, 失败原因: {}".format(traceback.format_exc()),
+                "message": "保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {}".format(str(e)),
+                "verbose_message": "保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {}".format(traceback.format_exc()),
             }
 
         create_template_kwargs = {
@@ -75,10 +75,10 @@ class TemplateManager:
             return {
                 "result": False,
                 "data": None,
-                "message": "创建Pipeline流程失败: 创建参数[{kwargs}], 失败原因: [{e}]".format(
+                "message": "保存流程失败: 创建Pipeline流程失败, 请检查流程. 创建参数[{kwargs}], 失败原因: [{e}]".format(
                     kwargs=create_template_kwargs, e=str(e)
                 ),
-                "verbose_message": "创建Pipeline流程失败: 创建参数[{kwargs}], 失败原因: [{trace}]".format(
+                "verbose_message": "保存流程失败: 创建Pipeline流程失败, 请检查流程. 创建参数[{kwargs}], 失败原因: [{trace}]".format(
                     kwargs=create_template_kwargs, trace=traceback.format_exc()
                 ),
             }
@@ -122,8 +122,10 @@ class TemplateManager:
             return {
                 "result": False,
                 "data": None,
-                "message": "创建流程失败: 创建参数[{kwargs}], 失败原因: [{e}]".format(kwargs=template_kwargs, e=str(e)),
-                "verbose_message": "创建流程失败: 创建参数[{kwargs}], 失败原因: [{trace}]".format(
+                "message": "保存流程失败: 创建模板失败, 请检查流程. 创建参数[{kwargs}], 失败原因: [{e}]".format(
+                    kwargs=template_kwargs, e=str(e)
+                ),
+                "verbose_message": "保存流程失败: 创建模板失败, 请检查流程. 创建参数[{kwargs}], 失败原因: [{trace}]".format(
                     kwargs=template_kwargs, trace=traceback.format_exc()
                 ),
             }
@@ -169,8 +171,8 @@ class TemplateManager:
                 return {
                     "result": False,
                     "data": None,
-                    "message": "流程树合法性校验失败, 失败原因: {}".format(str(e)),
-                    "verbose_message": "流程树合法性校验失败, 失败原因: {}".format(traceback.format_exc()),
+                    "message": "保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {}".format(str(e)),
+                    "verbose_message": "保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {}".format(traceback.format_exc()),
                 }
 
             replace_template_id(self.template_model_cls, pipeline_tree)
@@ -185,10 +187,10 @@ class TemplateManager:
                 return {
                     "result": False,
                     "data": None,
-                    "message": "更新Pipeline流程失败: 更新参数: [{update_kwargs}], 失败原因: [{e}]".format(
+                    "message": "更新流程失败: 更新Pipeline失败, 请检查流程. 更新参数: [{update_kwargs}], 失败原因: [{e}]".format(
                         update_kwargs=update_kwargs, e=str(e)
                     ),
-                    "verbose_message": "更新Pipeline流程失败: 更新参数: [{update_kwargs}], 失败原因: [{trace}]".format(
+                    "verbose_message": "更新流程失败: 更新Pipeline失败, 请检查流程. 更新参数: [{update_kwargs}], 失败原因: [{trace}]".format(
                         update_kwargs=update_kwargs, trace=traceback.format_exc()
                     ),
                 }

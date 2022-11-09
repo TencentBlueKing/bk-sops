@@ -21,6 +21,7 @@ from blueapps.account.decorators import login_exempt
 
 import env
 from gcloud import err_code
+from gcloud.apigw.utils import get_task_frequency
 from gcloud.core.models import EngineConfig
 from gcloud.conf import settings
 from gcloud.constants import BUSINESS, COMMON
@@ -57,13 +58,8 @@ def create_and_start_task(request, template_id, project_id):
     params = json.loads(request.body)
     project = request.project
     template_source = params.get("template_source", BUSINESS)
-
     if env.TASK_OPERATION_THROTTLE and not check_task_operation_throttle(project.id, "start"):
-        return {
-            "result": False,
-            "message": "project id: {} reach the limit of starting tasks".format(project.id),
-            "code": err_code.INVALID_OPERATION.code,
-        }
+        return get_task_frequency(project.id, "start")
 
     logger.info(
         "[API] create_and_start_task, template_id: {template_id}, project_id: {project_id}, params: {params}.".format(
@@ -80,8 +76,7 @@ def create_and_start_task(request, template_id, project_id):
         except TaskTemplate.DoesNotExist:
             result = {
                 "result": False,
-                "message": "template[id={template_id}] of project[project_id={project_id},biz_id={biz_id}] "
-                "does not exist".format(template_id=template_id, project_id=project.id, biz_id=project.bk_biz_id),
+                "message": "任务创建失败: 任务关联的流程[ID: {}]已不存在, 请检查流程是否存在".format(template_id),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return result

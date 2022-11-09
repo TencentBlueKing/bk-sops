@@ -22,6 +22,7 @@ from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.utils import get_task_frequency
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver
 from gcloud.taskflow3.celery.tasks import prepare_and_start_task
@@ -52,11 +53,7 @@ def operate_task(request, task_id, project_id):
     project = request.project
 
     if env.TASK_OPERATION_THROTTLE and not check_task_operation_throttle(project.id, action):
-        return {
-            "result": False,
-            "message": "project id: {} reach the limit of starting tasks".format(project.id),
-            "code": err_code.INVALID_OPERATION.code,
-        }
+        return get_task_frequency(project.id, action)
 
     if action == "start":
         if TaskFlowInstance.objects.is_task_started(project_id=project.id, id=task_id):

@@ -1218,6 +1218,15 @@ def get_instance_context(pipeline_instance, data_type, username=""):
         return context
 
 
+class TaskOperationTimesConfigManager(models.Manager):
+    def max_frequency(self, project_id, operation):
+        times_config = TaskOperationTimesConfig.objects.get(project_id=project_id, operation=operation)
+        time_unit_mapping = {"m": 60, "h": 3600, "d": 86400}
+        allowed_times = int(times_config.times)
+        scope_seconds = time_unit_mapping.get(times_config.time_unit)
+        return allowed_times, scope_seconds
+
+
 class TaskOperationTimesConfig(models.Model):
     project_id = models.IntegerField(_("项目 ID"))
     operation = models.CharField(
@@ -1227,6 +1236,8 @@ class TaskOperationTimesConfig(models.Model):
     )
     times = models.IntegerField(_("限制操作次数"))
     time_unit = models.CharField(_("限制时间单位"), choices=(("m", "分钟"), ("h", "小时"), ("d", "天")), max_length=10)
+
+    objects = TaskOperationTimesConfigManager()
 
     class Meta:
         verbose_name = _("任务操作次数限制配置 TaskOperationTimesConfig")
