@@ -25,7 +25,7 @@ class FunctionTaskClaimantTransferView(APIView):
         # 获取用户名鉴权是否拥有职能化权限
         username = request.user.username
         if not is_user_role(username, IAMMeta.FUNCTION_VIEW_ACTION):
-            return Response({"result": False, "message": "没有查看职能化任务权限"})
+            return Response({"result": False, "message": "没有查看职能化任务权限[{}]".format(IAMMeta.FUNCTION_VIEW_ACTION)})
 
         # 获取请求参数并校验
         serializer = FunctionTaskClaimantTransferRequestSerializer(data=request.data)

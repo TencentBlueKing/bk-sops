@@ -258,7 +258,7 @@ UPDATE_MODULE_FAILED_BY_TEMPLATE = ComponentTestCase(
                 "模块属性更新失败: 主机属性: {'cc_module_select_text': 'set>module', 'bk_module_name': 'test', "
                 "'bk_module_type': '', 'operator': '', 'bk_bak_operator': ''}, data={'bk_biz_id': 2, 'bk_set_id': 5, "
                 "'bk_module_id': 7, 'data': {'bk_module_name': 'test'}}, message: xxx",
-                "模块属性更新失败: 主机属性: ={'cc_module_select_text': 'set>module2', 'bk_module_name': 'test', "
+                "模块属性更新失败: 主机属性: {'cc_module_select_text': 'set>module2', 'bk_module_name': 'test', "
                 "'bk_module_type': '', 'operator': '', 'bk_bak_operator': ''}, data={'bk_biz_id': 2, 'bk_set_id': 5, "
                 "'bk_module_id': 8, 'data': {'bk_module_name': 'test'}}, message: xxx",
             ],
