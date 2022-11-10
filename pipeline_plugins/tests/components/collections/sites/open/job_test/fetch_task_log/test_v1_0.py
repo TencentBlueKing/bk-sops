@@ -167,7 +167,7 @@ FETCH_TASK_LOG_WITH_NOT_EXISTING_TARGET_IP_FAIL_CASE = ComponentTestCase(
     parent_data={"executor": "executor", "project_id": "project_id", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(
         success=False,
-        outputs={"ex_data": "执行历史请求失败: IP:['1.1.1.3'] 不属于步骤的任何步骤"},
+        outputs={"ex_data": "执行历史请求失败: IP:[1.1.1.3] 不属于步骤的任何步骤"},
     ),
     execute_call_assertion=[],
     schedule_assertion=None,
