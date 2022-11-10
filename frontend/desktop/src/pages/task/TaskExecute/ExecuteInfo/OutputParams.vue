@@ -1,11 +1,12 @@
 <template>
     <section class="info-section outputs-section" data-test-id="taskExecute_form_outputParams">
         <h4 class="common-section-title">{{ $t('输出参数') }}</h4>
-        <div class="origin-value" v-if="!adminView">
+        <div class="origin-value" v-if="isReadyStatus && !adminView">
             <bk-switcher size="small" @change="outputSwitcher" v-model="isShowOutputOrigin"></bk-switcher>
             {{ 'Json' }}
         </div>
-        <template v-if="!adminView">
+        <NoData v-if="!isReadyStatus" :message="$t('暂无输出')"></NoData>
+        <template v-else-if="!adminView">
             <table class="operation-table outputs-table" v-if="!isShowOutputOrigin">
                 <thead>
                     <tr>
@@ -59,6 +60,10 @@
             nodeDetailConfig: {
                 type: Object,
                 default: () => ({})
+            },
+            isReadyStatus: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
@@ -138,7 +143,7 @@
             width: 50%;
         }
     }
-    .full-code-editor {
+    .outputs-section .full-code-editor {
         height: 400px;
     }
 </style>

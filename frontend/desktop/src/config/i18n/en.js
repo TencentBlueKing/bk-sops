@@ -66,7 +66,6 @@ const en = {
     '操作时间': 'Operating time',
     '操作来源': 'Operation source',
     '历史记录': 'History record',
-    '流水操作记录': 'Pipeline operation record',
     '操作流水': 'Operation flow',
     '已过期': 'Expired',
     '编辑执行方案': 'Edit execution plan',
@@ -796,7 +795,7 @@ const en = {
     '手动重试': 'Manual Retry',
     '未选择失败处理方式，标准插件节点如果执行失败，会导致任务中断后不可继续': "No failure process set, you won't be able to operate it if this node failed",
     '说明：': 'Description: ',
-    '自动忽略：标准插件节点如果执行失败，会自动忽略错误并把节点状态设置为成功。': 'Auto Ignore: this node will set to success automatically if failed.',
+    '自动跳过：标准插件节点如果执行失败，会自动忽略错误并把节点状态设置为成功。': 'Auto Skip: this node will set to success automatically if failed.',
     '手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。': 'Manual Skip: you can skip this node manually if it failed.',
     '手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。': 'Manual Retry: you can retry this node manually if it failed.',
     '自动重试：标准插件节点如果执行失败，系统会自动以原参数进行重试。': 'Auto Retry: if the standard plug-in node fails to be executed, the system automatically retries using the original parameters',
@@ -1520,10 +1519,19 @@ const en = {
     '操作历史': 'Operation history',
     '调用日志': 'Call log',
     '暂无执行数据': 'No execution data yet',
-    '修改任务参数': 'Modify task parameters',
+    '编辑任务参数': 'Edit task parameters',
     '可在此修改任务的参数值，对所有修改后执行的步骤生效': 'You can modify the parameter values of the task here, and it will take effect for all steps executed after the modification.',
     '暂无异常': 'No abnormality',
-    '没有参数需要配置': 'No parameters to configure'
+    '没有参数需要配置': 'No parameters to configure',
+    '已完成的任务不能修改任务参数': 'Completed tasks cannot modify task parameters',
+    '重试任务': 'Retry task',
+    '任务操作记录': 'Task operation record',
+    '配置快照': 'Config snapshot',
+    '暂无执行信息': 'No execution information yet',
+    '暂无日志': 'No log yet',
+    '暂无输出': 'No output yet',
+    '仅对「保存」后启动的节点 / 表达式生效。请尽量在「暂停 / 失败 / 审批」等状态下完成编辑，以确保效果符合预期。': 'Only valid for nodes/expressions started after "Save". Please try to complete the editing in the status of "paused/failed/approved" to ensure the effect is as expected.',
+    '「未完成」任务才可编辑参数': 'Unfinished" tasks can only edit parameters'
 }
 
 export default en

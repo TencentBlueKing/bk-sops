@@ -24,6 +24,9 @@
     .common-icon-dark-circle-pause {
         @include status-icon-style(#ff9c01);
     }
+    .common-icon-waitting {
+        @include status-icon-style(#979BA5);
+    }
     &.revoke {
         color: #878c9c;
     }

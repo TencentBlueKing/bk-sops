@@ -750,13 +750,19 @@
                             name: gettext("滚动策略"),
                             placeholder: gettext("详情请查看JOB使用指引"),
                             hookable: false,
-                            tips: "<p>·&nbsp;每个占位以空格分隔<br>\n" +
-                                "·&nbsp;支持n、n%、*n、+n&nbsp;，且&nbsp;n&nbsp;只能为整数<br>\n" +
-                                "·&nbsp;+和*运算符只能在最末位，100%代表全部服务器<br>\n" +
-                                "·&nbsp;-&nbsp;n&nbsp;代表具体多少台<br>\n" +
-                                "·&nbsp;n%&nbsp;代表总量的百分之n台（遇小数点则向上取整）<br>\n" +
-                                "·&nbsp;+n&nbsp;代表每次在前一批数量的基础上增加n台<br>\n" +
-                                "·&nbsp;*n&nbsp;代表每次在前一批数量的基础上乘于n台</p>",
+                            tips: "<p>·&nbsp;每个占位以空格分隔</p>\n" +
+                                "<br/>" +
+                                "<p>·&nbsp;支持n、n%、*n、+n&nbsp;，且&nbsp;n&nbsp;只能为整数</p>\n" +
+                                "<br/>" +
+                                "<p>·&nbsp;+和*运算符只能在最末位，100%代表全部服务器</p>\n" +
+                                "<br/>" +
+                                "<p>·&nbsp;&nbsp;n&nbsp;代表具体多少台</p>\n" +
+                                "<br/>" +
+                                "<p>·&nbsp;n%&nbsp;代表总量的百分之n台（遇小数点则向上取整）</p>\n" +
+                                "<br/>" +
+                                "<p>·&nbsp;+n&nbsp;代表每次在前一批数量的基础上增加n台</p>\n" +
+                                "<br/>" +
+                                "<p>·&nbsp;*n&nbsp;代表每次在前一批数量的基础上乘于n台</p>",
                             validation: [
                                 {
                                     type: "custom",
@@ -917,6 +923,12 @@
                         if ($.context.exec_env === "NODE_CONFIG") {
                             this.hide()
                         }
+                        if ($.context.exec_env === "NODE_EXEC_DETAIL") {
+                            if (!this.value) {
+                                this.hide()
+                                return
+                            }
+                        }
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         if (cc_id !== '' && $.context.canSelectBiz()) {
                             this.remote_url = $.context.get('site_url') + 'pipeline/jobv3_get_instance_list/' + cc_id + '/1/3/';
@@ -970,6 +982,12 @@
                     action: function () {
                         if ($.context.exec_env === "NODE_CONFIG") {
                             this.hide()
+                        }
+                        if ($.context.exec_env === "NODE_EXEC_DETAIL") {
+                            if (!this.value) {
+                                this.hide()
+                                return
+                            }
                         }
                     }
                 },

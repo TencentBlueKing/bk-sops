@@ -52,7 +52,7 @@
             default () {
                 return {
                     config: {
-                        set_count: 0,
+                        set_count: 1,
                         set_template_id: '',
                         host_resources: [],
                         module_detail: []

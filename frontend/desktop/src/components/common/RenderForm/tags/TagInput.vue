@@ -46,7 +46,7 @@
     import dom from '@/utils/dom.js'
     import { getFormMixins } from '../formMixins.js'
 
-    const VAR_REG = /\$\{\w*$/
+    const VAR_REG = /\$.*$/
 
     export const attrs = {
         placeholder: {

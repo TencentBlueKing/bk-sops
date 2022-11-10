@@ -766,8 +766,8 @@
                             'Flowchart',
                             {
                                 stub: [10, 10],
-                                alwaysRespectStub: true,
-                                gap: 0,
+                                alwaysRespectStubs: true,
+                                gap: -12,
                                 cornerRadius: 10,
                                 midpoint: lineInCanvasData.midpoint
                             }
@@ -1361,6 +1361,7 @@
                         default:
                             left = x + offsetX + NODES_SIZE_POSITION.GATEWAY_SIZE[0] / 2 + 80
                             top = y + offsetY + NODES_SIZE_POSITION.GATEWAY_SIZE[1] + 10
+                            this.shortcutPanelNodeOperate = true
                     }
                     this.shortcutPanelDeleteLine = false
                 } else {

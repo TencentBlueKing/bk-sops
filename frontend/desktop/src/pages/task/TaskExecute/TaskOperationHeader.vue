@@ -75,20 +75,22 @@
                         'params-btn',
                         'common-icon-edit',
                         {
+                            'disabled': state !== 'CREATED' && !paramsCanBeModify,
                             actived: nodeInfoType === 'modifyParams'
                         }
                     ]"
                     v-bk-tooltips="{
-                        content: $t('修改任务参数'),
-                        placements: ['bottom']
+                        content: state !== 'CREATED' && !paramsCanBeModify ? $t('「未完成」任务才可编辑参数') : $t('编辑任务参数'),
+                        placements: ['bottom'],
+                        hideOnClick: false
                     }"
-                    @click="onTaskParamsClick('modifyParams', $t('修改任务参数'))">
+                    @click="onTaskParamsClick('modifyParams', $t('编辑任务参数'))">
                 </i>
                 <bk-popover placement="bottom-left" theme="light" ext-cls="operate-tip">
                     <i class="bk-icon icon-more drop-icon-ellipsis"></i>
                     <template slot="content">
-                        <p class="operate-item" @click="onTaskParamsClick('operateFlow', $t('流水操作记录'))">
-                            {{ $t('流水操作记录') }}
+                        <p class="operate-item" @click="onTaskParamsClick('operateFlow', $t('任务操作记录'))">
+                            {{ $t('任务操作记录') }}
                         </p>
                         <p
                             v-if="['SUSPENDED', 'FAILED', 'RUNNING'].includes(state)"
@@ -139,7 +141,8 @@
             'stateStr',
             'isBreadcrumbShow',
             'isTaskOperationBtnsShow',
-            'isShowViewProcess'
+            'isShowViewProcess',
+            'paramsCanBeModify'
         ],
         data () {
             return {
@@ -178,6 +181,10 @@
                 this.$emit('onOperationClick', action)
             },
             onTaskParamsClick (type, name) {
+                // 已完成的任务不能修改任务参数
+                if (type === 'modifyParams' && this.state !== 'CREATED' && !this.paramsCanBeModify) {
+                    return
+                }
                 this.$emit('onTaskParamsClick', type, name)
             },
             onBack () {
@@ -383,6 +390,10 @@
                 }
                 &:hover {
                     color: #63656e;
+                }
+                &.disabled {
+                    color: #c4c6cc;
+                    cursor: not-allowed;
                 }
             }
             .back-button {

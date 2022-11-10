@@ -146,6 +146,12 @@
                 immediate: true
             }
         },
+        mounted () {
+            $.context.exec_env = 'NODE_EXEC_DETAIL'
+        },
+        beforeDestroy () {
+            $.context.exec_env = ''
+        },
         methods: {
             inputSwitcher () {
                 if (!this.isShowInputOrigin) {
@@ -227,7 +233,7 @@
             border-bottom: 1px solid #dcdee5;
         }
     }
-    .full-code-editor {
+    .input-section .full-code-editor {
         height: 400px;
     }
 </style>
