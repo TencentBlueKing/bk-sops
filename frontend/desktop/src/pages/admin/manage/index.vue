@@ -34,6 +34,10 @@
             routerName: 'adminPeriodic'
         },
         {
+            name: i18n.t('计划任务'),
+            routerName: 'adminClocked'
+        },
+        {
             name: i18n.t('远程插件包源管理'),
             routerName: 'sourceManage'
         },
