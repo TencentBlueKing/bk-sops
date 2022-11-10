@@ -1038,7 +1038,7 @@ class TaskFlowInstance(models.Model):
         try:
             return dispatcher.dispatch(action, username, **kwargs)
         except Exception:
-            message = "节点操作失败: 节点[名称: {}]操作失败, 请重试. 如持续失败可联系管理员处理".format(self.name)
+            message = "节点操作失败: 节点[ID: {}]操作失败, 请重试. 如持续失败可联系管理员处理".format(self.id)
             logger.exception(traceback.format_exc())
             return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
 

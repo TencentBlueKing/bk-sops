@@ -155,7 +155,7 @@ UPDATE_CRON_STATUS_FAIL_CASE = ComponentTestCase(
             "ex_data": (
                 "定时任务启动失败: [作业平台]定时任务启动发生异常: "
                 "调用作业平台(JOB)接口jobv3.update_cron_status返回失败, "
-                'params={"bk_scope_type":"biz","bk_scope_id":"1","bk_biz_id":1,"status":1,"id":1},'
+                'params={"bk_scope_type":"biz","bk_scope_id":"1","bk_biz_id":1,"status":1,"id":1}, '
                 "error=update_cron_status fail"
             ),
         },

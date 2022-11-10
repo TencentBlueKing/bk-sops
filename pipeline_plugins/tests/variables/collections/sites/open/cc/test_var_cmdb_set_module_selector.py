@@ -140,7 +140,7 @@ class VarSetModuleSelectorTestCase(TestCase):
         with self.assertRaises(ApiRequestError) as context:
             set_module_selector.get_value()
 
-        self.assertTrue("ApiRequestError" in str(context.exception))
+        self.assertTrue("API请求错误" in str(context.exception))
 
     @patch(GET_CLIENT_BY_USER, return_value=GET_MODULE_INFO_FAIL_CLIENT)
     def test_get_module_info_fail_case(self, mock_get_client_by_user_return):

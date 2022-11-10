@@ -175,9 +175,7 @@ def get_job_instance_log(
                 if ip_result["ip"] == target_ip:
                     step_ip_result = ip_result
             if step_ip_result is None:
-                message = "执行历史请求失败: IP:{} 不属于步骤的任何步骤".format(
-                    [{",".join([instance["ip"] for instance in step_instance["step_ip_result_list"]])}]
-                )
+                message = "执行历史请求失败: IP:{} 不属于步骤的任何步骤".format(target_ip)
                 service_logger.warning(message)
                 return {"result": False, "message": message}
         else:
