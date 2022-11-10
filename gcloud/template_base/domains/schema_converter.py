@@ -330,9 +330,16 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 nodes[next_node_id].setdefault("incoming", []).append(line_id)
                 replace_outgoing.append(line_id)
                 if node["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
-                    condition = node["conditions"].pop(next_node_id)
-                    condition["tag"] = "branch_{}_{}".format(node_id, next_node_id)
-                    node["conditions"][line_id] = condition
+                    default_condition = node.get("default_condition")
+                    if default_condition and default_condition.get(next_node_id, ""):
+                        default_condition[next_node_id]["tag"] = "branch_{}_{}".format(node_id, next_node_id)
+                        node["default_condition"] = default_condition[next_node_id]
+                        node["default_condition"]["flow_id"] = line_id
+                    else:
+                        condition = node["conditions"].pop(next_node_id)
+                        condition["tag"] = "branch_{}_{}".format(node_id, next_node_id)
+                        node["conditions"][line_id] = condition
+
             node["outgoing"] = replace_outgoing
         reconverted_tree["flows"] = flows
 
@@ -373,7 +380,8 @@ class YamlSchemaConverter(BaseSchemaConverter):
         if "constants" in template:
             for constant_key, constant_attrs in template["constants"].items():
                 reconverted_constant, is_create = self._reconvert_constant(
-                    constant={**constant_attrs, "key": constant_key}, cur_constants=reconverted_tree["constants"],
+                    constant={**constant_attrs, "key": constant_key},
+                    cur_constants=reconverted_tree["constants"],
                 )
                 if is_create:
                     reconverted_tree["constants"][constant_key] = reconverted_constant
@@ -470,6 +478,13 @@ class YamlSchemaConverter(BaseSchemaConverter):
                     if node["type"] == "SubProcess":
                         node["template_id"] = template_key_mapping[node["template_id"]]
                     if node["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
+                        if "default_condition" in node:
+                            node["default_condition"] = dict(
+                                [
+                                    (node_key_mapping[node_id], data)
+                                    for node_id, data in node["default_condition"].items()
+                                ]
+                            )
                         node["conditions"] = dict(
                             [(node_key_mapping[node_id], data) for node_id, data in node["conditions"].items()]
                         )
@@ -504,8 +519,12 @@ class YamlSchemaConverter(BaseSchemaConverter):
             nodes[flow["source"]].setdefault("next", []).append(flow["target"])
             nodes[flow["target"]].setdefault("last", []).append(flow["source"])
             if nodes[flow["source"]]["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
-                condition = nodes[flow["source"]]["conditions"].pop(flow["id"])
-                nodes[flow["source"]]["conditions"][flow["target"]] = condition
+                default_condition = nodes[flow["source"]].get("default_condition")
+                if default_condition and default_condition["flow_id"] == flow["id"]:
+                    nodes[flow["source"]]["default_condition"] = {flow["target"]: default_condition}
+                else:
+                    condition = nodes[flow["source"]]["conditions"].pop(flow["id"])
+                    nodes[flow["source"]]["conditions"][flow["target"]] = condition
         nodes[start_node_id]["last"] = []
         nodes[end_node_id]["next"] = []
 
@@ -560,6 +579,11 @@ class YamlSchemaConverter(BaseSchemaConverter):
             for form_key, constant in param_constants["component_outputs"].get(node["id"], {}).items():
                 converted_node.setdefault("output", {})[form_key] = constant
         elif node["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
+            if "default_condition" in node:
+                converted_node["default_condition"] = node.get("default_condition")
+                for default_condition in node["default_condition"].values():
+                    default_condition.pop("flow_id", None)
+                    default_condition.pop("tag", None)
             for condition in node["conditions"].values():
                 condition.pop("tag", None)
         sorted_node = dict(
