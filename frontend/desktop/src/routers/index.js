@@ -48,6 +48,7 @@ const StatisticsAppmaker = () => import('@/pages/admin/statistics/Appmaker.vue')
 const Manage = () => import('@/pages/admin/manage/index.vue')
 const AdminSearch = () => import('@/pages/admin/manage/AdminSearch/index.vue')
 const AdminPeriodic = () => import('@/pages/admin/manage/AdminPeriodic.vue')
+const AdminClocked = () => import('@/pages/admin/manage/AdminClocked.vue')
 const SourceManage = () => import('@/pages/admin/manage/SourceManage/index.vue')
 const SourceEdit = () => import('@/pages/admin/manage/SourceEdit/index.vue')
 const PackageEdit = () => import('@/pages/admin/manage/SourceEdit/PackageEdit.vue')
@@ -414,6 +415,12 @@ const routers = new VueRouter({
                             name: 'adminPeriodic',
                             pathToRegexpOptions: { strict: true },
                             component: AdminPeriodic
+                        },
+                        {
+                            path: 'clocked/',
+                            name: 'adminClocked',
+                            pathToRegexpOptions: { strict: true },
+                            component: AdminClocked
                         },
                         {
                             path: 'source_manage/',

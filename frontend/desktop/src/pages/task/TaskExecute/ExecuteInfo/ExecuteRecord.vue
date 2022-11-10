@@ -29,6 +29,7 @@
                 <NoData v-else :message="$t('暂无执行信息')"></NoData>
             </section>
             <InputParams
+                :admin-view="adminView"
                 :inputs="executeInfo.inputs"
                 :render-config="executeInfo.renderConfig"
                 :constants="executeInfo.constants"
@@ -36,6 +37,7 @@
             </InputParams>
             <OutputParams
                 :is-ready-status="isReadyStatus"
+                :admin-view="adminView"
                 :outputs="executeInfo.outputsInfo"
                 :node-detail-config="nodeDetailConfig">
             </OutputParams>
@@ -59,6 +61,10 @@
             NoData
         },
         props: {
+            adminView: {
+                type: Boolean,
+                default: false
+            },
             isReadyStatus: {
                 type: Boolean,
                 default: false

@@ -51,6 +51,10 @@
                 type: String,
                 default: ''
             },
+            adminView: {
+                type: Boolean,
+                default: false
+            },
             engineVer: {
                 type: Number,
                 required: true
@@ -106,6 +110,9 @@
             ...mapActions('atomForm/', [
                 'loadPluginServiceLog'
             ]),
+            ...mapActions('admin/', [
+                'taskflowHistroyLog'
+            ]),
             initLog () {
                 const { state, history_id, version } = this.executeInfo
                 // 获取节点日志
@@ -122,13 +129,14 @@
                 try {
                     this.isLogLoading = true
                     let performLog = {}
-                    // 不同引擎版本的任务调用不同的接口
-                    if (this.engineVer === 1) {
+                    if (this.adminView) { // 管理端日志
+                        performLog = await this.taskflowHistroyLog(query)
+                    } else if (this.engineVer === 1) { // 不同引擎版本的任务调用不同的接口
                         performLog = await this.getNodeExecutionRecordLog(query)
                     } else if (this.engineVer === 2) {
                         performLog = await this.getEngineVerNodeLog(query)
                     }
-                    this.logInfo = this.logInfo + (this.logInfo ? '\n' : '') + performLog.data
+                    this.logInfo = this.logInfo + (this.logInfo ? '\n' : '') + (this.adminView ? performLog.data.log : performLog.data)
                     this.nodeLogPageInfo = performLog.page
                     if (this.nodeLogPageInfo && !this.editScrollDom) {
                         this.watchEditorScroll()

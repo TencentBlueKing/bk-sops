@@ -61,11 +61,6 @@ const admin = {
                 params: { ...data }
             }).then(response => response.data)
         },
-        // 节点强制失败，管理员入口进入
-        taskflowNodeForceFail ({ commit }, data) {
-            const { task_id, node_id } = data
-            return axios.post('admin/taskflow/node/force_fail/', { task_id, node_id }).then(response => response.data)
-        },
         // 加载标准插件统计数据
         queryTemplateData ({ commit }, data) {
             return axios.post('analysis/query_template_by_group/', data).then(response => response.data)
@@ -86,6 +81,10 @@ const admin = {
         // 加载轻应用统计数据
         queryAppmakerData ({ commit }, data) {
             return axios.post('analysis/query_appmaker_by_group/', data).then(response => response.data)
+        },
+        // 注入全局变量
+        taskFlowUpdateContext ({ commit }, data) {
+            return axios.post('admin/taskflow/upsert_context/', data).then(response => response.data)
         }
     }
 }

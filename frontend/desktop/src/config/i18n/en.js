@@ -1531,7 +1531,15 @@ const en = {
     '暂无日志': 'No log yet',
     '暂无输出': 'No output yet',
     '仅对「保存」后启动的节点 / 表达式生效。请尽量在「暂停 / 失败 / 审批」等状态下完成编辑，以确保效果符合预期。': 'Only valid for nodes/expressions started after "Save". Please try to complete the editing in the status of "paused/failed/approved" to ensure the effect is as expected.',
-    '「未完成」任务才可编辑参数': 'Unfinished" tasks can only edit parameters'
+    '「未完成」任务才可编辑参数': 'Unfinished" tasks can only edit parameters',
+    '注入全局变量': 'Inject global variables',
+    '注入全局变量成功': 'Inject global variable successfully',
+    '请输入变量的值': 'Please enter a value for the variable',
+    '请选择变量值的类型': 'Please select the type of variable value',
+    '字符串': 'String',
+    '字典': 'Map',
+    '变量Value格式不正确': 'The variable Value is not in the correct format',
+    '至少保留一条全局变量': 'Keep at least one global variable'
 }
 
 export default en
