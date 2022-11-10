@@ -102,7 +102,7 @@ class ApproveService(Service):
 
 
 class ApproveComponent(Component):
-    name = _("审核")
+    name = _("审批")
     code = "bk_approve"
     bound_service = ApproveService
     form = "%scomponents/atoms/bk/approve/v1_0.js" % settings.STATIC_URL
