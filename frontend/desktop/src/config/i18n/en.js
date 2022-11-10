@@ -1536,7 +1536,15 @@ const en = {
     '当前已执行': 'Currently executed',
     '最近一次执行时长': 'Last execution time',
     '近 n 次平均执行时长': 'The average execution time of the last {n} times',
-    '*数据统计截至': '*Statistics as of'
+    '*数据统计截至': '*Statistics as of',
+    '注入全局变量': 'Inject global variables',
+    '注入全局变量成功': 'Inject global variable successfully',
+    '请输入变量的值': 'Please enter a value for the variable',
+    '请选择变量值的类型': 'Please select the type of variable value',
+    '字符串': 'String',
+    '字典': 'Map',
+    '变量Value格式不正确': 'The variable Value is not in the correct format',
+    '至少保留一条全局变量': 'Keep at least one global variable'
 }
 
 export default en

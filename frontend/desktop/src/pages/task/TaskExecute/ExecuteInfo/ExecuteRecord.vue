@@ -28,12 +28,15 @@
                 </ul>
             </section>
             <InputParams
+                :admin-view="adminView"
                 :inputs="executeInfo.inputs"
                 :render-config="executeInfo.renderConfig"
                 :constants="executeInfo.constants"
                 :render-data="executeInfo.renderData">
             </InputParams>
             <OutputParams
+                :admin-view="adminView"
+                :is-ready-status="isReadyStatus"
                 :outputs="executeInfo.outputsInfo"
                 :node-detail-config="nodeDetailConfig">
             </OutputParams>
@@ -55,6 +58,10 @@
             OutputParams
         },
         props: {
+            adminView: {
+                type: Boolean,
+                default: false
+            },
             isReadyStatus: {
                 type: Boolean,
                 default: false

@@ -67,43 +67,45 @@
                                 </template>
                             </template>
                         </bk-table-column>
-                        <bk-table-column :label="$t('操作')" width="230" :fixed="clockedList.length ? 'right' : false">
+                        <bk-table-column :label="$t('操作')" :width="adminView ? 120 : 230" :fixed="clockedList.length ? 'right' : false">
                             <div class="clocked-operation" slot-scope="props" :clocked-task-name="props.row.name">
-                                <a
-                                    v-cursor="{ active: !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions) }"
-                                    href="javascript:void(0);"
-                                    :class="{
-                                        'clocked-bk-disable': props.row.state !== 'not_started',
-                                        'text-permission-disable': !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions)
-                                    }"
-                                    v-bk-tooltips.top="{
-                                        content: props.row.task_id ? $t('已执行的计划任务无法编辑') : $t('启动失败的计划任务无法编辑'),
-                                        disabled: !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions) || props.row.state === 'not_started'
-                                    }"
-                                    data-test-id="clockedList_table_editBtn"
-                                    @click="onEditClockedTask(props.row, $event)">
-                                    {{ $t('编辑') }}
-                                </a>
-                                <a
-                                    v-cursor="{ active: !hasPermission(['flow_view', 'clocked_task_view'], props.row.auth_actions) }"
-                                    href="javascript:void(0);"
-                                    :class="{
-                                        'clocked-bk-disable': !hasPermission(['flow_view', 'clocked_task_view'], props.row.auth_actions)
-                                    }"
-                                    data-test-id="clockedList_table_cloneBtn"
-                                    @click="onCloneClockedTask(props.row, 'clone')">
-                                    {{ $t('克隆') }}
-                                </a>
-                                <a
-                                    v-cursor="{ active: !hasPermission(['clocked_task_delete'], props.row.auth_actions) }"
-                                    href="javascript:void(0);"
-                                    :class="{
-                                        'clocked-bk-disable': !hasPermission(['clocked_task_delete'], props.row.auth_actions)
-                                    }"
-                                    data-test-id="clockedList_table_deleteBtn"
-                                    @click="onDeleteClockedTask(props.row, $event)">
-                                    {{ $t('删除') }}
-                                </a>
+                                <template v-if="!adminView">
+                                    <a
+                                        v-cursor="{ active: !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions) }"
+                                        href="javascript:void(0);"
+                                        :class="{
+                                            'clocked-bk-disable': props.row.state !== 'not_started',
+                                            'text-permission-disable': !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions)
+                                        }"
+                                        v-bk-tooltips.top="{
+                                            content: props.row.task_id ? $t('已执行的计划任务无法编辑') : $t('启动失败的计划任务无法编辑'),
+                                            disabled: !hasPermission(['flow_view', 'clocked_task_edit'], props.row.auth_actions) || props.row.state === 'not_started'
+                                        }"
+                                        data-test-id="clockedList_table_editBtn"
+                                        @click="onEditClockedTask(props.row, $event)">
+                                        {{ $t('编辑') }}
+                                    </a>
+                                    <a
+                                        v-cursor="{ active: !hasPermission(['flow_view', 'clocked_task_view'], props.row.auth_actions) }"
+                                        href="javascript:void(0);"
+                                        :class="{
+                                            'clocked-bk-disable': !hasPermission(['flow_view', 'clocked_task_view'], props.row.auth_actions)
+                                        }"
+                                        data-test-id="clockedList_table_cloneBtn"
+                                        @click="onCloneClockedTask(props.row, 'clone')">
+                                        {{ $t('克隆') }}
+                                    </a>
+                                    <a
+                                        v-cursor="{ active: !hasPermission(['clocked_task_delete'], props.row.auth_actions) }"
+                                        href="javascript:void(0);"
+                                        :class="{
+                                            'clocked-bk-disable': !hasPermission(['clocked_task_delete'], props.row.auth_actions)
+                                        }"
+                                        data-test-id="clockedList_table_deleteBtn"
+                                        @click="onDeleteClockedTask(props.row, $event)">
+                                        {{ $t('删除') }}
+                                    </a>
+                                </template>
                                 <template v-if="props.row.task_id">
                                     <a
                                         v-if="!hasPermission(['clocked_task_view'], props.row.auth_actions)"
@@ -125,6 +127,7 @@
                                         {{ $t('执行历史') }}
                                     </router-link>
                                 </template>
+                                <span v-else class="empty-text">{{ '--' }}</span>
                             </div>
                         </bk-table-column>
                         <bk-table-column type="setting">
@@ -153,7 +156,7 @@
             v-if="isShowSideslider"
             :is-show-sideslider="isShowSideslider"
             :cur-row="curRow"
-            :project_id="project_id"
+            :project_id="projectId"
             :type="sideSliderType"
             @onSaveConfig="onSaveConfig"
             @onCloseConfig="onCloseConfig">
@@ -354,6 +357,9 @@
             }),
             adminView () {
                 return this.hasAdminPerm && this.admin
+            },
+            projectId () {
+                return this.adminView ? this.curRow.project.id : this.project_id
             }
         },
         async created () {
@@ -550,7 +556,11 @@
                         query[key] = val
                     }
                 })
-                this.$router.replace({ name: 'clockedTemplate', params: { project_id: this.project_id }, query })
+                if (this.admin) {
+                    this.$router.replace({ name: 'adminClocked', query })
+                } else {
+                    this.$router.replace({ name: 'clockedTemplate', params: { project_id: this.project_id }, query })
+                }
             },
             // 获取前往对应模板的路径
             templateNameUrl (row) {
@@ -682,6 +692,7 @@
 }
 .search-wrapper {
     position: relative;
+    height: 32px;
     display: flex;
     justify-content: space-between;
 }
@@ -712,6 +723,9 @@
     }
     .empty-data {
         padding: 120px 0;
+    }
+    .empty-text {
+        padding: 5px;
     }
 }
 </style>

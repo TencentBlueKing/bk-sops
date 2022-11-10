@@ -20,6 +20,7 @@
             :task-operation-btns="taskOperationBtns"
             :instance-actions="instanceActions"
             :admin-view="adminView"
+            :engine-ver="engineVer"
             :state-str="taskState"
             :state="state"
             :is-breadcrumb-show="isBreadcrumbShow"
@@ -27,7 +28,8 @@
             :is-task-operation-btns-show="isTaskOperationBtnsShow"
             @onSelectSubflow="onSelectSubflow"
             @onOperationClick="onOperationClick"
-            @onTaskParamsClick="onTaskParamsClick">
+            @onTaskParamsClick="onTaskParamsClick"
+            @onInjectGlobalVariable="onInjectGlobalVariable">
         </task-operation-header>
         <bk-alert v-if="isFailedSubproceeNodeInfo" type="error" class="subprocess-failed-tips">
             <template slot="title">
@@ -146,6 +148,11 @@
             @onConfirmRevokeTask="onConfirmRevokeTask"
             @onCancelRevokeTask="onCancelRevokeTask">
         </revokeDialog>
+        <injectVariableDialog
+            :is-inject-var-dialog-show="isInjectVarDialogShow"
+            @onConfirmInjectVar="onConfirmInjectVar"
+            @onCancelInjectVar="onCancelInjectVar">
+        </injectVariableDialog>
         <bk-dialog
             width="400"
             ext-cls="common-dialog"
@@ -248,6 +255,7 @@
     import TaskOperationHeader from './TaskOperationHeader'
     import TemplateData from './TemplateData'
     import ConditionEdit from '../../template/TemplateEdit/ConditionEdit.vue'
+    import injectVariableDialog from './InjectVariableDialog.vue'
 
     const CancelToken = axios.CancelToken
     let source = CancelToken.source()
@@ -296,7 +304,8 @@
             revokeDialog,
             TaskOperationHeader,
             TemplateData,
-            ConditionEdit
+            ConditionEdit,
+            injectVariableDialog
         },
         mixins: [permission],
         props: {
@@ -394,7 +403,8 @@
                 nodeInfo: {},
                 nodeInputs: {},
                 isExecRecordOpen: false,
-                nodeExecRecordInfo: {}
+                nodeExecRecordInfo: {},
+                isInjectVarDialogShow: false
             }
         },
         computed: {
@@ -533,7 +543,7 @@
                 'loadSingleAtomList'
             ]),
             ...mapActions('admin/', [
-                'taskflowNodeForceFail'
+                'taskFlowUpdateContext'
             ]),
             async loadTaskStatus () {
                 try {
@@ -1312,6 +1322,10 @@
                 this.isNodeInfoPanelShow = true
                 this.nodeInfoType = type
             },
+            // 注入全局变量
+            onInjectGlobalVariable () {
+                this.isInjectVarDialogShow = true
+            },
 
             onToggleNodeInfoPanel () {
                 this.isNodeInfoPanelShow = false
@@ -1678,6 +1692,27 @@
             },
             onCancelRevokeTask () {
                 this.isRevokeDialogShow = false
+            },
+            async onConfirmInjectVar (context) {
+                try {
+                    const params = {
+                        task_id: this.taskId,
+                        context
+                    }
+                    const resp = await this.taskFlowUpdateContext(params)
+                    if (resp.result) {
+                        this.isInjectVarDialogShow = false
+                        this.$bkMessage({
+                            message: i18n.t('注入全局变量成功'),
+                            theme: 'success'
+                        })
+                    }
+                } catch (error) {
+                    console.warn(error)
+                }
+            },
+            onCancelInjectVar () {
+                this.isInjectVarDialogShow = false
             },
             unclickableOperation (type) {
                 // 失败时不允许点击暂停按钮，创建是不允许点击撤销按钮，操作执行过程不允许点击

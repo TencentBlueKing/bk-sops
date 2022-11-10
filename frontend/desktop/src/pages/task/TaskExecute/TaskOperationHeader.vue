@@ -106,8 +106,11 @@
                             :to="getTplURL()">
                             {{ $t('查看流程') }}
                         </router-link>
-                        <p v-if="adminView" class="operate-item" @click="onTaskParamsClick(taskExecuteInfo)">
+                        <p v-if="adminView && engineVer === 1" class="operate-item" @click="onTaskParamsClick('taskExecuteInfo')">
                             {{ $t('流程信息') }}
+                        </p>
+                        <p v-if="adminView && engineVer === 2" class="operate-item" @click="$emit('onInjectGlobalVariable')">
+                            {{ $t('注入全局变量') }}
                         </p>
                     </template>
                 </bk-popover>
@@ -135,6 +138,7 @@
             'instanceActions',
             'taskOperationBtns',
             'adminView',
+            'engineVer',
             'state',
             'stateStr',
             'isBreadcrumbShow',
