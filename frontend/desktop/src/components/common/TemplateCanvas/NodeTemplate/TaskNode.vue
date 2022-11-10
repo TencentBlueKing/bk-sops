@@ -65,7 +65,7 @@
                 </span>
                 <span v-if="node.code === 'pause_node'" @click.stop="$emit('onTaskNodeResumeClick', node.id)">
                     <i class="common-icon-play"></i>
-                    {{ $t('继续执行') }}
+                    {{ $t('继续') }}
                 </span>
                 <span v-if="node.code === 'bk_approve'" @click.stop="$emit('onApprovalClick', node.id)">
                     <i class="common-icon-circulation"></i>

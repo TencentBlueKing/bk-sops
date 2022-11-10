@@ -523,6 +523,9 @@
                     i {
                         color: #979ba5;
                         margin-right: 5px;
+                        &.common-icon-play {
+                            font-size: 14px;
+                        }
                     }
                     &:hover {
                         cursor: pointer;
@@ -530,18 +533,6 @@
                         i {
                             color: #3a84ff;
                         }
-                    }
-                }
-                .el-tooltip {
-                   font-size: 14px;
-                   margin-left: 5px;
-                   color: #52699D;
-                   vertical-align: middle;
-                    &:hover {
-                        color: #4b85f7;
-                    }
-                    &.common-icon-play {
-                        font-size: 18px;
                     }
                 }
             }
