@@ -52,7 +52,7 @@ class NodesActionTestCase(TestCase):
             result,
             {
                 "result": False,
-                "message": "task[id=1] node[id=node_id] action failed: exception",
+                "message": "节点操作失败: 节点[ID: 1]操作失败, 请重试. 如持续失败可联系管理员处理",
                 "code": err_code.UNKNOWN_ERROR.code,
             },
         )
