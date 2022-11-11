@@ -20,6 +20,7 @@ from gcloud.common_template.models import CommonTemplate
 from gcloud.taskflow3.models import TaskFlowInstance, TaskTemplate
 from gcloud.contrib.operate_record.models import TaskOperateRecord, TemplateOperateRecord
 from gcloud.contrib.operate_record.constants import OperateSource, RecordType, INSTANCE_OBJECT_KEY
+from gcloud.utils.handlers import get_constants
 
 logger = logging.getLogger("root")
 
@@ -104,12 +105,15 @@ class Record(object):
 
     def need_save_info(self, instance_obj):
         """需要记录的信息"""
+        constants = self.operate_result["data"]["pipeline_tree"]["constants"]
+        extra_info = get_constants(constants, list(constants.keys()))
         return {
             "instance_id": instance_obj.id,
             "project_id": -1 if self.record_type == RecordType.common_template.name else instance_obj.project.id,
             "operator": self.operator,
             "operate_source": self.source,
             "operate_type": self.real_action,
+            "extra_info": extra_info,
         }
 
     def get_data_by_bundle_or_request(self, bundle_or_request, node_id=None):
