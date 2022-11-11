@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.utils.translation import ugettext_lazy as _
 import copy
 import re
 
@@ -114,7 +115,7 @@ def create_task(request, template_id, project_id):
         except CommonTemplate.DoesNotExist:
             result = {
                 "result": False,
-                "message": "任务创建失败: 任务关联的公共流程[ID: {}]已不存在, 请检查流程是否存在".format(template_id),
+                "message": _("任务创建失败: 任务关联的公共流程[ID: {}]已不存在, 请检查流程是否存在".format(template_id)),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return result

@@ -37,7 +37,7 @@ class CommonTemplateManager(BaseTemplateManager):
         if override and (not check_info["can_override"]):
             return {
                 "result": False,
-                "message": "流程导入失败, 不能使用项目流程覆盖公共流程, 请检查后重试",
+                "message": _("流程导入失败, 不能使用项目流程覆盖公共流程, 请检查后重试"),
                 "data": 0,
                 "code": err_code.INVALID_OPERATION.code,
             }

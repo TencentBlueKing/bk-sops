@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.utils.translation import ugettext_lazy as _
 import json
 import logging
 
@@ -139,7 +140,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         if label_ids:
             label_ids = list(set(label_ids))
             if not Label.objects.check_label_ids(label_ids):
-                message = "流程保存失败: 流程设置的标签不存在, 请检查配置后重试"
+                message = _("流程保存失败: 流程设置的标签不存在, 请检查配置后重试")
                 return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
             try:
                 TemplateLabelRelation.objects.set_labels_for_template(template_id, label_ids)

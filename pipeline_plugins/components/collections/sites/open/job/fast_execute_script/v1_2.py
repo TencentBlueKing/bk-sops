@@ -262,7 +262,7 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
                 message = job_handle_api_error(api_name, job_kwargs, script_list)
                 message += "快速执行脚本启动失败: [作业平台]未找到脚本{}, 请检查配置".format(script_name)
                 self.logger.error(message)
-                data.outputs.ex_data = message
+                data.outputs.ex_data = _(message)
                 return False
 
             script_id = selected_script["id"]

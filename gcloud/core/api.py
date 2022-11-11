@@ -178,7 +178,7 @@ def check_variable_key(request):
             {
                 "result": False,
                 "data": None,
-                "message": "{}变量创建失败: 变量KEY仅支持英文字母、数字、下划线, 且以英文字母、下划线开头".format(variable_key),
+                "message": _("{}变量创建失败: 变量KEY仅支持英文字母、数字、下划线, 且以英文字母、下划线开头".format(variable_key)),
             }
         )
     return JsonResponse({"result": True, "data": None, "message": "Success"})

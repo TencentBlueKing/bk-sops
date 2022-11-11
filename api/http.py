@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
+from django.utils.translation import ugettext_lazy as _
 import logging
 
 import requests
@@ -91,14 +91,14 @@ def _http_request(
                 cookies=cookies,
             )
         else:
-            return {"result": False, "message": "非法请求: 请求不是合法的HTTP Method: %s" % method}
+            return {"result": False, "message": _("非法请求: 请求不是合法的HTTP Method: %s" % method)}
     except Exception as e:
         logger.exception("Error occurred when requesting method=%s url=%s" % (method, url))
-        return {"result": False, "message": "请求API错误: 请求API错误, 报错内容: %s" % str(e)}
+        return {"result": False, "message": _("请求API错误: 请求API错误, 报错内容: %s" % str(e))}
     else:
 
         if not resp.ok:
-            message = "请求API错误: 请求API错误, 状态码: %s" % resp.status_code
+            message = _("请求API错误: 请求API错误, 状态码: %s" % resp.status_code)
             logger.error(message)
             return {"result": False, "message": message}
 
@@ -131,7 +131,7 @@ def _http_request(
                 )
         except Exception:
             logger.exception("Return data format is incorrect, which shall be unified as json: %s", resp.content[200:])
-            return {"result": False, "message": "请求失败: 返回不是合法的Json格式, 请重试"}
+            return {"result": False, "message": _("请求失败: 返回不是合法的Json格式, 请重试")}
 
         return json_resp
     finally:

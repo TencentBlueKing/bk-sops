@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
+from django.utils.translation import ugettext_lazy as _
 import ujson as json
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -45,7 +45,7 @@ def query_task_count(request, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
-        return {"result": False, "message": "非法请求: 数据错误, 请求不是合法的Json格式", "code": err_code.REQUEST_PARAM_INVALID.code}
+        return {"result": False, "message": _("非法请求: 数据错误, 请求不是合法的Json格式"), "code": err_code.REQUEST_PARAM_INVALID.code}
     project = request.project
     conditions = params.get("conditions", {})
     group_by = params.get("group_by")

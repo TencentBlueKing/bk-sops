@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -49,7 +49,7 @@ def start_task(request, task_id, project_id):
         return get_task_frequency(project.id, "start")
 
     if TaskFlowInstance.objects.is_task_started(project_id=project.id, id=task_id):
-        return {"result": False, "code": err_code.INVALID_OPERATION.code, "message": "任务操作失败: 已启动的任务不可再次启动"}
+        return {"result": False, "code": err_code.INVALID_OPERATION.code, "message": _("任务操作失败: 已启动的任务不可再次启动")}
 
     queue, routing_key = PrepareAndStartTaskQueueResolver(
         settings.API_TASK_QUEUE_NAME_V2

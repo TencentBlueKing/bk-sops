@@ -18,6 +18,7 @@ from gcloud.exceptions import ApiRequestError
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.utils.handlers import handle_api_error
 from .thread import ThreadPool
+from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 logger_celery = logging.getLogger("celery")
@@ -67,7 +68,7 @@ def batch_request(
             cur_page_param = page_param["cur_page_param"]
             page_size_param = page_param["page_size_param"]
         except Exception:
-            message = "批量请求接口分页参数错误"
+            message = _("批量请求接口分页参数错误")
             logger.error(message)
             raise ApiRequestError(message)
     else:

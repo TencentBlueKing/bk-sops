@@ -29,7 +29,7 @@ def common_process_request(request, manager, *args, **kwargs):
     file_size = file_obj.size
 
     if not project_id:
-        return {"result": False, "message": "文件上传失败: [{}]无效的项目ID, 请联系管理员处理".format(project_id), "code": 400}
+        return {"result": False, "message": _("文件上传失败: [{}]无效的项目ID, 请联系管理员处理".format(project_id)), "code": 400}
 
     # 文件名不能包含中文， 文件大小不能大于 2G
     if file_size > 2048 * 1024 * 1024:

@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -72,7 +71,7 @@ class FunctionTask(models.Model):
 
     def claim_task(self, username):
         if self.status != "submitted":
-            return {"result": False, "message": f"任务认领失败: 任务已被他人认领, 请在任务列表查看[{username}]"}
+            return {"result": False, "message": _(f"任务认领失败: 任务已被他人认领, 请在任务列表查看[{username}]")}
         self.claimant = username
         self.claim_time = timezone.now()
         self.status = "claimed"
@@ -82,7 +81,7 @@ class FunctionTask(models.Model):
     # TODO 驳回后是否可以修改参数？还是走其他流程
     def reject_task(self, username):
         if self.status != "submitted":
-            return {"result": False, "message": f"任务认领失败: 任务已被他人认领, 请在任务列表查看[{username}]"}
+            return {"result": False, "message": _(f"任务认领失败: 任务已被他人认领, 请在任务列表查看[{username}]")}
         self.rejecter = username
         self.reject_time = timezone.now()
         self.status = "rejected"
@@ -90,9 +89,9 @@ class FunctionTask(models.Model):
 
     def transfer_task(self, username, claimant):
         if self.status not in ["claimed", "executed"]:
-            return {"result": False, "message": "任务转交失败: 仅[%s]的任务才可转交, 请检查任务状态" % self.status}
+            return {"result": False, "message": _("任务转交失败: 仅[%s]的任务才可转交, 请检查任务状态" % self.status)}
         if self.claimant != username:
-            return {"result": False, "message": f"任务转交失败: 仅[{claimant}]才可转交任务, 请检查是否已认领该任务"}
+            return {"result": False, "message": _(f"任务转交失败: 仅[{claimant}]才可转交任务, 请检查是否已认领该任务")}
         self.predecessor = self.claimant
         self.transfer_time = timezone.now()
         self.claimant = claimant

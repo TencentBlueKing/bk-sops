@@ -50,11 +50,11 @@ class IPPickerDataGenerator:
         if func is None:
             message = ""
             if self.input_type == "ip":
-                message = "IP[{}]在本业务下不存在".format(self.raw_data)
+                message = _("IP[{}]在本业务下不存在".format(self.raw_data))
             elif self.input_type == "topo":
-                message = "拓扑路径[{}]在本业务下不存在".format(self.raw_data)
+                message = _("拓扑路径[{}]在本业务下不存在".format(self.raw_data))
             elif self.input_type == "group":
-                message = "动态分组[{}]在本业务下不存在".format(self.raw_data)
+                message = _("动态分组[{}]在本业务下不存在".format(self.raw_data))
             return {
                 "result": False,
                 "code": ERROR_CODES.PARAMETERS_ERROR,
@@ -79,7 +79,11 @@ class IPPickerDataGenerator:
         """根据字符串生成ip数据"""
         result = cc_get_ips_info_by_str(self.username, self.request_kwargs["bk_biz_id"], self.raw_data)
         if result["invalid_ip"]:
-            return {"result": False, "data": [], "message": f"IP [{result['invalid_ip']}] 在本业务下不存在: 请检查配置, 修复后重新执行任务"}
+            return {
+                "result": False,
+                "data": [],
+                "message": _(f"IP [{result['invalid_ip']}] 在本业务下不存在: 请检查配置, 修复后重新执行任务"),
+            }
         ips = [
             {
                 "bk_host_innerip": ip["InnerIP"],

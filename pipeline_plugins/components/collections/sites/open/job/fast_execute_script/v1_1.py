@@ -242,7 +242,7 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
                     break
 
             if not selected_script:
-                message = f"快速执行脚本启动失败: [作业平台]未找到脚本{script_name}, 请检查配置"
+                message = _(f"快速执行脚本启动失败: [作业平台]未找到脚本{script_name}, 请检查配置")
                 self.logger.error(message)
                 data.outputs.ex_data = message
                 return False

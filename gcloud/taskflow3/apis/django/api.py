@@ -104,7 +104,7 @@ def status(request, project_id):
         return JsonResponse(
             {
                 "result": False,
-                "message": "任务查询失败: 任务[ID: {}]不存在, 请检查".format(instance_id),
+                "message": _("任务查询失败: 任务[ID: {}]不存在, 请检查".format(instance_id)),
                 "data": None,
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
@@ -371,7 +371,7 @@ def preview_task_tree(request, project_id):
     try:
         data = preview_template_tree(project_id, template_source, template_id, version, exclude_task_nodes_id)
     except Exception as e:
-        err_msg = "任务数据请求失败: 请求任务数据发生异常: {}. 请重试, 如多次失败可联系管理员处理".format(e)
+        err_msg = _("任务数据请求失败: 请求任务数据发生异常: {}. 请重试, 如多次失败可联系管理员处理".format(e))
         logger.exception(err_msg)
         return JsonResponse({"result": False, "message": err_msg})
 
@@ -428,7 +428,7 @@ def get_node_log(request, project_id, node_id):
             {
                 "result": False,
                 "data": None,
-                "message": "节点状态请求失败: 任务[ID: {}]中未找到节点[ID: {}]. 请重试, 如持续失败可联系管理员处理".format(task_id, node_id),
+                "message": _("节点状态请求失败: 任务[ID: {}]中未找到节点[ID: {}]. 请重试, 如持续失败可联系管理员处理".format(task_id, node_id)),
             }
         )
 

@@ -9,6 +9,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.utils.translation import ugettext_lazy as _
 import json
 import time
 import socket
@@ -150,7 +151,7 @@ def execute_node_timeout_strategy(node_id, version):
     ).exists()
     node_match = State.objects.filter(node_id=node_id, version=version).exists()
     if not (node_match and is_process_current_node):
-        message = f"超时策略激活失败: 节点[ID: {node_id}], 版本[{version}], 任务[ID: {task_id}]"
+        message = _(f"超时策略激活失败: 节点[ID: {node_id}], 版本[{version}], 任务[ID: {task_id}]")
         logger.error(message)
         return {"result": False, "message": message, "data": None}
 

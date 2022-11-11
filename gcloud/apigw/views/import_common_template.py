@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
+from django.utils.translation import ugettext_lazy as _
 import ujson as json
 from django.forms.fields import BooleanField
 from django.views.decorators.csrf import csrf_exempt
@@ -43,7 +43,7 @@ def import_common_template(request):
     try:
         req_data = json.loads(request.body)
     except Exception:
-        return {"result": False, "message": "非法请求: 数据错误, 请求不是合法的Json格式", "code": err_code.REQUEST_PARAM_INVALID.code}
+        return {"result": False, "message": _("非法请求: 数据错误, 请求不是合法的Json格式"), "code": err_code.REQUEST_PARAM_INVALID.code}
 
     template_data = req_data.get("template_data", None)
     if not template_data:
@@ -66,7 +66,7 @@ def import_common_template(request):
         logger.exception("[API] import common tempalte error: {}".format(e))
         return {
             "result": False,
-            "message": "流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理",
+            "message": _("流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理"),
             "code": err_code.UNKNOWN_ERROR.code,
         }
 

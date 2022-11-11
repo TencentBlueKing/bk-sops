@@ -128,7 +128,7 @@ class CCBatchModuleUpdateService(Service):
                         update_params[attr] = attr_type_mapping[attr](value)
                     except Exception:
                         transform_success = False
-                        message = "模块属性更新失败: 插件配置的属性不合法, 请修复后重试"
+                        message = _("模块属性更新失败: 插件配置的属性不合法, 请修复后重试")
                         self.logger.error(message)
                         failed_update.append(message)
                         break
@@ -140,7 +140,7 @@ class CCBatchModuleUpdateService(Service):
                 # 拼接完整路径，biz>set>module
                 cc_module_select_text = "{}>{}".format(bk_biz_name, update_params.pop("cc_module_select_text"))
             except Exception:
-                message = "模块属性更新失败: 没有提供待更新的模块, 请检查配置"
+                message = _("模块属性更新失败: 没有提供待更新的模块, 请检查配置")
                 failed_update.append(message)
                 self.logger.error(message)
                 continue
@@ -150,8 +150,8 @@ class CCBatchModuleUpdateService(Service):
                 executor, biz_cc_id, supplier_account, BkObjType.MODULE, cc_module_select_text
             )
             if not cc_list_select_node_inst_id_return["result"]:
-                message = "模块属性更新失败: 主机属性: {}, message: {}".format(
-                    update_item, cc_list_select_node_inst_id_return["message"]
+                message = _(
+                    "模块属性更新失败: 主机属性: {}, message: {}".format(update_item, cc_list_select_node_inst_id_return["message"])
                 )
                 failed_update.append(message)
                 self.logger.error(message)
@@ -171,7 +171,7 @@ class CCBatchModuleUpdateService(Service):
                 self.logger.info("module 属性更新成功, item={}, data={}".format(update_item, kwargs))
                 success_update.append(update_item)
             else:
-                message = "模块属性更新失败: 主机属性: {}, message: {}".format(update_item, update_result["message"])
+                message = _("模块属性更新失败: 主机属性: {}, message: {}".format(update_item, update_result["message"]))
                 self.logger.error(message)
                 failed_update.append(message)
 

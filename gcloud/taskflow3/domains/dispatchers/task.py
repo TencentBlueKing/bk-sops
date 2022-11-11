@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.utils.translation import ugettext_lazy as _
 import json
 import copy
 import logging
@@ -165,7 +165,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         )
 
         if not update_success:
-            return {"result": False, "message": "任务操作失败: 已启动的任务不可再次启动", "code": err_code.INVALID_OPERATION.code}
+            return {"result": False, "message": _("任务操作失败: 已启动的任务不可再次启动"), "code": err_code.INVALID_OPERATION.code}
 
         try:
             # convert web pipeline to pipeline
@@ -197,7 +197,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             )
             return {
                 "result": False,
-                "message": "任务启动失败: 引擎启动失败, 请重试. 如持续失败可联系管理员处理",
+                "message": _("任务启动失败: 引擎启动失败, 请重试. 如持续失败可联系管理员处理"),
                 "code": err_code.UNKNOWN_ERROR.code,
             }
 
@@ -284,7 +284,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         if pre_render_constants or hide_constants or component_outputs:
             return {
                 "result": False,
-                "message": "任务参数设置失败: 常量、输出参数、隐藏变量不可修改值, 请检查变量配置",
+                "message": _("任务参数设置失败: 常量、输出参数、隐藏变量不可修改值, 请检查变量配置"),
                 "data": None,
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
@@ -306,7 +306,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             )
             return {
                 "result": False,
-                "message": "任务参数设置失败: 非法的任务参数, 请修改后重试",
+                "message": _("任务参数设置失败: 非法的任务参数, 请修改后重试"),
                 "data": None,
                 "code": err_code.UNKNOWN_ERROR.code,
             }
@@ -344,7 +344,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                     return {
                         "result": False,
                         "data": "",
-                        "message": "任务参数设置失败: 更新引擎上下文发生异常: %s. 请重试, 如持续失败可联系管理员处理" % update_res.message,
+                        "message": _("任务参数设置失败: 更新引擎上下文发生异常: %s. 请重试, 如持续失败可联系管理员处理" % update_res.message),
                         "code": err_code.UNKNOWN_ERROR.code,
                     }
             self.pipeline_instance.set_execution_data(exec_data)
@@ -405,7 +405,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 logger.exception("任务数据请求失败: 请重试, 如持续失败可联系管理员处理")
                 return {
                     "result": False,
-                    "message": "任务数据请求失败: 请重试, 如持续失败可联系管理员处理",
+                    "message": _("任务数据请求失败: 请重试, 如持续失败可联系管理员处理"),
                     "data": {},
                     "code": err_code.UNKNOWN_ERROR.code,
                 }
@@ -420,7 +420,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 logger.exception("任务数据请求失败: 请重试, 如持续失败可联系管理员处理")
                 return {
                     "result": False,
-                    "message": "任务数据请求失败: 请重试, 如持续失败可联系管理员处理",
+                    "message": _("任务数据请求失败: 请重试, 如持续失败可联系管理员处理"),
                     "data": {},
                     "code": err_code.UNKNOWN_ERROR.code,
                 }

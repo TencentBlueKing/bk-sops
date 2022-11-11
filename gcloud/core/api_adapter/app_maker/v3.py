@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.utils.translation import ugettext_lazy as _
 import logging
 import requests
 
@@ -49,7 +49,7 @@ def _request_paasv3_light_app_api(url, method, params=None, data=None):
     try:
         response = method_func(url, data=json.dumps(data or {}), headers=headers, params=params or {})
     except Exception as e:
-        message = "轻应用请求Paas接口报错: 请求url: {}, 报错内容: {}".format(url, e)
+        message = _("轻应用请求Paas接口报错: 请求url: {}, 报错内容: {}".format(url, e))
         logger.error(message)
 
         return {"result": False, "message": message}
@@ -57,7 +57,7 @@ def _request_paasv3_light_app_api(url, method, params=None, data=None):
     try:
         response.raise_for_status()
     except requests.HTTPError as e:
-        message = "轻应用请求Paas接口报错: 请求url: {}, 报错内容: {}, 响应内容: {}".format(response.request.url, e, response.text)
+        message = _("轻应用请求Paas接口报错: 请求url: {}, 报错内容: {}, 响应内容: {}".format(response.request.url, e, response.text))
         logger.error(message)
 
         return {"result": False, "message": message}
@@ -82,7 +82,9 @@ def _request_paasv3_light_app_api(url, method, params=None, data=None):
             resp_data["message"] = resp_data.get("bk_error_msg")
         return resp_data
     except Exception as e:
-        message = "轻应用请求PaaS接口报错: 请求url {}, 接口响应json格式转换失败 {}，响应内容 {}".format(response.request.url, e, response.content)
+        message = _(
+            "轻应用请求PaaS接口报错: 请求url {}, 接口响应json格式转换失败 {}，响应内容 {}".format(response.request.url, e, response.content)
+        )
         logger.error(message)
 
         return {"result": False, "message": message}

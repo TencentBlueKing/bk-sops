@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific lan
 """
+from django.utils.translation import ugettext_lazy as _
 from django.apps import apps
 from django.db import transaction
 
@@ -89,7 +90,7 @@ class TemplateImporter:
                             {
                                 "result": False,
                                 "data": "",
-                                "message": f"流程导入失败: 文件解析异常, [ID: {template_id}]的流程不存在. 请修复后重试或联系管理员处理",
+                                "message": _(f"流程导入失败: 文件解析异常, [ID: {template_id}]的流程不存在. 请修复后重试或联系管理员处理"),
                                 "verbose_message": e,
                             }
                         )
@@ -162,8 +163,8 @@ class TemplateImporter:
                     return {
                         "result": False,
                         "data": None,
-                        "message": "流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员",
-                        "verbose_message": "流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员",
+                        "message": _("流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员"),
+                        "verbose_message": _("流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员"),
                     }
                 imported_template_id = act["template_id"]
                 act["template_id"] = pipeline_id_map[imported_template_id]

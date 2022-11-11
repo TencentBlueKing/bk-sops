@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific lan
 """
-
+from django.utils.translation import ugettext_lazy as _
 import traceback
 
 from pipeline.exceptions import PipelineException
@@ -59,8 +59,8 @@ class TemplateManager:
             return {
                 "result": False,
                 "data": None,
-                "message": "保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {}".format(str(e)),
-                "verbose_message": "保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {}".format(traceback.format_exc()),
+                "message": _("保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {}".format(str(e))),
+                "verbose_message": _("保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {}".format(traceback.format_exc())),
             }
 
         create_template_kwargs = {
@@ -75,11 +75,15 @@ class TemplateManager:
             return {
                 "result": False,
                 "data": None,
-                "message": "保存流程失败: 创建Pipeline流程失败, 请检查流程. 创建参数[{kwargs}], 失败原因: [{e}]".format(
-                    kwargs=create_template_kwargs, e=str(e)
+                "message": _(
+                    "保存流程失败: 创建Pipeline流程失败, 请检查流程. 创建参数[{kwargs}], 失败原因: [{e}]".format(
+                        kwargs=create_template_kwargs, e=str(e)
+                    )
                 ),
-                "verbose_message": "保存流程失败: 创建Pipeline流程失败, 请检查流程. 创建参数[{kwargs}], 失败原因: [{trace}]".format(
-                    kwargs=create_template_kwargs, trace=traceback.format_exc()
+                "verbose_message": _(
+                    "保存流程失败: 创建Pipeline流程失败, 请检查流程. 创建参数[{kwargs}], 失败原因: [{trace}]".format(
+                        kwargs=create_template_kwargs, trace=traceback.format_exc()
+                    )
                 ),
             }
 
@@ -122,11 +126,13 @@ class TemplateManager:
             return {
                 "result": False,
                 "data": None,
-                "message": "保存流程失败: 创建模板失败, 请检查流程. 创建参数[{kwargs}], 失败原因: [{e}]".format(
-                    kwargs=template_kwargs, e=str(e)
+                "message": _(
+                    "保存流程失败: 创建模板失败, 请检查流程. 创建参数[{kwargs}], 失败原因: [{e}]".format(kwargs=template_kwargs, e=str(e))
                 ),
-                "verbose_message": "保存流程失败: 创建模板失败, 请检查流程. 创建参数[{kwargs}], 失败原因: [{trace}]".format(
-                    kwargs=template_kwargs, trace=traceback.format_exc()
+                "verbose_message": _(
+                    "保存流程失败: 创建模板失败, 请检查流程. 创建参数[{kwargs}], 失败原因: [{trace}]".format(
+                        kwargs=template_kwargs, trace=traceback.format_exc()
+                    )
                 ),
             }
 
@@ -171,8 +177,8 @@ class TemplateManager:
                 return {
                     "result": False,
                     "data": None,
-                    "message": "保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {}".format(str(e)),
-                    "verbose_message": "保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {}".format(traceback.format_exc()),
+                    "message": _("保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {}".format(str(e))),
+                    "verbose_message": _("保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {}".format(traceback.format_exc())),
                 }
 
             replace_template_id(self.template_model_cls, pipeline_tree)
@@ -187,11 +193,15 @@ class TemplateManager:
                 return {
                     "result": False,
                     "data": None,
-                    "message": "更新流程失败: 更新Pipeline失败, 请检查流程. 更新参数: [{update_kwargs}], 失败原因: [{e}]".format(
-                        update_kwargs=update_kwargs, e=str(e)
+                    "message": _(
+                        "更新流程失败: 更新Pipeline失败, 请检查流程. 更新参数: [{update_kwargs}], 失败原因: [{e}]".format(
+                            update_kwargs=update_kwargs, e=str(e)
+                        )
                     ),
-                    "verbose_message": "更新流程失败: 更新Pipeline失败, 请检查流程. 更新参数: [{update_kwargs}], 失败原因: [{trace}]".format(
-                        update_kwargs=update_kwargs, trace=traceback.format_exc()
+                    "verbose_message": _(
+                        "更新流程失败: 更新Pipeline失败, 请检查流程. 更新参数: [{update_kwargs}], 失败原因: [{trace}]".format(
+                            update_kwargs=update_kwargs, trace=traceback.format_exc()
+                        )
                     ),
                 }
 
@@ -256,8 +266,10 @@ class TemplateManager:
         if referencer:
             return (
                 False,
-                "流程删除失败: 流程已被其他流程引用[{}], 暂不可删除, 请处理后重试".format(
-                    ",".join([f'{item["template_type"]}:{item["id"]}:{item["name"]}' for item in referencer])
+                _(
+                    "流程删除失败: 流程已被其他流程引用[{}], 暂不可删除, 请处理后重试".format(
+                        ",".join([f'{item["template_type"]}:{item["id"]}:{item["name"]}' for item in referencer])
+                    )
                 ),
             )
 
@@ -265,8 +277,10 @@ class TemplateManager:
         if appmaker_referencer:
             return (
                 False,
-                "流程删除失败: 流程已被其他轻应用引用[{}], 暂不可删除, 请处理后重试".format(
-                    ",".join(["{}:{}".format(item["id"], item["name"]) for item in appmaker_referencer])
+                _(
+                    "流程删除失败: 流程已被其他轻应用引用[{}], 暂不可删除, 请处理后重试".format(
+                        ",".join(["{}:{}".format(item["id"], item["name"]) for item in appmaker_referencer])
+                    )
                 ),
             )
 
@@ -274,8 +288,10 @@ class TemplateManager:
         if clocked_task_referencer:
             return (
                 False,
-                "流程删除失败: 流程已被计划任务引用: [{}], 暂不可删除, 请处理后重试".format(
-                    ",".join(["{}:{}".format(item["id"], item["name"]) for item in clocked_task_referencer])
+                _(
+                    "流程删除失败: 流程已被计划任务引用: [{}], 暂不可删除, 请处理后重试".format(
+                        ",".join(["{}:{}".format(item["id"], item["name"]) for item in clocked_task_referencer])
+                    )
                 ),
             )
 
@@ -283,8 +299,10 @@ class TemplateManager:
         if periodic_task_referencer:
             return (
                 False,
-                "流程删除失败: 流程已被定时任务引用[{}], 暂不可删除, 请处理后重试".format(
-                    ",".join(["{}:{}".format(item["id"], item["name"]) for item in periodic_task_referencer])
+                _(
+                    "流程删除失败: 流程已被定时任务引用[{}], 暂不可删除, 请处理后重试".format(
+                        ",".join(["{}:{}".format(item["id"], item["name"]) for item in periodic_task_referencer])
+                    )
                 ),
             )
 

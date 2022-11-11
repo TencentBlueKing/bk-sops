@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.utils.translation import ugettext_lazy as _
 import logging
 
 import ujson as json
@@ -176,7 +176,7 @@ def base_import_templates(request: Request, template_model_cls: object, import_k
         return JsonResponse(
             {
                 "result": False,
-                "message": "流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理",
+                "message": _("流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理"),
                 "code": err_code.UNKNOWN_ERROR.code,
                 "data": None,
             }
@@ -305,7 +305,7 @@ def import_yaml_templates(request: Request):
         convert_result = convertor_handler.reconvert(yaml_docs)
     except Exception as e:
         logger.exception("[import_yaml_templates] error: {}".format(e))
-        return JsonResponse({"result": False, "data": None, "message": "流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理"})
+        return JsonResponse({"result": False, "data": None, "message": _("流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理")})
 
     if not convert_result["result"]:
         return JsonResponse({"result": False, "data": None, "message": convert_result["message"]})
@@ -412,7 +412,7 @@ def base_template_parents(request: Request, template_model_cls: object, filters:
         return JsonResponse(
             {
                 "result": False,
-                "message": "流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理",
+                "message": _("流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理"),
                 "code": err_code.REQUEST_PARAM_INVALID.code,
                 "data": None,
             }

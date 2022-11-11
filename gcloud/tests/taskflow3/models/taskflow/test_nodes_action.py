@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.utils.translation import ugettext_lazy as _
 from django.test import TestCase
 
 from gcloud import err_code
@@ -52,7 +52,7 @@ class NodesActionTestCase(TestCase):
             result,
             {
                 "result": False,
-                "message": "节点操作失败: 节点[ID: 1]操作失败, 请重试. 如持续失败可联系管理员处理",
+                "message": _("节点操作失败: 节点[ID: 1]操作失败, 请重试. 如持续失败可联系管理员处理"),
                 "code": err_code.UNKNOWN_ERROR.code,
             },
         )

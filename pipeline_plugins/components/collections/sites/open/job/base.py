@@ -175,7 +175,7 @@ def get_job_instance_log(
                 if ip_result["ip"] == target_ip:
                     step_ip_result = ip_result
             if step_ip_result is None:
-                message = "执行历史请求失败: IP:[{}] 不属于步骤的任何步骤".format(target_ip)
+                message = _("执行历史请求失败: IP:[{}] 不属于步骤的任何步骤".format(target_ip))
                 service_logger.warning(message)
                 return {"result": False, "message": message}
         else:
@@ -920,7 +920,7 @@ class GetJobHistoryResultMixin(object):
 
         # judge success status
         if job_result["data"]["job_instance"]["status"] not in JOB_SUCCESS:
-            message = "执行历史请求失败: 请求[作业平台]执行历史发生异常: {}".format(job_result["result"])
+            message = _("执行历史请求失败: 请求[作业平台]执行历史发生异常: {}".format(job_result["result"]))
             self.logger.error(message)
             data.outputs.ex_data = message
             self.logger.info(data.outputs)

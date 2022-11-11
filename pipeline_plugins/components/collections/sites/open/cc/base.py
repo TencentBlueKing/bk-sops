@@ -99,20 +99,20 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
     )
 
     if not host_list:
-        return {"result": False, "message": f"IP [{ip_list}] 在本业务下不存在: 请检查配置, 修复后重新执行任务"}
+        return {"result": False, "message": _(f"IP [{ip_list}] 在本业务下不存在: 请检查配置, 修复后重新执行任务")}
 
     if len(host_list) > len(ip_list):
         # find repeat innerip host
         host_counter = Counter([host["bk_host_innerip"] for host in host_list])
         mutiple_innerip_hosts = [innerip for innerip, count in host_counter.items() if count > 1]
 
-        return {"result": False, "message": f"IP [{mutiple_innerip_hosts}] 在本业务下重复: 请检查配置, 修复后重新执行"}
+        return {"result": False, "message": _(f"IP [{mutiple_innerip_hosts}] 在本业务下重复: 请检查配置, 修复后重新执行")}
 
     if len(host_list) < len(ip_list):
         return_innerip_set = {host["bk_host_innerip"] for host in host_list}
         absent_innerip = set(ip_list).difference(return_innerip_set)
 
-        return {"result": False, "message": f"IP [{absent_innerip}] 在本业务下不存在: 请检查配置, 修复后重新执行"}
+        return {"result": False, "message": _(f"IP [{absent_innerip}] 在本业务下不存在: 请检查配置, 修复后重新执行")}
 
     return {"result": True, "data": [str(host["bk_host_id"]) for host in host_list]}
 

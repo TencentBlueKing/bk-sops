@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.utils.translation import ugettext_lazy as _
 from django.test import TestCase
 from mock import MagicMock
 
@@ -239,7 +240,7 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CAST = ComponentTestCase(
     name="fail case: select parent bt text with error level",
     inputs=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_INPUTS,
     parent_data=PARENT_DATA,
-    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "输入文本路径[蓝鲸>blue>Tun]与业务拓扑层级不匹配"}),
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": _("输入文本路径[蓝鲸>blue>Tun]与业务拓扑层级不匹配")}),
     schedule_assertion=[],
     execute_call_assertion=[],
     patchers=[
@@ -270,7 +271,9 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_CAST = ComponentTestCase(
     name="fail case: select parent bt text with error path",
     inputs=SELECT_BY_TEXT_ERROR_PATH_FAIL_INPUTS,
     parent_data=PARENT_DATA,
-    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "拓扑路径 [蓝鲸>blue] 在本业务下不存在: 请检查配置, 修复后重新执行"}),
+    execute_assertion=ExecuteAssertion(
+        success=False, outputs={"ex_data": _("拓扑路径 [蓝鲸>blue] 在本业务下不存在: 请检查配置, 修复后重新执行")}
+    ),
     schedule_assertion=[],
     execute_call_assertion=[],
     patchers=[

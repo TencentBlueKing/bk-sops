@@ -33,7 +33,7 @@ class UploadModuleBartender(UploadRequestBartender):
 
         if not file_name:
             logger.error("文件上传失败: 文件名[{}]不符合要求, 请修改后重试".format(file_name))
-            return {"result": False, "message": "文件上传失败: 文件名[{}]不符合要求, 请修改后重试".format(file_name), "code": 400}
+            return {"result": False, "message": _("文件上传失败: 文件名[{}]不符合要求, 请修改后重试".format(file_name)), "code": 400}
 
         if INVALID_CHAR_REGEX.findall(file_name):
             message = _('文件上传失败，文件名不能包含\\/:*?"<>|等特殊字符')
@@ -42,7 +42,7 @@ class UploadModuleBartender(UploadRequestBartender):
 
         if not file_path:
             logger.error("文件上传失败: 文件名[{}]不符合要求, 请修改后重试".format(file_path))
-            return {"result": False, "message": "文件上传失败: 文件名[{}]不符合要求, 请修改后重试".format(file_path), "code": 400}
+            return {"result": False, "message": _("文件上传失败: 文件名[{}]不符合要求, 请修改后重试".format(file_path)), "code": 400}
 
         if not source_ip:
             logger.error("[FILE_UPLOAD]invalid source_ip: {}".format(source_ip))

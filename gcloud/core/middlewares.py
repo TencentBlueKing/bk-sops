@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.utils.translation import ugettext_lazy as _
 import os
 import uuid
 import logging
@@ -66,7 +67,7 @@ class ObjectDoesNotExistExceptionMiddleware(MiddlewareMixin):
             return JsonResponse(
                 {
                     "result": False,
-                    "message": "数据不存在错误: 数据不存在错误, 错误内容 %s" % exception,
+                    "message": _("数据不存在错误: 数据不存在错误, 错误内容 %s" % exception),
                     "data": None,
                     "code": err_code.CONTENT_NOT_EXIST.code,
                 }

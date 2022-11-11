@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.utils.translation import ugettext_lazy as _
 from mock import MagicMock, patch
 
 from django.test import TestCase
@@ -220,7 +220,7 @@ class VarSetGroupSelectorTestCase(TestCase):
         with self.assertRaises(ApiRequestError) as context:
             set_group_selector.get_value()
 
-        self.assertTrue("API请求错误" in str(context.exception))
+        self.assertTrue(_("API请求错误") in str(context.exception))
 
     @patch(GET_CLIENT_BY_USER, return_value=MULTI_INPUT_OUTPUT_CLIENT)
     def test_multi_modules_success_case(self, mock_get_client_by_user_return):
