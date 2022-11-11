@@ -22,7 +22,7 @@ from pipeline.core.flow.io import (
 )
 
 from gcloud.conf import settings
-from gcloud.utils.ip import get_ip_by_regex
+from gcloud.utils.ip import get_ip_by_regex, extract_ip_from_ip_str
 from gcloud.utils.crypto import encrypt_auth_key, decrypt_auth_key
 from gcloud.utils.cmdb import get_business_host
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
@@ -42,10 +42,19 @@ INSTALL_JOB = ["INSTALL_PROXY", "INSTALL_AGENT", "REINSTALL_PROXY", "REINSTALL_A
 OPERATE_JOB = ["UPGRADE_AGENT", "UNINSTALL_PROXY"]
 
 # 主机其它参数
-HOST_EXTRA_PARAMS = ["outer_ip", "login_ip", "data_ip"]
+HOST_EXTRA_PARAMS = ["outer_ip", "login_ip", "data_ip", "inner_ipv6", "outer_ipv6"]
+
+# 主机其他参数——IPV6
+HOST_EXTRA_PARAMS_IPV6 = ["inner_ipv6", "outer_ipv6"]
 
 
 class NodemanCreateTaskService(NodeManBaseService):
+    def get_ip_list(self, ip_str):
+        if settings.ENABLE_IPV6:
+            ipv6_list, ipv4_list, _, _ = extract_ip_from_ip_str(ip_str)
+            return ipv6_list + ipv4_list
+        return get_ip_by_regex(ip_str)
+
     def execute(self, data, parent_data):
         executor = parent_data.inputs.executor
         client = BKNodeManClient(username=executor)
@@ -152,13 +161,17 @@ class NodemanCreateTaskService(NodeManBaseService):
 
                     # 组装其它可选参数, ip数量需要与inner_ip一一对应
                     for ip_type in HOST_EXTRA_PARAMS:
+                        # 没有开启ipv6的情况下不对ipv6的字段做处理
+                        if not settings.ENABLE_IPV6 and ip_type in HOST_EXTRA_PARAMS_IPV6:
+                            continue
                         if host.get(ip_type, False):
-                            others_ip_list = get_ip_by_regex(host[ip_type])
+                            others_ip_list = self.get_ip_list(host[ip_type])
                             if len(others_ip_list) == len(inner_ip_list):
                                 one[ip_type] = others_ip_list[index]
                             else:
                                 data.set_outputs("ex_data", _("获取{}的{}失败,请确认是否与inner_ip一一对应".format(inner_ip, ip_type)))
                                 return False
+
                     one.update(base_params)
 
                     row_host_params_list.append(one)
@@ -184,7 +197,10 @@ class NodemanCreateTaskService(NodeManBaseService):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"), key="bk_biz_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"),
+                key="bk_biz_id",
+                type="int",
+                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("节点类型"),
