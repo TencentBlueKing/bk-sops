@@ -82,3 +82,28 @@ def handle_plain_log(plain_log):
         for key_word in settings.LOG_SHIELDING_KEYWORDS:
             plain_log = plain_log.replace(key_word, "******")
     return plain_log
+
+
+def get_constants(constants, keys):
+    """
+    获取pipeline_tree中constant参数值
+    创建任务时:
+        记录所有constant参数值
+    修改任务参数时:
+        如果指定modified_constant_keys，则根据modified_constant_keys获取对应的参数内容
+        如果没有指定modified_constant_keys, 则获取所有参数内容
+    返回值示例:
+        extra_info: {
+            ${ip_list}: {
+                "name": "IP列表",
+                "value": "1.1.1.1"
+            }
+        }
+    @param keys:
+    @param constants:
+    @return:
+    """
+    extra_info = {}
+    for key in keys:
+        extra_info.update({key: {"name": constants[key]["name"], "value": constants[key]["value"]}})
+    return json.dumps(extra_info, ensure_ascii=False)

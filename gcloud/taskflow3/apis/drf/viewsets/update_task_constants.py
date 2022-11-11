@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
 from rest_framework import permissions
 from rest_framework import serializers
 from rest_framework.views import APIView
@@ -24,6 +23,7 @@ from gcloud.contrib.operate_record.constants import OperateType, OperateSource
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.contrib.operate_record.models import TaskOperateRecord
+from gcloud.utils.handlers import get_constants
 
 iam = get_iam_client()
 
@@ -74,12 +74,21 @@ class UpdateTaskConstantsView(APIView):
         set_result = task.set_task_constants(serializers.data["constants"], serializers.data["meta_constants"])
 
         if set_result["result"]:
+            constants = task.pipeline_instance.execution_data["constants"]
+            extra_info = get_constants(
+                constants,
+                keys=constants.keys()
+                if "modified_constant_keys" not in request.data
+                else request.data.get("modified_constant_keys"),
+            )
+
             TaskOperateRecord.objects.create(
                 operator=request.user.username,
                 operate_type=OperateType.update.name,
                 operate_source=OperateSource.app.name,
                 instance_id=task_id,
                 project_id=task.project_id,
+                extra_info=extra_info,
             )
 
         return Response(set_result)
