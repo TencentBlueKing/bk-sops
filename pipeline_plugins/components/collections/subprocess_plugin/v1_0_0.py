@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from django.utils.translation import ugettext_lazy as _
+import copy
 import datetime
 import json
 from typing import List
@@ -83,12 +84,14 @@ class SubprocessPluginService(Service):
         subprocess_inputs = {
             key: constant["value"] for key, constant in constants.items() if constant.get("need_render")
         }
+        raw_subprocess_inputs = copy.deepcopy(subprocess_inputs)
         inputs_refs = Template(subprocess_inputs).get_reference()
         self.logger.info(f"subprocess original refs: {inputs_refs}")
         additional_refs = self.runtime.get_context_key_references(pipeline_id=self.top_pipeline_id, keys=inputs_refs)
         inputs_refs = inputs_refs.union(additional_refs)
         self.logger.info(f"subprocess final refs: {inputs_refs}")
         context_values = self.runtime.get_context_values(pipeline_id=self.top_pipeline_id, keys=inputs_refs)
+        context_mappings = {c.key: c for c in context_values}
         root_pipeline_inputs = {
             key: inputs.value for key, inputs in self.runtime.get_data_inputs(self.top_pipeline_id).items()
         }
@@ -97,8 +100,18 @@ class SubprocessPluginService(Service):
         self.logger.info(f"subprocess parent hydrated context: {hydrated_context}")
 
         parsed_subprocess_inputs = Template(subprocess_inputs).render(hydrated_context)
+        parent_constants = parent_task.pipeline_tree["constants"]
         for key, constant in pipeline_tree.get("constants", {}).items():
-            if constant.get("need_render") and key in parsed_subprocess_inputs:
+            # 如果父流程直接勾选，则直接使用父流程对应变量的值
+            raw_constant_value = raw_subprocess_inputs.get(key)
+            if (
+                raw_constant_value
+                and parent_constants.get(raw_constant_value)
+                and self.id in parent_constants[raw_constant_value]["source_info"]
+                and key in parent_constants[raw_constant_value]["source_info"][self.id]
+            ):
+                constant["value"] = context_mappings[raw_subprocess_inputs[key]].value
+            elif constant.get("need_render") and key in parsed_subprocess_inputs:
                 constant["value"] = parsed_subprocess_inputs[key]
         self.logger.info(f'subprocess parsed constants: {pipeline_tree.get("constants", {})}')
 
@@ -179,7 +192,7 @@ class SubprocessPluginService(Service):
         self.finish_schedule()
         if not task_success:
             task_url = data.get_one_of_outputs("task_url")
-            data.set_outputs("ex_data", f'子流程节点执行异常，请<a href="{task_url}">去往子任务</a>查看详情')
+            data.set_outputs("ex_data", f'子流程节点执行异常，请<a href="{task_url}" target="_blank">去往子任务</a>查看详情')
             return False
         try:
             subprocess_task = TaskFlowInstance.objects.get(id=task_id)
