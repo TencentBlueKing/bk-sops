@@ -1064,22 +1064,33 @@
                     const { instance_id, component_code, node_id } = this.nodeDetailConfig
                     const data = {
                         instance_id,
+                        component_code,
                         node_id
                     }
                     if (component_code) {
-                        const inputs = tools.deepClone(this.nodeInputs)
-                        const { constants } = this.pipelineData
-                        for (const key in constants) {
-                            const values = constants[key]
-                            if (this.retryNodeId in values.source_info) {
-                                values.source_info[this.retryNodeId].forEach(code => {
-                                    if (code in inputs) {
-                                        inputs[code] = values.key
-                                    }
-                                })
+                        if (component_code === 'subprocess_plugin') {
+                            const { inputs } = this.nodeInfo.data
+                            const constants = inputs.subprocess ? inputs.subprocess.pipeline.constants : {}
+                            Object.keys(constants).forEach(key => {
+                                constants[key].value = this.nodeInputs[key]
+                            })
+                            data.inputs = inputs
+                        } else {
+                            const inputs = tools.deepClone(this.nodeInputs)
+                            // 当重试节点引用了变量时，对应的inputs值设置为变量
+                            const { constants } = this.pipelineData
+                            for (const key in constants) {
+                                const values = constants[key]
+                                if (this.retryNodeId in values.source_info) {
+                                    values.source_info[this.retryNodeId].forEach(code => {
+                                        if (code in inputs) {
+                                            inputs[code] = values.key
+                                        }
+                                    })
+                                }
                             }
+                            data.inputs = inputs
                         }
-                        data.inputs = inputs
                         data.node_id = node_id
                     }
                     await this.onRetryTask(data)
