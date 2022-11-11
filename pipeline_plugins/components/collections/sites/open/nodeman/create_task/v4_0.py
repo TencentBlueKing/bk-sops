@@ -22,13 +22,12 @@ from pipeline.core.flow.io import (
 )
 
 from gcloud.conf import settings
-from gcloud.utils.ip import get_ip_by_regex, extract_ip_from_ip_str
+from gcloud.utils.ip import get_ip_by_regex
 from gcloud.utils.crypto import encrypt_auth_key, decrypt_auth_key
 from gcloud.utils.cmdb import get_business_host
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.nodeman.base import (
     NodeManBaseService,
-    get_host_id_by_inner_ip,
     get_nodeman_rsa_public_key,
 )
 
@@ -49,12 +48,6 @@ HOST_EXTRA_PARAMS_IPV6 = ["inner_ipv6", "outer_ipv6"]
 
 
 class NodemanCreateTaskService(NodeManBaseService):
-    def get_ip_list(self, ip_str):
-        if settings.ENABLE_IPV6:
-            ipv6_list, ipv4_list, _, _ = extract_ip_from_ip_str(ip_str)
-            return ipv6_list + ipv4_list
-        return get_ip_by_regex(ip_str)
-
     def execute(self, data, parent_data):
         executor = parent_data.inputs.executor
         client = BKNodeManClient(username=executor)
@@ -85,9 +78,8 @@ class NodemanCreateTaskService(NodeManBaseService):
             bk_host_ids = []
             for host in nodeman_other_hosts:
                 bk_cloud_id = host["nodeman_bk_cloud_id"]
-                ip_list = get_ip_by_regex(host["nodeman_ip_str"])
-                bk_host_id_dict = get_host_id_by_inner_ip(executor, self.logger, bk_cloud_id, bk_biz_id, ip_list)
-                bk_host_ids.extend([bk_host_id for bk_host_id in bk_host_id_dict.values()])
+                ip_str = host["nodeman_ip_str"]
+                bk_host_ids.extend(self.get_host_id_list(ip_str, executor, bk_cloud_id, bk_biz_id))
             # 操作类任务（升级、卸载等）
             kwargs = {
                 "job_type": job_name,
