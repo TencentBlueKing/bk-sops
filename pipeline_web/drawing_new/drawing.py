@@ -46,10 +46,10 @@ def draw_pipeline(
     ranks = tight_tree.tight_tree_ranker(pipeline)
     # 使用虚拟节点替换长度大于 MIN_LEN 的边
     real_flows_chain = replace_long_path_with_dummy(pipeline, ranks)
-    # 计算每个网关应该填充的相邻节点的数量
-    gateway_dummy_nums = compute_gateways_detail(pipeline)
     # # 使用中位数法分配层级内节点顺序，使交叉最小
     orders = order.ordering(pipeline, ranks)
+    # 计算每个网关应该填充的相邻节点的数量
+    gateway_dummy_nums = compute_gateways_detail(pipeline, orders)
     # 还原自环边
     acyclic.insert_self_edges(pipeline, self_edges)
     # 根据 orders 分配位置，注意 real_flows_chain 中可能包含 reversed_flows 的 flow_id，即被反向过的边恰好是长边
