@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
+from django.utils.translation import ugettext_lazy as _
 import ujson as json
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -43,7 +43,7 @@ def operate_node(request, project_id, task_id):
     except Exception:
         return {
             "result": False,
-            "message": "request body is not a valid json",
+            "message": _("非法请求: 数据错误, 请求不是合法的Json格式"),
             "code": err_code.REQUEST_PARAM_INVALID.code,
         }
 

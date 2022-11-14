@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.utils.translation import ugettext_lazy as _
 from . import env
 from .bartenders.job_repo import JobRepoBartender
 from .managers.bk_repo import BKRepoManager
@@ -27,7 +27,7 @@ class ManagerFactory(object):
     def get_manager(cls, manager_type):
         creator = getattr(cls, "_create_{}_manager".format(manager_type), None)
         if not creator or not callable(creator):
-            raise LookupError("Can not find manager for type: {}".format(manager_type))
+            raise LookupError(_("文件上传失败: 请重试, 如持续失败可联系管理员处理"))
 
         return creator()
 

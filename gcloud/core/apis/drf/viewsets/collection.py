@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import permissions, status, mixins
 from rest_framework.response import Response
 from rest_framework.exceptions import ErrorDetail
@@ -57,9 +57,7 @@ class CollectionViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins.D
             category = item["category"]
             instance_id = item["instance_id"]
             if Collection.objects.filter(username=username, category=category, instance_id=instance_id).exists():
-                message = "The collection of user {} with category:{} and instance_id:{} already exists".format(
-                    username, category, instance_id
-                )
+                message = _("重复收藏, 待收藏的内容已经收藏过了, 无需再次收藏")
                 return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)

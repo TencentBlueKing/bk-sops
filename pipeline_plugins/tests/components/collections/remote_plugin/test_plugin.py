@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.utils.translation import ugettext_lazy as _
 from django.test import TestCase
 from mock import MagicMock
 
@@ -58,9 +58,9 @@ BASE_INPUTS = {"plugin_code": "code", "plugin_version": "version"}
 
 # OUTPUTS
 BASE_OUTPUTS = {"output": "output"}
-INVOKE_FAIL_EX_DATA_OUTPUTS = {"ex_data": "[remote plugin service invoke] error: ex_data, trace_id: trace_id"}
+INVOKE_FAIL_EX_DATA_OUTPUTS = {"ex_data": _("调用第三方插件invoke接口错误, 错误内容: ex_data, trace_id: trace_id")}
 STATE_FAIL_EX_DATA_OUTPUTS = {"ex_data": "state fail"}
-SCHEDULE_FAIL_EX_DATA_OUTPUTS = {"ex_data": "please check the logs for the reason of task failure."}
+SCHEDULE_FAIL_EX_DATA_OUTPUTS = {"ex_data": _("请通过节点日志查看任务失败原因")}
 TRACE_ID_OUTPUTS = {"trace_id": "trace_id"}
 
 # mock clients

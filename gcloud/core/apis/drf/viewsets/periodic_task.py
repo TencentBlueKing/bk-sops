@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.utils.translation import ugettext_lazy as _
 import logging
 
 from django.db import transaction
@@ -135,18 +135,18 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
             model_cls = CommonTemplate
             condition = {"id": template_id, "is_deleted": False}
         else:
-            message = "invalid template_source[%s]" % template_source
+            message = _("周期任务创建失败: 周期任务关联的流程[ID: %s]不存在, 请检查配置" % template_id)
             raise APIException(detail=message, code=err_code.REQUEST_PARAM_INVALID.code)
 
         try:
             template = model_cls.objects.filter(**condition).first()
         except model_cls.DoesNotExist:
-            message = "common template[id=%s] does not exist" % template_id
+            message = _("周期任务创建失败: 周期任务关联的公共流程[ID: %s]不存在, 请检查配置" % template_id)
             raise APIException(detail=message, code=err_code.REQUEST_PARAM_INVALID.code)
         try:
             replace_template_id(model_cls, pipeline_tree)
         except model_cls.DoesNotExist:
-            message = "invalid subprocess, check subprocess node please"
+            message = _("周期任务创建失败: 周期任务关联的流程[ID: {}]中, 子流程节点存在异常, 请检查配置".format(template_id))
             raise APIException(detail=message, code=err_code.REQUEST_PARAM_INVALID.code)
 
         # XSS handle

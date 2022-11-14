@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.utils.translation import ugettext_lazy as _
 from cachetools import TTLCache
 from django.views.decorators.http import require_GET
 
@@ -57,7 +58,7 @@ def get_task_status(request, task_id, project_id):
     try:
         task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
     except Exception as e:
-        message = "task[id={task_id}] get status error: {error}".format(task_id=task_id, error=e)
+        message = _("任务状态请求失败: 请求任务[ID: {}]的状态发生错误: {}. 请重试, 如持续失败可联系管理员处理".format(task_id, e))
         logger.exception(message)
         return {
             "result": False,

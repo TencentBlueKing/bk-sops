@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.utils.translation import ugettext_lazy as _
 import logging
 
 from pipeline.engine import states as pipeline_states
@@ -104,7 +104,7 @@ def parse_node_timeout_configs(pipeline_tree: dict) -> list:
             timeout_seconds = timeout_config.get("seconds")
             action = timeout_config.get("action")
             if not timeout_seconds or not isinstance(timeout_seconds, int):
-                message = f"node {act_id} has a illegal timemout seconds: {timeout_seconds}"
+                message = _("节点执行失败: 节点配置了非法的超时时间, 请修改配置后重试")
                 logger.error(message)
                 # 对于不符合格式要求的情况，则不设置对应超时时间
                 continue

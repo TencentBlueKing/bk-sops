@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.utils.translation import ugettext_lazy as _
 import functools
 
 from abc import ABCMeta
@@ -44,6 +44,6 @@ class EngineCommandDispatcher(metaclass=ABCMeta):
     def _unsupported_engine_ver_result(self):
         return {
             "result": False,
-            "message": "Unsupported engine version: {}".format(self.engine_ver),
+            "message": _("非法请求: 不支持的引擎版本[{}], 请联系管理员升级".format(self.engine_ver)),
             "code": err_code.UNKNOWN_ERROR.code,
         }

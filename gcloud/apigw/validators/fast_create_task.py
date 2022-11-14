@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.utils.translation import ugettext_lazy as _
 import ujson as json
 
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -29,7 +30,7 @@ class FastCreateTaskValidator(ObjectJsonBodyValidator):
         try:
             params = json.loads(request.body)
         except Exception:
-            return False, "invalid json format"
+            return False, _("非法请求: 数据错误, 请求不是合法的Json格式")
 
         try:
             pipeline_tree = params["pipeline_tree"]

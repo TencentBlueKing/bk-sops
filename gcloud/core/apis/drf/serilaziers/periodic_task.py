@@ -135,7 +135,7 @@ class CreatePeriodicTaskSerializer(serializers.ModelSerializer):
             if project_config and project_config.max_periodic_task_num > 0:
                 periodic_task_limit = project_config.max_periodic_task_num
             if PeriodicTask.objects.filter(project__id=project.id).count() >= periodic_task_limit:
-                raise serializers.ValidationError("Periodic task number reaches limit: {}".format(periodic_task_limit))
+                raise serializers.ValidationError(_("周期任务创建失败: 项目内的周期任务数不可超过: {}".format(periodic_task_limit)))
             return project
         except Project.DoesNotExist:
             raise serializers.ValidationError(_("project不存在"))

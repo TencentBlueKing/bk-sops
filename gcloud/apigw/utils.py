@@ -10,14 +10,35 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.utils.translation import ugettext_lazy as _
 import functools
 
 import ujson as json
 from cachetools.keys import hashkey
 from django.core.handlers.wsgi import WSGIRequest
 
+from gcloud import err_code
 from gcloud.core.models import Project
 from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ
+from gcloud.taskflow3.models import TaskOperationTimesConfig
+
+
+def get_task_frequency(project_id, action):
+    try:
+        allowed_times, scope_seconds = TaskOperationTimesConfig.objects.max_frequency(project_id, action)
+    except TaskOperationTimesConfig.DoesNotExist:
+        # not limit if no config on project
+        return {
+            "result": False,
+            "message": _("任务启动失败: 项目[ID: {}]没有配置频率限制".format(project_id)),
+            "code": err_code.INVALID_OPERATION.code,
+        }
+    else:
+        return {
+            "result": False,
+            "message": _("任务启动失败: 项目[ID: {}]下同时启动的任务数不可超过{}/{}(单位:秒)".format(project_id, allowed_times, scope_seconds)),
+            "code": err_code.INVALID_OPERATION.code,
+        }
 
 
 def get_project_with(obj_id, scope):

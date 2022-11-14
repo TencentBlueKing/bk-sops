@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.utils.translation import ugettext_lazy as _
 from abc import ABCMeta, abstractmethod
 
 import ujson as json
@@ -31,7 +31,7 @@ class ObjectJsonBodyValidator(RequestValidator):
         try:
             data = json.loads(request.body)
         except Exception:
-            return False, "request body is not a valid json"
+            return False, _("非法请求: 数据错误, 请求不是合法的Json格式")
 
         if not isinstance(data, dict):
             return False, "request body must be a object"
