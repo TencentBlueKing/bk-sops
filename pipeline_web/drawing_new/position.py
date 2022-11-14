@@ -25,12 +25,13 @@ from pipeline_web.drawing_new.constants import (
 )
 
 
-def upsert_orders(orders, gateway_dummy_nums):
+def upsert_orders(orders, nodes_dummy_nums):
+    # 为相应的节点插入相关的虚拟节点占位排版
     new_orders = copy.deepcopy(orders)
     dummy_nodes = []
     for order in orders:
-        if order in gateway_dummy_nums.keys():
-            dummy_nodes_list = [line_uniqid() for i in range(0, gateway_dummy_nums[order])]
+        if order in nodes_dummy_nums.keys():
+            dummy_nodes_list = [line_uniqid() for i in range(0, nodes_dummy_nums[order])]
             dummy_nodes.extend(dummy_nodes_list)
             index = new_orders.index(order)
             new_orders = new_orders[: index + 1] + dummy_nodes_list + new_orders[index + 1 :]
@@ -46,7 +47,7 @@ def position(
     start,
     canvas_width,
     more_flows=None,
-    gateway_dummy_nums=None,
+    nodes_dummy_nums=None,
 ):
     """
     @param gateway_dummy_nums:
@@ -104,7 +105,7 @@ def position(
         # 记录当前层节点微调的最大值
         shift_x = 0
         layer_nodes = orders[rk]
-        layer_nodes, dummy_nodes = upsert_orders(layer_nodes, gateway_dummy_nums)
+        layer_nodes, dummy_nodes = upsert_orders(layer_nodes, nodes_dummy_nums)
         # dummy_nodes = upsert_orders(orders, gateway_dummy_nums)
         # 当前 rank 首个节点位置
         order_x, order_y = rank_x, rank_y
@@ -122,6 +123,7 @@ def position(
                     locations[node_id] = copy.deepcopy(old_locations[node_id])
                     locations[node_id].update({"x": node_x, "y": node_y})
                 else:
+                    # 只有不是虚拟节点的节点才真的会被计算坐标放到树里面去
                     if node_id not in dummy_nodes:
                         locations[node_id] = {
                             "id": node_id,

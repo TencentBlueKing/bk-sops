@@ -83,95 +83,111 @@ def replace_long_path_with_dummy(pipeline, ranks):
     return real_flows_chain
 
 
-def compute_gateways_detail(pipeline, orders):
-    # 每个网关填充的数量为该网关的出口 - 1
-    # 搜索网关下所有的网关的个数
-    gateways = pipeline["gateways"]
-    final_dummy_nums = {}
-    # 初始化为每个网关节点进行第一步填充，则网关节点的同一层级需要预留该网关出度的节点的数量 - 1
-    for gateway_id, gateway in gateways.items():
-        if gateway["type"] in ["ExclusiveGateway", "ParallelGateway"]:
-            final_dummy_nums[gateway_id] = len(gateway["outgoing"]) - 1
-        if gateway["type"] == "ConvergeGateway":
-            final_dummy_nums[gateway_id] = len(gateway["incoming"]) - 1
-
-    # 计算每个网关的前置节点，前置节点的需要预留节点后面的网关的出度的数量 -1 的空间
-    nodes_dummy_nums = {}
-    for gateway_id, gateway in gateways.items():
-        if gateway["type"] in ["ExclusiveGateway", "ParallelGateway"]:
-            for incoming in gateway["incoming"]:
-                nodes_dummy_nums[pipeline["flows"][incoming]["source"]] = len(gateway["outgoing"]) - 1
-
-    # 根据orders 的顺序得到 节点从后到前到顺序
-    nodes_orders_list = []
-    gateways_orders_list = []
+def compute_sorted_list_by_order(orders, dummy_nums_dict):
+    # 根据orders 的顺序得到, 得到节点和网关的排序
+    result = []
     for index, nodes in orders.items():
-        for node_id in nodes_dummy_nums.keys():
+        for node_id in dummy_nums_dict.keys():
             if node_id in nodes:
-                nodes_orders_list.append(node_id)
-        for gateway_id in final_dummy_nums.keys():
-            if gateway_id in nodes:
-                gateways_orders_list.append(gateway_id)
-
-    # 这一部的操作是，如果网关前面是一个节点，网关1 - 节点 - 网关2
-    # 那么节点要预留的空间为网关2出度的 - 1
-    # 网关1 要预留的空间 = 原本网关要预留的空间+因为嵌套需要额外预留的空间
-    for node_id in reversed(nodes_orders_list):
-        # node_id 是节点的情况
-        if node_id in pipeline["activities"]:
-            for incoming in pipeline["activities"][node_id]["incoming"]:
-                source_id = pipeline["flows"][incoming]["source"]
-                if source_id in final_dummy_nums.keys():
-                    final_dummy_nums[source_id] = final_dummy_nums[source_id] + nodes_dummy_nums[node_id]
-        else:
-            for incoming in gateways[node_id]["incoming"]:
-                source_id = pipeline["flows"][incoming]["source"]
-                if source_id in final_dummy_nums.keys():
-                    final_dummy_nums[source_id] = final_dummy_nums[source_id] + nodes_dummy_nums[node_id]
-
-    # 网关前面到节点需要预留的空间与网关一致
-    for gateway_id in reversed(gateways_orders_list):
-        if gateways[gateway_id]["type"] in ["ExclusiveGateway", "ParallelGateway"]:
-            for incoming in gateways[gateway_id]["incoming"]:
-                compute_node_right(pipeline, incoming, final_dummy_nums[gateway_id], nodes_dummy_nums)
-
-    dummy_nums = {}
-    # 处理虚拟节点的问题, 左边是网关，需要从左->右 依次修改虚拟节点的填充值
-    for node_id, node in pipeline["all_nodes"].items():
-        if node["type"] == "DummyNode":
-            source_id = pipeline["flows"][node["incoming"]]["source"]
-            if source_id in final_dummy_nums.keys():
-                dummy_nums[node_id] = final_dummy_nums[source_id]
-                # 递归查找该node_id 之后的
-                get_dummy_node(pipeline, node["outgoing"], final_dummy_nums[source_id], dummy_nums)
-
-    # 处理虚拟节点的问题，右边是网关，需要从右-左 递归修改虚拟节点的填充值
-    final_dummy_nums.update(nodes_dummy_nums)
-    final_dummy_nums.update(dummy_nums)
-    return final_dummy_nums
+                result.append(node_id)
+    return result
 
 
-def compute_node_right(pipeline, incoming, value, nodes_dummy_nums):
-    node_id = pipeline["flows"][incoming]["source"]
-    node = pipeline["activities"].get(node_id)
+def compute_node_right_to_left(pipeline, incoming, value, nodes_dummy_nums):
+    # 从右到左向前搜索
+    node_id = pipeline[PWE.flows][incoming][PWE.source]
+    node = pipeline[PWE.activities].get(node_id)
     if node is None:
         return
     nodes_dummy_nums[node_id] = value
-    for item in node["incoming"]:
-        return compute_node_right(pipeline, item, value, nodes_dummy_nums)
+    for item in node[PWE.incoming]:
+        return compute_node_right_to_left(pipeline, item, value, nodes_dummy_nums)
 
     return
 
 
-def get_dummy_node(pipeline, outgoing, value, nodes_dummy_nums):
-    node_id = pipeline["flows"][outgoing]["target"]
+def compute_node_left_to_right(pipeline, outgoing, value, nodes_dummy_nums):
+    # 从左到右向后搜索，处理虚拟节点
+    node_id = pipeline[PWE.flows][outgoing][PWE.target]
     node = pipeline["all_nodes"].get(node_id)
     if node is None:
         return
+    # 如果发现是虚拟节点，继续向下递归
     if node["type"] == "DummyNode":
         nodes_dummy_nums[node_id] = value
-        return get_dummy_node(pipeline, node["outgoing"], value, nodes_dummy_nums)
+        return compute_node_left_to_right(pipeline, node["outgoing"], value, nodes_dummy_nums)
     return
+
+
+def compute_gateways_detail(pipeline, orders):
+    # 先拿到所有的网关
+    gateways = pipeline["gateways"]
+    # 最终排序的结果
+    final_dummy_nums = {}
+
+    # 初始化为每个网关节点进行第一步填充，则网关节点的同一层级需要预留该网关出度的节点的数量 - 1
+    for gateway_id, gateway in gateways.items():
+        # 分支网关，并行网关，条件并行网关 默认填充网关出口的数量 - 1
+        if gateway["type"] in [PWE.ExclusiveGateway, PWE.ParallelGateway, PWE.ConditionalParallelGateway]:
+            final_dummy_nums[gateway_id] = len(gateway[PWE.outgoing]) - 1
+
+        # 汇聚网关填充网关入口的数量 - 1
+        if gateway["type"] == PWE.ConvergeGateway:
+            final_dummy_nums[gateway_id] = len(gateway[PWE.incoming]) - 1
+
+    # todo 可能有最优的解，从后向前计算只排一次
+    # 把网关的前置节点都挑选出来
+    # 计算每个网关的前置节点，前置节点的需要预留节点后面的网关的出度的数量 -1 的空间
+    # 节点 - 网关， 那么节点会继承后面网关的占用数量，如果节点后面的网关有三条分支，那么节点的下方需要预留出两条分支的位置给后方的网关
+    nodes_dummy_nums = {}
+    for gateway_id, gateway in gateways.items():
+        if gateway["type"] in [PWE.ExclusiveGateway, PWE.ParallelGateway, PWE.ConditionalParallelGateway]:
+            for incoming in gateway[PWE.incoming]:
+                value = len(gateway[PWE.outgoing]) - 1
+                nodes_dummy_nums[pipeline[PWE.flows][incoming][PWE.source]] = value
+                # 需要第一波计算, 将节点的空间值传递到前面的节点
+                # 网关=节点1=节点2-节点网关
+                # 节点1的值=节点2的值
+                compute_node_right_to_left(pipeline, incoming, value, nodes_dummy_nums)
+
+    nodes_orders_list = compute_sorted_list_by_order(orders, nodes_dummy_nums)
+
+    # 如果节点的前面是一个网关，那么网关需要预留的空间=网关需要预留的空间+节点需要预留的空间
+    for node_id in reversed(nodes_orders_list):
+        # node_id 是节点的情况
+        if node_id in pipeline[PWE.activities]:
+            # 节点只存在一个incoming，所以只需要处理一次
+            for incoming in pipeline[PWE.activities][node_id][PWE.incoming]:
+                source_id = pipeline[PWE.flows][incoming][PWE.source]
+                if source_id in final_dummy_nums.keys():
+                    final_dummy_nums[source_id] = final_dummy_nums[source_id] + nodes_dummy_nums[node_id]
+        else:
+            # 除了汇聚网关之外，只允许出现一个入度
+            for incoming in gateways[node_id][PWE.incoming]:
+                source_id = pipeline[PWE.flows][incoming][PWE.source]
+                if source_id in final_dummy_nums.keys():
+                    final_dummy_nums[source_id] = final_dummy_nums[source_id] + nodes_dummy_nums[node_id]
+
+    gateways_orders_list = compute_sorted_list_by_order(orders, final_dummy_nums)
+    # 这个时候由于网关的节点因为排序位置已经发生了变化，此时需要对节点进行重新一次占位计算
+    for gateway_id in reversed(gateways_orders_list):
+        if gateways[gateway_id]["type"] in [PWE.ExclusiveGateway, PWE.ParallelGateway, PWE.ConditionalParallelGateway]:
+            for incoming in gateways[gateway_id][PWE.incoming]:
+                compute_node_right_to_left(pipeline, incoming, final_dummy_nums[gateway_id], nodes_dummy_nums)
+
+    dummy_node_nums = {}
+    # 处理虚拟节点的问题, 左边是汇聚网关的情况，需要从左->右 依次修改虚拟节点的填充值
+    for node_id, node in pipeline["all_nodes"].items():
+        if node["type"] == "DummyNode":
+            source_id = pipeline[PWE.flows][node[PWE.incoming]][PWE.source]
+            if source_id in final_dummy_nums.keys():
+                dummy_node_nums[node_id] = final_dummy_nums[source_id]
+                # 递归查找该node_id 之后的
+                compute_node_left_to_right(pipeline, node[PWE.outgoing], final_dummy_nums[source_id], dummy_node_nums)
+
+    final_dummy_nums.update(nodes_dummy_nums)
+    final_dummy_nums.update(dummy_node_nums)
+    return final_dummy_nums
 
 
 def remove_dummy(pipeline, real_flows_chain, dummy_nodes_included=None, dummy_flows_included=None):
