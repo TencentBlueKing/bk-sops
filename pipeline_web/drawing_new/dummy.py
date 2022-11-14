@@ -155,18 +155,19 @@ def compute_gateways_detail(pipeline, orders):
     # 如果节点的前面是一个网关，那么网关需要预留的空间=网关需要预留的空间+节点需要预留的空间
     for node_id in reversed(nodes_orders_list):
         # node_id 是节点的情况
-        if node_id in pipeline[PWE.activities]:
+        if node_id in pipeline[PWE.activities].keys():
             # 节点只存在一个incoming，所以只需要处理一次
             for incoming in pipeline[PWE.activities][node_id][PWE.incoming]:
                 source_id = pipeline[PWE.flows][incoming][PWE.source]
                 if source_id in final_dummy_nums.keys():
                     final_dummy_nums[source_id] = final_dummy_nums[source_id] + nodes_dummy_nums[node_id]
         else:
-            # 除了汇聚网关之外，只允许出现一个入度
-            for incoming in gateways[node_id][PWE.incoming]:
-                source_id = pipeline[PWE.flows][incoming][PWE.source]
-                if source_id in final_dummy_nums.keys():
-                    final_dummy_nums[source_id] = final_dummy_nums[source_id] + nodes_dummy_nums[node_id]
+            if node_id in gateways.keys():
+                # 除了汇聚网关之外，只允许出现一个入度
+                for incoming in gateways[node_id][PWE.incoming]:
+                    source_id = pipeline[PWE.flows][incoming][PWE.source]
+                    if source_id in final_dummy_nums.keys():
+                        final_dummy_nums[source_id] = final_dummy_nums[source_id] + nodes_dummy_nums[node_id]
 
     gateways_orders_list = compute_sorted_list_by_order(orders, final_dummy_nums)
     # 这个时候由于网关的节点因为排序位置已经发生了变化，此时需要对节点进行重新一次占位计算
