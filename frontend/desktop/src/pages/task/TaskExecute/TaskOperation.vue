@@ -980,7 +980,7 @@
                         this.openNodeInfoPanel('retryNode', i18n.t('重试'))
                         this.setNodeDetailConfig(id)
                         if (this.nodeDetailConfig.component_code) {
-                            await this.loadNodeInfo()
+                            await this.loadNodeInfo(id)
                         }
                     } else {
                         this.openNodeInfoPanel('modifyParams', i18n.t('重试任务'))
@@ -990,7 +990,7 @@
                     console.warn(error)
                 }
             },
-            async loadNodeInfo () {
+            async loadNodeInfo (id = this.retryNodeId) {
                 try {
                     const nodeInputs = {}
                     const { componentData } = this.nodeDetailConfig
@@ -1002,6 +1002,9 @@
                             } else if (this.nodeDetailConfig.component_code === 'subprocess_plugin') { // 新版子流程任务节点输入参数处理
                                 const value = nodeInfo.data.inputs[key]
                                 if (key === 'subprocess') {
+                                    const nodeConfig = this.pipelineData.activities[id]
+                                    const subprocess = nodeConfig.component.data.subprocess
+                                    nodeInfo.data.inputs[key] = subprocess.value
                                     Object.keys(value.pipeline.constants).forEach(key => {
                                         const data = value.pipeline.constants[key]
                                         nodeInputs[key] = data.value
@@ -1070,10 +1073,6 @@
                     if (component_code) {
                         if (component_code === 'subprocess_plugin') {
                             const { inputs } = this.nodeInfo.data
-                            const constants = inputs.subprocess ? inputs.subprocess.pipeline.constants : {}
-                            Object.keys(constants).forEach(key => {
-                                constants[key].value = this.nodeInputs[key]
-                            })
                             data.inputs = inputs
                         } else {
                             const inputs = tools.deepClone(this.nodeInputs)
