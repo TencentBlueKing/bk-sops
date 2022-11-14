@@ -250,6 +250,7 @@
                                 constants[key].value = this.renderData[key]
                             })
                             data.inputs = inputs
+                            data.inputs['_escape_render_keys'] = ['subprocess']
                         }
                         this.$emit('retrySuccess', data)
                     } else {

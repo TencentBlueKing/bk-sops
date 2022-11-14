@@ -949,7 +949,7 @@
         }
     }
     .trigger-condition {
-        margin-left: 120px;
+        margin-left: 140px;
         min-height: 36px;
         .condition-item {
             display: flex;
@@ -964,7 +964,7 @@
                 margin-right: 10px;
             }
             .variable-value {
-                width: 240px;
+                width: 220px;
                 margin-right: 10px;
             }
             .icon-operat {
