@@ -268,6 +268,9 @@ def draw_pipeline(request):
     except Exception as e:
         message = "draw pipeline_tree error: %s" % e
         logger.exception(e)
+        import traceback
+
+        traceback.print_stack(e)
         return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code, "data": None})
 
     return JsonResponse(

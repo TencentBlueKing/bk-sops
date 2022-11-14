@@ -130,7 +130,6 @@ def compute_nodes_fill_num(pipeline, orders):
         # 分支网关，并行网关，条件并行网关 默认填充网关出口的数量 - 1
         if gateway["type"] in [PWE.ExclusiveGateway, PWE.ParallelGateway, PWE.ConditionalParallelGateway]:
             final_dummy_nums[gateway_id] = len(gateway[PWE.outgoing]) - 1
-
         # 汇聚网关填充网关入口的数量 - 1
         if gateway["type"] == PWE.ConvergeGateway:
             final_dummy_nums[gateway_id] = len(gateway[PWE.incoming]) - 1
@@ -160,22 +159,27 @@ def compute_nodes_fill_num(pipeline, orders):
             for incoming in pipeline[PWE.activities][node_id][PWE.incoming]:
                 source_id = pipeline[PWE.flows][incoming][PWE.source]
                 if source_id in final_dummy_nums.keys():
-                    final_dummy_nums[source_id] = final_dummy_nums[source_id] + nodes_dummy_nums[node_id]
-        else:
-            if node_id in gateways.keys():
-                # 除了汇聚网关之外，只允许出现一个入度
-                for incoming in gateways[node_id][PWE.incoming]:
-                    source_id = pipeline[PWE.flows][incoming][PWE.source]
-                    if source_id in final_dummy_nums.keys():
-                        final_dummy_nums[source_id] = final_dummy_nums[source_id] + nodes_dummy_nums[node_id]
+                    value = final_dummy_nums[source_id] + nodes_dummy_nums[node_id]
+                    final_dummy_nums[source_id] = value
+                    # 网关前面的的节点需要重新计算
+                    gateway = gateways[source_id]
+                    for gateway_incoming in gateway[PWE.incoming]:
+                        compute_node_right_to_left(pipeline, gateway_incoming, value, nodes_dummy_nums)
 
-    gateways_orders_list = compute_sorted_list_by_order(orders, final_dummy_nums)
-    # 这个时候由于网关的节点因为排序位置已经发生了变化，此时需要对节点进行重新一次占位计算
-    for gateway_id in reversed(gateways_orders_list):
-        if gateways[gateway_id]["type"] in [PWE.ExclusiveGateway, PWE.ParallelGateway, PWE.ConditionalParallelGateway]:
-            for incoming in gateways[gateway_id][PWE.incoming]:
-                compute_node_right_to_left(pipeline, incoming, final_dummy_nums[gateway_id], nodes_dummy_nums)
+    converge_gateway_node_nums = {}
+    # 所有分支网关，条件分支网关，条件网关的汇聚网关与之一致
+    for gateway_id, value in final_dummy_nums.items():
+        gateway = gateways[gateway_id]
+        if gateway["type"] in [PWE.ExclusiveGateway, PWE.ParallelGateway, PWE.ConditionalParallelGateway]:
+            # 找到对应的汇聚网关
+            if "converge_gateway_id" in gateway:
+                converge_gateway_id = gateway["converge_gateway_id"]
+                converge_gateway_node_nums[converge_gateway_id] = value
 
+    final_dummy_nums.update(converge_gateway_node_nums)
+    final_dummy_nums.update(nodes_dummy_nums)
+
+    # 汇聚网关向后搜索，如果是虚拟节点，则值和网关一致
     dummy_node_nums = {}
     # 处理虚拟节点的问题, 左边是汇聚网关的情况，需要从左->右 依次修改虚拟节点的填充值
     for node_id, node in pipeline["all_nodes"].items():
@@ -186,7 +190,6 @@ def compute_nodes_fill_num(pipeline, orders):
                 # 递归查找该node_id 之后的
                 compute_node_left_to_right(pipeline, node[PWE.outgoing], final_dummy_nums[source_id], dummy_node_nums)
 
-    final_dummy_nums.update(nodes_dummy_nums)
     final_dummy_nums.update(dummy_node_nums)
     return final_dummy_nums
 
