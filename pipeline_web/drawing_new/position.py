@@ -106,7 +106,6 @@ def position(
         shift_x = 0
         layer_nodes = orders[rk]
         layer_nodes, dummy_nodes = upsert_orders(layer_nodes, nodes_dummy_nums)
-        # dummy_nodes = upsert_orders(orders, gateway_dummy_nums)
         # 当前 rank 首个节点位置
         order_x, order_y = rank_x, rank_y
         # 记录当前行的最大纵坐标，当需要换行时赋值给下一行起始点
