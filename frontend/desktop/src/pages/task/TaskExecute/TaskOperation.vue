@@ -1074,6 +1074,7 @@
                         if (component_code === 'subprocess_plugin') {
                             const { inputs } = this.nodeInfo.data
                             data.inputs = inputs
+                            data.inputs['_escape_render_keys'] = ['subprocess']
                         } else {
                             const inputs = tools.deepClone(this.nodeInputs)
                             // 当重试节点引用了变量时，对应的inputs值设置为变量
