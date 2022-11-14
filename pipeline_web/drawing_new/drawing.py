@@ -15,7 +15,7 @@ from pipeline_web.drawing_new.constants import POSITION, CANVAS_WIDTH
 from pipeline_web.drawing_new import normalize, acyclic, position
 from pipeline_web.drawing_new.rank import tight_tree
 from pipeline_web.drawing_new.order import order
-from pipeline_web.drawing_new.dummy import compute_gateways_detail, replace_long_path_with_dummy, remove_dummy
+from pipeline_web.drawing_new.dummy import compute_nodes_fill_num, replace_long_path_with_dummy, remove_dummy
 
 
 def draw_pipeline(
@@ -49,7 +49,7 @@ def draw_pipeline(
     # # 使用中位数法分配层级内节点顺序，使交叉最小
     orders = order.ordering(pipeline, ranks)
     # 计算每个节点应该填充的节点数量
-    nodes_dummy_nums = compute_gateways_detail(pipeline, orders)
+    nodes_dummy_nums = compute_nodes_fill_num(pipeline, orders)
     # 还原自环边
     acyclic.insert_self_edges(pipeline, self_edges)
     # 根据 orders 分配位置，注意 real_flows_chain 中可能包含 reversed_flows 的 flow_id，即被反向过的边恰好是长边

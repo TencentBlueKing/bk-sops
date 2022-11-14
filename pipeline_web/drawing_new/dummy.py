@@ -119,7 +119,7 @@ def compute_node_left_to_right(pipeline, outgoing, value, nodes_dummy_nums):
     return
 
 
-def compute_gateways_detail(pipeline, orders):
+def compute_nodes_fill_num(pipeline, orders):
     # 先拿到所有的网关
     gateways = pipeline["gateways"]
     # 最终排序的结果
