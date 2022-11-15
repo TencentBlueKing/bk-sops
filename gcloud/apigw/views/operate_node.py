@@ -10,8 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-
 import ujson as json
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -26,6 +24,10 @@ from gcloud.iam_auth.view_interceptors.apigw import TaskOperateInterceptor
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 from apigw_manager.apigw.decorators import apigw_require
+from django.utils.translation import ugettext_lazy as _
+import logging
+
+logger = logging.getLogger("root")
 
 
 @login_exempt
@@ -41,9 +43,11 @@ def operate_node(request, project_id, task_id):
     try:
         req_data = json.loads(request.body)
     except Exception:
+        message = _("非法请求: 数据错误, 请求不是合法的Json格式 | operate_node")
+        logger.error(message)
         return {
             "result": False,
-            "message": "request body is not a valid json",
+            "message": message,
             "code": err_code.REQUEST_PARAM_INVALID.code,
         }
 

@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+
 from cachetools import TTLCache
 from django.views.decorators.http import require_GET
 
@@ -26,6 +27,7 @@ from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
 from apigw_manager.apigw.decorators import apigw_require
+from django.utils.translation import ugettext_lazy as _
 
 
 def cache_decisioner(key, value):
@@ -57,8 +59,8 @@ def get_task_status(request, task_id, project_id):
     try:
         task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
     except Exception as e:
-        message = "task[id={task_id}] get status error: {error}".format(task_id=task_id, error=e)
-        logger.exception(message)
+        message = _(f"任务状态请求失败: 请求任务[ID: {task_id}]的状态发生错误: {e}. 请重试, " f"如持续失败可联系管理员处理 | get_task_status")
+        logger.error(message)
         return {
             "result": False,
             "message": message,

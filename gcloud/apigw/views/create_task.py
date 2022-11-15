@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+
 import copy
 import re
 
@@ -44,6 +45,7 @@ from gcloud.iam_auth.view_interceptors.apigw import CreateTaskInterceptor
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 from apigw_manager.apigw.decorators import apigw_require
+from django.utils.translation import ugettext_lazy as _
 
 
 def get_exclude_nodes_by_execute_nodes(execute_nodes, template):
@@ -100,10 +102,14 @@ def create_task(request, template_id, project_id):
                 id=template_id, project_id=project.id, is_deleted=False
             )
         except TaskTemplate.DoesNotExist:
+            message = _(
+                f"任务创建失败: 任务关联的流程[ID: {template_id}]已不存在, 项目[ID: {project.id}], "
+                f"业务[ID: {project.bk_biz_id}] 请检查流程是否存在 | create_and_start_task"
+            )
+            logger.error(message)
             result = {
                 "result": False,
-                "message": "template[id={template_id}] of project[project_id={project_id},biz_id={biz_id}] "
-                "does not exist".format(template_id=template_id, project_id=project.id, biz_id=project.bk_biz_id),
+                "message": message,
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return result
@@ -112,9 +118,11 @@ def create_task(request, template_id, project_id):
         try:
             tmpl = CommonTemplate.objects.select_related("pipeline_template").get(id=template_id, is_deleted=False)
         except CommonTemplate.DoesNotExist:
+            message = _(f"任务创建失败: 任务关联的公共流程[ID: {template_id}]已不存在, 请检查流程是否存在 | create_and_start_task")
+            logger.error(message)
             result = {
                 "result": False,
-                "message": "common template[id={template_id}] does not exist".format(template_id=template_id),
+                "message": message,
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return result
@@ -176,7 +184,11 @@ def create_task(request, template_id, project_id):
             exclude_task_nodes_id = get_exclude_nodes_by_execute_nodes(params["execute_task_nodes_id"], tmpl)
         try:
             data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
-                tmpl, pipeline_instance_kwargs, params["constants"], exclude_task_nodes_id, params["simplify_vars"],
+                tmpl,
+                pipeline_instance_kwargs,
+                params["constants"],
+                exclude_task_nodes_id,
+                params["simplify_vars"],
             )
         except Exception as e:
             message = f"[API] create_task create pipeline without tree error: {e}"

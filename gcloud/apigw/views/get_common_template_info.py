@@ -22,6 +22,10 @@ from gcloud.apigw.views.utils import format_template_data
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CommonFlowViewInterceptor
 from apigw_manager.apigw.decorators import apigw_require
+from django.utils.translation import ugettext_lazy as _
+import logging
+
+logger = logging.getLogger("root")
 
 
 @login_exempt
@@ -34,9 +38,11 @@ def get_common_template_info(request, template_id):
     try:
         tmpl = CommonTemplate.objects.select_related("pipeline_template").get(id=template_id, is_deleted=False)
     except CommonTemplate.DoesNotExist:
+        message = _(f"任务创建失败: 任务关联的公共流程[ID: {template_id}]已不存在, 请检查流程是否存在 | get_common_template_info")
+        logger.error(message)
         result = {
             "result": False,
-            "message": "common template[id={template_id}] does not exist".format(template_id=template_id),
+            "message": message,
             "code": err_code.CONTENT_NOT_EXIST.code,
         }
         return result

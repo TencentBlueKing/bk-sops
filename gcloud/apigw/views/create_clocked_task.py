@@ -30,6 +30,7 @@ from gcloud.apigw.validators import CreateTaskValidator
 from gcloud.utils.decorators import request_validate
 from gcloud.iam_auth.intercept import iam_intercept
 from apigw_manager.apigw.decorators import apigw_require
+from django.utils.translation import ugettext_lazy as _
 
 
 @login_exempt
@@ -56,10 +57,14 @@ def create_clocked_task(request, template_id, project_id):
     try:
         template = TaskTemplate.objects.get(pk=template_id, project_id=project.id, is_deleted=False)
     except TaskTemplate.DoesNotExist:
+        message = _(
+            f"任务创建失败: 任务关联的流程[ID: {template_id}]已不存在, 项目[ID: {project.id}], "
+            f"业务[ID: {project.bk_biz_id}]请检查流程是否存在 | create_clocked_task"
+        )
+        logger.error(message)
         result = {
             "result": False,
-            "message": "template[id={template_id}] of project[project_id={project_id} , biz_id{biz_id}] "
-            "does not exist".format(template_id=template_id, project_id=project.id, biz_id=project.bk_biz_id,),
+            "message": message,
             "code": err_code.CONTENT_NOT_EXIST.code,
         }
         return result

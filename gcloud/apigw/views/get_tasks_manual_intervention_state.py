@@ -16,7 +16,7 @@ import ujson as json
 
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
-
+from django.utils.translation import ugettext_lazy as _
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
@@ -41,9 +41,11 @@ def get_tasks_manual_intervention_state(request, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
+        message = _("非法请求: 数据错误, 请求不是合法的Json格式 | get_tasks_manual_intervention_state")
+        logger.error(message)
         return {
             "result": False,
-            "message": "request body is not a valid json",
+            "message": message,
             "code": err_code.REQUEST_PARAM_INVALID.code,
         }
 
