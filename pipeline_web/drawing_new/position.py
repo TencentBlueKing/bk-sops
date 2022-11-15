@@ -136,7 +136,7 @@ def position(
 
         rank_x = rank_x + shift_x
         # 1)下一个节点最右端 x 坐标超出画布宽度 canvas_width 2)无分支 3)下一个节点非结束节点 ——> 换行
-        if rank_x + size_x > canvas_width and len(layer_nodes) == 1 and rk < max_rk - MIN_LEN:
+        if rank_x + size_x > canvas_width and (len(layer_nodes) - len(dummy_nodes)) == 1 and rk < max_rk - MIN_LEN:
             rank_x = start[0]
             rank_y = new_line_y
 
