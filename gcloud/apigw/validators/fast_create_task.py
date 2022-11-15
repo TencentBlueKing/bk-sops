@@ -18,6 +18,7 @@ from pipeline_web.drawing_new.drawing import draw_pipeline
 from gcloud.utils.strings import standardize_pipeline_node_name
 from gcloud.utils.validate import ObjectJsonBodyValidator
 from gcloud.apigw.views.utils import logger
+from django.utils.translation import ugettext_lazy as _
 
 
 class FastCreateTaskValidator(ObjectJsonBodyValidator):
@@ -29,7 +30,9 @@ class FastCreateTaskValidator(ObjectJsonBodyValidator):
         try:
             params = json.loads(request.body)
         except Exception:
-            return False, "invalid json format"
+            message = _("非法请求: 数据错误, 请求不是合法的Json格式 | validate")
+            logger.error(message)
+            return False, message
 
         try:
             pipeline_tree = params["pipeline_tree"]
