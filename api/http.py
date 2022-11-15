@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
+from django.utils.translation import ugettext_lazy as _
 import logging
 
 import requests
@@ -53,16 +53,17 @@ def _http_request(
                 url=url, headers=headers, json=data, verify=verify, cert=cert, timeout=timeout, cookies=cookies,
             )
         else:
-            return {"result": False, "message": "Unsupported http method %s" % method}
+            logger.error(f"非法请求: 请求不是合法的HTTP Method: {method} | _http_request")
+            return {"result": False, "message": _(f"非法请求: 请求不是合法的HTTP Method: {method} | _http_request")}
     except Exception as e:
         logger.exception("Error occurred when requesting method=%s url=%s" % (method, url))
-        return {"result": False, "message": "Request API error, exception: %s" % str(e)}
+        logger.error(f"请求API错误: 请求API错误, 报错内容: {str(e)} | _http_request")
+        return {"result": False, "message": _(f"请求API错误: 请求API错误, 报错内容: {str(e)} | _http_request")}
     else:
 
         if not resp.ok:
-            message = "Request API error, status_code: %s" % resp.status_code
-            logger.error(message)
-            return {"result": False, "message": message}
+            logger.error(f"请求API错误: 请求API错误, 状态码: {resp.status_code} | _http_request")
+            return {"result": False, "message": _(f"请求API错误: 请求API错误, 状态码: {resp.status_code} | _http_request")}
 
         log_message = "API return: message: %(message)s, request_id=%(request_id)s, url=%(url)s, data=%(data)s, response=%(response)s"  # noqa
 
@@ -93,7 +94,8 @@ def _http_request(
                 )
         except Exception:
             logger.exception("Return data format is incorrect, which shall be unified as json: %s", resp.content[200:])
-            return {"result": False, "message": "API return is not a valid json"}
+            logger.error("API return is not a valid json | _http_request")
+            return {"result": False, "message": _("请求失败: 返回不是合法的Json格式, 请重试 | _http_request")}
 
         return json_resp
     finally:
