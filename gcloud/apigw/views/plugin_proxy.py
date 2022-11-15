@@ -23,6 +23,7 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.views.utils import logger
 from apigw_manager.apigw.decorators import apigw_require
+from django.utils.translation import ugettext_lazy as _
 
 
 @login_exempt
@@ -44,9 +45,10 @@ def dispatch_plugin_query(request):
     try:
         params = json.loads(request.body)
     except Exception:
+        logger.error("非法请求: 数据错误, 请求不是合法的Json格式 | dispatch_plugin_query")
         return {
             "result": False,
-            "message": "invalid json format",
+            "message": _("非法请求: 数据错误, 请求不是合法的Json格式 | dispatch_plugin_query"),
             "code": err_code.REQUEST_PARAM_INVALID.code,
         }
 

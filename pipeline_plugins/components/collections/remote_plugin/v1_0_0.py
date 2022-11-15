@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
+from django.utils.translation import ugettext_lazy as _
 
 from pipeline.component_framework.component import Component
 from pipeline.core.flow import Service, StaticIntervalGenerator
@@ -50,14 +51,14 @@ class RemotePluginService(Service):
         try:
             plugin_client = PluginServiceApiClient(plugin_code)
         except PluginServiceException as e:
-            message = f"[remote plugin service client] error: {e}"
+            message = _(f"第三方插件client初始化失败, 错误内容: {e} | execute")
             logger.error(message)
             data.set_outputs("ex_data", message)
             return False
 
         detail_result = plugin_client.get_detail(plugin_version)
         if not detail_result["result"]:
-            message = f"[remote plugin service detail] error: {detail_result['message']}"
+            message = _(f"获取第三方插件详情失败, 错误内容: {detail_result['message']} | execute")
             logger.error(message)
             data.set_outputs("ex_data", message)
             return False
@@ -71,9 +72,8 @@ class RemotePluginService(Service):
         )
         ok, result_data = plugin_client.invoke(plugin_version, {"inputs": data.inputs, "context": plugin_context})
         if not ok:
-            message = (
-                f"[remote plugin service invoke] error: {result_data['message']}, "
-                f"trace_id: {result_data.get('trace_id')}"
+            message = _(
+                f"调用第三方插件invoke接口错误, 错误内容: {result_data['message']}, trace_id: {result_data.get('trace_id')} | execute"
             )
             logger.error(message)
             data.set_outputs("ex_data", message)
@@ -97,7 +97,7 @@ class RemotePluginService(Service):
         try:
             plugin_client = PluginServiceApiClient(plugin_code)
         except PluginServiceException as e:
-            message = f"[remote plugin service client] error: {e}"
+            message = _(f"第三方插件client初始化失败, 错误内容: {e} | schedule")
             logger.error(message)
             data.set_outputs("ex_data", message)
             return False

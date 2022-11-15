@@ -61,7 +61,11 @@ def chunk_table_data(column):
             multiple_keys.append(key)
             value = value.split(BREAK_LINE)
             if len(value) != count and count != 1:
-                return {"result": False, "message": _("单行数据[%s]的各列换行符个数不一致，请改为一致或者去掉换行符") % value, "data": []}
+                return {
+                    "result": False,
+                    "message": _(f"非法请求: [单行自动扩展]中, [{value}] 按分隔符分割后的行数不一致, 请修复后重试 | chunk_table_data"),
+                    "data": [],
+                }
             count = len(value)
         column[key] = value
 

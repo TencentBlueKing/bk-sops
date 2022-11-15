@@ -15,6 +15,8 @@ from rest_framework import permissions, status, mixins
 from rest_framework.response import Response
 from rest_framework.exceptions import ErrorDetail
 
+from api.utils.request import logger
+from django.utils.translation import ugettext_lazy as _
 from gcloud.contrib.collection.models import Collection
 from gcloud.core.apis.drf.serilaziers.collection import CollectionSerializer
 from gcloud.core.apis.drf.viewsets import GcloudReadOnlyViewSet
@@ -57,10 +59,14 @@ class CollectionViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins.D
             category = item["category"]
             instance_id = item["instance_id"]
             if Collection.objects.filter(username=username, category=category, instance_id=instance_id).exists():
-                message = "The collection of user {} with category:{} and instance_id:{} already exists".format(
-                    username, category, instance_id
+                logger.error(
+                    f"重复收藏, 待收藏的内容已经收藏过了, 无需再次收藏, username: {username}, category: {category}, "
+                    f"instance_id: {instance_id} | create"
                 )
-                return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+                message = "重复收藏, 待收藏的内容已经收藏过了, 无需再次收藏 | create"
+                return Response(
+                    {"detail": ErrorDetail(_(message), err_code.REQUEST_PARAM_INVALID.code)}, exception=True
+                )
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

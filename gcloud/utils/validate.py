@@ -15,6 +15,9 @@ from abc import ABCMeta, abstractmethod
 
 import ujson as json
 
+from api.utils.request import logger
+from django.utils.translation import ugettext_lazy as _
+
 
 class RequestValidator(object, metaclass=ABCMeta):
     @abstractmethod
@@ -31,10 +34,12 @@ class ObjectJsonBodyValidator(RequestValidator):
         try:
             data = json.loads(request.body)
         except Exception:
-            return False, "request body is not a valid json"
+            logger.error("非法请求: 数据错误, 请求不是合法的Json格式, 加载异常| validate")
+            return False, _("非法请求: 数据错误, 请求不是合法的Json格式, 加载异常 | validate")
 
         if not isinstance(data, dict):
-            return False, "request body must be a object"
+            logger.error("非法请求: 数据错误, 请求不是合法的Json格式 | validate")
+            return False, _("非法请求: 数据错误, 请求不是合法的Json格式 | validate")
 
         self.data = data
 

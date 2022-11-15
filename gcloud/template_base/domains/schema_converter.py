@@ -18,6 +18,8 @@ import jsonschema
 
 from pipeline.core.data import library
 from pipeline.parser.utils import replace_all_id
+from django.utils.translation import ugettext_lazy as __
+from api.utils.request import logger
 from pipeline_web.drawing_new.drawing import draw_pipeline
 
 
@@ -117,7 +119,9 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 template_id = yaml_doc["meta"].get("id")
                 yaml_data[template_id] = yaml_doc
         except jsonschema.ValidationError as e:
-            return {"result": False, "data": yaml_data, "message": {"file": ["YAML数据格式有误: {}".format(e)]}}
+            message = f"流程导入失败: 文件解析异常{e}, 可能内容不合法. 请重试或联系管理员处理 | validate_data"
+            logger.error(message)
+            return {"result": False, "data": yaml_data, "message": __(message)}
         # 检查流程间是否有环引用的情况
 
         errors = {}
@@ -373,7 +377,8 @@ class YamlSchemaConverter(BaseSchemaConverter):
         if "constants" in template:
             for constant_key, constant_attrs in template["constants"].items():
                 reconverted_constant, is_create = self._reconvert_constant(
-                    constant={**constant_attrs, "key": constant_key}, cur_constants=reconverted_tree["constants"],
+                    constant={**constant_attrs, "key": constant_key},
+                    cur_constants=reconverted_tree["constants"],
                 )
                 if is_create:
                     reconverted_tree["constants"][constant_key] = reconverted_constant

@@ -37,7 +37,10 @@ class CCBatchUpdateSetService(Service):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("填参方式"), key="cc_set_select_method", type="str", schema=StringItemSchema(description=_("填参方式")),
+                name=_("填参方式"),
+                key="cc_set_select_method",
+                type="str",
+                schema=StringItemSchema(description=_("填参方式")),
             ),
             self.InputItem(
                 name=_("拓扑模块属性修改"),
@@ -126,15 +129,17 @@ class CCBatchUpdateSetService(Service):
                         update_params[attr] = attr_type_mapping[attr](value)
                     except Exception as e:
                         transform_success = False
-                        message = "item: {}, 转换属性{}为{}类型时出错: {}".format(update_item, attr, attr_type_mapping[attr], e)
-                        logger.error(message)
-                        failed_update.append(message)
+                        logger.error(
+                            f"模块属性更新失败: 插件配置的属性不合法, item: {update_item}, "
+                            f"转换属性: {attr}为{attr_type_mapping[attr]}类型时出错: {e}, 请修复后重试 | execute"
+                        )
+                        failed_update.append(_("模块属性更新失败: 插件配置的属性不合法, 请修复后重试 | execute"))
                         break
             if not transform_success:
                 continue
 
             if "bk_set_name" not in update_params:
-                message = "item: {}, 目前Set名称未填写".format(update_item)
+                message = _(f"集群属性更新失败: item={update_item}, 目前Set名称未填写 | execute")
                 logger.error(message)
                 failed_update.append(message)
                 continue
@@ -145,7 +150,7 @@ class CCBatchUpdateSetService(Service):
 
             # 检查set name是否存在
             if not bk_set_name:
-                message = "set 属性更新失败, set name有空值, item={}".format(update_item)
+                message = _(f"集群属性更新失败: set name有空值, item={update_item} | execute")
                 failed_update.append(message)
                 self.logger.info(message)
                 continue
@@ -172,8 +177,9 @@ class CCBatchUpdateSetService(Service):
                 self.logger.info("set 属性更新成功, item={}, data={}".format(update_item, kwargs))
                 success_update.append(update_item)
             else:
-                message = "set 属性更新失败, item={}, data={}, message: {}".format(
-                    update_item, kwargs, update_result["message"]
+                message = _(
+                    f"集群属性更新失败:set 属性更新失败, item={update_item}, data={kwargs}, "
+                    f"message: {update_result['message']} | execute"
                 )
                 self.logger.info(message)
                 failed_update.append(message)

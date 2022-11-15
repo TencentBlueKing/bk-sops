@@ -20,9 +20,12 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from blueapps.account.decorators import login_exempt
+
+from api.utils.request import logger
 from gcloud.contrib.admin.migration_api.decorators import require_migrate_token
 from gcloud.core.models import Project, ResourceConfig
 from gcloud import err_code
+from django.utils.translation import ugettext_lazy as _
 
 
 @login_exempt
@@ -33,10 +36,11 @@ def register_resource_config(request):
     try:
         params = json.loads(request.body)
     except Exception as e:
+        logger.error(f"非法请求: 数据错误, 请求不是合法的Json格式, {e} | register_resource_config")
         return JsonResponse(
             {
                 "result": False,
-                "message": "request body is not a valid json: {}".format(str(e)),
+                "message": _("非法请求: 数据错误, 请求不是合法的Json格式| register_resource_config"),
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
         )

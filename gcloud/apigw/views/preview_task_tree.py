@@ -26,6 +26,7 @@ from gcloud.iam_auth.view_interceptors.apigw import FlowViewInterceptor
 from apigw_manager.apigw.decorators import apigw_require
 
 from pipeline_web.preview import preview_template_tree
+from django.utils.translation import ugettext_lazy as _
 
 
 @login_exempt
@@ -40,9 +41,10 @@ def preview_task_tree(request, project_id, template_id):
     try:
         req_data = json.loads(request.body)
     except Exception:
+        logger.error("非法请求: 数据错误, 请求不是合法的Json格式 | preview_task_tree")
         return {
             "result": False,
-            "message": "request body is not a valid json",
+            "message": _("非法请求: 数据错误, 请求不是合法的Json格式 | preview_task_tree"),
             "code": err_code.REQUEST_PARAM_INVALID.code,
         }
 

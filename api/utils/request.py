@@ -12,7 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-
+from django.utils.translation import ugettext_lazy as _
 from gcloud.conf import settings
 from gcloud.exceptions import ApiRequestError
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
@@ -67,9 +67,8 @@ def batch_request(
             cur_page_param = page_param["cur_page_param"]
             page_size_param = page_param["page_size_param"]
         except Exception as e:
-            message = "[batch_request] please input correct page param, {}".format(e)
-            logger.error(message)
-            raise ApiRequestError(message)
+            logger.error(f"批量请求接口分页参数错误: {e} | batch_request")
+            raise ApiRequestError(_("批量请求接口分页参数错误 | batch_request"))
     else:
         cur_page_param = "start"
         page_size_param = "limit"

@@ -43,8 +43,8 @@ def save(request, project_id):
         params = request.POST.dict()
         jsonschema.validate(params, APP_MAKER_PARAMS_SCHEMA)
     except jsonschema.ValidationError as e:
-        logger.warning("APP_MAKER_PARAMS_SCHEMA raise error: %s" % e)
-        message = _("参数格式错误：%s" % e)
+        logger.error(f"轻应用保存失败: 保存轻应用接口参数校验失败, {e} | save")
+        message = _("轻应用保存失败: 保存轻应用接口参数校验失败 | save")
         return JsonResponse({"result": False, "message": message})
 
     logo_obj = request.FILES.get("logo")
@@ -52,16 +52,19 @@ def save(request, project_id):
         valid_mime = {"image/png", "image/jpg", "image/jpeg"}
         is_png_or_jpg = logo_obj.content_type in valid_mime
         if not is_png_or_jpg:
-            return JsonResponse({"result": False, "message": _("请上传 jpg 或 png 格式的图片")})
+            logger.error("轻应用保存失败: 请使用不超过100KB的JPG / PNG 图片作为应用LOGO | save")
+            return JsonResponse({"result": False, "message": _("轻应用保存失败: 请使用不超过100KB的JPG / PNG 图片作为应用LOGO | save")})
         file_size = logo_obj.size
         # LOGO大小不能大于 100K
         if file_size > 100 * 1024:
-            message = _("LOGO 文件大小必须小于 100K")
+            message = _("轻应用保存失败: 请使用不超过100KB 的 JPG / PNG 图片作为应用LOGO | save")
+            logger.error("轻应用保存失败: 请使用不超过100KB 的 JPG / PNG 图片作为应用LOGO | save")
             return JsonResponse({"result": False, "message": message})
         logo_content = logo_obj.read()
         real_mime = magic.from_buffer(logo_content, mime=True)
         if real_mime not in valid_mime:
-            return JsonResponse({"result": False, "message": _("图片格式非法")})
+            logger.error("轻应用保存失败: 请使用不超过100KB 的 JPG / PNG 图片作为应用LOGO | save")
+            return JsonResponse({"result": False, "message": _("轻应用保存失败: 请使用不超过100KB 的 JPG / PNG 图片作为应用LOGO | save")})
     else:
         logo_content = None
 

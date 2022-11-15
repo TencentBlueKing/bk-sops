@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.utils.translation import ugettext_lazy as _
 import logging
 
 import ujson as json
@@ -173,10 +173,11 @@ def base_import_templates(request: Request, template_model_cls: object, import_k
         )
     except Exception:
         logger.error(traceback.format_exc())
+        logger.error("流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理 | base_import_templates")
         return JsonResponse(
             {
                 "result": False,
-                "message": "invalid flow data or error occur, please contact administrator",
+                "message": _("流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理 | base_import_templates"),
                 "code": err_code.UNKNOWN_ERROR.code,
                 "data": None,
             }
@@ -304,8 +305,14 @@ def import_yaml_templates(request: Request):
     try:
         convert_result = convertor_handler.reconvert(yaml_docs)
     except Exception as e:
-        logger.exception("[import_yaml_templates] error: {}".format(e))
-        return JsonResponse({"result": False, "data": None, "message": f"模版转换过程出错: {e}"})
+        logger.error(f"流程导入失败: 文件解析异常, 可能内容不合法. {e} 请重试或联系管理员处理 | import_yaml_templates")
+        return JsonResponse(
+            {
+                "result": False,
+                "data": None,
+                "message": _("流程导入失败: 文件解析异常, 可能内容不合法. {e} 请重试或联系管理员处理 | import_yaml_templates"),
+            }
+        )
 
     if not convert_result["result"]:
         return JsonResponse({"result": False, "data": None, "message": convert_result["message"]})
@@ -409,10 +416,11 @@ def base_template_parents(request: Request, template_model_cls: object, filters:
     qs = template_model_cls.objects.filter(**filters).only("pipeline_template_id")
 
     if len(qs) != 1:
+        logger.error(f"流程导入失败: 文件解析异常, 可能内容不合法. 根据过滤条件{filters}, 找到{len(qs)}条结果数据. 请重试或联系管理员处理 | base_template_parents")
         return JsonResponse(
             {
                 "result": False,
-                "message": "find {} template for filters: {}".format(len(qs), filters),
+                "message": _("流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理 | base_template_parents"),
                 "code": err_code.REQUEST_PARAM_INVALID.code,
                 "data": None,
             }

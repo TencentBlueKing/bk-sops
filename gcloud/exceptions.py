@@ -65,7 +65,7 @@ class FlowExportError(BkSopsError):
 
 class ApiRequestError(BkSopsError):
     def __init__(self, message):
-        self.message = "ApiRequestError: {}".format(message)
+        self.message = f"API请求错误: {message} | __init__"
 
     def __str__(self):
         return self.message

@@ -48,11 +48,17 @@ class IPPickerDataGenerator:
     def generate(self):
         func = getattr(self, f"generate_{self.input_type}_data", None)
         if func is None:
+            error_message_mapping = {
+                "ip": _(f"IP[{self.raw_data}]在本业务下不存在 | generate"),
+                "topo": _(f"拓扑路径[{self.raw_data}]在本业务下不存在 | generate"),
+                "group": _(f"动态分组[{self.raw_data}]在本业务下不存在 | generate"),
+            }
+            message = error_message_mapping.get(self.input_type)
             return {
                 "result": False,
                 "code": ERROR_CODES.PARAMETERS_ERROR,
                 "data": [],
-                "message": "input_type should be ip, topo or group.",
+                "message": message,
             }
         return func()
 
@@ -72,7 +78,9 @@ class IPPickerDataGenerator:
         """根据字符串生成ip数据"""
         result = cc_get_ips_info_by_str(self.username, self.request_kwargs["bk_biz_id"], self.raw_data)
         if result["invalid_ip"]:
-            return {"result": False, "data": [], "message": f"ips: {result['invalid_ip']} invalid."}
+            message = _(f"IP [{result['invalid_ip']}] 在本业务下不存在: 请检查配置, 修复后重新执行任务 | generate_ip_data")
+            logger.error(message)
+            return {"result": False, "data": [], "message": message}
         ips = [
             {
                 "bk_host_innerip": ip["InnerIP"],
