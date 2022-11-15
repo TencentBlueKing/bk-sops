@@ -121,17 +121,15 @@ def position(
                 if node_id in old_locations:
                     locations[node_id] = copy.deepcopy(old_locations[node_id])
                     locations[node_id].update({"x": node_x, "y": node_y})
-                else:
-                    # 只有不是虚拟节点的节点才真的会被计算坐标放到树里面去
-                    if node_id not in dummy_nodes:
-                        locations[node_id] = {
-                            "id": node_id,
-                            "type": PIPELINE_ELEMENT_TO_WEB.get(node[PWE.type], node[PWE.type]),
-                            "name": node.get(PWE.name, ""),
-                            "status": "",
-                            "x": node_x,
-                            "y": node_y,
-                        }
+                elif node_id not in dummy_nodes:
+                    locations[node_id] = {
+                        "id": node_id,
+                        "type": PIPELINE_ELEMENT_TO_WEB.get(node[PWE.type], node[PWE.type]),
+                        "name": node.get(PWE.name, ""),
+                        "status": "",
+                        "x": node_x,
+                        "y": node_y,
+                    }
                 if node_y >= new_line_y:
                     new_line_y = node_y + shift_y
             order_y += shift_y

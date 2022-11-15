@@ -134,7 +134,7 @@ def compute_nodes_fill_num(pipeline, orders):
         if gateway["type"] == PWE.ConvergeGateway:
             final_dummy_nums[gateway_id] = len(gateway[PWE.incoming]) - 1
 
-    # todo 可能有最优的解，从后向前计算只排一次
+    # TODO 可能有最优的解，从后向前计算只排一次
     # 把网关的前置节点都挑选出来
     # 计算每个网关的前置节点，前置节点的需要预留节点后面的网关的出度的数量 -1 的空间
     # 节点 - 网关， 那么节点会继承后面网关的占用数量，如果节点后面的网关有三条分支，那么节点的下方需要预留出两条分支的位置给后方的网关

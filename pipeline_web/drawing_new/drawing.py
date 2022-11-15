@@ -46,7 +46,7 @@ def draw_pipeline(
     ranks = tight_tree.tight_tree_ranker(pipeline)
     # 使用虚拟节点替换长度大于 MIN_LEN 的边
     real_flows_chain = replace_long_path_with_dummy(pipeline, ranks)
-    # # 使用中位数法分配层级内节点顺序，使交叉最小
+    # 使用中位数法分配层级内节点顺序，使交叉最小
     orders = order.ordering(pipeline, ranks)
     # 计算每个节点应该填充的节点数量
     nodes_fill_nums = compute_nodes_fill_num(pipeline, orders)
