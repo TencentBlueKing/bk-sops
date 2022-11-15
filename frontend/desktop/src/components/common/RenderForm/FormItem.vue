@@ -56,6 +56,7 @@
                 :class="['rf-tag-label', { 'required': isRequired() }]">
                 <span
                     v-bk-tooltips="{
+                        allowHtml: true,
                         html: scheme.attrs.tips,
                         placement: 'top',
                         theme: 'light',
