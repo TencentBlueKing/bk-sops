@@ -33,7 +33,7 @@ import base64
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud.constants import JobBizScopeType
-from pipeline.core.flow.io import BooleanItemSchema
+from pipeline.core.flow.io import BooleanItemSchema, StringItemSchema
 from pipeline.component_framework.component import Component
 
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
@@ -64,6 +64,16 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService, G
             ),
         ]
 
+    def outputs_format(self):
+        return super(AllBizJobFastExecuteScriptService, self).outputs_format() + [
+            self.OutputItem(
+                name=_("JOB执行IP分组"),
+                key="job_tagged_ip_dict",
+                type="string",
+                schema=StringItemSchema(description=_("根据JOB步骤执行标签获取的IP分组")),
+            ),
+        ]
+
     def get_job_params(self, data, parent_data):
 
         biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
@@ -72,7 +82,6 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService, G
         job_script_timeout = data.get_one_of_inputs("job_script_timeout")
         ip_info = data.get_one_of_inputs("job_target_ip_table")
         supplier_account = supplier_account_for_business(biz_cc_id)
-        # 拼装ip_list， bk_cloud_id为空则值为0
 
         result, target_server = self.get_target_server_biz_set(executor, ip_info, supplier_account)
 
