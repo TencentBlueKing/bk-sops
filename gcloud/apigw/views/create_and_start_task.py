@@ -42,6 +42,7 @@ from apigw_manager.apigw.decorators import apigw_require
 from gcloud.iam_auth.view_interceptors.apigw import CreateTaskInterceptor
 from gcloud.apigw.validators import CreateTaskValidator
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
+from django.utils.translation import ugettext_lazy as _
 
 
 @login_exempt
@@ -79,10 +80,16 @@ def create_and_start_task(request, template_id, project_id):
                 id=template_id, project_id=project.id, is_deleted=False
             )
         except TaskTemplate.DoesNotExist:
+            logger.error(
+                f"任务创建失败: 任务关联的流程[ID: {template_id}]已不存在, 项目[ID: {project.id}] "
+                f"业务[ID: {project.bk_biz_id}]. 请检查流程是否存在 | create_and_start_task"
+            )
             result = {
                 "result": False,
-                "message": "template[id={template_id}] of project[project_id={project_id},biz_id={biz_id}] "
-                "does not exist".format(template_id=template_id, project_id=project.id, biz_id=project.bk_biz_id),
+                "message": _(
+                    f"任务创建失败: 任务关联的流程[ID: {template_id}]已不存在, 项目[ID: {project.id}] "
+                    f"业务[ID: {project.bk_biz_id}]. 请检查流程是否存在 | create_and_start_task"
+                ),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return result
@@ -90,9 +97,10 @@ def create_and_start_task(request, template_id, project_id):
         try:
             tmpl = CommonTemplate.objects.select_related("pipeline_template").get(id=template_id, is_deleted=False)
         except CommonTemplate.DoesNotExist:
+            logger.error(f"任务创建失败: 任务关联的公共流程[ID: {template_id}]已不存在, 请检查流程是否存在 | create_and_start_task")
             result = {
                 "result": False,
-                "message": "common template[id={template_id}] does not exist".format(template_id=template_id),
+                "message": _(f"任务创建失败: 任务关联的公共流程[ID: {template_id}]已不存在, 请检查流程是否存在 | create_and_start_task"),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return result

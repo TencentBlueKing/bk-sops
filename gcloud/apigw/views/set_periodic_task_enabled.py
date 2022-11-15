@@ -17,6 +17,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from blueapps.account.decorators import login_exempt
+
+from api.utils.request import logger
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.decorators import project_inject
@@ -24,6 +26,7 @@ from gcloud.periodictask.models import PeriodicTask
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import PeriodicTaskEditInterceptor
 from apigw_manager.apigw.decorators import apigw_require
+from django.utils.translation import ugettext_lazy as _
 
 
 @login_exempt
@@ -39,7 +42,12 @@ def set_periodic_task_enabled(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
-        return {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
+        logger.error("非法请求: 数据错误, 请求不是合法的Json格式 | set_periodic_task_enabled")
+        return {
+            "result": False,
+            "message": _("非法请求: 数据错误, 请求不是合法的Json格式 | set_periodic_task_enabled"),
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+        }
 
     enabled = params.get("enabled", False)
 

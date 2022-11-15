@@ -175,10 +175,7 @@ def get_job_instance_log(
                 if ip_result["ip"] == target_ip:
                     step_ip_result = ip_result
             if step_ip_result is None:
-                message = (
-                    f"[get_job_instance_log] target_ip: {target_ip} does not match any ip in "
-                    f"ip_list: [{','.join([instance['ip'] for instance in step_instance['step_ip_result_list']])}]"
-                )
+                message = _(f"执行历史请求失败: IP:[{target_ip}] 不属于步骤的任何步骤 | get_job_instance_log")
                 service_logger.warning(message)
                 return {"result": False, "message": message}
         else:
@@ -922,7 +919,9 @@ class GetJobHistoryResultMixin(object):
 
         # judge success status
         if job_result["data"]["job_instance"]["status"] not in JOB_SUCCESS:
-            message = "[get_job_instance_status] Job_instance:{id} is not success.".format(id=job_success_id)
+            message = _(
+                f"执行历史请求失败: 请求[作业平台ID: {job_success_id}]执行历史发生异常: {job_result['result']} | get_job_history_result"
+            )
             self.logger.error(message)
             data.outputs.ex_data = message
             self.logger.info(data.outputs)

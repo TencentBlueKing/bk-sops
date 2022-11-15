@@ -19,11 +19,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from blueapps.account.decorators import login_exempt
+
+from api.utils.request import logger
 from gcloud.contrib.admin.migration_api.decorators import require_migrate_token
 from gcloud.constants import TASK_CATEGORY
 from gcloud import err_code
 from gcloud.label.models import Label, TemplateLabelRelation
 from gcloud.tasktmpl3.models import TaskTemplate
+from django.utils.translation import ugettext_lazy as _
 
 
 @login_exempt
@@ -34,10 +37,11 @@ def migrate_template_category(request):
     try:
         params = json.loads(request.body)
     except Exception as e:
+        logger.error(f"非法请求: 数据错误, 请求不是合法的Json格式, {e} | migrate_template_category")
         return JsonResponse(
             {
                 "result": False,
-                "message": "request body is not a valid json: {}".format(str(e)),
+                "message": _("非法请求: 数据错误, 请求不是合法的Json格式 | migrate_template_category"),
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
         )

@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.utils.translation import ugettext_lazy as __
 import json
 import logging
 import time
@@ -61,8 +62,10 @@ def node_callback(request, token):
     try:
         callback_data = json.loads(request.body)
     except Exception:
-        logger.warning("node callback error: %s" % traceback.format_exc())
-        return JsonResponse({"result": False, "message": "invalid request body"}, status=400)
+        logger.error(f"非法请求: 无效的请求, 请重试. 如持续失败可联系管理员处理, {traceback.format_exc()} | node_callback")
+        return JsonResponse(
+            {"result": False, "message": __("非法请求: 无效的请求, 请重试. 如持续失败可联系管理员处理 | node_callback")}, status=400
+        )
 
     taskflow_id = None
     if root_pipeline_id:

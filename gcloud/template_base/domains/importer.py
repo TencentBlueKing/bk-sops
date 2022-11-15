@@ -10,9 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific lan
 """
+from django.utils.translation import ugettext_lazy as _
 from django.apps import apps
 from django.db import transaction
 
+from api.utils.request import logger
 from .template_manager import TemplateManager
 from ..utils import replace_biz_id_value
 from ...common_template.models import CommonTemplate
@@ -85,11 +87,14 @@ class TemplateImporter:
                         else:
                             template = self.template_model_cls.objects.get(id=template_id)
                     except self.template_model_cls.DoesNotExist as e:
+                        logger.error(f"流程导入失败: 文件解析异常, [ID: {template_id}]的流程不存在. 请修复后重试或联系管理员处理 | import_template")
                         import_result.append(
                             {
                                 "result": False,
                                 "data": "",
-                                "message": f"Template does not exist with id {template_id}",
+                                "message": _(
+                                    f"流程导入失败: 文件解析异常, [ID: {template_id}]的流程不存在. 请修复后重试或联系管理员处理 | import_template"
+                                ),
                                 "verbose_message": e,
                             }
                         )
@@ -159,13 +164,16 @@ class TemplateImporter:
         for act in pipeline_tree["activities"].values():
             if act["type"] == "SubProcess":
                 if act["template_id"] not in pipeline_id_map:
+                    message = (
+                        f"流程导入失败: 文件解析异常, 可能内容不合法. 模板[ID: {act['template_id']}], "
+                        f"模板[ID集合: {pipeline_id_map}], 请重试或联系管理员 | _replace_subprocess_template_info"
+                    )
+                    logger.error(message)
                     return {
                         "result": False,
                         "data": None,
-                        "message": "can not find {} in pipeline_id_map".format(act["template_id"]),
-                        "verbose_message": "can not find {} in pipeline_id_map: {}".format(
-                            act["template_id"], pipeline_id_map
-                        ),
+                        "message": _(message),
+                        "verbose_message": _(message),
                     }
                 imported_template_id = act["template_id"]
                 act["template_id"] = pipeline_id_map[imported_template_id]

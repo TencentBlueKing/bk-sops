@@ -160,8 +160,13 @@ def cc_get_set_attribute(request, biz_cc_id):
     client = get_client_by_user(request.user.username)
     result = client.cc.search_object_attribute(kwargs)
     if not result["result"]:
+        logger.error(f"业务配置数据请求失败: 请求[配置平台]接口发生异常: {result['message']} | cc_get_set_attribute")
         return JsonResponse(
-            {"result": False, "data": "", "message": _("调用cc接口失败，message={}").format(result["message"])}
+            {
+                "result": False,
+                "data": "",
+                "message": _(f"业务配置数据请求失败: 请求[配置平台]接口发生异常: {result['message']} | cc_get_set_attribute"),
+            }
         )
     data = result["data"]
     set_attribute = [{"value": set_item["bk_property_id"], "text": set_item["bk_property_name"]} for set_item in data]
@@ -196,7 +201,10 @@ def cc_get_set_env(request, obj_id, biz_cc_id, supplier_account):
 
 
 urlpatterns += [
-    url(r"^cc_get_set_env/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_get_set_env,),
+    url(
+        r"^cc_get_set_env/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$",
+        cc_get_set_env,
+    ),
     url(r"^cc_get_set/(?P<biz_cc_id>\d+)/$", cc_get_set),
     url(r"^cc_get_module/(?P<biz_cc_id>\d+)/(?P<biz_set_id>\d+)/$", cc_get_module),
     url(r"^cc_get_set_list/(?P<biz_cc_id>\d+)/$", cc_get_set_list),

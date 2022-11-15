@@ -29,6 +29,8 @@ from gcloud.taskflow3.utils import add_node_name_to_status_tree
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 from apigw_manager.apigw.decorators import apigw_require
+from gcloud.apigw.views.utils import logger
+from django.utils.translation import ugettext_lazy as _
 
 
 @csrf_exempt
@@ -44,9 +46,10 @@ def get_tasks_status(request, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
+        logger.error("非法请求: 数据错误, 请求不是合法的Json格式 | get_tasks_status")
         return {
             "result": False,
-            "message": "request body is not a valid json",
+            "message": _("非法请求: 数据错误, 请求不是合法的Json格式 | get_tasks_status"),
             "code": err_code.REQUEST_PARAM_INVALID.code,
         }
 

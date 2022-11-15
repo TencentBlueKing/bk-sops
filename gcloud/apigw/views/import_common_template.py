@@ -24,6 +24,7 @@ from gcloud.common_template.models import CommonTemplate
 from gcloud.template_base.utils import read_encoded_template_data
 from gcloud.apigw.views.utils import logger
 from apigw_manager.apigw.decorators import apigw_require
+from django.utils.translation import ugettext_lazy as _
 
 
 @login_exempt
@@ -43,7 +44,12 @@ def import_common_template(request):
     try:
         req_data = json.loads(request.body)
     except Exception:
-        return {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
+        logger.error("非法请求: 数据错误, 请求不是合法的Json格式 | import_common_template")
+        return {
+            "result": False,
+            "message": _("非法请求: 数据错误, 请求不是合法的Json格式 | import_common_template"),
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+        }
 
     template_data = req_data.get("template_data", None)
     if not template_data:
@@ -64,9 +70,10 @@ def import_common_template(request):
         )
     except Exception as e:
         logger.exception("[API] import common tempalte error: {}".format(e))
+        logger.error("流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理 | import_common_template")
         return {
             "result": False,
-            "message": "invalid flow data or error occur, please contact administrator",
+            "message": _("流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理 | import_common_template"),
             "code": err_code.UNKNOWN_ERROR.code,
         }
 

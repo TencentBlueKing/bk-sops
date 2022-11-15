@@ -16,12 +16,14 @@ from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
+from gcloud.apigw.apps import logger
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.common_template.models import CommonTemplate
 from gcloud.apigw.views.utils import format_template_data
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CommonFlowViewInterceptor
 from apigw_manager.apigw.decorators import apigw_require
+from django.utils.translation import ugettext_lazy as _
 
 
 @login_exempt
@@ -34,9 +36,10 @@ def get_common_template_info(request, template_id):
     try:
         tmpl = CommonTemplate.objects.select_related("pipeline_template").get(id=template_id, is_deleted=False)
     except CommonTemplate.DoesNotExist:
+        logger.error(f"任务创建失败: 任务关联的公共流程[ID: {template_id}]已不存在, 请检查流程是否存在 | get_common_template_info")
         result = {
             "result": False,
-            "message": "common template[id={template_id}] does not exist".format(template_id=template_id),
+            "message": _(f"任务创建失败: 任务关联的公共流程[ID: {template_id}]已不存在, 请检查流程是否存在 | get_common_template_info"),
             "code": err_code.CONTENT_NOT_EXIST.code,
         }
         return result

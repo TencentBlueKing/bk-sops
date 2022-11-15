@@ -21,6 +21,7 @@ from blueapps.account.decorators import login_exempt
 from gcloud.core.models import Project, StaffGroupSet
 from gcloud import err_code
 from .decorators import require_migrate_token
+from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 
@@ -34,10 +35,11 @@ def migrate_staff_group(request):
     try:
         params = json.loads(request.body)
     except Exception as e:
+        logger.error(f"非法请求: 数据错误, 请求不是合法的Json格式, {e} | migrate_staff_group")
         return JsonResponse(
             {
                 "result": False,
-                "message": "request body is not a valid json: {}".format(str(e)),
+                "message": _("非法请求: 数据错误, 请求不是合法的Json格式 | migrate_staff_group"),
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
         )

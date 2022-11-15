@@ -10,11 +10,12 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific lan
 """
-
+from django.utils.translation import ugettext_lazy as _
 import traceback
 
 from pipeline.exceptions import PipelineException
 
+from api.utils.request import logger
 from gcloud.constants import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.template_base.utils import replace_template_id
 from gcloud.utils.strings import standardize_name, standardize_pipeline_node_name
@@ -29,7 +30,13 @@ class TemplateManager:
     def __init__(self, template_model_cls):
         self.template_model_cls = template_model_cls
 
-    def create_pipeline(self, name: str, creator: str, pipeline_tree: dict, description: str = "",) -> dict:
+    def create_pipeline(
+        self,
+        name: str,
+        creator: str,
+        pipeline_tree: dict,
+        description: str = "",
+    ) -> dict:
         """
         创建 pipeline 层模板
 
@@ -50,13 +57,12 @@ class TemplateManager:
         try:
             validate_web_pipeline_tree(pipeline_tree)
         except PipelineException as e:
+            logger.error(f"保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {e} | create_pipeline")
             return {
                 "result": False,
                 "data": None,
-                "message": "[TemplateManager]validate_web_pipeline_tree failed: {}".format(str(e)),
-                "verbose_message": "[TemplateManager]validate_web_pipeline_tree failed: {}".format(
-                    traceback.format_exc()
-                ),
+                "message": _(f"保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {e} | create_pipeline"),
+                "verbose_message": _(f"保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {traceback.format_exc()} | create_pipeline"),
             }
 
         create_template_kwargs = {
@@ -68,21 +74,30 @@ class TemplateManager:
         try:
             pipeline_template = self.template_model_cls.objects.create_pipeline_template(**create_template_kwargs)
         except Exception as e:
+            logger.error(
+                f"保存流程失败: 创建Pipeline流程失败, 请检查流程. 创建参数[{create_template_kwargs}], 失败原因: [{e}] | create_pipeline"
+            )
             return {
                 "result": False,
                 "data": None,
-                "message": "[TemplateManager]create_pipeline_template({kwargs}) failed: {e}".format(
-                    kwargs=create_template_kwargs, e=str(e)
+                "message": _(
+                    f"保存流程失败: 创建Pipeline流程失败, 请检查流程. 创建参数[{create_template_kwargs}], " f"失败原因: [{e}] | create_pipeline"
                 ),
-                "verbose_message": "[TemplateManager]create_pipeline_template({kwargs}) failed: {trace}".format(
-                    kwargs=create_template_kwargs, trace=traceback.format_exc()
+                "verbose_message": _(
+                    f"保存流程失败: 创建Pipeline流程失败, 请检查流程. 创建参数[{create_template_kwargs}], "
+                    f"失败原因: [{traceback.format_exc()}] | create_pipeline"
                 ),
             }
 
         return {"result": True, "data": pipeline_template, "message": "success", "verbose_message": "success"}
 
     def create(
-        self, name: str, creator: str, pipeline_tree: dict, template_kwargs: dict, description: str = "",
+        self,
+        name: str,
+        creator: str,
+        pipeline_tree: dict,
+        template_kwargs: dict,
+        description: str = "",
     ) -> dict:
         """
         创建 template 层模板
@@ -110,14 +125,13 @@ class TemplateManager:
         try:
             template = self.template_model_cls.objects.create(**template_kwargs)
         except Exception as e:
+            logger.error(f"保存流程失败: 创建模板失败, 请检查流程. 创建参数[{template_kwargs}], 失败原因: [{e}] | create")
             return {
                 "result": False,
                 "data": None,
-                "message": "[TemplateManager]create objects.create({kwargs}) failed: {e}".format(
-                    kwargs=template_kwargs, e=str(e)
-                ),
-                "verbose_message": "[TemplateManager]create objects.create({kwargs}) failed: {trace}".format(
-                    kwargs=template_kwargs, trace=traceback.format_exc()
+                "message": _(f"保存流程失败: 创建模板失败, 请检查流程. 创建参数[{template_kwargs}], 失败原因: [{e}] | create"),
+                "verbose_message": _(
+                    f"保存流程失败: 创建模板失败, 请检查流程. 创建参数[{template_kwargs}], 失败原因: [{traceback.format_exc()}] | create"
                 ),
             }
 
@@ -159,12 +173,13 @@ class TemplateManager:
             try:
                 validate_web_pipeline_tree(pipeline_tree)
             except PipelineException as e:
+                logger.error(f"保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {e} | update_pipeline")
                 return {
                     "result": False,
                     "data": None,
-                    "message": "[TemplateManager]validate_web_pipeline_tree failed: {}".format(str(e)),
-                    "verbose_message": "[TemplateManager]validate_web_pipeline_tree failed: {}".format(
-                        traceback.format_exc()
+                    "message": _(f"保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {e} | update_pipeline"),
+                    "verbose_message": _(
+                        f"保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: { traceback.format_exc()} | update_pipeline"
                     ),
                 }
 
@@ -177,14 +192,16 @@ class TemplateManager:
             try:
                 pipeline_template.update_template(**update_kwargs)
             except Exception as e:
+                logger.error(f"更新流程失败: 更新Pipeline失败, 请检查流程. 更新参数: [{update_kwargs}], 失败原因: [{e}] | update_pipeline")
                 return {
                     "result": False,
                     "data": None,
-                    "message": "[TemplateManager]update_template({update_kwargs}) failed: {e}".format(
-                        update_kwargs=update_kwargs, e=str(e)
+                    "message": _(
+                        f"更新流程失败: 更新Pipeline失败, 请检查流程. 更新参数: [{update_kwargs}], " f"失败原因: [{e}] | update_pipeline"
                     ),
-                    "verbose_message": "[TemplateManager]update_template({update_kwargs}) failed: {trace}".format(
-                        update_kwargs=update_kwargs, trace=traceback.format_exc()
+                    "verbose_message": _(
+                        f"更新流程失败: 更新Pipeline失败, 请检查流程. 更新参数: [{update_kwargs}], "
+                        f"失败原因: [{traceback.format_exc()}] | update_pipeline"
                     ),
                 }
 
@@ -198,7 +215,12 @@ class TemplateManager:
         return {"result": True, "data": pipeline_template, "message": "success", "verbose_message": "success"}
 
     def update(
-        self, template: object, editor: str, name: str = "", pipeline_tree: str = None, description: str = "",
+        self,
+        template: object,
+        editor: str,
+        name: str = "",
+        pipeline_tree: str = None,
+        description: str = "",
     ) -> dict:
         """
         更新 template 层模板
@@ -242,38 +264,46 @@ class TemplateManager:
         """
         referencer = template.referencer()
         if referencer:
+            message = "流程删除失败: 流程已被其他流程引用[{}], 暂不可删除, 请处理后重试 | can_delete referencer".format(
+                ",".join([f'{item["template_type"]}:{item["id"]}:{item["name"]}' for item in referencer])
+            )
+            logger.error(message)
             return (
                 False,
-                "flow template are referenced by other templates[{}], please delete them first".format(
-                    ",".join([f'{item["template_type"]}:{item["id"]}:{item["name"]}' for item in referencer])
-                ),
+                _(message),
             )
 
         appmaker_referencer = template.referencer_appmaker()
         if appmaker_referencer:
+            message = "流程删除失败: 流程已被其他流程引用[{}], 暂不可删除, 请处理后重试 | can_delete appmaker_referencer".format(
+                ",".join([f'{item["template_type"]}:{item["id"]}:{item["name"]}' for item in appmaker_referencer])
+            )
+            logger.error(message)
             return (
                 False,
-                "flow template are referenced by mini apps[{}], please delete them first".format(
-                    ",".join(["{}:{}".format(item["id"], item["name"]) for item in appmaker_referencer])
-                ),
+                _(message),
             )
 
         clocked_task_referencer = template.referencer_clocked_task()
         if clocked_task_referencer:
+            message = "流程删除失败: 流程已被其他流程引用[{}], 暂不可删除, 请处理后重试 | can_delete clocked_task_referencer".format(
+                ",".join([f'{item["template_type"]}:{item["id"]}:{item["name"]}' for item in clocked_task_referencer])
+            )
+            logger.error(message)
             return (
                 False,
-                "flow template are referenced by clocked tasks[{}], please delete them first".format(
-                    ",".join(["{}:{}".format(item["id"], item["name"]) for item in clocked_task_referencer])
-                ),
+                _(message),
             )
 
         periodic_task_referencer = template.referencer_periodic_task()
         if periodic_task_referencer:
+            message = "流程删除失败: 流程已被其他流程引用[{}], 暂不可删除, 请处理后重试 | can_delete periodic_task_referencer".format(
+                ",".join([f'{item["template_type"]}:{item["id"]}:{item["name"]}' for item in periodic_task_referencer])
+            )
+            logger.error(message)
             return (
                 False,
-                "flow template are referenced by periodic tasks[{}], please delete them first".format(
-                    ",".join(["{}:{}".format(item["id"], item["name"]) for item in periodic_task_referencer])
-                ),
+                _(message),
             )
 
         return True, ""

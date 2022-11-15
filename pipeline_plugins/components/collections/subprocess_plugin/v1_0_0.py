@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.utils.translation import ugettext_lazy as _
 import copy
 import datetime
 import json
@@ -196,7 +197,7 @@ class SubprocessPluginService(Service):
         try:
             subprocess_task = TaskFlowInstance.objects.get(id=task_id)
         except TaskFlowInstance.DoesNotExist:
-            message = f"subprocess task {task_id} not found"
+            message = _(f"子任务[{task_id}]不存在 | schedule")
             self.logger.error(message)
             data.set_outputs("ex_data", message)
             return False
