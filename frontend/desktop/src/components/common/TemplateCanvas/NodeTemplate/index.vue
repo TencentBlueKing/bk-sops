@@ -182,7 +182,7 @@
 
     @mixin circleStatusStyle ($color) {
         background-color: $color;
-        box-shadow: 0 0 0 5px $color;
+        box-shadow: 0 0 0 2px $color;
         .circle-node-text {
             color: $whiteColor;
         }
@@ -473,7 +473,6 @@
                 position: absolute;
                 top: -20px;
                 left: 0;
-                height: 18px;
                 overflow: hidden;
                 .bk-form-checkbox,
                 .dark-circle {
@@ -524,6 +523,9 @@
                     i {
                         color: #979ba5;
                         margin-right: 5px;
+                        &.common-icon-play {
+                            font-size: 14px;
+                        }
                     }
                     &:hover {
                         cursor: pointer;
@@ -531,18 +533,6 @@
                         i {
                             color: #3a84ff;
                         }
-                    }
-                }
-                .el-tooltip {
-                   font-size: 14px;
-                   margin-left: 5px;
-                   color: #52699D;
-                   vertical-align: middle;
-                    &:hover {
-                        color: #4b85f7;
-                    }
-                    &.common-icon-play {
-                        font-size: 18px;
                     }
                 }
             }

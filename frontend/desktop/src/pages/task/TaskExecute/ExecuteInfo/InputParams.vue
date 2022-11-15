@@ -233,7 +233,7 @@
             border-bottom: 1px solid #dcdee5;
         }
     }
-    .full-code-editor {
+    .input-section .full-code-editor {
         height: 400px;
     }
 </style>

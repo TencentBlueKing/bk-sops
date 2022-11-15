@@ -756,7 +756,7 @@
                                 "<br/>" +
                                 "<p>·&nbsp;+和*运算符只能在最末位，100%代表全部服务器</p>\n" +
                                 "<br/>" +
-                                "<p>·&nbsp;-&nbsp;n&nbsp;代表具体多少台</p>\n" +
+                                "<p>·&nbsp;&nbsp;n&nbsp;代表具体多少台</p>\n" +
                                 "<br/>" +
                                 "<p>·&nbsp;n%&nbsp;代表总量的百分之n台（遇小数点则向上取整）</p>\n" +
                                 "<br/>" +
@@ -923,6 +923,12 @@
                         if ($.context.exec_env === "NODE_CONFIG") {
                             this.hide()
                         }
+                        if ($.context.exec_env === "NODE_EXEC_DETAIL") {
+                            if (!this.value) {
+                                this.hide()
+                                return
+                            }
+                        }
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id')._get_value();
                         if (cc_id !== '' && $.context.canSelectBiz()) {
                             this.remote_url = $.context.get('site_url') + 'pipeline/jobv3_get_instance_list/' + cc_id + '/1/3/';
@@ -976,6 +982,12 @@
                     action: function () {
                         if ($.context.exec_env === "NODE_CONFIG") {
                             this.hide()
+                        }
+                        if ($.context.exec_env === "NODE_EXEC_DETAIL") {
+                            if (!this.value) {
+                                this.hide()
+                                return
+                            }
                         }
                     }
                 },

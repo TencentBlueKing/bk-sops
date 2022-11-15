@@ -143,7 +143,7 @@
             width: 50%;
         }
     }
-    .full-code-editor {
+    .outputs-section .full-code-editor {
         height: 400px;
     }
 </style>

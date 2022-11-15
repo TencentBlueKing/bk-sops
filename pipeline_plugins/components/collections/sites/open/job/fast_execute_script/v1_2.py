@@ -164,7 +164,14 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin, GetJobTa
                 name=_("JOB执行IP分组"),
                 key="job_tagged_ip_dict",
                 type="string",
-                schema=StringItemSchema(description=_("根据JOB步骤执行标签获取的IP分组")),
+                schema=StringItemSchema(
+                    description=_(
+                        '按照执行结果将 IP 进行分组：1. 使用 job_tagged_ip_dict["value"]["SUCCESS"]["TAGS"]["ALL"]  获取「执行成功」的 IP， '
+                        "ALL 代表所有 IP，可指定分组名获取特定分组的 IP ；"
+                        '2. 使用 job_tagged_ip_dict["value"]["SCRIPT_NOT_ZERO_EXIT_CODE"]["TAGS"]["ALL"]'
+                        " 获取「脚本返回值非零」的 IP"
+                    )
+                ),
             ),
         ]
 

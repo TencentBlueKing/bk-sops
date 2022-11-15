@@ -196,6 +196,8 @@ class CommonTemplateViewSet(GcloudModelViewSet):
             self.perform_create(serializer)
         # 发送信号
         post_template_save_commit.send(sender=CommonTemplate, template_id=serializer.instance.id, is_deleted=False)
+        # 注入权限
+        data = self.injection_auth_actions(request, serializer.data, serializer.instance)
         # 记录操作流水
         operate_record_signal.send(
             sender=RecordType.common_template.name,
@@ -205,7 +207,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
             instance_id=serializer.instance.id,
         )
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(data, status=status.HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
