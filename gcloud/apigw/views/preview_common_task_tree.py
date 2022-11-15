@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.utils.translation import ugettext_lazy as _
+
 import ujson as json
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
@@ -26,6 +26,7 @@ from gcloud.iam_auth.view_interceptors.apigw import CommonFlowViewInterceptor
 from apigw_manager.apigw.decorators import apigw_require
 
 from pipeline_web.preview import preview_template_tree
+from django.utils.translation import ugettext_lazy as _
 
 
 @login_exempt
@@ -40,9 +41,10 @@ def preview_common_task_tree(request, project_id, template_id):
     try:
         req_data = json.loads(request.body)
     except Exception:
+        logger.error("非法请求: 数据错误, 请求不是合法的Json格式 | preview_common_task_tree")
         return {
             "result": False,
-            "message": _("非法请求: 数据错误, 请求不是合法的Json格式"),
+            "message": _("非法请求: 数据错误, 请求不是合法的Json格式 | preview_common_task_tree"),
             "code": err_code.REQUEST_PARAM_INVALID.code,
         }
 

@@ -59,9 +59,19 @@ class TemplateFormWithSchemesView(APIView):
             else:
                 template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
         except TaskTemplate.DoesNotExist:
-            err_msg = _("请求参数信息失败: 请求执行方案的执行参数发生异常, 请重试. 如持续失败可联系管理员处理")
-            logger.exception(err_msg)
-            return Response({"result": False, "message": err_msg, "data": {}})
+            logger.error(
+                f"请求参数信息失败: 项目[ID: {project_id}], 流程[ID: {template_id}], 请求执行方案的执行参数发生异常, 请重试. 如持续失败可联系管理员处理 | post"
+            )
+            return Response(
+                {
+                    "result": False,
+                    "message": _(
+                        f"请求参数信息失败: 项目[ID: {project_id}], 流程[ID: {template_id}], 请求执行方案的执行参数发生异常, "
+                        f"请重试. 如持续失败可联系管理员处理 | post"
+                    ),
+                    "data": {},
+                }
+            )
         except CommonTemplate.DoesNotExist:
             err_msg = "[form_with_schemes] common template[{}] doesn't exist".format(template_id)
             logger.exception(err_msg)
@@ -69,10 +79,11 @@ class TemplateFormWithSchemesView(APIView):
 
         try:
             template_data = preview_template_tree_with_schemes(template, version, scheme_id_list)
-        except Exception:
-            err_msg = _("请求参数信息失败: 请求执行方案的执行参数发生异常, 请重试. 如持续失败可联系管理员处理")
-            logger.exception(err_msg)
-            return Response({"result": False, "message": err_msg, "data": {}})
+        except Exception as e:
+            logger.error(f"请求参数信息失败: 请求执行方案的执行参数发生异常, {e} 请重试. 如持续失败可联系管理员处理 | post")
+            return Response(
+                {"result": False, "message": _("请求参数信息失败: 请求执行方案的执行参数发生异常, 请重试. 如持续失败可联系管理员处理 | post"), "data": {}}
+            )
 
         data = {
             "form": {**template_data["pipeline_tree"]["constants"], **template_data["custom_constants"]},

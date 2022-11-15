@@ -18,6 +18,7 @@ from rest_framework import serializers
 from django_celery_beat.models import PeriodicTask as CeleryTask
 from django.utils.translation import ugettext_lazy as _
 
+from api.utils.request import logger
 from gcloud.core.models import Project
 from gcloud.constants import PROJECT
 from gcloud.core.models import ProjectConfig
@@ -135,7 +136,10 @@ class CreatePeriodicTaskSerializer(serializers.ModelSerializer):
             if project_config and project_config.max_periodic_task_num > 0:
                 periodic_task_limit = project_config.max_periodic_task_num
             if PeriodicTask.objects.filter(project__id=project.id).count() >= periodic_task_limit:
-                raise serializers.ValidationError(_("周期任务创建失败: 项目内的周期任务数不可超过: {}".format(periodic_task_limit)))
+                logger.error(f"周期任务创建失败: 项目内的周期任务数不可超过: {periodic_task_limit} | validate_project")
+                raise serializers.ValidationError(
+                    _(f"周期任务创建失败: 项目内的周期任务数不可超过: {periodic_task_limit} | validate_project")
+                )
             return project
         except Project.DoesNotExist:
             raise serializers.ValidationError(_("project不存在"))

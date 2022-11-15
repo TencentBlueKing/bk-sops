@@ -190,9 +190,10 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         )
 
     def retry_subprocess_v1(self, operator: str, **kwargs) -> dict:
+        logger.error("非法请求: 当前引擎不支持子流程重试, 请联系管理员升级 | retry_subprocess_v1")
         return {
             "result": False,
-            "message": "非法请求: 当前引擎不支持子流程重试, 请联系管理员升级",
+            "message": _("非法请求: 当前引擎不支持子流程重试, 请联系管理员升级 | retry_subprocess_v1"),
             "code": err_code.INVALID_OPERATION.code,
         }
 
@@ -545,10 +546,11 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                 )
 
                 if not preview_result.result:
+                    logger.error(f"节点数据请求失败: 请重试, 如多次失败可联系管理员处理. {preview_result.exc} | get_node_data_v2")
                     return {
                         "result": False,
                         "data": {},
-                        "message": _("节点数据请求失败: 请重试, 如多次失败可联系管理员处理"),
+                        "message": _(f"节点数据请求失败: 请重试, 如多次失败可联系管理员处理. {preview_result.exc} | get_node_data_v2"),
                         "code": err_code.UNKNOWN_ERROR.code,
                     }
 

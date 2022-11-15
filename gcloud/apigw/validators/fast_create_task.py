@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.utils.translation import ugettext_lazy as _
 import ujson as json
 
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -19,6 +18,7 @@ from pipeline_web.drawing_new.drawing import draw_pipeline
 from gcloud.utils.strings import standardize_pipeline_node_name
 from gcloud.utils.validate import ObjectJsonBodyValidator
 from gcloud.apigw.views.utils import logger
+from django.utils.translation import ugettext_lazy as _
 
 
 class FastCreateTaskValidator(ObjectJsonBodyValidator):
@@ -30,7 +30,8 @@ class FastCreateTaskValidator(ObjectJsonBodyValidator):
         try:
             params = json.loads(request.body)
         except Exception:
-            return False, _("非法请求: 数据错误, 请求不是合法的Json格式")
+            logger.error("非法请求: 数据错误, 请求不是合法的Json格式 | validate")
+            return False, _("非法请求: 数据错误, 请求不是合法的Json格式 | validate")
 
         try:
             pipeline_tree = params["pipeline_tree"]

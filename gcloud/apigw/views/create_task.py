@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.utils.translation import ugettext_lazy as _
 import copy
 import re
 
@@ -45,6 +44,7 @@ from gcloud.iam_auth.view_interceptors.apigw import CreateTaskInterceptor
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 from apigw_manager.apigw.decorators import apigw_require
+from django.utils.translation import ugettext_lazy as _
 
 
 def get_exclude_nodes_by_execute_nodes(execute_nodes, template):
@@ -101,10 +101,16 @@ def create_task(request, template_id, project_id):
                 id=template_id, project_id=project.id, is_deleted=False
             )
         except TaskTemplate.DoesNotExist:
+            logger.error(
+                f"任务创建失败: 任务关联的流程[ID: {template_id}]已不存在, 项目[ID: {project_id}], "
+                f"业务[ID: {project.bk_biz_id}]请检查流程是否存在 | create_task"
+            )
             result = {
                 "result": False,
-                "message": "template[id={template_id}] of project[project_id={project_id},biz_id={biz_id}] "
-                "does not exist".format(template_id=template_id, project_id=project.id, biz_id=project.bk_biz_id),
+                "message": _(
+                    f"任务创建失败: 任务关联的流程[ID: {template_id}]已不存在, 项目[ID: {project_id}], "
+                    f"业务[ID: {project.bk_biz_id}]请检查流程是否存在 | create_task"
+                ),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return result
@@ -113,9 +119,10 @@ def create_task(request, template_id, project_id):
         try:
             tmpl = CommonTemplate.objects.select_related("pipeline_template").get(id=template_id, is_deleted=False)
         except CommonTemplate.DoesNotExist:
+            logger.error(f"任务创建失败: 任务关联的公共流程[ID: {template_id}]已不存在, 请检查流程是否存在 | create_task")
             result = {
                 "result": False,
-                "message": _("任务创建失败: 任务关联的公共流程[ID: {}]已不存在, 请检查流程是否存在".format(template_id)),
+                "message": _(f"任务创建失败: 任务关联的公共流程[ID: {template_id}]已不存在, 请检查流程是否存在 | create_task"),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return result

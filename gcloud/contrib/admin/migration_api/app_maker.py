@@ -10,11 +10,13 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.utils.translation import ugettext_lazy as _
+
 import json
 import traceback
 
 from blueapps.account.decorators import login_exempt
+
+from api.utils.request import logger
 from gcloud.conf import settings
 from django.http.response import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -27,6 +29,7 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from pipeline.models import TemplateScheme
 
 from .decorators import require_migrate_token
+from django.utils.translation import ugettext_lazy as _
 
 
 @login_exempt
@@ -37,11 +40,12 @@ def migrate_app_maker(request):
 
     try:
         params = json.loads(request.body)
-    except Exception:
+    except Exception as e:
+        logger.error(f"非法请求: 数据错误, 请求不是合法的Json格式, {e} | migrate_app_maker")
         return JsonResponse(
             {
                 "result": False,
-                "message": _("非法请求: 数据错误, 请求不是合法的Json格式"),
+                "message": _("非法请求: 数据错误, 请求不是合法的Json格式 | migrate_app_maker"),
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
         )

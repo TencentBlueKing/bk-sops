@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.utils.translation import ugettext_lazy as _
 import logging
 import json
 
@@ -22,6 +21,7 @@ from blueapps.account.decorators import login_exempt
 from gcloud.core.models import Project, StaffGroupSet
 from gcloud import err_code
 from .decorators import require_migrate_token
+from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 
@@ -34,11 +34,12 @@ def migrate_staff_group(request):
 
     try:
         params = json.loads(request.body)
-    except Exception:
+    except Exception as e:
+        logger.error(f"非法请求: 数据错误, 请求不是合法的Json格式, {e} | migrate_staff_group")
         return JsonResponse(
             {
                 "result": False,
-                "message": _("非法请求: 数据错误, 请求不是合法的Json格式"),
+                "message": _("非法请求: 数据错误, 请求不是合法的Json格式 | migrate_staff_group"),
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
         )

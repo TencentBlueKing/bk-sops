@@ -10,13 +10,15 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.utils.translation import ugettext_lazy as _
+
 import ujson as json
 
+from api.utils.request import logger
 from gcloud.constants import TEMPLATE_EXPORTER_SOURCE_PROJECT
 from gcloud.utils.validate import RequestValidator, ObjectJsonBodyValidator
 from gcloud.utils.strings import check_and_rename_params
 from gcloud.template_base.utils import read_template_data_file
+from django.utils.translation import ugettext_lazy as _
 
 
 class ImportValidator(RequestValidator):
@@ -81,7 +83,8 @@ class DrawPipelineValidator(RequestValidator):
         try:
             data = json.loads(request.body)
         except Exception:
-            return False, _("非法请求: 数据错误, 请求不是合法的Json格式")
+            logger.error("非法请求: 数据错误, 请求不是合法的Json格式, 加载错误 | validate")
+            return False, _("非法请求: 数据错误, 请求不是合法的Json格式, 加载错误 | validate")
 
         pipeline_tree = data.get("pipeline_tree")
 

@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.utils.translation import ugettext_lazy as _
+
 import ujson as json
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
@@ -25,6 +25,7 @@ from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
 from apigw_manager.apigw.decorators import apigw_require
+from django.utils.translation import ugettext_lazy as _
 
 
 @login_exempt
@@ -39,9 +40,10 @@ def claim_functionalization_task(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
+        logger.error("非法请求: 数据错误, 请求不是合法的Json格式 | claim_functionalization_task")
         return {
             "result": False,
-            "message": _("非法请求: 数据错误, 请求不是合法的Json格式"),
+            "message": _("非法请求: 数据错误, 请求不是合法的Json格式 | claim_functionalization_task"),
             "code": err_code.REQUEST_PARAM_INVALID.code,
         }
 

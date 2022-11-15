@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.utils.translation import ugettext_lazy as _
+
 import ujson as json
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
@@ -19,10 +19,11 @@ from django.views.decorators.http import require_POST
 
 import env
 from blueapps.account.decorators import login_exempt
+
+from api.utils.request import logger
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.decorators import project_inject
-from gcloud.apigw.utils import get_task_frequency
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.domains.queues import PrepareAndStartTaskQueueResolver
 from gcloud.taskflow3.celery.tasks import prepare_and_start_task
@@ -32,6 +33,7 @@ from gcloud.utils.throttle import check_task_operation_throttle
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 from apigw_manager.apigw.decorators import apigw_require
+from django.utils.translation import ugettext_lazy as _
 
 
 @login_exempt
@@ -47,17 +49,31 @@ def operate_task(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
-        return {"result": False, "message": _("非法请求: 数据错误, 请求不是合法的Json格式"), "code": err_code.REQUEST_PARAM_INVALID.code}
+        logger.error("非法请求: 数据错误, 请求不是合法的Json格式 | operate_task")
+        return {
+            "result": False,
+            "message": _("非法请求: 数据错误, 请求不是合法的Json格式 | operate_task"),
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+        }
     action = params.get("action")
     username = request.user.username
     project = request.project
 
     if env.TASK_OPERATION_THROTTLE and not check_task_operation_throttle(project.id, action):
-        return get_task_frequency(project.id, action)
+        return {
+            "result": False,
+            "message": "project id: {} reach the limit of starting tasks".format(project.id),
+            "code": err_code.INVALID_OPERATION.code,
+        }
 
     if action == "start":
         if TaskFlowInstance.objects.is_task_started(project_id=project.id, id=task_id):
-            return {"result": False, "code": err_code.INVALID_OPERATION.code, "message": _("任务操作失败: 已启动的任务不可再次启动")}
+            logger.error("任务操作失败: 已启动的任务不可再次启动 | operate_task")
+            return {
+                "result": False,
+                "code": err_code.INVALID_OPERATION.code,
+                "message": _("任务操作失败: 已启动的任务不可再次启动 | operate_task"),
+            }
 
         queue, routing_key = PrepareAndStartTaskQueueResolver(
             settings.API_TASK_QUEUE_NAME_V2

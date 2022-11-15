@@ -10,12 +10,14 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.utils.translation import ugettext_lazy as _
+
 import functools
 
 from abc import ABCMeta
 
+from api.utils.request import logger
 from gcloud import err_code
+from django.utils.translation import ugettext_lazy as _
 from gcloud.core.models import EngineConfig
 
 from bamboo_engine.api import EngineAPIResult
@@ -42,8 +44,9 @@ class EngineCommandDispatcher(metaclass=ABCMeta):
     VALID_ENGINE_VER = {EngineConfig.ENGINE_VER_V1, EngineConfig.ENGINE_VER_V2}
 
     def _unsupported_engine_ver_result(self):
+        logger.error(f"非法请求: 不支持的引擎版本[{self.engine_ver}], 请联系管理员升级 | _unsupported_engine_ver_result")
         return {
             "result": False,
-            "message": _("非法请求: 不支持的引擎版本[{}], 请联系管理员升级".format(self.engine_ver)),
+            "message": _(f"非法请求: 不支持的引擎版本[{self.engine_ver}], 请联系管理员升级 | _unsupported_engine_ver_result"),
             "code": err_code.UNKNOWN_ERROR.code,
         }

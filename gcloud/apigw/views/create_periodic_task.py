@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.utils.translation import ugettext_lazy as _
+
 import jsonschema
 import ujson as json
 from django.views.decorators.csrf import csrf_exempt
@@ -37,6 +37,7 @@ from gcloud.iam_auth.view_interceptors.apigw import CreatePeriodicTaskIntercepto
 from apigw_manager.apigw.decorators import apigw_require
 
 from pipeline_web.preview_base import PipelineTemplateWebPreviewer
+from django.utils.translation import ugettext_lazy as _
 
 
 @login_exempt
@@ -57,8 +58,9 @@ def create_periodic_task(request, template_id, project_id):
     if project_config and project_config.max_periodic_task_num > 0:
         periodic_task_limit = project_config.max_periodic_task_num
     if PeriodicTask.objects.filter(project__id=project.id).count() >= periodic_task_limit:
-        message = _("周期任务创建失败: 项目内的周期任务数不可超过: {}".format(periodic_task_limit))
-        return {"result": False, "message": message, "code": err_code.INVALID_OPERATION.code}
+        message = f"周期任务创建失败: 项目内的周期任务数不可超过: {periodic_task_limit} | create_periodic_task"
+        logger.error(message)
+        return {"result": False, "message": _(message), "code": err_code.INVALID_OPERATION.code}
 
     params = json.loads(request.body)
     template_source = params.get("template_source", PROJECT)
@@ -86,9 +88,10 @@ def create_periodic_task(request, template_id, project_id):
         try:
             template = CommonTemplate.objects.get(id=template_id, is_deleted=False)
         except CommonTemplate.DoesNotExist:
+            logger.error(f"任务创建失败: 任务关联的公共流程[ID: {template_id}]已不存在, 请检查流程是否存在 | create_periodic_task")
             result = {
                 "result": False,
-                "message": _("任务创建失败: 任务关联的公共流程[ID: {}]已不存在, 请检查流程是否存在".format(template_id)),
+                "message": _(f"任务创建失败: 任务关联的公共流程[ID: {template_id}]已不存在, 请检查流程是否存在 | create_periodic_task"),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return result

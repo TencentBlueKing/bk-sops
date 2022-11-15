@@ -12,13 +12,12 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-
+from django.utils.translation import ugettext_lazy as _
 from gcloud.conf import settings
 from gcloud.exceptions import ApiRequestError
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.utils.handlers import handle_api_error
 from .thread import ThreadPool
-from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 logger_celery = logging.getLogger("celery")
@@ -67,10 +66,9 @@ def batch_request(
         try:
             cur_page_param = page_param["cur_page_param"]
             page_size_param = page_param["page_size_param"]
-        except Exception:
-            message = _("批量请求接口分页参数错误")
-            logger.error(message)
-            raise ApiRequestError(message)
+        except Exception as e:
+            logger.error(f"批量请求接口分页参数错误: {e} | batch_request")
+            raise ApiRequestError(_("批量请求接口分页参数错误 | batch_request"))
     else:
         cur_page_param = "start"
         page_size_param = "limit"

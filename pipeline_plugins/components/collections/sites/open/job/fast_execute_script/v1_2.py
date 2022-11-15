@@ -267,7 +267,7 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
             if not selected_script:
                 api_name = "jobv3.get_script_list" if script_source == "general" else "jobv3.get_public_script_list"
                 message = job_handle_api_error(api_name, job_kwargs, script_list)
-                message += "快速执行脚本启动失败: [作业平台]未找到脚本{}, 请检查配置".format(script_name)
+                message += "快速执行脚本启动失败: [作业平台]未找到脚本{}, 请检查配置 | execute".format(script_name)
                 self.logger.error(message)
                 data.outputs.ex_data = _(message)
                 return False

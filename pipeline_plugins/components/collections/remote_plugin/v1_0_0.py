@@ -10,8 +10,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.utils.translation import ugettext_lazy as _
 import logging
+from django.utils.translation import ugettext_lazy as _
 
 from pipeline.component_framework.component import Component
 from pipeline.core.flow import Service, StaticIntervalGenerator
@@ -51,14 +51,14 @@ class RemotePluginService(Service):
         try:
             plugin_client = PluginServiceApiClient(plugin_code)
         except PluginServiceException as e:
-            message = _(f"第三方插件client初始化失败, 错误内容: {e}")
+            message = _(f"第三方插件client初始化失败, 错误内容: {e} | execute")
             logger.error(message)
             data.set_outputs("ex_data", message)
             return False
 
         detail_result = plugin_client.get_detail(plugin_version)
         if not detail_result["result"]:
-            message = _(f"获取第三方插件详情失败, 错误内容: {detail_result['message']}")
+            message = _(f"获取第三方插件详情失败, 错误内容: {detail_result['message']} | execute")
             logger.error(message)
             data.set_outputs("ex_data", message)
             return False
@@ -72,7 +72,9 @@ class RemotePluginService(Service):
         )
         ok, result_data = plugin_client.invoke(plugin_version, {"inputs": data.inputs, "context": plugin_context})
         if not ok:
-            message = _(f"调用第三方插件invoke接口错误, 错误内容: {result_data['message']}, trace_id: {result_data.get('trace_id')}")
+            message = _(
+                f"调用第三方插件invoke接口错误, 错误内容: {result_data['message']}, trace_id: {result_data.get('trace_id')} | execute"
+            )
             logger.error(message)
             data.set_outputs("ex_data", message)
             return False
@@ -95,7 +97,7 @@ class RemotePluginService(Service):
         try:
             plugin_client = PluginServiceApiClient(plugin_code)
         except PluginServiceException as e:
-            message = _(f"第三方插件client初始化失败, 错误内容: {e}")
+            message = _(f"第三方插件client初始化失败, 错误内容: {e} | schedule")
             logger.error(message)
             data.set_outputs("ex_data", message)
             return False
@@ -115,7 +117,7 @@ class RemotePluginService(Service):
 
         state = result_data["state"]
         if state == State.FAIL:
-            default_message = _("请通过节点日志查看任务失败原因")
+            default_message = "please check the logs for the reason of task failure."
             logger.error(f"[remote plugin service state failed]: {result_data}")
             data.set_outputs("ex_data", result_data["outputs"].get("err") or default_message)
             return False

@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 import re
 import logging
-import traceback
 import hashlib
 
 from django.utils.translation import ugettext_lazy as _
@@ -29,14 +28,25 @@ def common_process_request(request, manager, *args, **kwargs):
     file_size = file_obj.size
 
     if not project_id:
-        return {"result": False, "message": _("文件上传失败: [{}]无效的项目ID, 请联系管理员处理".format(project_id)), "code": 400}
+        logger.error(f"文件上传失败: [{project_id}]无效的项目ID, 请联系管理员处理 | common_process_request")
+        return {
+            "result": False,
+            "message": _(f"文件上传失败: [{project_id}]无效的项目ID, 请联系管理员处理 | common_process_request"),
+            "code": 400,
+        }
 
     # 文件名不能包含中文， 文件大小不能大于 2G
     if file_size > 2048 * 1024 * 1024:
-        return {"result": False, "message": _("文件上传失败: 文件大小不可超过2GB"), "code": 400}
+        logger.error("文件上传失败: 文件大小不可超过2GB | common_process_request")
+        return {"result": False, "message": _("文件上传失败: 文件大小不可超过2GB | common_process_request"), "code": 400}
 
     if INVALID_CHAR_REGEX.findall(file_name):
-        return {"result": False, "message": _('文件上传失败: 文件名不能包含\\/:*?"<>|等特殊字符, 请修改后重试'), "code": 400}
+        logger.error('文件上传失败: 文件名不能包含\\/:*?"<>|等特殊字符, 请修改后重试 | common_process_request')
+        return {
+            "result": False,
+            "message": _('文件上传失败: 文件名不能包含\\/:*?"<>|等特殊字符, 请修改后重试 | common_process_request'),
+            "code": 400,
+        }
 
     shims = "plugins_upload/job_push_local_files/{}".format(project_id)
     kwargs = {
@@ -49,8 +59,8 @@ def common_process_request(request, manager, *args, **kwargs):
 
     try:
         file_tag = manager.save(name=file_name, content=file_obj, shims=shims, **kwargs)
-    except Exception:
-        logger.error("file upload save err: {}".format(traceback.format_exc()))
+    except Exception as e:
+        logger.error(f"文件上传失败: 文件归档失败请重试, 如持续失败可联系管理员处理{e} | common_process_request")
         return {"result": False, "message": _("文件上传失败: 文件归档失败请重试, 如持续失败可联系管理员处理"), "code": 500}
 
     return {"result": True, "tag": file_tag, "md5": file_local_md5, "code": 200}

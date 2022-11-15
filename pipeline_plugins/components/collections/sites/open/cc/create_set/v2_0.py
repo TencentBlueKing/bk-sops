@@ -69,7 +69,7 @@ def chunk_table_data(column):
             if len(value) != count and count != 1:
                 return {
                     "result": False,
-                    "message": _("非法请求: [单行自动扩展]中, [%s] 按分隔符分割后的行数不一致, 请修复后重试") % value,
+                    "message": _(f"非法请求: [单行自动扩展]中, [{value}] 按分隔符分割后的行数不一致, 请修复后重试 | chunk_table_data"),
                     "data": [],
                 }
             count = len(value)

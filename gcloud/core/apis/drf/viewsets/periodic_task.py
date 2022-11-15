@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+
 from django.utils.translation import ugettext_lazy as _
 import logging
 
@@ -135,19 +136,22 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
             model_cls = CommonTemplate
             condition = {"id": template_id, "is_deleted": False}
         else:
-            message = _("周期任务创建失败: 周期任务关联的流程[ID: %s]不存在, 请检查配置" % template_id)
-            raise APIException(detail=message, code=err_code.REQUEST_PARAM_INVALID.code)
+            message = f"周期任务创建失败: 周期任务关联的流程[ID: {template_source}]不存在, 请检查配置 | _handle_serializer"
+            logger.error(message)
+            raise APIException(detail=_(message), code=err_code.REQUEST_PARAM_INVALID.code)
 
         try:
             template = model_cls.objects.filter(**condition).first()
         except model_cls.DoesNotExist:
-            message = _("周期任务创建失败: 周期任务关联的公共流程[ID: %s]不存在, 请检查配置" % template_id)
-            raise APIException(detail=message, code=err_code.REQUEST_PARAM_INVALID.code)
+            message = f"周期任务创建失败: 周期任务关联的公共流程[ID: {template_id}]不存在, 请检查配置 | _handle_serializer"
+            logger.error(message)
+            raise APIException(detail=_(message), code=err_code.REQUEST_PARAM_INVALID.code)
         try:
             replace_template_id(model_cls, pipeline_tree)
         except model_cls.DoesNotExist:
-            message = _("周期任务创建失败: 周期任务关联的流程[ID: {}]中, 子流程节点存在异常, 请检查配置".format(template_id))
-            raise APIException(detail=message, code=err_code.REQUEST_PARAM_INVALID.code)
+            message = f"周期任务创建失败: 周期任务关联的流程[ID: {template_id}]中, 子流程节点存在异常, 请检查配置 | _handle_serializer"
+            logger.error(message)
+            raise APIException(detail=_(message), code=err_code.REQUEST_PARAM_INVALID.code)
 
         # XSS handle
         name = standardize_name(name, PERIOD_TASK_NAME_MAX_LENGTH)

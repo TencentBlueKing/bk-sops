@@ -99,20 +99,26 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
     )
 
     if not host_list:
-        return {"result": False, "message": _(f"IP [{ip_list}] 在本业务下不存在: 请检查配置, 修复后重新执行任务")}
+        return {"result": False, "message": _(f"IP [{ip_list}] 在本业务下不存在: 请检查配置, 修复后重新执行任务 | cc_get_host_id_by_innerip")}
 
     if len(host_list) > len(ip_list):
         # find repeat innerip host
         host_counter = Counter([host["bk_host_innerip"] for host in host_list])
         mutiple_innerip_hosts = [innerip for innerip, count in host_counter.items() if count > 1]
 
-        return {"result": False, "message": _(f"IP [{mutiple_innerip_hosts}] 在本业务下重复: 请检查配置, 修复后重新执行")}
+        return {
+            "result": False,
+            "message": _(f"IP [{mutiple_innerip_hosts}] 在本业务下重复: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip"),
+        }
 
     if len(host_list) < len(ip_list):
         return_innerip_set = {host["bk_host_innerip"] for host in host_list}
         absent_innerip = set(ip_list).difference(return_innerip_set)
 
-        return {"result": False, "message": _(f"IP [{absent_innerip}] 在本业务下不存在: 请检查配置, 修复后重新执行")}
+        return {
+            "result": False,
+            "message": _(f"IP [{absent_innerip}] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip"),
+        }
 
     return {"result": True, "data": [str(host["bk_host_id"]) for host in host_list]}
 
@@ -278,7 +284,10 @@ def cc_list_match_node_inst_id(executor, biz_cc_id, supplier_account, path_list)
                     inst_id_list.append(match_node["bk_inst_id"])
                 topo_node_list = match_node["child"]
             else:
-                return {"result": False, "message": _("拓扑路径 [{}] 在本业务下不存在: 请检查配置, 修复后重新执行").format(">".join(path))}
+                return {
+                    "result": False,
+                    "message": _(f"拓扑路径 [{'>'.join(path)}] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_list_match_node_inst_id"),
+                }
     return {"result": True, "data": inst_id_list}
 
 
@@ -306,7 +315,10 @@ def cc_list_select_node_inst_id(
 
     # 对输入的文本路径进行业务层级校验
     if bk_obj_type.name not in BkObjType.__members__:
-        return {"result": False, "message": _("拓扑路径 [{}] 在本业务下不存在: 请检查配置, 修复后重新执行任务").format(bk_obj_type)}
+        return {
+            "result": False,
+            "message": _(f"拓扑路径 [{bk_obj_type}] 在本业务下不存在: 请检查配置, 修复后重新执行任务 | cc_list_select_node_inst_id"),
+        }
 
     client = get_client_by_user(executor)
     kwargs = {"bk_supplier_account": supplier_account, "bk_biz_id": biz_cc_id}

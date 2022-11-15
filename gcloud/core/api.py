@@ -174,11 +174,12 @@ def check_variable_key(request):
     if formatted_key_pattern.match(variable_key):
         variable_key = variable_key[2:-1]
     if not variable_key or keyword.iskeyword(variable_key) or variable_key in settings.VARIABLE_KEY_BLACKLIST:
+        logger.error(f"{variable_key} 变量创建失败: 变量KEY仅支持英文字母、数字、下划线, 且以英文字母、下划线开头 | check_variable_key")
         return JsonResponse(
             {
                 "result": False,
                 "data": None,
-                "message": _("{}变量创建失败: 变量KEY仅支持英文字母、数字、下划线, 且以英文字母、下划线开头".format(variable_key)),
+                "message": _(f"{variable_key} 变量创建失败: 变量KEY仅支持英文字母、数字、下划线, 且以英文字母、下划线开头 | check_variable_key"),
             }
         )
     return JsonResponse({"result": True, "data": None, "message": "Success"})

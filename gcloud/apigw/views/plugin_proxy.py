@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.utils.translation import ugettext_lazy as _
 from urllib.parse import urlsplit
 
 import ujson as json
@@ -24,6 +23,7 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.views.utils import logger
 from apigw_manager.apigw.decorators import apigw_require
+from django.utils.translation import ugettext_lazy as _
 
 
 @login_exempt
@@ -45,9 +45,10 @@ def dispatch_plugin_query(request):
     try:
         params = json.loads(request.body)
     except Exception:
+        logger.error("非法请求: 数据错误, 请求不是合法的Json格式 | dispatch_plugin_query")
         return {
             "result": False,
-            "message": _("非法请求: 数据错误, 请求不是合法的Json格式"),
+            "message": _("非法请求: 数据错误, 请求不是合法的Json格式 | dispatch_plugin_query"),
             "code": err_code.REQUEST_PARAM_INVALID.code,
         }
 

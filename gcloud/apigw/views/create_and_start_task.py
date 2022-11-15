@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.utils.translation import ugettext_lazy as _
+
 import ujson as json
 import jsonschema
 
@@ -21,7 +21,6 @@ from blueapps.account.decorators import login_exempt
 
 import env
 from gcloud import err_code
-from gcloud.apigw.utils import get_task_frequency
 from gcloud.core.models import EngineConfig
 from gcloud.conf import settings
 from gcloud.constants import BUSINESS, COMMON
@@ -43,6 +42,7 @@ from apigw_manager.apigw.decorators import apigw_require
 from gcloud.iam_auth.view_interceptors.apigw import CreateTaskInterceptor
 from gcloud.apigw.validators import CreateTaskValidator
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
+from django.utils.translation import ugettext_lazy as _
 
 
 @login_exempt
@@ -59,8 +59,13 @@ def create_and_start_task(request, template_id, project_id):
     params = json.loads(request.body)
     project = request.project
     template_source = params.get("template_source", BUSINESS)
+
     if env.TASK_OPERATION_THROTTLE and not check_task_operation_throttle(project.id, "start"):
-        return get_task_frequency(project.id, "start")
+        return {
+            "result": False,
+            "message": "project id: {} reach the limit of starting tasks".format(project.id),
+            "code": err_code.INVALID_OPERATION.code,
+        }
 
     logger.info(
         "[API] create_and_start_task, template_id: {template_id}, project_id: {project_id}, params: {params}.".format(
@@ -75,9 +80,16 @@ def create_and_start_task(request, template_id, project_id):
                 id=template_id, project_id=project.id, is_deleted=False
             )
         except TaskTemplate.DoesNotExist:
+            logger.error(
+                f"任务创建失败: 任务关联的流程[ID: {template_id}]已不存在, 项目[ID: {project.id}] "
+                f"业务[ID: {project.bk_biz_id}]. 请检查流程是否存在 | create_and_start_task"
+            )
             result = {
                 "result": False,
-                "message": _("任务创建失败: 任务关联的流程[ID: {}]已不存在, 请检查流程是否存在".format(template_id)),
+                "message": _(
+                    f"任务创建失败: 任务关联的流程[ID: {template_id}]已不存在, 项目[ID: {project.id}] "
+                    f"业务[ID: {project.bk_biz_id}]. 请检查流程是否存在 | create_and_start_task"
+                ),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return result
@@ -85,9 +97,10 @@ def create_and_start_task(request, template_id, project_id):
         try:
             tmpl = CommonTemplate.objects.select_related("pipeline_template").get(id=template_id, is_deleted=False)
         except CommonTemplate.DoesNotExist:
+            logger.error(f"任务创建失败: 任务关联的公共流程[ID: {template_id}]已不存在, 请检查流程是否存在 | create_and_start_task")
             result = {
                 "result": False,
-                "message": _("任务创建失败: 任务关联的公共流程[ID: {}]已不存在, 请检查流程是否存在".format(template_id)),
+                "message": _(f"任务创建失败: 任务关联的公共流程[ID: {template_id}]已不存在, 请检查流程是否存在 | create_and_start_task"),
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return result

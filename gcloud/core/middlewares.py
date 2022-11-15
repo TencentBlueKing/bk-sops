@@ -10,13 +10,13 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.utils.translation import ugettext_lazy as _
 import os
 import uuid
 import logging
 import traceback
 
 import pytz
+from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.utils import timezone
@@ -64,10 +64,11 @@ class ObjectDoesNotExistExceptionMiddleware(MiddlewareMixin):
     def process_exception(self, request, exception):
         if isinstance(exception, ObjectDoesNotExist):
             logger.error("[ObjectDoesNotExistExceptionMiddleware] {} - {}".format(request.path, traceback.format_exc()))
+            logger.error(f"数据不存在错误: 数据不存在错误, 错误内容: {exception} | process_exception")
             return JsonResponse(
                 {
                     "result": False,
-                    "message": _("数据不存在错误: 数据不存在错误, 错误内容 %s" % exception),
+                    "message": _(f"数据不存在错误: 数据不存在错误, 错误内容: {exception} | process_exception"),
                     "data": None,
                     "code": err_code.CONTENT_NOT_EXIST.code,
                 }

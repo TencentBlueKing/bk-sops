@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.utils.translation import ugettext_lazy as _
+
 import logging
 import requests
 
@@ -19,6 +19,7 @@ import ujson as json
 import env
 from gcloud.conf import settings
 from gcloud.core.models import EnvironmentVariables
+from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("component")
 ENV = "stag" if settings.IS_LOCAL else "prod"
@@ -49,18 +50,21 @@ def _request_paasv3_light_app_api(url, method, params=None, data=None):
     try:
         response = method_func(url, data=json.dumps(data or {}), headers=headers, params=params or {})
     except Exception as e:
-        message = _("轻应用请求Paas接口报错: 请求url: {}, 报错内容: {}".format(url, e))
+        message = f"轻应用请求Paas接口报错: 请求url: {url}, 报错内容: {e} | _request_paasv3_light_app_api"
         logger.error(message)
 
-        return {"result": False, "message": message}
+        return {"result": False, "message": _(message)}
 
     try:
         response.raise_for_status()
     except requests.HTTPError as e:
-        message = _("轻应用请求Paas接口报错: 请求url: {}, 报错内容: {}, 响应内容: {}".format(response.request.url, e, response.text))
+        message = (
+            f"轻应用请求Paas接口报错: 请求url: {response.request.url}, 报错内容: {e}, "
+            f"响应内容: {response.text} | _request_paasv3_light_app_api"
+        )
         logger.error(message)
 
-        return {"result": False, "message": message}
+        return {"result": False, "message": _(message)}
 
     try:
         resp_data = response.json()
@@ -82,12 +86,13 @@ def _request_paasv3_light_app_api(url, method, params=None, data=None):
             resp_data["message"] = resp_data.get("bk_error_msg")
         return resp_data
     except Exception as e:
-        message = _(
-            "轻应用请求PaaS接口报错: 请求url {}, 接口响应json格式转换失败 {}，响应内容 {}".format(response.request.url, e, response.content)
+        message = (
+            f"轻应用请求PaaS接口报错: 请求url {response.request.url}, 接口响应json格式转换失败 {e}，"
+            f"响应内容 {response.content} | _request_paasv3_light_app_api"
         )
         logger.error(message)
 
-        return {"result": False, "message": message}
+        return {"result": False, "message": _(message)}
 
 
 def create_maker_app(

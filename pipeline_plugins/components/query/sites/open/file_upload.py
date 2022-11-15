@@ -64,7 +64,8 @@ def file_upload(request):
     ticket = request.META.get("HTTP_UPLOAD_TICKET", "")
     ok, err = UploadTicket.objects.check_ticket(ticket)
     if not ok:
-        response = JsonResponse({"result": False, "message": _("文件上传失败: 请重试, 如持续失败可联系管理员处理")})
+        logger.error(f"文件上传失败: 请重试, 如持续失败可联系管理员处理, {err}")
+        response = JsonResponse({"result": False, "message": _(f"文件上传失败: 请重试, 如持续失败可联系管理员处理, {err} | file_upload")})
         response.status_code = 400
         return response
 
@@ -98,7 +99,10 @@ def get_repo_temporary_upload_url(request):
     shims = request.GET.get("shims", "frontend_upload")
 
     if not str(bk_biz_id) or not str(name):
-        return JsonResponse({"result": False, "message": _("文件上传失败: 请重试，如持续失败可联系管理员处理")})
+        logger.error("文件上传失败: 请重试，如持续失败可联系管理员处理 | get_repo_temporary_upload_url")
+        return JsonResponse(
+            {"result": False, "message": _("文件上传失败: 请重试，如持续失败可联系管理员处理 | get_repo_temporary_upload_url")}
+        )
 
     ok, data = _check_and_get_file_manager()
     if not ok:

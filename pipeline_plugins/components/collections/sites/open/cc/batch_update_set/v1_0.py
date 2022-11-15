@@ -127,17 +127,19 @@ class CCBatchUpdateSetService(Service):
                 if attr in attr_type_mapping:
                     try:
                         update_params[attr] = attr_type_mapping[attr](value)
-                    except Exception:
+                    except Exception as e:
                         transform_success = False
-                        message = _("模块属性更新失败: 插件配置的属性不合法, 请修复后重试")
-                        logger.error(message)
-                        failed_update.append(message)
+                        logger.error(
+                            f"模块属性更新失败: 插件配置的属性不合法, item: {update_item}, "
+                            f"转换属性: {attr}为{attr_type_mapping[attr]}类型时出错: {e}, 请修复后重试 | execute"
+                        )
+                        failed_update.append(_("模块属性更新失败: 插件配置的属性不合法, 请修复后重试 | execute"))
                         break
             if not transform_success:
                 continue
 
             if "bk_set_name" not in update_params:
-                message = _("集群属性更新失败: 没有提供更新的集群, 请检查配置")
+                message = _(f"集群属性更新失败: item={update_item}, 目前Set名称未填写 | execute")
                 logger.error(message)
                 failed_update.append(message)
                 continue
@@ -148,7 +150,7 @@ class CCBatchUpdateSetService(Service):
 
             # 检查set name是否存在
             if not bk_set_name:
-                message = _("集群属性更新失败: 没有提供待更新的集群, 请检查配置")
+                message = _(f"集群属性更新失败: set name有空值, item={update_item} | execute")
                 failed_update.append(message)
                 self.logger.info(message)
                 continue
@@ -175,8 +177,9 @@ class CCBatchUpdateSetService(Service):
                 self.logger.info("set 属性更新成功, item={}, data={}".format(update_item, kwargs))
                 success_update.append(update_item)
             else:
-                message = "set 属性更新失败, item={}, data={}, message: {}".format(
-                    update_item, kwargs, update_result["message"]
+                message = _(
+                    f"集群属性更新失败:set 属性更新失败, item={update_item}, data={kwargs}, "
+                    f"message: {update_result['message']} | execute"
                 )
                 self.logger.info(message)
                 failed_update.append(message)

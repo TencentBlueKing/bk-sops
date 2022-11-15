@@ -112,10 +112,15 @@ class BatchTemplateFormWithSchemesView(APIView):
                 scheme_id_list = template_data[template_id]["scheme_id_list"]
                 try:
                     preview_data = preview_template_tree_with_schemes(template, version, scheme_id_list)
-                except Exception:
-                    err_msg = _("请求参数信息失败: 请求执行方案的执行参数发生异常, 请重试. 如持续失败可联系管理员处理")
-                    logger.exception(err_msg)
-                    return Response({"result": False, "message": err_msg, "data": {}})
+                except Exception as e:
+                    logger.error(f"请求参数信息失败: 请求执行方案的执行参数发生异常, {e} 请重试. 如持续失败可联系管理员处理 | post")
+                    return Response(
+                        {
+                            "result": False,
+                            "message": _("请求参数信息失败: 请求执行方案的执行参数发生异常, 请重试. 如持续失败可联系管理员处理 | post"),
+                            "data": {},
+                        }
+                    )
                 data[template_id].append(
                     {
                         "form": {**preview_data["pipeline_tree"]["constants"], **preview_data["custom_constants"]},

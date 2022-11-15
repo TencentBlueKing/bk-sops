@@ -11,12 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.utils.translation import ugettext_lazy as _
+
 import ujson as json
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from blueapps.account.decorators import login_exempt
+
+from api.utils.request import logger
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.decorators import project_inject
@@ -24,6 +26,7 @@ from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskEditInterceptor
 from gcloud.taskflow3.models import TaskFlowInstance
 from apigw_manager.apigw.decorators import apigw_require
+from django.utils.translation import ugettext_lazy as _
 
 
 @login_exempt
@@ -39,7 +42,12 @@ def modify_constants_for_task(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
-        return {"result": False, "message": _("非法请求: 数据错误, 请求不是合法的Json格式"), "code": err_code.REQUEST_PARAM_INVALID.code}
+        logger.error("非法请求: 数据错误, 请求不是合法的Json格式 | modify_constants_for_task")
+        return {
+            "result": False,
+            "message": _("非法请求: 数据错误, 请求不是合法的Json格式 | modify_constants_for_task"),
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+        }
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id)
 

@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.utils.translation import ugettext_lazy as _
 
+from api.utils.request import logger
 from gcloud import err_code
 from gcloud.template_base.models import BaseTemplateManager, BaseTemplate
 
@@ -35,9 +36,10 @@ class CommonTemplateManager(BaseTemplateManager):
 
         # operation validation check
         if override and (not check_info["can_override"]):
+            logger.errro("流程导入失败, 不能使用项目流程覆盖公共流程, 请检查后重试 | import_templates")
             return {
                 "result": False,
-                "message": _("流程导入失败, 不能使用项目流程覆盖公共流程, 请检查后重试"),
+                "message": _("流程导入失败, 不能使用项目流程覆盖公共流程, 请检查后重试 | import_templates"),
                 "data": 0,
                 "code": err_code.INVALID_OPERATION.code,
             }

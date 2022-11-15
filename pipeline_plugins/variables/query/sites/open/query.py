@@ -160,8 +160,13 @@ def cc_get_set_attribute(request, biz_cc_id):
     client = get_client_by_user(request.user.username)
     result = client.cc.search_object_attribute(kwargs)
     if not result["result"]:
+        logger.error(f"业务配置数据请求失败: 请求[配置平台]接口发生异常: {result['message']} | cc_get_set_attribute")
         return JsonResponse(
-            {"result": False, "data": "", "message": _("业务配置数据请求失败: 请求[配置平台]接口发生异常: {}").format(result["message"])}
+            {
+                "result": False,
+                "data": "",
+                "message": _(f"业务配置数据请求失败: 请求[配置平台]接口发生异常: {result['message']} | cc_get_set_attribute"),
+            }
         )
     data = result["data"]
     set_attribute = [{"value": set_item["bk_property_id"], "text": set_item["bk_property_name"]} for set_item in data]

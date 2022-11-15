@@ -121,9 +121,11 @@ class CCBatchTransferHostModule(Service):
             host_result = cc_get_host_id_by_innerip(executor, biz_cc_id, cc_host_ip_list, supplier_account)
             if not host_result["result"]:
                 message = _(
-                    "主机转移模块失败: [配置平台]里未找到待转移的主机, 请检查配置. 主机:{}, message: {}".format(attr, host_result["message"])
+                    "主机转移模块失败: [配置平台]里未找到待转移的主机, 请检查配置. 主机:{}, message: {} | execute".format(
+                        attr, host_result["message"]
+                    )
                 )
-                self.logger.info(message)
+                self.logger.error(message)
                 failed_update.append(message)
                 continue
             # 获取 bk module id
@@ -137,8 +139,8 @@ class CCBatchTransferHostModule(Service):
             )
             if not cc_list_select_node_inst_id_return["result"]:
                 message = _(
-                    "无法获取bk module id，"
-                    "主机属性={}, message={}".format(attr, cc_list_select_node_inst_id_return["message"])
+                    f"主机转移模块失败: [配置平台]未找到目标模块, 请检查配置. 模块: {attr}, "
+                    f"message: {cc_list_select_node_inst_id_return['message']} | execute"
                 )
                 self.logger.info(message)
                 failed_update.append(message)
@@ -158,7 +160,7 @@ class CCBatchTransferHostModule(Service):
                 self.logger.info("主机所属业务模块更新成功, data={}".format(cc_kwargs))
                 success_update.append(attr)
             else:
-                message = _("主机转移失败: 主机: {}, message: {}".format(attr, update_result["message"]))
+                message = _(f"主机转移失败: 主机属性={attr}, kwargs={cc_kwargs} message={update_result['message']} | execute")
                 self.logger.info(message)
                 failed_update.append(message)
 

@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific lan
 """
-from django.utils.translation import ugettext_lazy as _
+
 import logging
 from rest_framework import serializers
 from rest_framework.views import APIView
@@ -24,6 +24,7 @@ from drf_yasg.utils import swagger_auto_schema
 
 from gcloud.tasktmpl3.models import TaskTemplate
 from pipeline_web.preview import preview_template_tree_with_schemes
+from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 
@@ -74,9 +75,9 @@ class PreviewTaskTreeWithSchemesView(APIView):
             else:
                 template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
         except TaskTemplate.DoesNotExist:
-            err_msg = _("请求任务数据失败: 任务关联的流程[ID: {}]已不存在, 请检查".format(template_id))
-            logger.exception(err_msg)
-            return Response({"result": False, "message": err_msg, "data": {}})
+            message = f"请求任务数据失败: 任务关联的流程[ID: {template_id}]已不存在, 项目[ID: {project_id}] 请检查 | post"
+            logger.error(message)
+            return Response({"result": False, "message": _(message), "data": {}})
         except CommonTemplate.DoesNotExist:
             err_msg = "[[preview_task_tree_with_schemes]] common template[{}] doesn't exist".format(template_id)
             logger.exception(err_msg)
@@ -85,8 +86,8 @@ class PreviewTaskTreeWithSchemesView(APIView):
         try:
             data = preview_template_tree_with_schemes(template, version, scheme_id_list)
         except Exception as e:
-            err_msg = _("任务数据请求失败: 请求任务树数据发生异常: {}, 请重试. 如多次失败可联系管理员处理".format(e))
-            logger.exception(err_msg)
-            return Response({"result": False, "message": err_msg, "data": {}})
+            message = f"任务数据请求失败: 请求流程树数据发生异常: {e}, 请重试. 如多次失败可联系管理员处理 | post"
+            logger.error(message)
+            return Response({"result": False, "message": _(message), "data": {}})
 
         return Response({"result": True, "data": data, "message": "success"})
