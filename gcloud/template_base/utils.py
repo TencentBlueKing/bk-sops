@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.utils.translation import ugettext_lazy as _
 import base64
 import hashlib
 import logging
@@ -32,7 +32,11 @@ def read_encoded_template_data(content):
     try:
         data = json.loads(base64.b64decode(content))
     except Exception:
-        return {"result": False, "message": "Template data is corrupt", "code": err_code.REQUEST_PARAM_INVALID.code}
+        return {
+            "result": False,
+            "message": _("流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理"),
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+        }
 
     # check the validation of file
     templates_data = data["template_data"]
@@ -40,7 +44,11 @@ def read_encoded_template_data(content):
 
     if not check_digest(salt=settings.TEMPLATE_DATA_SALT):
         if not check_digest(salt=settings.OLD_COMMUNITY_TEMPLATE_DATA_SALT):
-            return {"result": False, "message": "Invalid template data", "code": err_code.VALIDATION_ERROR.code}
+            return {
+                "result": False,
+                "message": _("流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理"),
+                "code": err_code.VALIDATION_ERROR.code,
+            }
     return {"result": True, "data": data, "code": err_code.SUCCESS.code}
 
 
@@ -98,7 +106,9 @@ def replace_biz_id_value(pipeline_tree: dict, bk_biz_id: int):
 
 
 def fetch_templates_info(
-    pipeline_template_ids: List, fetch_fields: Tuple, appointed_template_type: Optional[str] = None,
+    pipeline_template_ids: List,
+    fetch_fields: Tuple,
+    appointed_template_type: Optional[str] = None,
 ) -> List[Dict]:
     """
     根据pipeline template id列表获取上层template数据，

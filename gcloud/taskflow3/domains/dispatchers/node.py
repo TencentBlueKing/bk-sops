@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.utils.translation import ugettext_lazy as _
 import logging
 from copy import deepcopy
 from typing import Optional, List
@@ -192,7 +192,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
     def retry_subprocess_v1(self, operator: str, **kwargs) -> dict:
         return {
             "result": False,
-            "message": "v1 engine do not support subprocess retry",
+            "message": "非法请求: 当前引擎不支持子流程重试, 请联系管理员升级",
             "code": err_code.INVALID_OPERATION.code,
         }
 
@@ -548,7 +548,7 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     return {
                         "result": False,
                         "data": {},
-                        "message": f"fail to preview node inputs: {preview_result.exc}",
+                        "message": _("节点数据请求失败: 请重试, 如多次失败可联系管理员处理"),
                         "code": err_code.UNKNOWN_ERROR.code,
                     }
 

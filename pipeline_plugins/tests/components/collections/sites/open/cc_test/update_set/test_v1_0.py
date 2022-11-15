@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.utils.translation import ugettext_lazy as _
 from django.test import TestCase
 from mock import MagicMock
 
@@ -46,7 +47,7 @@ class MockClient(object):
 
 
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.update_set.v1_0.get_client_by_user"
-CC_GET_CLIENT_BY_USER = 'pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user'
+CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user"
 
 COMMON_MAINLINE = {
     "result": True,
@@ -239,7 +240,9 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_CASE = ComponentTestCase(
     name="fail case: select set by text with error path",
     inputs=SELECT_BY_TEXT_ERROR_PATH_FAIL_INPUTS,
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "不存在该拓扑路径：蓝鲸>Yun>set"}),
+    execute_assertion=ExecuteAssertion(
+        success=False, outputs={"ex_data": _("拓扑路径 [蓝鲸>Yun>set] 在本业务下不存在: 请检查配置, 修复后重新执行")}
+    ),
     schedule_assertion=None,
     execute_call_assertion=None,
     patchers=[
@@ -268,7 +271,7 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CASE = ComponentTestCase(
     name="fail case: select set by text with error level",
     inputs=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_INPUTS,
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "输入文本路径[蓝鲸>Yun]与业务拓扑层级不匹配"}),
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": _("输入文本路径[蓝鲸>Yun]与业务拓扑层级不匹配")}),
     schedule_assertion=None,
     execute_call_assertion=None,
     patchers=[

@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.utils.translation import ugettext_lazy as _
 from urllib.parse import urlsplit
 
 import ujson as json
@@ -46,7 +47,7 @@ def dispatch_plugin_query(request):
     except Exception:
         return {
             "result": False,
-            "message": "invalid json format",
+            "message": _("非法请求: 数据错误, 请求不是合法的Json格式"),
             "code": err_code.REQUEST_PARAM_INVALID.code,
         }
 

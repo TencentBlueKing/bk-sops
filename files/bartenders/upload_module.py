@@ -32,17 +32,17 @@ class UploadModuleBartender(UploadRequestBartender):
         file_local_md5 = request.POST.get("file_local_md5")
 
         if not file_name:
-            logger.error("[FILE_UPLOAD]invalid file_name: {}".format(file_name))
-            return {"result": False, "message": "invalid file_name", "code": 400}
+            logger.error("文件上传失败: 文件名[{}]不符合要求, 请修改后重试".format(file_name))
+            return {"result": False, "message": _("文件上传失败: 文件名[{}]不符合要求, 请修改后重试".format(file_name)), "code": 400}
 
         if INVALID_CHAR_REGEX.findall(file_name):
             message = _('文件上传失败，文件名不能包含\\/:*?"<>|等特殊字符')
-            logger.error("[FILE_UPLOAD]invalid file_name: {}".format(message))
+            logger.error("文件上传失败: 文件名[{}]不符合要求, 请修改后重试".format(file_name))
             return {"result": False, "message": message, "code": 400}
 
         if not file_path:
-            logger.error("[FILE_UPLOAD]invalid file_path: {}".format(file_path))
-            return {"result": False, "message": "invalid file_path", "code": 400}
+            logger.error("文件上传失败: 文件名[{}]不符合要求, 请修改后重试".format(file_path))
+            return {"result": False, "message": _("文件上传失败: 文件名[{}]不符合要求, 请修改后重试".format(file_path)), "code": 400}
 
         if not source_ip:
             logger.error("[FILE_UPLOAD]invalid source_ip: {}".format(source_ip))
@@ -50,9 +50,9 @@ class UploadModuleBartender(UploadRequestBartender):
 
         try:
             file_tag = self.manager.save(name=file_name, content=None, source_ip=source_ip, file_path=file_path)
-        except Exception as e:
+        except Exception:
             logger.error("[FILE_UPLOAD]file upload save err: {}".format(traceback.format_exc()))
-            return {"result": False, "message": _("文件上传归档失败，请联系管理员") + f":{e}", "code": 500}
+            return {"result": False, "message": _("文件上传失败: 文件归档失败请重试, 如持续失败可联系管理员处理"), "code": 500}
 
         logger.info("[FILE_UPLOAD] will return: {}".format(file_tag))
         return {"result": True, "tag": file_tag, "md5": file_local_md5, "code": 200}

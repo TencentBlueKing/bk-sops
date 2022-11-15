@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.utils.translation import ugettext_lazy as _
 from mock import MagicMock, patch
 
 from django.test import TestCase
@@ -36,7 +36,7 @@ class CCGetHostIdByInnerIpTestCase(TestCase):
             self.executor, self.bk_biz_id, self.supplier_account, ["bk_host_id", "bk_host_innerip"], self.ip_list
         )
         self.assertFalse(data["result"])
-        self.assertEqual(data["message"], "list_biz_hosts query failed, return empty list")
+        self.assertEqual(data["message"], _(f"IP [{self.ip_list}] 在本业务下不存在: 请检查配置, 修复后重新执行任务"))
 
     def test__return_host_list_gt_ip_list(self):
         mock_cmdb = MagicMock()
@@ -56,7 +56,7 @@ class CCGetHostIdByInnerIpTestCase(TestCase):
             self.executor, self.bk_biz_id, self.supplier_account, ["bk_host_id", "bk_host_innerip"], self.ip_list
         )
         self.assertFalse(data["result"])
-        self.assertEqual(data["message"], "mutiple same innerip host found: 1.1.1.1, 2.2.2.2")
+        self.assertEqual(data["message"], _("IP [['1.1.1.1', '2.2.2.2']] 在本业务下重复: 请检查配置, 修复后重新执行"))
 
     def test__return_host_list_lt_ip_list(self):
         mock_cmdb = MagicMock()
@@ -70,7 +70,7 @@ class CCGetHostIdByInnerIpTestCase(TestCase):
             self.executor, self.bk_biz_id, self.supplier_account, ["bk_host_id", "bk_host_innerip"], self.ip_list
         )
         self.assertFalse(data["result"])
-        self.assertEqual(data["message"], "ip not found in business: 3.3.3.3")
+        self.assertEqual(data["message"], _("IP [{'3.3.3.3'}] 在本业务下不存在: 请检查配置, 修复后重新执行"))
 
     def test__normal(self):
         mock_cmdb = MagicMock()

@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
+from django.utils.translation import ugettext_lazy as _
 import ujson as json
 
 
@@ -64,7 +64,7 @@ class StartTaskAPITest(APITest):
             if "trace_id" in data:
                 data.pop("trace_id")
             self.assertFalse(data["result"])
-            self.assertEqual(data["message"], "task already started")
+            self.assertEqual(data["message"], _("任务操作失败: 已启动的任务不可再次启动"))
 
     @mock.patch(
         PROJECT_GET,

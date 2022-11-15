@@ -171,7 +171,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
         }
     )
     if not job_result["result"]:
-        message = _("查询作业平台(JOB)的作业模板详情[app_id=%s]接口jobv3.get_job_plan_detail返回失败: %s") % (
+        message = _("请求执行方案失败: 请求[作业平台]的执行方案[ID: %s]返回失败: %s请重试, 如持续失败请联系管理员处理") % (
             biz_cc_id,
             job_result["message"],
         )
@@ -186,7 +186,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
     global_var = []
     steps = []
     if not task_detail:
-        message = "请求作业平台执行方案详情返回数据为空: {}".format(job_result)
+        message = _("请求执行方案失败: 请求[作业平台]的执行方案[ID: {}]返回为空. 请重试, 如持续失败请联系管理员处理".format(job_result))
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
 
@@ -205,7 +205,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
                 ]
             )
         else:
-            logger.warning("unknow type var: {}".format(var))
+            logger.warning("执行历史请求失败: 请求[作业平台]执行历史列表发生异常: {}".format(var))
             continue
 
         global_var.append(
@@ -246,11 +246,11 @@ def job_get_instance_detail(request, biz_cc_id, task_id):
     }
     job_result = client.job.get_job_instance_log(log_kwargs)
     if not job_result["result"]:
-        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (biz_cc_id, job_result["message"])
+        message = _("执行历史请求失败: 请求[作业平台] 执行历史发生异常: %s") % (job_result["message"])
         check_and_raise_raw_auth_fail_exception(job_result, message)
         logger.error(message)
         return JsonResponse(
-            {"result": False, "message": "job instance log fetch error: {}".format(job_result["message"])}
+            {"result": False, "message": _("执行历史请求失败: 请求[作业平台]执行历史发生异常: {}".format(job_result["message"]))}
         )
 
     ip_details = {}
@@ -355,7 +355,7 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
     plan_detail = jobv3_result["data"]
     global_var = []
     if not plan_detail:
-        message = _("请求作业平台执行方案详情返回数据为空: {}").format(jobv3_result)
+        message = _("请求执行方案失败: 请求[作业平台]的执行方案[ID: {}]返回为空. 请重试, 如持续失败请联系管理员处理").format(jobv3_result)
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
 
@@ -371,7 +371,7 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
                 ]
             )
         else:
-            message = "unknow type var: {}".format(var)
+            message = _("执行历史请求失败: 请求[作业平台]执行历史列表发生异常: {}".format(var))
             logger.error(message)
             result = {"result": False, "message": message}
             return JsonResponse(result)
@@ -414,7 +414,7 @@ def jobv3_get_instance_list(request, biz_cc_id, type, status):
         check_and_raise_raw_auth_fail_exception(job_result, message)
         logger.error(message)
         return JsonResponse(
-            {"result": False, "message": "job instance list fetch error: {}".format(job_result["message"])}
+            {"result": False, "message": _("执行历史请求失败: 请求[作业平台]执行历史列表发生异常: {}".format(job_result["message"]))}
         )
     result_data = job_result["data"]["data"]
     if not result_data:

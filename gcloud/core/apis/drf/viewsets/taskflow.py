@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.utils.translation import ugettext_lazy as _
 import re
 
 from django.conf import settings
@@ -298,7 +299,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         instance = self.get_object()
         if instance.is_started:
             if not (instance.is_finished or instance.is_revoked):
-                message = "无法删除未进入完成或撤销状态的流程"
+                message = _("任务删除失败: 仅允许删除[未执行]任务, 请检查任务状态")
                 return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
         self.perform_destroy(instance)
         # 记录操作流水

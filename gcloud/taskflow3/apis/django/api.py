@@ -26,6 +26,8 @@ from rest_framework.decorators import api_view
 
 import env
 from blueapps.account.decorators import login_exempt
+
+from gcloud.apigw.utils import get_task_frequency
 from gcloud.utils.throttle import check_task_operation_throttle
 
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
@@ -102,7 +104,7 @@ def status(request, project_id):
         return JsonResponse(
             {
                 "result": False,
-                "message": "task with instance_id({}) not exist".format(instance_id),
+                "message": _("任务查询失败: 任务[ID: {}]不存在, 请检查".format(instance_id)),
                 "data": None,
                 "code": err_code.CONTENT_NOT_EXIST.code,
             }
@@ -212,7 +214,7 @@ def get_job_instance_log(request, biz_cc_id):
     job_result = client.job.get_job_instance_log(log_kwargs)
 
     if not job_result["result"]:
-        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (biz_cc_id, job_result["message"])
+        message = _("执行历史请求失败: 请求[作业平台] 执行历史发生异常: %s") % (job_result["message"])
 
         if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
             logger.warning(message)
@@ -233,14 +235,7 @@ def task_action(request, action, project_id):
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     if env.TASK_OPERATION_THROTTLE and not check_task_operation_throttle(project_id, action):
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "project id: {} reach the limit of starting tasks".format(project_id),
-                "code": err_code.INVALID_OPERATION.code,
-            }
-        )
-
+        return get_task_frequency(project_id, action)
     ctx = task.task_action(action, username)
     return JsonResponse(ctx)
 
@@ -376,7 +371,7 @@ def preview_task_tree(request, project_id):
     try:
         data = preview_template_tree(project_id, template_source, template_id, version, exclude_task_nodes_id)
     except Exception as e:
-        err_msg = "preview_template_tree fail: {}".format(e)
+        err_msg = _("任务数据请求失败: 请求任务数据发生异常: {}. 请重试, 如多次失败可联系管理员处理".format(e))
         logger.exception(err_msg)
         return JsonResponse({"result": False, "message": err_msg})
 
@@ -433,9 +428,7 @@ def get_node_log(request, project_id, node_id):
             {
                 "result": False,
                 "data": None,
-                "message": "node[node_id={node_id}] not found in task[task_id={task_id}]".format(
-                    node_id=node_id, task_id=task.id
-                ),
+                "message": _("节点状态请求失败: 任务[ID: {}]中未找到节点[ID: {}]. 请重试, 如持续失败可联系管理员处理".format(task_id, node_id)),
             }
         )
 
@@ -471,7 +464,7 @@ def node_callback(request, token):
         callback_data = json.loads(request.body)
     except Exception:
         logger.warning("node callback error: %s" % traceback.format_exc())
-        return JsonResponse({"result": False, "message": "invalid request body"}, status=400)
+        return JsonResponse({"result": False, "message": _("非法请求: 无效的请求, 请重试. 如持续失败可联系管理员处理")}, status=400)
 
     # 老的回调接口，一定是老引擎的接口
     dispatcher = NodeCommandDispatcher(engine_ver=EngineConfig.ENGINE_VER_V1, node_id=node_id)

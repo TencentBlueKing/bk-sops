@@ -127,14 +127,14 @@ class SleepTimerService(Service):
         if self.date_regex.match(str(timing)):
             eta = project_tz.localize(datetime.datetime.strptime(timing, "%Y-%m-%d %H:%M:%S"))
             if force_check and now > eta:
-                message = _("定时时间需晚于当前时间")
+                message = _("[定时]节点执行失败: 定时时间需晚于当前时间, 请检查节点配置")
                 data.set_outputs("ex_data", message)
                 return False
         elif self.seconds_regex.match(str(timing)):
             #  如果写成+号 可以输入无限长，或考虑前端修改
             eta = now + datetime.timedelta(seconds=int(timing))
         else:
-            message = _("输入参数%s不符合【秒(s) 或 时间(%%Y-%%m-%%d %%H:%%M:%%S)】格式") % timing
+            message = _("[定时]节点执行失败: 定时时间仅支持「秒(s)」 或 「%%Y-%%m-%%d %%H:%%M:%%S)」格式，请检查节点配置")
             data.set_outputs("ex_data", message)
             return False
 

@@ -122,7 +122,10 @@ class JobFastExecuteScriptService(JobService):
                 schema=StringItemSchema(description=_("执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
+                name=_("目标账户"),
+                key="job_account",
+                type="string",
+                schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
             ),
             self.InputItem(
                 name=_("IP 存在性校验"),
@@ -227,11 +230,7 @@ class JobFastExecuteScriptService(JobService):
                     break
 
             if not selected_script:
-                api_name = "jobv3.get_script_list" if script_source == "general" else "jobv3.get_public_script_list"
-                message = (
-                    f"Data validation error: can not find a script exactly named "
-                    f"{script_name} in {[script['name'] for script in script_list]} via api {api_name}"
-                )
+                message = _(f"快速执行脚本启动失败: [作业平台]未找到脚本{script_name}, 请检查配置")
                 self.logger.error(message)
                 data.outputs.ex_data = message
                 return False

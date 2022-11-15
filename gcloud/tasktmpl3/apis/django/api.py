@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.utils.translation import ugettext_lazy as _
 import logging
 
 import ujson as json
@@ -266,7 +266,7 @@ def draw_pipeline(request):
     try:
         draw_pipeline_tree(pipeline_tree, **kwargs)
     except Exception as e:
-        message = "draw pipeline_tree error: %s" % e
+        message = _("流程自动排版失败: 流程排版发生异常: %s, 请检查流程" % e)
         logger.exception(e)
         return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code, "data": None})
 

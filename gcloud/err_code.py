@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.utils.translation import ugettext_lazy as _
 
 _BK_SOPS_PREFIX = "35"
 
@@ -25,7 +26,7 @@ class ErrorCode(object):
 
 SUCCESS = ErrorCode(code="0", description="success", ignore_prefix=True)
 
-REQUEST_PARAM_INVALID = ErrorCode(code="40000", description="the content of param in your request is invalid")
+REQUEST_PARAM_INVALID = ErrorCode(code="40000", description=_("非法请求: 请求的接口, 参数校验失败"))
 REQUEST_FORBIDDEN_INVALID = ErrorCode(code="40100", description="you have no permission")
 CONTENT_NOT_EXIST = ErrorCode(code="40400", description="the content you reqeust does not exist")
 INVALID_OPERATION = ErrorCode(code="45000", description="invalid operation")
