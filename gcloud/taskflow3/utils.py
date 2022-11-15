@@ -33,7 +33,10 @@ def _format_status_time(status_tree):
         status_tree["elapsed_time"] = calculate_elapsed_time(started_time, archived_time)
 
     status_tree["start_time"] = format_datetime(started_time) if started_time else None
-    status_tree["finish_time"] = format_datetime(archived_time) if archived_time else None
+    if status_tree["state"] == pipeline_states.RUNNING:
+        status_tree["finish_time"] = None
+    else:
+        status_tree["finish_time"] = format_datetime(archived_time) if archived_time else None
 
 
 def format_pipeline_status(status_tree):
