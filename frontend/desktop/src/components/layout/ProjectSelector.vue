@@ -114,13 +114,32 @@
                 if (this.project_id === id) {
                     return false
                 }
-                this.$router.push({
-                    name: this.$route.name,
-                    params: { project_id: id }
-                })
-                this.$nextTick(() => {
-                    this.$emit('reloadHome')
-                })
+                const redirectMap = {
+                    '/template': {
+                        name: 'processHome',
+                        params: { project_id: id }
+                    },
+                    '/taskflow': {
+                        name: 'taskList',
+                        params: { project_id: id }
+                    },
+                    '/appmaker': {
+                        name: 'appMakerList',
+                        params: { project_id: id }
+                    }
+                }
+                const key = Object.keys(redirectMap).find(path => this.$route.path.indexOf(path) === 0)
+                if (key && this.$route.name !== redirectMap[key].name) {
+                    this.$router.push(redirectMap[key])
+                } else {
+                    this.$router.push({
+                        name: this.$route.name,
+                        params: { project_id: id }
+                    })
+                    this.$nextTick(() => {
+                        this.$emit('reloadHome')
+                    })
+                }
             },
             // 这里统一直接用后端提供的 host 跳转
             jumpToOther () {
