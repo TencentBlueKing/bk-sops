@@ -29,6 +29,10 @@ from gcloud.utils.throttle import check_task_operation_throttle
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 from apigw_manager.apigw.decorators import apigw_require
+from django.utils.translation import ugettext_lazy as _
+import logging
+
+logger = logging.getLogger("root")
 
 
 @login_exempt
@@ -52,7 +56,9 @@ def start_task(request, task_id, project_id):
         }
 
     if TaskFlowInstance.objects.is_task_started(project_id=project.id, id=task_id):
-        return {"result": False, "code": err_code.INVALID_OPERATION.code, "message": "task already started"}
+        message = _("任务操作失败: 已启动的任务不可再次启动 | start_task")
+        logger.error(message)
+        return {"result": False, "code": err_code.INVALID_OPERATION.code, "message": message}
 
     queue, routing_key = PrepareAndStartTaskQueueResolver(
         settings.API_TASK_QUEUE_NAME_V2

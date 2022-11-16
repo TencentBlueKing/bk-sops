@@ -25,6 +25,7 @@ from django.db.models import ObjectDoesNotExist
 from gcloud import err_code
 from gcloud.core.models import Project
 from gcloud.core.logging import local
+from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 
@@ -63,10 +64,12 @@ class ObjectDoesNotExistExceptionMiddleware(MiddlewareMixin):
     def process_exception(self, request, exception):
         if isinstance(exception, ObjectDoesNotExist):
             logger.error("[ObjectDoesNotExistExceptionMiddleware] {} - {}".format(request.path, traceback.format_exc()))
+            message = _(f"数据不存在错误: 数据不存在错误, 错误内容 {exception} | process_exception")
+            logger.error(message)
             return JsonResponse(
                 {
                     "result": False,
-                    "message": "Object not found: %s" % exception,
+                    "message": message,
                     "data": None,
                     "code": err_code.CONTENT_NOT_EXIST.code,
                 }

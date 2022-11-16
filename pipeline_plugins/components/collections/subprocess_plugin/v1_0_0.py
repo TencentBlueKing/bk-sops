@@ -36,6 +36,7 @@ from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig, TaskCal
 from gcloud.tasktmpl3.models import TaskTemplate
 from pipeline.component_framework.component import Component
 from pipeline.core.flow import Service
+from django.utils.translation import ugettext_lazy as _
 
 
 class Subprocess(BaseModel):
@@ -196,7 +197,7 @@ class SubprocessPluginService(Service):
         try:
             subprocess_task = TaskFlowInstance.objects.get(id=task_id)
         except TaskFlowInstance.DoesNotExist:
-            message = f"subprocess task {task_id} not found"
+            message = _(f"子任务[{task_id}]不存在 | schedule")
             self.logger.error(message)
             data.set_outputs("ex_data", message)
             return False

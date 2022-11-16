@@ -25,6 +25,7 @@ from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 from apigw_manager.apigw.decorators import apigw_require
+from django.utils.translation import ugettext_lazy as _
 
 
 @login_exempt
@@ -45,7 +46,9 @@ def query_task_count(request, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
-        return {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
+        message = _("非法请求: 数据错误, 请求不是合法的Json格式 | query_task_count")
+        logger.error(message)
+        return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
     project = request.project
     conditions = params.get("conditions", {})
     group_by = params.get("group_by")
