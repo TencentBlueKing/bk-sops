@@ -59,7 +59,7 @@ class CCGetHostIdByInnerIpTestCase(TestCase):
         )
         self.assertFalse(data["result"])
         self.assertEqual(
-            data["message"], "IP ['1.1.1.1', '2.2.2.2', '3.3.3.3'] 在本业务下重复: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip"
+            data["message"], "IP ['1.1.1.1', '2.2.2.2'] 在本业务下重复: 请检查配置, 修复后重新执行 | cc_get_host_id_by_innerip"
         )
 
     def test__return_host_list_lt_ip_list(self):
