@@ -28,16 +28,24 @@ def get_redis_with_default(redis_instance, key, default_value):
     return value
 
 
-def check_task_operation_throttle(project_id, operation):
-    # load config
+def get_task_operation_frequence(project_id, operation):
     try:
         times_config = TaskOperationTimesConfig.objects.get(project_id=project_id, operation=operation)
     except TaskOperationTimesConfig.DoesNotExist:
-        # not limit if no config on project
+        pass
+    else:
+        time_unit_mapping = {"m": 60, "h": 3600, "d": 86400}
+        allowed_times = int(times_config.times)
+        scope_seconds = time_unit_mapping.get(times_config.time_unit)
+        return allowed_times, scope_seconds
+
+
+def check_task_operation_throttle(project_id, operation):
+    # load config
+    function_result = get_task_operation_frequence(project_id, operation)
+    if not function_result:
         return True
-    time_unit_mapping = {"m": 60, "h": 3600, "d": 86400}
-    allowed_times = int(times_config.times)
-    scope_seconds = time_unit_mapping.get(times_config.time_unit)
+    allowed_times, scope_seconds = function_result
 
     # token bucket method
     cache_prefix = "task_operation_throttle"

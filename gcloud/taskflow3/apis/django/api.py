@@ -26,7 +26,7 @@ from rest_framework.decorators import api_view
 
 import env
 from blueapps.account.decorators import login_exempt
-from gcloud.utils.throttle import check_task_operation_throttle
+from gcloud.utils.throttle import check_task_operation_throttle, get_task_operation_frequence
 
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
@@ -235,13 +235,17 @@ def task_action(request, action, project_id):
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     if env.TASK_OPERATION_THROTTLE and not check_task_operation_throttle(project_id, action):
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "project id: {} reach the limit of starting tasks".format(project_id),
-                "code": err_code.INVALID_OPERATION.code,
-            }
-        )
+        if get_task_operation_frequence(project_id, action):
+            allowed_times, scope_seconds = get_task_operation_frequence(project_id, action)
+            message = _(f"任务操作失败: 项目[ID: {project_id}]下同时启动的任务数不可超过{allowed_times}/{scope_seconds}(单位:秒)")
+            logger.error(message)
+            return JsonResponse(
+                {
+                    "result": False,
+                    "message": message,
+                    "code": err_code.INVALID_OPERATION.code,
+                }
+            )
 
     ctx = task.task_action(action, username)
     return JsonResponse(ctx)
