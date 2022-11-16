@@ -47,6 +47,7 @@
                     :show-palette="false"
                     :canvas-data="canvasData"
                     :has-admin-perm="adminView"
+                    :node-variable-info="nodeVariableInfo"
                     @hook:mounted="onTemplateCanvasMounted"
                     @onNodeClick="onNodeClick"
                     @onConditionClick="onOpenConditionEdit"
@@ -57,6 +58,7 @@
                     @onGatewaySelectionClick="onGatewaySelectionClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
                     @onApprovalClick="onApprovalClick"
+                    @onTogglePerspective="onTogglePerspective"
                     @onSubflowPauseResumeClick="onSubflowPauseResumeClick">
                 </TemplateCanvas>
             </div>
@@ -246,6 +248,7 @@
     import TaskOperationHeader from './TaskOperationHeader'
     import TemplateData from './TemplateData'
     import ConditionEdit from '../../template/TemplateEdit/ConditionEdit.vue'
+    import tplPerspective from '@/mixins/tplPerspective.js'
 
     const CancelToken = axios.CancelToken
     let source = CancelToken.source()
@@ -296,7 +299,7 @@
             TemplateData,
             ConditionEdit
         },
-        mixins: [permission],
+        mixins: [permission, tplPerspective],
         props: {
             project_id: [Number, String],
             instance_id: [Number, String],
@@ -432,6 +435,12 @@
                     }),
                     branchConditions
                 }
+            },
+            previewData () {
+                return tools.deepClone(this.pipelineData)
+            },
+            common () {
+                return this.templateSource !== 'project'
             },
             nodeData () {
                 const data = this.getOrderedTree(this.completePipelineData)
