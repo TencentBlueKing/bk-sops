@@ -14,6 +14,10 @@ specific language governing permissions and limitations under the License.
 from abc import ABCMeta, abstractmethod
 
 import ujson as json
+from django.utils.translation import ugettext_lazy as _
+import logging
+
+logger = logging.getLogger("root")
 
 
 class RequestValidator(object, metaclass=ABCMeta):
@@ -31,7 +35,9 @@ class ObjectJsonBodyValidator(RequestValidator):
         try:
             data = json.loads(request.body)
         except Exception:
-            return False, "request body is not a valid json"
+            message = _("非法请求: 数据错误, 请求不是合法的Json格式 | validate")
+            logger.error(message)
+            return False, message
 
         if not isinstance(data, dict):
             return False, "request body must be a object"

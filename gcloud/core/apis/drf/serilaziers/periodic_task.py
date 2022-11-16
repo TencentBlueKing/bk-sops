@@ -25,6 +25,9 @@ from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriod
 from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.utils.drf.serializer import ReadWriteSerializerMethodField
+import logging
+
+logger = logging.getLogger("root")
 
 
 class CeleryTaskSerializer(serializers.ModelSerializer):
@@ -135,7 +138,9 @@ class CreatePeriodicTaskSerializer(serializers.ModelSerializer):
             if project_config and project_config.max_periodic_task_num > 0:
                 periodic_task_limit = project_config.max_periodic_task_num
             if PeriodicTask.objects.filter(project__id=project.id).count() >= periodic_task_limit:
-                raise serializers.ValidationError("Periodic task number reaches limit: {}".format(periodic_task_limit))
+                message = _(f"周期任务创建失败: 项目内的周期任务数不可超过: {periodic_task_limit} | validate_project")
+                logger.error(message)
+                raise serializers.ValidationError(message)
             return project
         except Project.DoesNotExist:
             raise serializers.ValidationError(_("project不存在"))

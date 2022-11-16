@@ -26,6 +26,7 @@ from blueapps.account.decorators import login_exempt
 import env
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher
+from django.utils.translation import ugettext_lazy as __
 
 logger = logging.getLogger("root")
 
@@ -61,8 +62,9 @@ def node_callback(request, token):
     try:
         callback_data = json.loads(request.body)
     except Exception:
-        logger.warning("node callback error: %s" % traceback.format_exc())
-        return JsonResponse({"result": False, "message": "invalid request body"}, status=400)
+        message = __(f"非法请求: 无效的请求, 请重试. 如持续失败可联系管理员处理. {traceback.format_exc()} | node_callback")
+        logger.error(message)
+        return JsonResponse({"result": False, "message": message}, status=400)
 
     taskflow_id = None
     if root_pipeline_id:

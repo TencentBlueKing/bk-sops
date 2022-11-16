@@ -23,6 +23,10 @@ from blueapps.account.decorators import login_exempt
 from gcloud.contrib.admin.migration_api.decorators import require_migrate_token
 from gcloud.core.models import Project, ResourceConfig
 from gcloud import err_code
+from django.utils.translation import ugettext_lazy as _
+import logging
+
+logger = logging.getLogger("root")
 
 
 @login_exempt
@@ -33,10 +37,12 @@ def register_resource_config(request):
     try:
         params = json.loads(request.body)
     except Exception as e:
+        message = _(f"非法请求: 数据错误, 请求不是合法的Json格式, {e} | register_resource_config")
+        logger.error(message)
         return JsonResponse(
             {
                 "result": False,
-                "message": "request body is not a valid json: {}".format(str(e)),
+                "message": message,
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
         )

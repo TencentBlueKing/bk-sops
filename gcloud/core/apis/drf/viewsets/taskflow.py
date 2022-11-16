@@ -58,6 +58,10 @@ from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.contrib.operate_record.constants import OperateType, OperateSource, RecordType
 from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user, get_common_flow_allowed_actions_for_user
+from django.utils.translation import ugettext_lazy as _
+import logging
+
+logger = logging.getLogger("root")
 
 iam = get_iam_client()
 
@@ -298,7 +302,8 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         instance = self.get_object()
         if instance.is_started:
             if not (instance.is_finished or instance.is_revoked):
-                message = "无法删除未进入完成或撤销状态的流程"
+                message = _("任务删除失败: 仅允许删除[未执行]任务, 请检查任务状态 | destroy")
+                logger.error(message)
                 return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
         self.perform_destroy(instance)
         # 记录操作流水
