@@ -24,6 +24,7 @@ from gcloud.constants import COMMON, PROJECT
 from pipeline.core.constants import PE
 from gcloud import err_code
 from gcloud.conf import settings
+from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 
@@ -32,7 +33,9 @@ def read_encoded_template_data(content):
     try:
         data = json.loads(base64.b64decode(content))
     except Exception:
-        return {"result": False, "message": "Template data is corrupt", "code": err_code.REQUEST_PARAM_INVALID.code}
+        message = _("流程导入失败: 文件解析异常, 模板参数缺陷. 请重试或联系管理员处理 | read_encoded_template_data")
+        logger.error(message)
+        return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
     # check the validation of file
     templates_data = data["template_data"]
@@ -40,7 +43,9 @@ def read_encoded_template_data(content):
 
     if not check_digest(salt=settings.TEMPLATE_DATA_SALT):
         if not check_digest(salt=settings.OLD_COMMUNITY_TEMPLATE_DATA_SALT):
-            return {"result": False, "message": "Invalid template data", "code": err_code.VALIDATION_ERROR.code}
+            message = _("流程导入失败: 文件解析异常, 模板参数非法. 请重试或联系管理员处理 | read_encoded_template_data")
+            logger.error(message)
+            return {"result": False, "message": message, "code": err_code.VALIDATION_ERROR.code}
     return {"result": True, "data": data, "code": err_code.SUCCESS.code}
 
 

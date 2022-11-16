@@ -267,7 +267,12 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
             if not selected_script:
                 api_name = "jobv3.get_script_list" if script_source == "general" else "jobv3.get_public_script_list"
                 message = job_handle_api_error(api_name, job_kwargs, script_list)
-                message += "Data validation error: can not find a script exactly named {}".format(script_name)
+                script_type = "业务脚本" if script_source == "general" else "公共脚本"
+                message += (
+                    f"快速执行脚本启动失败: [作业平台]未找到名称:{script_name}的{script_type}, "
+                    f"现有脚本: {[script['name'] for script in script_list]}, 请检查配置"
+                )
+                message = _(message)
                 self.logger.error(message)
                 data.outputs.ex_data = message
                 return False
