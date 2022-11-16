@@ -305,7 +305,9 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_CASE = ComponentTestCase(
     name="fail case: select set by text with error path",
     inputs=SELECT_BY_TEXT_ERROR_PATH_FAIL_INPUTS,
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "不存在该拓扑路径：蓝鲸>Yun>set"}),
+    execute_assertion=ExecuteAssertion(
+        success=False, outputs={"ex_data": "拓扑路径 [蓝鲸>Yun>set] 在本业务下不存在: 请检查配置, 修复后重新执行 | cc_list_match_node_inst_id"}
+    ),
     schedule_assertion=None,
     execute_call_assertion=None,
     patchers=[
