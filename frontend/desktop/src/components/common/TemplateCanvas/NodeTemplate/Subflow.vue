@@ -15,6 +15,7 @@
             'task-node',
             'subflow-node',
             node.status ? node.status.toLowerCase() : '',
+            { 'fail-skip': node.status === 'FINISHED' && node.skip },
             { 'ready': node.ready },
             { 'actived': node.isActived }
         ]">
