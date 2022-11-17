@@ -488,3 +488,81 @@ def node_callback(request, token):
         time.sleep(0.5)
 
     return JsonResponse(callback_result)
+
+
+@swagger_auto_schema(methods=["GET"], auto_schema=AnnotationAutoSchema)
+@request_validate(DetailValidator)
+@iam_intercept(DetailViewInterceptor())
+@api_view(["GET"])
+def snapshot_config(request):
+    """
+    获取某个节点的快照配置
+    param: instance_id: 任务实例 ID, string, query, required
+    param: node_id: 节点 ID, string, query, required
+    return: dict 根据 result 字段判断是否请求成功
+    {
+        "result": true, 根据result 判断是否正常
+        "data": {
+            "component": {
+                "code": "sleep_timer",
+                "data": {
+                    "bk_timing": {
+                        "hook": false,
+                        "need_render": true,
+                        "value": "10"
+                    },
+                    "force_check": {
+                        "hook": false,
+                        "need_render": true,
+                        "value": true
+                    }
+                },
+                "version": "legacy"
+            },
+            "error_ignorable": false,
+            "id": "node7a63244b7837ef15ef3b474b47bd",
+            "incoming": [
+                "line02c5d5f7d1b996bb050f153e077b"
+            ],
+            "loop": null,
+            "name": "定时",
+            "optional": true,
+            "outgoing": "linee702fc4ff57920950c78e987ea96",
+            "stage_name": "",
+            "type": "ServiceActivity",
+            "retryable": true,
+            "skippable": true,
+            "auto_retry": {
+                "enable": false,
+                "interval": 0,
+                "times": 1
+            },
+            "timeout_config": {
+                "enable": false,
+                "seconds": 10,
+                "action": "forced_fail"
+            }
+        }
+    }
+
+    """
+
+    task_id = request.GET.get("instance_id")
+    node_id = request.GET.get("node_id")
+
+    try:
+        task = TaskFlowInstance.objects.get(pk=task_id)
+    except TaskFlowInstance.DoesNotExist:
+        return JsonResponse({"result": False, "message": "task_id 对应的任务实例不存在"}, status=400)
+
+    execution_data = task.pipeline_instance.execution_data
+
+    template_node_id = execution_data["activities"].get(node_id, {}).get("template_node_id")
+
+    # 旧的流程拿不到模板node_id, 直接返回空即可
+    if template_node_id is None:
+        return JsonResponse({"result": True, "data": None})
+
+    node_snapshot_config = task.pipeline_instance.snapshot.data["activities"].get(template_node_id)
+
+    return JsonResponse({"result": True, "data": node_snapshot_config})
