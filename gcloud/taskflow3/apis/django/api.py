@@ -575,7 +575,7 @@ def snapshot_config(request):
 
         node_info = _get_node_info(execution_data, subprocess_stack)
         # 如果新的堆栈没有生成，说明不存在新的template_id 直接返回
-        if not snapshot_subprocess_stack:
+        if not snapshot_subprocess_stack or len(snapshot_subprocess_stack) != len(subprocess_stack):
             return JsonResponse({"result": True, "data": None})
 
         template_node_id = node_info.get("template_node_id")
