@@ -44,10 +44,4 @@ class TaskOperateRecordSetSerializer(OperateRecordSetSerializer):
     extra_info = serializers.SerializerMethodField()
 
     def get_extra_info(self, obj):
-        return (
-            json.loads(obj.extra_info)
-            if obj.extra_info and not isinstance(obj.extra_info, dict)
-            else obj.extra_info
-            if obj.extra_info
-            else {}
-        )
+        return json.loads(obj.extra_info) if obj.extra_info else {}

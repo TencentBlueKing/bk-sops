@@ -23,7 +23,7 @@ from gcloud.contrib.operate_record.constants import OperateType, OperateSource
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.contrib.operate_record.models import TaskOperateRecord
-from gcloud.utils.handlers import get_constants
+from gcloud.contrib.operate_record.utils import extract_extra_info
 
 iam = get_iam_client()
 
@@ -74,13 +74,10 @@ class UpdateTaskConstantsView(APIView):
         set_result = task.set_task_constants(serializers.data["constants"], serializers.data["meta_constants"])
 
         if set_result["result"]:
-            constants = task.pipeline_instance.execution_data["constants"]
-            extra_info = get_constants(
+            constants = task.pipeline_instance.execution_data.get("constants")
+            extra_info = extract_extra_info(
                 constants,
-                keys=constants.keys()
-                if "modified_constant_keys" not in request.data
-                else request.data.get("modified_constant_keys"),
-            )
+                keys=request.data.get("modified_constant_keys") if "modified_constant_keys" in request.data else None)
 
             TaskOperateRecord.objects.create(
                 operator=request.user.username,
