@@ -1203,17 +1203,15 @@
                         break
                 }
             },
-            getOrderedTree (data, level = 0) {
+            getOrderedTree (data) {
                 const startNode = tools.deepClone(data.start_event)
                 const fstLine = startNode.outgoing
                 const orderedData = [Object.assign({}, startNode, {
-                    level,
                     title: this.$t('开始节点'),
                     name: this.$t('开始节点'),
                     expanded: false
                 })]
-                this.retrieveLines(data, fstLine, orderedData, level)
-                orderedData.sort((a, b) => a.level - b.level)
+                this.retrieveLines(data, fstLine, orderedData)
                 const endEventIndex = orderedData.findIndex(item => item.type === 'EmptyEndEvent')
                 const endEvent = orderedData.splice(endEventIndex, 1)
                 orderedData.push(endEvent[0])
@@ -1224,18 +1222,23 @@
              * @param {Object} data 画布数据
              * @param {Array} lineId 连线ID
              * @param {Array} ordered 排序后的节点数据
-             * @param {Number} level 任务节点与开始节点的距离
              *
              */
-            retrieveLines (data, lineId, ordered, level = 0) {
+            retrieveLines (data, lineId, ordered) {
                 const { end_event, activities, gateways, flows } = data
                 const currentNode = flows[lineId].target
                 const endEvent = end_event.id === currentNode ? tools.deepClone(end_event) : undefined
                 const activity = tools.deepClone(activities[currentNode])
                 const gateway = tools.deepClone(gateways[currentNode])
                 const node = endEvent || activity || gateway
-
                 if (node && ordered.findIndex(item => item.id === node.id) === -1) {
+                    let outgoing
+                    if (Array.isArray(node.outgoing)) {
+                        outgoing = node.outgoing
+                    } else {
+                        outgoing = node.outgoing ? [node.outgoing] : []
+                    }
+
                     if (endEvent) {
                         const name = this.$t('结束节点')
                         endEvent.title = name
@@ -1244,31 +1247,35 @@
                         ordered.push(endEvent)
                     } else if (gateway) { // 网关节点
                         const name = NODE_DICT[gateway.type.toLowerCase()]
-                        level += 1
-                        gateway.level = level
                         gateway.title = name
                         gateway.name = name
                         gateway.expanded = false
-                        ordered.push(gateway)
+                        if (gateway.type === 'ExclusiveGateway' || gateway.type === 'ParallelGateway') {
+                            ordered.push(gateway)
+                            outgoing.forEach(line => {
+                                this.retrieveLines(data, line, ordered)
+                            })
+                        }
+                        if (gateway.type === 'ConvergeGateway') {
+                            // 判断ordered中 汇聚网关的incoming是否存在
+                            if (gateway.incoming.every(item => ordered.map(ite => ite.outgoing).includes(item))) {
+                                ordered.push(gateway)
+                                outgoing.forEach(line => {
+                                    this.retrieveLines(data, line, ordered)
+                                })
+                            }
+                        }
                     } else if (activity) { // 任务节点
                         if (activity.pipeline) {
-                            activity.children = this.getOrderedTree(activity.pipeline, level)
+                            activity.children = this.getOrderedTree(activity.pipeline)
                         }
-                        activity.level = level
                         activity.title = activity.name
                         activity.expanded = activity.pipeline
                         ordered.push(activity)
+                        outgoing.forEach(line => {
+                            this.retrieveLines(data, line, ordered)
+                        })
                     }
-
-                    let outgoing
-                    if (Array.isArray(node.outgoing)) {
-                        outgoing = node.outgoing
-                    } else {
-                        outgoing = node.outgoing ? [node.outgoing] : []
-                    }
-                    outgoing.forEach(line => {
-                        this.retrieveLines(data, line, ordered, level)
-                    })
                 }
             },
             updateNodeActived (id, isActived) {
