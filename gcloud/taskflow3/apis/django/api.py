@@ -22,6 +22,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 from django.utils.translation import ugettext_lazy as _
 from drf_yasg.utils import swagger_auto_schema
+from pipeline.models import Snapshot
 from rest_framework.decorators import api_view
 
 import env
@@ -549,6 +550,7 @@ def snapshot_config(request):
 
     task_id = request.GET.get("instance_id")
     node_id = request.GET.get("node_id")
+    subprocess_stack = json.loads(request.query_params.get("subprocess_stack", "[]"))
 
     try:
         task = TaskFlowInstance.objects.get(pk=task_id)
@@ -557,6 +559,45 @@ def snapshot_config(request):
 
     execution_data = task.pipeline_instance.execution_data
 
+    # 如果存在子流程
+    if subprocess_stack:
+        # 新的堆栈
+        snapshot_subprocess_stack = []
+
+        def _get_node_info(pipeline: dict, subprocess_stack: list) -> dict:
+            # go deeper
+            if subprocess_stack:
+                component_act = pipeline["activities"][subprocess_stack[0]]
+                if "template_node_id" in component_act:
+                    snapshot_subprocess_stack.append(component_act["template_node_id"])
+                return _get_node_info(component_act["pipeline"], subprocess_stack[1:])
+            return pipeline["activities"][node_id]
+
+        node_info = _get_node_info(execution_data, subprocess_stack)
+        # 如果新的堆栈没有生成，说明不存在新的template_id 直接返回
+        if not snapshot_subprocess_stack:
+            return JsonResponse({"result": True, "data": None})
+
+        template_node_id = node_info.get("template_node_id")
+        # 如果没有拿到对应的template_node_id，直接返回
+        if template_node_id is None:
+            return JsonResponse({"result": True, "data": None})
+
+        def _get_snapshot_node_info(pipeline, subprocess_stack_list):
+            # 非独立子流程往下搜索
+            if subprocess_stack_list:
+                component_act = pipeline["activities"][subprocess_stack_list[0]]
+                version = component_act["version"]
+                pipeline_tree = Snapshot.objects.filter(md5sum=version).order_by("-id").first()
+                if pipeline_tree is not None:
+                    return _get_snapshot_node_info(pipeline_tree.data, subprocess_stack_list[1:])
+            return pipeline["activities"].get(template_node_id)
+
+        # 根据新的堆栈拿到新的配置
+        snapshot_node_info = _get_snapshot_node_info(task.pipeline_instance.snapshot.data, snapshot_subprocess_stack)
+        return JsonResponse({"result": True, "data": snapshot_node_info})
+
+    # 不存在子流程，则直接查找
     template_node_id = execution_data["activities"].get(node_id, {}).get("template_node_id")
 
     # 旧的流程拿不到模板node_id, 直接返回空即可

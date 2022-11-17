@@ -586,7 +586,6 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
             "description": kwargs.get("description", ""),
         }
         PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree, template.__class__)
-        inject_template_node_id(pipeline_tree)
 
         pipeline_web_cleaner = PipelineWebTreeCleaner(pipeline_tree)
         nodes_attr = pipeline_web_cleaner.clean(with_subprocess=(not independent_subprocess))
@@ -595,6 +594,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
             converter = PipelineTreeSubprocessConverter(pipeline_tree)
             converter.convert()
 
+        inject_template_node_id(pipeline_tree)
         pipeline_instance, id_maps = PipelineInstance.objects.create_instance(
             template.pipeline_template if template else None, pipeline_tree, spread=True, **pipeline_template_data
         )

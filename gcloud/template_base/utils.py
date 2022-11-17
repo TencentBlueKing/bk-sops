@@ -78,8 +78,11 @@ def inject_template_node_id(pipeline_tree: dict):
     """pipeline_tree需要在unfold_subprocess之后才可递归处理"""
     for act_id, act in pipeline_tree[PE.activities].items():
         act["template_node_id"] = act.get("template_node_id") or act_id
-        if act[PE.type] == PE.SubProcess and "pipeline_tree" in act:
-            inject_template_node_id(act["pipeline_tree"])
+        if act[PE.type] == PE.SubProcess:
+            if "pipeline_tree" in act:
+                inject_template_node_id(act["pipeline_tree"])
+            if "pipeline" in act:
+                inject_template_node_id(act["pipeline"])
 
 
 def replace_biz_id_value(pipeline_tree: dict, bk_biz_id: int):
@@ -98,7 +101,9 @@ def replace_biz_id_value(pipeline_tree: dict, bk_biz_id: int):
 
 
 def fetch_templates_info(
-    pipeline_template_ids: List, fetch_fields: Tuple, appointed_template_type: Optional[str] = None,
+    pipeline_template_ids: List,
+    fetch_fields: Tuple,
+    appointed_template_type: Optional[str] = None,
 ) -> List[Dict]:
     """
     根据pipeline template id列表获取上层template数据，
