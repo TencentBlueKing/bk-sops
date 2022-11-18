@@ -253,7 +253,7 @@ class TemplateManager:
         appmaker_referencer = template.referencer_appmaker()
         if appmaker_referencer:
             message = _(
-                "流程删除失败: 流程已被其他流程引用[{}], 暂不可删除, 请处理后重试 | can_delete".format(
+                "流程删除失败: 流程已被其他小程序引用[{}], 暂不可删除, 请处理后重试 | can_delete".format(
                     ",".join([f'{item["template_type"]}:{item["id"]}:{item["name"]}' for item in appmaker_referencer])
                 )
             )
@@ -266,7 +266,7 @@ class TemplateManager:
         clocked_task_referencer = template.referencer_clocked_task()
         if clocked_task_referencer:
             message = _(
-                "流程删除失败: 流程已被其他流程引用[{}], 暂不可删除, 请处理后重试 | can_delete".format(
+                "流程删除失败: 流程已被其他定时任务引用[{}], 暂不可删除, 请处理后重试 | can_delete".format(
                     ",".join(
                         [f'{item["template_type"]}:{item["id"]}:{item["name"]}' for item in clocked_task_referencer]
                     )
@@ -281,7 +281,7 @@ class TemplateManager:
         periodic_task_referencer = template.referencer_periodic_task()
         if periodic_task_referencer:
             message = _(
-                "流程删除失败: 流程已被其他流程引用[{}], 暂不可删除, 请处理后重试 | can_delete".format(
+                "流程删除失败: 流程已被其他周期任务引用[{}], 暂不可删除, 请处理后重试 | can_delete".format(
                     ",".join(
                         [f'{item["template_type"]}:{item["id"]}:{item["name"]}' for item in periodic_task_referencer]
                     )

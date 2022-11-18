@@ -26,7 +26,7 @@ from blueapps.account.decorators import login_exempt
 import env
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher
-from django.utils.translation import ugettext_lazy as __
+from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 
@@ -62,7 +62,7 @@ def node_callback(request, token):
     try:
         callback_data = json.loads(request.body)
     except Exception:
-        message = __(f"非法请求: 无效的请求, 请重试. 如持续失败可联系管理员处理. {traceback.format_exc()} | node_callback")
+        message = _(f"节点回调失败: 无效的请求, 请重试. 如持续失败可联系管理员处理. {traceback.format_exc()} | node_callback")
         logger.error(message)
         return JsonResponse({"result": False, "message": message}, status=400)
 
@@ -78,7 +78,7 @@ def node_callback(request, token):
 
     # 由于回调方不一定会进行多次回调，这里为了在业务层防止出现不可抗力（网络，DB 问题等）导致失败
     # 增加失败重试机制
-    for _ in range(env.NODE_CALLBACK_RETRY_TIMES):
+    for i in range(env.NODE_CALLBACK_RETRY_TIMES):
         callback_result = dispatchers.dispatch(
             command="callback", operator="", version=node_version, data=callback_data
         )

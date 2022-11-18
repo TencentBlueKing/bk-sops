@@ -114,7 +114,7 @@ class BatchTemplateFormWithSchemesView(APIView):
                 try:
                     preview_data = preview_template_tree_with_schemes(template, version, scheme_id_list)
                 except Exception as e:
-                    message = _(f"请求参数信息失败: 请求执行方案的执行参数发生异常: {e}, 请重试. 如持续失败可联系管理员处理 | post")
+                    message = _(f"请求参数信息失败: 批量获取带执行方案的流程表单失败, 错误信息: {e}, 请重试. 如持续失败可联系管理员处理 | batch form with schemes")
                     logger.error(message)
                     return Response({"result": False, "message": message, "data": {}})
                 data[template_id].append(

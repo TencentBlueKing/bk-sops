@@ -151,7 +151,9 @@ def execute_node_timeout_strategy(node_id, version):
     ).exists()
     node_match = State.objects.filter(node_id=node_id, version=version).exists()
     if not (node_match and is_process_current_node):
-        message = _(f"超时策略激活失败: 节点[ID: {node_id}], 版本[{version}], 任务[ID: {task_id}] | execute_node_timeout_strategy")
+        message = _(
+            f"超时策略激活失败: 节点[ID: {node_id}], 版本[{version}], 任务[ID: {task_id}] 现已通过 | execute_node_timeout_strategy"
+        )
         logger.error(message)
         return {"result": False, "message": message, "data": None}
 

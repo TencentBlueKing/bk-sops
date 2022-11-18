@@ -268,7 +268,7 @@ def draw_pipeline(request):
         draw_pipeline_tree(pipeline_tree, **kwargs)
     except Exception as e:
         message = _(f"流程自动排版失败: 流程排版发生异常: {e}, 请检查流程 | draw_pipeline")
-        logger.error(message)
+        logger.exception(message)
         return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code, "data": None})
 
     return JsonResponse(

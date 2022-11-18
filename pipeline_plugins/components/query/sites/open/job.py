@@ -205,7 +205,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
                 ]
             )
         else:
-            message = _(f"执行历史请求失败: 请求[作业平台]执行历史列表发生异常: {var} | job_get_job_task_detail")
+            message = _(f"执行历史请求失败: 请求[作业平台]执行历史列表发生异常: 未知类型变量: {var} | job_get_job_task_detail")
             logger.warning(message)
             continue
 
@@ -248,7 +248,7 @@ def job_get_instance_detail(request, biz_cc_id, task_id):
     job_result = client.job.get_job_instance_log(log_kwargs)
     if not job_result["result"]:
         message = _(
-            f"执行历史请求失败: 请求[作业平台ID: {biz_cc_id}] " f"执行历史发生异常: {job_result['message']} | job_get_instance_detail"
+            f"执行历史请求失败: 请求[作业平台ID: {biz_cc_id}]. 异常消息: {job_result['message']} | job_get_instance_detail"
         )
         check_and_raise_raw_auth_fail_exception(job_result, message)
         logger.error(message)
@@ -372,7 +372,7 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
                 ]
             )
         else:
-            message = _(f"执行历史请求失败: 请求[作业平台]执行历史列表发生异常: {var} | jobv3_get_job_plan_detail")
+            message = _(f"执行历史请求失败: 请求[作业平台]执行历史列表发生异常: 未知类型变量: {var} | jobv3_get_job_plan_detail")
             logger.error(message)
             result = {"result": False, "message": message}
             return JsonResponse(result)

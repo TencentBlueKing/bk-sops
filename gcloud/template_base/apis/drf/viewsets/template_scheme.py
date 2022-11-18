@@ -156,7 +156,7 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
                 # 批量创建scheme
                 TemplateScheme.objects.bulk_create(create_schemes)
         except Exception as e:
-            message = _(f"执行方案批量操作失败: 流程ID: {template_id}, 失败原因: {e} | batch_operate")
+            message = _(f"执行方案批量操作失败: 创建流程ID: {template_id}执行方案失败, 失败原因: {e} | batch_operate")
             logger.error(message)
             return Response({"detail": ErrorDetail(message, err_code.UNKNOWN_ERROR.code)}, exception=True)
 
@@ -196,7 +196,7 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
         scheme_quote_num = TemplateRelationship.objects.filter(templatescheme__id=kwargs["pk"]).count()
 
         if scheme_quote_num != 0:
-            message = _(f"执行方案删除失败: 待删除的[执行方案]已被引用[{scheme_quote_num}], 请处理后重试 | destroy")
+            message = _(f"执行方案删除失败: 该执行方案被[{scheme_quote_num}]个子流程节点引用, 禁止删除. 请处理后重试 | destroy")
             logger.error(message)
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 

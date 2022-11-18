@@ -64,7 +64,7 @@ def file_upload(request):
     ticket = request.META.get("HTTP_UPLOAD_TICKET", "")
     ok, err = UploadTicket.objects.check_ticket(ticket)
     if not ok:
-        message = _(f"文件上传失败: 请重试, 如持续失败可联系管理员处理. {err} | file_upload")
+        message = _(f"文件上传失败: 上传信息校验失败, 请重试, 如持续失败可联系管理员处理. {err} | file_upload")
         logger.error(message)
         response = JsonResponse({"result": False, "message": message})
         response.status_code = 400

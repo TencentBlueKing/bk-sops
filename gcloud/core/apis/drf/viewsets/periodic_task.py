@@ -149,7 +149,7 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
         try:
             replace_template_id(model_cls, pipeline_tree)
         except model_cls.DoesNotExist:
-            message = _(f"周期任务创建失败: 周期任务关联的流程[ID: {template_id}]中, " f"子流程节点存在异常, 请检查配置 | _handle_serializer")
+            message = _(f"周期任务创建失败: 周期任务关联的流程[ID: {template_id}]中, 子流程节点存在异常, 请检查配置 | _handle_serializer")
             logger.error(message)
             raise APIException(detail=message, code=err_code.REQUEST_PARAM_INVALID.code)
 

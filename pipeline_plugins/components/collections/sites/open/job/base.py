@@ -924,7 +924,7 @@ class GetJobHistoryResultMixin(object):
         # judge success status
         if job_result["data"]["job_instance"]["status"] not in JOB_SUCCESS:
             message = _(
-                f"执行历史请求失败: 请求[作业平台[ID: {job_success_id}]]执行历史发生异常: {job_result['result']} | get_job_history_result"
+                f"执行历史请求失败: 任务实例[ID: {job_success_id}], 异常信息: {job_result['result']} | get_job_history_result"
             )
             self.logger.error(message)
             data.outputs.ex_data = message

@@ -61,7 +61,7 @@ class CollectionViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins.D
             category = item["category"]
             instance_id = item["instance_id"]
             if Collection.objects.filter(username=username, category=category, instance_id=instance_id).exists():
-                message = _(f"{username}实例ID: {category}, 类别: {instance_id}的已重复收藏, " f"待收藏的内容已经收藏过了, 无需再次收藏 | create")
+                message = _(f"重复收藏: {username}实例ID: {category}, 类别: {instance_id}, 已经收藏过了, 无需再次收藏")
                 logger.error(message)
                 return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
         self.perform_create(serializer)

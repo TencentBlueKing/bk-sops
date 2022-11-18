@@ -350,7 +350,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 if not update_res.result:
                     logger.error("update context values failed: %s" % update_res.exc_trace)
                     message = _(
-                        f"任务参数设置失败: 更新引擎上下文发生异常: {update_res.message}. 请重试, " f"如持续失败可联系管理员处理 | set_task_constants"
+                        f"任务参数设置失败: 更新引擎上下文发生异常: {update_res.message}. 请重试, 如持续失败可联系管理员处理 | set_task_constants"
                     )
                     logger.error(message)
                     return {
@@ -415,7 +415,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 task_status = self.CREATED_STATUS
             except Exception:
                 message = _("任务数据请求失败: 请重试, 如持续失败可联系管理员处理 | get_task_status_v1")
-                logger.error(message)
+                logger.exception(message)
                 return {
                     "result": False,
                     "message": message,
@@ -430,8 +430,8 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 # do not raise error when subprocess not exist or has not been executed
                 task_status = self.CREATED_STATUS
             except Exception:
-                message = _(f"任务数据请求失败: subprocess[ID: {subprocess_id}]请重试, 如持续失败可联系管理员处理 | get_task_status_v1")
-                logger.error(message)
+                message = _(f"获取任务状态树数据失败: subprocess[ID: {subprocess_id}]请重试, 如持续失败可联系管理员处理 | get_task_status_v1")
+                logger.exception(message)
                 return {
                     "result": False,
                     "message": message,

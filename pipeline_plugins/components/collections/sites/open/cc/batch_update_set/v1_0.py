@@ -128,7 +128,7 @@ class CCBatchUpdateSetService(Service):
                         transform_success = False
                         message = _(
                             f"模块属性更新失败: 插件配置的属性不合法, 请修复后重试. item: {update_item}, "
-                            f"转换属性: {attr}为{attr_type_mapping[attr]}类型时出错, 错误内容: {e} | execute"
+                            f"转换属性: {attr}为{attr_type_mapping[attr]}类型时出错, 错误内容: {e}"
                         )
                         logger.error(message)
                         failed_update.append(message)
@@ -137,7 +137,7 @@ class CCBatchUpdateSetService(Service):
                 continue
 
             if "bk_set_name" not in update_params:
-                message = _(f"集群属性更新失败: item: {update_item}, 目前Set名称未填写 | execute")
+                message = _(f"集群属性更新失败: item: {update_item}, 目前Set名称未填写")
                 logger.error(message)
                 failed_update.append(message)
                 continue

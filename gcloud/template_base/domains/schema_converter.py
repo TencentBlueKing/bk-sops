@@ -121,7 +121,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 template_id = yaml_doc["meta"].get("id")
                 yaml_data[template_id] = yaml_doc
         except jsonschema.ValidationError as e:
-            message = __(f"流程导入失败: 文件解析异常, 可能内容不合法. 请重试或联系管理员处理. {e} | validate_data")
+            message = __(f"Yaml数据格式校验失败: Yaml文件解析异常, 可能内容不合法. 请重试或联系管理员处理. {e} | validate_data")
             logger.error(message)
             return {"result": False, "data": yaml_data, "message": message}
         # 检查流程间是否有环引用的情况

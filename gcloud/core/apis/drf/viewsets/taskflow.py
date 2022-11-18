@@ -302,7 +302,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         instance = self.get_object()
         if instance.is_started:
             if not (instance.is_finished or instance.is_revoked):
-                message = _("任务删除失败: 仅允许删除[未执行]任务, 请检查任务状态 | destroy")
+                message = _("任务删除失败: 仅允许删除[未执行]任务, 请检查任务状态")
                 logger.error(message)
                 return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
         self.perform_destroy(instance)

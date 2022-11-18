@@ -67,7 +67,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         try:
             task_template = TaskTemplate.objects.get(pk=template_id, project_id=project_id, is_deleted=False)
         except TaskTemplate.DoesNotExist:
-            message = _("轻应用保存失败: 轻应用关联的流程已不存在, 请检查配置 | save_app_maker")
+            message = _("轻应用编辑失败: 轻应用关联的流程已不存在, 请检查配置 | save_app_maker")
             logger.error(message)
             return False, message
 

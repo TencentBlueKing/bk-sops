@@ -33,7 +33,7 @@ def read_encoded_template_data(content):
     try:
         data = json.loads(base64.b64decode(content))
     except Exception:
-        message = _("流程导入失败: 文件解析异常, 模板参数缺陷. 请重试或联系管理员处理 | read_encoded_template_data")
+        message = _("模板解析失败: 文件解析异常, 模板参数缺陷. 请重试或联系管理员处理 | read_encoded_template_data")
         logger.error(message)
         return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
@@ -43,7 +43,7 @@ def read_encoded_template_data(content):
 
     if not check_digest(salt=settings.TEMPLATE_DATA_SALT):
         if not check_digest(salt=settings.OLD_COMMUNITY_TEMPLATE_DATA_SALT):
-            message = _("流程导入失败: 文件解析异常, 模板参数非法. 请重试或联系管理员处理 | read_encoded_template_data")
+            message = _("模板解析失败: 文件解析异常, 模板参数非法. 请重试或联系管理员处理 | read_encoded_template_data")
             logger.error(message)
             return {"result": False, "message": message, "code": err_code.VALIDATION_ERROR.code}
     return {"result": True, "data": data, "code": err_code.SUCCESS.code}

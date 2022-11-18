@@ -152,7 +152,7 @@ class CCBatchModuleUpdateService(Service):
             if not cc_list_select_node_inst_id_return["result"]:
 
                 message = _(
-                    f"模块属性更新失败: 主机属性: {update_item}, " f"message: {cc_list_select_node_inst_id_return['message']}"
+                    f"模块属性更新失败: 主机属性: {update_item}, message: {cc_list_select_node_inst_id_return['message']}"
                 )
                 failed_update.append(message)
                 self.logger.error(message)
@@ -172,7 +172,7 @@ class CCBatchModuleUpdateService(Service):
                 self.logger.info("module 属性更新成功, item={}, data={}".format(update_item, kwargs))
                 success_update.append(update_item)
             else:
-                message = _(f"模块属性更新失败: 主机属性: {kwargs}, 更新属性: {update_item}, " f"message: {update_result['message']}")
+                message = _(f"模块属性更新失败: 主机属性: {update_item}, 更新属性: {kwargs}, 错误消息: {update_result['message']}")
                 self.logger.error(message)
                 failed_update.append(message)
 

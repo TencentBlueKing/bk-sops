@@ -73,7 +73,7 @@ class RemotePluginService(Service):
         ok, result_data = plugin_client.invoke(plugin_version, {"inputs": data.inputs, "context": plugin_context})
         if not ok:
             message = _(
-                f"调用第三方插件invoke接口错误, 错误内容: {result_data['message']}, " f"trace_id: {result_data.get('trace_id')}"
+                f"调用第三方插件invoke接口错误, 错误内容: {result_data['message']}, trace_id: {result_data.get('trace_id')}"
             )
             logger.error(message)
             data.set_outputs("ex_data", message)

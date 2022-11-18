@@ -172,7 +172,7 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
     biz_count = cc_result["data"]["count"]
     if biz_count != 1:
         logger.error(handle_api_error("CMDB", "cc.search_business", kwargs, cc_result))
-        message = _(f"业务人员信息查询失败: 从[配置平台]中查询业务[ID: {biz_cc_id}] 人员信息失败, " f"请检查业务存在以及拥有访问权限 | get_notify_receivers")
+        message = _(f"业务人员信息查询失败: 从[配置平台]中查询业务[ID: {biz_cc_id}] 人员信息失败, 请检查业务存在以及拥有访问权限 | get_notify_receivers")
         logger.error(message)
         result = {
             "result": False,

@@ -99,7 +99,7 @@ class TemplateImporter:
                                 "result": False,
                                 "data": "",
                                 "message": message,
-                                "verbose_message": message,
+                                "verbose_message": e,
                             }
                         )
                         continue
