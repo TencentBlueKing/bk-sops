@@ -105,6 +105,7 @@ class SubprocessPluginService(Service):
             raw_constant_value = raw_subprocess_inputs.get(key)
             if (
                 raw_constant_value
+                and isinstance(raw_constant_value, str)
                 and parent_constants.get(raw_constant_value)
                 and self.id in parent_constants[raw_constant_value]["source_info"]
                 and key in parent_constants[raw_constant_value]["source_info"][self.id]

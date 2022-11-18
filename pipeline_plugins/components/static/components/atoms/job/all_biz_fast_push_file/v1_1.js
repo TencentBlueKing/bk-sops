@@ -464,21 +464,12 @@
                         type: "input",
                         attrs: {
                             name: gettext("滚动策略"),
-                            placeholder: gettext("详情请查看JOB使用指引"),
                             hookable: false,
-                            tips:"<p>·&nbsp;每个占位以空格分隔</p>\n" +
-                                "<br/>" +
-                                "<p>·&nbsp;支持n、n%、*n、+n&nbsp;，且&nbsp;n&nbsp;只能为整数</p>\n" +
-                                "<br/>" +
-                                "<p>·&nbsp;+和*运算符只能在最末位，100%代表全部服务器</p>\n" +
-                                "<br/>" +
-                                "<p>·&nbsp;&nbsp;n&nbsp;代表具体多少台</p>\n" +
-                                "<br/>" +
-                                "<p>·&nbsp;n%&nbsp;代表总量的百分之n台（遇小数点则向上取整）</p>\n" +
-                                "<br/>" +
-                                "<p>·&nbsp;+n&nbsp;代表每次在前一批数量的基础上增加n台</p>\n" +
-                                "<br/>" +
-                                "<p>·&nbsp;*n&nbsp;代表每次在前一批数量的基础上乘于n台</p>",
+                            tips:"<p>.&nbsp;每个批次支持用整数、百分比(n%)和算式(+n,&nbsp;*n)，以空格分隔</p>\n" +
+                                "\n</br>" +
+                                "<p>.&nbsp;使用算式&nbsp;(+n,&nbsp;*n)&nbsp;时，前一个批次必须是整数（如：2&nbsp;*2）</p>\n" +
+                                "\n</br>" +
+                                "<p>.&nbsp;百分比取值遇小数点时会向上取整，100%代表取全量服务器（100%&nbsp;只允许出现在末位）</p>",
                             validation: [
                                 {
                                     type: "custom",

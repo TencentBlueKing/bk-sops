@@ -131,6 +131,9 @@
                     if (selector === 'topo') {
                         val += this.ipValue[selector].map(item => item.bk_inst_id).join('; ')
                     }
+                    if (selector === 'manual') {
+                        val += this.ipValue['manual_input']['value']
+                    }
                 })
                 return val || '--'
             },

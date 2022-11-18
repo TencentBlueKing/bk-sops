@@ -410,7 +410,7 @@
                         const outputInfo = executeOutputs.find(item => item.key === key)
                         if (outputInfo) {
                             acc.push({ ...outputInfo, value: outputs[key] })
-                        } else {
+                        } else if (key !== 'ex_data') {
                             acc.push({
                                 key,
                                 name: key,

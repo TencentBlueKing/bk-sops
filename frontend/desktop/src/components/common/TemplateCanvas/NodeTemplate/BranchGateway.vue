@@ -14,6 +14,7 @@
         :class="[
             'gateway-node',
             'branch-gateway',
+            { 'fail-skip': node.status === 'FINISHED' && node.skip },
             { 'ready': node.ready },
             node.status ? node.status.toLowerCase() : ''
         ]">
