@@ -1250,12 +1250,10 @@
                         gateway.title = name
                         gateway.name = name
                         gateway.expanded = false
-                        if (gateway.type === 'ExclusiveGateway' || gateway.type === 'ParallelGateway') {
-                            ordered.push(gateway)
-                            outgoing.forEach(line => {
-                                this.retrieveLines(data, line, ordered)
-                            })
-                        }
+                        ordered.push(gateway)
+                        outgoing.forEach(line => {
+                            this.retrieveLines(data, line, ordered)
+                        })
                         if (gateway.type === 'ConvergeGateway') {
                             // 判断ordered中 汇聚网关的incoming是否存在
                             if (gateway.incoming.every(item => ordered.map(ite => ite.outgoing).includes(item))) {
