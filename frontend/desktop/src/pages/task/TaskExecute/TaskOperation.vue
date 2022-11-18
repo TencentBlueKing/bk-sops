@@ -588,7 +588,12 @@
                         ) { // save cacheStatus
                             this.cacheStatus = instanceStatus.data
                         }
-                        if (this.state === 'RUNNING' || (!this.isTopTask && this.state === 'FINISHED' && !['FINISHED', 'REVOKED', 'FAILED'].includes(this.rootState))) {
+                        // 任务暂停时如果有节点正在执行，需轮询节点状态
+                        let suspendedRunning = false
+                        if (this.state === 'SUSPENDED') {
+                            suspendedRunning = Object.values(instanceStatus.data.children).some(item => item.state === 'RUNNING')
+                        }
+                        if (this.state === 'RUNNING' || (!this.isTopTask && this.state === 'FINISHED' && !['FINISHED', 'REVOKED', 'FAILED'].includes(this.rootState)) || suspendedRunning) {
                             if (this.isExecRecordOpen) {
                                 this.nodeExecRecordInfo.curTime = this.formatDuring(this.instanceStatus.elapsed_time)
                                 this.setTaskStatusTimer(1000)
