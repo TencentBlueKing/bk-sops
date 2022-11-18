@@ -48,6 +48,7 @@
                     :show-palette="false"
                     :canvas-data="canvasData"
                     :has-admin-perm="adminView"
+                    :node-exec-record-info="nodeExecRecordInfo"
                     @hook:mounted="onTemplateCanvasMounted"
                     @onNodeClick="onNodeClick"
                     @onConditionClick="onOpenConditionEdit"
@@ -58,6 +59,8 @@
                     @onGatewaySelectionClick="onGatewaySelectionClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
                     @onApprovalClick="onApprovalClick"
+                    @nodeExecRecord="onNodeExecRecord"
+                    @closeNodeExecRecord="onCloseNodeExecRecord"
                     @onSubflowPauseResumeClick="onSubflowPauseResumeClick">
                 </TemplateCanvas>
             </div>
@@ -399,6 +402,8 @@
                 isFailedSubproceeNodeInfo: null,
                 nodeInfo: {},
                 nodeInputs: {},
+                isExecRecordOpen: false,
+                nodeExecRecordInfo: {},
                 isInjectVarDialogShow: false
             }
         },
@@ -529,6 +534,7 @@
                 'forceFail',
                 'itsmTransition',
                 'getInstanceRetryParams',
+                'getNodeExecutionRecord',
                 'getNodeActInfo',
                 'instanceRetry',
                 'subflowNodeRetry'
@@ -583,7 +589,12 @@
                             this.cacheStatus = instanceStatus.data
                         }
                         if (this.state === 'RUNNING' || (!this.isTopTask && this.state === 'FINISHED' && !['FINISHED', 'REVOKED', 'FAILED'].includes(this.rootState))) {
-                            this.setTaskStatusTimer()
+                            if (this.isExecRecordOpen) {
+                                this.nodeExecRecordInfo.curTime = this.formatDuring(this.instanceStatus.elapsed_time)
+                                this.setTaskStatusTimer(1000)
+                            } else {
+                                this.setTaskStatusTimer()
+                            }
                             this.setRunningNode(instanceStatus.data.children)
                         }
                         this.updateNodeInfo()
@@ -907,11 +918,11 @@
                     this.pending.parseNodeResume = false
                 }
             },
-            setTaskStatusTimer () {
+            setTaskStatusTimer (time = 2000) {
                 this.cancelTaskStatusTimer()
                 this.timer = setTimeout(() => {
                     this.loadTaskStatus()
-                }, 2000)
+                }, time)
             },
             cancelTaskStatusTimer () {
                 if (this.timer) {
@@ -1390,6 +1401,60 @@
                 })
                 this.pipelineData = this.pipelineData.activities[id].pipeline
                 this.updateTaskStatus(id)
+            },
+            // 获取节点执行记录
+            async onNodeExecRecord (nodeId) {
+                try {
+                    this.isExecRecordOpen = true
+                    const tempNodeId = this.pipelineData.activities[nodeId]?.template_node_id
+                    if (tempNodeId) {
+                        const resp = await this.getNodeExecutionRecord({ tempNodeId })
+                        const { execution_time = [] } = resp.data
+                        this.nodeExecRecordInfo = {}
+                        let latestTime, meanTime, deadline
+                        execution_time.forEach((item, index) => {
+                            if (index === 0) {
+                                latestTime = item.elapsed_time
+                                deadline = item.archived_time
+                            }
+                            meanTime = (meanTime || 0) + item.elapsed_time
+                        })
+                        this.nodeExecRecordInfo = {
+                            latestTime: this.formatDuring(latestTime),
+                            meanTime: this.formatDuring(meanTime / execution_time.length),
+                            deadline: deadline ? deadline.replace('T', ' ').split('+')[0] : '--',
+                            curTime: this.formatDuring(this.instanceStatus.elapsed_time),
+                            count: execution_time.length
+                        }
+                    }
+                } catch (error) {
+                    console.warn(error)
+                }
+            },
+            formatDuring (time) {
+                if (!time) return '--'
+                const days = parseInt(time / (60 * 60 * 24))
+                const hours = parseInt((time % (60 * 60 * 24)) / (60 * 60))
+                const minutes = parseInt((time % (60 * 60)) / (60))
+                const seconds = (time % (60)).toFixed(0)
+                let str = ''
+                if (days) {
+                    str = i18n.tc('天', days) + ' '
+                }
+                if (hours) {
+                    str = str + hours + ' ' + i18n.t('时') + ' '
+                }
+                if (minutes) {
+                    str = str + minutes + ' ' + i18n.t('分') + ' '
+                }
+                if (seconds) {
+                    str = str + seconds + ' ' + i18n.tc('秒', 0)
+                }
+                return str
+            },
+            onCloseNodeExecRecord () {
+                this.isExecRecordOpen = false
+                this.nodeExecRecordInfo = {}
             },
             // 面包屑点击
             onSelectSubflow (id) {

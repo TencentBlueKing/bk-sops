@@ -309,6 +309,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import bus from '@/utils/bus.js'
     import permission from '@/mixins/permission.js'
+    import formSchema from '@/utils/formSchema.js'
 
     export default {
         name: 'NodeConfig',
@@ -1589,6 +1590,20 @@
                             if (!alwaysUseLatest && latestVersion && latestVersion !== version) {
                                 this.setSubprocessUpdated({ expired: true, subprocess_node_id: this.nodeConfig.id })
                             }
+                            // 更新子流程已勾选的变量值
+                            Object.keys(this.localConstants).forEach(key => {
+                                const constantValue = this.localConstants[key]
+                                const formValue = this.subflowForms[key]
+                                if (constantValue.is_meta && formValue) {
+                                    const schema = formSchema.getSchema(formValue.key, this.inputs)
+                                    constantValue['form_schema'] = schema
+                                    constantValue.meta = formValue.meta
+                                    // 如果之前选中的下拉项被删除了，则删除对应的值
+                                    const curVal = constantValue.value
+                                    const isMatch = curVal ? schema.attrs.items.find(item => item.value === curVal) : true
+                                    constantValue.value = isMatch ? curVal : ''
+                                }
+                            })
                         }
                         this.syncActivity()
                         // 将第三方插件信息传给父级存起来

@@ -58,6 +58,7 @@ from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.contrib.operate_record.constants import OperateType, OperateSource, RecordType
 from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user, get_common_flow_allowed_actions_for_user
+from gcloud.contrib.operate_record.utils import extract_extra_info
 from django.utils.translation import ugettext_lazy as _
 import logging
 
@@ -288,6 +289,8 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             root_pipeline_id=pipeline_instance.instance_id,
             pipeline_tree=pipeline_instance.execution_data,
         )
+        constants = pipeline_instance.execution_data.get("constants")
+        extra_info = extract_extra_info(constants)
         # 记录操作流水
         operate_record_signal.send(
             sender=RecordType.task.name,
@@ -296,6 +299,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             operate_source=OperateSource.app.name,
             instance_id=serializer.instance.id,
             project_id=serializer.instance.project.id,
+            extra_info=extra_info,
         )
 
     def destroy(self, request, *args, **kwargs):
