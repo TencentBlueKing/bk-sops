@@ -105,16 +105,18 @@ class Record(object):
 
     def need_save_info(self, instance_obj):
         """需要记录的信息"""
-        constants = instance_obj.pipeline_instance.execution_data.get("constant")
-        extra_info = extract_extra_info(constants)
-        return {
+        need_record_data = {
             "instance_id": instance_obj.id,
             "project_id": -1 if self.record_type == RecordType.common_template.name else instance_obj.project.id,
             "operator": self.operator,
             "operate_source": self.source,
             "operate_type": self.real_action,
-            "extra_info": extra_info,
         }
+        if isinstance(instance_obj, TaskFlowInstance):
+            constants = instance_obj.pipeline_instance.execution_data.get("constant")
+            extra_info = extract_extra_info(constants)
+            need_record_data.update({"extra_info": extra_info})
+        return need_record_data
 
     def get_data_by_bundle_or_request(self, bundle_or_request, node_id=None):
         """校验操作是否成功，及返回记录数据"""
