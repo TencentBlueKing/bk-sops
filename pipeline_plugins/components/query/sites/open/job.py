@@ -186,7 +186,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
     global_var = []
     steps = []
     if not task_detail:
-        message = _(f"请求执行方案失败: 请求作业平台执行方案详情返回数据为空: {job_result}]返回为空. 请重试, 如持续失败请联系管理员处理 | job_get_job_task_detail")
+        message = _(f"请求执行方案失败: 请求作业平台执行方案详情返回数据为空: {job_result}. 请重试, 如持续失败请联系管理员处理 | job_get_job_task_detail")
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
 
