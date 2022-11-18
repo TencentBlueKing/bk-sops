@@ -484,7 +484,6 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
 
         # 如果存在子流程
         if subprocess_stack:
-            # 新的堆栈
 
             def _get_node_info(pipeline: dict, subprocess_stack: list, version):
                 # go deeper
@@ -505,7 +504,6 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             # 如果没有拿到对应的template_node_id，直接返回
             if template_node_id is None:
                 return Response()
-
             snapshot_data = Snapshot.objects.filter(md5sum=version_id).order_by("-id").first().data
             snapshot_node_info = snapshot_data["activities"].get(template_node_id)
             return Response(snapshot_node_info)
