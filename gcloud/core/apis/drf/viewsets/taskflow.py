@@ -10,11 +10,13 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import json
 import re
 
 from django.conf import settings
 from django.db.models import Q
 from drf_yasg.utils import swagger_auto_schema
+from pipeline.models import Snapshot
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import ErrorDetail
@@ -39,6 +41,8 @@ from gcloud.core.apis.drf.serilaziers import (
     RootTaskflowResponseSerializer,
     NodeExecutionRecordQuerySerializer,
     NodeExecutionRecordResponseSerializer,
+    NodeSnapshotQuerySerializer,
+    NodeSnapshotResponseSerializer,
 )
 from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig, TaskFlowRelation, TaskConfig
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -96,6 +100,9 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
             IAMMeta.TASK_DELETE_ACTION, res_factory.resources_for_task_obj, HAS_OBJECT_PERMISSION
         ),
         "enable_fill_retry_params": IamPermissionInfo(pass_all=True),
+        "node_snapshot_config": IamPermissionInfo(
+            IAMMeta.TASK_VIEW_ACTION, res_factory.resources_for_task_obj, HAS_OBJECT_PERMISSION
+        ),
     }
 
     def has_permission(self, request, view):
@@ -405,3 +412,110 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     def enable_fill_retry_params(self, request, *args, **kwargs):
         task_id = kwargs["pk"]
         return Response({"enable": TaskConfig.objects.enable_fill_retry_params(task_id)})
+
+    @swagger_auto_schema(
+        method="GET",
+        operation_summary="获取某个节点的节点配置快照",
+        query_serializer=NodeSnapshotQuerySerializer,
+        responses={200: NodeSnapshotResponseSerializer},
+    )
+    @action(methods=["GET"], detail=True)
+    def node_snapshot_config(self, request, *args, **kwargs):
+        """
+        获取某个节点的快照配置
+        params: subprocess_stack 堆栈信息
+        param: node_id: 节点 ID, string, query, required
+        return: dict 根据 result 字段判断是否请求成功
+        {
+            "result": true, 根据result 判断是否正常
+            "data": {
+                "component": {
+                    "code": "sleep_timer",
+                    "data": {
+                        "bk_timing": {
+                            "hook": false,
+                            "need_render": true,
+                            "value": "10"
+                        },
+                        "force_check": {
+                            "hook": false,
+                            "need_render": true,
+                            "value": true
+                        }
+                    },
+                    "version": "legacy"
+                },
+                "error_ignorable": false,
+                "id": "node7a63244b7837ef15ef3b474b47bd",
+                "incoming": [
+                    "line02c5d5f7d1b996bb050f153e077b"
+                ],
+                "loop": null,
+                "name": "定时",
+                "optional": true,
+                "outgoing": "linee702fc4ff57920950c78e987ea96",
+                "stage_name": "",
+                "type": "ServiceActivity",
+                "retryable": true,
+                "skippable": true,
+                "auto_retry": {
+                    "enable": false,
+                    "interval": 0,
+                    "times": 1
+                },
+                "timeout_config": {
+                    "enable": false,
+                    "seconds": 10,
+                    "action": "forced_fail"
+                }
+            }
+        }
+
+        """
+        ser = NodeSnapshotQuerySerializer(data=request.GET)
+        ser.is_valid(raise_exception=True)
+
+        node_id = ser.validated_data["node_id"]
+        subprocess_stack = json.loads(ser.validated_data["subprocess_stack"])
+
+        task = self.get_object()
+
+        execution_data = task.pipeline_instance.execution_data
+
+        # 如果存在子流程
+        if subprocess_stack:
+            # 新的堆栈
+
+            def _get_node_info(pipeline: dict, subprocess_stack: list, version):
+                # go deeper
+                if subprocess_stack:
+                    component_act = pipeline["activities"][subprocess_stack[0]]
+                    version["version_id"] = component_act.get("version")
+                    return _get_node_info(component_act["pipeline"], subprocess_stack[1:], version)
+
+                return pipeline["activities"][node_id]
+
+            version = {}
+            node_info = _get_node_info(execution_data, subprocess_stack, version)
+
+            version_id = version.get("version_id")
+            if version_id is None:
+                return Response()
+            template_node_id = node_info.get("template_node_id")
+            # 如果没有拿到对应的template_node_id，直接返回
+            if template_node_id is None:
+                return Response()
+
+            snapshot_data = Snapshot.objects.filter(md5sum=version_id).order_by("-id").first().data
+            snapshot_node_info = snapshot_data["activities"].get(template_node_id)
+            return Response(snapshot_node_info)
+
+        # 不存在子流程，则直接查找
+        template_node_id = execution_data["activities"].get(node_id, {}).get("template_node_id")
+
+        # 旧的流程拿不到模板node_id, 直接返回空即可
+        if template_node_id is None:
+            return Response()
+
+        node_snapshot_config = task.pipeline_instance.snapshot.data["activities"].get(template_node_id)
+        return Response(node_snapshot_config)
