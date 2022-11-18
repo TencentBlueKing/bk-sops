@@ -194,7 +194,7 @@
                     }
                     if (['parallelgateway', 'branchgateway', 'conditionalparallelgateway'].indexOf(currType) > -1 && isHaveNodeBehind) {
                         const conditions = this.canvasData.branchConditions
-                        if (Object.keys(conditions[id]).length > 1) {
+                        if (conditions[id] && Object.keys(conditions[id]).length > 1) {
                             // 拿到并行中最靠下的节点
                             const { x: parallelX, y: parallelY } = this.getParallelNodeMinDistance(id)
                             location.y = parallelY + 100
