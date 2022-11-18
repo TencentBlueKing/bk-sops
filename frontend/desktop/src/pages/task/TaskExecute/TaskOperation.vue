@@ -1426,6 +1426,8 @@
                             curTime: this.formatDuring(this.instanceStatus.elapsed_time),
                             count: execution_time.length
                         }
+                    } else {
+                        this.$refs.templateCanvas.closeNodeExecRecord()
                     }
                 } catch (error) {
                     console.warn(error)
