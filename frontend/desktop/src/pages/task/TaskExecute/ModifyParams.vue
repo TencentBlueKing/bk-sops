@@ -162,6 +162,7 @@
                 const paramEditComp = this.$refs.TaskParamEdit
                 const formData = {}
                 const metaConstants = {}
+                let modifiedKeys = []
                 let formValid = true
                 if (paramEditComp) {
                     formValid = paramEditComp.validate()
@@ -183,11 +184,14 @@
                             }
                         })
                     }
+                    // 记录修改过的变量key值
+                    modifiedKeys = paramEditComp.getChangeParams() || []
                 }
                 const data = {
                     instance_id: this.instance_id,
                     constants: formData,
-                    meta_constants: Object.keys(metaConstants).length ? metaConstants : undefined
+                    meta_constants: Object.keys(metaConstants).length ? metaConstants : undefined,
+                    modified_constant_keys: Object.keys(modifiedKeys).length ? modifiedKeys : undefined
                 }
                 try {
                     this.pending = true

@@ -293,6 +293,14 @@
                     return false
                 }
             },
+            getChangeParams () {
+                return Object.keys(this.initalRenderData).reduce((acc, key) => {
+                    if (!(key in this.renderData) || !tools.isDataEqual(this.initalRenderData[key], this.renderData[key])) {
+                        acc.push(key)
+                    }
+                    return acc
+                }, [])
+            },
             async getVariableData () {
                 // renderform表单校验
                 const formValid = this.validate()
