@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -17,7 +17,9 @@ from gcloud.contrib.operate_record.helpers import record_template_operation_help
 from gcloud.contrib.operate_record.constants import RecordType
 
 # signal_sender: RecordType
-operate_record_signal = Signal(["operator", "operate_type", "operate_source", "instance_id", "project_id", "node_id"])
+operate_record_signal = Signal(
+    ["operator", "operate_type", "operate_source", "instance_id", "project_id", "node_id", "extra_info"]
+)
 
 
 @receiver(operate_record_signal, sender=RecordType.template.name)
@@ -42,13 +44,14 @@ def record_common_template_handler(operator, operate_type, operate_source, insta
 
 
 @receiver(operate_record_signal, sender=RecordType.task.name)
-def record_task_handler(operator, operate_type, operate_source, instance_id, project_id, **kwargs):
+def record_task_handler(operator, operate_type, operate_source, instance_id, project_id, extra_info, **kwargs):
     record_task_operation_helper(
         operator=operator,
         operate_type=operate_type,
         operate_source=operate_source,
         taskflow_id=instance_id,
         project_id=project_id,
+        extra_info=extra_info,
     )
 
 
