@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific lan
 """
-
+import traceback
 
 from pipeline.exceptions import PipelineException
 
@@ -59,7 +59,7 @@ class TemplateManager:
                 "result": False,
                 "data": None,
                 "message": message,
-                "verbose_message": message,
+                "verbose_message": _(f"保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {traceback.format_exc()} | create_pipeline"),
             }
 
         create_template_kwargs = {
@@ -77,7 +77,10 @@ class TemplateManager:
                 "result": False,
                 "data": None,
                 "message": message,
-                "verbose_message": message,
+                "verbose_message": _(
+                    f"保存流程失败: 创建Pipeline流程失败, 请检查流程. "
+                    f"创建参数[{create_template_kwargs}], 失败原因: [{traceback.format_exc()}] | create_pipeline"
+                ),
             }
 
         return {"result": True, "data": pipeline_template, "message": "success", "verbose_message": "success"}
@@ -117,7 +120,9 @@ class TemplateManager:
                 "result": False,
                 "data": None,
                 "message": message,
-                "verbose_message": message,
+                "verbose_message": _(
+                    f"保存流程失败: 创建模板失败, 请检查流程. 创建参数[{template_kwargs}], 失败原因: [{traceback.format_exc()}] | create"
+                ),
             }
 
         return {"result": True, "data": template, "message": "success", "verbose_message": "success"}
@@ -164,7 +169,9 @@ class TemplateManager:
                     "result": False,
                     "data": None,
                     "message": message,
-                    "verbose_message": message,
+                    "verbose_message": _(
+                        f"保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {traceback.format_exc()} | update_pipeline"
+                    ),
                 }
 
             replace_template_id(self.template_model_cls, pipeline_tree)
@@ -182,7 +189,9 @@ class TemplateManager:
                     "result": False,
                     "data": None,
                     "message": message,
-                    "verbose_message": message,
+                    "verbose_message": _(
+                        f"更新流程失败: 更新Pipeline失败, 请检查流程. 更新参数: [{update_kwargs}], 失败原因: [{traceback.format_exc()}"
+                    ),
                 }
 
             # create node in template
@@ -253,7 +262,7 @@ class TemplateManager:
         appmaker_referencer = template.referencer_appmaker()
         if appmaker_referencer:
             message = _(
-                "流程删除失败: 流程已被其他小程序引用[{}], 暂不可删除, 请处理后重试 | can_delete".format(
+                "流程删除失败: 流程已被其他轻应用引用[{}], 暂不可删除, 请处理后重试 | can_delete".format(
                     ",".join([f'{item["template_type"]}:{item["id"]}:{item["name"]}' for item in appmaker_referencer])
                 )
             )
@@ -266,7 +275,7 @@ class TemplateManager:
         clocked_task_referencer = template.referencer_clocked_task()
         if clocked_task_referencer:
             message = _(
-                "流程删除失败: 流程已被其他定时任务引用[{}], 暂不可删除, 请处理后重试 | can_delete".format(
+                "流程删除失败: 流程已被其他计划任务引用[{}], 暂不可删除, 请处理后重试 | can_delete".format(
                     ",".join(
                         [f'{item["template_type"]}:{item["id"]}:{item["name"]}' for item in clocked_task_referencer]
                     )

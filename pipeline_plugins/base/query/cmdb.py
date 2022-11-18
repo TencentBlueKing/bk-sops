@@ -63,7 +63,7 @@ def cc_search_module(request, biz_cc_id, supplier_account):
         bk_set_id = int(request.GET.get("bk_set_id"))
         module_fields = json.loads(request.GET.get("module_fields", "[]"))
     except ValueError as e:
-        message = _(f"保存失败: 调用保存接口参数校验失败. 错误信息: {e} | cc_search_module")
+        message = _(f"保存失败: 请求参数格斯校验失败. 错误信息: {e} | cc_search_module")
         logger.error(message)
         return JsonResponse({"result": False, "data": {}, "message": message})
     client = get_client_by_user(request.user.username)

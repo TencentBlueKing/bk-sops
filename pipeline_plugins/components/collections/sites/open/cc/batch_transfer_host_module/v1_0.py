@@ -157,7 +157,7 @@ class CCBatchTransferHostModule(Service):
                 success_update.append(attr)
             else:
                 message = _(
-                    f"主机所属业务模块更新失败: 主机属性={attr}, 更新属性: {cc_kwargs}, 错误信息: {update_result['message']}"
+                    f"主机所属业务模块更新失败: 主机属性={attr}, kwargs: {cc_kwargs}, 错误信息: {update_result['message']}"
                 )
                 self.logger.info(message)
                 failed_update.append(message)

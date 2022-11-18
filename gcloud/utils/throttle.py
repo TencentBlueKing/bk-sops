@@ -42,10 +42,10 @@ def get_task_operation_frequence(project_id, operation):
 
 def check_task_operation_throttle(project_id, operation):
     # load config
-    function_result = get_task_operation_frequence(project_id, operation)
-    if not function_result[0]:
+    frequence_result, frequence_data = get_task_operation_frequence(project_id, operation)
+    if not frequence_result:
         return True
-    allowed_times, scope_seconds = function_result[1][0], function_result[1][1]
+    allowed_times, scope_seconds = frequence_data
 
     # token bucket method
     cache_prefix = "task_operation_throttle"

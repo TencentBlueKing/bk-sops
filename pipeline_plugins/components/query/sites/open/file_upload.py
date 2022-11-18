@@ -100,7 +100,7 @@ def get_repo_temporary_upload_url(request):
     shims = request.GET.get("shims", "frontend_upload")
 
     if not str(bk_biz_id) or not str(name):
-        message = _(f"文件上传失败: 请重试，如持续失败可联系管理员处理. 业务[ID: {bk_biz_id}], 名称: {name} | get_repo_temporary_upload_url")
+        message = _("文件上传失败: 业务ID和业务名称都应该提供.请重试, 如持续失败可联系管理员处理.  | get_repo_temporary_upload_url")
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
 

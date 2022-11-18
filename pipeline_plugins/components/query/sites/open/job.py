@@ -172,8 +172,8 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
     )
     if not job_result["result"]:
         message = _(
-            f"请求执行方案失败: 请求[作业平台]的执行方案[ID: {biz_cc_id}]返回失败: {job_result['message']}. "
-            f"请重试, 如持续失败请联系管理员处理 | job_get_job_task_detail"
+            f"请求执行方案失败: 查询作业平台(JOB)的作业模板详情[app_id={biz_cc_id}]接口jobv3.get_job_plan_detail. "
+            f"返回失败: {job_result['message']}. 请重试, 如持续失败请联系管理员处理 | job_get_job_task_detail"
         )
         check_and_raise_raw_auth_fail_exception(job_result, message)
 
@@ -186,7 +186,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
     global_var = []
     steps = []
     if not task_detail:
-        message = _(f"请求执行方案失败: 请求[作业平台]的执行方案[ID: {job_result}]返回为空. 请重试, 如持续失败请联系管理员处理 | job_get_job_task_detail")
+        message = _(f"请求执行方案失败: 请求作业平台执行方案详情返回数据为空: {job_result}]返回为空. 请重试, 如持续失败请联系管理员处理 | job_get_job_task_detail")
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
 
@@ -248,7 +248,8 @@ def job_get_instance_detail(request, biz_cc_id, task_id):
     job_result = client.job.get_job_instance_log(log_kwargs)
     if not job_result["result"]:
         message = _(
-            f"执行历史请求失败: 请求[作业平台ID: {biz_cc_id}]. 异常消息: {job_result['message']} | job_get_instance_detail"
+            f"执行历史请求失败: 查询作业平台(JOB)的作业模板[app_id={biz_cc_id}]接口job.get_task. "
+            f"异常消息: {job_result['message']} | job_get_instance_detail"
         )
         check_and_raise_raw_auth_fail_exception(job_result, message)
         logger.error(message)
@@ -356,7 +357,7 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
     plan_detail = jobv3_result["data"]
     global_var = []
     if not plan_detail:
-        message = _(f"请求执行方案失败: 请求[作业平台]的执行方案[ID: {jobv3_result}]返回为空. 请重试, 如持续失败请联系管理员处理 | jobv3_get_job_plan_detail")
+        message = _(f"请求执行方案失败: 请求作业平台执行方案详情返回数据为空: {jobv3_result}. 请重试, 如持续失败请联系管理员处理 | jobv3_get_job_plan_detail")
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
 
@@ -408,8 +409,8 @@ def jobv3_get_instance_list(request, biz_cc_id, type, status):
     job_result = client.jobv3.get_job_instance_list(job_kwargs)
     if not job_result["result"]:
         message = _(
-            f"请求执行方案失败: 请求[作业平台]的执行方案[ID: {biz_cc_id}]返回失败: {job_result['message']}. "
-            f"请重试, 如持续失败请联系管理员处理 | jobv3_get_instance_list"
+            f"请求执行方案失败: 查询作业平台(JOB)的作业模板[app_id={biz_cc_id}]接口jobv3.get_job_instance_list."
+            f"返回失败: {job_result['message']}. 请重试, 如持续失败请联系管理员处理 | jobv3_get_instance_list"
         )
 
         check_and_raise_raw_auth_fail_exception(job_result, message)

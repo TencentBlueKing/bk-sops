@@ -235,18 +235,19 @@ def task_action(request, action, project_id):
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     if env.TASK_OPERATION_THROTTLE and not check_task_operation_throttle(project_id, action):
+        message = _(f"任务操作失败: 项目[ID: {project_id}]达到启动任务的极限")
         frequence_result, frequence_data = get_task_operation_frequence(project_id, action)
         if frequence_result:
             allowed_times, scope_seconds = frequence_data
-            message = _(f"任务操作失败: 项目[ID: {project_id}]下同时启动的任务数不可超过{allowed_times}/{scope_seconds}(单位:秒)")
-            logger.error(message)
-            return JsonResponse(
-                {
-                    "result": False,
-                    "message": message,
-                    "code": err_code.INVALID_OPERATION.code,
-                }
-            )
+            message = _(f"任务操作失败: 项目[ID: {project_id}]启动任务的极限: {allowed_times}/{scope_seconds}(单位:秒)")
+        logger.error(message)
+        return JsonResponse(
+            {
+                "result": False,
+                "message": message,
+                "code": err_code.INVALID_OPERATION.code,
+            }
+        )
 
     ctx = task.task_action(action, username)
     return JsonResponse(ctx)
