@@ -112,7 +112,7 @@ class CCBatchUpdateHostService(Service):
             for column in host_property_custom:
                 column_result = chunk_table_data(column, separator)
                 if not column_result["result"]:
-                    message = _("单行扩展失败，请检查输入参数格式是否合法, error={}".format(column_result["message"]))
+                    message = _(f"单行扩展失败: 请检查输入参数格式是否合法, 修复后重试. 错误内容: {column_result['message']}")
                     data.outputs.ex_data = message
                     self.logger.error(message)
                     return False

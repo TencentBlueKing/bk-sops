@@ -17,6 +17,7 @@ from pipeline.engine import states as pipeline_states
 from pipeline.engine.utils import calculate_elapsed_time
 from pipeline.core import constants as pipeline_constants
 from bamboo_engine import states as bamboo_engine_states
+from django.utils.translation import ugettext_lazy as _
 
 from gcloud.utils.dates import format_datetime
 
@@ -104,7 +105,9 @@ def parse_node_timeout_configs(pipeline_tree: dict) -> list:
             timeout_seconds = timeout_config.get("seconds")
             action = timeout_config.get("action")
             if not timeout_seconds or not isinstance(timeout_seconds, int):
-                message = f"node {act_id} has a illegal timemout seconds: {timeout_seconds}"
+                message = _(
+                    f"节点执行失败: 节点[ID: {act_id}]配置了非法的超时时间: {timeout_seconds}, 请修改配置后重试 | parse_node_timeout_configs"
+                )
                 logger.error(message)
                 # 对于不符合格式要求的情况，则不设置对应超时时间
                 continue
