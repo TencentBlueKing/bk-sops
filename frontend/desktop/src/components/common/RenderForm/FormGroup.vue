@@ -24,9 +24,7 @@
             </span>
         </div>
         <!-- 分组描述 -->
-        <div v-if="scheme.attrs.desc" class="rf-group-desc">
-            {{ scheme.attrs.desc }}
-        </div>
+        <div v-if="scheme.attrs.desc" class="rf-group-desc" v-html="scheme.attrs.desc"></div>
         <!-- 分组勾选 -->
         <div v-if="hook" class="rf-form-item rf-has-hook show-label">
             <label v-if="option.showLabel" class="rf-tag-label">
