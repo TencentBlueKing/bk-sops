@@ -47,9 +47,7 @@
                     {{ scheme.attrs.pre_mako_tip }}
                 </span>
             </div>
-            <div v-if="scheme.attrs.desc" class="rf-group-desc">
-                {{ scheme.attrs.desc }}
-            </div>
+            <div v-if="scheme.attrs.desc" class="rf-group-desc" v-html="scheme.attrs.desc"></div>
             <!-- 表单名称 -->
             <label
                 v-if="option.showLabel && scheme.attrs.name"
