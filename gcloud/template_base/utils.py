@@ -106,7 +106,9 @@ def replace_biz_id_value(pipeline_tree: dict, bk_biz_id: int):
 
 
 def fetch_templates_info(
-    pipeline_template_ids: List, fetch_fields: Tuple, appointed_template_type: Optional[str] = None,
+    pipeline_template_ids: List,
+    fetch_fields: Tuple,
+    appointed_template_type: Optional[str] = None,
 ) -> List[Dict]:
     """
     根据pipeline template id列表获取上层template数据，
