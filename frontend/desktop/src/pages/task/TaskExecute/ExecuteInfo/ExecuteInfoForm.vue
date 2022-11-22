@@ -66,7 +66,7 @@
             </li> -->
             <li v-if="isSubProcessNode">
                 <span class="th">{{ $t('总是使用最新版本') }}</span>
-                <span class="td">{{ !('always_use_latest' in nodeActivity) ? '--' : nodeActivity.always_use_latest ? $t('是') : $t('否') }}</span>
+                <span class="td">{{ !('always_use_latest' in componentValue) ? '--' : componentValue.always_use_latest ? $t('是') : $t('否') }}</span>
             </li>
         </ul>
     </section>
