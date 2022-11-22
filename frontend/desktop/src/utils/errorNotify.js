@@ -11,11 +11,11 @@ export default class ErrorNotify {
             limit: 5,
             limitLine: 0,
             delay: 0,
-            title: errorSource === 'result' ? i18n.t('请求异常（外部系统错误或非法操作）') : i18n.t('请求异常（内部系统发生未知错误）'),
+            title: errorSource === 'result' ? this.setNotifyTitleAndContent(msg, 'title') : i18n.t('请求异常（内部系统发生未知错误）'),
             message: h('div',
                 [
                     traceId || msg ? h('p', {
-                        style: { position: 'absolute', top: '24px', right: '60px', color: '#3a84ff', cursor: 'pointer' },
+                        style: { position: 'absolute', top: '24px', right: '36px', color: '#3a84ff', cursor: 'pointer' },
                         on: {
                             click: () => {
                                 this.toggleShowMore()
@@ -27,7 +27,7 @@ export default class ErrorNotify {
                         style: { display: 'none', maxHeight: '300px', overflow: 'auto' }
                     }, [
                         traceId ? h('p', [`trace_id：${traceId}`]) : '',
-                        msg ? h('p', [msg]) : ''
+                        msg ? h('p', [this.setNotifyTitleAndContent(msg, 'content')]) : ''
                     ]),
                     h('bk-button', {
                         class: 'copy-btn',
@@ -42,7 +42,7 @@ export default class ErrorNotify {
             ),
             onClose: this.handleClose
         })
-
+        
         // 内容区域及进度条样式处理
         this.notify.$el.style.width = '450px'
         this.notify.$el.style.zIndex = '2500'
@@ -54,11 +54,19 @@ export default class ErrorNotify {
         progressWrap.appendChild(bar)
         this.notify.$el.appendChild(progressWrap)
 
+        // title 样式处理
+        const titleDom = document.querySelector('.bk-notify-content-title')
+        titleDom.style.cssText = 'width: 80%; white-space: nowrap;overflow: hidden; text-overflow: ellipsis;'
+        titleDom.title = this.setNotifyTitleAndContent(msg, 'title') || ''
+
         this.remainingTime = 10000 // 倒数10s
         this.timer = null // 定时器示例
         this.errorMsg = msg // 来自window.msg_list的错误信息
         this.startTimeCountDown(this.remainingTime)
         this.handleMouseEvent()
+    }
+    setNotifyTitleAndContent (info, type) {
+        return type === 'title' ? JSON.parse(info).message.split(':')[0] : JSON.parse(info).message.split(':').slice(1).join(':')
     }
     // 开始倒计时
     startTimeCountDown () {
