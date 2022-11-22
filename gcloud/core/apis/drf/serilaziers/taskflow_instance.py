@@ -115,8 +115,13 @@ class RootTaskflowQuerySerializer(serializers.Serializer):
 
 
 class NodeSnapshotQuerySerializer(serializers.Serializer):
-    node_id = serializers.CharField(help_text="节点ID")
-    subprocess_stack = serializers.CharField(help_text="子流程节点堆栈信息")
+    node_id = serializers.CharField(help_text="节点ID", required=True)
+    subprocess_stack = serializers.CharField(help_text="子流程节点堆栈信息", required=True)
+
+    def to_representation(self, instance):
+        data = super(NodeSnapshotQuerySerializer, self).to_representation(instance)
+        data["subprocess_stack"] = json.loads(data.get("subprocess_stack", "[]"))
+        return data
 
 
 class NodeSnapshotResponseSerializer(serializers.Serializer):

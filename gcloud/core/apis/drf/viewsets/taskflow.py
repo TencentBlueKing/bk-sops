@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import json
 import re
 
 from django.conf import settings
@@ -475,9 +474,8 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         ser = NodeSnapshotQuerySerializer(data=request.GET)
         ser.is_valid(raise_exception=True)
 
-        node_id = ser.validated_data["node_id"]
-        subprocess_stack = json.loads(ser.validated_data["subprocess_stack"])
-
+        node_id = ser.data["node_id"]
+        subprocess_stack = ser.data["subprocess_stack"]
         task = self.get_object()
 
         execution_data = task.pipeline_instance.execution_data
@@ -485,25 +483,24 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         # 如果存在子流程
         if subprocess_stack:
 
-            def _get_node_info(pipeline: dict, subprocess_stack: list, version):
+            version = {}
+
+            def _get_node_info(pipeline: dict, subprocess_stack: list):
                 # go deeper
                 if subprocess_stack:
                     component_act = pipeline["activities"][subprocess_stack[0]]
                     version["version_id"] = component_act.get("version")
-                    return _get_node_info(component_act["pipeline"], subprocess_stack[1:], version)
+                    return _get_node_info(component_act["pipeline"], subprocess_stack[1:])
 
                 return pipeline["activities"][node_id]
 
-            version = {}
-            node_info = _get_node_info(execution_data, subprocess_stack, version)
-
+            node_info = _get_node_info(execution_data, subprocess_stack)
             version_id = version.get("version_id")
-            if version_id is None:
-                return Response()
             template_node_id = node_info.get("template_node_id")
             # 如果没有拿到对应的template_node_id，直接返回
-            if template_node_id is None:
+            if version_id is None or template_node_id is None:
                 return Response()
+
             snapshot_data = Snapshot.objects.filter(md5sum=version_id).order_by("-id").first().data
             snapshot_node_info = snapshot_data["activities"].get(template_node_id)
             return Response(snapshot_node_info)
