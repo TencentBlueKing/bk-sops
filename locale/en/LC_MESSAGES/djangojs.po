@@ -644,7 +644,7 @@ msgstr "Target Module"
 
 #: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_0.js:80
 msgid "集群A>模块B"
-msgstr ""
+msgstr "Set(A)>Module(B)"
 
 #: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_0.js:112
 #: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_1.js:85
@@ -667,11 +667,11 @@ msgstr "cover"
 
 #: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_1.js:39
 msgid "必填项,多个使用,分割"
-msgstr ""
+msgstr "Required, multiple uses, split"
 
 #: pipeline_plugins/components/static/components/atoms/cc/batch_transfer_host_module/v1_1.js:53
 msgid "集群A>模块B,多个使用,分割"
-msgstr ""
+msgstr "Cluster A > module B, multiple uses, partition"
 
 #: pipeline_plugins/components/static/components/atoms/cc/batch_update_host/v1_0.js:46
 msgid "主机属性修改"
@@ -1214,7 +1214,7 @@ msgstr "Refresh Global Variable"
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_1.js:406
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:752
 msgid "失败时提取变量"
-msgstr ""
+msgstr "Extract variables on failure"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_execute_job_plan/all_biz_execute_job_plan_output.js:18
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task_output.js:18
@@ -1297,7 +1297,7 @@ msgstr "Script Parameter"
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:650
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:611
 msgid "可为空, 脚本执行时传入的参数，同脚本在终端执行时的传参格式， 如:./test.sh xxxx xxx xxx"
-msgstr ""
+msgstr "Can be null, and the parameters passed in when the script is executed are the same as the format passed by the script at the terminal, such as:. / test.sh xxxx xxx xxx"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:294
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:421
@@ -1342,7 +1342,7 @@ msgstr "Timeout(s) "
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:289
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:396
 msgid "超时时间必须在 1 - 86400 范围内"
-msgstr ""
+msgstr "The timeout must be in the range of 1-86400"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:326
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:453
@@ -1358,7 +1358,7 @@ msgstr ""
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_0.js:59
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:176
 msgid "执行账号"
-msgstr ""
+msgstr "Execution Account"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:327
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:454
@@ -1392,7 +1392,7 @@ msgstr "Please enter the account name"
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_0.js:45
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:162
 msgid "目标服务器"
-msgstr ""
+msgstr "Target Server"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:359
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:621
@@ -1409,12 +1409,12 @@ msgstr ""
 msgid ""
 "请输入IP 地址，多IP可用空格、换行分隔\n"
 " 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
-msgstr ""
+msgstr "Multiple IP addresses can be separated by Spaces or line breaks. For non-service IP addresses, enter cloud zone :IP. Ensure that the whitelist has been added to the job platform"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:361
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:488
 msgid "请输入IP 地址，多IP可用空格、换行分隔, 非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
-msgstr ""
+msgstr "Multiple IP addresses can be separated by Spaces or line breaks. For non-service IP addresses, enter cloud zone :IP. Ensure that the whitelist has been added to the job platform"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_0.js:365
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:492
@@ -1447,7 +1447,7 @@ msgstr "Multiple IPs are separated by semicolon"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:441
 msgid "超时时间必须在 60 - 86400 范围内"
-msgstr ""
+msgstr "The timeout period must range from 60 to 86400"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:484
 msgid "执行目标"
@@ -1455,7 +1455,7 @@ msgstr "Execution Target"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:486
 msgid "请输入IP 地址，多IP可用空格、换行分隔非本业务IP请输入云区域:IP，并确保已在作业平台添加白名单"
-msgstr ""
+msgstr "Enter an IP address. Multiple IP addresses can be separated by Spaces or line breaks. Enter cloud region :IP, and ensure that the whitelist has been added to the job platform"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:555
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:453
@@ -1464,7 +1464,7 @@ msgstr ""
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:415
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:222
 msgid "滚动执行"
-msgstr ""
+msgstr "Execution by rolling"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:568
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:466
@@ -1473,7 +1473,7 @@ msgstr ""
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:428
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:235
 msgid "滚动策略"
-msgstr ""
+msgstr "Strategy of rolling"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:569
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:467
@@ -1482,7 +1482,7 @@ msgstr ""
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:429
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:236
 msgid "详情请查看JOB使用指引"
-msgstr ""
+msgstr "For details, see the JOB user Guide"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:592
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:490
@@ -1491,7 +1491,7 @@ msgstr ""
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:452
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:259
 msgid "滚动执行开启时滚动策略为必填项"
-msgstr ""
+msgstr "The scrolling policy is mandatory when the rolling execution is enabled"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:639
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:537
@@ -1500,7 +1500,7 @@ msgstr ""
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:499
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:306
 msgid "滚动机制"
-msgstr ""
+msgstr "Rolling mechanism"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:656
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:554
@@ -1509,7 +1509,7 @@ msgstr ""
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:516
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:323
 msgid "滚动执行开启时滚动机制为必填项"
-msgstr ""
+msgstr "Rolling Execution When the rolling mechanism is enabled, it is mandatory"
 
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_0.js:31
 #: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:158
@@ -1777,7 +1777,7 @@ msgstr "User-defined task name. If not filled, the job platform will automatical
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:589
 msgid "请输入非空格之外的任务名"
-msgstr ""
+msgstr "Please enter a task name other than a space"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_0.js:602
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:576
@@ -1798,7 +1798,7 @@ msgstr "Enter Ip, multiple are separated by `,` or Line breaks"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/output_format/v2_1.js:18
 msgid "任务id列表"
-msgstr ""
+msgstr "Task ID LIST"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:77
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:76
@@ -1820,7 +1820,7 @@ msgstr "IP must be filled in one of [Cloud Area ID: IP] or [IP] format"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:174
 msgid "【IP】"
-msgstr ""
+msgstr "[IP]"
 
 #: pipeline_plugins/components/static/components/atoms/job/fetch_task_log/v1_0.js:49
 msgid "任务ID"
@@ -1872,7 +1872,7 @@ msgstr "Refresh"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:556
 msgid "脚本名称"
-msgstr ""
+msgstr "Script Name"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v1_0_0.js:38
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:45
@@ -1924,7 +1924,7 @@ msgstr "File information"
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_0.js:205
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:321
 msgid "文件MD5"
-msgstr ""
+msgstr "File Md5"
 
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_0.js:18
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:135
@@ -2295,19 +2295,19 @@ msgstr "Strategy"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:47
 msgid "维度"
-msgstr ""
+msgstr "The dimension"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:66
 msgid "维度名称"
-msgstr ""
+msgstr "The dimension name"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:80
 msgid "维度值"
-msgstr ""
+msgstr "The dimension value"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:81
 msgid "多个使用,分割"
-msgstr ""
+msgstr "Multiple use, split"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:101
 #, fuzzy
@@ -2317,11 +2317,11 @@ msgstr "Filter Method"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:104
 msgid "全部满足(AND)"
-msgstr ""
+msgstr "Satisfy all (AND)"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:105
 msgid "单一满足(OR)"
-msgstr ""
+msgstr "Single satisfaction (OR)"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:63
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:104
@@ -2537,7 +2537,7 @@ msgstr "AGENT"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:91
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:74
 msgid "ticket信息"
-msgstr ""
+msgstr "ticket Information"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:166
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:98
@@ -2622,7 +2622,7 @@ msgstr "Use in complex network adaption"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:393
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:477
 msgid "TJJ"
-msgstr ""
+msgstr "TJJ"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:485
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:422
@@ -2660,19 +2660,19 @@ msgstr "tip"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:507
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:675
 msgid "一行只能对应一个云区域ID"
-msgstr ""
+msgstr "A row can correspond to only one cloud zone ID"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:274
 msgid "是否安装最新版本插件"
-msgstr ""
+msgstr "Whether to install the latest plug-in version"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:520
 msgid "BT节点探测"
-msgstr ""
+msgstr "BT node detection"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:555
 msgid "传输限速 M/s"
-msgstr ""
+msgstr "The transmission limit is M/s"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:557
 msgid "请输入"
@@ -2742,7 +2742,7 @@ msgstr "Select Plugin Version"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:360
 msgid "操作类型为`安装`时插件版本为必填项"
-msgstr ""
+msgstr "If the operation type is Install, the plug-in version is mandatory"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:431
 msgid " "
@@ -2794,11 +2794,11 @@ msgstr "Select member"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:18
 msgid "IP过滤器"
-msgstr ""
+msgstr "IP filter"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:25
 msgid "原始IP"
-msgstr ""
+msgstr "Original IP address"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:26
 #, fuzzy
@@ -2808,15 +2808,15 @@ msgstr "Please enter host inner IP, multiple are separated by Line breaks"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:39
 msgid "GSE AGENT状态"
-msgstr ""
+msgstr "GSE AGENT status"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:53
 msgid "输出带云区域"
-msgstr ""
+msgstr "Output area with cloud"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_filter.js:67
 msgid "输出分隔符"
-msgstr ""
+msgstr "Output separator"
 
 #: pipeline_plugins/variables/static/variables/cmdb/var_cmdb_ip_selector.js:18
 msgid "选择服务器"
