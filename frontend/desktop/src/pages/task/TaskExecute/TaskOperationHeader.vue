@@ -75,12 +75,12 @@
                         'params-btn',
                         'common-icon-edit',
                         {
-                            'disabled': state !== 'CREATED' && !paramsCanBeModify,
+                            'disabled': !paramsCanBeModify,
                             actived: nodeInfoType === 'modifyParams'
                         }
                     ]"
                     v-bk-tooltips="{
-                        content: state !== 'CREATED' && !paramsCanBeModify ? $t('「未完成」任务才可编辑参数') : $t('编辑任务参数'),
+                        content: !paramsCanBeModify ? $t('「未完成」任务才可编辑参数') : $t('编辑任务参数'),
                         placements: ['bottom'],
                         hideOnClick: false
                     }"
@@ -141,8 +141,7 @@
             'stateStr',
             'isBreadcrumbShow',
             'isTaskOperationBtnsShow',
-            'isShowViewProcess',
-            'paramsCanBeModify'
+            'isShowViewProcess'
         ],
         data () {
             return {
@@ -152,7 +151,10 @@
         computed: {
             ...mapState({
                 view_mode: state => state.view_mode
-            })
+            }),
+            paramsCanBeModify () {
+                return !['FINISHED', 'REVOKED'].includes(this.state)
+            }
         },
         watch: {
             nodeNav (val) {
@@ -182,7 +184,7 @@
             },
             onTaskParamsClick (type, name) {
                 // 已完成的任务不能修改任务参数
-                if (type === 'modifyParams' && this.state !== 'CREATED' && !this.paramsCanBeModify) {
+                if (type === 'modifyParams' && !this.paramsCanBeModify) {
                     return
                 }
                 this.$emit('onTaskParamsClick', type, name)
