@@ -88,6 +88,9 @@
                         :node-activity="nodeActivity"
                         :execute-info="executeInfo"
                         :node-detail-config="nodeDetailConfig"
+                        :constants="pipelineData.constants"
+                        :is-third-party-node="isThirdPartyNode"
+                        :third-party-node-code="thirdPartyNodeCode"
                         :is-sub-process-node="isSubProcessNode">
                     </ExecuteInfoForm>
                     <section class="info-section" data-test-id="taskExcute_form_operatFlow" v-else-if="curActiveTab === 'history'">

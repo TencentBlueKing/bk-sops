@@ -510,6 +510,17 @@ const task = {
                     template_node_id: data.tempNodeId
                 }
             }).then(response => response.data)
+        },
+        // 节点快照
+        getNodeSnapshotConfig ({ commit }, params) {
+            const { instance_id, node_id, component_code, subprocess_stack } = params
+            return axios.get(`api/v3/taskflow/${instance_id}/node_snapshot_config/`, {
+                params: {
+                    node_id,
+                    component_code,
+                    subprocess_stack
+                }
+            }).then(response => response.data)
         }
     }
 }
