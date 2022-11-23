@@ -7,11 +7,11 @@
         </div>
         <template v-if="!adminView">
             <div class="input-table" v-if="!isShowInputOrigin">
+                <div class="table-header">
+                    <span class="input-name">{{ $t('参数名') }}</span>
+                    <span class="input-key">{{ $t('参数值') }}</span>
+                </div>
                 <template v-if="Array.isArray(renderConfig)">
-                    <div class="table-header">
-                        <span class="input-name">{{ $t('参数名') }}</span>
-                        <span class="input-key">{{ $t('参数值') }}</span>
-                    </div>
                     <RenderForm
                         v-if="!isEmptyParams && !loading"
                         :key="renderKey"
@@ -68,8 +68,7 @@
                 default: () => ({})
             },
             renderConfig: {
-                type: Array,
-                default: () => ([])
+                type: [Array, Object]
             },
             constants: {
                 type: Object,
@@ -211,6 +210,40 @@
                 }
                 >.rf-tag-form {
                     margin-left: 30%;
+                    padding-left: 13px;
+                    padding-right: 15px;
+                }
+                .el-table {
+                    tr,
+                    .el-table__cell {
+                        height: 42px;
+                        padding: 0;
+                        background-color: initial;
+                    }
+                    .cell {
+                        height: auto;
+                        line-height: 20px;
+                    }
+                }
+            }
+        }
+        /deep/.bk-schema-form {
+            .bk-form-item {
+                margin: 0;
+                padding: 5px 0;
+                width: 100% !important;
+                border-bottom: 1px solid #dcdee5;
+                label {
+                    width: 30% !important;
+                    text-align: left;
+                    padding-left: 13px;
+                    color: #63656e;
+                    &::before {
+                        content: initial;
+                    }
+                }
+                >.bk-form-content {
+                    margin-left: 30% !important;
                     padding-left: 13px;
                     padding-right: 15px;
                 }
