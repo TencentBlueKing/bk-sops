@@ -283,7 +283,7 @@
             background: #fff;
         }
     }
-    .full-code-editor {
+    .code-wrapper .full-code-editor {
         height: 300px;
     }
 </style>
