@@ -70,7 +70,7 @@ drf_router.register(r"function_task", FunctionTaskViewSet)
 drf_router.register(r"variable", VariableViewSet)
 drf_router.register(r"template", TaskTemplateViewSet)
 drf_router.register(r"appmaker", AppmakerListViewSet, basename="appmaker")
-drf_router.register(r"periodic_task", PeriodicTaskViewSet)
+drf_router.register(r"periodic_task", PeriodicTaskViewSet, basename="periodic_task")
 drf_router.register(r"common_template", V3CommonTemplateViewSet)
 drf_router.register(r"taskflow", TaskFlowInstanceViewSet)
 
