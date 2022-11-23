@@ -83,14 +83,14 @@ def position(
     # 节点横坐标偏移值
     pipeline_element_shift_x = {
         DUMMY_NODE_TYPE: 0,
-        PWE.ServiceActivity: activity_size[0] * 1.3,
-        PWE.SubProcess: activity_size[0] * 1.3,
-        PWE.EmptyStartEvent: event_size[0] * 2,
-        PWE.EmptyEndEvent: event_size[0] * 2,
-        PWE.ExclusiveGateway: gateway_size[0] * 6,
-        PWE.ConditionalParallelGateway: gateway_size[0] * 6,
-        PWE.ParallelGateway: gateway_size[0] * 2,
-        PWE.ConvergeGateway: gateway_size[0] * 2,
+        PWE.ServiceActivity: activity_size[0] * 1.5,
+        PWE.SubProcess: activity_size[0] * 1.5,
+        PWE.EmptyStartEvent: event_size[0] * 2.5,
+        PWE.EmptyEndEvent: event_size[0] * 2.5,
+        PWE.ExclusiveGateway: gateway_size[0] * 6.5,
+        PWE.ConditionalParallelGateway: gateway_size[0] * 6.5,
+        PWE.ParallelGateway: gateway_size[0] * 2.5,
+        PWE.ConvergeGateway: gateway_size[0] * 2.5,
     }
 
     min_rk = min(list(orders.keys()))
