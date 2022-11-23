@@ -24,11 +24,11 @@
             </template>
             <li>
                 <span class="th">{{ $t('节点名称') }}</span>
-                <span class="td">{{ nodeActivity.name || '--' }}</span>
+                <span class="td">{{ templateConfig.name || '--' }}</span>
             </li>
             <li>
                 <span class="th">{{ $t('步骤名称') }}</span>
-                <span class="td">{{ nodeActivity.stage_name || '--' }}</span>
+                <span class="td">{{ templateConfig.stage_name || '--' }}</span>
             </li>
             <li v-if="isSubProcessNode">
                 <span class="th">{{ $t('执行方案') }}</span>
@@ -36,26 +36,26 @@
             </li>
             <li>
                 <span class="th">{{ $t('是否可选') }}</span>
-                <span class="td">{{ nodeActivity.optional ? $t('是') : $t('否') }}</span>
+                <span class="td">{{ templateConfig.optional ? $t('是') : $t('否') }}</span>
             </li>
             <li>
                 <span class="th">{{ $t('失败处理') }}</span>
-                <span class="error-handle-td td" v-if="nodeActivity.ignorable || nodeActivity.skippable || nodeActivity.retryable || nodeActivity.auto_retry">
-                    <template v-if="nodeActivity.ignorable">
+                <span class="error-handle-td td" v-if="templateConfig.ignorable || templateConfig.skippable || templateConfig.retryable || (templateConfig.auto_retry && templateConfig.auto_retry.enable)">
+                    <template v-if="templateConfig.ignorable">
                         <span class="error-handle-icon"><span class="text">AS</span></span>
                         {{ $t('自动跳过') }};
                     </template>
-                    <template v-if="nodeActivity.skippable">
+                    <template v-if="templateConfig.skippable">
                         <span class="error-handle-icon"><span class="text">MS</span></span>
                         {{ $t('手动跳过') }};
                     </template>
-                    <template v-if="nodeActivity.retryable">
+                    <template v-if="templateConfig.retryable">
                         <span class="error-handle-icon"><span class="text">MR</span></span>
                         {{ $t('手动重试') }};
                     </template>
-                    <template v-if="nodeActivity.auto_retry && nodeActivity.auto_retry.enable">
+                    <template v-if="templateConfig.auto_retry && templateConfig.auto_retry.enable">
                         <span class="error-handle-icon"><span class="text">AR</span></span>
-                        {{ $t('在') + $tc('秒', nodeActivity.auto_retry.interval) + $t('后') + $t('，') + $t('自动重试') + ' ' + nodeActivity.auto_retry.times + ' ' + $t('次') }}
+                        {{ $t('在') + $tc('秒', templateConfig.auto_retry.interval) + $t('后') + $t('，') + $t('自动重试') + ' ' + templateConfig.auto_retry.times + ' ' + $t('次') }}
                     </template>
                 </span>
                 <span v-else class="td">{{ '--' }}</span>
