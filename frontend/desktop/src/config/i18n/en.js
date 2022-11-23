@@ -1354,7 +1354,7 @@ const en = {
     '选择通知方式后，将默认通知到任务执行人；可选择同时通知其他分组人员': 'After selecting the notify method, the task executor will be notified by default; you can choose to notify other group personnel at the same time',
     '我创建的': 'I created',
     '已开始执行的任务，修改参数值仅对还未执行的步骤生效': 'For tasks that have already been executed, modifying parameter values takes effect only for steps that have not been executed yet.',
-    '设置了模板预渲染的变量，不支持中途修改参数值': 'The variable of template pre-rendering is set, and parameter value modification midway is not supported',
+    '设为「常量」的参数中途不允许修改': 'Parameters set as "constant" are not allowed to be modified midway',
     '分支类型': 'Branch type',
     '自定义分支': 'Custom branch',
     '默认分支': 'Default branch',
