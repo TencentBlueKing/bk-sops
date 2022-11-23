@@ -18,7 +18,7 @@
     "ajv": "^6.10.2",
     "art-template": "^4.13.0",
     "axios": "^0.18.0",
-    "bk-magic-vue": "2.4.12-beta.1",
+    "bk-magic-vue": "2.5.2",
     "dom-to-image": "^2.6.0",
     "element-ui": "^2.4.1",
     "file-saver": "^2.0.2",
