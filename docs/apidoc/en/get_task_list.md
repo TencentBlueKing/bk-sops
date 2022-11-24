@@ -171,7 +171,6 @@ Get tasks list for a business, support task name keyword searching
             ]
         }
     ],
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -184,7 +183,6 @@ Get tasks list for a business, support task name keyword searching
 |  data     |    list    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
 | count | int | amount of data list |
-|  request_id     |    string  | esb request id         |
 |  trace_id     |    string  | open telemetry trace_id       |
 
 ##### data[item]

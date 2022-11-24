@@ -608,7 +608,6 @@ KEY of global variables, the format is "${key}"
             "outputs": ["${bk_timing}"]
         }
     },
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -620,7 +619,6 @@ KEY of global variables, the format is "${key}"
 |  result    | bool      | true or false, indicate success or failure |
 |  data      | dict      | data returned when result is true, details are described below |
 |  message   | string    | error message returned when result is false |
-|  request_id     |    string  | esb request id             |
 |  trace_id     |    string  | open telemetry trace_id        |
 
 ####  data
