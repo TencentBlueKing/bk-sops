@@ -22,10 +22,15 @@ from django_test_toolkit.mixins.drf import DrfPermissionExemptMixin
 
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tests.periodictask.generate_model_data import GenerateTaskFlowTestData
+from django.test.utils import override_settings
 
 
 class TaskFlowTestCase(
-    ToolkitApiTestCase, SuperUserMixin, LoginExemptMixin, DrfPermissionExemptMixin, StandardResponseAssertionMixin,
+    ToolkitApiTestCase,
+    SuperUserMixin,
+    LoginExemptMixin,
+    DrfPermissionExemptMixin,
+    StandardResponseAssertionMixin,
 ):
     # DrfPermissionExemptMixin需要指定，用于豁免对应权限认证
     VIEWSET_PATH = "gcloud.core.apis.drf.viewsets.taskflow.TaskFlowInstanceViewSet"
@@ -39,8 +44,9 @@ class TaskFlowTestCase(
 
         class TaskFlowFactory(DjangoModelFakerFactory):
             """
-                工厂类外键关联属性定义说明，作用域要在测试用例类中。如果在该作用域外，使用的DB就不是测试数据库。
+            工厂类外键关联属性定义说明，作用域要在测试用例类中。如果在该作用域外，使用的DB就不是测试数据库。
             """
+
             project, pipeline_instance = GenerateTaskFlowTestData().set_and_get_data()
             template_id = "1"
             create_info = "1"
@@ -58,7 +64,7 @@ class TaskFlowTestCase(
                 "create_method": "app",
                 "create_info": "0",
                 "flow_type": "common",
-                "template_source": "project"
+                "template_source": "project",
             }
 
             class Meta:
@@ -84,6 +90,7 @@ class TaskFlowTestCase(
         self.assertStandardSuccessResponse(response)
         self.assertEqual(response.data["data"]["id"], task_id)
 
+    @override_settings(BROKER_TRANSPORT_OPTIONS={"max_retries": 0})
     def test_create_taskflow(self):
         data = json.dumps(self.base_params)
         url = reverse("taskflow-list")

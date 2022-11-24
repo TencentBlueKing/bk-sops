@@ -21,10 +21,15 @@ from django_test_toolkit.mixins.drf import DrfPermissionExemptMixin
 
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tests.periodictask.generate_model_data import GenerateTemplateTestData
+from django.test.utils import override_settings
 
 
 class TaskTemplateTestCase(
-    ToolkitApiTestCase, SuperUserMixin, LoginExemptMixin, DrfPermissionExemptMixin, StandardResponseAssertionMixin,
+    ToolkitApiTestCase,
+    SuperUserMixin,
+    LoginExemptMixin,
+    DrfPermissionExemptMixin,
+    StandardResponseAssertionMixin,
 ):
     # DrfPermissionExemptMixin需要指定，用于豁免对应权限认证
     VIEWSET_PATH = "gcloud.core.apis.drf.viewsets.task_template.TaskTemplateViewSet"
@@ -41,12 +46,7 @@ class TaskTemplateTestCase(
             cls.project_id = project.id
             category = "Default"
             default_flow_type = "common"
-            notify_type = json.dumps(
-                {
-                    "success": [],
-                    "fail": []
-                }
-            )
+            notify_type = json.dumps({"success": [], "fail": []})
 
             class Meta:
                 model = TaskTemplate
@@ -59,11 +59,8 @@ class TaskTemplateTestCase(
             "category": "Default",
             "default_flow_type": "common",
             "template_labels": [],
-            "notify_type": {
-                "success": [],
-                "fail": []
-            },
-            "pipeline_tree": json.dumps(TaskTemplateFactory.pipeline_template.snapshot.data)
+            "notify_type": {"success": [], "fail": []},
+            "pipeline_tree": json.dumps(TaskTemplateFactory.pipeline_template.snapshot.data),
         }
 
     @classmethod
@@ -84,6 +81,7 @@ class TaskTemplateTestCase(
         self.assertStandardSuccessResponse(response)
         self.assertEqual(response.data["data"]["id"], test_template_task.id)
 
+    @override_settings(BROKER_TRANSPORT_OPTIONS={"max_retries": 0})
     def test_create_template_task(self):
         task_id = 11
         data = json.dumps(self.base_params)
@@ -93,6 +91,7 @@ class TaskTemplateTestCase(
         new_task = TaskTemplate.objects.get(id=task_id).id
         self.assertEqual(new_task, task_id)
 
+    @override_settings(BROKER_TRANSPORT_OPTIONS={"max_retries": 0})
     def test_update_template_task(self):
         task_id = 10
         self.base_params["name"] = "XXXX"
@@ -115,7 +114,7 @@ class TaskTemplateTestCase(
         路由处理需要优化
         @return:
         """
-        url = reverse("template-list") + f'list_with_top_collection/?project__id={self.project_id}'
+        url = reverse("template-list") + f"list_with_top_collection/?project__id={self.project_id}"
         response = self.client.get(url)
         self.assertStandardSuccessResponse(response)
         self.assertEqual(len(response.data["data"]), len(self.template_tasks))
