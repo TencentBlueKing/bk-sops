@@ -36,7 +36,6 @@
             "task_url": task_url
     },
     "code": 3545100,
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -49,5 +48,4 @@
 |  data        |    dict  |      result=true 时返回数据      |
 |  message     |    string  |      result=false 时错误信息     |
 |  task_url    |    string  |      任务对应的url  |
-|  request_id     |    string  |      esb 请求 id     |
 |  trace_id     |    string  |      open telemetry trace_id     |

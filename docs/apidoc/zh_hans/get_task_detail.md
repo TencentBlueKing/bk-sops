@@ -51,9 +51,9 @@
             }
         ],
         "start_time": "2019-01-17 04:13:08",
-        "business_id": 2,
+        "project_id": 2,
         "create_time": "2019-01-17 04:13:03",
-        "business_name": "蓝鲸",
+        "project_name": "蓝鲸",
         "id": 10,
         "constants": {
             "${IP}": {
@@ -264,7 +264,6 @@
         }
     },
     "result": true,
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -276,29 +275,28 @@
 |  result   |    bool    |      true/false 查询成功与否     |
 |  data     |    dict    |      result=true 时返回数据，详细信息见下面说明     |
 |  message  |    string  |      result=false 时错误信息     |
-|  request_id     |    string  |      esb 请求 id     |
 |  trace_id     |    string  |      open telemetry trace_id     |
 
 #### data
 
-| 字段      | 类型      | 描述      |
-|-----------|----------|-----------|
-|  id      |    int    |      任务 ID，即 task_id    |
-|  name    |    string    |      任务名称               |
-|  business_id      |  int       |  所属业务 ID    |
-|  business_name    |  string    |  所属业务名称   |
-|  template_id      |  int       |  创建任务所用的流程模板 ID    |
-|  create_time      |  string    |  任务创建时间   |
-|  create_method    |  string    |  任务创建方式   |
-|  start_time       |  string    |  任务执行时间   |
-|  finish_time      |  string    |  任务完成时间   |
-|  elapsed_time     |  int       |  任务执行耗时(秒） |
-|  creator          |  string    |  任务创建人     |
-|  executor         |  string    |  任务执行人     |
-|  constants        |  dict      |  输入的全局变量，详情见下面说明 |
-|  outputs          |  list      |  任务输出参数，详情见下面说明 |
-|  task_url     |    str     |    任务实例链接     |
-|  pipeline_tree     |    dict     |    任务实例树     |
+| 字段      | 类型      | 描述              |
+|-----------|----------|-----------------|
+|  id      |    int    | 任务 ID，即 task_id |
+|  name    |    string    | 任务名称            |
+|  project_id      |  int       | 所属项目 ID         |
+|  project_name    |  string    | 所属项目名称          |
+|  template_id      |  int       | 创建任务所用的流程模板 ID  |
+|  create_time      |  string    | 任务创建时间          |
+|  create_method    |  string    | 任务创建方式          |
+|  start_time       |  string    | 任务执行时间          |
+|  finish_time      |  string    | 任务完成时间          |
+|  elapsed_time     |  int       | 任务执行耗时(秒）       |
+|  creator          |  string    | 任务创建人           |
+|  executor         |  string    | 任务执行人           |
+|  constants        |  dict      | 输入的全局变量，详情见下面说明 |
+|  outputs          |  list      | 任务输出参数，详情见下面说明  |
+|  task_url     |    str     | 任务实例链接          |
+|  pipeline_tree     |    dict     | 任务实例树           |
 
 #### data.constants KEY
 

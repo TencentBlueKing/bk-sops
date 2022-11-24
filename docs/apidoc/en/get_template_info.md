@@ -174,10 +174,11 @@ Query individual flow template details of the business
             "gateways": {}
         },
         "bk_biz_name": "blueking",
+        "project_id": 3,
+        "project_name": "blueking",
         "id": 30,
         "editor": "admin"
     },
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -189,23 +190,24 @@ Query individual flow template details of the business
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    dict    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
-|  request_id     |    string  | esb request id         |
 |  trace_id     |    string  | open telemetry trace_id       |
 
 #### data
 
-| Field      | Type      | Description      |
-|-----------|----------|-----------|
-|  bk_biz_id     |    string    |      the business ID      |
-|  bk_biz_name   |    string    |      the business name    |
-|  id            |    int       |      flow template ID             |
-|  name          |    string    |      flow template name            |
-|  category      |    string    |      flow template type, the value is described below    |
-|  creator       |    string    |      person who created this flow template      |
-|  create_time   |    string    |      datetime when this flow template created   |
-|  editor        |    string or null | person who edited this flow template last |
-|  edit_time     |    string    |      datetime when this flow template edited          |
-|  pipeline_tree |    dict      |      template tree info, details are described below    |
+| Field         | Type      | Description                                      |
+|---------------|----------|--------------------------------------------------|
+| bk_biz_id     |    string    | the business ID                                  |
+| bk_biz_name   |    string    | the business name                                |
+| project_id    |    string    | the project ID                                   |
+| project_name  |    string    | the project name                                 |
+| id            |    int       | flow template ID                                 |
+| name          |    string    | flow template name                               |
+| category      |    string    | flow template type, the value is described below |
+| creator       |    string    | person who created this flow template            |
+| create_time   |    string    | datetime when this flow template created         |
+| editor        |    string or null | person who edited this flow template last        |
+| edit_time     |    string    | datetime when this flow template edited          |
+| pipeline_tree |    dict      | template tree info, details are described below  |
 
 #### data.category
 

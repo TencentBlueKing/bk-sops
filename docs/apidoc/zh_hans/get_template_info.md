@@ -174,6 +174,8 @@
             "gateways": {}
         },
         "bk_biz_name": "蓝鲸",
+        "project_id": 3,
+        "project_name": "blueking",
         "id": 30,
         "editor": "admin"
     },
@@ -196,18 +198,20 @@
 
 #### data
 
-| 字段      | 类型      | 描述      |
-|-----------|----------|-----------|
-|  bk_biz_id     |    string    |      模板所属业务ID      |
-|  bk_biz_name   |    string    |      模板所属业务名称    |
-|  id            |    int       |      模板ID             |
-|  name          |    string    |      模板名称            |
-|  category      |    string    |      模板分类，分类信息见下面说明    |
-|  creator       |    string    |      模板创建人             |
-|  create_time   |    string    |      模板创建时间           |
-|  editor        |    string 或者 null    |      模板编辑人   |
-|  edit_time     |    string    |      模板最新编辑时间        |
-|  pipeline_tree |    dict      |      模板任务树信息，详细信息见下面说明   |
+| 字段            | 类型      | 描述                |
+|---------------|----------|-------------------|
+| bk_biz_id     |    string    | 模板所属业务ID          |
+| bk_biz_name   |    string    | 模板所属业务名称          |
+| project_id    |    string    | 模板所属项目ID          |
+| project_name  |    string    | 模板所属项目名称          |
+| id            |    int       | 模板ID              |
+| name          |    string    | 模板名称              |
+| category      |    string    | 模板分类，分类信息见下面说明    |
+| creator       |    string    | 模板创建人             |
+| create_time   |    string    | 模板创建时间            |
+| editor        |    string 或者 null    | 模板编辑人             |
+| edit_time     |    string    | 模板最新编辑时间          |
+| pipeline_tree |    dict      | 模板任务树信息，详细信息见下面说明 |
 
 #### data.category
 

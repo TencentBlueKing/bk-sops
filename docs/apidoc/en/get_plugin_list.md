@@ -61,7 +61,6 @@ Get all plugins info for a business
             "form": "/static/components/atoms/job/job_push_local_files.js"
         }
     ],
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -73,7 +72,6 @@ Get all plugins info for a business
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    list    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
-|  request_id     |    string  | esb request id         |
 |  trace_id     |    string  | open telemetry trace_id       |
 
 ##### data[item]
