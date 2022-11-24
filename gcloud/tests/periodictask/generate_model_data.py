@@ -11,10 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
-from pipeline.models import Snapshot, PipelineTemplate
+from pipeline.models import Snapshot, PipelineTemplate, PipelineInstance, TreeInfo
+
+from gcloud.contrib.appmaker.models import AppMaker
+from gcloud.contrib.function.models import FunctionTask
 from gcloud.periodictask.models import PeriodicTask
 
 from gcloud.core.models import Project
+from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tasktmpl3.models import TaskTemplate
 
 
@@ -206,6 +210,102 @@ class GenerateTemplateTestData(GenerateBaseTestData):
 
     def destroy_data(self):
         super().destory_data()
+        TaskTemplate.objects.all().delete()
+        PipelineTemplate.objects.all().delete()
+        Snapshot.objects.all().delete()
+        TaskTemplate.objects.all().delete()
+
+
+class GenerateAppMakerTestData(GeneratePeriodicTaskTestData):
+    def __init__(self):
+        super().__init__()
+
+    def set_and_get_data(self):
+        super().set_and_get_data()
+        return self.project, self.task_template
+
+    def destory_data(self):
+        super().destory_data()
+        AppMaker.objects.all().delete()
+
+
+class GenerateFunctionTaskTestData(GenerateBaseTestData):
+    def __init__(self):
+        super().__init__()
+        self.tree_info = None
+        self.pipeline_instance = None
+        self.taskflow_instance = None
+
+    def set_and_get_data(self):
+        super().set_and_get_data()
+        self.tree_info = TreeInfo.objects.create(
+            data=Snapshot.objects.first().data
+        )
+        self.pipeline_instance = PipelineInstance.objects.create(
+            instance_id="nccbb7857572372f9b49fe2c05xxxxxx",
+            template=PipelineTemplate.objects.first(),
+            name="new20221115095047_周期执行_202211150955xx",
+            creator="admin",
+            executor="admin",
+            snapshot=Snapshot.objects.first(),
+            execution_snapshot=Snapshot.objects.first(),
+            tree_info=TreeInfo.objects.first()
+        )
+        self.taskflow_instance = TaskFlowInstance.objects.create(
+            project=Project.objects.first(),
+            pipeline_instance=PipelineInstance.objects.first(),
+            category="Default",
+            template_id=1,
+            create_info=1,
+            current_flow="finished"
+        )
+        return self.taskflow_instance
+
+    def destory_data(self):
+        super().destory_data()
+        FunctionTask.objects.all().delete()
+        TreeInfo.objects.all().delete()
+        PipelineInstance.objects.all().delete()
+        TaskFlowInstance.objects.all().delete()
+        TaskTemplate.objects.all().delete()
+        PipelineTemplate.objects.all().delete()
+        Snapshot.objects.all().delete()
+
+
+class GenerateTaskFlowTestData(GenerateBaseTestData):
+    def __init__(self):
+        super().__init__()
+        self.tree_info = None
+        self.pipeline_instance = None
+        self.task_template = None
+
+    def set_and_get_data(self):
+        super().set_and_get_data()
+        self.tree_info = TreeInfo.objects.create(
+            data=Snapshot.objects.first().data
+        )
+        self.pipeline_instance = PipelineInstance.objects.create(
+            instance_id="nccbb7857572372f9b49fe2c05xxxxxx",
+            template=PipelineTemplate.objects.first(),
+            name="new20221115095047_周期执行_202211150955xx",
+            creator="admin",
+            executor="admin",
+            snapshot=Snapshot.objects.first(),
+            execution_snapshot=Snapshot.objects.first(),
+            tree_info=TreeInfo.objects.first()
+        )
+        self.task_template = TaskTemplate.objects.create(
+            project=Project.objects.first(),
+            pipeline_template=PipelineTemplate.objects.first()
+        )
+
+        return self.project, self.pipeline_instance
+
+    def destory_data(self):
+        super().destory_data()
+        TreeInfo.objects.all().delete()
+        PipelineInstance.objects.all().delete()
+        TaskFlowInstance.objects.all().delete()
         TaskTemplate.objects.all().delete()
         PipelineTemplate.objects.all().delete()
         Snapshot.objects.all().delete()
