@@ -29,6 +29,10 @@ def get_host_id_by_inner_ip(executor, logger, bk_cloud_id: int, bk_biz_id: int, 
     """
     根据inner_ip获取bk_host_id 对应关系dict
     """
+
+    if not ip_list:
+        return {}
+
     client = BKNodeManClient(username=executor)
     kwargs = {
         "bk_biz_id": [bk_biz_id],
@@ -49,6 +53,9 @@ def get_host_id_by_inner_ipv6(executor, logger, bk_cloud_id: int, bk_biz_id: int
     """
     根据inner_ip获取bk_host_id 对应关系dict, ipv6 版本
     """
+    if not ipv6_list:
+        return {}
+
     client = BKNodeManClient(username=executor)
     kwargs = {
         "bk_biz_id": [bk_biz_id],
@@ -56,7 +63,6 @@ def get_host_id_by_inner_ipv6(executor, logger, bk_cloud_id: int, bk_biz_id: int
         "conditions": [{"key": "inner_ipv6", "value": ipv6_list}, {"key": "bk_cloud_id", "value": [bk_cloud_id]}],
     }
     result = client.search_host_plugin(**kwargs)
-
     if not result["result"]:
         error = handle_api_error(__group_name__, "nodeman.search_host_plugin", kwargs, result)
         logger.error(error)
