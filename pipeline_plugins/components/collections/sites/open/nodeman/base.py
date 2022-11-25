@@ -49,18 +49,18 @@ def get_host_id_by_inner_ip(executor, logger, bk_cloud_id: int, bk_biz_id: int, 
     return {host["inner_ip"]: host["bk_host_id"] for host in result["data"]["list"]}
 
 
-def get_host_id_by_inner_ipv6(executor, logger, bk_cloud_id: int, bk_biz_id: int, ipv6_list: list):
+def get_host_id_by_inner_ipv6(executor, logger, bk_cloud_id: int, bk_biz_id: int, ip_list: list):
     """
     根据inner_ip获取bk_host_id 对应关系dict, ipv6 版本
     """
-    if not ipv6_list:
+    if not ip_list:
         return {}
 
     client = BKNodeManClient(username=executor)
     kwargs = {
         "bk_biz_id": [bk_biz_id],
         "pagesize": -1,
-        "conditions": [{"key": "inner_ipv6", "value": ipv6_list}, {"key": "bk_cloud_id", "value": [bk_cloud_id]}],
+        "conditions": [{"key": "ip", "value": ip_list}, {"key": "bk_cloud_id", "value": [bk_cloud_id]}],
     }
     result = client.search_host_plugin(**kwargs)
     if not result["result"]:
@@ -100,10 +100,10 @@ class NodeManBaseService(Service):
         # 如果开启了ipv6的逻辑，则执行
         if settings.ENABLE_IPV6:
             ipv6_list, ipv4_list, _, _ = extract_ip_from_ip_str(ip_str)
-            bk_host_id_dict_ipv6 = get_host_id_by_inner_ipv6(executor, self.logger, bk_cloud_id, bk_biz_id, ipv6_list)
-            bk_host_id_dict_ipv4 = get_host_id_by_inner_ip(executor, self.logger, bk_cloud_id, bk_biz_id, ipv4_list)
+            ip_list = ipv4_list + ipv6_list
+            bk_host_id_dict_ipv6 = get_host_id_by_inner_ipv6(executor, self.logger, bk_cloud_id, bk_biz_id, ip_list)
 
-            return list(bk_host_id_dict_ipv6.values()) + list(bk_host_id_dict_ipv4.values())
+            return list(bk_host_id_dict_ipv6.values())
 
         ip_list = get_ip_by_regex(ip_str)
         bk_host_id_dict = get_host_id_by_inner_ip(executor, self.logger, bk_cloud_id, bk_biz_id, ip_list)
