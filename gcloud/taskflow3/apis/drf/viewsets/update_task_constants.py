@@ -19,6 +19,7 @@ from iam import Subject, Action
 from iam.shortcuts import allow_or_raise_auth_failed
 from drf_yasg.utils import swagger_auto_schema
 from gcloud.contrib.operate_record.constants import OperateType, OperateSource
+from gcloud.taskflow3.domains.task_constants import TaskConstantsHandler
 
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
@@ -47,12 +48,21 @@ class UpdateTaskConstantsPermission(permissions.BasePermission):
 class UpdateTaskConstantsViewSerializer(serializers.Serializer):
     constants = serializers.DictField(help_text="需要修改的全局变量", required=True)
     meta_constants = serializers.DictField(help_text="需要修改的全局中的元变量元信息", required=False, default={})
+    modified_constant_keys = serializers.ListField(help_text="修改的变量key列表", required=False)
 
 
 class UpdateTaskConstantsResponseSerializer(serializers.Serializer):
     result = serializers.BooleanField(help_text="请求是否成功")
     message = serializers.CharField(help_text="result=false返回错误的错误信息")
     data = serializers.CharField(help_text="更新说明")
+
+
+class TaskConstantsResponseSerializer(UpdateTaskConstantsResponseSerializer):
+    class TaskConstantsData(serializers.Serializer):
+        unused_constant_keys = serializers.ListField(help_text="未使用的全局变量")
+        rendered_constant_keys = serializers.ListField(help_text="已使用的全局变量")
+
+    data = serializers.DictField(help_text="任务参数数据", child=TaskConstantsData())
 
 
 class UpdateTaskConstantsView(APIView):
@@ -67,17 +77,18 @@ class UpdateTaskConstantsView(APIView):
     )
     @action(methods=["POST"], detail=True)
     def post(self, request, task_id, format=None):
-        serializers = UpdateTaskConstantsViewSerializer(data=request.data)
-        serializers.is_valid(raise_exception=True)
+        serializer = UpdateTaskConstantsViewSerializer(data=request.data, context={"task_id": task_id})
+        try:
+            serializer.is_valid(raise_exception=True)
+        except serializers.ValidationError as e:
+            return Response({"result": False, "message": e.detail, "data": ""})
 
         task = TaskFlowInstance.objects.filter(id=task_id).only("project_id", "engine_ver", "pipeline_instance").first()
-        set_result = task.set_task_constants(serializers.data["constants"], serializers.data["meta_constants"])
+        set_result = task.set_task_constants(serializer.data["constants"], serializer.data["meta_constants"])
 
         if set_result["result"]:
             constants = task.pipeline_instance.execution_data.get("constants")
-            extra_info = extract_extra_info(
-                constants,
-                keys=request.data.get("modified_constant_keys") if "modified_constant_keys" in request.data else None)
+            extra_info = extract_extra_info(constants, keys=serializer.data.get("modified_constant_keys"))
 
             TaskOperateRecord.objects.create(
                 operator=request.user.username,
@@ -89,3 +100,25 @@ class UpdateTaskConstantsView(APIView):
             )
 
         return Response(set_result)
+
+    @swagger_auto_schema(
+        method="GET", operation_summary="查看任务参数的使用信息", responses={200: TaskConstantsResponseSerializer},
+    )
+    @action(methods=["GET"], detail=True)
+    def get(self, request, task_id, *args, **kwargs):
+        try:
+            task = TaskFlowInstance.objects.get(pk=task_id)
+        except TaskFlowInstance.DoesNotExist:
+            return Response({"result": False, "message": f"参数错误: 任务 {task_id} 不存在", "data": ""})
+
+        handler = TaskConstantsHandler(task)
+        return Response(
+            {
+                "result": True,
+                "message": "",
+                "data": {
+                    "unused_constant_keys": list(handler.get_unused_constant_keys()),
+                    "rendered_constant_keys": list(handler.get_rendered_constant_keys()),
+                },
+            }
+        )

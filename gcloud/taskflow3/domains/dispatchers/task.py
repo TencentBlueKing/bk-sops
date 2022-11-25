@@ -17,6 +17,7 @@ import logging
 import traceback
 from typing import Optional
 
+from django.apps import apps
 from django.utils import timezone
 from django.db import transaction
 from bamboo_engine import api as bamboo_engine_api
@@ -50,6 +51,7 @@ from gcloud.taskflow3.utils import format_pipeline_status, format_bamboo_engine_
 from gcloud.project_constants.domains.context import get_project_constants_context
 from engine_pickle_obj.context import SystemObject
 from .base import EngineCommandDispatcher, ensure_return_is_dict
+from gcloud.taskflow3.domains.task_constants import TaskConstantsHandler
 from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
@@ -264,6 +266,42 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
 
+        taskflow_model = apps.get_model("taskflow3", "TaskFlowInstance")
+        try:
+            taskflow = taskflow_model.objects.get(id=self.taskflow_id)
+        except taskflow_model.DoesNotExist as e:
+            logger.exception(f"[set_task_constants] Taskflow does not exist: {e}")
+            return {
+                "result": False,
+                "message": _(f"校验失败: 任务[{self.taskflow_id}]不存在"),
+                "data": None,
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+
+        # 检查是否是根任务
+        if taskflow.is_child_taskflow:
+            return {
+                "result": False,
+                "message": _(f"校验失败: 任务[{taskflow.id}]不是根任务"),
+                "data": None,
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+
+        # 检查是否有已使用的变量被修改
+        handler = TaskConstantsHandler(taskflow)
+        rendered_keys = handler.get_rendered_constant_keys()
+        modify_keys = set(constants.keys()).union(set(meta_constants.keys()))
+        invalid_keys = modify_keys.intersection(rendered_keys)
+        if invalid_keys:
+            message = _(f"任务[{self.taskflow_id}]参数设置失败: 以下参数已被使用，不可修改: {','.join(invalid_keys)}")
+            logger.error(message)
+            return {
+                "result": False,
+                "message": message,
+                "data": None,
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+
         exec_data = self.pipeline_instance.execution_data
 
         pre_render_constants = []
@@ -342,16 +380,16 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         with transaction.atomic():
             if task_is_started:
+                bamboo_runtime = BambooDjangoRuntime()
+                bamboo_engine_api.pause_pipeline(runtime=bamboo_runtime, pipeline_id=self.pipeline_instance.instance_id)
                 update_res = bamboo_engine_api.update_context_values(
-                    runtime=BambooDjangoRuntime(),
+                    runtime=bamboo_runtime,
                     pipeline_id=self.pipeline_instance.instance_id,
                     context_values=context_values,
                 )
                 if not update_res.result:
                     logger.error("update context values failed: %s" % update_res.exc_trace)
-                    message = _(
-                        f"任务参数设置失败: 更新引擎上下文发生异常: {update_res.message}. 请重试, 如持续失败可联系管理员处理 | set_task_constants"
-                    )
+                    message = _(f"任务参数设置失败: 更新引擎上下文发生异常: {update_res.message}. 请重试, 如持续失败可联系管理员处理 | set_task_constants")
                     logger.error(message)
                     return {
                         "result": False,
@@ -359,6 +397,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                         "message": message,
                         "code": err_code.UNKNOWN_ERROR.code,
                     }
+                bamboo_engine_api.resume_pipeline(
+                    runtime=bamboo_runtime, pipeline_id=self.pipeline_instance.instance_id
+                )
             self.pipeline_instance.set_execution_data(exec_data)
 
         return {
