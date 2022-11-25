@@ -174,7 +174,7 @@ def check_variable_key(request):
     if formatted_key_pattern.match(variable_key):
         variable_key = variable_key[2:-1]
     if not variable_key or keyword.iskeyword(variable_key) or variable_key in settings.VARIABLE_KEY_BLACKLIST:
-        return JsonResponse(
-            {"result": False, "data": None, "message": "{} is not allow to be the key of variable".format(variable_key)}
-        )
+        message = _(f"{variable_key}变量创建失败: 变量KEY仅支持英文字母、数字、下划线, 且以英文字母、下划线开头")
+        logger.error(message)
+        return JsonResponse({"result": False, "data": None, "message": message})
     return JsonResponse({"result": True, "data": None, "message": "Success"})

@@ -125,7 +125,7 @@ class NodemanCreateTaskService(Service):
             data.set_outputs("job_id", agent_result["data"]["id"])
             return True
         else:
-            message = "create agent install task failed: %s" % agent_result["message"]
+            message = _("[节点管理]任务创建失败: 创建[节点管理]任务发生异常: %s" % agent_result["message"])
             data.set_outputs("ex_data", message)
             return False
 

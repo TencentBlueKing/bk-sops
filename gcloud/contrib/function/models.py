@@ -17,6 +17,9 @@ from django.utils.translation import ugettext_lazy as _
 
 from gcloud.core.utils import convert_readable_username
 from gcloud.taskflow3.models import TaskFlowInstance
+import logging
+
+logger = logging.getLogger("root")
 
 
 FUNCTION_TASK_STATUS = [
@@ -72,7 +75,9 @@ class FunctionTask(models.Model):
 
     def claim_task(self, username):
         if self.status != "submitted":
-            return {"result": False, "message": "task has been claimed by others"}
+            message = _(f"任务认领失败: 任务已被他人认领, 请在任务列表查看[{username}] | claim_task")
+            logger.error(message)
+            return {"result": False, "message": message}
         self.claimant = username
         self.claim_time = timezone.now()
         self.status = "claimed"
@@ -82,7 +87,9 @@ class FunctionTask(models.Model):
     # TODO 驳回后是否可以修改参数？还是走其他流程
     def reject_task(self, username):
         if self.status != "submitted":
-            return {"result": False, "message": "task has been claimed by others"}
+            message = _(f"任务认领失败: 任务已被他人认领, 请在任务列表查看[{username}] | reject_task")
+            logger.error(message)
+            return {"result": False, "message": message}
         self.rejecter = username
         self.reject_time = timezone.now()
         self.status = "rejected"
@@ -90,9 +97,13 @@ class FunctionTask(models.Model):
 
     def transfer_task(self, username, claimant):
         if self.status not in ["claimed", "executed"]:
-            return {"result": False, "message": "task with status:%s cannot be transferred" % self.status}
+            message = _(f"任务转交失败: 仅[{self.status}]的任务才可转交, 请检查任务状态 | transfer_task")
+            logger.error(message)
+            return {"result": False, "message": message}
         if self.claimant != username:
-            return {"result": False, "message": "task can only be transferred by claimant"}
+            message = _(f"任务转交失败: 仅[{claimant}]才可转交任务, 请检查是否已认领该任务")
+            logger.error(message)
+            return {"result": False, "message": message}
         self.predecessor = self.claimant
         self.transfer_time = timezone.now()
         self.claimant = claimant

@@ -82,7 +82,7 @@
                     @onNodeDblclick="onNodeDblclick"
                     @onNodeClick="onNodeClick"
                     @onNodeMousedown="onNodeMousedown"
-                    @onMouseEnter="onMouseEnter"
+                    @onNodeMouseEnter="onNodeMouseEnter"
                     @onNodeCheckClick="onNodeCheckClick"
                     @onRetryClick="$emit('onRetryClick', $event)"
                     @onForceFail="$emit('onForceFail', $event)"
@@ -128,6 +128,26 @@
                     v-show="!smallMapLoading"
                     @mousedown.prevent="onMouseDownSelect">
                 </div>
+            </div>
+        </div>
+        <!-- 节点历史执行时间展示 -->
+        <div v-if="execRecordPosition" class="execute-record-tips-content" :style="execRecordPosition">
+            <div class="content-wrap" v-bkloading="{ isLoading: execRecordLoading }">
+                <ul>
+                    <li class="content-item">
+                        <span>{{ $t('当前已执行') }}</span>
+                        <span class="time">{{ nodeExecRecordInfo.curTime || '--' }}</span>
+                    </li>
+                    <li class="content-item">
+                        <span>{{ $t('最近一次执行时长') }}</span>
+                        <span class="time">{{ nodeExecRecordInfo.latestTime || '--' }}</span>
+                    </li>
+                    <li class="content-item">
+                        <span>{{ $t('近 n 次平均执行时长', { n: nodeExecRecordInfo.count }) }}</span>
+                        <span class="time">{{ nodeExecRecordInfo.meanTime || '--' }}</span>
+                    </li>
+                </ul>
+                <p class="deadline">{{ $t('*数据统计截至') + ' ' + nodeExecRecordInfo.deadline }}</p>
             </div>
         </div>
     </div>
@@ -220,6 +240,10 @@
             nodeVariableInfo: {
                 type: Object,
                 default: () => ({})
+            },
+            nodeExecRecordInfo: {
+                type: Object,
+                default: () => ({})
             }
         },
         data () {
@@ -289,7 +313,9 @@
                 zoomRatio: 100,
                 labelDrag: false, // 标识分支条件是否为拖动触发
                 connectorPosition: {}, // 鼠标hover的连线的坐标
-                conditionInfo: null
+                conditionInfo: null,
+                execRecordPosition: null,
+                execRecordLoading: false
             }
         },
         watch: {
@@ -299,6 +325,12 @@
                     lines,
                     nodes
                 }
+            },
+            nodeExecRecordInfo: {
+                handler (val) {
+                    this.execRecordLoading = false
+                },
+                deep: true
             }
         },
         created () {
@@ -892,6 +924,7 @@
                     nodeConfig = gateways[node.id]
                 }
                 this.showShortcutPanel = false
+                
                 this.$refs.jsFlow.removeNode(node)
                 this.$emit('templateDataChanged')
                 this.$emit('onLocationChange', 'delete', node)
@@ -1306,12 +1339,50 @@
                 this.$emit('onNodeMousedown', id)
             },
             // node mouseenter
-            onMouseEnter () {
-                this.closeShortcutPanel()
+            onNodeMouseEnter (node) {
+                if (this.activeNode && node.id !== this.activeNode.id) {
+                    this.closeShortcutPanel()
+                }
+                // 展开节点历史执行时间
+                if (node.status === 'RUNNING') {
+                    let left, top
+                    const { x, y, type, id } = node
+                    const { x: offsetX, y: offsetY } = this.$refs.jsFlow.canvasOffset
+                    switch (type) {
+                        case 'tasknode':
+                        case 'subflow':
+                            left = x + offsetX + NODES_SIZE_POSITION.ACTIVITY_SIZE[0]
+                            top = y + offsetY - 10
+                            break
+                        case 'startpoint':
+                            left = x + offsetX + NODES_SIZE_POSITION.EVENT_SIZE[0]
+                            top = y + offsetY - 10
+                            break
+                        default:
+                            left = x + offsetX + NODES_SIZE_POSITION.GATEWAY_SIZE[0]
+                            top = y + offsetY - 10
+                    }
+                    this.execRecordPosition = {
+                        top: `${top}px`,
+                        left: `${left}px`
+                    }
+                    this.execRecordLoading = true
+                    this.$emit('nodeExecRecord', id)
+                }
+            },
+            // 关闭节点历史执行时间
+            closeNodeExecRecord () {
+                this.execRecordPosition = null
+                this.execRecordLoading = false
+                this.$emit('closeNodeExecRecord')
             },
             // 点击节点
             onNodeClick (id, type, event) {
                 this.$emit('onNodeClick', id, type)
+                // 关闭节点历史执行时间
+                if (this.execRecordPosition) {
+                    this.closeNodeExecRecord()
+                }
                 // 如果不是模版编辑页面，点击节点相当于打开配置面板（任务执行是打开执行信息面板）
                 if (!this.editable) {
                     this.onShowNodeConfig(id)
@@ -1488,6 +1559,10 @@
                 this.showShortcutPanel = false
                 this.shortcutPanelNodeOperate = false
                 this.shortcutPanelDeleteLine = false
+                // 关闭节点历史执行时间
+                if (this.execRecordPosition) {
+                    this.closeNodeExecRecord()
+                }
             },
             /**
              * 切换选中节点
@@ -2010,6 +2085,47 @@
             border: 1px solid #738abe;
             border-radius: 2px;
             cursor: pointer;
+        }
+    }
+    .execute-record-tips-content {
+        position: absolute;
+        z-index: 5;
+        padding-left: 15px;
+        .content-wrap {
+            min-width: 235px;
+            font-size: 12px;
+            background: #fff;
+            padding: 12px 16px;
+            border: 1px solid #dcdee5;
+            box-shadow: 0 0 5px 0 rgba(0,0,0,0.09);
+        }
+        .content-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #979ba5;
+            margin-bottom: 8px;
+            &:first-child {
+                color: #699df4;
+                .time {
+                    font-weight: 700;
+                }
+            }
+            &:last-child {
+                margin-bottom: 15px;
+            }
+            .time {
+                color: #63656e;
+                padding-left: 15px;
+            }
+        }
+        .deadline {
+            color: #c4c6cc;
+            padding-top: 8px;
+            border-top: 1px solid #dcdee5;
+        }
+        &:hover {
+            display: block;
         }
     }
 </style>
