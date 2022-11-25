@@ -48,6 +48,7 @@ class UpdateTaskConstantsPermission(permissions.BasePermission):
 class UpdateTaskConstantsViewSerializer(serializers.Serializer):
     constants = serializers.DictField(help_text="需要修改的全局变量", required=True)
     meta_constants = serializers.DictField(help_text="需要修改的全局中的元变量元信息", required=False, default={})
+    modified_constant_keys = serializers.ListField(help_text="修改的变量key列表", required=False)
 
 
 class UpdateTaskConstantsResponseSerializer(serializers.Serializer):
@@ -87,10 +88,7 @@ class UpdateTaskConstantsView(APIView):
 
         if set_result["result"]:
             constants = task.pipeline_instance.execution_data.get("constants")
-            extra_info = extract_extra_info(
-                constants,
-                keys=request.data.get("modified_constant_keys") if "modified_constant_keys" in request.data else None,
-            )
+            extra_info = extract_extra_info(constants, keys=serializer.data.get("modified_constant_keys"))
 
             TaskOperateRecord.objects.create(
                 operator=request.user.username,
