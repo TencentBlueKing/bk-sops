@@ -1545,6 +1545,8 @@ const en = {
     '字典': 'Map',
     '变量Value格式不正确': 'The variable Value is not in the correct format',
     '至少保留一条全局变量': 'Keep at least one global variable',
+    '参数明细': 'Parameter details',
+    '展开全部': 'Expand All',
     '中文': 'Chinese'
 }
 
