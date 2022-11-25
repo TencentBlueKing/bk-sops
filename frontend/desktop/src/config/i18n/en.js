@@ -1547,7 +1547,8 @@ const en = {
     '至少保留一条全局变量': 'Keep at least one global variable',
     '参数明细': 'Parameter details',
     '展开全部': 'Expand All',
-    '中文': 'Chinese'
+    '中文': 'Chinese',
+    '参数已被使用，不可修改': 'The parameter has been used and cannot be modified'
 }
 
 export default en
