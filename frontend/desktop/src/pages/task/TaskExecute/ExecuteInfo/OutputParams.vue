@@ -150,6 +150,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            word-break: break-all;
         }
     }
     .outputs-section .full-code-editor {
