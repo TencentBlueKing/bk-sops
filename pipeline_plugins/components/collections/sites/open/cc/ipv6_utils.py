@@ -3,6 +3,7 @@ import logging
 from collections import Counter
 
 from gcloud.utils import cmdb
+from gcloud.utils.cmdb import get_business_host_by_hosts_ids
 from gcloud.utils.ip import extract_ip_from_ip_str
 from pipeline_plugins.components.utils.sites.open.utils import compare_ip_list_and_return
 
@@ -116,7 +117,7 @@ def get_ipv6_hosts(executor, bk_biz_id, supplier_account, ipv6_list, is_biz_set=
         ipv6_host_list = cmdb.get_business_set_host_ipv6(
             executor,
             supplier_account,
-            ["bk_host_id", "bk_host_innerip_v6", "bk_cloud_id"],
+            ["bk_host_id", "bk_host_innerip_v6", "bk_cloud_id", "bk_agent_id", "bk_host_innerip"],
             ipv6_list,
         )
     else:
@@ -125,7 +126,7 @@ def get_ipv6_hosts(executor, bk_biz_id, supplier_account, ipv6_list, is_biz_set=
             executor,
             bk_biz_id,
             supplier_account,
-            ["bk_host_id", "bk_host_innerip_v6", "bk_cloud_id"],
+            ["bk_host_id", "bk_host_innerip_v6", "bk_cloud_id", "bk_agent_id", "bk_host_innerip"],
             ipv6_list,
         )
 
@@ -176,11 +177,15 @@ def get_ipv4_hosts_with_cloud(executor, bk_biz_id, supplier_account, ipv4_list_w
 
     if is_biz_set:
         ipv4_host_with_cloud_list = cmdb.get_business_set_host(
-            executor, supplier_account, ["bk_host_id", "bk_host_innerip", "bk_cloud_id"], ip_list
+            executor, supplier_account, ["bk_host_id", "bk_host_innerip", "bk_cloud_id", "bk_agent_id"], ip_list
         )
     else:
         ipv4_host_with_cloud_list = cmdb.get_business_host(
-            executor, bk_biz_id, supplier_account, ["bk_host_id", "bk_host_innerip", "bk_cloud_id"], ip_list
+            executor,
+            bk_biz_id,
+            supplier_account,
+            ["bk_host_id", "bk_host_innerip", "bk_cloud_id", "bk_agent_id"],
+            ip_list,
         )
 
     # 如果接口报错or其他的导致返回个空，则return []， 上层的compare逻辑会保证插件执行失败
@@ -234,13 +239,17 @@ def get_ipv4_hosts(executor, bk_biz_id, supplier_account, ipv4_list, is_biz_set=
         ipv4_host_list = cmdb.get_business_set_host(
             executor,
             supplier_account,
-            ["bk_host_id", "bk_host_innerip", "bk_cloud_id"],
+            ["bk_host_id", "bk_host_innerip", "bk_cloud_id", "bk_agent_id"],
             ipv4_list,
         )
     else:
         # 在本业务下查询ipv4主机
         ipv4_host_list = cmdb.get_business_host(
-            executor, bk_biz_id, supplier_account, ["bk_host_id", "bk_host_innerip", "bk_cloud_id"], ipv4_list
+            executor,
+            bk_biz_id,
+            supplier_account,
+            ["bk_host_id", "bk_host_innerip", "bk_cloud_id", "bk_agent_id"],
+            ipv4_list,
         )
 
     # 如果接口报错or其他的导致返回个空，则return []， 上层的compare逻辑会保证插件执行失败
@@ -251,6 +260,32 @@ def get_ipv4_hosts(executor, bk_biz_id, supplier_account, ipv4_list, is_biz_set=
         )
         return []
     return ipv4_host_list
+
+
+def get_hosts_by_hosts_ids(executor, bk_biz_id, supplier_account, host_id_list):
+    if not host_id_list:
+        return {"result": True, "data": []}
+
+    host_list = get_business_host_by_hosts_ids(
+        executor,
+        bk_biz_id,
+        supplier_account,
+        ["bk_host_id", "bk_host_innerip", "bk_cloud_id", "bk_agent_id"],
+        host_id_list,
+    )
+    # 如果接口报错or其他的导致返回个空，则return []， 上层的compare逻辑会保证插件执行失败
+    if not host_list:
+        logger.info(
+            "[get_hosts_by_hosts_ids] list_biz_hosts[host_id] query failed, return empty list, "
+            "ipv6_list = {}".format(host_id_list)
+        )
+        return {"result": False, "message": "list_biz_hosts[host_id] query failed, return empty list"}
+
+    result, message = compare_ip_list(host_list, host_id_list, "bk_host_id")
+    if not result:
+        logger.info("[get_hosts_by_hosts_ids] list_biz_hosts[bk_host_id] query failed, " "message = {}".format(message))
+        return {"result": False, "message": message}
+    return {"result": True, "data": host_list}
 
 
 # 第二层的查询，相较于上一层查询，带了一些返回值的封装以及额外的校验逻辑

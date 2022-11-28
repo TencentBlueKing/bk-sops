@@ -37,6 +37,7 @@ from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import (
     get_ipv6_host_list,
     get_ipv4_host_list,
     get_ipv4_host_with_cloud_list,
+    get_hosts_by_hosts_ids,
 )
 from pipeline_plugins.components.utils.sites.open.utils import cc_get_ips_info_by_str, cc_get_ips_info_by_str_ipv6
 
@@ -132,7 +133,9 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
     return {"result": True, "data": [str(host["bk_host_id"]) for host in host_list]}
 
 
-def cc_get_host_by_innerip_with_ipv6(executor, bk_biz_id, ip_str, supplier_account, is_biz_set=False):
+def cc_get_host_by_innerip_with_ipv6(
+    executor, bk_biz_id, ip_str, supplier_account, is_biz_set=False, host_id_detail=False
+):
     """
     根据一个ip字符串查询host列表，ip字符串支持ipv4,ipv6,host_id,0:ipv4混输入模式，当is_biz_set=True时，bk_biz_set可以不填，
     此时 该接口主要用于 业务集相关当插件，比如业务集快速执行脚本，这个时候需要全业务去查询
@@ -141,6 +144,7 @@ def cc_get_host_by_innerip_with_ipv6(executor, bk_biz_id, ip_str, supplier_accou
     @param ip_str: ip字符串
     @param supplier_account: 服务商
     @param is_biz_set: 是否跨业务
+    @param host_id_detail: 是否针对 host_id_detail 也要查询详情
     @return:
     """
     ipv6_list, ipv4_list, host_id_list, ipv4_list_with_cloud_id = extract_ip_from_ip_str(ip_str)
@@ -164,7 +168,13 @@ def cc_get_host_by_innerip_with_ipv6(executor, bk_biz_id, ip_str, supplier_accou
         return ipv4_host_with_cloud_list_result
 
     # 用户直接输入的host_id list 则不做处理
-    host_list = [{"bk_host_id": host_id} for host_id in host_id_list]
+    if host_id_detail:
+        host_list_result = get_hosts_by_hosts_ids(executor, bk_biz_id, supplier_account, host_id_list)
+        if not host_list_result["result"]:
+            return host_list_result
+        host_list = host_list_result["data"]
+    else:
+        host_list = [{"bk_host_id": host_id} for host_id in host_id_list]
     data = (
         ipv6_host_list_result["data"]
         + ipv4_host_list_result["data"]

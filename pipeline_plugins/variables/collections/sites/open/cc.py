@@ -25,7 +25,10 @@ from gcloud.utils.cmdb import get_business_host
 
 from gcloud.utils.ip import get_ip_by_regex, get_plat_ip_by_regex
 from gcloud.conf import settings as gcloud_settings
-from pipeline_plugins.variables.collections.sites.open.ip_filter_base import GseAgentStatusIpFilter
+from pipeline_plugins.variables.collections.sites.open.ip_filter_base import (
+    GseAgentStatusIpFilter,
+    GseAgentStatusIpV6Filter,
+)
 from pipeline.core.data.var import LazyVariable
 from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
 from pipeline_plugins.base.utils.inject import supplier_account_for_project
@@ -384,13 +387,15 @@ class VarCmdbIpFilter(LazyVariable, SelfExplainVariable):
 
         origin_ip_list = get_plat_ip_by_regex(origin_ips)
         filter_data = {**self.value, **self.pipeline_data}
+        if not settings.ENABLE_IPV6:
+            # 进行gse agent状态过滤
+            gse_agent_status_filter = GseAgentStatusIpFilter(origin_ip_list, filter_data)
+            match_result_ip = gse_agent_status_filter.get_match_ip()
+            if not ip_cloud:
+                return ip_separator.join(["{}".format(host["ip"]) for host in match_result_ip])
 
-        # 进行gse agent状态过滤
-        gse_agent_status_filter = GseAgentStatusIpFilter(origin_ip_list, filter_data)
-
-        match_result_ip = gse_agent_status_filter.get_match_ip()
-
-        if not ip_cloud:
-            return ip_separator.join(["{}".format(host["ip"]) for host in match_result_ip])
-
-        return ip_separator.join(["{}:{}".format(host["bk_cloud_id"], host["ip"]) for host in match_result_ip])
+            return ip_separator.join(["{}:{}".format(host["bk_cloud_id"], host["ip"]) for host in match_result_ip])
+        else:
+            gse_agent_status_ipv6_filter = GseAgentStatusIpV6Filter(origin_ips, filter_data)
+            match_result_ip = gse_agent_status_ipv6_filter.get_match_ip()
+            return ip_separator.join(match_result_ip)
