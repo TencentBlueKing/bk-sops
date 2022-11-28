@@ -400,7 +400,7 @@
                         params['create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
                     }
                     if (edit_time && edit_time[0] && edit_time[1]) {
-                        params['edit_time__gte'] = moment.tz(edit_time[0], this.timeZone).format('YYYY-MM-DD hh:mm:ss')
+                        params['edit_time__gte'] = moment.tz(edit_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                         params['edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
                     }
                     const resp = await this.loadClockedList(params)
