@@ -862,14 +862,12 @@
                     this.$emit('onLocationMoveDone', loc)
                 }
                 // 拖拽节点到线上, 自动生成连线
-                console.log(loc)
                 this.handleDraggerNodeToLine(loc)
             },
             // 拖拽节点到线上, 自动生成连线
             handleDraggerNodeToLine (loc, isMove) {
                 /**
                  * 54 节点默认高度 154 节点默认宽度
-                 * 30为节点与垂直线的最小重合值 14为节点与横向线的最小重合值
                  */
                 // 网关节点不做处理
                 if (loc.id in this.$store.state.template.gateways) {
@@ -882,9 +880,9 @@
                     return
                 }
                 // 横向区间
-                const horizontalInterval = [loc.x + 30, loc.x + 154 - 30]
+                const horizontalInterval = [loc.x + 30, loc.x + 154 - 60]
                 // 纵向区间
-                const verticalInterval = [loc.y + 14, loc.y + 54 - 14]
+                const verticalInterval = [loc.y + 12, loc.y + 54 - 15]
                 // 符合匹配连线
                 const macthLines = {}
                 // 获取所有连线dom
@@ -910,7 +908,6 @@
                         source: lineConfig.source.id,
                         target: lineConfig.target.id
                     })[0]
-                    console.log(connection)
                     // 切除插入到节点内部的两端线段
                     let segments = connection.connector.getSegments().slice(1, -1)
                     // 纯直线会重叠了1px，为线的折点预留的位置
@@ -960,7 +957,7 @@
                         } else if (y1 === y2) { // 水平
                             height = 8
                             width = maxX - minX
-                            top = lineTop + minY + 1.5
+                            top = lineTop + minY
                             left = lineLeft + minX
                             inputtArrow = x1 > x2 ? 'Right' : 'Left'
                             outputArrow = x1 > x2 ? 'Left' : 'Right'
@@ -971,7 +968,6 @@
                                 return (left > horizontalInterval[0] && horizontalInterval[1] > left)
                                     && (top < verticalInterval[0] && top + height > verticalInterval[1])
                             } else {
-                                console.log(top, verticalInterval)
                                 return (top > verticalInterval[0] && verticalInterval[1] > top)
                                     && (left < horizontalInterval[0] && left + width > horizontalInterval[1])
                             }
@@ -979,7 +975,6 @@
                         return false
                     })
                     if (isMatch) {
-                        console.log('ss')
                         macthLines[lineConfig.id] = {
                             ...lineConfig,
                             inputtArrow,
@@ -987,7 +982,6 @@
                         }
                     }
                 })
-                console.log(macthLines)
                 if (isMove) {
                     return macthLines
                 }
@@ -1012,6 +1006,22 @@
                         })
                     })
                 }
+            },
+            // 设置连线颜色
+            setPaintStyle (lineId, color = '#a9adb6') {
+                const lineConfig = this.canvasData.lines.find(item => item.id === lineId)
+                if (!lineConfig) return
+                const connection = this.$refs.jsFlow.instance.getConnections({
+                    source: lineConfig.source.id,
+                    target: lineConfig.target.id
+                })[0]
+                connection.setPaintStyle({
+                    fill: 'transparent',
+                    strokeWidth: 2,
+                    stroke: color,
+                    outlineStroke: 'tranparent',
+                    outlineWidth: 4
+                })
             },
             onOverlayClick (overlay, e) {
                 // 点击 overlay 类型
@@ -1190,20 +1200,11 @@
                 const macthLines = this.handleDraggerNodeToLine(location, true) || {}
                 if (Object.keys(macthLines).length === 1) {
                     const lineConfig = Object.values(macthLines)[0]
-                    const connection = this.$refs.jsFlow.instance.getConnections({
-                        source: lineConfig.source.id,
-                        target: lineConfig.target.id
-                    })[0]
-                    connection.setHoverPaintStyle({ fill: 'transparent', stroke: '#3a84ff' })
+                    this.setPaintStyle(lineConfig.id, '#3a84ff')
                     this.connectionHoverList.push(lineConfig.id)
                 } else if (this.connectionHoverList.length) {
                     this.connectionHoverList.forEach(lineId => {
-                        const lineConfig = this.canvasData.lines.find(item => item.id === lineId)
-                        const connection = this.$refs.jsFlow.instance.getConnections({
-                            source: lineConfig.source.id,
-                            target: lineConfig.target.id
-                        })[0]
-                        connection.setHoverPaintStyle({ fill: 'transparent', stroke: '#3a84ff' })
+                        this.setPaintStyle(lineId, '#a9adb6')
                     })
                     this.connectionHoverList = []
                 }
