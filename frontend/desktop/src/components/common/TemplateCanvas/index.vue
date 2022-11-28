@@ -289,7 +289,8 @@
                 zoomRatio: 100,
                 labelDrag: false, // 标识分支条件是否为拖动触发
                 connectorPosition: {}, // 鼠标hover的连线的坐标
-                conditionInfo: null
+                conditionInfo: null,
+                connectionHoverList: []
             }
         },
         watch: {
@@ -597,6 +598,10 @@
                 } else if (node.type === 'endpoint') {
                     this.isDisableEndPoint = true
                 }
+                this.$nextTick(() => {
+                    // 拖拽节点到线上, 自动生成连线
+                    this.handleDraggerNodeToLine(node)
+                })
             },
             // 拖拽到节点上自动连接
             onConnectionDragStop (source, targetId, event) {
@@ -856,6 +861,157 @@
                 } else {
                     this.$emit('onLocationMoveDone', loc)
                 }
+                // 拖拽节点到线上, 自动生成连线
+                console.log(loc)
+                this.handleDraggerNodeToLine(loc)
+            },
+            // 拖拽节点到线上, 自动生成连线
+            handleDraggerNodeToLine (loc, isMove) {
+                /**
+                 * 54 节点默认高度 154 节点默认宽度
+                 * 30为节点与垂直线的最小重合值 14为节点与横向线的最小重合值
+                 */
+                // 网关节点不做处理
+                if (loc.id in this.$store.state.template.gateways) {
+                    return
+                }
+                // 已有连线的节点不做处理
+                const { flows } = this.$store.state.template
+                const isExistLine = Object.values(flows).some(item => [item.source, item.target].includes(loc.id))
+                if (isExistLine) {
+                    return
+                }
+                // 横向区间
+                const horizontalInterval = [loc.x + 30, loc.x + 154 - 30]
+                // 纵向区间
+                const verticalInterval = [loc.y + 14, loc.y + 54 - 14]
+                // 符合匹配连线
+                const macthLines = {}
+                // 获取所有连线dom
+                const lineDoms = document.querySelectorAll('.jtk-connector')
+                Array.from(lineDoms).forEach((dom, index) => {
+                    // 计算连线的top, left
+                    let { style } = dom.attributes
+                    style = style.value.split(';').filter(value => /:[0-9.]+px/.test(value))
+                    let lineLeft = style.find(item => item.indexOf('left') > -1)
+                    lineLeft = lineLeft ? /:([0-9.]+)px/.exec(lineLeft)[1] : 0
+                    lineLeft = Number(lineLeft)
+                    let lineTop = style.find(item => item.indexOf('top') > -1)
+                    lineTop = lineTop ? /:([0-9.]+)px/.exec(lineTop)[1] : 0
+                    lineTop = Number(lineTop)
+
+                    // 根据下标找到对应的line的配置
+                    const lineConfig = this.canvasData.lines[index]
+                    let inputtArrow = 'Left'
+                    let outputArrow = 'Right'
+                    
+                    // 获取两端节点相关配置
+                    const connection = this.$refs.jsFlow.instance.getConnections({
+                        source: lineConfig.source.id,
+                        target: lineConfig.target.id
+                    })[0]
+                    console.log(connection)
+                    // 切除插入到节点内部的两端线段
+                    let segments = connection.connector.getSegments().slice(1, -1)
+                    // 纯直线会重叠了1px，为线的折点预留的位置
+                    if (segments.length === 2 && segments.every(item => item.type === 'Straight')) {
+                        // 整合为一条线段
+                        let params = {}
+                        const { x1, x2, y1, y2 } = segments[0].params
+                        if (x1 === x2) {
+                            if (y1 > y2) {
+                                params = { x1: 0, x2: 0, y1, y2: 0 }
+                            } else {
+                                params = { x1: 0, x2: 0, y1: 0, y2: y2 * 2 }
+                            }
+                        } else if (y1 === y2) {
+                            if (x1 > x2) {
+                                params = { x1, x2: 0, y1: 0, y2: 0 }
+                            } else {
+                                params = { x1: 0, x2: x2 * 2, y1: 0, y2: 0 }
+                            }
+                        }
+                        segments[0].params = params
+                        segments = segments.slice(0, 1)
+                    }
+                    // 过滤掉圆弧线段
+                    segments = segments.filter(item => item.type === 'Straight')
+                    const isMatch = segments.some(item => {
+                        // 计算线段的高宽和坐标
+                        const { x1, x2, y1, y2 } = item.params
+                        // 线段的坐标的最大值/最小值
+                        let maxX = Math.max(x1, x2)
+                        maxX = maxX < 0 ? 0 : maxX
+                        let minX = Math.min(x1, x2)
+                        minX = minX < 0 ? 0 : minX
+                        let maxY = Math.max(y1, y2)
+                        maxY = maxY < 0 ? 0 : maxY
+                        let minY = Math.min(y1, y2)
+                        minY = minY < 0 ? 0 : minY
+
+                        let left, top, width, height
+                        if (x1 === x2) { // 垂直
+                            width = 8
+                            height = maxY - minY
+                            top = lineTop + minY
+                            left = lineLeft + minX
+                            inputtArrow = y1 > y2 ? 'Bottom' : 'Top'
+                            outputArrow = y1 > y2 ? 'Top' : 'Bottom'
+                        } else if (y1 === y2) { // 水平
+                            height = 8
+                            width = maxX - minX
+                            top = lineTop + minY + 1.5
+                            left = lineLeft + minX
+                            inputtArrow = x1 > x2 ? 'Right' : 'Left'
+                            outputArrow = x1 > x2 ? 'Left' : 'Right'
+                        }
+
+                        if (width > 154 || height > 154) { // 线段长需大于节点宽度或高度
+                            if (height > 8) { // 垂直线
+                                return (left > horizontalInterval[0] && horizontalInterval[1] > left)
+                                    && (top < verticalInterval[0] && top + height > verticalInterval[1])
+                            } else {
+                                console.log(top, verticalInterval)
+                                return (top > verticalInterval[0] && verticalInterval[1] > top)
+                                    && (left < horizontalInterval[0] && left + width > horizontalInterval[1])
+                            }
+                        }
+                        return false
+                    })
+                    if (isMatch) {
+                        console.log('ss')
+                        macthLines[lineConfig.id] = {
+                            ...lineConfig,
+                            inputtArrow,
+                            outputArrow
+                        }
+                    }
+                })
+                console.log(macthLines)
+                if (isMove) {
+                    return macthLines
+                }
+                // 只对符合单条线的情况进行处理
+                if (Object.keys(macthLines).length === 1) {
+                    const values = Object.values(macthLines)[0]
+                    this.onNodeRemove(loc)
+                    this.$nextTick(() => {
+                        // 按照连线本身的方向，插入新的节点
+                        this.onInsertNode({
+                            startNodeId: values.source.id,
+                            endNodeId: values.target.id,
+                            location: loc,
+                            startLineArrow: {
+                                source: values.source.arrow,
+                                target: values.inputtArrow
+                            },
+                            endLineArrow: {
+                                source: values.outputArrow,
+                                target: values.target.arrow
+                            }
+                        })
+                    })
+                }
             },
             onOverlayClick (overlay, e) {
                 // 点击 overlay 类型
@@ -1015,6 +1171,42 @@
                     this.closeShortcutPanel()
                 }
                 this.adjustLineEndpoint(node.id)
+                // 获取节点的动态坐标
+                const nodeDom = document.querySelector(`#${node.id}`)
+                let { style } = nodeDom.attributes
+                style = style.value.split(';').filter(value => value)
+                let nodeLeft = style.find(item => item.indexOf('left') > -1)
+                nodeLeft = nodeLeft ? /:.([0-9.]+)px/.exec(nodeLeft)[1] : 0
+                nodeLeft = Number(nodeLeft)
+                let nodeTop = style.find(item => item.indexOf('top') > -1)
+                nodeTop = nodeTop ? /:.([0-9.]+)px/.exec(nodeTop)[1] : 0
+                nodeTop = Number(nodeTop)
+                const location = {
+                    ...node,
+                    x: nodeLeft,
+                    y: nodeTop
+                }
+                // 拖拽节点到线上, 自动生成连线
+                const macthLines = this.handleDraggerNodeToLine(location, true) || {}
+                if (Object.keys(macthLines).length === 1) {
+                    const lineConfig = Object.values(macthLines)[0]
+                    const connection = this.$refs.jsFlow.instance.getConnections({
+                        source: lineConfig.source.id,
+                        target: lineConfig.target.id
+                    })[0]
+                    connection.setHoverPaintStyle({ fill: 'transparent', stroke: '#3a84ff' })
+                    this.connectionHoverList.push(lineConfig.id)
+                } else if (this.connectionHoverList.length) {
+                    this.connectionHoverList.forEach(lineId => {
+                        const lineConfig = this.canvasData.lines.find(item => item.id === lineId)
+                        const connection = this.$refs.jsFlow.instance.getConnections({
+                            source: lineConfig.source.id,
+                            target: lineConfig.target.id
+                        })[0]
+                        connection.setHoverPaintStyle({ fill: 'transparent', stroke: '#3a84ff' })
+                    })
+                    this.connectionHoverList = []
+                }
             },
             /**
              * 节点移动时，计算当前节点的四个端点到目标端点的最短距离，取出对应端点，重新连线
@@ -1408,7 +1600,7 @@
              * @param {String} endNode -后节点 id
              * @param {Object} location -新建节点的 location
              */
-            onInsertNode ({ startNodeId, endNodeId, location, isFillParam }) {
+            onInsertNode ({ startNodeId, endNodeId, location, isFillParam, startLineArrow = {}, endLineArrow = {} }) {
                 const type = isFillParam ? 'copy' : 'add'
                 const deleteLine = this.canvasData.lines.find(line => line.source.id === startNodeId && line.target.id === endNodeId)
                 if (!deleteLine) {
@@ -1420,22 +1612,22 @@
                 this.$refs.jsFlow.removeConnector(deleteLine)
                 const startLine = {
                     source: {
-                        arrow: 'Right',
+                        arrow: startLineArrow.source || 'Right',
                         id: startNodeId
                     },
                     target: {
                         id: location.id,
-                        arrow: 'Left'
+                        arrow: startLineArrow.target || 'Left'
                     }
                 }
                 const endLine = {
                     source: {
-                        arrow: 'Right',
+                        arrow: endLineArrow.source || 'Right',
                         id: location.id
                     },
                     target: {
                         id: endNodeId,
-                        arrow: 'Left'
+                        arrow: endLineArrow.target || 'Left'
                     }
                 }
                 this.$refs.jsFlow.createNode(location)
