@@ -31,6 +31,7 @@ from .utils import (
     get_objects_of_topo_tree,
     get_modules_of_bk_obj,
     get_modules_id,
+    get_ges_agent_status_ipv6,
 )
 from .constants import NO_ERROR, ERROR_CODES
 
@@ -62,6 +63,9 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
     @return:
     """
     default_host_fields = ["bk_host_id", "bk_host_name", "bk_cloud_id", "bk_host_innerip"]
+    if settings.ENABLE_IPV6:
+        # IPV6环境下才会尝试去拿agent主机
+        default_host_fields.append("bk_agent_id")
     fields = set(default_host_fields + json.loads(request.GET.get("fields", "[]")))
     client = get_client_by_user(request.user.username)
 
@@ -126,28 +130,57 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
             data.append(host_detail)
 
         if "agent" in fields:
-            agent_kwargs = {
-                "bk_biz_id": bk_biz_id,
-                "bk_supplier_id": bk_supplier_id,
-                "hosts": [
-                    {"bk_cloud_id": host["bk_cloud_id"], "ip": host["bk_host_innerip"]}
-                    for host in data
-                    if host["bk_host_innerip"] != ""
-                ],
-            }
-            agent_result = client.gse.get_agent_status(agent_kwargs)
-            if not agent_result["result"]:
-                message = handle_api_error(_("管控平台(GSE)"), "gse.get_agent_status", agent_kwargs, agent_result)
-                result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": message}
-                return JsonResponse(result)
+            if settings.ENABLE_IPV6:
+                # 开启IPV6将会调用网关进行查询
+                bk_agent_id_list = []
+                for host in data:
+                    bk_agent_id = host.get("bk_agent_id")
+                    # 如果bk_agent_id=空
+                    if not bk_agent_id:
+                        if not host["bk_host_innerip"]:
+                            # 如果既没有如果bk_agent_id，又没有ipv4地址，说明这个主机石台没有安装agent的ipv6主机，忽略，不再查询agent状态
+                            continue
+                        bk_agent_id = "{}:{}".format(host["bk_cloud_id"], host["bk_host_innerip"])
+                    bk_agent_id_list.append(bk_agent_id)
 
-            agent_data = agent_result["data"]
-            for host in data:
-                # agent在线状态，0为不在线，1为在线，-1为未知
-                agent_info = agent_data.get(
-                    "{cloud}:{ip}".format(cloud=host["bk_cloud_id"], ip=host["bk_host_innerip"]), {}
-                )
-                host["agent"] = agent_info.get("bk_agent_alive", -1)
+                try:
+                    agent_id_status_map = get_ges_agent_status_ipv6(bk_agent_id_list)
+                except Exception as e:
+                    result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": e}
+                    return JsonResponse(result)
+
+                for host in data:
+                    bk_agent_id = host.get("bk_agent_id")
+                    # 如果bk_agent_id = 空
+                    if not bk_agent_id:
+                        if not host["bk_host_innerip"]:
+                            # 如果既没有如果bk_agent_id，又没有ipv4地址，说明这个主机石台没有安装agent的ipv6主机，忽略，不再查询agent状态, 直接重置为未知
+                            host["agent"] = -1
+                        bk_agent_id = "{}:{}".format(host["bk_cloud_id"], host["bk_host_innerip"])
+                    host["agent"] = agent_id_status_map.get(bk_agent_id, -1)
+            else:
+                agent_kwargs = {
+                    "bk_biz_id": bk_biz_id,
+                    "bk_supplier_id": bk_supplier_id,
+                    "hosts": [
+                        {"bk_cloud_id": host["bk_cloud_id"], "ip": host["bk_host_innerip"]}
+                        for host in data
+                        if host["bk_host_innerip"] != ""
+                    ],
+                }
+                agent_result = client.gse.get_agent_status(agent_kwargs)
+                if not agent_result["result"]:
+                    message = handle_api_error(_("管控平台(GSE)"), "gse.get_agent_status", agent_kwargs, agent_result)
+                    result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": message}
+                    return JsonResponse(result)
+
+                agent_data = agent_result["data"]
+                for host in data:
+                    # agent在线状态，0为不在线，1为在线，-1为未知
+                    agent_info = agent_data.get(
+                        "{cloud}:{ip}".format(cloud=host["bk_cloud_id"], ip=host["bk_host_innerip"]), {}
+                    )
+                    host["agent"] = agent_info.get("bk_agent_alive", -1)
 
         # search host lock status
         if request.GET.get("search_host_lock", None):

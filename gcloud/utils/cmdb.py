@@ -339,3 +339,18 @@ def get_dynamic_group_host_list(username, bk_biz_id, bk_supplier_account, dynami
     }
     host_list = batch_request(client.cc.execute_dynamic_group, kwargs, limit=200)
     return True, {"code": 0, "message": "success", "data": host_list}
+
+
+def get_business_host_by_hosts_ids(username, bk_biz_id, supplier_account, host_fields, host_id_list=None):
+    kwargs = {
+        "bk_biz_id": bk_biz_id,
+        "bk_supplier_account": supplier_account,
+        "fields": list(host_fields or []),
+        "host_property_filter": {
+            "condition": "AND",
+            "rules": [{"field": "bk_host_id", "operator": "in", "value": host_id_list}],
+        },
+    }
+
+    client = get_client_by_user(username)
+    return batch_request(client.cc.list_biz_hosts, kwargs)

@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 import logging
 import re
 
+import requests
 from django.utils.translation import ugettext_lazy as _
 
 from api.utils.request import batch_request
@@ -688,3 +689,44 @@ def get_bk_cloud_id_for_host(host_info, cloud_key="cloud"):
     if not host_info.get(cloud_key, []):
         return DEFAULT_BK_CLOUD_ID
     return host_info[cloud_key][0]["id"]
+
+
+def get_ges_agent_status_ipv6(bk_agent_id_list):
+    if not bk_agent_id_list:
+        return {}
+    ENV_MAP = {"PRODUCT": "prod", "STAGING": "stag"}
+
+    gse_url = settings.BK_API_URL_TMPL.format(api_name="bk-gse")
+    get_agent_status_url = "{}/{}/api/v2/cluster/list_agent_state".format(
+        gse_url, ENV_MAP.get(settings.RUN_MODE, "stag")
+    )
+    params = {"bk_app_code": settings.APP_CODE, "bk_app_secret": settings.SECRET_KEY, "agent_id_list": bk_agent_id_list}
+
+    resp = requests.post(url=get_agent_status_url, json=params)
+
+    if resp.status_code != 200:
+        raise Exception("[get_ges_agent_status_ipv6] 查询agent状态错误，返回值非200, content = {}".format(resp.content))
+    try:
+        data = resp.json()
+    except Exception as e:
+        raise Exception("[get_ges_agent_status_ipv6] 查询agent状态错误，返回值非Json, err={}".format(e))
+    if data["code"] != 0:
+        raise Exception("[get_ges_agent_status_ipv6] 查询agent状态错误，返回值非code非0")
+
+    if len(data.get("data", [])) == 0:
+        raise Exception("[get_ges_agent_status_ipv6] 查询agent状态错误，返回值为空")
+
+    agent_id_status_map = {}
+    for item in data.get("data", []):
+        # esb agent 状态规则 : agent在线状态，0为不在线，1为在线
+        # apigw agent 状态规则： Agent当前运行状态码, -1:未知 0:初始安装 1:启动中 2:运行中 3:有损状态 4:繁忙状态 5:升级中 6:停止中 7:解除安装
+        # 为了前端的显示/与过滤保持一致，所有需要对状态进行转换
+        if item["status_code"] == 2:
+            status_code = 1
+        elif item["status_code"] == -1:
+            status_code = -1
+        else:
+            status_code = 0
+        agent_id_status_map[item["bk_agent_id"]] = status_code
+
+    return agent_id_status_map
