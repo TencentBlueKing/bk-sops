@@ -54,6 +54,10 @@
             bkloading: bkLoading.directive
         },
         props: {
+            markdown: {
+                type: Boolean,
+                default: () => true
+            },
             logList: {
                 type: Array,
                 default: () => ([])
@@ -79,7 +83,7 @@
                 if (this.logList.length < 1) {
                     return ''
                 }
-                return marked(this.logDetail)
+                return this.markdown ? marked(this.logDetail) : this.logDetail
             }
         },
         watch: {
