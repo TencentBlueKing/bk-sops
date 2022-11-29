@@ -55,9 +55,16 @@ def get_plugin_list(request: Request):
     search_term = request.validated_data.get("search_term")
     limit = request.validated_data.get("limit")
     offset = request.validated_data.get("offset")
-    tag = request.validated_data.get("tag")
+    tag_id = request.validated_data.get("tag_id")
+    extra_kwargs = {}
+    if tag_id is not None:
+        extra_kwargs["tag_id"] = tag_id
     result = PluginServiceApiClient.get_plugin_list(
-        search_term=search_term, limit=limit, offset=offset, distributor_code_name=PLUGIN_DISTRIBUTOR_NAME, tag=tag
+        search_term=search_term,
+        limit=limit,
+        offset=offset,
+        distributor_code_name=PLUGIN_DISTRIBUTOR_NAME,
+        **extra_kwargs,
     )
     return JsonResponse(result)
 
@@ -88,12 +95,17 @@ def get_plugin_tags(request: Request):
 def get_plugin_detail_list(request: Request):
     """获取插件服务列表及详情信息"""
     search_term = request.validated_data.get("search_term")
+    fetch_all = request.validated_data.get("fetch_all")
     limit = request.validated_data.get("limit")
     offset = request.validated_data.get("offset")
     exclude_not_deployed = request.validated_data.get("exclude_not_deployed")
-    tag = request.validated_data.get("tag")
+    tag_id = request.validated_data.get("tag_id")
+    extra_kwargs = {}
+    if tag_id is not None:
+        extra_kwargs["tag_id"] = tag_id
 
-    if exclude_not_deployed:
+    # 滚动加载获取已部署对应环境插件
+    if not fetch_all and exclude_not_deployed:
         plugins = []
         cur_offset = offset
         # 考虑到会有一些未部署到对应环境的情况，这里适当放大limit，减少请求次数
@@ -106,7 +118,7 @@ def get_plugin_detail_list(request: Request):
                 order_by="name",
                 include_addresses=0,
                 distributor_code_name=PLUGIN_DISTRIBUTOR_NAME,
-                tag=tag,
+                **extra_kwargs,
             )
             if not result["result"]:
                 return JsonResponse(result)
@@ -123,29 +135,49 @@ def get_plugin_detail_list(request: Request):
                 break
         plugins = plugins[:limit]
         next_offset = plugins[-1][0] + 1 if len(plugins) > 0 else cur_offset
-        response = {
-            "result": True,
-            "message": None,
-            "data": {
-                "next_offset": next_offset,
-                "plugins": [plugin[1] for plugin in plugins],
-                "return_plugin_count": len(plugins),
-            },
-        }
-    else:
-        result = PluginServiceApiClient.get_plugin_detail_list(
-            search_term=search_term,
-            limit=limit,
-            offset=offset,
-            order_by="name",
-            include_addresses=0,
-            distributor_code_name=PLUGIN_DISTRIBUTOR_NAME,
+        return JsonResponse(
+            {
+                "result": True,
+                "message": None,
+                "data": {
+                    "next_offset": next_offset,
+                    "plugins": [plugin[1] for plugin in plugins],
+                    "return_plugin_count": len(plugins),
+                },
+            }
         )
-        if not result["result"]:
-            return JsonResponse(result)
-        response = result
-        plugins = result["data"]["plugins"]
-        response["data"] = {"next_offset": limit + offset, "plugins": plugins, "return_plugin_count": len(plugins)}
+
+    if not fetch_all:
+        extra_kwargs.update({"limit": limit, "offset": offset})
+    result = PluginServiceApiClient.get_plugin_detail_list(
+        search_term=search_term,
+        order_by="name",
+        include_addresses=0,
+        distributor_code_name=PLUGIN_DISTRIBUTOR_NAME,
+        **extra_kwargs,
+    )
+    if not result["result"]:
+        return JsonResponse(result)
+
+    plugins = (
+        [
+            plugin
+            for plugin in result["data"]["plugins"]
+            if plugin["deployed_statuses"][env.APIGW_ENVIRONMENT]["deployed"]
+        ]
+        if exclude_not_deployed
+        else result["data"]["plugins"]
+    )
+
+    response = {
+        "data": {
+            "next_offset": -1 if fetch_all else limit + offset,
+            "plugins": plugins,
+            "return_plugin_count": len(plugins),
+        },
+        "result": True,
+        "message": None,
+    }
     return JsonResponse(response)
 
 
