@@ -123,7 +123,7 @@
             right: 0;
             bottom: 0;
             left: 0;
-            height: 100vh;
+            height: 100vh !important;
             z-index: 3000;
             margin: 0 !important;
         }
