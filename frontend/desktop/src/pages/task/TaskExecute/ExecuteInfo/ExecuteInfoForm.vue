@@ -131,7 +131,6 @@
             ]),
             async getTemplateData () {
                 const { template_source, scheme_id_list: schemeIds } = this.componentValue
-                if (!template_source) return
                 const data = {
                     templateId: this.nodeActivity.original_template_id,
                     project__id: this.projectId

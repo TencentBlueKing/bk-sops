@@ -1324,7 +1324,7 @@ const en = {
     '已选择x项': '{num} items selected',
     '确认删除所选的x个变量？': 'Are you sure to delete the selected {num} variables?',
     '开启模板预渲染的变量在任务执行初始完成渲染，后续变量值保存不变，且不可引用输出变量': 'Variables that enable template pre-rendering are rendered at the beginning of task execution, and subsequent variable values are kept unchanged, and output variables cannot be referenced',
-    '设置为常量表示在任务执行最开始完成值的渲染，后续执行过程中值保存不变': 'Setting it as a constant means that the rendering of the value is completed at the beginning of the task execution, and the value is kept unchanged in the subsequent execution process',
+    '常量在任务启动就完成变量值的计算，使用变量时不再重新计算保持值不变': 'The constant calculates the variable value when the task starts, and does not recalculate when the variable is used to keep the value unchanged',
     '顶层流程（n）': 'Top Flow({n})',
     '子流程（n）': 'Sub Flow({n})',
     '是否覆盖已有子流程（实验功能，请谨慎使用并选择正确的流程）': 'Whether to override existing subprocesses (Experimental feature, please use it with caution and choose the correct process)',
