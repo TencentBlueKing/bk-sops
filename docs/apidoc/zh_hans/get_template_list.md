@@ -45,6 +45,8 @@
             "bk_biz_id": "2",
             "creator": "admin",
             "bk_biz_name": "蓝鲸",
+            "project_id": 3,
+            "project_name": "蓝鲸",
             "id": 32,
             "editor": "admin",
             "creator":"admin",
@@ -67,6 +69,8 @@
             "bk_biz_id": "2",
             "creator": "admin",
             "bk_biz_name": "蓝鲸",
+            "project_id": 3,
+            "project_name": "蓝鲸",
             "id": 31,
             "editor": null,
             "creator": "admin",
@@ -89,6 +93,8 @@
             "bk_biz_id": "2",
             "creator": "admin",
             "bk_biz_name": "蓝鲸",
+            "project_id": 3,
+            "project_name": "蓝鲸",
             "id": 30,
             "editor": "admin",
             "creator": "admin",
@@ -121,18 +127,20 @@
 
 #### data
 
-| 字段      | 类型      | 描述      |
-|-----------|----------|-----------|
-|  bk_biz_id      |    string    |      模板所属业务ID     |
-|  bk_biz_name      |    string    |      模板所属业务名称    |
-|  id      |    int    |      模板ID    |
-|  name      |    string    |      模板名称    |
-|  category      |    string    |      模板分类，分类信息见下面说明    |
-|  creator      |    string    |      模板创建人   |
-|  create_time      |    string    |      模板创建时间   |
-|  editor      |    string 或者 null    |      模板编辑人   |
-|  edit_time      |    string   |      模板最新编辑时间   |
-|  auth_actions      |    array   |      用户对该资源有权限的操作   |
+| 字段           | 类型      | 描述             |
+|--------------|----------|----------------|
+| bk_biz_id    |    string    | 模板所属业务ID       |
+| bk_biz_name  |    string    | 模板所属业务名称       |
+| project_id   |    string    | 模板所属项目ID       |
+| project_name |    string    | 模板所属项目名称       |
+| id           |    int    | 模板ID           |
+| name         |    string    | 模板名称           |
+| category     |    string    | 模板分类，分类信息见下面说明 |
+| creator      |    string    | 模板创建人          |
+| create_time  |    string    | 模板创建时间         |
+| editor       |    string 或者 null    | 模板编辑人          |
+| edit_time    |    string   | 模板最新编辑时间       |
+| auth_actions |    array   | 用户对该资源有权限的操作   |
 
 #### data.category
 

@@ -38,6 +38,7 @@ from gcloud.utils.handlers import handle_api_error
 from gcloud.exceptions import APIError, ApiRequestError
 from gcloud.core.utils import get_user_business_list
 from pipeline_plugins.components.utils import batch_execute_func
+from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -396,7 +397,9 @@ def cc_get_editable_module_attribute(request, biz_cc_id):
     result = client.cc.search_object_attribute(kwargs)
     if not result["result"]:
         check_and_raise_raw_auth_fail_exception(result)
-        return JsonResponse({"result": False, "data": "调用cc接口失败，message={}".format(result["message"])})
+        message = _(f"业务配置数据请求失败: 请求[配置平台]接口发生异常: {result['message']} | cc_get_editable_module_attribute")
+        logger.error(message)
+        return JsonResponse({"result": False, "data": message})
     data = result["data"]
     module_attribute = []
     for module_item in data:
@@ -438,7 +441,9 @@ def cc_get_editable_set_attribute(request, biz_cc_id):
     result = client.cc.search_object_attribute(kwargs)
     if not result["result"]:
         check_and_raise_raw_auth_fail_exception(result)
-        return JsonResponse({"result": False, "data": "调用cc接口失败，message={}".format(result["message"])})
+        message = _(f"业务配置数据请求失败: 请求[配置平台]接口发生异常: {result['message']} | cc_get_editable_set_attribute")
+        logger.error(message)
+        return JsonResponse({"result": False, "data": message})
     data = result["data"]
     set_attribute = []
     for set_item in data:

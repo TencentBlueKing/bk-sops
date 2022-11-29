@@ -33,6 +33,7 @@ class TaskOperateRecord(BaseOperateRecord):
     """任务操作记录"""
 
     node_id = models.CharField(_("任务实例节点ID"), max_length=255, blank=True, default="")
+    extra_info = models.TextField(_("任务实例节点拓展信息"), blank=True, default="")
 
     class Meta:
         verbose_name = _("任务操作记录")

@@ -52,7 +52,6 @@ modify crontab for periodic task
         "cron": "*/1 15 * * * (m/h/d/dM/MY)"
     },
     "result": true,
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -64,7 +63,6 @@ modify crontab for periodic task
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    dict    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
-|  request_id     |    string  | esb request id         |
 |  trace_id     |    string  | open telemetry trace_id       |
 
 #### data

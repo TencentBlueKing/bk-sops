@@ -125,7 +125,10 @@ class CCBatchModuleUpdateService(Service):
                         update_params[attr] = attr_type_mapping[attr](value)
                     except Exception as e:
                         transform_success = False
-                        message = "item: {}, 转换属性{}为{}类型时出错: {}".format(update_item, attr, attr_type_mapping[attr], e)
+                        message = _(
+                            f"模块属性更新失败: 插件配置的属性不合法, 请修复后重试. item: {update_item}, "
+                            f"转换属性: {attr}为{attr_type_mapping[attr]}类型时出错, 错误内容: {e}"
+                        )
                         self.logger.error(message)
                         failed_update.append(message)
                         break
@@ -137,7 +140,7 @@ class CCBatchModuleUpdateService(Service):
                 # 拼接完整路径，biz>set>module
                 cc_module_select_text = "{}>{}".format(bk_biz_name, update_params.pop("cc_module_select_text"))
             except Exception as e:
-                message = "module 属性更新失败,用户未输入模块拓扑的值 item={} message={}".format(update_item, e)
+                message = _(f"模块属性更新失败: 没有提供待更新的模块, 请检查配置. item: {update_item}, message: {e}")
                 failed_update.append(message)
                 self.logger.error(message)
                 continue
@@ -147,8 +150,9 @@ class CCBatchModuleUpdateService(Service):
                 executor, biz_cc_id, supplier_account, BkObjType.MODULE, cc_module_select_text
             )
             if not cc_list_select_node_inst_id_return["result"]:
-                message = "module 属性更新失败, item={}, message={}".format(
-                    update_item, cc_list_select_node_inst_id_return["message"]
+
+                message = _(
+                    f"模块属性更新失败: 主机属性: {update_item}, message: {cc_list_select_node_inst_id_return['message']}"
                 )
                 failed_update.append(message)
                 self.logger.error(message)
@@ -168,9 +172,7 @@ class CCBatchModuleUpdateService(Service):
                 self.logger.info("module 属性更新成功, item={}, data={}".format(update_item, kwargs))
                 success_update.append(update_item)
             else:
-                message = "module 属性更新失败, item={}, data={}, message: {}".format(
-                    update_item, kwargs, update_result["message"]
-                )
+                message = _(f"模块属性更新失败: 主机属性: {update_item}, 更新属性: {kwargs}, 错误消息: {update_result['message']}")
                 self.logger.error(message)
                 failed_update.append(message)
 

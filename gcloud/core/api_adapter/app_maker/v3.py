@@ -19,6 +19,7 @@ import ujson as json
 import env
 from gcloud.conf import settings
 from gcloud.core.models import EnvironmentVariables
+from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("component")
 ENV = "stag" if settings.IS_LOCAL else "prod"
@@ -49,7 +50,7 @@ def _request_paasv3_light_app_api(url, method, params=None, data=None):
     try:
         response = method_func(url, data=json.dumps(data or {}), headers=headers, params=params or {})
     except Exception as e:
-        message = "paasv3 request({url}) error: {e}".format(url=url, e=e)
+        message = _(f"轻应用请求Paas接口报错: 请求url: {url}, 报错内容: {e}")
         logger.error(message)
 
         return {"result": False, "message": message}
@@ -57,9 +58,7 @@ def _request_paasv3_light_app_api(url, method, params=None, data=None):
     try:
         response.raise_for_status()
     except requests.HTTPError as e:
-        message = "paasv3 request({url}) error: {e}, response: {response}".format(
-            url=response.request.url, e=e, response=response.text
-        )
+        message = _(f"轻应用请求Paas接口报错: 请求url: {response.request.url}, 报错内容: {e}, 响应内容: {response.text}")
         logger.error(message)
 
         return {"result": False, "message": message}
@@ -84,9 +83,7 @@ def _request_paasv3_light_app_api(url, method, params=None, data=None):
             resp_data["message"] = resp_data.get("bk_error_msg")
         return resp_data
     except Exception as e:
-        message = "paasv3 request({url}) error, response json convert failed: {e}, response: {response}".format(
-            url=response.request.url, e=e, response=response.content
-        )
+        message = _(f"轻应用请求PaaS接口报错: 请求url {response.request.url}, 接口响应json格式转换失败 {e}，响应内容 {response.content}")
         logger.error(message)
 
         return {"result": False, "message": message}

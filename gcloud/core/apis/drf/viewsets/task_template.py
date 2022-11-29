@@ -50,6 +50,7 @@ from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.contrib.operate_record.constants import OperateType, OperateSource, RecordType
 from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
 from gcloud.user_custom_config.constants import TASKTMPL_ORDERBY_OPTIONS
+from django.utils.translation import ugettext_lazy as _
 
 
 logger = logging.getLogger("root")
@@ -139,7 +140,8 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         if label_ids:
             label_ids = list(set(label_ids))
             if not Label.objects.check_label_ids(label_ids):
-                message = "Containing template label not exist, please check."
+                message = _("流程保存失败: 流程设置的标签不存在, 请检查配置后重试 | _sync_template_lables")
+                logger.error(message)
                 return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
             try:
                 TemplateLabelRelation.objects.set_labels_for_template(template_id, label_ids)

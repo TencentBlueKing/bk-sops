@@ -32,6 +32,7 @@
             <label v-if="option.showLabel" class="rf-tag-label">
                 <span
                     v-bk-tooltips="{
+                        allowHtml: true,
                         html: scheme.attrs.tips,
                         placement: 'top',
                         theme: 'light',

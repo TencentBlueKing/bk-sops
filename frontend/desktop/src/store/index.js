@@ -95,7 +95,7 @@ const store = new Vuex.Store({
         },
         // 版本日志详情
         getVersionDetail ({ commit }, data) {
-            return axios.get('version_log/version_log_detail/', {
+            return axios.get('version_log/markdown_version_log_detail/', {
                 params: {
                     log_version: data.version
                 }

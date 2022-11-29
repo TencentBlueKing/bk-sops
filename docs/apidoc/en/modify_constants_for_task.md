@@ -44,7 +44,6 @@ constant value
 {
     "data": "success",
     "result": true,
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -56,5 +55,4 @@ constant value
 |  result   |    bool    |      true or false, indicate success or failure              |
 |  data     |    string  |      data returned when result is true, "success"            |
 |  message  |    string  |      error message returned when result is false             |
-|  request_id     |    string  | esb request id         |
 |  trace_id     |    string  | open telemetry trace_id       |

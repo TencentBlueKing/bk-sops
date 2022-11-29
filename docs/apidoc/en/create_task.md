@@ -227,7 +227,6 @@ constant value, the type of value should be same with data from API[get_template
             ]
         }
     },
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -239,7 +238,6 @@ constant value, the type of value should be same with data from API[get_template
 |  result      |    bool    |   true/false, indicate success or failure     |
 |  data        |    dict  |   data returned when result is true, details are described below        |
 |  message     |    string  |   error message returned when result is false |
-|  request_id     |    string  | esb request id             |
 |  trace_id     |    string  | open telemetry trace_id        |
 
 ####  data

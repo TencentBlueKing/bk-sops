@@ -72,7 +72,6 @@ constant value
         "clocked_task_id": 88
     },
     "code": 0,
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -84,7 +83,6 @@ constant value
 | result     | bool   | true or false, indicate success or failure                     |
 | data       | dict   | data returned when result is true, details are described below |
 | message    | string | error message returned when result is false                    |
-| request_id | string | esb request id                                                 |
 | trace_id   | string | open telemetry trace_id                                        |
 
 #### data

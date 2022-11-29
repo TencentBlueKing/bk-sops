@@ -43,7 +43,6 @@ Task actions such as start, pause, resume, revoke, etc.
 {
     "result": true,
     "data": {},
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -55,5 +54,4 @@ Task actions such as start, pause, resume, revoke, etc.
 |  result   |    bool    |      true or false, indicate success or failure   |
 |  data     |    dict    |      data returned when result is true            |
 |  message  |    string  |      error message returned when result is false  |
-|  request_id     |    string  | esb request id         |
 |  trace_id     |    string  | open telemetry trace_id       |

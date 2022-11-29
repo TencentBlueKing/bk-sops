@@ -106,7 +106,6 @@
         }
     ],
     "code": 0,
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -118,7 +117,6 @@
 |  result      |    bool    |      true/false 查询成功与否     |
 |  data        |    dict      |      result=true 时返回数据，详细信息见下面说明     |
 |  message        |    string      |      result=false 时错误信息     |
-|  request_id     |    string  |      esb 请求 id     |
 |  trace_id     |    string  |      open telemetry trace_id     |
 
 #### data 说明
