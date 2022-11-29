@@ -882,7 +882,7 @@
                 // 横向区间
                 const horizontalInterval = [loc.x + 30, loc.x + 154 - 60]
                 // 纵向区间
-                const verticalInterval = [loc.y + 12, loc.y + 54 - 15]
+                const verticalInterval = [loc.y + 12, loc.y + 54 - 12]
                 // 符合匹配连线
                 const macthLines = {}
                 // 获取所有连线dom
@@ -910,6 +910,8 @@
                     })[0]
                     // 切除插入到节点内部的两端线段
                     let segments = connection.connector.getSegments().slice(1, -1)
+                    // 克隆线段列表，直线时会对线段宽高重新计算，避免影响
+                    segments = tools.deepClone(segments)
                     // 纯直线会重叠了1px，为线的折点预留的位置
                     if (segments.length === 2 && segments.every(item => item.type === 'Straight')) {
                         // 整合为一条线段
