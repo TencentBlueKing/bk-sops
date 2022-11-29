@@ -3,7 +3,7 @@
         <div class="log-wrap">
             <!-- 内置插件/第三方插件tab -->
             <bk-tab
-                v-if="isThirdPartyNode"
+                v-if="isThirdPartyNode && !isLogLoading"
                 :active-bar="{
                     position: 'top',
                     height: '2px'
@@ -17,7 +17,7 @@
             </bk-tab>
             <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
                 <full-code-editor
-                    v-if="curPluginTab === 'build_in_plugin' ? logInfo : thirdPartyNodeLog"
+                    v-if="logInfo || thirdPartyNodeLog"
                     class="scroll-editor"
                     :key="curPluginTab"
                     :value="curPluginTab === 'build_in_plugin' ? logInfo : thirdPartyNodeLog">
@@ -107,7 +107,7 @@
                 'loadPluginServiceLog'
             ]),
             initLog () {
-                const { state, history_id, version } = this.executeInfo
+                const { state, history_id, version, outputs } = this.executeInfo
                 // 获取节点日志
                 if (state && !['READY', 'CREATED'].includes(state)) {
                     const query = Object.assign({}, this.nodeDetailConfig, {
@@ -115,6 +115,11 @@
                         version: version
                     })
                     this.getPerformLog(query)
+                    // 获取第三方插件节点日志
+                    if (this.isThirdPartyNode) {
+                        const traceId = outputs.length && outputs[0].value
+                        this.handleTabChange(traceId)
+                    }
                 }
             },
             // 非admin 用户执行记录

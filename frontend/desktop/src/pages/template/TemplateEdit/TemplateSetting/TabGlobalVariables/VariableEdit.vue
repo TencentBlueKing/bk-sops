@@ -159,7 +159,7 @@
                 <!-- 模板预渲染 -->
                 <div class="form-item clearfix" v-if="!isInternalVal">
                     <label class="form-label">
-                        <span v-bk-tooltips.top="$t('设置为常量表示在任务执行最开始完成值的渲染，后续执行过程中值保存不变')" class="condition-tip">{{ $t('常量')}}</span>
+                        <span v-bk-tooltips.top="$t('常量在任务启动就完成变量值的计算，使用变量时不再重新计算保持值不变')" class="condition-tip">{{ $t('常量')}}</span>
                     </label>
                     <div class="form-content">
                         <bk-select

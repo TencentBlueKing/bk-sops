@@ -223,8 +223,8 @@
             } = this.$route.query
             const searchList = [
                 ...SEARCH_LIST,
-                { id: 'start_time', name: i18n.t('执行时间'), type: 'dateRange' },
-                { id: 'finish_time', name: i18n.t('结束时间'), type: 'dateRange' }
+                { id: 'start_time', name: i18n.t('执行开始'), type: 'dateRange' },
+                { id: 'finish_time', name: i18n.t('执行结束'), type: 'dateRange' }
             ]
             const searchSelectValue = searchList.reduce((acc, cur) => {
                 const values_text = this.$route.query[cur.id]
@@ -339,20 +339,20 @@
                     }
                     if (start_time && start_time[0] && start_time[1]) {
                         if (this.common) {
-                            data['pipeline_template__start_time__gte'] = moment(start_time[0]).format('YYYY-MM-DD')
-                            data['pipeline_template__start_time__lte'] = moment(start_time[1]).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__gte'] = moment(start_time[0]).format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_template__start_time__lte'] = moment(start_time[1]).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
                         } else {
-                            data['pipeline_instance__start_time__gte'] = moment.tz(start_time[0], this.timeZone).format('YYYY-MM-DD')
-                            data['pipeline_instance__start_time__lte'] = moment.tz(start_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__gte'] = moment.tz(start_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(start_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
                     if (finish_time && finish_time[0] && finish_time[1]) {
                         if (this.common) {
-                            data['pipeline_template__finish_time__gte'] = moment(finish_time[0]).format('YYYY-MM-DD')
-                            data['pipeline_template__finish_time__lte'] = moment(finish_time[1]).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_template__finish_time__gte'] = moment(finish_time[0]).format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_template__finish_time__lte'] = moment(finish_time[1]).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
                         } else {
-                            data['pipeline_instance__finish_time__gte'] = moment.tz(finish_time[0], this.timeZone).format('YYYY-MM-DD')
-                            data['pipeline_instance__finish_time__lte'] = moment.tz(finish_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_instance__finish_time__gte'] = moment.tz(finish_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_instance__finish_time__lte'] = moment.tz(finish_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
                     const auditListData = await this.loadAuditTaskList(data)
@@ -391,7 +391,7 @@
                         const info = {
                             id,
                             type: 'dateRange',
-                            name: id === 'start_time' ? i18n.t('执行时间') : i18n.t('结束时间'),
+                            name: id === 'start_time' ? i18n.t('执行开始') : i18n.t('执行结束'),
                             values: date
                         }
                         this.searchSelectValue.push(info)
