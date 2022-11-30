@@ -43,9 +43,9 @@
                         extCls: 'rf-label-tips',
                         boundary: 'window',
                         zIndex: 2072,
-                        disabled: !!!scheme.attrs.tips
+                        disabled: !option.formEdit || !!!scheme.attrs.tips
                     }"
-                    :class="{ 'tag-label-tips': scheme.attrs.tips }">
+                    :class="{ 'tag-label-tips': option.formEdit && scheme.attrs.tips }">
                     {{scheme.attrs.name}}
                 </span>
             </label>

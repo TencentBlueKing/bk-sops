@@ -145,9 +145,11 @@
                     this.setProjectId(projectId)
                 }
             }
+            this.queryHasNewVersion()
         },
         methods: {
             ...mapActions([
+                'queryNewVersion',
                 'getVersionList',
                 'getVersionDetail'
             ]),
@@ -169,28 +171,35 @@
             goToFeedback () {
                 window.open(this.bkFeedbackUrl, '_blank')
             },
+            // 查询用户是否读过最新的产品日志，如果自动弹出日志弹窗
+            async queryHasNewVersion () {
+                const res = await this.queryNewVersion()
+                if (!res.data.has_read_latest) {
+                    this.onOpenVersion()
+                }
+            },
             /* 打开版本日志 */
             async onOpenVersion () {
                 this.$refs.versionLog.show()
                 try {
-                    this.logListLoding = true
+                    this.logListLoading = true
                     const res = await this.getVersionList()
                     this.logList = res.data
                 } catch (e) {
                     console.log(e)
                 } finally {
-                    this.logListLoding = false
+                    this.logListLoading = false
                 }
             },
             async loadLogDetail (version) {
                 try {
-                    this.logDetailLoding = true
+                    this.logDetailLoading = true
                     const res = await this.getVersionDetail({ version })
                     this.logDetail = res.data
                 } catch (e) {
                     console.log(e)
                 } finally {
-                    this.logDetailLoding = false
+                    this.logDetailLoading = false
                 }
             },
             handleVersionChange (data) {

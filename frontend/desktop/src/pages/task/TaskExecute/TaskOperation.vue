@@ -26,6 +26,7 @@
             :is-breadcrumb-show="isBreadcrumbShow"
             :is-show-view-process="isShowViewProcess"
             :is-task-operation-btns-show="isTaskOperationBtnsShow"
+            :params-can-be-modify="paramsCanBeModify"
             @onSelectSubflow="onSelectSubflow"
             @onOperationClick="onOperationClick"
             @onTaskParamsClick="onTaskParamsClick"
@@ -442,7 +443,7 @@
                     lines: line,
                     locations: location.map(item => {
                         const code = item.type === 'tasknode' ? activities[item.id].component.code : ''
-                        return { ...item, mode: 'execute', checked: true, code }
+                        return { ...item, mode: 'execute', checked: true, code, ready: true }
                     }),
                     branchConditions
                 }
@@ -966,7 +967,8 @@
                         retry: currentNode.retry,
                         error_ignored: currentNode.error_ignored,
                         error_ignorable: errorIgnorable,
-                        auto_retry: autoRetry
+                        auto_retry: autoRetry,
+                        ready: false
                     }
 
                     this.setTaskNodeStatus(id, data)
@@ -1049,28 +1051,14 @@
                     console.warn(e)
                 }
             },
-            async onRetryTask (renderData = this.nodeInputs) {
-                const { instance_id, component_code, node_id } = this.nodeDetailConfig
+            async onRetryTask (renderData) {
+                const { component_code } = this.nodeDetailConfig
                 try {
                     let res
                     if (component_code) {
-                        const data = {
-                            instance_id,
-                            node_id,
-                            component_code,
-                            inputs: renderData
-                        }
-                        if (component_code === 'subprocess_plugin') {
-                            const { inputs } = this.nodeInfo.data
-                            const constants = inputs.subprocess ? inputs.subprocess.pipeline.constants : {}
-                            Object.keys(constants).forEach(key => {
-                                constants[key].value = renderData[key]
-                            })
-                            data.inputs = inputs
-                        }
-                        res = await this.instanceRetry(data)
+                        res = await this.instanceRetry(renderData)
                     } else {
-                        res = await this.subflowNodeRetry({ instance_id, node_id })
+                        res = await this.subflowNodeRetry(renderData)
                     }
                     if (res.result) {
                         this.$bkMessage({
@@ -1098,9 +1086,35 @@
                     this.pending.retry = true
                     this.setNodeDetailConfig(this.retryNodeId)
                     await this.loadNodeInfo()
-                    await this.onRetryTask()
+
+                    const { instance_id, component_code, node_id } = this.nodeDetailConfig
+                    const data = {
+                        instance_id,
+                        node_id
+                    }
+                    if (component_code) {
+                        const inputs = tools.deepClone(this.nodeInputs)
+                        const { constants } = this.pipelineData
+                        for (const key in constants) {
+                            const values = constants[key]
+                            if (this.retryNodeId in values.source_info) {
+                                values.source_info[this.retryNodeId].forEach(code => {
+                                    if (code in inputs) {
+                                        inputs[code] = values.key
+                                    }
+                                })
+                            }
+                        }
+                        data.inputs = inputs
+                        data.node_id = node_id
+                    }
+                    await this.onRetryTask(data)
                     this.isNodeInfoPanelShow = false
                     this.retryNodeId = undefined
+                    // 重新轮询任务状态
+                    this.isFailedSubproceeNodeInfo = null
+                    this.setTaskStatusTimer()
+                    this.updateNodeActived(this.nodeDetailConfig.id, false)
                 } catch (error) {
                     console.warn(error)
                 } finally {

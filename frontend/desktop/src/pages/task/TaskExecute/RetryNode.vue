@@ -238,6 +238,9 @@
                 try {
                     if (this.nodeDetailConfig.component_code) {
                         const data = {
+                            instance_id,
+                            node_id,
+                            component_code,
                             inputs: this.renderData
                         }
                         if (component_code === 'subprocess_plugin') {
@@ -248,7 +251,7 @@
                             })
                             data.inputs = inputs
                         }
-                        this.$emit('retrySuccess', data.inputs)
+                        this.$emit('retrySuccess', data)
                     } else {
                         this.$emit('retrySuccess', { instance_id, node_id })
                     }

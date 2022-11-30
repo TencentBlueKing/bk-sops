@@ -375,7 +375,7 @@
                             type: 'Object',
                             value: {
                                 config: {
-                                    set_count: 0,
+                                    set_count: 1,
                                     set_template_id: '',
                                     host_resources: [],
                                     module_detail: []
@@ -615,7 +615,7 @@
     line-height: 32px;
 }
 .rf-label-tips {
-    max-width: 240px;
+    max-width: 480px;
     .tippy-tooltip {
         color: #63656e;
         border: 1px solid #dcdee5;

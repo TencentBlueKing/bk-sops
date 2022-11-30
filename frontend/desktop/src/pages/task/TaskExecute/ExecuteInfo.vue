@@ -36,7 +36,7 @@
                     ext-cls="execute-info-tab"
                     @tab-change="onTabChange">
                     <bk-tab-panel name="record" :label="$t('执行记录')"></bk-tab-panel>
-                    <bk-tab-panel name="config" :label="$t('节点配置')"></bk-tab-panel>
+                    <bk-tab-panel name="config" :label="$t('配置快照')"></bk-tab-panel>
                     <bk-tab-panel name="history" :label="$t('操作历史')"></bk-tab-panel>
                     <bk-tab-panel name="log" :label="$t('调用日志')"></bk-tab-panel>
                 </bk-tab>
@@ -271,13 +271,13 @@
                 } else if (this.executeInfo.state === 'SUSPENDED') {
                     state = 'common-icon-dark-circle-pause'
                 } else if (this.executeInfo.state === 'FINISHED') {
-                    state = 'bk-icon icon-check-circle-shape'
+                    state = this.executeInfo.skip ? 'common-icon-fail-skip' : 'bk-icon icon-check-circle-shape'
                 } else if (this.executeInfo.state === 'FAILED') {
                     state = 'common-icon-dark-circle-close'
                 } else if (this.executeInfo.state === 'CREATED') {
-                    state = 'icon-circle-shape'
+                    state = 'common-icon-waitting'
                 } else if (this.executeInfo.state === 'READY') {
-                    state = 'icon-circle-shape'
+                    state = 'common-icon-waitting'
                 }
                 return state
             },
@@ -371,7 +371,7 @@
                     this.executeInfo = respData
                     this.historyInfo = respData.skip ? [] : [respData]
                     if (respData.histories) {
-                        this.historyInfo.push(...respData.histories)
+                        this.historyInfo.unshift(...respData.histories)
                     }
                     // 记录当前循环下，总共执行的次数
                     this.theExecuteRecord = this.historyInfo.length
@@ -840,7 +840,7 @@
             display: flex;
             align-items: center;
             :first-child {
-                margin: 0 5px;
+                margin: 2px 5px 0;
             }
         }
     }
@@ -920,6 +920,14 @@
     .common-icon-dark-circle-close {
         font-size: 14px;
         color: #ff5757;
+    }
+    .common-icon-waitting {
+        font-size: 16px;
+        color: #dcdee5;
+    }
+    .common-icon-fail-skip {
+        font-size: 14px;
+        color: #f7b6b6;
     }
     .icon-circle-shape {
         display: inline-block;

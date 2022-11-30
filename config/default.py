@@ -202,7 +202,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.26.0-beta1"
+STATIC_VERSION = "3.26.0-beta3"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -762,11 +762,11 @@ CLEAN_EXPIRED_V2_TASK_INSTANCE = env.CLEAN_EXPIRED_V2_TASK_INSTANCE
 # 是否启动swagger ui
 ENABLE_SWAGGER_UI = env.ENABLE_SWAGGER_UI
 
-# 节点历史最大执行记录数
-MAX_RECORDED_NODE_EXECUTION_TIMES = env.MAX_RECORDED_NODE_EXECUTION_TIMES
-
 # 流程最高嵌套层数
 TEMPLATE_MAX_RECURSIVE_NUMBER = env.TEMPLATE_MAX_RECURSIVE_NUMBER
+
+# 节点历史最大执行记录数
+MAX_RECORDED_NODE_EXECUTION_TIMES = env.MAX_RECORDED_NODE_EXECUTION_TIMES
 
 
 # engine admin permission settings

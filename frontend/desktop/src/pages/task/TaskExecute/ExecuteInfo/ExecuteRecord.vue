@@ -1,6 +1,6 @@
 <template>
     <div class="execute-record">
-        <template v-if="isReadyStatus">
+        <template v-if="Object.keys(executeInfo).length">
             <section class="info-section abnormal-section" data-test-id="taskExcute_form_exceptionInfo">
                 <h4 class="common-section-title">{{ $t('异常信息') }}</h4>
                 <div class="fail-text" v-if="executeInfo.ex_data" v-html="executeInfo.failInfo"></div>
@@ -8,11 +8,11 @@
             </section>
             <section class="info-section" data-test-id="taskExcute_form_excuteInfo">
                 <h4 class="common-section-title">{{ $t('执行信息') }}</h4>
-                <div class="subprocee-link" v-if="isSubProcessNode" @click="onSkipSubProcess">
+                <div class="subprocee-link" v-if="isReadyStatus && isSubProcessNode" @click="onSkipSubProcess">
                     <i class="common-icon-box-top-right-corner"></i>
                     {{ $t('子流程详情') }}
                 </div>
-                <ul class="operation-table">
+                <ul class="operation-table" v-if="isReadyStatus">
                     <li>
                         <span class="th">{{ $t('开始时间') }}</span>
                         <span class="td">{{ executeInfo.start_time || '--' }}</span>
@@ -26,6 +26,7 @@
                         <span class="td">{{ getLastTime(executeInfo.elapsed_time) || '--' }}</span>
                     </li>
                 </ul>
+                <NoData v-else :message="$t('暂无执行信息')"></NoData>
             </section>
             <InputParams
                 :admin-view="adminView"
@@ -35,8 +36,8 @@
                 :render-data="executeInfo.renderData">
             </InputParams>
             <OutputParams
-                :admin-view="adminView"
                 :is-ready-status="isReadyStatus"
+                :admin-view="adminView"
                 :outputs="executeInfo.outputsInfo"
                 :node-detail-config="nodeDetailConfig">
             </OutputParams>
@@ -51,11 +52,13 @@
     import tools from '@/utils/tools.js'
     import InputParams from './InputParams.vue'
     import OutputParams from './OutputParams.vue'
+    import NoData from '@/components/common/base/NoData.vue'
     export default {
         name: 'executeRecord',
         components: {
             InputParams,
-            OutputParams
+            OutputParams,
+            NoData
         },
         props: {
             adminView: {

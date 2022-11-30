@@ -191,7 +191,7 @@
                         :class="{ 'btn-permission-disable': hasNoCreatePerm }"
                         v-cursor="{ active: hasNoCreatePerm }"
                         @click="onClockedConfirm">
-                        {{ type === 'edit' ? $t('保存') : $t('创建') }}
+                        {{ type === 'edit' ? $t('保存') : $t('提交') }}
                     </bk-button>
                     <bk-button
                         theme="default"
@@ -378,7 +378,7 @@
             },
             sideSliderTitle () {
                 return this.type === 'edit' ? i18n.t('编辑计划任务')
-                    : this.type === 'create' ? i18n.t('创建计划任务')
+                    : this.type === 'create' ? i18n.t('新建计划任务')
                         : i18n.t('克隆计划任务')
             },
             previewScheme () {
