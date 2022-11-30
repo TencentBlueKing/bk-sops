@@ -1130,6 +1130,14 @@
                         converge_gateway_id: nodeGateway.converge_gateway_id || undefined
                     })
                 }
+                if (nodeGateway.default_condition) {
+                    branches.unshift({
+                        id: nodeGateway.default_condition.flow_id,
+                        node_id: id,
+                        name: nodeGateway.default_condition.name,
+                        converge_gateway_id: nodeGateway.converge_gateway_id || undefined
+                    })
+                }
                 this.isCondParallelGw = nodeGateway.type === 'ConditionalParallelGateway'
                 this.gatewayBranches = branches
                 this.isGatewaySelectDialogShow = true
