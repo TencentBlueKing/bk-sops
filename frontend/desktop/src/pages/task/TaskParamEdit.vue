@@ -179,7 +179,7 @@
                                 this.setAtomDisable(item.attrs.children)
                             }
                         })
-                    } else if (!this.unUsedConstants.includes(variable.key)) { // 修改参数页已被使用的变量禁止修改参数值
+                    } else if (this.unUsedConstants.length && !this.unUsedConstants.includes(variable.key)) { // 修改参数页已被使用的变量禁止修改参数值
                         atomConfig.forEach(item => {
                             if (!item.attrs) {
                                 item.attrs = {}

@@ -810,8 +810,8 @@
                         'minute': cronArray[0],
                         'hour': cronArray[1],
                         'day_of_week': cronArray[4],
-                        'day_of_month': cronArray[3],
-                        'month_of_year': cronArray[2]
+                        'day_of_month': cronArray[2],
+                        'month_of_year': cronArray[3]
                     }
                     const pipelineData = {
                         ...this.previewData,
