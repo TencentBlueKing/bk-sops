@@ -96,7 +96,7 @@ class PluginListQuerySerializer(serializers.Serializer):
     search_term = serializers.CharField(help_text="插件名称搜索过滤字段", required=False)
     limit = serializers.IntegerField(help_text="分页配置，接口一次最多100条", required=False, default=100)
     offset = serializers.IntegerField(help_text="分页配置", required=False, default=0)
-    tag = serializers.IntegerField(help_text="插件tag id", required=False)
+    tag_id = serializers.IntegerField(help_text="插件tag id", required=False)
 
     def validate_limit(self, limit):
         if limit < 0:
@@ -113,6 +113,12 @@ class PluginListQuerySerializer(serializers.Serializer):
 
 class PluginDetailListQuerySerializer(PluginListQuerySerializer):
     exclude_not_deployed = serializers.BooleanField(help_text="是否排除当前环境未部署数据", required=False, default=True)
+    fetch_all = serializers.BooleanField(help_text="是否一次性获取全部数据", required=False, default=False)
+
+    def validate(self, data):
+        if data.get("fetch_all") and not data.get("search_term"):
+            raise serializers.ValidationError("cannot fetch all plugins without search_term params")
+        return data
 
 
 class PluginTagsListQuerySerializer(serializers.Serializer):

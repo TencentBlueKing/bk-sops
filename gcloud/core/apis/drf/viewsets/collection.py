@@ -20,6 +20,10 @@ from gcloud.core.apis.drf.serilaziers.collection import CollectionSerializer
 from gcloud.core.apis.drf.viewsets import GcloudReadOnlyViewSet
 from gcloud import err_code
 from gcloud.iam_auth import IAMMeta, utils as iam_auth_utils
+from django.utils.translation import ugettext_lazy as _
+import logging
+
+logger = logging.getLogger("root")
 
 
 class CollectionPermission(permissions.BasePermission):
@@ -57,9 +61,8 @@ class CollectionViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins.D
             category = item["category"]
             instance_id = item["instance_id"]
             if Collection.objects.filter(username=username, category=category, instance_id=instance_id).exists():
-                message = "The collection of user {} with category:{} and instance_id:{} already exists".format(
-                    username, category, instance_id
-                )
+                message = _(f"重复收藏: {username}实例ID: {category}, 类别: {instance_id}, 已经收藏过了, 无需再次收藏")
+                logger.error(message)
                 return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)

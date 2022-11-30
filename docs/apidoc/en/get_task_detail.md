@@ -51,9 +51,9 @@ Query a task execution details
             }
         ],
         "start_time": "2019-01-17 04:13:08",
-        "business_id": 2,
+        "project_id": 2,
         "create_time": "2019-01-17 04:13:03",
-        "business_name": "blueking",
+        "project_name": "blueking",
         "id": 10,
         "constants": {
             "${IP}": {
@@ -264,7 +264,6 @@ Query a task execution details
         }
     },
     "result": true,
-    "request_id": "xxx",
     "trace_id": "xxx"
 }
 ```
@@ -276,30 +275,29 @@ Query a task execution details
 |  result   |    bool    |      true or false, indicate success or failure                      |
 |  data     |    dict    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
-|  request_id     |    string  | esb request id         |
 |  trace_id     |    string  | open telemetry trace_id       |
 
 
 #### data
 
-| Field      | Type      | Description      |
-|-----------|----------|-----------|
-|  id      |    int    |      the unique ID of task    |
-|  name    |    string    |      the name of task               |
-|  business_id      |  int       |  the business ID    |
-|  business_name    |  string    |  the business name   |
-|  template_id      |  int       |  the ID of flow used to create task  |
-|  create_time      |  string    |  datetime when this task created   |
-|  create_method    |  string    |  method how  this task created  |
-|  start_time       |  string    |  start time   |
-|  finish_time      |  string    |  finish time   |
-|  elapsed_time     |  int       |  elapsed time(seconds) |
-|  creator          |  string    |  person who created this task     |
-|  executor         |  string    |  person who executed this task     |
-|  constants        |  dict      |  global variables, details are described below |
-|  outputs          |  list      |  outputs info of this task，details are described below |
-|  task_url     |    str     |    task instance url     |
-|  pipeline_tree     |    dict     |    task pipeline tree     |
+| Field      | Type      | Description                                           |
+|-----------|----------|-------------------------------------------------------|
+|  id      |    int    | the unique ID of task                                 |
+|  name    |    string    | the name of task                                      |
+|  project_id      |  int       | the project ID                                        |
+|  project_name    |  string    | the project name                                      |
+|  template_id      |  int       | the ID of flow used to create task                    |
+|  create_time      |  string    | datetime when this task created                       |
+|  create_method    |  string    | method how  this task created                         |
+|  start_time       |  string    | start time                                            |
+|  finish_time      |  string    | finish time                                           |
+|  elapsed_time     |  int       | elapsed time(seconds)                                 |
+|  creator          |  string    | person who created this task                          |
+|  executor         |  string    | person who executed this task                         |
+|  constants        |  dict      | global variables, details are described below         |
+|  outputs          |  list      | outputs info of this task，details are described below |
+|  task_url     |    str     | task instance url                                     |
+|  pipeline_tree     |    dict     | task pipeline tree                                    |
 
 #### data.constants KEY
 

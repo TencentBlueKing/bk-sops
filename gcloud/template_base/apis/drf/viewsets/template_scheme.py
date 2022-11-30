@@ -33,6 +33,7 @@ from gcloud.template_base.apis.drf.serilaziers.template_scheme import (
     DefaultTemplateSchemeSerializer,
 )
 from gcloud.template_base.models import DefaultTemplateScheme
+from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 
@@ -67,9 +68,7 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
         )
         if not template:
             template_type = f'project[{kwargs["project_id"]}]' if "project_id" in kwargs else "common_template"
-            message = "flow template[id={template_id}] in {template_type} does not exist".format(
-                template_id=template_id, template_type=template_type
-            )
+            message = _(f"获取流程失败: 流程ID为[{template_id}]]的[{template_type}]类型流程不存在")
             logger.error(message)
             raise model_cls.DoesNotExist(ErrorDetail(message, err_code.UNKNOWN_ERROR.code))
         return template.pipeline_template.id, template.pipeline_template.template_id
@@ -142,7 +141,8 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
 
         quote_scheme_ids_set = set(self.get_scheme_quote_count_dict(pipeline_template_template_id).keys())
         if remove_scheme_ids_set & quote_scheme_ids_set:
-            message = "被子流程节点引用的执行方案禁止删除"
+            message = _(f"执行方案删除失败: 待删除的[执行方案]已被引用[{quote_scheme_ids_set}], 请处理后重试 | batch_operate")
+            logger.error(message)
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
         remove_scheme_ids = list(remove_scheme_ids_set)
@@ -156,7 +156,7 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
                 # 批量创建scheme
                 TemplateScheme.objects.bulk_create(create_schemes)
         except Exception as e:
-            message = "create template({}) scheme failed: {}".format(template_id, str(e))
+            message = _(f"执行方案批量操作失败: 创建流程ID: {template_id}执行方案失败, 失败原因: {e} | batch_operate")
             logger.error(message)
             return Response({"detail": ErrorDetail(message, err_code.UNKNOWN_ERROR.code)}, exception=True)
 
@@ -196,7 +196,8 @@ class TemplateSchemeViewSet(ApiMixin, viewsets.ModelViewSet):
         scheme_quote_num = TemplateRelationship.objects.filter(templatescheme__id=kwargs["pk"]).count()
 
         if scheme_quote_num != 0:
-            message = "该执行方案被{}个子流程节点引用,禁止删除".format(scheme_quote_num)
+            message = _(f"执行方案删除失败: 该执行方案被[{scheme_quote_num}]个子流程节点引用, 禁止删除. 请处理后重试 | destroy")
+            logger.error(message)
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
         return super(TemplateSchemeViewSet, self).destroy(request, *args, **kwargs)

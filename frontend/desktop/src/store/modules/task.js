@@ -324,6 +324,13 @@ const task = {
             return axios.post(`taskflow/api/update_task_constants/${data.instance_id}/`, data).then(response => response.data)
         },
         /**
+         * 获取任务执行过的变量
+         * @param {Object} data 表单配置数据
+         */
+        getTaskUsedConstants ({ commit }, data) {
+            return axios.get(`taskflow/api/update_task_constants/${data.instance_id}/`).then(response => response.data)
+        },
+        /**
          * 获取节点执行详情
          * @param {Object} data 节点配置数据
          */
@@ -502,6 +509,25 @@ const task = {
         },
         getInstanceRetryParams ({ commit }, data) {
             return axios.get(`api/v3/taskflow/${data.id}/enable_fill_retry_params/`).then(response => response.data)
+        },
+        // 节点执行记录
+        getNodeExecutionRecord ({ commit }, data) {
+            return axios.get(`api/v3/taskflow/node_execution_record/`, {
+                params: {
+                    template_node_id: data.tempNodeId
+                }
+            }).then(response => response.data)
+        },
+        // 节点快照
+        getNodeSnapshotConfig ({ commit }, params) {
+            const { instance_id, node_id, component_code, subprocess_stack } = params
+            return axios.get(`api/v3/taskflow/${instance_id}/node_snapshot_config/`, {
+                params: {
+                    node_id,
+                    component_code,
+                    subprocess_stack
+                }
+            }).then(response => response.data)
         }
     }
 }

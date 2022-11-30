@@ -53,6 +53,10 @@
             showRequired: {
                 type: Boolean,
                 default: true
+            },
+            unUsedConstants: {
+                type: Array,
+                default: () => ([])
             }
         },
         data () {
@@ -175,6 +179,17 @@
                                 this.setAtomDisable(item.attrs.children)
                             }
                         })
+                    } else if (!this.unUsedConstants.includes(variable.key)) { // 修改参数页已被使用的变量禁止修改参数值
+                        atomConfig.forEach(item => {
+                            if (!item.attrs) {
+                                item.attrs = {}
+                            }
+                            item.attrs['disabled'] = true
+                            item.attrs['used_tip'] = i18n.t('参数已被使用，不可修改')
+                            if (item.attrs.children) { // 变量下包含子组件配置禁止编辑
+                                this.setAtomDisable(item.attrs.children)
+                            }
+                        })
                     }
                     let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                     // 任务参数重用(元变量单独处理)
@@ -292,6 +307,14 @@
                 } else {
                     return false
                 }
+            },
+            getChangeParams () {
+                return Object.keys(this.initalRenderData).reduce((acc, key) => {
+                    if (!(key in this.renderData) || !tools.isDataEqual(this.initalRenderData[key], this.renderData[key])) {
+                        acc.push(key)
+                    }
+                    return acc
+                }, [])
             },
             async getVariableData () {
                 // renderform表单校验

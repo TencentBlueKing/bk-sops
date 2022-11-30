@@ -20,19 +20,26 @@
                 {{ $t('仅对「保存」后启动的节点 / 表达式生效。请尽量在「暂停 / 失败 / 审批」等状态下完成编辑，以确保效果符合预期。') }}
             </p>
         </div>
+        <div v-else-if="state !== 'CREATED' && !isChildTaskflow" class="panel-notice-task-run">
+            <p>
+                <i class="common-icon-info ui-notice"></i>
+                {{ paramsCanBeModify ? $t('已开始执行的任务，修改参数值仅对还未执行的步骤生效') : $t('已执行完毕的任务不能修改参数') }}
+            </p>
+        </div>
         <div :class="['edit-wrapper', { 'cancel-check': state !== 'CREATED' }]">
             <TaskParamEdit
                 v-if="!isParamsEmpty"
                 ref="TaskParamEdit"
-                :pre-mako-disabled="(!paramsCanBeModify || state === 'CREATED') ? false : true"
+                :pre-mako-disabled="(paramsCanBeModify && state === 'CREATED') ? false : true"
                 :constants="constants"
-                :editable="paramsCanBeModify"
+                :un-used-constants="unUsedConstants"
+                :editable="paramsCanBeModify && !isChildTaskflow"
                 @onChangeConfigLoading="onChangeConfigLoading">
             </TaskParamEdit>
             <NoData v-else :message="$t('没有参数需要配置')"></NoData>
         </div>
         <div class="action-wrapper">
-            <div v-if="retryNodeId || (!isParamsEmpty && paramsCanBeModify)">
+            <div v-if="retryNodeId || (!isParamsEmpty && paramsCanBeModify && !isChildTaskflow)">
                 <bk-button
                     theme="primary"
                     :class="{
@@ -75,7 +82,10 @@
                 cntLoading: true, // 全局变量加载
                 configLoading: true, // 变量配置项加载
                 pending: false, // 提交修改中
-                remoteData: {} // 文本值下拉框变量远程数据源
+                remoteData: {}, // 文本值下拉框变量远程数据源
+                isChildTaskflow: false, // 是否为子流程任务
+                constantLoading: true, // 变量是否被使用加载
+                unUsedConstants: [] // 还未执行的变量
             }
         },
         computed: {
@@ -90,7 +100,7 @@
                 return this.hasPermission(['task_edit'], this.instanceActions)
             },
             loading () {
-                return this.isParamsEmpty ? this.cntLoading : (this.cntLoading || this.configLoading)
+                return this.isParamsEmpty ? this.cntLoading : (this.cntLoading || this.configLoading || this.constantLoading)
             }
         },
         created () {
@@ -101,6 +111,7 @@
                 this.remoteData[code] = data
             })
             this.getTaskData()
+            this.getUnUsedConstants()
         },
         beforeDestroy () {
             $.context.exec_env = ''
@@ -108,7 +119,8 @@
         methods: {
             ...mapActions('task/', [
                 'getTaskInstanceData',
-                'instanceModifyParams'
+                'instanceModifyParams',
+                'getTaskUsedConstants'
             ]),
             async getTaskData () {
                 this.cntLoading = true
@@ -122,11 +134,25 @@
                             constants[key] = cnt
                         }
                     })
+                    this.isChildTaskflow = instanceData.is_child_taskflow
                     this.constants = constants
                 } catch (e) {
                     console.log(e)
                 } finally {
                     this.cntLoading = false
+                }
+            },
+            async getUnUsedConstants () {
+                try {
+                    this.constantLoading = true
+                    const resp = await this.getTaskUsedConstants({
+                        instance_id: this.instance_id
+                    })
+                    this.unUsedConstants = resp.data.unused_constant_keys
+                } catch (error) {
+                    console.warn(error)
+                } finally {
+                    this.constantLoading = false
                 }
             },
             judgeDataEqual () {
@@ -161,7 +187,8 @@
                 }
                 const paramEditComp = this.$refs.TaskParamEdit
                 const formData = {}
-                const metaConstants = {}
+                let metaConstants = {}
+                let modifiedKeys = []
                 let formValid = true
                 if (paramEditComp) {
                     formValid = paramEditComp.validate()
@@ -169,8 +196,8 @@
                     const variables = await paramEditComp.getVariableData()
                     for (const key in variables) {
                         const { value, pre_render_mako } = variables[key]
-                        // 过滤掉预渲染类型的变量
-                        if (pre_render_mako !== true) {
+                        // 执行状态下过滤掉预渲染类型的变量
+                        if ((this.paramsCanBeModify && this.state === 'CREATED') || pre_render_mako !== true) {
                             formData[key] = value
                         }
                     }
@@ -183,11 +210,27 @@
                             }
                         })
                     }
+                    // 记录修改过的变量key值
+                    modifiedKeys = paramEditComp.getChangeParams() || []
                 }
+                // 传的变量值为修改过的，未修改的不传
+                const constants = Object.keys(formData).reduce((acc, key) => {
+                    if (modifiedKeys.includes(key)) {
+                        acc[key] = formData[key]
+                    }
+                    return acc
+                }, {})
+                metaConstants = Object.keys(metaConstants).reduce((acc, key) => {
+                    if (modifiedKeys.includes(key)) {
+                        acc[key] = formData[key]
+                    }
+                    return acc
+                }, {})
                 const data = {
                     instance_id: this.instance_id,
-                    constants: formData,
-                    meta_constants: Object.keys(metaConstants).length ? metaConstants : undefined
+                    constants,
+                    meta_constants: Object.keys(metaConstants).length ? metaConstants : undefined,
+                    modified_constant_keys: modifiedKeys.length ? modifiedKeys : undefined
                 }
                 try {
                     this.pending = true

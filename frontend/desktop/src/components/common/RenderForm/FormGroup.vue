@@ -22,6 +22,10 @@
                 <i class="common-icon-dark-circle-warning"></i>
                 {{ scheme.attrs.pre_mako_tip }}
             </span>
+            <span class="used-tip" v-else-if="scheme.attrs.used_tip">
+                <i class="common-icon-dark-circle-warning"></i>
+                {{ scheme.attrs.used_tip }}
+            </span>
         </div>
         <!-- 分组描述 -->
         <div v-if="scheme.attrs.desc" class="rf-group-desc">
@@ -32,8 +36,9 @@
             <label v-if="option.showLabel" class="rf-tag-label">
                 <span
                     v-bk-tooltips="{
-                        content: scheme.attrs.tips,
-                        placement: 'top-start',
+                        allowHtml: true,
+                        html: scheme.attrs.tips,
+                        placement: 'top',
                         theme: 'light',
                         extCls: 'rf-label-tips',
                         boundary: 'window',

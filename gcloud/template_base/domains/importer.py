@@ -16,6 +16,10 @@ from django.db import transaction
 from .template_manager import TemplateManager
 from ..utils import replace_biz_id_value
 from ...common_template.models import CommonTemplate
+from django.utils.translation import ugettext_lazy as _
+import logging
+
+logger = logging.getLogger("root")
 
 
 class TemplateImporter:
@@ -85,11 +89,16 @@ class TemplateImporter:
                         else:
                             template = self.template_model_cls.objects.get(id=template_id)
                     except self.template_model_cls.DoesNotExist as e:
+                        message = _(
+                            f"流程导入失败: 文件解析异常, [ID: {template_id}]的流程不存在. 请修复后重试或联系管理员处理. "
+                            f"错误内容: {e} | import_template"
+                        )
+                        logger.error(message)
                         import_result.append(
                             {
                                 "result": False,
                                 "data": "",
-                                "message": f"Template does not exist with id {template_id}",
+                                "message": message,
                                 "verbose_message": e,
                             }
                         )

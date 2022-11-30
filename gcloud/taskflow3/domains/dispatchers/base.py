@@ -19,6 +19,10 @@ from gcloud import err_code
 from gcloud.core.models import EngineConfig
 
 from bamboo_engine.api import EngineAPIResult
+from django.utils.translation import ugettext_lazy as _
+import logging
+
+logger = logging.getLogger("root")
 
 
 def ensure_return_is_dict(func):
@@ -42,8 +46,10 @@ class EngineCommandDispatcher(metaclass=ABCMeta):
     VALID_ENGINE_VER = {EngineConfig.ENGINE_VER_V1, EngineConfig.ENGINE_VER_V2}
 
     def _unsupported_engine_ver_result(self):
+        message = _(f"非法请求: 不支持的引擎版本[{self.engine_ver}], 请联系管理员升级 | _unsupported_engine_ver_result")
+        logger.error(message)
         return {
             "result": False,
-            "message": "Unsupported engine version: {}".format(self.engine_ver),
+            "message": message,
             "code": err_code.UNKNOWN_ERROR.code,
         }

@@ -37,6 +37,7 @@ class PipelineTreeSubprocessConverter:
         "original_template_version",
         "timeout_config",
         "auto_retry",
+        "template_node_id",
     }
     DEFAULT_VALUES = {
         "error_ignorable": False,

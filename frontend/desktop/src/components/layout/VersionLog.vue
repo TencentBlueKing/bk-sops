@@ -34,7 +34,7 @@
                 </div>
                 <div class="log-version-right">
                     <slot name="detail">
-                        <div class="detail-container" v-html="logDetail"></div>
+                        <div class="markdown-container" v-html="logContent"></div>
                     </slot>
                 </div>
             </div>
@@ -43,6 +43,7 @@
 </template>
 <script>
     import { bkDialog, bkLoading } from 'bk-magic-vue'
+    import { marked } from 'marked'
 
     export default {
         name: 'bk-magic-log-version',
@@ -71,6 +72,14 @@
             return {
                 visible: false,
                 active: 0
+            }
+        },
+        computed: {
+            logContent () {
+                if (this.logList.length < 1) {
+                    return ''
+                }
+                return marked(this.logDetail)
             }
         },
         watch: {
@@ -105,6 +114,7 @@
     }
 </script>
 <style lang="scss" scoped>
+    @import '@/scss/logMarkDown.scss';
     .log-version {
         display: flex;
         margin: -33px -24px -26px;
@@ -172,9 +182,8 @@
         }
         &-right {
             flex: 1;
-            padding: 25px 0 50px;
-            .detail-container {
-                padding: 0 30px 0 45px;
+            padding: 25px 30px 50px 45px;
+            .markdown-container {
                 max-height: 525px;
                 overflow: auto;
             }

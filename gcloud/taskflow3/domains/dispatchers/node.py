@@ -41,6 +41,7 @@ from pipeline_web.parser import WebPipelineAdapter
 from pipeline_web.parser.format import format_web_data_to_pipeline
 
 from .base import EngineCommandDispatcher, ensure_return_is_dict
+from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 
@@ -190,9 +191,11 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
         )
 
     def retry_subprocess_v1(self, operator: str, **kwargs) -> dict:
+        message = _("非法请求: 当前引擎不支持子流程重试, 请联系管理员升级 | retry_subprocess_v1")
+        logger.error(message)
         return {
             "result": False,
-            "message": "v1 engine do not support subprocess retry",
+            "message": message,
             "code": err_code.INVALID_OPERATION.code,
         }
 
@@ -561,10 +564,12 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                 )
 
                 if not preview_result.result:
+                    message = _(f"节点数据请求失败: 请重试, 如多次失败可联系管理员处理. {preview_result.exc} | get_node_data_v2")
+                    logger.error(message)
                     return {
                         "result": False,
                         "data": {},
-                        "message": f"fail to preview node inputs: {preview_result.exc}",
+                        "message": message,
                         "code": err_code.UNKNOWN_ERROR.code,
                     }
 

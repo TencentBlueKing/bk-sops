@@ -13,7 +13,7 @@
     <div
         class="canvas-node-item"
         @mousedown="onMousedown"
-        @mouseenter="$emit('onMouseEnter')"
+        @mouseenter="$emit('onNodeMouseEnter', node)"
         @click="onNodeClick"
         @dblclick="onNodeDblclick">
         <div class="canvas-node-content">

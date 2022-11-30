@@ -435,6 +435,7 @@
                 background: #ffd695;
             }
         }
+        .used-tip,
         .not-reuse-tip,
         .pre-mako-tip {
             color: #979ba5;

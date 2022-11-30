@@ -49,6 +49,7 @@
                     :show-palette="false"
                     :canvas-data="canvasData"
                     :has-admin-perm="adminView"
+                    :node-exec-record-info="nodeExecRecordInfo"
                     @hook:mounted="onTemplateCanvasMounted"
                     @onNodeClick="onNodeClick"
                     @onConditionClick="onOpenConditionEdit"
@@ -59,6 +60,8 @@
                     @onGatewaySelectionClick="onGatewaySelectionClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
                     @onApprovalClick="onApprovalClick"
+                    @nodeExecRecord="onNodeExecRecord"
+                    @closeNodeExecRecord="onCloseNodeExecRecord"
                     @onSubflowPauseResumeClick="onSubflowPauseResumeClick">
                 </TemplateCanvas>
             </div>
@@ -400,6 +403,8 @@
                 isFailedSubproceeNodeInfo: null,
                 nodeInfo: {},
                 nodeInputs: {},
+                isExecRecordOpen: false,
+                nodeExecRecordInfo: {},
                 isInjectVarDialogShow: false
             }
         },
@@ -530,6 +535,7 @@
                 'forceFail',
                 'itsmTransition',
                 'getInstanceRetryParams',
+                'getNodeExecutionRecord',
                 'getNodeActInfo',
                 'instanceRetry',
                 'subflowNodeRetry'
@@ -583,8 +589,18 @@
                         ) { // save cacheStatus
                             this.cacheStatus = instanceStatus.data
                         }
-                        if (this.state === 'RUNNING' || (!this.isTopTask && this.state === 'FINISHED' && !['FINISHED', 'REVOKED', 'FAILED'].includes(this.rootState))) {
-                            this.setTaskStatusTimer()
+                        // 任务暂停时如果有节点正在执行，需轮询节点状态
+                        let suspendedRunning = false
+                        if (this.state === 'SUSPENDED') {
+                            suspendedRunning = Object.values(instanceStatus.data.children).some(item => item.state === 'RUNNING')
+                        }
+                        if (this.state === 'RUNNING' || (!this.isTopTask && this.state === 'FINISHED' && !['FINISHED', 'REVOKED', 'FAILED'].includes(this.rootState)) || suspendedRunning) {
+                            if (this.isExecRecordOpen) {
+                                this.nodeExecRecordInfo.curTime = this.formatDuring(this.instanceStatus.elapsed_time)
+                                this.setTaskStatusTimer(1000)
+                            } else {
+                                this.setTaskStatusTimer()
+                            }
                             this.setRunningNode(instanceStatus.data.children)
                         }
                         this.updateNodeInfo()
@@ -908,11 +924,11 @@
                     this.pending.parseNodeResume = false
                 }
             },
-            setTaskStatusTimer () {
+            setTaskStatusTimer (time = 2000) {
                 this.cancelTaskStatusTimer()
                 this.timer = setTimeout(() => {
                     this.loadTaskStatus()
-                }, 2000)
+                }, time)
             },
             cancelTaskStatusTimer () {
                 if (this.timer) {
@@ -1128,6 +1144,14 @@
                         converge_gateway_id: nodeGateway.converge_gateway_id || undefined
                     })
                 }
+                if (nodeGateway.default_condition) {
+                    branches.unshift({
+                        id: nodeGateway.default_condition.flow_id,
+                        node_id: id,
+                        name: nodeGateway.default_condition.name,
+                        converge_gateway_id: nodeGateway.converge_gateway_id || undefined
+                    })
+                }
                 this.isCondParallelGw = nodeGateway.type === 'ConditionalParallelGateway'
                 this.gatewayBranches = branches
                 this.isGatewaySelectDialogShow = true
@@ -1217,17 +1241,15 @@
                         break
                 }
             },
-            getOrderedTree (data, level = 0) {
+            getOrderedTree (data) {
                 const startNode = tools.deepClone(data.start_event)
                 const fstLine = startNode.outgoing
                 const orderedData = [Object.assign({}, startNode, {
-                    level,
                     title: this.$t('开始节点'),
                     name: this.$t('开始节点'),
                     expanded: false
                 })]
-                this.retrieveLines(data, fstLine, orderedData, level)
-                orderedData.sort((a, b) => a.level - b.level)
+                this.retrieveLines(data, fstLine, orderedData)
                 const endEventIndex = orderedData.findIndex(item => item.type === 'EmptyEndEvent')
                 const endEvent = orderedData.splice(endEventIndex, 1)
                 orderedData.push(endEvent[0])
@@ -1238,18 +1260,23 @@
              * @param {Object} data 画布数据
              * @param {Array} lineId 连线ID
              * @param {Array} ordered 排序后的节点数据
-             * @param {Number} level 任务节点与开始节点的距离
              *
              */
-            retrieveLines (data, lineId, ordered, level = 0) {
+            retrieveLines (data, lineId, ordered) {
                 const { end_event, activities, gateways, flows } = data
                 const currentNode = flows[lineId].target
                 const endEvent = end_event.id === currentNode ? tools.deepClone(end_event) : undefined
                 const activity = tools.deepClone(activities[currentNode])
                 const gateway = tools.deepClone(gateways[currentNode])
                 const node = endEvent || activity || gateway
-
                 if (node && ordered.findIndex(item => item.id === node.id) === -1) {
+                    let outgoing
+                    if (Array.isArray(node.outgoing)) {
+                        outgoing = node.outgoing
+                    } else {
+                        outgoing = node.outgoing ? [node.outgoing] : []
+                    }
+
                     if (endEvent) {
                         const name = this.$t('结束节点')
                         endEvent.title = name
@@ -1258,31 +1285,33 @@
                         ordered.push(endEvent)
                     } else if (gateway) { // 网关节点
                         const name = NODE_DICT[gateway.type.toLowerCase()]
-                        level += 1
-                        gateway.level = level
                         gateway.title = name
                         gateway.name = name
                         gateway.expanded = false
                         ordered.push(gateway)
+                        outgoing.forEach(line => {
+                            this.retrieveLines(data, line, ordered)
+                        })
+                        if (gateway.type === 'ConvergeGateway') {
+                            // 判断ordered中 汇聚网关的incoming是否存在
+                            if (gateway.incoming.every(item => ordered.map(ite => ite.outgoing).includes(item))) {
+                                ordered.push(gateway)
+                                outgoing.forEach(line => {
+                                    this.retrieveLines(data, line, ordered)
+                                })
+                            }
+                        }
                     } else if (activity) { // 任务节点
                         if (activity.pipeline) {
-                            activity.children = this.getOrderedTree(activity.pipeline, level)
+                            activity.children = this.getOrderedTree(activity.pipeline)
                         }
-                        activity.level = level
                         activity.title = activity.name
                         activity.expanded = activity.pipeline
                         ordered.push(activity)
+                        outgoing.forEach(line => {
+                            this.retrieveLines(data, line, ordered)
+                        })
                     }
-
-                    let outgoing
-                    if (Array.isArray(node.outgoing)) {
-                        outgoing = node.outgoing
-                    } else {
-                        outgoing = node.outgoing ? [node.outgoing] : []
-                    }
-                    outgoing.forEach(line => {
-                        this.retrieveLines(data, line, ordered, level)
-                    })
                 }
             },
             updateNodeActived (id, isActived) {
@@ -1404,6 +1433,62 @@
                 })
                 this.pipelineData = this.pipelineData.activities[id].pipeline
                 this.updateTaskStatus(id)
+            },
+            // 获取节点执行记录
+            async onNodeExecRecord (nodeId) {
+                try {
+                    this.isExecRecordOpen = true
+                    const tempNodeId = this.pipelineData.activities[nodeId]?.template_node_id
+                    if (tempNodeId) {
+                        const resp = await this.getNodeExecutionRecord({ tempNodeId })
+                        const { execution_time = [] } = resp.data
+                        this.nodeExecRecordInfo = {}
+                        let latestTime, meanTime, deadline
+                        execution_time.forEach((item, index) => {
+                            if (index === 0) {
+                                latestTime = item.elapsed_time
+                                deadline = item.archived_time
+                            }
+                            meanTime = (meanTime || 0) + item.elapsed_time
+                        })
+                        this.nodeExecRecordInfo = {
+                            latestTime: this.formatDuring(latestTime),
+                            meanTime: this.formatDuring(meanTime / execution_time.length),
+                            deadline: deadline ? deadline.replace('T', ' ').split('+')[0] : '--',
+                            curTime: this.formatDuring(this.instanceStatus.elapsed_time),
+                            count: execution_time.length
+                        }
+                    } else {
+                        this.$refs.templateCanvas.closeNodeExecRecord()
+                    }
+                } catch (error) {
+                    console.warn(error)
+                }
+            },
+            formatDuring (time) {
+                if (!time) return '--'
+                const days = parseInt(time / (60 * 60 * 24))
+                const hours = parseInt((time % (60 * 60 * 24)) / (60 * 60))
+                const minutes = parseInt((time % (60 * 60)) / (60))
+                const seconds = (time % (60)).toFixed(0)
+                let str = ''
+                if (days) {
+                    str = i18n.tc('天', days) + ' '
+                }
+                if (hours) {
+                    str = str + hours + ' ' + i18n.t('时') + ' '
+                }
+                if (minutes) {
+                    str = str + minutes + ' ' + i18n.t('分') + ' '
+                }
+                if (seconds) {
+                    str = str + seconds + ' ' + i18n.tc('秒', 0)
+                }
+                return str
+            },
+            onCloseNodeExecRecord () {
+                this.isExecRecordOpen = false
+                this.nodeExecRecordInfo = {}
             },
             // 面包屑点击
             onSelectSubflow (id) {

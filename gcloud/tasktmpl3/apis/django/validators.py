@@ -17,6 +17,10 @@ from gcloud.constants import TEMPLATE_EXPORTER_SOURCE_PROJECT
 from gcloud.utils.validate import RequestValidator, ObjectJsonBodyValidator
 from gcloud.utils.strings import check_and_rename_params
 from gcloud.template_base.utils import read_template_data_file
+from django.utils.translation import ugettext_lazy as _
+import logging
+
+logger = logging.getLogger("root")
 
 
 class ImportValidator(RequestValidator):
@@ -81,7 +85,9 @@ class DrawPipelineValidator(RequestValidator):
         try:
             data = json.loads(request.body)
         except Exception:
-            return False, "request body is not a valid json"
+            message = _("非法请求: 数据错误, 请求不是合法的Json格式 | validate")
+            logger.error(message)
+            return False, message
 
         pipeline_tree = data.get("pipeline_tree")
 

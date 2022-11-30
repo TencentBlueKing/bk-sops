@@ -114,7 +114,7 @@
                 'taskflowHistroyLog'
             ]),
             initLog () {
-                const { state, history_id, version } = this.executeInfo
+                const { state, history_id, version, outputs } = this.executeInfo
                 // 获取节点日志
                 if (state && !['READY', 'CREATED'].includes(state)) {
                     const query = Object.assign({}, this.nodeDetailConfig, {
@@ -122,6 +122,11 @@
                         version: version
                     })
                     this.getPerformLog(query)
+                    // 获取第三方插件节点日志
+                    if (this.isThirdPartyNode) {
+                        const traceId = outputs.length && outputs[0].value
+                        this.handleTabChange(traceId)
+                    }
                 }
             },
             // 非admin 用户执行记录

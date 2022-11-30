@@ -114,6 +114,20 @@ class RootTaskflowQuerySerializer(serializers.Serializer):
     project_id = serializers.IntegerField(help_text="项目ID, 用于鉴权")
 
 
+class NodeSnapshotQuerySerializer(serializers.Serializer):
+    node_id = serializers.CharField(help_text="节点ID", required=True)
+    subprocess_stack = serializers.CharField(help_text="子流程节点堆栈信息", required=True)
+
+    def to_representation(self, instance):
+        data = super(NodeSnapshotQuerySerializer, self).to_representation(instance)
+        data["subprocess_stack"] = json.loads(data.get("subprocess_stack", "[]"))
+        return data
+
+
+class NodeSnapshotResponseSerializer(serializers.Serializer):
+    component = serializers.DictField(help_text="组件快照信息")
+
+
 class RootTaskflowResponseSerializer(serializers.Serializer):
     has_children_taskflow = serializers.DictField(help_text="是否有子任务流, key为任务ID, value为是否有子任务")
 

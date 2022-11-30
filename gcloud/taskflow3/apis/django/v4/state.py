@@ -15,6 +15,7 @@ import logging
 
 from django.http.response import JsonResponse
 from django.views.decorators.http import require_GET
+from django.utils.translation import ugettext_lazy as _
 
 from gcloud import err_code
 from gcloud.taskflow3.apis.django.validators import StatusValidator
@@ -34,7 +35,7 @@ def root_state(request, project_id):
     try:
         task = TaskFlowInstance.objects.get(pk=instance_id, project_id=project_id, is_deleted=False)
     except Exception as e:
-        message = "task[id={task_id}] get status error: {error}".format(task_id=instance_id, error=e)
+        message = _(f"任务状态请求失败: 请求任务[ID: {instance_id}]的状态发生错误: {e}. 请重试, 如持续失败可联系管理员处理 | get_task_status")
         logger.error(message)
         return {
             "result": False,
