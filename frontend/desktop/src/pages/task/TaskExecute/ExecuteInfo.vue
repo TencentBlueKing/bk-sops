@@ -730,8 +730,6 @@
             onTabChange (name) {
                 this.curActiveTab = name
                 if (['record', 'log'].includes(name)) {
-                    this.theExecuteTime = this.loop
-                    this.theExecuteRecord = this.historyInfo.length
                     this.onSelectExecuteRecord(this.theExecuteRecord)
                 }
             },
