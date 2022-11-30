@@ -944,29 +944,26 @@
                 const verticalInterval = [loc.y + 12, loc.y + 54 - 12]
                 // 符合匹配连线
                 const matchLines = {}
-                // 获取所有连线dom
-                const lineDoms = document.querySelectorAll('.jtk-connector')
-                Array.from(lineDoms).forEach((dom, index) => {
+                // 获取所有连线实例
+                const connections = this.$refs.jsFlow.instance.getConnections()
+                connections.forEach(connection => {
                     // 计算连线的top, left
-                    let { style } = dom.attributes
-                    style = style.value.split(';').filter(value => /:[0-9.]+px/.test(value))
-                    let lineLeft = style.find(item => item.indexOf('left') > -1)
-                    lineLeft = lineLeft ? /:([0-9.]+)px/.exec(lineLeft)[1] : 0
+                    let { cssText } = connection.canvas.style
+                    cssText = cssText.split(';').filter(value => /:.[0-9.]+px/.test(value))
+                    let lineLeft = cssText.find(item => item.indexOf('left') > -1)
+                    lineLeft = lineLeft ? /:.([0-9.]+)px/.exec(lineLeft)[1] : 0
                     lineLeft = Number(lineLeft)
-                    let lineTop = style.find(item => item.indexOf('top') > -1)
-                    lineTop = lineTop ? /:([0-9.]+)px/.exec(lineTop)[1] : 0
+                    let lineTop = cssText.find(item => item.indexOf('top') > -1)
+                    lineTop = lineTop ? /:.([0-9.]+)px/.exec(lineTop)[1] : 0
                     lineTop = Number(lineTop)
 
                     // 根据下标找到对应的line的配置
-                    const lineConfig = this.canvasData.lines[index]
+                    const lineConfig = this.canvasData.lines.find(item => {
+                        return item.source.id === connection.sourceId && item.target.id === connection.targetId
+                    })
                     let inputArrow = 'Left'
                     let outputArrow = 'Right'
                     
-                    // 获取两端节点相关配置
-                    const connection = this.$refs.jsFlow.instance.getConnections({
-                        source: lineConfig.source.id,
-                        target: lineConfig.target.id
-                    })[0]
                     // 切除插入到节点内部的两端线段
                     let segments = connection.connector.getSegments().slice(1, -1)
                     // 克隆线段列表，直线时会对线段宽高重新计算，避免影响
