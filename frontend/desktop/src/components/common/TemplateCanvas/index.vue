@@ -892,31 +892,58 @@
                     })
                 } else {
                     this.$emit('onLocationMoveDone', loc)
+                    // 拖拽节点到线上, 自动生成连线
+                    this.handleDraggerNodeToLine(loc)
                 }
-                // 拖拽节点到线上, 自动生成连线
-                this.handleDraggerNodeToLine(loc)
             },
             // 拖拽节点到线上, 自动生成连线
-            handleDraggerNodeToLine (loc, isMove) {
+            handleDraggerNodeToLine (location) {
+                // 获取节点对应匹配连线
+                const matchLines = this.getNodeMatchLines(location)
+                // 只对符合单条线的情况进行处理
+                if (Object.keys(matchLines).length === 1) {
+                    const values = Object.values(matchLines)[0]
+                    // 删除当前的，在原有位置插入一个新的
+                    this.onNodeRemove(location)
+                    this.$nextTick(() => {
+                        // 按照连线本身的方向，插入新的节点
+                        this.onInsertNode({
+                            startNodeId: values.source.id,
+                            endNodeId: values.target.id,
+                            location,
+                            startLineArrow: {
+                                source: values.source.arrow,
+                                target: values.inputArrow
+                            },
+                            endLineArrow: {
+                                source: values.outputArrow,
+                                target: values.target.arrow
+                            }
+                        })
+                    })
+                }
+            },
+            // 拖拽节点到线上, 获取对应匹配连线
+            getNodeMatchLines (loc) {
                 /**
                  * 54 节点默认高度 154 节点默认宽度
                  */
                 // 网关节点不做处理
                 if (loc.id in this.$store.state.template.gateways) {
-                    return
+                    return {}
                 }
                 // 已有连线的节点不做处理
                 const { flows } = this.$store.state.template
                 const isExistLine = Object.values(flows).some(item => [item.source, item.target].includes(loc.id))
                 if (isExistLine) {
-                    return
+                    return {}
                 }
                 // 横向区间
                 const horizontalInterval = [loc.x + 30, loc.x + 154 - 60]
                 // 纵向区间
                 const verticalInterval = [loc.y + 12, loc.y + 54 - 12]
                 // 符合匹配连线
-                const macthLines = {}
+                const matchLines = {}
                 // 获取所有连线dom
                 const lineDoms = document.querySelectorAll('.jtk-connector')
                 Array.from(lineDoms).forEach((dom, index) => {
@@ -932,7 +959,7 @@
 
                     // 根据下标找到对应的line的配置
                     const lineConfig = this.canvasData.lines[index]
-                    let inputtArrow = 'Left'
+                    let inputArrow = 'Left'
                     let outputArrow = 'Right'
                     
                     // 获取两端节点相关配置
@@ -986,14 +1013,14 @@
                             height = maxY - minY
                             top = lineTop + minY
                             left = lineLeft + minX
-                            inputtArrow = y1 > y2 ? 'Bottom' : 'Top'
+                            inputArrow = y1 > y2 ? 'Bottom' : 'Top'
                             outputArrow = y1 > y2 ? 'Top' : 'Bottom'
                         } else if (y1 === y2) { // 水平
                             height = 8
                             width = maxX - minX
                             top = lineTop + minY
                             left = lineLeft + minX
-                            inputtArrow = x1 > x2 ? 'Right' : 'Left'
+                            inputArrow = x1 > x2 ? 'Right' : 'Left'
                             outputArrow = x1 > x2 ? 'Left' : 'Right'
                         }
 
@@ -1009,37 +1036,14 @@
                         return false
                     })
                     if (isMatch) {
-                        macthLines[lineConfig.id] = {
+                        matchLines[lineConfig.id] = {
                             ...lineConfig,
-                            inputtArrow,
+                            inputArrow,
                             outputArrow
                         }
                     }
                 })
-                if (isMove) {
-                    return macthLines
-                }
-                // 只对符合单条线的情况进行处理
-                if (Object.keys(macthLines).length === 1) {
-                    const values = Object.values(macthLines)[0]
-                    this.onNodeRemove(loc)
-                    this.$nextTick(() => {
-                        // 按照连线本身的方向，插入新的节点
-                        this.onInsertNode({
-                            startNodeId: values.source.id,
-                            endNodeId: values.target.id,
-                            location: loc,
-                            startLineArrow: {
-                                source: values.source.arrow,
-                                target: values.inputtArrow
-                            },
-                            endLineArrow: {
-                                source: values.outputArrow,
-                                target: values.target.arrow
-                            }
-                        })
-                    })
-                }
+                return matchLines || {}
             },
             // 设置连线颜色
             setPaintStyle (lineId, color = '#a9adb6') {
@@ -1050,11 +1054,8 @@
                     target: lineConfig.target.id
                 })[0]
                 connection.setPaintStyle({
-                    fill: 'transparent',
-                    strokeWidth: 2,
-                    stroke: color,
-                    outlineStroke: 'tranparent',
-                    outlineWidth: 4
+                    ...this.connectorOptions.paintStyle,
+                    stroke: color
                 })
             },
             onOverlayClick (overlay, e) {
@@ -1232,9 +1233,9 @@
                     y: nodeTop
                 }
                 // 拖拽节点到线上, 自动生成连线
-                const macthLines = this.handleDraggerNodeToLine(location, true) || {}
-                if (Object.keys(macthLines).length === 1) {
-                    const lineConfig = Object.values(macthLines)[0]
+                const matchLines = this.getNodeMatchLines(location)
+                if (Object.keys(matchLines).length === 1) {
+                    const lineConfig = Object.values(matchLines)[0]
                     this.setPaintStyle(lineConfig.id, '#3a84ff')
                     this.connectionHoverList.push(lineConfig.id)
                 } else if (this.connectionHoverList.length) {
