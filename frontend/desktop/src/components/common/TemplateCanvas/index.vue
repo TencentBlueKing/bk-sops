@@ -1021,7 +1021,7 @@
                             outputArrow = x1 > x2 ? 'Left' : 'Right'
                         }
 
-                        if (width > 154 || height > 154) { // 线段长需大于节点宽度或高度
+                        if (width > 154 || height > 54) { // 线段长需大于节点宽度或高度
                             if (height > 8) { // 垂直线
                                 return (left > horizontalInterval[0] && horizontalInterval[1] > left)
                                     && (top < verticalInterval[0] && top + height > verticalInterval[1])
