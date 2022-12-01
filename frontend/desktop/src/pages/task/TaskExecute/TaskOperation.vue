@@ -605,8 +605,13 @@
                         }
                         if (this.state === 'RUNNING' || (!this.isTopTask && this.state === 'FINISHED' && !['FINISHED', 'REVOKED', 'FAILED'].includes(this.rootState)) || suspendedRunning) {
                             if (this.isExecRecordOpen) {
-                                this.nodeExecRecordInfo.curTime = this.formatDuring(this.instanceStatus.elapsed_time)
-                                this.setTaskStatusTimer(1000)
+                                const execNodeConfig = this.instanceStatus.children[this.nodeExecRecordInfo.nodeId]
+                                this.nodeExecRecordInfo.curTime = this.formatDuring(execNodeConfig.elapsed_time)
+                                if (execNodeConfig.state === 'RUNNING') { // 节点执行中一秒查一次
+                                    this.setTaskStatusTimer(1000)
+                                } else {
+                                    this.setTaskStatusTimer()
+                                }
                             } else {
                                 this.setTaskStatusTimer()
                             }
@@ -1471,11 +1476,13 @@
                             }
                             meanTime = (meanTime || 0) + item.elapsed_time
                         })
+                        const execNodeConfig = this.instanceStatus.children[nodeId]
                         this.nodeExecRecordInfo = {
+                            nodeId,
                             latestTime: this.formatDuring(latestTime),
                             meanTime: this.formatDuring(meanTime / execution_time.length),
                             deadline: deadline ? deadline.replace('T', ' ').split('+')[0] : '--',
-                            curTime: this.formatDuring(this.instanceStatus.elapsed_time),
+                            curTime: this.formatDuring(execNodeConfig.elapsed_time),
                             count: execution_time.length
                         }
                     } else {
@@ -1493,7 +1500,7 @@
                 const seconds = (time % (60)).toFixed(0)
                 let str = ''
                 if (days) {
-                    str = i18n.tc('天', days) + ' '
+                    str = i18n.tc('天', days, { n: days > 1 ? '99+' : days }) + ' '
                 }
                 if (hours) {
                     str = str + hours + ' ' + i18n.t('时') + ' '
