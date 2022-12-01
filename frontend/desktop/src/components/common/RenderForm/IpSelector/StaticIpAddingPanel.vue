@@ -176,7 +176,11 @@
                         return item.trim() !== ''
                     })
                     const list = this.staticIpList.filter(item => {
-                        return keyArr.some(str => item.bk_host_innerip.indexOf(str) > -1)
+                        const { bk_host_innerip: ipv4, bk_host_innerip_v6: ipv6 } = item
+                        return keyArr.some(str => {
+                            return ipv4.indexOf(str) > -1
+                                || (ipv6 && ipv6.indexOf(str) > -1)
+                        })
                     })
                     this.searchResult = list
                     this.setPanigation(list)
