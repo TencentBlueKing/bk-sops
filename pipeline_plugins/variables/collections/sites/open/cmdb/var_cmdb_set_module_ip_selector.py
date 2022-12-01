@@ -321,19 +321,28 @@ def get_ip_result_by_input_method(
     """
     produce_method = "var_ip_{}_value".format(produce_method)
     select_method = var_ip_selector[produce_method]
+
+    # 对填入的集群和服务模版进行预处理
+    selected_set_names, selected_service_template_names = (
+        select_method[set_input_method],
+        select_method[module_input_method],
+    )
+    if isinstance(selected_set_names, str):
+        selected_set_names = selected_set_names.split(",")
+    if isinstance(selected_service_template_names, str):
+        selected_service_template_names = selected_service_template_names.split(",")
+
     # 获取全部集群列表
     set_list = get_set_list(username, bk_biz_id, bk_supplier_account)
     # 集群全选，筛选条件不为空则调接口获取集群id列表
-    if ALL_SELECTED_STR not in select_method[set_input_method]:
-        selected_set_names = select_method[set_input_method]
+    if ALL_SELECTED_STR not in selected_set_names:
         logger.info(f"[get_ip_result_by_input_method]selected_set_names: {selected_set_names}")
         # 根据选中的集群名称获取选中的集群列表
         set_list = get_list_by_selected_names(selected_set_names, set_list)
     # 获取全部服务模板列表
     service_template_list = get_service_template_list(username, bk_biz_id, bk_supplier_account)
     # 服务模板全选，则调接口获取服务模板列表
-    if ALL_SELECTED_STR not in select_method[module_input_method]:
-        selected_service_template_names = select_method[module_input_method]
+    if ALL_SELECTED_STR not in selected_service_template_names:
         logger.info(
             f"[get_ip_result_by_input_method]selected_service_template_names: {selected_service_template_names}"
         )
