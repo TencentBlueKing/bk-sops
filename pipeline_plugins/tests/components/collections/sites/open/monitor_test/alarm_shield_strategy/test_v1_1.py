@@ -104,8 +104,8 @@ CREATE_SHIELD_FAIL_CASE = ComponentTestCase(
     inputs={
         "bk_alarm_shield_strategy": "123",
         "bk_alarm_shield_IP": "10.0.1.11",
-        "bk_alarm_shield_strategy_begin_time": "2019-11-04 00:00:00",
-        "bk_alarm_shield_strategy_end_time": "2019-11-05 00:00:00",
+        "bk_alarm_shield_begin_time": "2019-11-04 00:00:00",
+        "bk_alarm_shield_end_time": "2019-11-05 00:00:00",
         "bk_alarm_time_type": "0",
         "bk_alarm_shield_duration": "0",
     },
@@ -159,8 +159,8 @@ CREATE_SHIELD_SUCCESS_CASE = ComponentTestCase(
     inputs={
         "bk_alarm_shield_strategy": "123",
         "bk_alarm_shield_IP": "10.0.1.11",
-        "bk_alarm_shield_strategy_begin_time": "2019-11-04 00:00:00",
-        "bk_alarm_shield_strategy_end_time": "2019-11-05 00:00:00",
+        "bk_alarm_shield_begin_time": "2019-11-04 00:00:00",
+        "bk_alarm_shield_end_time": "2019-11-05 00:00:00",
         "bk_alarm_time_type": "0",
         "bk_alarm_shield_duration": "0",
     },

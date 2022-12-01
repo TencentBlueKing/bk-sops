@@ -161,13 +161,15 @@ class JobExecuteTaskServiceBase(JobService):
             val = loose_strip(_value["value"])
             # category为3,表示变量类型为IP
             if _value["category"] == 3:
-                ip_list = self.build_ip_list(biz_across, val, executor, biz_cc_id, data, ip_is_exist)
-                if not ip_list:
-                    return False
-                global_vars.append({"name": _value["name"], "server": {"ip_list": ip_list}})
+                self.logger.info("[job_execute_task_base] start find ip, var={}".format(val))
+                if val:
+                    ip_list = self.build_ip_list(biz_across, val, executor, biz_cc_id, data, ip_is_exist)
+                    self.logger.info("[job_execute_task_base] find a ip var, ip_list is {}".format(ip_list))
+                    if not ip_list:
+                        return False
+                    global_vars.append({"name": _value["name"], "server": {"ip_list": ip_list}})
             else:
                 global_vars.append({"name": _value["name"], "value": val})
-
         job_kwargs = {
             "bk_scope_type": self.biz_scope_type,
             "bk_scope_id": str(biz_cc_id),

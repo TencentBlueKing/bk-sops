@@ -26,7 +26,7 @@
                 {{ paramsCanBeModify ? $t('已开始执行的任务，修改参数值仅对还未执行的步骤生效') : $t('已执行完毕的任务不能修改参数') }}
             </p>
         </div>
-        <div :class="['edit-wrapper', { 'cancel-check': state !== 'CREATED' }]">
+        <div :class="['edit-wrapper']">
             <TaskParamEdit
                 v-if="!isParamsEmpty"
                 ref="TaskParamEdit"
@@ -267,6 +267,8 @@
     .modify-params-container {
         position: relative;
         height: 100%;
+        display: flex;
+        flex-direction: column;
         overflow: hidden;
         .panel-notice-task-run {
             margin: 20px 20px 10px 20px;
@@ -285,15 +287,13 @@
             }
         }
         .edit-wrapper {
+            flex: 1;
             padding: 20px;
-            height: calc(100% - 60px);
             overflow-y: auto;
             @include scrollbar;
         }
-        .cancel-check {
-            height: calc(100% - 126px);
-        }
         .action-wrapper {
+            flex-shrink: 0;
             padding-left: 20px;
             height: 60px;
             line-height: 60px;

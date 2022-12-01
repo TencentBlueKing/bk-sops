@@ -50,6 +50,7 @@
                     :canvas-data="canvasData"
                     :has-admin-perm="adminView"
                     :node-exec-record-info="nodeExecRecordInfo"
+                    :node-variable-info="nodeVariableInfo"
                     @hook:mounted="onTemplateCanvasMounted"
                     @onNodeClick="onNodeClick"
                     @onConditionClick="onOpenConditionEdit"
@@ -62,6 +63,7 @@
                     @onApprovalClick="onApprovalClick"
                     @nodeExecRecord="onNodeExecRecord"
                     @closeNodeExecRecord="onCloseNodeExecRecord"
+                    @onTogglePerspective="onTogglePerspective"
                     @onSubflowPauseResumeClick="onSubflowPauseResumeClick">
                 </TemplateCanvas>
             </div>
@@ -257,6 +259,7 @@
     import TemplateData from './TemplateData'
     import ConditionEdit from '../../template/TemplateEdit/ConditionEdit.vue'
     import injectVariableDialog from './InjectVariableDialog.vue'
+    import tplPerspective from '@/mixins/tplPerspective.js'
 
     const CancelToken = axios.CancelToken
     let source = CancelToken.source()
@@ -308,7 +311,7 @@
             ConditionEdit,
             injectVariableDialog
         },
-        mixins: [permission],
+        mixins: [permission, tplPerspective],
         props: {
             project_id: [Number, String],
             instance_id: [Number, String],
@@ -447,6 +450,12 @@
                     }),
                     branchConditions
                 }
+            },
+            previewData () {
+                return tools.deepClone(this.pipelineData)
+            },
+            common () {
+                return this.templateSource !== 'project'
             },
             nodeData () {
                 const data = this.getOrderedTree(this.completePipelineData)
@@ -1001,12 +1010,12 @@
             },
             async onRetryClick (id) {
                 try {
-                    const resp = await this.getInstanceRetryParams({ id: this.instance_id })
-                    if (resp.data.enable) {
+                    // const resp = await this.getInstanceRetryParams({ id: this.instance_id })
+                    if (id) {
                         this.openNodeInfoPanel('retryNode', i18n.t('重试'))
                         this.setNodeDetailConfig(id)
                         if (this.nodeDetailConfig.component_code) {
-                            await this.loadNodeInfo()
+                            await this.loadNodeInfo(id)
                         }
                     } else {
                         this.openNodeInfoPanel('modifyParams', i18n.t('重试任务'))
@@ -1016,7 +1025,7 @@
                     console.warn(error)
                 }
             },
-            async loadNodeInfo () {
+            async loadNodeInfo (id = this.retryNodeId) {
                 try {
                     const nodeInputs = {}
                     const { componentData } = this.nodeDetailConfig
@@ -1028,6 +1037,9 @@
                             } else if (this.nodeDetailConfig.component_code === 'subprocess_plugin') { // 新版子流程任务节点输入参数处理
                                 const value = nodeInfo.data.inputs[key]
                                 if (key === 'subprocess') {
+                                    const nodeConfig = this.pipelineData.activities[id]
+                                    const subprocess = nodeConfig.component.data.subprocess
+                                    nodeInfo.data.inputs[key] = subprocess.value
                                     Object.keys(value.pipeline.constants).forEach(key => {
                                         const data = value.pipeline.constants[key]
                                         nodeInputs[key] = data.value
@@ -1090,22 +1102,30 @@
                     const { instance_id, component_code, node_id } = this.nodeDetailConfig
                     const data = {
                         instance_id,
+                        component_code,
                         node_id
                     }
                     if (component_code) {
-                        const inputs = tools.deepClone(this.nodeInputs)
-                        const { constants } = this.pipelineData
-                        for (const key in constants) {
-                            const values = constants[key]
-                            if (this.retryNodeId in values.source_info) {
-                                values.source_info[this.retryNodeId].forEach(code => {
-                                    if (code in inputs) {
-                                        inputs[code] = values.key
-                                    }
-                                })
+                        if (component_code === 'subprocess_plugin') {
+                            const { inputs } = this.nodeInfo.data
+                            data.inputs = inputs
+                            data.inputs['_escape_render_keys'] = ['subprocess']
+                        } else {
+                            const inputs = tools.deepClone(this.nodeInputs)
+                            // 当重试节点引用了变量时，对应的inputs值设置为变量
+                            const { constants } = this.pipelineData
+                            for (const key in constants) {
+                                const values = constants[key]
+                                if (this.retryNodeId in values.source_info) {
+                                    values.source_info[this.retryNodeId].forEach(code => {
+                                        if (code in inputs) {
+                                            inputs[code] = values.key
+                                        }
+                                    })
+                                }
                             }
+                            data.inputs = inputs
                         }
-                        data.inputs = inputs
                         data.node_id = node_id
                     }
                     await this.onRetryTask(data)

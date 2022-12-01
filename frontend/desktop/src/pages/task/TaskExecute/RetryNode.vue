@@ -250,6 +250,7 @@
                                 constants[key].value = this.renderData[key]
                             })
                             data.inputs = inputs
+                            data.inputs['_escape_render_keys'] = ['subprocess']
                         }
                         this.$emit('retrySuccess', data)
                     } else {
@@ -274,7 +275,7 @@
         height: 100%;
         overflow: hidden;
         .edit-wrapper {
-            padding: 20px 20px 0;
+            padding: 20px;
             height: calc(100% - 60px);
             overflow-y: auto;
             @include scrollbar;

@@ -394,7 +394,9 @@
                 multiple: true,
                 items: [
                     {"text": gettext("所有告警"), "value": "all"},
+                    {"text": gettext("1分钟平均负载"), "value": "bk_monitor.system.load.load1"},
                     {"text": gettext("5分钟平均负载"), "value": "bk_monitor.system.load.load5"},
+                    {"text": gettext("15分钟平均负载"), "value": "bk_monitor.system.load.load15"},
                     {"text": gettext("CPU总使用率"), "value": "bk_monitor.system.cpu_summary.usage"},
                     {"text": gettext("CPU单核使用率"), "value": "bk_monitor.system.cpu_detail.usage"},
                     {"text": gettext("接收字节流量"), "value": "bk_monitor.system.net.speedRecv"},

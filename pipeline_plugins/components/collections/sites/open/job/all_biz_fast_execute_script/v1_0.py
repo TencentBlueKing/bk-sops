@@ -34,7 +34,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.ip import get_ip_by_regex
-from pipeline.core.flow.io import BooleanItemSchema
+from pipeline.core.flow.io import BooleanItemSchema, StringItemSchema
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.base_service import (
     BaseAllBizJobFastExecuteScriptService,
@@ -59,6 +59,16 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService):
                 key="is_tagged_ip",
                 type="boolean",
                 schema=BooleanItemSchema(description=_("是否对 IP 进行 Tag 分组")),
+            ),
+        ]
+
+    def outputs_format(self):
+        return super(AllBizJobFastExecuteScriptService, self).outputs_format() + [
+            self.OutputItem(
+                name=_("JOB执行IP分组"),
+                key="job_tagged_ip_dict",
+                type="string",
+                schema=StringItemSchema(description=_("根据JOB步骤执行标签获取的IP分组")),
             ),
         ]
 
