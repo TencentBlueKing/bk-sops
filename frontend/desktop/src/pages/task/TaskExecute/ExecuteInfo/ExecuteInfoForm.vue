@@ -256,7 +256,7 @@
                 try {
                     // 获取对应模板配置
                     const tplConfig = await this.getNodeSnapshotConfig(this.nodeDetailConfig)
-                    this.templateConfig = tplConfig.data
+                    this.templateConfig = tplConfig.data || {}
                     if (this.isSubProcessNode) { // 子流程任务节点
                         // 旧版没有original_template_id，不调接口
                         if (!this.nodeActivity.original_template_id) {
