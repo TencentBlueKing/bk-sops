@@ -450,6 +450,7 @@
     /deep/ .rf-group-desc {
         color: #63656e;
         font-size: 12px;
+        word-break: break-word;
         margin-bottom: 12px;
     }
 

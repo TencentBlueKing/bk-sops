@@ -3,7 +3,7 @@
         <div class="log-wrap">
             <!-- 内置插件/第三方插件tab -->
             <bk-tab
-                v-if="isThirdPartyNode"
+                v-if="isThirdPartyNode && !isLogLoading"
                 :active-bar="{
                     position: 'top',
                     height: '2px'
@@ -17,7 +17,7 @@
             </bk-tab>
             <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
                 <full-code-editor
-                    v-if="curPluginTab === 'build_in_plugin' ? logInfo : thirdPartyNodeLog"
+                    v-if="logInfo || thirdPartyNodeLog"
                     class="scroll-editor"
                     :key="curPluginTab"
                     :value="curPluginTab === 'build_in_plugin' ? logInfo : thirdPartyNodeLog">

@@ -1073,8 +1073,8 @@
     }
 }
 .node-preview-wrapper {
-    height: calc(100% - 50px);
-    margin: 25px 0;
+    height: calc(100% - 25px);
+    margin-bottom: 25px;
 }
 .tpl-popover {
     .bk-spin-title {

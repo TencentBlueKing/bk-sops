@@ -331,6 +331,7 @@
                 color: #63656e;
                 font-size: 12px;
                 z-index: 5;
+                padding-top: 5px;
                 > span {
                     display: flex;
                     align-items: center;

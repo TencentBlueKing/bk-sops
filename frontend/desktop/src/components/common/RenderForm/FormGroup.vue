@@ -31,14 +31,16 @@
         <div v-if="scheme.attrs.desc" class="rf-group-desc">
             {{ scheme.attrs.desc }}
         </div>
+        <!-- 分组描述 -->
+        <div v-if="scheme.attrs.desc" class="rf-group-desc" v-html="scheme.attrs.desc"></div>
         <!-- 分组勾选 -->
         <div v-if="hook" class="rf-form-item rf-has-hook show-label">
             <label v-if="option.showLabel" class="rf-tag-label">
                 <span
                     v-bk-tooltips="{
                         allowHtml: true,
-                        html: scheme.attrs.tips,
-                        placement: 'top',
+                        content: scheme.attrs.tips,
+                        placement: 'top-start',
                         theme: 'light',
                         extCls: 'rf-label-tips',
                         boundary: 'window',

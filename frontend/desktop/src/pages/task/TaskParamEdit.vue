@@ -174,7 +174,7 @@
                                 item.attrs = {}
                             }
                             item.attrs['disabled'] = true
-                            item.attrs['pre_mako_tip'] = i18n.t('设置了模板预渲染的变量，不支持中途修改参数值')
+                            item.attrs['pre_mako_tip'] = i18n.t('设为「常量」的参数中途不允许修改')
                             if (item.attrs.children) { // 预渲染变量下包含子组件配置禁止编辑
                                 this.setAtomDisable(item.attrs.children)
                             }

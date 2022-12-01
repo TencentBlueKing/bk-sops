@@ -4,7 +4,7 @@
             <section class="info-section abnormal-section" data-test-id="taskExcute_form_exceptionInfo">
                 <h4 class="common-section-title">{{ $t('异常信息') }}</h4>
                 <div class="fail-text" v-if="executeInfo.ex_data" v-html="executeInfo.failInfo"></div>
-                <p class="fail-text" v-else>{{ $t('暂无异常') }}</p>
+                <p class="not-fail" v-else>{{ $t('暂无异常') }}</p>
             </section>
             <section class="info-section" data-test-id="taskExcute_form_excuteInfo">
                 <h4 class="common-section-title">{{ $t('执行信息') }}</h4>
@@ -114,6 +114,11 @@
         a {
             color: #3a84ff;
         }
+    }
+    .not-fail {
+        color: #979ba5;
+        font-size: 12px;
+        padding-left: 15px;
     }
     .operation-table {
         font-size: 12px;

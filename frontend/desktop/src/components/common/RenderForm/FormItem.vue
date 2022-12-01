@@ -54,6 +54,7 @@
             <div v-if="scheme.attrs.desc" class="rf-group-desc">
                 {{ scheme.attrs.desc }}
             </div>
+            <div v-if="scheme.attrs.desc" class="rf-group-desc" v-html="scheme.attrs.desc"></div>
             <!-- 表单名称 -->
             <label
                 v-if="option.showLabel && scheme.attrs.name"
@@ -61,8 +62,8 @@
                 <span
                     v-bk-tooltips="{
                         allowHtml: true,
-                        html: scheme.attrs.tips,
-                        placement: 'top',
+                        content: scheme.attrs.tips,
+                        placement: 'top-start',
                         theme: 'light',
                         extCls: 'rf-label-tips',
                         boundary: 'window',
