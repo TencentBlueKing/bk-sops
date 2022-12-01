@@ -8,9 +8,9 @@
             <bk-table-column width="100" :label="$t('操作人')" prop="operator"></bk-table-column>
             <bk-table-column width="120" :label="$t('来源')" :prop="$store.state.lang === 'en' ? 'operate_source' : 'operate_source_name'"></bk-table-column>
             <bk-table-column width="100" :label="$t('操作类型')" :prop="$store.state.lang === 'en' ? 'operate_type' : 'operate_type_name'"></bk-table-column>
-            <bk-table-column width="150" v-if="!nodeId" :label="$t('节点')" prop="node_name">
+            <bk-table-column width="130" v-if="!nodeId" :label="$t('节点')" prop="node_name">
                 <div slot-scope="{ row }" v-bk-overflow-tips>
-                    {{ row .node_name}}
+                    {{ row.node_name}}
                 </div>
             </bk-table-column>
             <bk-table-column :label="$t('参数明细')">
