@@ -12,6 +12,7 @@
                 :key="columnInfo.id"
                 :label="columnInfo.name"
                 :width="columnInfo.width"
+                :min-width="columnInfo.minWidth"
                 :fixed="columnInfo.fixed"
                 :sortable="columnInfo.sortable"
                 :prop="columnInfo.id">
@@ -109,7 +110,7 @@
                     {
                         name: 'IP',
                         id: 'bk_host_innerip',
-                        width: 100,
+                        width: 120,
                         fixed: true,
                         sortable: true,
                         checked: true
@@ -117,33 +118,33 @@
                     {
                         name: 'IPv6',
                         id: 'bk_host_innerip_v6',
-                        width: 100,
+                        width: 120,
                         fixed: true,
-                        checked: false
+                        checked: true
                     },
                     {
                         name: '云区域',
                         id: 'cloud',
-                        width: 120,
+                        minWidth: 120,
                         checked: true
                     },
                     {
                         name: 'Agent 状态',
                         id: 'agent',
-                        width: 160,
+                        minWidth: 160,
                         checked: true
                     },
                     {
                         name: '主机名称',
                         id: 'bk_host_name',
-                        width: 120,
+                        minWidth: 120,
                         sortable: true,
                         checked: true
                     },
                     {
                         name: 'Host ID',
                         id: 'bk_host_id',
-                        width: 100,
+                        minWidth: 120,
                         checked: false
                     }
                 ],
