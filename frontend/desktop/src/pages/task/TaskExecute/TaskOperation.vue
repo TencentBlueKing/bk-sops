@@ -1015,8 +1015,8 @@
             },
             async onRetryClick (id) {
                 try {
-                    // const resp = await this.getInstanceRetryParams({ id: this.instance_id })
-                    if (id) {
+                    const resp = await this.getInstanceRetryParams({ id: this.instance_id })
+                    if (resp.data.enable) {
                         this.openNodeInfoPanel('retryNode', i18n.t('重试'))
                         this.setNodeDetailConfig(id)
                         if (this.nodeDetailConfig.component_code) {
