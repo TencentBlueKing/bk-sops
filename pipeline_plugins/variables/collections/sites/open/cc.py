@@ -148,13 +148,6 @@ class VarCmdbIpSelector(LazyVariable, SelfExplainVariable):
                     hosts.append("{}:{}".format(host["bk_cloud_id"], host["bk_host_innerip"]))
 
             ip = separator.join(hosts)
-        elif self.value.get("host_id", False):
-            host_ids = []
-            for host in ip_result["data"]:
-                host_ids.append(str(host["bk_host_id"]))
-
-            return separator.join(host_ids)
-
         else:
             ip = separator.join([host["bk_host_innerip"] for host in ip_result["data"]])
         return ip
