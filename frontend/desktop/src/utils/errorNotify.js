@@ -55,7 +55,9 @@ export default class ErrorNotify {
         this.notify.$el.appendChild(progressWrap)
 
         // title 样式处理
+        const notifyContentDom = document.querySelector('.bk-notify-content')
         const titleDom = document.querySelector('.bk-notify-content-title')
+        notifyContentDom.style.cssText = 'width: 90%'
         titleDom.style.cssText = 'width: 80%; white-space: nowrap;overflow: hidden; text-overflow: ellipsis;'
         titleDom.title = this.setNotifyTitleAndContent(msg, true, errorSource) || ''
 
