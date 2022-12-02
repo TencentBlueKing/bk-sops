@@ -69,7 +69,7 @@
                 <span class="td">{{ !('always_use_latest' in componentValue) ? '--' : componentValue.always_use_latest ? $t('是') : $t('否') }}</span>
             </li>
         </ul>
-        <template v-if="nodeActivity.original_template_id || !isSubProcessNode">
+        <template v-if="(nodeActivity.original_template_id && !templateConfig.isOldData) || !isSubProcessNode">
             <h4 class="common-section-title">{{ $t('输入参数') }}</h4>
             <div class="input-wrap" v-bkloading="{ isLoading: inputLoading, zIndex: 100 }">
                 <template v-if="Array.isArray(inputs)">
@@ -256,10 +256,10 @@
                 try {
                     // 获取对应模板配置
                     const tplConfig = await this.getNodeSnapshotConfig(this.nodeDetailConfig)
-                    this.templateConfig = tplConfig.data || {}
+                    this.templateConfig = tplConfig.data || { ...this.nodeActivity, isOldData: true } || {}
                     if (this.isSubProcessNode) { // 子流程任务节点
-                        // 旧版没有original_template_id，不调接口
-                        if (!this.nodeActivity.original_template_id) {
+                        // tplConfig.data为null为该功能之前的旧数据，没有original_template_id字段的，不调接口
+                        if (!tplConfig.data || !this.nodeActivity.original_template_id) {
                             return
                         }
                         const forms = {}
