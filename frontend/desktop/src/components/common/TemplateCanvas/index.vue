@@ -1344,7 +1344,7 @@
                     this.closeShortcutPanel()
                 }
                 // 展开节点历史执行时间
-                if (node.status === 'RUNNING') {
+                if (node.status === 'RUNNING' && node.type === 'tasknode') {
                     let left, top
                     const { x, y, type, id } = node
                     const { x: offsetX, y: offsetY } = this.$refs.jsFlow.canvasOffset
