@@ -584,7 +584,7 @@ def cc_get_host_by_innerip_with_ipv6_across_business(executor, bk_biz_id, ip_str
     # host_id 不作查询
     host_list = [{"bk_host_id": host_id} for host_id in host_id_list]
     # 本业务查到的host集合
-    host_list = ipv6_host_list + ipv4_host_list + ipv4_host_with_cloud_valid + host_list
+    host_list = ipv6_host_list + ipv4_host_list + ipv4_host_with_cloud_valid + host_list + ipv6_host_with_cloud_valid
     # 返回依次表示 本业务查到的ip列表，没查到的ipv4列表，没查到的ipv4带云区域列表，没查到的ipv6列表
     return (
         host_list,
