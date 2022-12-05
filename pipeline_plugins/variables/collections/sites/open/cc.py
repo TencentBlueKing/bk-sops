@@ -21,10 +21,11 @@ from django.utils.translation import ugettext_lazy as _
 
 from gcloud.constants import Type
 from gcloud.core.models import Project
-from gcloud.utils.cmdb import get_business_host
+from gcloud.utils.cmdb import get_business_host, get_business_host_by_hosts_ids
 
 from gcloud.utils.ip import get_ip_by_regex, get_plat_ip_by_regex
 from gcloud.conf import settings as gcloud_settings
+from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_host_by_innerip_with_ipv6
 from pipeline_plugins.variables.collections.sites.open.ip_filter_base import (
     GseAgentStatusIpFilter,
     GseAgentStatusIpV6Filter,
@@ -225,9 +226,7 @@ class VarCmdbSetAllocation(LazyVariable, SelfExplainVariable):
             FieldExplain(key="${KEY._module}", type=Type.LIST, description="集群下的模块信息列表，元素类型为字典，键为模块名，值为模块下的主机列"),
             FieldExplain(key="${KEY.flat__ip_list}", type=Type.STRING, description="本次操作创建的所有集群下的主机（去重后），用 ',' 连接"),
             FieldExplain(
-                key="${KEY.flat__verbose_ip_list}",
-                type=Type.STRING,
-                description="返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接",
+                key="${KEY.flat__verbose_ip_list}", type=Type.STRING, description="返回的是本次操作创建的所有集群下的主机（未去重），用 ',' 连接",
             ),
             FieldExplain(
                 key="${KEY.flat__verbose_ip_module_list}",
@@ -289,6 +288,7 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
     desc = _(
         "输出字典，键为主机IP，值为主机所有的属性值字典（键为属性，值为属性值）\n"
         '例如，通过 ${hosts["1.1.1.1"]["bk_host_id"]} 获取主机在 CMDB 中的唯一 ID\n'
+        "输入请保证每台主机都有唯一的 IP，否则可能会出现数据覆盖的情况\n"
         "更多可使用的主机属性请在 CMDB 主机模型页面查阅"
     )
 
@@ -297,6 +297,30 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
         return [
             FieldExplain(key="${KEY}", type=Type.DICT, description="主机属性查询结果"),
         ]
+
+    @staticmethod
+    def _handle_value_with_ipv4(username, bk_biz_id, bk_supplier_account, host_fields, ip_str):
+        """根据 ip 字符串获取对应主机属性信息"""
+        ip_list = get_ip_by_regex(ip_str)
+        if not ip_list:
+            return []
+
+        hosts_list = get_business_host(username, bk_biz_id, bk_supplier_account, host_fields, ip_list,)
+        return hosts_list
+
+    @staticmethod
+    def _handle_value_with_ipv4_and_ipv6(username, bk_biz_id, bk_supplier_account, host_fields, ip_str):
+        """根据 ip 字符串获取对应主机属性信息"""
+        # 兼容多种字符串模式，转换成 host_id 列表后统一获取
+        result = cc_get_host_by_innerip_with_ipv6(username, bk_biz_id, ip_str, bk_supplier_account)
+        if not result["result"]:
+            message = f"获取主机列表失败: {result} | cc_get_host_by_innerip_with_ipv6"
+            logger.error(message)
+            raise Exception(message)
+        host_ids = [host["bk_host_id"] for host in result["data"]]
+        if not host_ids:
+            return []
+        return get_business_host_by_hosts_ids(username, bk_biz_id, bk_supplier_account, host_fields, host_ids)
 
     def get_value(self):
         """
@@ -307,54 +331,53 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
         """
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
             raise Exception("ERROR: executor and project_id of pipeline is needed")
+        HOST_FIELDS = [
+            "bk_cpu",
+            "bk_isp_name",
+            "bk_os_name",
+            "bk_province_name",
+            "bk_host_id",
+            "import_from",
+            "bk_os_version",
+            "bk_disk",
+            "operator",
+            "bk_mem",
+            "bk_host_name",
+            "bk_host_innerip",
+            "bk_comment",
+            "bk_os_bit",
+            "bk_outer_mac",
+            "bk_asset_id",
+            "bk_service_term",
+            "bk_sla",
+            "bk_cpu_mhz",
+            "bk_host_outerip",
+            "bk_state_name",
+            "bk_os_type",
+            "bk_mac",
+            "bk_bak_operator",
+            "bk_supplier_account",
+            "bk_sn",
+            "bk_cpu_module",
+        ]
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)
         bk_biz_id = project.bk_biz_id if project.from_cmdb else ""
         bk_supplier_account = supplier_account_for_project(project_id)
-        ip_list = get_ip_by_regex(self.value)
-        if not ip_list:
-            return {}
 
-        hosts_list = get_business_host(
-            username,
-            bk_biz_id,
-            bk_supplier_account,
-            [
-                "bk_cpu",
-                "bk_isp_name",
-                "bk_os_name",
-                "bk_province_name",
-                "bk_host_id",
-                "import_from",
-                "bk_os_version",
-                "bk_disk",
-                "operator",
-                "bk_mem",
-                "bk_host_name",
-                "bk_host_innerip",
-                "bk_comment",
-                "bk_os_bit",
-                "bk_outer_mac",
-                "bk_asset_id",
-                "bk_service_term",
-                "bk_sla",
-                "bk_cpu_mhz",
-                "bk_host_outerip",
-                "bk_state_name",
-                "bk_os_type",
-                "bk_mac",
-                "bk_bak_operator",
-                "bk_supplier_account",
-                "bk_sn",
-                "bk_cpu_module",
-            ],
-            ip_list,
+        hosts_list = (
+            self._handle_value_with_ipv4_and_ipv6(
+                username, bk_biz_id, bk_supplier_account, HOST_FIELDS + ["bk_host_innerip_v6"], self.value
+            )
+            if settings.ENABLE_IPV6
+            else self._handle_value_with_ipv4(username, bk_biz_id, bk_supplier_account, HOST_FIELDS, self.value)
         )
 
         hosts = {}
         for host in hosts_list:
-            ip = host["bk_host_innerip"]
+            # 优先获取 ipv4 地址，单栈ipv6 环境再取 ipv6 地址
+            ip = host.get("bk_host_innerip") or host.get("bk_host_innerip_v6", "")
             # bk_cloud_id as a dict is not needed
             if "bk_cloud_id" in host:
                 host.pop("bk_cloud_id")
