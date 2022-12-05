@@ -17,9 +17,14 @@ from enum import Enum
 
 ip_pattern = re.compile(r"(?<!\d)((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(?!\d)")
 plat_ip_reg = re.compile(r"\d+:((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(?!\d)")
+# https://codverter.com/blog/articles/tech/20190105-extract-ipv4-ipv6-ip-addresses-using-regex.html
 ipv6_pattern = re.compile(
-    r"(?:|(?<=\s))(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))(?=\s|)"  # noqa
+    r"((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3}))|:)))"  # noqa
 )  # noqa
+plat_ipv6_reg = re.compile(
+    r"\d+:\[((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3}))|:)))\]"  # noqa
+)  # noqa
+
 number_pattern = re.compile(r"\d+")
 
 logger = logging.getLogger("root")
@@ -54,9 +59,27 @@ def extend_ipv6(ip_list):
     return ip_v6_list
 
 
+def get_ipv6_and_cloud_id_from_ipv6_cloud_str(ipv6_cloud_str):
+    # 提取云区域
+    cloud_id = ipv6_cloud_str.split("[")[0].split(":")[0]
+    ip_v6_address, _ = get_ip_by_regex_type(IpRegexType.IPV6.value, ipv6_cloud_str)
+    return cloud_id, ip_v6_address[0]
+
+
+def extend_ipv6_with_cloud_id(ip_list):
+    # @ip_list = ["0:[xxx:xxx:xxx:xxx]"]
+    ip_list_result = []
+    for item in ip_list:
+        # item: "0:[0000:0000:0000:0000:0000:0000:0000:0000]"
+        cloud_id, ip_v6_address = get_ipv6_and_cloud_id_from_ipv6_cloud_str(item)
+        ip_list_result.append("{}:[{}]".format(cloud_id, ip_v6_address))
+    return ip_list_result
+
+
 class IpRegexType(Enum):
     IPV4 = "IPV4"
     IPV6 = "IPV6"
+    IPV6_WITH_CLOUD_ID = "IPV6_WITH_CLOUD_ID"
     IPV4_WITH_CLOUD_ID = "IPV4_WITH_CLOUD_ID"
     HOST_ID = "HOST_ID"
 
@@ -73,6 +96,7 @@ def get_ip_by_regex_type(regex_type, ip_str):
         IpRegexType.IPV4_WITH_CLOUD_ID.value: plat_ip_reg,
         IpRegexType.IPV6.value: ipv6_pattern,
         IpRegexType.HOST_ID.value: number_pattern,
+        IpRegexType.IPV6_WITH_CLOUD_ID.value: plat_ipv6_reg,
     }
 
     if regex_type not in regex_map.keys():
@@ -94,6 +118,9 @@ def get_ip_by_regex_type(regex_type, ip_str):
     if regex_type == IpRegexType.IPV6.value:
         ip_list = extend_ipv6(ip_list)
 
+    if regex_type == IpRegexType.IPV6_WITH_CLOUD_ID.value:
+        ip_list = extend_ipv6_with_cloud_id(ip_list)
+
     if regex_type == IpRegexType.HOST_ID.value:
         ip_list = [int(host_id) for host_id in ip_list]
 
@@ -101,7 +128,11 @@ def get_ip_by_regex_type(regex_type, ip_str):
 
 
 def extract_ip_from_ip_str(ip_str):
-    ipv6_list, ip_str_without_ipv6 = get_ip_by_regex_type(IpRegexType.IPV6.value, ip_str)
+    ipv6_list_with_cloud_id, ip_str_without_ipv6_with_cloud_id = get_ip_by_regex_type(
+        IpRegexType.IPV6_WITH_CLOUD_ID.value, ip_str
+    )
+
+    ipv6_list, ip_str_without_ipv6 = get_ip_by_regex_type(IpRegexType.IPV6.value, ip_str_without_ipv6_with_cloud_id)
 
     ipv4_list_with_cloud_id, ip_str_without_ipv4_with_cloud_id = get_ip_by_regex_type(
         IpRegexType.IPV4_WITH_CLOUD_ID.value, ip_str_without_ipv6
@@ -111,7 +142,7 @@ def extract_ip_from_ip_str(ip_str):
 
     host_id_list, _ = get_ip_by_regex_type(IpRegexType.HOST_ID.value, ip_str_without_ipv4)
 
-    return ipv6_list, ipv4_list, host_id_list, ipv4_list_with_cloud_id
+    return ipv6_list, ipv4_list, host_id_list, ipv4_list_with_cloud_id, ipv6_list_with_cloud_id
 
 
 def get_plat_ip_by_regex(ip_str):

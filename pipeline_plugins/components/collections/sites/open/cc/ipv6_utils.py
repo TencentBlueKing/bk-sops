@@ -4,7 +4,7 @@ from collections import Counter
 
 from gcloud.utils import cmdb
 from gcloud.utils.cmdb import get_business_host_by_hosts_ids
-from gcloud.utils.ip import extract_ip_from_ip_str
+from gcloud.utils.ip import extract_ip_from_ip_str, get_ipv6_and_cloud_id_from_ipv6_cloud_str
 from pipeline_plugins.components.utils.sites.open.utils import compare_ip_list_and_return
 
 logger = logging.getLogger("root")
@@ -55,7 +55,7 @@ def compare_ip_with_cloud_list(host_list, ip_list, host_key="bk_host_innerip"):
             "mutiple same innerip host found: {}".format(", ".join(mutiple_innerip_hosts)),
         )
     if len(host_list) < len(ip_list):
-        return_innerip_set = {host[host_key] for host in host_list}
+        return_innerip_set = {"{}:{}".format(host["bk_cloud_id"], host[host_key]) for host in host_list}
         absent_innerip = set(ip_list).difference(return_innerip_set)
 
         return False, "ip not found in business: {}".format(", ".join(absent_innerip))
@@ -63,7 +63,32 @@ def compare_ip_with_cloud_list(host_list, ip_list, host_key="bk_host_innerip"):
     return True, ""
 
 
-def check_ipv6_cloud(ipv4_host_with_cloud_list):
+def compare_ipv6_with_cloud_list(host_list, ip_list):
+    """
+    对比带云区域的云区域是否有多了或者少了的情况,  返回的是 bool, message 的格式
+    @param host_list: 主机列表 [{"bk_host_innerip": "127.0.0.1", "bk_cloud_id":"2"}]
+    @param ip_list: ["2:127.0.0.1"]
+    @param host_key: host_key: 取ip的字段 为了适配IPV4 OR IPV6
+    @return:
+    """
+    if len(host_list) > len(ip_list):
+        # find repeat innerip host
+        return_innerip_set = {"{}:[{}]".format(host["bk_cloud_id"], host["bk_host_innerip_v6"]) for host in host_list}
+        mutiple_innerip_hosts = return_innerip_set.difference(set(ip_list))
+        return (
+            False,
+            "mutiple same innerip host found: {}".format(", ".join(mutiple_innerip_hosts)),
+        )
+    if len(host_list) < len(ip_list):
+        return_innerip_set = {"{}:[{}]".format(host["bk_cloud_id"], host["bk_host_innerip_v6"]) for host in host_list}
+        absent_innerip = set(ip_list).difference(return_innerip_set)
+
+        return False, "ip not found in business: {}".format(", ".join(absent_innerip))
+
+    return True, ""
+
+
+def check_ipv6_cloud(ipv4_host_with_cloud_list, bk_host_innerip_key="bk_host_innerip"):
     """
     检查cc查询结果中，是否有云区域+ip重复的主机
     @param ipv4_host_with_cloud_list: [{"host_id":1,"bk_host_innerip": "127.0.0.1", "bk_cloud_id":"2"},
@@ -74,7 +99,7 @@ def check_ipv6_cloud(ipv4_host_with_cloud_list):
     data = set()
     for host in ipv4_host_with_cloud_list:
         bk_cloud_id = host["bk_cloud_id"]
-        bk_host_innerip = host["bk_host_innerip"]
+        bk_host_innerip = bk_host_innerip_key
         plat_ip = "{}:{}".format(bk_cloud_id, bk_host_innerip)
         # 已有的ip
         if plat_ip not in data:
@@ -212,6 +237,81 @@ def get_ipv4_hosts_with_cloud(executor, bk_biz_id, supplier_account, ipv4_list_w
             ipv4_host_with_cloud_valid.append(ip_info)
 
     return ipv4_host_with_cloud_valid
+
+
+def get_ipv6_hosts_with_cloud(executor, bk_biz_id, supplier_account, ipv6_list_with_cloud_id, is_biz_set=False):
+    """
+    根据ipv6带云区域的列表查询主机，这个和get_ipv6_hosts地方在于，会将查出来的机器把ip和目标云区域匹配的拿出来，抛弃不匹配的，再去校验匹配而来的主机
+    @param executor: 执行人
+    @param bk_biz_id: 业务id， 当is_biz_set=True可以不传
+    @param supplier_account:服务商
+    @param ipv6_list_with_cloud_id: ["1:[1111:1111:1111:1111:1111:1111]"]
+    @param is_biz_set: 是否全业务查询
+    @return: [
+        {
+            "bk_cloud_id": 1,
+            "bk_host_id": 1,
+            "bk_host_innerip_innerip": "1111:1111:1111:1111:1111:1111",
+            "bk_mac": "",
+            "bk_os_type": null
+        }
+        ...
+    ]
+    """
+
+    ipv6_host_with_cloud_valid = []
+    if not ipv6_list_with_cloud_id:
+        return ipv6_host_with_cloud_valid
+
+    # 先把所有的ip拿出来去查询符合条件的主机
+    ipv6_list = []
+    for item in ipv6_list_with_cloud_id:
+        _, ip = get_ipv6_and_cloud_id_from_ipv6_cloud_str(item)
+        ipv6_list.append(ip)
+
+    # 如果是跨业务的情况
+    if is_biz_set:
+        # 全业务去查询ip_v6 相关的主机信息
+        ipv6_host_with_cloud_list = cmdb.get_business_set_host_ipv6(
+            executor,
+            supplier_account,
+            ["bk_host_id", "bk_host_innerip_v6", "bk_cloud_id", "bk_agent_id", "bk_host_innerip"],
+            ipv6_list,
+        )
+    else:
+        # 去查询ip_v6 相关的主机信息
+        ipv6_host_with_cloud_list = cmdb.get_business_host_ipv6(
+            executor,
+            bk_biz_id,
+            supplier_account,
+            ["bk_host_id", "bk_host_innerip_v6", "bk_cloud_id", "bk_agent_id", "bk_host_innerip"],
+            ipv6_list,
+        )
+
+    # 如果接口报错or其他的导致返回个空，则return []， 上层的compare逻辑会保证插件执行失败
+    if not ipv6_host_with_cloud_list:
+        logger.info(
+            "[get_ipv6_hosts_with_cloud] list_biz_hosts[ipv6] query failed, return empty list, "
+            "ipv6_list = {}".format(ipv6_host_with_cloud_list)
+        )
+        return []
+
+    # 在ipv6语境下需要确认查出来的这一批主机，有没有ip和云区域一样，但是host_id不一样的，有的话要直接抛异常
+    check_result = check_ipv6_cloud(ipv6_host_with_cloud_list, bk_host_innerip_key="bk_host_innerip_v6")
+    if check_result:
+        raise Exception(
+            "[get_ipv6_hosts_with_cloud] is failed "
+            "the host with the same IP address and cloud area is displayed,"
+            "repeated_list = {}".format(check_result)
+        )
+
+    # 查出来的数据需要根据最初始的云区域:ip 列表清洗出来用户想要的那一部分主机
+    for ip_info in ipv6_host_with_cloud_list:
+        plat_ip = "{}:[{}]".format(ip_info.get("bk_cloud_id", -1), ip_info.get("bk_host_innerip_v6", ""))
+        if plat_ip in ipv6_list_with_cloud_id:
+            ipv6_host_with_cloud_valid.append(ip_info)
+
+    return ipv6_host_with_cloud_valid
 
 
 def get_ipv4_hosts(executor, bk_biz_id, supplier_account, ipv4_list, is_biz_set=False):
@@ -353,6 +453,38 @@ def get_ipv4_host_with_cloud_list(executor, bk_biz_id, supplier_account, ipv4_li
     return {"result": True, "data": ipv4_host_with_cloud_valid}
 
 
+def get_ipv6_host_list_with_cloud_list(executor, bk_biz_id, supplier_account, ipv6_list_with_cloud, is_biz_set=False):
+    """
+    # 查询所有ip_v6带云区域带主机，并选出指定的ip，如果ip+cloud_id重复，则报错
+    @param executor: 执行人
+    @param bk_biz_id: 业务id
+    @param supplier_account:
+    @param ipv4_list_with_cloud_id: ["0:[0000:0000:0000:0000:0000:0000]"]
+    @param is_biz_set: False
+    @return:  {
+        "result": True,
+        "data": [{
+            "bk_cloud_id": 0,
+            "bk_host_id": 1,
+            "bk_host_innerip_v6": "0:::1",
+            "bk_mac": "",
+            "bk_os_type": null
+        }]
+    """
+    ipv6_host_with_cloud_valid = get_ipv6_hosts_with_cloud(
+        executor, bk_biz_id, supplier_account, ipv6_list_with_cloud, is_biz_set
+    )
+
+    result, message = compare_ipv6_with_cloud_list(host_list=ipv6_host_with_cloud_valid, ip_list=ipv6_list_with_cloud)
+    if not result:
+        logger.info(
+            "[get_ipv6_host_list_with_cloud_list] list_biz_hosts[ipv6] query failed" "message = {}".format(message)
+        )
+        return {"result": False, "message": message}
+
+    return {"result": True, "data": ipv6_host_with_cloud_valid}
+
+
 def get_ipv4_host_list(executor, bk_biz_id, supplier_account, ipv4_list, is_biz_set=False):
     """
     # 查询所有ip_v4的主机
@@ -392,6 +524,19 @@ def compare_ip_list_and_return_with_cloud(host_list, ip_list, host_key="bk_host_
     return set()
 
 
+def compare_ipv6_list_and_return_with_cloud(host_list, ip_list):
+    if len(host_list) > len(ip_list):
+        # find repeat innerip host
+        return_innerip_set = {"{}:[{}]".format(host["bk_cloud_id"], host["bk_host_innerip_v6"]) for host in host_list}
+        mutiple_innerip_hosts = return_innerip_set.difference(set(ip_list))
+        raise Exception("mutiple same innerip host found: {}".format(", ".join(mutiple_innerip_hosts)))
+    if len(host_list) < len(ip_list):
+        return_innerip_set = {"{}:[{}]".format(host["bk_cloud_id"], host["bk_host_innerip_v6"]) for host in host_list}
+        absent_innerip = set(ip_list).difference(return_innerip_set)
+        return absent_innerip
+    return set()
+
+
 def cc_get_host_by_innerip_with_ipv6_across_business(executor, bk_biz_id, ip_str, supplier_account, is_biz_set=False):
     """
     查询主机，并返回在本业务查询到的主机和在本业务下查不到的主机
@@ -402,7 +547,18 @@ def cc_get_host_by_innerip_with_ipv6_across_business(executor, bk_biz_id, ip_str
     @param is_biz_set: 是否跨业务查询
     @return:
     """
-    ipv6_list, ipv4_list, host_id_list, ipv4_list_with_cloud_id = extract_ip_from_ip_str(ip_str)
+    ipv6_list, ipv4_list, host_id_list, ipv4_list_with_cloud_id, ipv6_list_with_cloud_id = extract_ip_from_ip_str(
+        ip_str
+    )
+
+    # 查询ipv6带云区域的主机
+    ipv6_host_with_cloud_valid = get_ipv6_hosts_with_cloud(
+        executor, bk_biz_id, supplier_account, ipv6_list_with_cloud_id, is_biz_set
+    )
+
+    ipv6_with_cloud_absent_innerip = compare_ipv6_list_and_return_with_cloud(
+        host_list=ipv6_host_with_cloud_valid, ip_list=ipv6_list_with_cloud_id
+    )
 
     # 查询ipv6的主机
     ipv6_host_list = get_ipv6_hosts(executor, bk_biz_id, supplier_account, ipv6_list, is_biz_set)
@@ -430,4 +586,10 @@ def cc_get_host_by_innerip_with_ipv6_across_business(executor, bk_biz_id, ip_str
     # 本业务查到的host集合
     host_list = ipv6_host_list + ipv4_host_list + ipv4_host_with_cloud_valid + host_list
     # 返回依次表示 本业务查到的ip列表，没查到的ipv4列表，没查到的ipv4带云区域列表，没查到的ipv6列表
-    return host_list, list(ipv4_absent_innerip), list(ipv4_with_cloud_absent_innerip), list(ipv6_absent_innerip)
+    return (
+        host_list,
+        list(ipv4_absent_innerip),
+        list(ipv4_with_cloud_absent_innerip),
+        list(ipv6_absent_innerip),
+        list(ipv6_with_cloud_absent_innerip),
+    )
