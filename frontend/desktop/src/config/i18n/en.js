@@ -1548,7 +1548,8 @@ const en = {
     '参数明细': 'Parameter details',
     '展开全部': 'Expand All',
     '中文': 'Chinese',
-    '参数已被使用，不可修改': 'The parameter has been used and cannot be modified'
+    '参数已被使用，不可修改': 'The parameter has been used and cannot be modified',
+    '显示全部': 'Display all'
 }
 
 export default en
