@@ -166,6 +166,7 @@ class JobExecuteTaskServiceBase(JobService):
                     ip_list = self.build_ip_list(biz_across, val, executor, biz_cc_id, data, ip_is_exist)
                     self.logger.info("[job_execute_task_base] find a ip var, ip_list is {}".format(ip_list))
                     if not ip_list:
+                        data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
                         return False
                     global_vars.append({"name": _value["name"], "server": {"ip_list": ip_list}})
             else:
