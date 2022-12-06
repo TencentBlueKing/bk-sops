@@ -110,6 +110,7 @@ class PeriodicTaskReadOnlySerializer(serializers.ModelSerializer):
 def check_cron_params(cron, project):
     # DB cron 属性最大允许字符长度数量
     max_length = 128
+    project_id = project.id if isinstance(project, Project) else project
     # 计算周期任务拼接字符串长度
     schedule_length = len(
         str(
@@ -119,7 +120,7 @@ def check_cron_params(cron, project):
                 day_of_week=cron.get("day_of_week", "*"),
                 day_of_month=cron.get("day_of_month", "*"),
                 month_of_year=cron.get("month_of_year", "*"),
-                timezone=Project.objects.filter(id=project).first().time_zone,
+                timezone=Project.objects.filter(id=project_id).first().time_zone,
             )
         )
     )
