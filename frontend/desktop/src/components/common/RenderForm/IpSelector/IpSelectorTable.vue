@@ -1,11 +1,15 @@
 <template>
     <bk-table
+        ref="ipSeletorTable"
         :row-auto-height="true"
         :class="['ip-seletor-table', { 'disabled': !editable }]"
         :data="listInPage"
-        @selection-change="handleSelectionChange"
         @sort-change="handleSortChange">
-        <bk-table-column v-if="selection" type="selection" width="60" fixed="left"></bk-table-column>
+        <bk-table-column v-if="selection" width="60" fixed="left" :render-header="renderHeaderCheckbox">
+            <template slot-scope="props">
+                <bk-checkbox :value="selectedIp.findIndex(el => el.bk_host_id === props.row.bk_host_id) > -1" @change="onHostItemClick(props.row)"></bk-checkbox>
+            </template>
+        </bk-table-column>
         <template v-for="columnInfo in tableColumnList">
             <bk-table-column
                 v-if="columnInfo.checked"
@@ -63,6 +67,7 @@
 <script>
     import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
     import ColumnSetting from './ColumnSetting.vue'
+    import tools from '@/utils/tools.js'
 
     const i18n = {
         selectAdd: gettext('选择添加'),
@@ -98,6 +103,14 @@
             isSearchMode: {
                 type: Boolean,
                 default: false
+            },
+            defaultSelected: {
+                type: Array,
+                default: () => ([])
+            },
+            staticIpList: {
+                type: Array,
+                default: () => ([])
             },
             listInPage: {
                 type: Array,
@@ -150,7 +163,9 @@
                 ],
                 i18n,
                 ipSortActive: '', // ip 排序方式
-                hostNameSortActive: '' // hostname 排序方式
+                hostNameSortActive: '', // hostname 排序方式
+                selectedIp: this.defaultSelected.slice(0),
+                listAllSelected: false
             }
         },
         computed: {
@@ -165,6 +180,14 @@
                 return key
             }
         },
+        watch: {
+            selectedIp: {
+                handler (val) {
+                    this.$emit('handleSelectionChange', val)
+                },
+                deep: true
+            }
+        },
         methods: {
             handleSelectionChange (data) {
                 this.$emit('handleSelectionChange', data)
@@ -175,6 +198,56 @@
                     this.$emit('onIpSort', way)
                 } else {
                     this.$emit('onHostNameSort', way)
+                }
+            },
+            renderHeaderCheckbox (h) {
+                const self = this
+                return h('div', [
+                    h('bk-checkbox', {
+                        props: {
+                            indeterminate: this.judegeIndeterminate(),
+                            value: this.listAllSelected
+                        },
+                        on: {
+                            change: function (val) {
+                                self.onSelectAllClick(val)
+                            }
+                        }
+                    })
+                ])
+            },
+            judegeIndeterminate () {
+                let selectedIp = tools.deepClone(this.selectedIp)
+                if (selectedIp.length === 0) {
+                    return false
+                }
+                // 有的主机可能在列表中不存在
+                selectedIp = selectedIp.filter(item => {
+                    return this.staticIpList.find(el => el.bk_host_id === item.bk_host_id)
+                })
+                return !!selectedIp.length && selectedIp.length < this.staticIpList.length
+            },
+            onSelectAllClick () {
+                if (this.listAllSelected) {
+                    this.selectedIp = []
+                    this.listAllSelected = false
+                } else {
+                    this.selectedIp = [...this.staticIpList]
+                    this.listAllSelected = true
+                }
+            },
+            onHostItemClick (host) {
+                const index = this.selectedIp.findIndex(el => el.bk_host_id === host.bk_host_id)
+                if (index > -1) {
+                    this.selectedIp.splice(index, 1)
+                } else {
+                    this.selectedIp.push(host)
+                }
+                const half = this.selectedIp.length > 0 && this.selectedIp.length < this.staticIpList.length
+                if (half || this.selectedIp.length === 0) {
+                    this.listAllSelected = false
+                } else {
+                    this.listAllSelected = true
                 }
             },
             handleSettingChange (selectedList) {
