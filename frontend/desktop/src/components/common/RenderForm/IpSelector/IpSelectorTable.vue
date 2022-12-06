@@ -108,6 +108,10 @@
                 type: Array,
                 default: () => ([])
             },
+            staticIpTableConfig: {
+                type: Array,
+                default: () => ([])
+            },
             staticIpList: {
                 type: Array,
                 default: () => ([])
@@ -188,6 +192,14 @@
                 deep: true
             }
         },
+        created () {
+            console.log(this.staticIpTableConfig)
+            if (this.staticIpTableConfig.length) {
+                this.tableColumnList.forEach(item => {
+                    item.checked = this.staticIpTableConfig.includes(item.id)
+                })
+            }
+        },
         methods: {
             handleSelectionChange (data) {
                 this.$emit('handleSelectionChange', data)
@@ -254,6 +266,7 @@
                 this.tableColumnList.forEach(item => {
                     item.checked = selectedList.includes(item.id)
                 })
+                this.$emit('onTableConfigChange', selectedList)
             },
             onRemoveIpClick (hostId) {
                 this.$emit('onRemoveIpClick', hostId)

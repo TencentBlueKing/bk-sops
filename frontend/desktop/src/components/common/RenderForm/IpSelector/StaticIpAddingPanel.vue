@@ -26,8 +26,10 @@
                     :default-selected="selectedIp"
                     :static-ip-list="staticIpList"
                     :list-in-page="listInPage"
+                    :static-ip-table-config="staticIpTableConfig"
                     @onIpSort="onIpSort"
                     @onHostNameSort="onHostNameSort"
+                    @onTableConfigChange="onTableConfigChange"
                     @handleSelectionChange="handleSelectionChange">
                 </IpSelectorTable>
                 
@@ -106,6 +108,7 @@
         props: {
             allowUnfoldInput: Boolean,
             staticIpList: Array,
+            staticIpTableConfig: Array,
             staticIps: Array,
             type: String
         },
@@ -200,6 +203,9 @@
             },
             handleSelectionChange (ips) {
                 this.selectedIp = ips
+            },
+            onTableConfigChange (data) {
+                this.$emit('onTableConfigChange', data)
             },
             getSortIpList (list, way = 'up') {
                 const srotList = list.slice(0)

@@ -48,9 +48,11 @@
                     :editable="editable"
                     :is-search-mode="isSearchMode"
                     :list-in-page="listInPage"
+                    :static-ip-table-config="staticIpTableConfig"
                     @onIpSort="onIpSort"
                     @onHostNameSort="onHostNameSort"
                     @onAddPanelShow="onAddPanelShow"
+                    @onTableConfigChange="onTableConfigChange"
                     @onRemoveIpClick="onRemoveIpClick">
                 </IpSelectorTable>
                 <div class="table-footer" v-if="isShowQuantity || isPaginationShow">
@@ -83,6 +85,8 @@
             :static-ip-list="staticIpList"
             :static-ips="staticIps"
             :type="addingType"
+            :static-ip-table-config="staticIpTableConfig"
+            @onTableConfigChange="onTableConfigChange"
             @onAddIpConfirm="onAddIpConfirm"
             @onAddIpCancel="onAddIpCancel">
         </static-ip-adding-panel>
@@ -135,6 +139,7 @@
             allowUnfoldInput: Boolean,
             editable: Boolean,
             staticIpList: Array,
+            staticIpTableConfig: Array,
             staticIps: Array
         },
         data () {
@@ -297,6 +302,9 @@
                     message: name + this.i18n.success,
                     theme: 'success'
                 })
+            },
+            onTableConfigChange (data) {
+                this.$emit('onTableConfigChange', data)
             },
             onRemoveIpClick (id) {
                 if (!this.editable) {

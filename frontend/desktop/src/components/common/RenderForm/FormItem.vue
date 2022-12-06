@@ -355,6 +355,7 @@
                         valueFormat = {
                             type: 'Object',
                             value: {
+                                static_ip_table_config: [],
                                 selectors: [],
                                 ip: [],
                                 topo: [],
