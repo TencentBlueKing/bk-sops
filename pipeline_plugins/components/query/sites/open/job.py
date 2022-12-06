@@ -199,12 +199,15 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
         if var["type"] in JOB_VAR_CATEGORY_GLOBAL_VARS:
             value = var.get("value", "")
         elif var["type"] == JOB_VAR_CATEGORY_IP:
-            value = ",".join(
-                [
-                    "{plat_id}:{ip}".format(plat_id=ip_item["bk_cloud_id"], ip=ip_item["ip"])
-                    for ip_item in var.get("server", {}).get("ip_list") or []
-                ]
-            )
+            if settings.ENABLE_IPV6:
+                value = ",".join([str(ip_item["bk_host_id"]) for ip_item in var.get("server", {}).get("ip_list") or []])
+            else:
+                value = ",".join(
+                    [
+                        "{plat_id}:{ip}".format(plat_id=ip_item["bk_cloud_id"], ip=ip_item["ip"])
+                        for ip_item in var.get("server", {}).get("ip_list") or []
+                    ]
+                )
         else:
             logger.warning("unknow type var: {}".format(var))
             continue
