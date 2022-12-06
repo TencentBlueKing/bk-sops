@@ -193,7 +193,6 @@
             }
         },
         created () {
-            console.log(this.staticIpTableConfig)
             if (this.staticIpTableConfig.length) {
                 this.tableColumnList.forEach(item => {
                     item.checked = this.staticIpTableConfig.includes(item.id)
