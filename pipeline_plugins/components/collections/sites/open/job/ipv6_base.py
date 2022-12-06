@@ -30,8 +30,11 @@ class GetJobTargetServerMixin(object):
             ipv4_not_find_list,
             ipv4_with_cloud_not_find_list,
             ipv6_not_find_list,
+            ipv6_with_cloud_not_find_list,
         ) = cc_get_host_by_innerip_with_ipv6_across_business(executor, biz_cc_id, ip_str, supplier_account)
-        ip_not_find_str = ",".join(ipv4_not_find_list + ipv6_not_find_list + ipv4_with_cloud_not_find_list)
+        ip_not_find_str = ",".join(
+            ipv4_not_find_list + ipv6_not_find_list + ipv4_with_cloud_not_find_list + ipv6_with_cloud_not_find_list
+        )
         # 剩下的ip去全业务查
         host_result = cc_get_host_by_innerip_with_ipv6(
             executor, None, ip_not_find_str, supplier_account, is_biz_set=True
@@ -98,7 +101,7 @@ class GetJobTargetServerMixin(object):
             ip_list = []
             # 第二步 分析表格, 得到 ipv6, host_id，ipv4, 三种字符串，并连接成字符串
             for _ip in ip_table:
-                ipv6_list, ipv4_list, host_id_list, ipv4_list_with_cloud_id = extract_ip_from_ip_str(_ip[ip_key])
+                ipv6_list, ipv4_list, host_id_list, *_ = extract_ip_from_ip_str(_ip[ip_key])  # noqa
                 host_id_list = [str(host_id) for host_id in host_id_list]
                 ip_list.extend(
                     [

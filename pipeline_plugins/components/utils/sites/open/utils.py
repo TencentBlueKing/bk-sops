@@ -24,7 +24,7 @@ from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.variables.utils import find_module_with_relation
 
 from gcloud.utils import cmdb
-from gcloud.utils.ip import get_ip_by_regex, extract_ip_from_ip_str
+from gcloud.utils.ip import get_ip_by_regex, extract_ip_from_ip_str, get_ipv6_and_cloud_id_from_ipv6_cloud_str
 from gcloud.conf import settings
 from gcloud.core.models import EngineConfig
 
@@ -171,6 +171,60 @@ def get_ipv4_info_list_with_cloud_id(username, biz_cc_id, supplier_account, ipv4
     return True, ip_result
 
 
+def get_ipv6_info_list_with_cloud_id(username, biz_cc_id, supplier_account, ipv6_list_with_cloud_id):
+    if not ipv6_list_with_cloud_id:
+        return True, []
+
+    # 先把所有的ip拿出来去查询符合条件的主机
+    ipv6_list = []
+    for item in ipv6_list_with_cloud_id:
+        _, ip = get_ipv6_and_cloud_id_from_ipv6_cloud_str(item)
+        ipv6_list.append(ip)
+
+    ipv6_info_list = cmdb.get_business_host_topo(
+        username=username,
+        bk_biz_id=biz_cc_id,
+        supplier_account=supplier_account,
+        host_fields=["bk_host_innerip_v6", "bk_host_id", "bk_cloud_id"],
+        property_filters={
+            "host_property_filter": {
+                "condition": "AND",
+                "rules": [{"field": "bk_host_innerip_v6", "operator": "in", "value": ipv6_list}],
+            }
+        },
+    )
+
+    ipv6_info_with_cloud_valid = []
+    for ip_info in ipv6_info_list:
+        # 清洗出来所有带云区域带ip
+        plat_ip = "{}:[{}]".format(
+            ip_info["host"].get("bk_cloud_id", -1), ip_info["host"].get("bk_host_innerip_v6", "")
+        )
+        if plat_ip in ipv6_list_with_cloud_id:
+            ipv6_info_with_cloud_valid.append(ip_info)
+
+    compare_data = compare_ip_list_and_return(
+        ipv6_info_with_cloud_valid, ipv6_list, host_key="bk_host_innerip_v6", raise_exception=False
+    )
+
+    if compare_data:
+        return False, compare_data
+
+    ip_result = []
+    for item in ipv6_info_with_cloud_valid:
+        ip_result.append(
+            {
+                "InnerIP": item["host"]["bk_host_innerip_v6"],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
+                "HostID": item["host"]["bk_host_id"],
+                "Source": item["host"].get("bk_cloud_id", -1),
+                "Sets": item["set"],
+                "Modules": item["module"],
+            }
+        )
+
+    return True, ip_result
+
+
 def get_host_info_list(username, biz_cc_id, supplier_account, host_id_list):
     ip_result = []
     host_info_list = cmdb.get_business_host_topo(
@@ -217,13 +271,22 @@ def get_host_info_list(username, biz_cc_id, supplier_account, host_id_list):
 
 
 def cc_get_ips_info_by_str_ipv6(username, biz_cc_id, ip_str, use_cache=True):
-    ipv6_list, ipv4_list, host_id_list, ipv4_list_with_cloud_id = extract_ip_from_ip_str(ip_str)
+    ipv6_list, ipv4_list, host_id_list, ipv4_list_with_cloud_id, ipv6_list_with_cloud_id = extract_ip_from_ip_str(
+        ip_str
+    )
 
     supplier_account = supplier_account_for_business(biz_cc_id)
 
     ipv6_result, ipv6_data = get_ipv6_info_list(username, biz_cc_id, supplier_account, ipv6_list)
     if not ipv6_result:
         return {"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": ipv6_data}
+
+    # ipv6带云区域
+    ipv6_list_with_cloud_id_result, ipv6_list_with_cloud_id_data = get_ipv6_info_list_with_cloud_id(
+        username, biz_cc_id, supplier_account, ipv6_list
+    )
+    if not ipv6_list_with_cloud_id_result:
+        return {"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": ipv6_list_with_cloud_id_data}
 
     ipv4_result, ipv4_data = get_ipv4_info_list(username, biz_cc_id, supplier_account, ipv4_list)
     if not ipv4_result:
@@ -239,7 +302,7 @@ def cc_get_ips_info_by_str_ipv6(username, biz_cc_id, ip_str, use_cache=True):
     if not ipv4_with_cloud_id_result:
         return {"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": ipv4_with_cloud_id_result}
 
-    ip_result = ipv6_data + ipv4_data + host_data + ipv4_info_with_cloud_id_data
+    ip_result = ipv6_data + ipv4_data + host_data + ipv4_info_with_cloud_id_data + ipv6_list_with_cloud_id_data
 
     return {
         "result": True,

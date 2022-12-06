@@ -38,6 +38,7 @@ from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import (
     get_ipv4_host_list,
     get_ipv4_host_with_cloud_list,
     get_hosts_by_hosts_ids,
+    get_ipv6_host_list_with_cloud_list,
 )
 from pipeline_plugins.components.utils.sites.open.utils import cc_get_ips_info_by_str, cc_get_ips_info_by_str_ipv6
 
@@ -147,12 +148,21 @@ def cc_get_host_by_innerip_with_ipv6(
     @param host_id_detail: 是否针对 host_id_detail 也要查询详情
     @return:
     """
-    ipv6_list, ipv4_list, host_id_list, ipv4_list_with_cloud_id = extract_ip_from_ip_str(ip_str)
+    ipv6_list, ipv4_list, host_id_list, ipv4_list_with_cloud_id, ipv6_list_with_cloud_id = extract_ip_from_ip_str(
+        ip_str
+    )
     # 先查ipv6
     ipv6_host_list_result = get_ipv6_host_list(executor, bk_biz_id, supplier_account, ipv6_list, is_biz_set=is_biz_set)
     # 遇到情况，终止查询
     if not ipv6_host_list_result["result"]:
         return ipv6_host_list_result
+
+    # 查IPV6带云区域
+    ipv6_host_with_cloud_list_result = get_ipv6_host_list_with_cloud_list(
+        executor, bk_biz_id, supplier_account, ipv6_list_with_cloud_id, is_biz_set=is_biz_set
+    )
+    if not ipv6_host_with_cloud_list_result["result"]:
+        return ipv6_host_with_cloud_list_result
 
     # 查询ipv4
     ipv4_host_list_result = get_ipv4_host_list(executor, bk_biz_id, supplier_account, ipv4_list, is_biz_set=is_biz_set)
@@ -179,6 +189,7 @@ def cc_get_host_by_innerip_with_ipv6(
         ipv6_host_list_result["data"]
         + ipv4_host_list_result["data"]
         + host_list
+        + ipv6_host_with_cloud_list_result["data"]
         + ipv4_host_with_cloud_list_result["data"]
     )
 
