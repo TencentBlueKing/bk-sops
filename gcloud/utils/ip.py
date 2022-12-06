@@ -60,8 +60,11 @@ def extend_ipv6(ip_list):
 
 
 def get_ipv6_and_cloud_id_from_ipv6_cloud_str(ipv6_cloud_str):
-    # 提取云区域
-    cloud_id = ipv6_cloud_str.split("[")[0].split(":")[0]
+    """ "
+    从ipv6+云区域的格式中提取出来ipv6和云区域地址
+    ipv6_cloud_str: 0:[0000:0000:0000:0000:0000:0000]
+    """
+    cloud_id = ipv6_cloud_str.split(":")[0]
     ip_v6_address, _ = get_ip_by_regex_type(IpRegexType.IPV6.value, ipv6_cloud_str)
     return cloud_id, ip_v6_address[0]
 

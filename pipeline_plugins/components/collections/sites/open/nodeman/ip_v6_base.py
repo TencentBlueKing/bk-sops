@@ -30,7 +30,8 @@ class NodemanPluginIPMixin:
                 *ipv6_list,
                 *host_id_list,
                 *ipv4_list_with_cloud_id,
-                *ipv6_list_with_cloud_id * ["{}:{}".format(bk_cloud_id, item) for item in ipv4_list],
+                *ipv6_list_with_cloud_id,
+                ["{}:{}".format(bk_cloud_id, item) for item in ipv4_list],
             ]
             return ",".join(ip_list)
 

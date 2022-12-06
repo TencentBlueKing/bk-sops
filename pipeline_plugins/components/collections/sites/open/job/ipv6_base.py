@@ -101,7 +101,7 @@ class GetJobTargetServerMixin(object):
             ip_list = []
             # 第二步 分析表格, 得到 ipv6, host_id，ipv4, 三种字符串，并连接成字符串
             for _ip in ip_table:
-                ipv6_list, ipv4_list, host_id_list, _, _ = extract_ip_from_ip_str(_ip[ip_key])  # noqa
+                ipv6_list, ipv4_list, host_id_list, *_ = extract_ip_from_ip_str(_ip[ip_key])  # noqa
                 host_id_list = [str(host_id) for host_id in host_id_list]
                 ip_list.extend(
                     [

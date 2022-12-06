@@ -197,7 +197,9 @@ def get_ipv6_info_list_with_cloud_id(username, biz_cc_id, supplier_account, ipv6
     ipv6_info_with_cloud_valid = []
     for ip_info in ipv6_info_list:
         # 清洗出来所有带云区域带ip
-        plat_ip = "{}:[{}]".format(ip_info["host"].get("bk_cloud_id", -1), ip_info["host"].get("bk_host_innerip", ""))
+        plat_ip = "{}:[{}]".format(
+            ip_info["host"].get("bk_cloud_id", -1), ip_info["host"].get("bk_host_innerip_v6", "")
+        )
         if plat_ip in ipv6_list_with_cloud_id:
             ipv6_info_with_cloud_valid.append(ip_info)
 
@@ -279,7 +281,7 @@ def cc_get_ips_info_by_str_ipv6(username, biz_cc_id, ip_str, use_cache=True):
     if not ipv6_result:
         return {"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": ipv6_data}
 
-    # upv6带云区域
+    # ipv6带云区域
     ipv6_list_with_cloud_id_result, ipv6_list_with_cloud_id_data = get_ipv6_info_list_with_cloud_id(
         username, biz_cc_id, supplier_account, ipv6_list
     )

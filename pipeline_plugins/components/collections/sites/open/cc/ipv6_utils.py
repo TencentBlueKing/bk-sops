@@ -38,7 +38,7 @@ def compare_ip_list(host_list, ip_list, host_key="bk_host_innerip"):
     return True, ""
 
 
-def compare_ip_with_cloud_list(host_list, ip_list, host_key="bk_host_innerip"):
+def compare_ip_with_cloud_list(host_list, ip_list):
     """
     对比带云区域的云区域是否有多了或者少了的情况,  返回的是 bool, message 的格式
     @param host_list: 主机列表 [{"bk_host_innerip": "127.0.0.1", "bk_cloud_id":"2"}]
@@ -48,14 +48,14 @@ def compare_ip_with_cloud_list(host_list, ip_list, host_key="bk_host_innerip"):
     """
     if len(host_list) > len(ip_list):
         # find repeat innerip host
-        return_innerip_set = {"{}:{}".format(host["bk_cloud_id"], host[host_key]) for host in host_list}
+        return_innerip_set = {"{}:{}".format(host["bk_cloud_id"], host["bk_host_innerip"]) for host in host_list}
         mutiple_innerip_hosts = return_innerip_set.difference(set(ip_list))
         return (
             False,
             "mutiple same innerip host found: {}".format(", ".join(mutiple_innerip_hosts)),
         )
     if len(host_list) < len(ip_list):
-        return_innerip_set = {"{}:{}".format(host["bk_cloud_id"], host[host_key]) for host in host_list}
+        return_innerip_set = {"{}:{}".format(host["bk_cloud_id"], host["bk_host_innerip"]) for host in host_list}
         absent_innerip = set(ip_list).difference(return_innerip_set)
 
         return False, "ip not found in business: {}".format(", ".join(absent_innerip))
@@ -66,9 +66,8 @@ def compare_ip_with_cloud_list(host_list, ip_list, host_key="bk_host_innerip"):
 def compare_ipv6_with_cloud_list(host_list, ip_list):
     """
     对比带云区域的云区域是否有多了或者少了的情况,  返回的是 bool, message 的格式
-    @param host_list: 主机列表 [{"bk_host_innerip": "127.0.0.1", "bk_cloud_id":"2"}]
-    @param ip_list: ["2:127.0.0.1"]
-    @param host_key: host_key: 取ip的字段 为了适配IPV4 OR IPV6
+    @param host_list: 主机列表 [{"bk_host_innerip_ipv6": "0000:00000:0000:0000:0000", "bk_cloud_id":"2"}]
+    @param ip_list: ["2:[0000:00000:0000:0000:0000]"]
     @return:
     """
     if len(host_list) > len(ip_list):
@@ -88,7 +87,7 @@ def compare_ipv6_with_cloud_list(host_list, ip_list):
     return True, ""
 
 
-def check_ipv6_cloud(ipv4_host_with_cloud_list, bk_host_innerip_key="bk_host_innerip"):
+def check_ip_cloud(ip_host_with_cloud_list, bk_host_innerip_key="bk_host_innerip"):
     """
     检查cc查询结果中，是否有云区域+ip重复的主机
     @param ipv4_host_with_cloud_list: [{"host_id":1,"bk_host_innerip": "127.0.0.1", "bk_cloud_id":"2"},
@@ -97,7 +96,7 @@ def check_ipv6_cloud(ipv4_host_with_cloud_list, bk_host_innerip_key="bk_host_inn
     """
     repeated_hosts = []
     data = set()
-    for host in ipv4_host_with_cloud_list:
+    for host in ip_host_with_cloud_list:
         bk_cloud_id = host["bk_cloud_id"]
         bk_host_innerip = bk_host_innerip_key
         plat_ip = "{}:{}".format(bk_cloud_id, bk_host_innerip)
@@ -222,12 +221,12 @@ def get_ipv4_hosts_with_cloud(executor, bk_biz_id, supplier_account, ipv4_list_w
         return []
 
     # 在ipv6语境下需要确认查出来的这一批主机，有没有ip和云区域一样，但是host_id不一样的，有的话要直接抛异常
-    check_result = check_ipv6_cloud(ipv4_host_with_cloud_list)
-    if check_result:
+    exist_repeated_host = check_ip_cloud(ipv4_host_with_cloud_list)
+    if exist_repeated_host:
         raise Exception(
             "list_biz_hosts[ipv4] query failed, "
             "the host with the same IP address and cloud area is displayed,"
-            "repeated_list = {}".format(check_result)
+            "repeated_list = {}".format(exist_repeated_host)
         )
     # 查出来的数据需要根据最初始的云区域:ip 列表清洗出来用户想要的那一部分主机
     for ip_info in ipv4_host_with_cloud_list:
@@ -297,12 +296,12 @@ def get_ipv6_hosts_with_cloud(executor, bk_biz_id, supplier_account, ipv6_list_w
         return []
 
     # 在ipv6语境下需要确认查出来的这一批主机，有没有ip和云区域一样，但是host_id不一样的，有的话要直接抛异常
-    check_result = check_ipv6_cloud(ipv6_host_with_cloud_list, bk_host_innerip_key="bk_host_innerip_v6")
-    if check_result:
+    exist_repeated_host = check_ip_cloud(ipv6_host_with_cloud_list, bk_host_innerip_key="bk_host_innerip_v6")
+    if exist_repeated_host:
         raise Exception(
             "[get_ipv6_hosts_with_cloud] is failed "
             "the host with the same IP address and cloud area is displayed,"
-            "repeated_list = {}".format(check_result)
+            "repeated_list = {}".format(exist_repeated_host)
         )
 
     # 查出来的数据需要根据最初始的云区域:ip 列表清洗出来用户想要的那一部分主机
