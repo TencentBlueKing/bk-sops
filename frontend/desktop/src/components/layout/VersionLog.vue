@@ -34,7 +34,7 @@
                 </div>
                 <div class="log-version-right">
                     <slot name="detail">
-                        <div class="markdown-container" v-html="logContent"></div>
+                        <div :class="['detail-container', { 'markdown-theme-style': mdMode }]" v-html="content"></div>
                     </slot>
                 </div>
             </div>
@@ -62,6 +62,7 @@
                 type: String,
                 default: ''
             },
+            mdMode: Boolean,
             loading: Boolean,
             dialogProps: {
                 type: Object,
@@ -75,11 +76,11 @@
             }
         },
         computed: {
-            logContent () {
-                if (this.logList.length < 1) {
-                    return ''
+            content () {
+                if (this.mdMode) {
+                    return marked(this.logDetail)
                 }
-                return marked(this.logDetail)
+                return this.logDetail
             }
         },
         watch: {
@@ -114,7 +115,6 @@
     }
 </script>
 <style lang="scss" scoped>
-    @import '@/scss/logMarkDown.scss';
     .log-version {
         display: flex;
         margin: -33px -24px -26px;
@@ -189,4 +189,7 @@
             }
         }
     }
+</style>
+<style lang="scss">
+    @import '@/scss/markdown-theme.scss';
 </style>
