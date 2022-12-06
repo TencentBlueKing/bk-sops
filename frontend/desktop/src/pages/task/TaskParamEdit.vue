@@ -53,6 +53,10 @@
             showRequired: {
                 type: Boolean,
                 default: true
+            },
+            unUsedConstants: {
+                type: Array,
+                default: () => ([])
             }
         },
         data () {
@@ -170,8 +174,19 @@
                                 item.attrs = {}
                             }
                             item.attrs['disabled'] = true
-                            item.attrs['pre_mako_tip'] = i18n.t('设置了模板预渲染的变量，不支持中途修改参数值')
+                            item.attrs['pre_mako_tip'] = i18n.t('设为「常量」的参数中途不允许修改')
                             if (item.attrs.children) { // 预渲染变量下包含子组件配置禁止编辑
+                                this.setAtomDisable(item.attrs.children)
+                            }
+                        })
+                    } else if (this.unUsedConstants.length && !this.unUsedConstants.includes(variable.key)) { // 修改参数页已被使用的变量禁止修改参数值
+                        atomConfig.forEach(item => {
+                            if (!item.attrs) {
+                                item.attrs = {}
+                            }
+                            item.attrs['disabled'] = true
+                            item.attrs['used_tip'] = i18n.t('参数已被使用，不可修改')
+                            if (item.attrs.children) { // 变量下包含子组件配置禁止编辑
                                 this.setAtomDisable(item.attrs.children)
                             }
                         })

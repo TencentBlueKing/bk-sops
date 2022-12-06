@@ -66,7 +66,7 @@
             </li> -->
             <li v-if="isSubProcessNode">
                 <span class="th">{{ $t('总是使用最新版本') }}</span>
-                <span class="td">{{ !('always_use_latest' in nodeActivity) ? '--' : nodeActivity.always_use_latest ? $t('是') : $t('否') }}</span>
+                <span class="td">{{ !('always_use_latest' in componentValue) ? '--' : componentValue.always_use_latest ? $t('是') : $t('否') }}</span>
             </li>
         </ul>
         <template v-if="nodeActivity.original_template_id || !isSubProcessNode">
@@ -217,7 +217,10 @@
                 return i18n.t('超时') + ' ' + timeoutConfig.seconds + ' ' + i18n.tc('秒', 0) + i18n.t('后') + i18n.t('则') + actionText
             },
             componentValue () {
-                return this.nodeActivity.component.data.subprocess.value
+                if (this.nodeActivity.component) {
+                    return this.nodeActivity.component.data.subprocess.value
+                }
+                return {}
             },
             inputLoading () {
                 return this.taskNodeLoading || this.subflowLoading || this.constantsLoading
@@ -253,7 +256,7 @@
                 try {
                     // 获取对应模板配置
                     const tplConfig = await this.getNodeSnapshotConfig(this.nodeDetailConfig)
-                    this.templateConfig = tplConfig.data
+                    this.templateConfig = tplConfig.data || {}
                     if (this.isSubProcessNode) { // 子流程任务节点
                         // 旧版没有original_template_id，不调接口
                         if (!this.nodeActivity.original_template_id) {
@@ -551,7 +554,6 @@
             },
             async getTemplateData () {
                 const { template_source, scheme_id_list: schemeIds } = this.componentValue
-                if (!template_source) return
                 const data = {
                     templateId: this.nodeActivity.original_template_id,
                     project__id: this.project_id

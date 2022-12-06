@@ -269,7 +269,7 @@
                         case 'set_allocation':
                             val = {
                                 config: {
-                                    set_count: 0,
+                                    set_count: 1,
                                     set_template_id: '',
                                     host_resources: [],
                                     module_detail: []
@@ -435,6 +435,7 @@
                 background: #ffd695;
             }
         }
+        .used-tip,
         .not-reuse-tip,
         .pre-mako-tip {
             color: #979ba5;
@@ -449,6 +450,7 @@
     /deep/ .rf-group-desc {
         color: #63656e;
         font-size: 12px;
+        word-break: break-word;
         margin-bottom: 12px;
     }
 

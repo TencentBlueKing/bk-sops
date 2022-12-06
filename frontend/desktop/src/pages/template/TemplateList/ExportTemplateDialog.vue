@@ -13,7 +13,7 @@
     <bk-dialog
         width="850"
         ext-cls="common-dialog export-tpl-dialog"
-        :title="$t('导出为') + (type === 'dat' ? 'DAT' : 'YAML')"
+        :title="$t('导出为') + (type === 'exportDatFile' ? 'DAT' : 'YAML')"
         :mask-close="false"
         :value="isExportDialogShow"
         :header-position="'left'"
@@ -118,7 +118,7 @@
         },
         computed: {
             exportTips () {
-                return this.type === 'dat' ? i18n.t('DAT文件导出后不可编辑，导出时不能自由覆盖模板') : i18n.t('YAML文件导出后可以编辑，导入时可以自由覆盖模板但节点会丢失位置信息')
+                return this.type === 'exportDatFile' ? i18n.t('DAT文件导出后不可编辑，导出时不能自由覆盖模板') : i18n.t('YAML文件导出后可以编辑，导入时可以自由覆盖模板但节点会丢失位置信息')
             },
             reqPerm () {
                 return this.common ? ['common_flow_view'] : ['flow_view']

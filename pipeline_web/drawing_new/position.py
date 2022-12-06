@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 
 import copy
 
+from pipeline.utils.uniqid import line_uniqid
+
 from pipeline_web.constants import PWE
 
 from pipeline_web.drawing_new.constants import (
@@ -23,8 +25,32 @@ from pipeline_web.drawing_new.constants import (
 )
 
 
-def position(pipeline, orders, activity_size, event_size, gateway_size, start, canvas_width, more_flows=None):
+def upsert_orders(orders, nodes_fill_nums):
+    # 为相应的节点插入相关的虚拟节点占位排版
+    new_orders = copy.deepcopy(orders)
+    dummy_nodes = []
+    for order in orders:
+        if order in nodes_fill_nums.keys():
+            dummy_nodes_list = [line_uniqid() for i in range(0, nodes_fill_nums[order])]
+            dummy_nodes.extend(dummy_nodes_list)
+            index = new_orders.index(order)
+            new_orders = new_orders[: index + 1] + dummy_nodes_list + new_orders[index + 1 :]
+    return new_orders, dummy_nodes
+
+
+def position(
+    pipeline,
+    orders,
+    activity_size,
+    event_size,
+    gateway_size,
+    start,
+    canvas_width,
+    more_flows=None,
+    nodes_fill_nums=None,
+):
     """
+    @param gateway_dummy_nums:
     @summary：将后台 pipeline tree 转换成带前端 location、line 画布信息的数据
     @param pipeline: 后台流程树
     @param orders: 层级和同一层级内节点顺序
@@ -57,14 +83,14 @@ def position(pipeline, orders, activity_size, event_size, gateway_size, start, c
     # 节点横坐标偏移值
     pipeline_element_shift_x = {
         DUMMY_NODE_TYPE: 0,
-        PWE.ServiceActivity: activity_size[0] * 1.3,
-        PWE.SubProcess: activity_size[0] * 1.3,
-        PWE.EmptyStartEvent: event_size[0] * 2,
-        PWE.EmptyEndEvent: event_size[0] * 2,
-        PWE.ExclusiveGateway: gateway_size[0] * 6,
-        PWE.ConditionalParallelGateway: gateway_size[0] * 6,
-        PWE.ParallelGateway: gateway_size[0] * 2,
-        PWE.ConvergeGateway: gateway_size[0] * 2,
+        PWE.ServiceActivity: activity_size[0] * 1.5,
+        PWE.SubProcess: activity_size[0] * 1.5,
+        PWE.EmptyStartEvent: event_size[0] * 2.5,
+        PWE.EmptyEndEvent: event_size[0] * 2.5,
+        PWE.ExclusiveGateway: gateway_size[0] * 6.5,
+        PWE.ConditionalParallelGateway: gateway_size[0] * 6.5,
+        PWE.ParallelGateway: gateway_size[0] * 2.5,
+        PWE.ConvergeGateway: gateway_size[0] * 2.5,
     }
 
     min_rk = min(list(orders.keys()))
@@ -79,6 +105,7 @@ def position(pipeline, orders, activity_size, event_size, gateway_size, start, c
         # 记录当前层节点微调的最大值
         shift_x = 0
         layer_nodes = orders[rk]
+        layer_nodes, dummy_nodes = upsert_orders(layer_nodes, nodes_fill_nums)
         # 当前 rank 首个节点位置
         order_x, order_y = rank_x, rank_y
         # 记录当前行的最大纵坐标，当需要换行时赋值给下一行起始点
@@ -94,7 +121,7 @@ def position(pipeline, orders, activity_size, event_size, gateway_size, start, c
                 if node_id in old_locations:
                     locations[node_id] = copy.deepcopy(old_locations[node_id])
                     locations[node_id].update({"x": node_x, "y": node_y})
-                else:
+                elif node_id not in dummy_nodes:
                     locations[node_id] = {
                         "id": node_id,
                         "type": PIPELINE_ELEMENT_TO_WEB.get(node[PWE.type], node[PWE.type]),
@@ -109,7 +136,7 @@ def position(pipeline, orders, activity_size, event_size, gateway_size, start, c
 
         rank_x = rank_x + shift_x
         # 1)下一个节点最右端 x 坐标超出画布宽度 canvas_width 2)无分支 3)下一个节点非结束节点 ——> 换行
-        if rank_x + size_x > canvas_width and len(layer_nodes) == 1 and rk < max_rk - MIN_LEN:
+        if rank_x + size_x > canvas_width and (len(layer_nodes) - len(dummy_nodes)) == 1 and rk < max_rk - MIN_LEN:
             rank_x = start[0]
             rank_y = new_line_y
 

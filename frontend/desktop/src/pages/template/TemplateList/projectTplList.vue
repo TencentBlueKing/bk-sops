@@ -35,8 +35,8 @@
                                 <i :class="['bk-icon icon-angle-down']"></i>
                             </div>
                             <ul class="import-option-list" slot="dropdown-content">
-                                <li data-test-id="process_list_importDatFile" @click="isImportDialogShow = true">{{ $t('导入') }}DAT{{ $t('文件') }}</li>
                                 <li data-test-id="process_list_importYamlFile" @click="isImportYamlDialogShow = true">{{ $t('导入') }}YAML{{ $t('文件') }}</li>
+                                <li data-test-id="process_list_importDatFile" @click="isImportDialogShow = true">{{ $t('导入') }}DAT{{ $t('文件') }}</li>
                             </ul>
                         </bk-dropdown-menu>
                         <bk-dropdown-menu
@@ -48,11 +48,12 @@
                                 <i :class="['bk-icon icon-angle-down']"></i>
                             </div>
                             <ul class="export-option-list" slot="dropdown-content">
-                                <li data-test-id="process_list_exportDatFile" @click="onExportTemplate('exportDatFile')">{{ $t('导出') }}DAT{{ $t('文件') }}</li>
-                                <li data-test-id="process_list_exportYamlFile" @click="onExportTemplate('exportYamlFile')">{{ $t('导出') }}YAML{{ $t('文件') }}</li>
+                                <li data-test-id="process_list_exportYamlFile" @click="onExportTemplate('exportYamlFile')">{{ $t('导出为') }}YAML{{ $t('文件') }}</li>
+                                <li data-test-id="process_list_exportDatFile" @click="onExportTemplate('exportDatFile')">{{ $t('导出为') }}DAT{{ $t('文件') }}</li>
                             </ul>
                         </bk-dropdown-menu>
                         <bk-button
+                            class="batch-delete"
                             data-test-id="process_form_deleteProcess"
                             :disabled="!selectedTpls.length"
                             @click="onBatchDelete">
@@ -834,12 +835,12 @@
                     data['order_by'] = this.ordering
                 }
                 if (create_time && create_time[0] && create_time[1]) {
-                    data['pipeline_template__create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD')
-                    data['pipeline_template__create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                    data['pipeline_template__create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
+                    data['pipeline_template__create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
                 }
                 if (edit_time && edit_time[0] && edit_time[1]) {
-                    data['pipeline_template__edit_time__gte'] = moment.tz(edit_time[0], this.timeZone).format('YYYY-MM-DD')
-                    data['pipeline_template__edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                    data['pipeline_template__edit_time__gte'] = moment.tz(edit_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
+                    data['pipeline_template__edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
                 }
                 return data
             },
@@ -1139,7 +1140,7 @@
                     data.limit = 0
                     data.offset = 0
                     const res = await this.loadTemplateList(data)
-                    this.selectedTpls = res.results.slice(0)
+                    this.selectedTpls = res.slice(0)
                 } else {
                     this.templateList.forEach(item => {
                         if (!this.selectedTpls.find(tpl => tpl.id === item.id)) {
@@ -1594,6 +1595,12 @@
             color: #cccccc;
             cursor: not-allowed;
         }
+    }
+}
+.batch-delete {
+    &.is-disabled {
+        border-color: #dcdee5 !important;
+        background-color: #fafafa !important;
     }
 }
 /deep/.bk-table-header-append .is-prepend {

@@ -163,7 +163,7 @@
                 <section class="config-section">
                     <p class="title">{{$t('参数信息')}}</p>
                     <div v-bkloading="{ isLoading: isLoading || previewDataLoading }">
-                        <NoData v-if="isVariableEmpty"></NoData>
+                        <NoData v-if="isVariableEmpty" :message="$t('没有参数需要配置')"></NoData>
                         <TaskParamEdit
                             v-else
                             ref="TaskParamEdit"
@@ -209,7 +209,7 @@
                         :class="{ 'btn-permission-disable': hasNoCreatePerm }"
                         v-cursor="{ active: hasNoCreatePerm }"
                         @click="onPeriodicConfirm">
-                        {{ isEdit ? $t('保存') : $t('创建') }}
+                        {{ isEdit ? $t('保存') : $t('提交') }}
                     </bk-button>
                     <bk-button
                         theme="default"
@@ -373,7 +373,7 @@
                 return this.curRow.template_source === 'common'
             },
             sideSliderTitle () {
-                return this.isEdit ? i18n.t('编辑周期任务') : i18n.t('创建周期任务')
+                return this.isEdit ? i18n.t('编辑周期任务') : i18n.t('新建周期任务')
             },
             previewScheme () {
                 if (this.formData.is_latest === null) {
@@ -810,8 +810,8 @@
                         'minute': cronArray[0],
                         'hour': cronArray[1],
                         'day_of_week': cronArray[4],
-                        'day_of_month': cronArray[3],
-                        'month_of_year': cronArray[2]
+                        'day_of_month': cronArray[2],
+                        'month_of_year': cronArray[3]
                     }
                     const pipelineData = {
                         ...this.previewData,
@@ -1103,8 +1103,8 @@
     }
 }
 .node-preview-wrapper {
-    height: calc(100% - 50px);
-    margin: 25px 0;
+    height: calc(100% - 25px);
+    margin-bottom: 25px;
 }
 .tpl-popover {
     .bk-spin-title {

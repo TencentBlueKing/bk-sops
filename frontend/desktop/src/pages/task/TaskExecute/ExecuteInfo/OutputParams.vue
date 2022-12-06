@@ -1,11 +1,12 @@
 <template>
     <section class="info-section outputs-section" data-test-id="taskExecute_form_outputParams">
         <h4 class="common-section-title">{{ $t('输出参数') }}</h4>
-        <div class="origin-value" v-if="!adminView">
+        <div class="origin-value" v-if="isReadyStatus && !adminView">
             <bk-switcher size="small" @change="outputSwitcher" v-model="isShowOutputOrigin"></bk-switcher>
-            {{ 'Json' }}
+            {{ 'JSON' }}
         </div>
-        <template v-if="!adminView">
+        <NoData v-if="!isReadyStatus" :message="$t('暂无输出')"></NoData>
+        <template v-else-if="!adminView">
             <table class="operation-table outputs-table" v-if="!isShowOutputOrigin">
                 <thead>
                     <tr>
@@ -18,8 +19,13 @@
                     <tr v-for="(output, index) in outputsInfo" :key="index">
                         <td class="output-name">{{ getOutputName(output) }}</td>
                         <td class="output-key">{{ output.key }}</td>
-                        <td v-if="isUrl(output.value) || Array.isArray(output.value)" class="output-value" v-html="getOutputValue(output)"></td>
-                        <td v-else class="output-value">{{ getOutputValue(output) }}</td>
+                        <td
+                            v-if="isUrl(output.value) || Array.isArray(output.value)"
+                            class="output-value"
+                            v-bk-overflow-tips
+                            v-html="getOutputValue(output)">
+                        </td>
+                        <td v-else class="output-value" v-bk-overflow-tips>{{ getOutputValue(output) }}</td>
                     </tr>
                     <tr v-if="Object.keys(outputsInfo).length === 0">
                         <td colspan="3"><no-data></no-data></td>
@@ -59,6 +65,10 @@
             nodeDetailConfig: {
                 type: Object,
                 default: () => ({})
+            },
+            isReadyStatus: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
@@ -121,6 +131,7 @@
 <style lang="scss" scoped>
     .outputs-section .operation-table {
         flex: 1;
+        table-layout: fixed;
         th, td {
             width: 30%;
             padding: 16px 13px;
@@ -136,9 +147,13 @@
         }
         .output-value {
             width: 50%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            word-break: break-all;
         }
     }
-    .full-code-editor {
+    .outputs-section .full-code-editor {
         height: 400px;
     }
 </style>

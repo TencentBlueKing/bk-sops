@@ -93,8 +93,14 @@
                 }
             }
         },
-        created () {
-            this.getVaribaleList()
+        watch: {
+            isInjectVarDialogShow (val) {
+                if (val) {
+                    this.getVaribaleList()
+                } else {
+                    this.variableList = []
+                }
+            }
         },
         methods: {
             getVaribaleList () {
@@ -146,6 +152,7 @@
                             theme: 'warning'
                         })
                     } else {
+                        this.$refs.variableForm[index].clearError()
                         this.variableList.splice(index, 1)
                     }
                 } else {
@@ -153,7 +160,7 @@
                         key: '',
                         value: '',
                         type: 'string',
-                        rules: { ...this.rules }
+                        rules: tools.deepClone(this.rules)
                     })
                 }
             },
@@ -165,7 +172,13 @@
                     Promise.all(formValidations).then(results => {
                         if (results.every(item => item)) {
                             const context = this.variableList.reduce((acc, cur) => {
-                                acc[cur.key] = cur.value
+                                if (cur.type === 'number') {
+                                    acc[cur.key] = Number(cur.value)
+                                } else if (cur.type === 'object') {
+                                    acc[cur.key] = eval('(' + cur.value + ')')
+                                } else {
+                                    acc[cur.key] = cur.value
+                                }
                                 return acc
                             }, {})
                             this.$emit('onConfirmInjectVar', context)

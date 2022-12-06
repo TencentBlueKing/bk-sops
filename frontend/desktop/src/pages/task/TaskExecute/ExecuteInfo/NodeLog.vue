@@ -3,7 +3,7 @@
         <div class="log-wrap">
             <!-- 内置插件/第三方插件tab -->
             <bk-tab
-                v-if="isThirdPartyNode"
+                v-if="isThirdPartyNode && !isLogLoading"
                 :active-bar="{
                     position: 'top',
                     height: '2px'
@@ -17,10 +17,12 @@
             </bk-tab>
             <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
                 <full-code-editor
+                    v-if="logInfo || thirdPartyNodeLog"
                     class="scroll-editor"
                     :key="curPluginTab"
                     :value="curPluginTab === 'build_in_plugin' ? logInfo : thirdPartyNodeLog">
                 </full-code-editor>
+                <NoData v-else :message="$t('暂无日志')"></NoData>
             </div>
         </div>
     </section>
@@ -29,10 +31,12 @@
 <script>
     import { mapActions } from 'vuex'
     import FullCodeEditor from '@/components/common/FullCodeEditor.vue'
+    import NoData from '@/components/common/base/NoData.vue'
     export default {
         name: 'NodeLog',
         components: {
-            FullCodeEditor
+            FullCodeEditor,
+            NoData
         },
         props: {
             nodeDetailConfig: {
@@ -258,6 +262,10 @@
         }
         .perform-log {
             height: 100%;
+        }
+        .no-data-wrapper {
+            height: initial;
+            margin-top: 50px;
         }
     }
 </style>

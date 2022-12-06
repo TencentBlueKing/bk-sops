@@ -66,7 +66,6 @@ const en = {
     '操作时间': 'Operating time',
     '操作来源': 'Operation source',
     '历史记录': 'History record',
-    '流水操作记录': 'Pipeline operation record',
     '操作流水': 'Operation flow',
     '已过期': 'Expired',
     '编辑执行方案': 'Edit execution plan',
@@ -796,7 +795,7 @@ const en = {
     '手动重试': 'Manual Retry',
     '未选择失败处理方式，标准插件节点如果执行失败，会导致任务中断后不可继续': "No failure process set, you won't be able to operate it if this node failed",
     '说明：': 'Description: ',
-    '自动忽略：标准插件节点如果执行失败，会自动忽略错误并把节点状态设置为成功。': 'Auto Ignore: this node will set to success automatically if failed.',
+    '自动跳过：标准插件节点如果执行失败，会自动忽略错误并把节点状态设置为成功。': 'Auto Skip: this node will set to success automatically if failed.',
     '手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。': 'Manual Skip: you can skip this node manually if it failed.',
     '手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。': 'Manual Retry: you can retry this node manually if it failed.',
     '自动重试：标准插件节点如果执行失败，系统会自动以原参数进行重试。': 'Auto Retry: if the standard plug-in node fails to be executed, the system automatically retries using the original parameters',
@@ -1325,7 +1324,7 @@ const en = {
     '已选择x项': '{num} items selected',
     '确认删除所选的x个变量？': 'Are you sure to delete the selected {num} variables?',
     '开启模板预渲染的变量在任务执行初始完成渲染，后续变量值保存不变，且不可引用输出变量': 'Variables that enable template pre-rendering are rendered at the beginning of task execution, and subsequent variable values are kept unchanged, and output variables cannot be referenced',
-    '设置为常量表示在任务执行最开始完成值的渲染，后续执行过程中值保存不变': 'Setting it as a constant means that the rendering of the value is completed at the beginning of the task execution, and the value is kept unchanged in the subsequent execution process',
+    '常量在任务启动就完成变量值的计算，使用变量时不再重新计算保持值不变': 'The constant calculates the variable value when the task starts, and does not recalculate when the variable is used to keep the value unchanged',
     '顶层流程（n）': 'Top Flow({n})',
     '子流程（n）': 'Sub Flow({n})',
     '是否覆盖已有子流程（实验功能，请谨慎使用并选择正确的流程）': 'Whether to override existing subprocesses (Experimental feature, please use it with caution and choose the correct process)',
@@ -1355,7 +1354,7 @@ const en = {
     '选择通知方式后，将默认通知到任务执行人；可选择同时通知其他分组人员': 'After selecting the notify method, the task executor will be notified by default; you can choose to notify other group personnel at the same time',
     '我创建的': 'I created',
     '已开始执行的任务，修改参数值仅对还未执行的步骤生效': 'For tasks that have already been executed, modifying parameter values takes effect only for steps that have not been executed yet.',
-    '设置了模板预渲染的变量，不支持中途修改参数值': 'The variable of template pre-rendering is set, and parameter value modification midway is not supported',
+    '设为「常量」的参数中途不允许修改': 'Parameters set as "constant" are not allowed to be modified midway',
     '分支类型': 'Branch type',
     '自定义分支': 'Custom branch',
     '默认分支': 'Default branch',
@@ -1520,7 +1519,7 @@ const en = {
     '操作历史': 'Operation history',
     '调用日志': 'Call log',
     '暂无执行数据': 'No execution data yet',
-    '修改任务参数': 'Modify task parameters',
+    '编辑任务参数': 'Edit task parameters',
     '可在此修改任务的参数值，对所有修改后执行的步骤生效': 'You can modify the parameter values of the task here, and it will take effect for all steps executed after the modification.',
     '暂无异常': 'No abnormality',
     '没有参数需要配置': 'No parameters to configure',
@@ -1543,11 +1542,13 @@ const en = {
     '请选择变量值的类型': 'Please select the type of variable value',
     '字符串': 'String',
     '字典': 'Map',
+    '变量Value值不能为空': 'Variable Value cannot be empty',
     '变量Value格式不正确': 'The variable Value is not in the correct format',
     '至少保留一条全局变量': 'Keep at least one global variable',
     '参数明细': 'Parameter details',
     '展开全部': 'Expand All',
-    '中文': 'Chinese'
+    '中文': 'Chinese',
+    '参数已被使用，不可修改': 'The parameter has been used and cannot be modified'
 }
 
 export default en

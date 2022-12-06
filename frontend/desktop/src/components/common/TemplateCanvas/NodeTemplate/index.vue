@@ -165,11 +165,12 @@
     @import '@/scss/mixins/multiLineEllipsis.scss';
     @import '@/scss/mixins/scrollbar.scss';
 
-    $grayDark: #979ba5;
+    $grayDark: #c4c6cc;
     $blueDark: #699df4;
+    $defaultColor: #738abe;
     $redDark: #ea3636;
     $yellowDark: #ff9c01;
-    $greenDark: #2dcb56;
+    $greenDark: #a5e8a9;
     $brightRedDark: #fd9c9c;
     $whiteColor: #ffffff;
     $defaultShadow: rgba(0, 0, 0, 0.15);
@@ -179,9 +180,9 @@
     $greenShadow: rgba(48, 216, 120, 0.15);
     $blueShadow: rgba(58, 132, 255, 0.15);
 
-    @mixin circleStatusStyle ($color, $shadow) {
+    @mixin circleStatusStyle ($color) {
         background-color: $color;
-        box-shadow: 0 0 0 5px $color;
+        box-shadow: 0 0 0 2px $color;
         .circle-node-text {
             color: $whiteColor;
         }
@@ -270,14 +271,20 @@
             background: #96a1b9;
             border-radius: 50%;
             box-shadow: 0 0 0 2px #96a1b9;
+            &.ready {
+                @include circleStatusStyle($grayDark);
+            }
             &.finished {
-                @include circleStatusStyle($greenDark, $greenShadow)
+                @include circleStatusStyle($greenDark);
+                &.end-point {
+                    @include circleStatusStyle(#2dcb56);
+                }
             }
             &.running {
-                @include circleStatusStyle($blueDark, $yellowShadow)
+                @include circleStatusStyle($blueDark)
             }
             &.failed {
-                @include circleStatusStyle($redDark, $redShadow)
+                @include circleStatusStyle($redDark)
             }
         }
         .circle-node-text {
@@ -293,6 +300,9 @@
                 .state-icon {
                     display: block;
                 }
+            }
+            &.ready {
+                @include gatewayStyle($grayDark);
             }
             &.failed {
                 @include gatewayStyle($redDark);
@@ -314,19 +324,27 @@
             }
             .state-icon {
                 position: absolute;
-                right: 7px;
+                right: -5px;
                 bottom: -20px;
                 display: none;
+                width: max-content;
+                color: #63656e;
+                font-size: 12px;
                 z-index: 5;
-                .el-tooltip {
-                   font-size: 14px;
-                   color: #52699D;
-                   vertical-align: middle;
-                    &:hover {
-                        color: #4b85f7;
+                padding-top: 5px;
+                > span {
+                    display: flex;
+                    align-items: center;
+                    i {
+                        color: #979ba5;
+                        margin-right: 5px;
                     }
-                    &.common-icon-play {
-                        font-size: 18px;
+                    &:hover {
+                        cursor: pointer;
+                        color: #3a84ff;
+                        i {
+                            color: #3a84ff;
+                        }
                     }
                 }
             }
@@ -335,7 +353,7 @@
             height: 32px;
             line-height: 32px;
             font-size: 24px;
-            color: $grayDark;
+            color: $defaultColor;
             text-align: center;
         }
         .task-node {
@@ -349,13 +367,19 @@
             cursor: pointer;
             &:hover {
                 .node-name {
-                    border-color: $grayDark;
+                    border-color: $defaultColor;
                 }
             }
             &.actived {
                 box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
             }
             &.default {
+                @include taskNodeStyle ($defaultColor);
+                &.actived {
+                     @include nodeClick ($defaultColor);
+                }
+            }
+            &.ready {
                 @include taskNodeStyle ($grayDark);
                 &.actived {
                      @include nodeClick ($grayDark);
@@ -382,7 +406,7 @@
             &.finished {
                 @include taskNodeStyle ($greenDark);
                 &.actived {
-                    @include nodeClick ($greenDark);
+                     @include nodeClick ($greenDark);
                 }
             }
             &.fail-skip {
@@ -400,7 +424,7 @@
                 align-items: center;
                 padding: 0 8px;
                 height: 20px;
-                background: $grayDark;
+                background: $defaultColor;
                 text-align: left;
                 border-top-left-radius: 4px;
                 border-top-right-radius: 4px;
@@ -450,7 +474,6 @@
                 position: absolute;
                 top: -20px;
                 left: 0;
-                height: 18px;
                 overflow: hidden;
                 .bk-form-checkbox,
                 .dark-circle {
@@ -479,16 +502,38 @@
                 right: 5px;
                 bottom: -20px;
                 display: none;
-                .el-tooltip {
-                   font-size: 14px;
-                   margin-left: 5px;
-                   color: #52699D;
-                   vertical-align: middle;
-                    &:hover {
-                        color: #4b85f7;
+                color: #63656e;
+                font-size: 12px;
+                width: max-content;
+                padding-top: 5px;
+                > span {
+                    &:not(:last-child) {
+                        margin-right: 23px;
+                        position: relative;
+                        &::after {
+                            content: '';
+                            position: absolute;
+                            top: 0;
+                            right: -11px;
+                            display: inline-block;
+                            height: 16px;
+                            width: 1px;
+                            background: #979ba5;
+                        }
                     }
-                    &.common-icon-play {
-                        font-size: 18px;
+                    i {
+                        color: #979ba5;
+                        margin-right: 5px;
+                        &.common-icon-play {
+                            font-size: 14px;
+                        }
+                    }
+                    &:hover {
+                        cursor: pointer;
+                        color: #3a84ff;
+                        i {
+                            color: #3a84ff;
+                        }
                     }
                 }
             }
@@ -573,7 +618,7 @@
             i {
                 font-size: 14px;
                 &.phase-warn {
-                    color: $blueDark;
+                    color: $yellowDark;
                 }
                 &.phase-error {
                     color: $redDark;

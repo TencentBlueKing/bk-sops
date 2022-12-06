@@ -29,7 +29,7 @@ const task = {
                     status.cls = 'loading common-icon-loading'
                     this.getExecuteDetail(acceptVarName, item, index)
                 } else {
-                    status.cls = 'created common-icon-dark-circle-shape'
+                    status.cls = 'created common-icon-waitting'
                     status.text = i18n.t('未执行')
                 }
                 return status

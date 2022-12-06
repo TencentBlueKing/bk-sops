@@ -324,6 +324,13 @@ const task = {
             return axios.post(`taskflow/api/update_task_constants/${data.instance_id}/`, data).then(response => response.data)
         },
         /**
+         * 获取任务执行过的变量
+         * @param {Object} data 表单配置数据
+         */
+        getTaskUsedConstants ({ commit }, data) {
+            return axios.get(`taskflow/api/update_task_constants/${data.instance_id}/`).then(response => response.data)
+        },
+        /**
          * 获取节点执行详情
          * @param {Object} data 节点配置数据
          */

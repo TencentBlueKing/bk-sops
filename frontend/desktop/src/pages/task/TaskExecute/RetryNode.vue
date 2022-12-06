@@ -238,6 +238,9 @@
                 try {
                     if (this.nodeDetailConfig.component_code) {
                         const data = {
+                            instance_id,
+                            node_id,
+                            component_code,
                             inputs: this.renderData
                         }
                         if (component_code === 'subprocess_plugin') {
@@ -247,8 +250,9 @@
                                 constants[key].value = this.renderData[key]
                             })
                             data.inputs = inputs
+                            data.inputs['_escape_render_keys'] = ['subprocess']
                         }
-                        this.$emit('retrySuccess', data.inputs)
+                        this.$emit('retrySuccess', data)
                     } else {
                         this.$emit('retrySuccess', { instance_id, node_id })
                     }
@@ -271,7 +275,7 @@
         height: 100%;
         overflow: hidden;
         .edit-wrapper {
-            padding: 20px 20px 0;
+            padding: 20px;
             height: calc(100% - 60px);
             overflow-y: auto;
             @include scrollbar;

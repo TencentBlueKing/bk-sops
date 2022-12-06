@@ -26,6 +26,7 @@
             :is-breadcrumb-show="isBreadcrumbShow"
             :is-show-view-process="isShowViewProcess"
             :is-task-operation-btns-show="isTaskOperationBtnsShow"
+            :params-can-be-modify="paramsCanBeModify"
             @onSelectSubflow="onSelectSubflow"
             @onOperationClick="onOperationClick"
             @onTaskParamsClick="onTaskParamsClick"
@@ -49,6 +50,7 @@
                     :canvas-data="canvasData"
                     :has-admin-perm="adminView"
                     :node-exec-record-info="nodeExecRecordInfo"
+                    :node-variable-info="nodeVariableInfo"
                     @hook:mounted="onTemplateCanvasMounted"
                     @onNodeClick="onNodeClick"
                     @onConditionClick="onOpenConditionEdit"
@@ -61,6 +63,7 @@
                     @onApprovalClick="onApprovalClick"
                     @nodeExecRecord="onNodeExecRecord"
                     @closeNodeExecRecord="onCloseNodeExecRecord"
+                    @onTogglePerspective="onTogglePerspective"
                     @onSubflowPauseResumeClick="onSubflowPauseResumeClick">
                 </TemplateCanvas>
             </div>
@@ -256,6 +259,7 @@
     import TemplateData from './TemplateData'
     import ConditionEdit from '../../template/TemplateEdit/ConditionEdit.vue'
     import injectVariableDialog from './InjectVariableDialog.vue'
+    import tplPerspective from '@/mixins/tplPerspective.js'
 
     const CancelToken = axios.CancelToken
     let source = CancelToken.source()
@@ -307,7 +311,7 @@
             ConditionEdit,
             injectVariableDialog
         },
-        mixins: [permission],
+        mixins: [permission, tplPerspective],
         props: {
             project_id: [Number, String],
             instance_id: [Number, String],
@@ -442,10 +446,16 @@
                     lines: line,
                     locations: location.map(item => {
                         const code = item.type === 'tasknode' ? activities[item.id].component.code : ''
-                        return { ...item, mode: 'execute', checked: true, code }
+                        return { ...item, mode: 'execute', checked: true, code, ready: true }
                     }),
                     branchConditions
                 }
+            },
+            previewData () {
+                return tools.deepClone(this.pipelineData)
+            },
+            common () {
+                return this.templateSource !== 'project'
             },
             nodeData () {
                 const data = this.getOrderedTree(this.completePipelineData)
@@ -595,8 +605,13 @@
                         }
                         if (this.state === 'RUNNING' || (!this.isTopTask && this.state === 'FINISHED' && !['FINISHED', 'REVOKED', 'FAILED'].includes(this.rootState)) || suspendedRunning) {
                             if (this.isExecRecordOpen) {
-                                this.nodeExecRecordInfo.curTime = this.formatDuring(this.instanceStatus.elapsed_time)
-                                this.setTaskStatusTimer(1000)
+                                const execNodeConfig = this.instanceStatus.children[this.nodeExecRecordInfo.nodeId]
+                                this.nodeExecRecordInfo.curTime = this.formatDuring(execNodeConfig.elapsed_time)
+                                if (execNodeConfig.state === 'RUNNING') { // 节点执行中一秒查一次
+                                    this.setTaskStatusTimer(1000)
+                                } else {
+                                    this.setTaskStatusTimer()
+                                }
                             } else {
                                 this.setTaskStatusTimer()
                             }
@@ -966,7 +981,8 @@
                         retry: currentNode.retry,
                         error_ignored: currentNode.error_ignored,
                         error_ignorable: errorIgnorable,
-                        auto_retry: autoRetry
+                        auto_retry: autoRetry,
+                        ready: false
                     }
 
                     this.setTaskNodeStatus(id, data)
@@ -999,12 +1015,12 @@
             },
             async onRetryClick (id) {
                 try {
-                    const resp = await this.getInstanceRetryParams({ id: this.instance_id })
-                    if (resp.data.enable) {
+                    // const resp = await this.getInstanceRetryParams({ id: this.instance_id })
+                    if (id) {
                         this.openNodeInfoPanel('retryNode', i18n.t('重试'))
                         this.setNodeDetailConfig(id)
                         if (this.nodeDetailConfig.component_code) {
-                            await this.loadNodeInfo()
+                            await this.loadNodeInfo(id)
                         }
                     } else {
                         this.openNodeInfoPanel('modifyParams', i18n.t('重试任务'))
@@ -1014,7 +1030,7 @@
                     console.warn(error)
                 }
             },
-            async loadNodeInfo () {
+            async loadNodeInfo (id = this.retryNodeId) {
                 try {
                     const nodeInputs = {}
                     const { componentData } = this.nodeDetailConfig
@@ -1026,6 +1042,9 @@
                             } else if (this.nodeDetailConfig.component_code === 'subprocess_plugin') { // 新版子流程任务节点输入参数处理
                                 const value = nodeInfo.data.inputs[key]
                                 if (key === 'subprocess') {
+                                    const nodeConfig = this.pipelineData.activities[id]
+                                    const subprocess = nodeConfig.component.data.subprocess
+                                    nodeInfo.data.inputs[key] = subprocess.value
                                     Object.keys(value.pipeline.constants).forEach(key => {
                                         const data = value.pipeline.constants[key]
                                         nodeInputs[key] = data.value
@@ -1049,28 +1068,14 @@
                     console.warn(e)
                 }
             },
-            async onRetryTask (renderData = this.nodeInputs) {
-                const { instance_id, component_code, node_id } = this.nodeDetailConfig
+            async onRetryTask (renderData) {
+                const { component_code } = this.nodeDetailConfig
                 try {
                     let res
                     if (component_code) {
-                        const data = {
-                            instance_id,
-                            node_id,
-                            component_code,
-                            inputs: renderData
-                        }
-                        if (component_code === 'subprocess_plugin') {
-                            const { inputs } = this.nodeInfo.data
-                            const constants = inputs.subprocess ? inputs.subprocess.pipeline.constants : {}
-                            Object.keys(constants).forEach(key => {
-                                constants[key].value = renderData[key]
-                            })
-                            data.inputs = inputs
-                        }
-                        res = await this.instanceRetry(data)
+                        res = await this.instanceRetry(renderData)
                     } else {
-                        res = await this.subflowNodeRetry({ instance_id, node_id })
+                        res = await this.subflowNodeRetry(renderData)
                     }
                     if (res.result) {
                         this.$bkMessage({
@@ -1098,9 +1103,43 @@
                     this.pending.retry = true
                     this.setNodeDetailConfig(this.retryNodeId)
                     await this.loadNodeInfo()
-                    await this.onRetryTask()
+
+                    const { instance_id, component_code, node_id } = this.nodeDetailConfig
+                    const data = {
+                        instance_id,
+                        component_code,
+                        node_id
+                    }
+                    if (component_code) {
+                        if (component_code === 'subprocess_plugin') {
+                            const { inputs } = this.nodeInfo.data
+                            data.inputs = inputs
+                            data.inputs['_escape_render_keys'] = ['subprocess']
+                        } else {
+                            const inputs = tools.deepClone(this.nodeInputs)
+                            // 当重试节点引用了变量时，对应的inputs值设置为变量
+                            const { constants } = this.pipelineData
+                            for (const key in constants) {
+                                const values = constants[key]
+                                if (this.retryNodeId in values.source_info) {
+                                    values.source_info[this.retryNodeId].forEach(code => {
+                                        if (code in inputs) {
+                                            inputs[code] = values.key
+                                        }
+                                    })
+                                }
+                            }
+                            data.inputs = inputs
+                        }
+                        data.node_id = node_id
+                    }
+                    await this.onRetryTask(data)
                     this.isNodeInfoPanelShow = false
                     this.retryNodeId = undefined
+                    // 重新轮询任务状态
+                    this.isFailedSubproceeNodeInfo = null
+                    this.setTaskStatusTimer()
+                    this.updateNodeActived(this.nodeDetailConfig.id, false)
                 } catch (error) {
                     console.warn(error)
                 } finally {
@@ -1127,6 +1166,14 @@
                         id: item,
                         node_id: id,
                         name: nodeGateway.conditions[item].name || nodeGateway.conditions[item].evaluate,
+                        converge_gateway_id: nodeGateway.converge_gateway_id || undefined
+                    })
+                }
+                if (nodeGateway.default_condition) {
+                    branches.unshift({
+                        id: nodeGateway.default_condition.flow_id,
+                        node_id: id,
+                        name: nodeGateway.default_condition.name,
                         converge_gateway_id: nodeGateway.converge_gateway_id || undefined
                     })
                 }
@@ -1429,11 +1476,13 @@
                             }
                             meanTime = (meanTime || 0) + item.elapsed_time
                         })
+                        const execNodeConfig = this.instanceStatus.children[nodeId]
                         this.nodeExecRecordInfo = {
+                            nodeId,
                             latestTime: this.formatDuring(latestTime),
                             meanTime: this.formatDuring(meanTime / execution_time.length),
                             deadline: deadline ? deadline.replace('T', ' ').split('+')[0] : '--',
-                            curTime: this.formatDuring(this.instanceStatus.elapsed_time),
+                            curTime: this.formatDuring(execNodeConfig.elapsed_time),
                             count: execution_time.length
                         }
                     } else {
@@ -1451,7 +1500,7 @@
                 const seconds = (time % (60)).toFixed(0)
                 let str = ''
                 if (days) {
-                    str = i18n.tc('天', days) + ' '
+                    str = i18n.tc('天', days, { n: days > 1 ? '99+' : days }) + ' '
                 }
                 if (hours) {
                     str = str + hours + ' ' + i18n.t('时') + ' '

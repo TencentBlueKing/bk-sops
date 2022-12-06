@@ -3,15 +3,15 @@
         <h4 class="common-section-title">{{ $t('输入参数') }}</h4>
         <div class="origin-value" v-if="!adminView">
             <bk-switcher size="small" @change="inputSwitcher" v-model="isShowInputOrigin"></bk-switcher>
-            {{ 'Json' }}
+            {{ 'JSON' }}
         </div>
         <template v-if="!adminView">
             <div class="input-table" v-if="!isShowInputOrigin">
+                <div class="table-header">
+                    <span class="input-name">{{ $t('参数名') }}</span>
+                    <span class="input-key">{{ $t('参数值') }}</span>
+                </div>
                 <template v-if="Array.isArray(renderConfig)">
-                    <div class="table-header">
-                        <span class="input-name">{{ $t('参数名') }}</span>
-                        <span class="input-key">{{ $t('参数值') }}</span>
-                    </div>
                     <RenderForm
                         v-if="!isEmptyParams && !loading"
                         :key="renderKey"
@@ -68,8 +68,7 @@
                 default: () => ({})
             },
             renderConfig: {
-                type: Array,
-                default: () => ([])
+                type: [Array, Object]
             },
             constants: {
                 type: Object,
@@ -145,6 +144,12 @@
                 deep: true,
                 immediate: true
             }
+        },
+        mounted () {
+            $.context.exec_env = 'NODE_EXEC_DETAIL'
+        },
+        beforeDestroy () {
+            $.context.exec_env = ''
         },
         methods: {
             inputSwitcher () {
@@ -222,12 +227,46 @@
                 }
             }
         }
+        /deep/.bk-schema-form {
+            .bk-form-item {
+                margin: 0;
+                padding: 5px 0;
+                width: 100% !important;
+                border-bottom: 1px solid #dcdee5;
+                label {
+                    width: 30% !important;
+                    text-align: left;
+                    padding-left: 13px;
+                    color: #63656e;
+                    &::before {
+                        content: initial;
+                    }
+                }
+                >.bk-form-content {
+                    margin-left: 30% !important;
+                    padding-left: 13px;
+                    padding-right: 15px;
+                }
+                .el-table {
+                    tr,
+                    .el-table__cell {
+                        height: 42px;
+                        padding: 0;
+                        background-color: initial;
+                    }
+                    .cell {
+                        height: auto;
+                        line-height: 20px;
+                    }
+                }
+            }
+        }
         .no-data-wrapper {
             padding: 16px 13px;
             border-bottom: 1px solid #dcdee5;
         }
     }
-    .full-code-editor {
+    .input-section .full-code-editor {
         height: 400px;
     }
 </style>

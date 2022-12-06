@@ -312,7 +312,6 @@
                 nodeVariableInfo: {}, // 节点输入输出变量
                 initType: '', // 记录最初的流程类型
                 isMultipleTabCount: 0,
-                isRouterPush: false,
                 isNotExistAtomOrVerion: false // 选中的节点插件/插件版本是否存在
             }
         },
@@ -857,7 +856,6 @@
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
                     } else { // 保存后需要切到查看模式(查看执行方案时不需要)
-                        if (this.isExecuteScheme) return
                         if (this.initType === 'view') {
                             this.$router.back()
                             this.initData()
@@ -866,7 +864,6 @@
                                 params: { type: 'view' },
                                 query: { template_id: data.template_id }
                             })
-                            this.isRouterPush = true
                             this.initType = 'view'
                         }
                     }

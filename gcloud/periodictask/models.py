@@ -257,7 +257,15 @@ class PeriodicTask(models.Model):
         PeriodicTaskHistory.objects.filter(task=self).delete()
 
     def modify_cron(self, cron, timezone):
-        self.task.modify_cron(cron, timezone, must_disabled=False)
+        if self.task.enabled is False:
+            self.task.modify_cron(cron, timezone)
+            return
+
+        # 基于celery的实现，启动中的任务直接修改时间可能导致任务立即执行，需要先关闭
+        with transaction.atomic():
+            self.set_enabled(False)
+            self.task.modify_cron(cron, timezone)
+            self.set_enabled(True)
 
     def modify_constants(self, constants):
         return self.task.modify_constants(constants, must_disabled=False)

@@ -331,7 +331,7 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
 .subflow-select-panel {
-    padding: 26px 32px;
+    padding: 25px 32px 20px;
     height: 100%;
 }
 .select-title {
@@ -377,6 +377,9 @@
         .tpl-label {
             display: flex;
             align-items: center;
+            > span {
+                flex-shrink: 0;
+            }
             .label-select-wrap {
                 cursor: pointer;
             }

@@ -22,26 +22,32 @@
                 <i class="common-icon-dark-circle-warning"></i>
                 {{ scheme.attrs.pre_mako_tip }}
             </span>
+            <span class="used-tip" v-else-if="scheme.attrs.used_tip">
+                <i class="common-icon-dark-circle-warning"></i>
+                {{ scheme.attrs.used_tip }}
+            </span>
         </div>
         <!-- 分组描述 -->
         <div v-if="scheme.attrs.desc" class="rf-group-desc">
             {{ scheme.attrs.desc }}
         </div>
+        <!-- 分组描述 -->
+        <div v-if="scheme.attrs.desc" class="rf-group-desc" v-html="scheme.attrs.desc"></div>
         <!-- 分组勾选 -->
         <div v-if="hook" class="rf-form-item rf-has-hook show-label">
             <label v-if="option.showLabel" class="rf-tag-label">
                 <span
                     v-bk-tooltips="{
                         allowHtml: true,
-                        html: scheme.attrs.tips,
-                        placement: 'top',
+                        content: scheme.attrs.tips,
+                        placement: 'top-start',
                         theme: 'light',
                         extCls: 'rf-label-tips',
                         boundary: 'window',
                         zIndex: 2072,
-                        disabled: !!!scheme.attrs.tips
+                        disabled: !option.formEdit || !!!scheme.attrs.tips
                     }"
-                    :class="{ 'tag-label-tips': scheme.attrs.tips }">
+                    :class="{ 'tag-label-tips': option.formEdit && scheme.attrs.tips }">
                     {{scheme.attrs.name}}
                 </span>
             </label>

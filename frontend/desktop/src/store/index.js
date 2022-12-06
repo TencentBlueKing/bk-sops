@@ -89,6 +89,10 @@ const store = new Vuex.Store({
         getFooterContent () {
             return axios.get('core/footer/').then(response => response.data)
         },
+        // 查询用户是否查看最新的版本日志
+        queryNewVersion () {
+            return axios.get('version_log/has_user_read_latest/').then(response => response.data)
+        },
         // 获取项目版本更新日志列表
         getVersionList () {
             return axios.get('version_log/version_logs_list/').then(response => response.data)

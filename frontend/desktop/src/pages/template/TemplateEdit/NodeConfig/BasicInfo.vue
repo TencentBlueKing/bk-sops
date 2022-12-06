@@ -63,7 +63,10 @@
                     @clear="onLabelClear">
                 </bk-search-select>
             </bk-form-item> -->
-            <bk-form-item :label="$t('失败处理')">
+            <bk-form-item>
+                <div slot="tip" class="bk-label slot-bk-label">
+                    <span v-bk-tooltips="errorHandleTipsConfig" class="form-item-tips">{{ $t('失败处理') }}</span>
+                </div>
                 <div class="error-handle">
                     <bk-checkbox
                         :value="formData.ignorable"
@@ -131,14 +134,13 @@
                     {{ $t('未选择失败处理方式，标准插件节点如果执行失败，会导致任务中断后不可继续') }}
                 </p>
                 <div id="html-error-ingored-tootip" class="tips-item" style="white-space: normal;">
-                    <p>{{ $t('自动忽略：标准插件节点如果执行失败，会自动忽略错误并把节点状态设置为成功。') }}</p>
-                    <p>{{ $t('手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。') }}</p>
-                    <p>{{ $t('手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。') }}</p>
+                    <p>{{ $t('自动跳过：标准插件节点如果执行失败，会自动忽略错误并把节点状态设置为成功。') }}</p><br />
+                    <p>{{ $t('手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。') }}</p><br />
+                    <p>{{ $t('手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。') }}</p><br />
                     <p>{{ $t('自动重试：标准插件节点如果执行失败，系统会自动以原参数进行重试。') }}</p>
                 </div>
-                <i v-bk-tooltips="errorHandleTipsConfig" ref="tooltipsHtml" class="bk-icon icon-question-circle form-item-tips"></i>
             </bk-form-item>
-            <!-- <bk-form-item :label="$t('超时控制')">
+            <bk-form-item :label="$t('超时控制')">
                 <div class="timeout-setting-wrap">
                     <bk-switcher
                         theme="primary"
@@ -178,7 +180,7 @@
                 <p v-if="formData.timeoutConfig.enable" class="error-handle-tips" style="margin-top: 6px;">
                     {{ $t('该功能仅对V2引擎生效') }}
                 </p>
-            </bk-form-item> -->
+            </bk-form-item>
             <bk-form-item :label="$t('是否可选')">
                 <bk-switcher
                     theme="primary"
@@ -232,7 +234,19 @@
             <bk-form-item :label="$t('步骤名称')" property="stageName">
                 <bk-input :readonly="isViewMode" v-model="formData.stageName" @change="updateData"></bk-input>
             </bk-form-item>
-            <bk-form-item :label="$t('执行方案')">
+            <bk-form-item>
+                <div slot="tip" class="bk-label slot-bk-label">
+                    <span
+                        v-bk-tooltips="{
+                            theme: 'light',
+                            extCls: 'info-label-tips',
+                            placement: 'top-start',
+                            content: $t('每次创建任务会使用选中执行方案的最新版本且不会提示该节点需要更新')
+                        }"
+                        class="form-item-tips">
+                        {{ $t('执行方案') }}
+                    </span>
+                </div>
                 <bk-select
                     :value="formData.schemeIdList"
                     :clearable="false"
@@ -242,17 +256,14 @@
                     @selected="onSelectTaskScheme">
                     <bk-option v-for="item in schemeList" :key="item.id" :id="item.id" :name="item.name"></bk-option>
                 </bk-select>
-                <i
-                    v-bk-tooltips="{
-                        width: 300,
-                        placement: 'bottom-end',
-                        content: $t('每次创建任务会使用选中执行方案的最新版本且不会提示该节点需要更新')
-                    }"
-                    class="bk-icon icon-question-circle form-item-tips">
-                </i>
             </bk-form-item>
             <template v-if="isShowFailTimeoutHandle">
-                <bk-form-item :label="$t('失败处理')">
+                <bk-form-item>
+                    <div slot="tip" class="bk-label slot-bk-label">
+                        <span v-bk-tooltips="errorHandleTipsConfig" class="form-item-tips">
+                            {{ $t('失败处理') }}
+                        </span>
+                    </div>
                     <div class="error-handle">
                         <bk-checkbox
                             :value="formData.ignorable"
@@ -320,12 +331,11 @@
                         {{ $t('未选择失败处理方式，标准插件节点如果执行失败，会导致任务中断后不可继续') }}
                     </p>
                     <div id="html-error-ingored-tootip" class="tips-item" style="white-space: normal;">
-                        <p>{{ $t('自动忽略：标准插件节点如果执行失败，会自动忽略错误并把节点状态设置为成功。') }}</p>
-                        <p>{{ $t('手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。') }}</p>
-                        <p>{{ $t('手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。') }}</p>
+                        <p>{{ $t('自动跳过：标准插件节点如果执行失败，会自动忽略错误并把节点状态设置为成功。') }}</p><br />
+                        <p>{{ $t('手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。') }}</p><br />
+                        <p>{{ $t('手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。') }}</p><br />
                         <p>{{ $t('自动重试：标准插件节点如果执行失败，系统会自动以原参数进行重试。') }}</p>
                     </div>
-                    <i v-bk-tooltips="errorHandleTipsConfig" ref="tooltipsHtml" class="bk-icon icon-question-circle form-item-tips"></i>
                 </bk-form-item>
                 <!-- <bk-form-item :label="$t('超时控制')">
                     <div class="timeout-setting-wrap">
@@ -378,7 +388,12 @@
                     @change="onSelectableChange">
                 </bk-switcher>
             </bk-form-item>
-            <bk-form-item :label="$t('总是使用最新版本')">
+            <bk-form-item>
+                <div slot="tip" class="bk-label slot-bk-label">
+                    <span v-bk-tooltips="alwaysUseLastestTipsConfig" class="form-item-tips">
+                        {{ $t('总是使用最新版本') }}
+                    </span>
+                </div>
                 <bk-switcher
                     theme="primary"
                     size="small"
@@ -387,15 +402,11 @@
                     @change="onAlwaysUseLatestChange">
                 </bk-switcher>
                 <div id="html-always-use-latest-tootip" class="tips-item" style="white-space: normal;">
-                    <p>{{ $t('打开此功能后，每次创建任务会尝试使用子流程的最新版本，并且不会再提示该节点需要更新。') }}</p>
-                    <p>{{ $t('若子流程中发生变动，标准运维会采用以下处理策略，如处理不符合预期，请谨慎使用。') }}</p>
-                    <p>{{ $t('1. 若子流程中增加了新的变量，在未手动更新子流程版本的情况下，将使用新变量默认值。') }}</p>
+                    <p>{{ $t('打开此功能后，每次创建任务会尝试使用子流程的最新版本，并且不会再提示该节点需要更新。') }}</p><br />
+                    <p>{{ $t('若子流程中发生变动，标准运维会采用以下处理策略，如处理不符合预期，请谨慎使用。') }}</p><br />
+                    <p>{{ $t('1. 若子流程中增加了新的变量，在未手动更新子流程版本的情况下，将使用新变量默认值。') }}</p><br />
                     <p>{{ $t('2. 若子流程中修改了变量的默认值，在未手动更新子流程版本的情况下，将继续使用修改前变量的原有值。') }}</p>
                 </div>
-                <i
-                    v-bk-tooltips="alwaysUseLastestTipsConfig"
-                    class="bk-icon icon-question-circle form-item-tips">
-                </i>
             </bk-form-item>
             <bk-form-item v-if="common" :label="$t('执行代理人')" data-test-id="templateEdit_form_executor_proxy">
                 <bk-user-selector
@@ -519,15 +530,17 @@
                 },
                 errorHandleTipsConfig: {
                     allowHtml: true,
-                    width: 400,
+                    theme: 'light',
+                    extCls: 'info-label-tips',
                     content: '#html-error-ingored-tootip',
-                    placement: 'top'
+                    placement: 'top-start'
                 },
                 alwaysUseLastestTipsConfig: {
                     allowHtml: true,
-                    width: 540,
+                    theme: 'light',
+                    extCls: 'info-label-tips',
                     content: '#html-always-use-latest-tootip',
-                    placement: 'bottom-end'
+                    placement: 'top-start'
                 },
                 userApi: `${window.MEMBER_SELECTOR_DATA_HOST}/api/c/compapi/v2/usermanage/fs_list_users/`
             }
@@ -808,6 +821,16 @@
         }
     }
 </script>
+<style lang="scss">
+    .info-label-tips {
+        max-width: 480px;
+        .tippy-tooltip {
+            color: #63656e;
+            border: 1px solid #dcdee5;
+            box-shadow: 0 0 5px 0 rgba(0,0,0,0.09);
+        }
+    }
+</style>
 <style lang="scss" scoped>
     .basic-info {
         padding-right: 30px;
@@ -869,6 +892,7 @@
         font-size: 12px;
         line-height: 1;
         color: #ffb400;
+        margin-top: 2px;
     }
     .timeout-setting-wrap {
         display: flex;
@@ -910,13 +934,21 @@
             border: none;
             z-index: 11;
         }
-        .form-item-tips {
+        .slot-bk-label {
             position: absolute;
-            left: -24px;
-            top: 7px;
-            color: #c4c6cc;
-            &:hover {
-                color: #f4aa1a;
+            top: 0;
+            left: -150px;
+            .form-item-tips {
+                position: relative;
+                line-height: 21px;
+                &::after {
+                    content: '';
+                    position: absolute;
+                    left: 0;
+                    bottom: -3px;
+                    border-top: 1px dashed #979ba5;
+                    width: 100%
+                }
             }
         }
         .view-subflow {

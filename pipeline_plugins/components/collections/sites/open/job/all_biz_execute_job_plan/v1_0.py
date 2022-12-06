@@ -14,6 +14,7 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.io import (
     BooleanItemSchema,
+    StringItemSchema,
 )
 
 from gcloud.conf import settings
@@ -39,6 +40,16 @@ class AllBizJobExecuteJobPlanService(BaseAllBizJobExecuteJobPlanService):
                 key="is_tagged_ip",
                 type="boolean",
                 schema=BooleanItemSchema(description=_("是否对 IP 进行 Tag 分组")),
+            ),
+        ]
+
+    def outputs_format(self):
+        return super(AllBizJobExecuteJobPlanService, self).outputs_format() + [
+            self.OutputItem(
+                name=_("JOB执行IP分组"),
+                key="job_tagged_ip_dict",
+                type="string",
+                schema=StringItemSchema(description=_("根据JOB步骤执行标签获取的IP分组")),
             ),
         ]
 

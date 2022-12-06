@@ -46,10 +46,15 @@
                     <i class="common-icon-dark-circle-warning"></i>
                     {{ scheme.attrs.pre_mako_tip }}
                 </span>
+                <span class="used-tip" v-else-if="scheme.attrs.used_tip">
+                    <i class="common-icon-dark-circle-warning"></i>
+                    {{ scheme.attrs.used_tip }}
+                </span>
             </div>
             <div v-if="scheme.attrs.desc" class="rf-group-desc">
                 {{ scheme.attrs.desc }}
             </div>
+            <div v-if="scheme.attrs.desc" class="rf-group-desc" v-html="scheme.attrs.desc"></div>
             <!-- 表单名称 -->
             <label
                 v-if="option.showLabel && scheme.attrs.name"
@@ -57,8 +62,8 @@
                 <span
                     v-bk-tooltips="{
                         allowHtml: true,
-                        html: scheme.attrs.tips,
-                        placement: 'top',
+                        content: scheme.attrs.tips,
+                        placement: 'top-start',
                         theme: 'light',
                         extCls: 'rf-label-tips',
                         boundary: 'window',
@@ -371,7 +376,7 @@
                             type: 'Object',
                             value: {
                                 config: {
-                                    set_count: 0,
+                                    set_count: 1,
                                     set_template_id: '',
                                     host_resources: [],
                                     module_detail: []
@@ -611,7 +616,7 @@
     line-height: 32px;
 }
 .rf-label-tips {
-    max-width: 240px;
+    max-width: 480px;
     .tippy-tooltip {
         color: #63656e;
         border: 1px solid #dcdee5;
