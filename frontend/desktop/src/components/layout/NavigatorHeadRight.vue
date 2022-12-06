@@ -81,6 +81,7 @@
             ref="versionLog"
             :log-list="logList"
             :log-detail="logDetail"
+            :md-mode="true"
             :loading="logListLoading || logDetailLoading"
             @active-change="handleVersionChange">
         </version-log>
