@@ -23,7 +23,7 @@ from gcloud.constants import Type
 from gcloud.core.models import Project
 from gcloud.utils.cmdb import get_business_host, get_business_host_by_hosts_ids
 
-from gcloud.utils.ip import get_ip_by_regex, get_plat_ip_by_regex
+from gcloud.utils.ip import get_ip_by_regex, get_plat_ip_by_regex, extract_ip_from_ip_str
 from gcloud.conf import settings as gcloud_settings
 from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_host_by_innerip_with_ipv6
 from pipeline_plugins.variables.collections.sites.open.ip_filter_base import (
@@ -366,18 +366,17 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
         bk_biz_id = project.bk_biz_id if project.from_cmdb else ""
         bk_supplier_account = supplier_account_for_project(project_id)
 
-        hosts_list = (
-            self._handle_value_with_ipv4_and_ipv6(
+        if settings.ENABLE_IPV6:
+            hosts_list = self._handle_value_with_ipv4_and_ipv6(
                 username, bk_biz_id, bk_supplier_account, HOST_FIELDS + ["bk_host_innerip_v6"], self.value
             )
-            if settings.ENABLE_IPV6
-            else self._handle_value_with_ipv4(username, bk_biz_id, bk_supplier_account, HOST_FIELDS, self.value)
-        )
-
+            ipv6_list, *_ = extract_ip_from_ip_str(self.value)
+        else:
+            hosts_list = self._handle_value_with_ipv4(username, bk_biz_id, bk_supplier_account, HOST_FIELDS, self.value)
+            ipv6_list = []
         hosts = {}
         for host in hosts_list:
-            # 优先获取 ipv4 地址，单栈ipv6 环境再取 ipv6 地址
-            ip = host.get("bk_host_innerip") or host.get("bk_host_innerip_v6", "")
+            ip = host["bk_host_innerip_v6"] if host.get("bk_host_innerip_v6") in ipv6_list else host["bk_host_innerip"]
             # bk_cloud_id as a dict is not needed
             if "bk_cloud_id" in host:
                 host.pop("bk_cloud_id")
