@@ -26,6 +26,7 @@
             :node-options="nodeOptions"
             @onCreateNodeBefore="onCreateNodeBefore"
             @onCreateNodeAfter="onCreateNodeAfter"
+            @onAddNodeMoving="onCreateNodeMoving"
             @onConnectionDragStop="onConnectionDragStop"
             @onConnectionClick="onConnectionClick"
             @onBeforeDrag="onBeforeDrag"
@@ -635,6 +636,40 @@
                     this.handleDraggerNodeToLine(node)
                 })
             },
+            onCreateNodeMoving (node) {
+                if (!['tasknode', 'subflow'].includes(node.type)) return
+                // 计算节点基于画布的坐标
+                const canvasDom = document.querySelector('.canvas-flow')
+                let nodeLeft = 0
+                let nodeTop = 0
+                let { style } = canvasDom.attributes
+                if (style) {
+                    style = style.value.split(';').filter(value => value)
+                    nodeLeft = style.find(item => item.indexOf('left') > -1)
+                    nodeLeft = nodeLeft ? /:.([0-9.]+)px/.exec(nodeLeft)[1] : 0
+                    nodeLeft = Number(nodeLeft)
+                    nodeTop = style.find(item => item.indexOf('top') > -1)
+                    nodeTop = nodeTop ? /:.([0-9.]+)px/.exec(nodeTop)[1] : 0
+                    nodeTop = Number(nodeTop)
+                }
+                const location = {
+                    ...node,
+                    x: node.x - 60 - nodeLeft, // 60为画布左边栏的宽度
+                    y: node.y - nodeTop
+                }
+                // 拖拽节点到线上, 自动生成连线
+                const matchLines = this.getNodeMatchLines(location)
+                if (Object.keys(matchLines).length === 1) {
+                    const lineConfig = Object.values(matchLines)[0]
+                    this.setPaintStyle(lineConfig.id, '#3a84ff')
+                    this.connectionHoverList.push(lineConfig.id)
+                } else if (this.connectionHoverList.length) {
+                    this.connectionHoverList.forEach(lineId => {
+                        this.setPaintStyle(lineId, '#a9adb6')
+                    })
+                    this.connectionHoverList = []
+                }
+            },
             // 拖拽到节点上自动连接
             onConnectionDragStop (source, targetId, event) {
                 if (source.id === targetId) {
@@ -928,15 +963,18 @@
                 /**
                  * 54 节点默认高度 154 节点默认宽度
                  */
-                // 网关节点不做处理
-                if (loc.id in this.$store.state.template.gateways) {
-                    return {}
-                }
-                // 已有连线的节点不做处理
-                const { flows } = this.$store.state.template
-                const isExistLine = Object.values(flows).some(item => [item.source, item.target].includes(loc.id))
-                if (isExistLine) {
-                    return {}
+                // 左侧添加节点时没有生成节点id
+                if (loc.id) {
+                    // 网关节点不做处理
+                    if (loc.id in this.$store.state.template.gateways) {
+                        return {}
+                    }
+                    // 已有连线的节点不做处理
+                    const { flows } = this.$store.state.template
+                    const isExistLine = Object.values(flows).some(item => [item.source, item.target].includes(loc.id))
+                    if (isExistLine) {
+                        return {}
+                    }
                 }
                 // 横向区间
                 const horizontalInterval = [loc.x + 30, loc.x + 154 - 60]
