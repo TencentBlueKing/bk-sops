@@ -249,19 +249,24 @@
                     const ipInvalidList = []
                     const ipNotExistList = []
                     const ipPattern = /^((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})){3}$/ // ip 地址正则规则
+                    const ipv6Regexp = tools.getIpv6Regexp() // ipv6 地址正则规则
                     const arr = this.ipString.split(/[\,|\n|\uff0c]/) // 按照中英文逗号、换行符分割
                     arr.forEach(item => {
                         const str = item.trim()
                         if (str) {
-                            if (!ipPattern.test(str)) { // 字符串不是合法 ip 地址
+                            if (!ipPattern.test(str) && !ipv6Regexp.test(str)) { // 字符串不是合法 ip 地址
                                 ipInvalidList.push(str)
                             } else {
-                                const ipInList = this.list.find(i => i.bk_host_innerip === str)
-                                if (!ipInList) { // ip 地址不在可选列表里
+                                let text = str
+                                if (ipv6Regexp.test(str)) { // 判断是否为ipv6地址
+                                    text = tools.tranSimIpv6ToFullIpv6(str) // 将缩写的ipv6转换为全写
+                                }
+                                const ipInList = this.list.find(i => [i.bk_host_innerip, i.bk_host_innerip_v6].includes(text))
+                                if (!ipInList) { // ip 地址/ipv6地址不在可选列表里
                                     ipNotExistList.push(str)
                                 } else {
-                                    const ipInSelected = this.selectedIp.find(i => i.bk_host_innerip === str)
-                                    if (!ipInSelected) { // ip 地址在可选列表并且不在已选列表
+                                    const ipInSelected = this.selectedIp.find(i => [i.bk_host_innerip, i.bk_host_innerip_v6].includes(text))
+                                    if (!ipInSelected) { // ip 地址/ipv6地址在可选列表并且不在已选列表
                                         selectedIp.push(ipInList)
                                     }
                                 }

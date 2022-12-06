@@ -161,7 +161,6 @@ const tools = {
     },
     // ipv6缩写展开
     tranSimIpv6ToFullIpv6 (simpleIpv6) {
-        simpleIpv6 = simpleIpv6.toUpperCase()
         if (simpleIpv6 === '::') {
             return '0000:0000:0000:0000:0000:0000:0000:0000'
         }
