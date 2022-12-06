@@ -311,6 +311,24 @@
                                                 error_message: message
                                             }
                                         }
+                                    }, {
+                                        type: 'custom',
+                                        args (val) {
+                                            const ipPattern = /^((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})){3}$/ // ip 地址正则规则
+                                            const ipv6Regexp = tools.getIpv6Regexp() // ipv6 地址正则规则
+                                            const ipString = val
+                                            const arr = ipString.split(/[\,|\n|\uff0c]/) // 按照中英文逗号、换行符分割
+                                            const result = arr.every(item => {
+                                                if (item.trim()) {
+                                                    return ipPattern.test(item) || ipv6Regexp.test(item)
+                                                }
+                                                return true
+                                            })
+                                            return {
+                                                result,
+                                                error_message: result ? '' : gettext('IP地址不合法')
+                                            }
+                                        }
                                     }
                                 ]
                             }
