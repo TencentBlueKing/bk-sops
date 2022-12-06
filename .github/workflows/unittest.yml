@@ -2,14 +2,14 @@ name: Unittest
 
 on:
   push:
-    branches: [ master, develop, release* ]
+    branches: [ master, develop, release*, feature* ]
   pull_request:
-    branches: [ master, develop, release* ]
+    branches: [ master, develop, release*, feature* ]
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       max-parallel: 4
       matrix:
