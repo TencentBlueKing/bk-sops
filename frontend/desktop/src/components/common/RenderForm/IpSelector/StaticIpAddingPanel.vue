@@ -23,6 +23,7 @@
                     :editable="true"
                     :operate="false"
                     :is-search-mode="isSearchMode"
+                    :static-ips="staticIps"
                     :list-in-page="listInPage"
                     @onIpSort="onIpSort"
                     @onHostNameSort="onHostNameSort"
@@ -76,6 +77,7 @@
 
     import IpSearchInput from './IpSearchInput.vue'
     import IpSelectorTable from './IpSelectorTable.vue'
+    import tools from '@/utils/tools.js'
 
     const i18n = {
         add: gettext('添加'),
@@ -175,11 +177,16 @@
                     const keyArr = keyword.split(',').map(item => item.trim()).filter(item => {
                         return item.trim() !== ''
                     })
+                    const ipv6Regexp = tools.getIpv6Regexp()
                     const list = this.staticIpList.filter(item => {
                         const { bk_host_innerip: ipv4, bk_host_innerip_v6: ipv6 } = item
                         return keyArr.some(str => {
-                            return ipv4.indexOf(str) > -1
-                                || (ipv6 && ipv6.indexOf(str) > -1)
+                            let text = str
+                            if (ipv6Regexp.test(str)) { // 判断是否为ipv6地址
+                                text = tools.tranSimIpv6ToFullIpv6(str) // 将缩写的ipv6转换为全写
+                            }
+                            return ipv4.indexOf(text) > -1
+                                || (ipv6 && ipv6.indexOf(text) > -1)
                         })
                     })
                     this.searchResult = list
