@@ -331,11 +331,14 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
 def get_dynamic_group_host_list(username, bk_biz_id, bk_supplier_account, dynamic_group_id):
     """获取动态分组中对应主机列表"""
     client = get_client_by_user(username)
+    fields = ["bk_host_innerip", "bk_cloud_id", "bk_host_id"]
+    if settings.ENABLE_IPV6:
+        fields.append("bk_host_innerip_v6")
     kwargs = {
         "bk_biz_id": bk_biz_id,
         "bk_supplier_account": bk_supplier_account,
         "id": dynamic_group_id,
-        "fields": ["bk_host_innerip", "bk_cloud_id", "bk_host_id"],
+        "fields": fields,
     }
     host_list = batch_request(client.cc.execute_dynamic_group, kwargs, limit=200)
     return True, {"code": 0, "message": "success", "data": host_list}
