@@ -1437,7 +1437,7 @@
                     const { constants } = this.pipelineData.activities[id].pipeline
                     this.nodePipelineData['constants'] = constants
                 }
-                this.openNodeInfoPanel('executeInfo', i18n.t('节点参数'))
+                this.openNodeInfoPanel('executeInfo', i18n.t('节点详情'))
             },
             onOpenConditionEdit (data) {
                 this.isShowConditionEdit = true
@@ -1500,7 +1500,7 @@
                 const seconds = (time % (60)).toFixed(0)
                 let str = ''
                 if (days) {
-                    str = i18n.tc('天', days, { n: days > 1 ? '99+' : days }) + ' '
+                    str = i18n.tc('天', days, { n: days > 99 ? '99+' : days }) + ' '
                 }
                 if (hours) {
                     str = str + hours + ' ' + i18n.t('时') + ' '
