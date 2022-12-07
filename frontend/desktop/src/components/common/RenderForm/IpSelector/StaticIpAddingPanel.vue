@@ -23,9 +23,13 @@
                     :editable="true"
                     :operate="false"
                     :is-search-mode="isSearchMode"
+                    :default-selected="selectedIp"
+                    :static-ip-list="staticIpList"
                     :list-in-page="listInPage"
+                    :static-ip-table-config="staticIpTableConfig"
                     @onIpSort="onIpSort"
                     @onHostNameSort="onHostNameSort"
+                    @onTableConfigChange="onTableConfigChange"
                     @handleSelectionChange="handleSelectionChange">
                 </IpSelectorTable>
                 
@@ -76,6 +80,7 @@
 
     import IpSearchInput from './IpSearchInput.vue'
     import IpSelectorTable from './IpSelectorTable.vue'
+    import tools from '@/utils/tools.js'
 
     const i18n = {
         add: gettext('添加'),
@@ -103,6 +108,7 @@
         props: {
             allowUnfoldInput: Boolean,
             staticIpList: Array,
+            staticIpTableConfig: Array,
             staticIps: Array,
             type: String
         },
@@ -175,11 +181,16 @@
                     const keyArr = keyword.split(',').map(item => item.trim()).filter(item => {
                         return item.trim() !== ''
                     })
+                    const ipv6Regexp = tools.getIpv6Regexp()
                     const list = this.staticIpList.filter(item => {
                         const { bk_host_innerip: ipv4, bk_host_innerip_v6: ipv6 } = item
                         return keyArr.some(str => {
-                            return ipv4.indexOf(str) > -1
-                                || (ipv6 && ipv6.indexOf(str) > -1)
+                            let text = str
+                            if (ipv6Regexp.test(str)) { // 判断是否为ipv6地址
+                                text = tools.tranSimIpv6ToFullIpv6(str) // 将缩写的ipv6转换为全写
+                            }
+                            return ipv4.indexOf(text) > -1
+                                || (ipv6 && ipv6.indexOf(text) > -1)
                         })
                     })
                     this.searchResult = list
@@ -192,6 +203,9 @@
             },
             handleSelectionChange (ips) {
                 this.selectedIp = ips
+            },
+            onTableConfigChange (data) {
+                this.$emit('onTableConfigChange', data)
             },
             getSortIpList (list, way = 'up') {
                 const srotList = list.slice(0)
@@ -241,19 +255,24 @@
                     const ipInvalidList = []
                     const ipNotExistList = []
                     const ipPattern = /^((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})){3}$/ // ip 地址正则规则
+                    const ipv6Regexp = tools.getIpv6Regexp() // ipv6 地址正则规则
                     const arr = this.ipString.split(/[\,|\n|\uff0c]/) // 按照中英文逗号、换行符分割
                     arr.forEach(item => {
                         const str = item.trim()
                         if (str) {
-                            if (!ipPattern.test(str)) { // 字符串不是合法 ip 地址
+                            if (!ipPattern.test(str) && !ipv6Regexp.test(str)) { // 字符串不是合法 ip 地址
                                 ipInvalidList.push(str)
                             } else {
-                                const ipInList = this.list.find(i => i.bk_host_innerip === str)
-                                if (!ipInList) { // ip 地址不在可选列表里
+                                let text = str
+                                if (ipv6Regexp.test(str)) { // 判断是否为ipv6地址
+                                    text = tools.tranSimIpv6ToFullIpv6(str) // 将缩写的ipv6转换为全写
+                                }
+                                const ipInList = this.list.find(i => [i.bk_host_innerip, i.bk_host_innerip_v6].includes(text))
+                                if (!ipInList) { // ip 地址/ipv6地址不在可选列表里
                                     ipNotExistList.push(str)
                                 } else {
-                                    const ipInSelected = this.selectedIp.find(i => i.bk_host_innerip === str)
-                                    if (!ipInSelected) { // ip 地址在可选列表并且不在已选列表
+                                    const ipInSelected = this.selectedIp.find(i => [i.bk_host_innerip, i.bk_host_innerip_v6].includes(text))
+                                    if (!ipInSelected) { // ip 地址/ipv6地址在可选列表并且不在已选列表
                                         selectedIp.push(ipInList)
                                     }
                                 }

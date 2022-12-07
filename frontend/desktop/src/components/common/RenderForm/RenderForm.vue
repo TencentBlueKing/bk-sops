@@ -257,6 +257,7 @@
                             break
                         case 'ip_selector':
                             val = {
+                                static_ip_table_config: [],
                                 selectors: [],
                                 ip: [],
                                 topo: [],

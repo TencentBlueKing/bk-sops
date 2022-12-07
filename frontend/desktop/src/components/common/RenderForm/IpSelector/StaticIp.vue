@@ -48,9 +48,11 @@
                     :editable="editable"
                     :is-search-mode="isSearchMode"
                     :list-in-page="listInPage"
+                    :static-ip-table-config="staticIpTableConfig"
                     @onIpSort="onIpSort"
                     @onHostNameSort="onHostNameSort"
                     @onAddPanelShow="onAddPanelShow"
+                    @onTableConfigChange="onTableConfigChange"
                     @onRemoveIpClick="onRemoveIpClick">
                 </IpSelectorTable>
                 <div class="table-footer" v-if="isShowQuantity || isPaginationShow">
@@ -83,6 +85,8 @@
             :static-ip-list="staticIpList"
             :static-ips="staticIps"
             :type="addingType"
+            :static-ip-table-config="staticIpTableConfig"
+            @onTableConfigChange="onTableConfigChange"
             @onAddIpConfirm="onAddIpConfirm"
             @onAddIpCancel="onAddIpCancel">
         </static-ip-adding-panel>
@@ -94,6 +98,7 @@
     import StaticIpAddingPanel from './StaticIpAddingPanel.vue'
     import IpSearchInput from './IpSearchInput.vue'
     import IpSelectorTable from './IpSelectorTable.vue'
+    import tools from '@/utils/tools.js'
 
     const i18n = {
         copyIp: gettext('复制IP'),
@@ -134,6 +139,7 @@
             allowUnfoldInput: Boolean,
             editable: Boolean,
             staticIpList: Array,
+            staticIpTableConfig: Array,
             staticIps: Array
         },
         data () {
@@ -269,11 +275,16 @@
                     const keyArr = keyword.split(',').map(item => item.trim()).filter(item => {
                         return item !== ''
                     })
+                    const ipv6Regexp = tools.getIpv6Regexp()
                     const list = this.staticIps.filter(item => {
                         const { bk_host_innerip: ipv4, bk_host_innerip_v6: ipv6 } = item
                         return keyArr.some(str => {
-                            return ipv4.indexOf(str) > -1
-                                || (ipv6 && ipv6.indexOf(str) > -1)
+                            let text = str
+                            if (ipv6Regexp.test(str)) { // 判断是否为ipv6地址
+                                text = tools.tranSimIpv6ToFullIpv6(str) // 将缩写的ipv6转换为全写
+                            }
+                            return ipv4.indexOf(text) > -1
+                                || (ipv6 && ipv6.indexOf(text) > -1)
                         })
                     })
                     this.searchResult = list
@@ -291,6 +302,9 @@
                     message: name + this.i18n.success,
                     theme: 'success'
                 })
+            },
+            onTableConfigChange (data) {
+                this.$emit('onTableConfigChange', data)
             },
             onRemoveIpClick (id) {
                 if (!this.editable) {

@@ -41,6 +41,8 @@
                 :editable="editable"
                 :static-ip-list="staticIpList"
                 :static-ips="staticIps"
+                :static-ip-table-config="staticIpTableConfig"
+                @onTableConfigChange="onStaticIpTableSettingChange"
                 @change="onStaticIpChange">
             </static-ip>
             <dynamic-ip
@@ -92,6 +94,7 @@
             staticIpList: Array,
             dynamicIpList: Array,
             dynamicGroupList: Array,
+            staticIpTableConfig: Array,
             staticIps: Array,
             dynamicIps: Array,
             dynamicGroups: Array,
@@ -157,6 +160,9 @@
                         return true
                     }
                 })
+            },
+            onStaticIpTableSettingChange (val) {
+                this.$emit('change', 'static_ip_table_config', val)
             },
             onStaticIpChange (val) {
                 this.$emit('change', 'ip', val)
