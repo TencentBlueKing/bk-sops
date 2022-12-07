@@ -98,7 +98,7 @@ def check_ip_cloud(ip_host_with_cloud_list, bk_host_innerip_key="bk_host_innerip
     data = set()
     for host in ip_host_with_cloud_list:
         bk_cloud_id = host["bk_cloud_id"]
-        bk_host_innerip = bk_host_innerip_key
+        bk_host_innerip = host[bk_host_innerip_key]
         plat_ip = "{}:{}".format(bk_cloud_id, bk_host_innerip)
         # 已有的ip
         if plat_ip not in data:

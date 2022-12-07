@@ -105,7 +105,7 @@ class GetJobTargetServerMixin(object):
                 host_id_list = [str(host_id) for host_id in host_id_list]
                 ip_list.extend(
                     [
-                        *ipv6_list,
+                        *["{}:[{}]".format(_ip.get("bk_cloud_id", 0), item) for item in ipv6_list],
                         *host_id_list,
                         *["{}:{}".format(_ip.get("bk_cloud_id", 0), item) for item in ipv4_list],
                     ]
@@ -120,7 +120,7 @@ class GetJobTargetServerMixin(object):
                 ip_str = build_ip_str_from_table()
             host_result = cc_get_host_by_innerip_with_ipv6(executor, None, ip_str, supplier_account, is_biz_set=True)
             if not host_result["result"]:
-                return host_result
+                raise Exception("主机查询失败，message={}".format(host_result["message"]))
             return True, {"host_id_list": [int(host["bk_host_id"]) for host in host_result["data"]]}
 
         # 拼装ip_list， bk_cloud_id为空则值为0
