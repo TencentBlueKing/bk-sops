@@ -287,6 +287,7 @@ class IPPickerHandler:
                 }
             dynamic_groups_host.update({host["bk_host_id"]: host for host in result["data"]})
         data = dynamic_groups_host.values()
+        data = self.format_host_info([{"host": host_info} for host_info in data])
 
         # 如果带有过滤条件，则需要拉取主机后进行过滤
         if self.filters or self.excludes:
@@ -313,11 +314,7 @@ class IPPickerHandler:
             fields.append("bk_host_innerip_v6")
 
         host_info = cmdb.get_business_host_topo(
-            self.username,
-            self.bk_biz_id,
-            self.bk_supplier_account,
-            fields,
-            property_filters=self.property_filters,
+            self.username, self.bk_biz_id, self.bk_supplier_account, fields, property_filters=self.property_filters,
         )
         logger.info("[fetch_host_info] cmdb.get_business_host_topo return: {host_info}".format(host_info=host_info))
 
