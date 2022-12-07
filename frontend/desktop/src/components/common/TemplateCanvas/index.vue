@@ -130,24 +130,43 @@
                 </div>
             </div>
         </div>
-        <!-- 节点历史执行时间展示 -->
-        <div v-if="execRecordPosition" class="execute-record-tips-content" :style="execRecordPosition">
-            <div class="content-wrap" v-bkloading="{ isLoading: execRecordLoading }">
-                <ul>
-                    <li class="content-item">
-                        <span>{{ $t('当前已执行') }}</span>
-                        <span class="time">{{ nodeExecRecordInfo.curTime || '--' }}</span>
-                    </li>
-                    <li class="content-item">
-                        <span>{{ $t('最近一次执行时长') }}</span>
-                        <span class="time">{{ nodeExecRecordInfo.latestTime || '--' }}</span>
-                    </li>
-                    <li class="content-item">
-                        <span>{{ $t('近 n 次平均执行时长', { n: nodeExecRecordInfo.count }) }}</span>
-                        <span class="time">{{ nodeExecRecordInfo.meanTime || '--' }}</span>
-                    </li>
-                </ul>
-                <p class="deadline">{{ $t('*数据统计截至') + ' ' + nodeExecRecordInfo.deadline }}</p>
+        <!-- 节点历史执行时间/透视面板 -->
+        <div v-if="isExecRecordPanelShow || isPerspectivePanelShow" class="node-tips-content" :style="nodeTipsPanelPosition">
+            <!-- 节点历史执行时间展示 -->
+            <div class="execute-record-tips-content" v-if="isExecRecordPanelShow">
+                <div class="content-wrap" v-bkloading="{ isLoading: execRecordLoading }">
+                    <ul>
+                        <li class="content-item">
+                            <span>{{ $t('当前已执行') }}</span>
+                            <span class="time">{{ nodeExecRecordInfo.curTime || '--' }}</span>
+                        </li>
+                        <li class="content-item">
+                            <span>{{ $t('最近一次执行时长') }}</span>
+                            <span class="time">{{ nodeExecRecordInfo.latestTime || '--' }}</span>
+                        </li>
+                        <li class="content-item">
+                            <span>{{ $t('近 n 次平均执行时长', { n: nodeExecRecordInfo.count }) }}</span>
+                            <span class="time">{{ nodeExecRecordInfo.meanTime || '--' }}</span>
+                        </li>
+                    </ul>
+                    <p class="deadline">{{ $t('*数据统计截至') + ' ' + nodeExecRecordInfo.deadline }}</p>
+                </div>
+            </div>
+            <!-- 节点输入输出变量(node.name用来判断节点是否选择过插件) -->
+            <div class="perspective-tips-context" v-if="isPerspectivePanelShow">
+                <div class="tips-content">
+                    <p class="tip-label">{{ $t('引用变量') }}</p>
+                    <template v-if="nodeVariable.input.length">
+                        <p v-for="item in nodeVariable.input" :key="item">{{ item }}</p>
+                    </template>
+                    <template v-else>{{ '--' }}</template>
+                    <div class="dividLine"></div>
+                    <p class="tip-label">{{ $t('输出变量') }}</p>
+                    <template v-if="nodeVariable.output.length">
+                        <p v-for="item in nodeVariable.output" :key="item">{{ item }}</p>
+                    </template>
+                    <template v-else>{{ '--' }}</template>
+                </div>
             </div>
         </div>
     </div>
@@ -314,7 +333,10 @@
                 labelDrag: false, // 标识分支条件是否为拖动触发
                 connectorPosition: {}, // 鼠标hover的连线的坐标
                 conditionInfo: null,
-                execRecordPosition: null,
+                nodeTipsPanelPosition: {},
+                nodeVariable: {},
+                isPerspectivePanelShow: false,
+                isExecRecordPanelShow: false,
                 execRecordLoading: false
             }
         },
@@ -1343,46 +1365,57 @@
                 if (this.activeNode && node.id !== this.activeNode.id) {
                     this.closeShortcutPanel()
                 }
+                // 节点提示面板宽度
+                const { x, y, type, id } = node
+                // 计算判断节点右边的距离是否够展示气泡卡片
+                const nodeDom = document.querySelector(`#${id}`)
+                const { left: nodeLeft, right: nodeRight } = nodeDom.getBoundingClientRect()
+                const bodyWidth = document.body.offsetWidth
+                // 235节点的气泡卡片展示最小宽度
+                const isRight = bodyWidth - nodeRight > 235
+                // 设置坐标
+                const { x: offsetX, y: offsetY } = this.$refs.jsFlow.canvasOffset
+                let left, right, padding
+                const top = y + offsetY - 10
+                const nodeWidth = ['tasknode', 'subflow'].includes(type) ? 154 : 34
+                if (isRight) {
+                    left = x + offsetX + nodeWidth
+                    right = null
+                    padding = '0 0 0 15px'
+                } else {
+                    right = bodyWidth - nodeLeft
+                    left = null
+                    padding = '0 15px 0 0'
+                }
+                this.nodeTipsPanelPosition = {
+                    top: `${top}px`,
+                    right: `${right}px`,
+                    left: `${left}px`,
+                    padding
+                }
+                this.isPerspectivePanelShow = false
+                this.isExecRecordPanelShow = false
+                // 节点透视面板展开
+                if (this.isPerspective && node.name && ['tasknode', 'subflow'].includes(node.type)) {
+                    this.nodeVariable = this.nodeVariableInfo[node.id] || { input: [], output: [] }
+                    this.isPerspectivePanelShow = true
+                }
                 // 展开节点历史执行时间
                 if (node.status === 'RUNNING' && node.type === 'tasknode') {
-                    let left, top
-                    const { x, y, type, id } = node
-                    const { x: offsetX, y: offsetY } = this.$refs.jsFlow.canvasOffset
-                    switch (type) {
-                        case 'tasknode':
-                        case 'subflow':
-                            left = x + offsetX + NODES_SIZE_POSITION.ACTIVITY_SIZE[0]
-                            top = y + offsetY - 10
-                            break
-                        case 'startpoint':
-                            left = x + offsetX + NODES_SIZE_POSITION.EVENT_SIZE[0]
-                            top = y + offsetY - 10
-                            break
-                        default:
-                            left = x + offsetX + NODES_SIZE_POSITION.GATEWAY_SIZE[0]
-                            top = y + offsetY - 10
-                    }
-                    this.execRecordPosition = {
-                        top: `${top}px`,
-                        left: `${left}px`
-                    }
                     this.execRecordLoading = true
+                    this.isExecRecordPanelShow = true
                     this.$emit('nodeExecRecord', id)
                 }
             },
             // 关闭节点历史执行时间
             closeNodeExecRecord () {
-                this.execRecordPosition = null
+                this.isExecRecordPanelShow = false
                 this.execRecordLoading = false
                 this.$emit('closeNodeExecRecord')
             },
             // 点击节点
             onNodeClick (id, type, event) {
                 this.$emit('onNodeClick', id, type)
-                // 关闭节点历史执行时间
-                if (this.execRecordPosition) {
-                    this.closeNodeExecRecord()
-                }
                 // 如果不是模版编辑页面，点击节点相当于打开配置面板（任务执行是打开执行信息面板）
                 if (!this.editable) {
                     this.onShowNodeConfig(id)
@@ -1560,10 +1593,6 @@
                 this.showShortcutPanel = false
                 this.shortcutPanelNodeOperate = false
                 this.shortcutPanelDeleteLine = false
-                // 关闭节点历史执行时间
-                if (this.execRecordPosition) {
-                    this.closeNodeExecRecord()
-                }
             },
             /**
              * 切换选中节点
@@ -1648,6 +1677,14 @@
                 const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
                 this.zoomOriginPosition.x = e.pageX - offsetX
                 this.zoomOriginPosition.y = e.pageY - offsetY
+                // 节点历史执行时间/透视面板
+                if (this.isExecRecordPanelShow || this.isPerspectivePanelShow) {
+                    if (!dom.parentClsContains('canvas-node', e.target) && !dom.parentClsContains('node-tips-content', e.target)) {
+                        this.nodeTipsPanelPosition = {}
+                        this.isPerspectivePanelShow = false
+                        this.closeNodeExecRecord()
+                    }
+                }
                 // 监听鼠标是否hover到连线上
                 if (!this.editable || e.target.tagName !== 'path') {
                     return
@@ -1903,6 +1940,7 @@
     }
 </script>
 <style lang="scss">
+    @import '@/scss/mixins/scrollbar.scss';
     .canvas-container {
         position: relative;
         width: 100%;
@@ -2088,42 +2126,72 @@
             cursor: pointer;
         }
     }
-    .execute-record-tips-content {
+    .node-tips-content {
         position: absolute;
         z-index: 5;
-        padding-left: 15px;
-        .content-wrap {
-            min-width: 235px;
-            font-size: 12px;
-            background: #fff;
-            padding: 12px 16px;
-            border: 1px solid #dcdee5;
-            box-shadow: 0 0 5px 0 rgba(0,0,0,0.09);
-        }
-        .content-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            color: #979ba5;
+        min-width: 235px;
+        .execute-record-tips-content {
             margin-bottom: 8px;
-            &:first-child {
-                color: #699df4;
+            .content-wrap {
+                width: 100%;
+                font-size: 12px;
+                background: #fff;
+                padding: 12px 16px;
+                border: 1px solid #dcdee5;
+                box-shadow: 0 0 5px 0 rgba(0,0,0,0.09);
+            }
+            .content-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                color: #979ba5;
+                margin-bottom: 8px;
+                &:first-child {
+                    color: #699df4;
+                    .time {
+                        font-weight: 700;
+                    }
+                }
+                &:last-child {
+                    margin-bottom: 15px;
+                }
                 .time {
-                    font-weight: 700;
+                    color: #63656e;
+                    padding-left: 15px;
                 }
             }
-            &:last-child {
-                margin-bottom: 15px;
-            }
-            .time {
-                color: #63656e;
-                padding-left: 15px;
+            .deadline {
+                color: #c4c6cc;
+                padding-top: 8px;
+                border-top: 1px solid #dcdee5;
             }
         }
-        .deadline {
-            color: #c4c6cc;
-            padding-top: 8px;
-            border-top: 1px solid #dcdee5;
+        .perspective-tips-context {
+            width: 100%;
+            .tips-content {
+                max-height: 160px;
+                padding: 12px 16px;
+                font-size: 12px;
+                color: #63656e;
+                line-height: 16px;
+                background: #fff;
+                border: 1px solid #dcdee5;
+                border-radius: 2px;
+                box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.09);
+                overflow-y: auto;
+                @include scrollbar;
+                p {
+                    margin-bottom: 4px;
+                }
+            }
+            .tip-label {
+                color: #979ba5;
+            }
+            .dividLine {
+                height: 1px;
+                background: #dcdee5;
+                margin: 10px 0;
+            }
         }
         &:hover {
             display: block;
