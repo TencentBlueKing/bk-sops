@@ -121,6 +121,7 @@ class NodemanCreateTaskService(NodeManBaseService):
                     else:
                         inner_ip_list = self.get_ip_list(host.get("inner_ipv6"))
                 else:
+                    use_inner_ip = True
                     inner_ip_list = self.get_ip_list(host.get("inner_ip"))
                 if not inner_ip_list:
                     data.set_outputs("ex_data", _("请确认内网Ip是否合法host_info:{host}".format(host=host["inner_ip"])))

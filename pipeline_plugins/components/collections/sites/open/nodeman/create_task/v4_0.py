@@ -104,6 +104,7 @@ class NodemanCreateTaskService(NodeManBaseService):
                     else:
                         inner_ip_list = self.get_ip_list(host.get("inner_ipv6"))
                 else:
+                    use_inner_ip = True
                     inner_ip_list = self.get_ip_list(host.get("inner_ip"))
                 # 再不开启ipv6的条件下需要校验内网ip
                 if not inner_ip_list:
