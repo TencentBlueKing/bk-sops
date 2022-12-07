@@ -68,7 +68,7 @@ def get_host_id_by_inner_ipv6(executor, logger, bk_cloud_id: int, bk_biz_id: int
         logger.error(error)
         return {}
 
-    return {host["inner_ip"]: host["bk_host_id"] for host in result["data"]["list"]}
+    return {host["inner_ipv6"]: host["bk_host_id"] for host in result["data"]["list"]}
 
 
 def get_nodeman_rsa_public_key(executor, logger):
@@ -92,7 +92,7 @@ class NodeManBaseService(Service):
 
     def get_ip_list(self, ip_str):
         if settings.ENABLE_IPV6:
-            ipv6_list, ipv4_list, _, _ = extract_ip_from_ip_str(ip_str)
+            ipv6_list, ipv4_list, *_ = extract_ip_from_ip_str(ip_str)
             return ipv6_list + ipv4_list
         return get_ip_by_regex(ip_str)
 

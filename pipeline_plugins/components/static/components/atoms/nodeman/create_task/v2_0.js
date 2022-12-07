@@ -358,11 +358,6 @@
                                         placeholder: gettext("多个用英文逗号 `,` 或换行分隔"),
                                         width: "180px",
                                         editable: true,
-                                        validation: [
-                                            {
-                                                type: "required"
-                                            }
-                                        ]
                                     }
                                 },
                                 {

@@ -22,9 +22,8 @@ from pipeline.core.flow.io import (
 )
 
 from gcloud.conf import settings
-from gcloud.utils.ip import get_ip_by_regex
 from gcloud.utils.crypto import encrypt_auth_key, decrypt_auth_key
-from gcloud.utils.cmdb import get_business_host
+from gcloud.utils.cmdb import get_business_host, get_business_host_ipv6
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.nodeman.base import (
     NodeManBaseService,
@@ -72,7 +71,8 @@ class NodemanCreateTaskService(NodeManBaseService):
 
         # 拼接任务类型
         job_name = "_".join([op_type, node_type])
-
+        # use_inner_ip 判定用户输入的的是ipv4还是ipv6
+        use_inner_ip = False
         if job_name in OPERATE_JOB:
             # 获取bk_host_id
             bk_host_ids = []
@@ -96,7 +96,16 @@ class NodemanCreateTaskService(NodeManBaseService):
                 ap_id = host["nodeman_ap_id"]
                 auth_type = host["auth_type"]
                 auth_key = host["auth_key"]
-                inner_ip_list = get_ip_by_regex(host.get("inner_ip"))
+
+                if settings.ENABLE_IPV6:
+                    if host.get("inner_ip"):
+                        use_inner_ip = True
+                        inner_ip_list = self.get_ip_list(host.get("inner_ip"))
+                    else:
+                        inner_ip_list = self.get_ip_list(host.get("inner_ipv6"))
+                else:
+                    inner_ip_list = self.get_ip_list(host.get("inner_ip"))
+                # 再不开启ipv6的条件下需要校验内网ip
                 if not inner_ip_list:
                     data.set_outputs("ex_data", _("请确认内网Ip是否合法host_info:{host}".format(host=host["inner_ip"])))
                     return False
@@ -131,7 +140,9 @@ class NodemanCreateTaskService(NodeManBaseService):
 
                 # 支持表格中一行多ip操作, 拼装表格内的inner_ip参数
                 for index, inner_ip in enumerate(inner_ip_list):
-                    one = {"inner_ip": inner_ip}
+                    one = {}
+                    if use_inner_ip:
+                        one = {"inner_ip": inner_ip}
                     if auth_type == "PASSWORD":
                         one["password"] = auth_key
                     else:
@@ -141,10 +152,18 @@ class NodemanCreateTaskService(NodeManBaseService):
                     if job_name in ["REINSTALL_PROXY", "REINSTALL_AGENT", "UNINSTALL_AGENT"]:
                         supplier_account = supplier_account_for_business(bk_biz_id)
                         host_fields = ["bk_host_id", "bk_host_innerip"]
-                        host_list = get_business_host(
-                            executor, bk_biz_id, supplier_account, host_fields, inner_ip_list, bk_cloud_id
-                        )
-                        bk_host_id_dict = {host["bk_host_innerip"]: host["bk_host_id"] for host in host_list}
+                        # 如果开启了ipv6，并且用户输入的是ipv6的地址
+                        if settings.ENABLE_IPV6 and not use_inner_ip:
+                            host_fields.append("bk_host_innerip_v6")
+                            host_list = get_business_host_ipv6(
+                                executor, bk_biz_id, supplier_account, host_fields, inner_ip_list, bk_cloud_id
+                            )
+                            bk_host_id_dict = {host["bk_host_innerip_v6"]: host["bk_host_id"] for host in host_list}
+                        else:
+                            host_list = get_business_host(
+                                executor, bk_biz_id, supplier_account, host_fields, inner_ip_list, bk_cloud_id
+                            )
+                            bk_host_id_dict = {host["bk_host_innerip"]: host["bk_host_id"] for host in host_list}
                         try:
                             one["bk_host_id"] = bk_host_id_dict[inner_ip]
                         except KeyError:
