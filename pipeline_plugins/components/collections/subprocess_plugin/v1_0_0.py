@@ -130,10 +130,11 @@ class SubprocessPluginService(Service):
                 "pipeline_tree": pipeline_tree,
                 "description": "",
             }
+            pipeline_template = PipelineTemplate.objects.filter(template_id=subprocess.template_id).first()
             template = (
-                CommonTemplate(pipeline_template=None)
+                CommonTemplate(pipeline_template=pipeline_template)
                 if subprocess.template_source not in NON_COMMON_TEMPLATE_TYPES
-                else TaskTemplate(pipeline_template=None)
+                else TaskTemplate(pipeline_template=pipeline_template)
             )
             pipeline_instance = TaskFlowInstance.objects.create_pipeline_instance(
                 template=template, independent_subprocess=True, **pipeline_instance_kwargs

@@ -12,7 +12,7 @@ export default class ErrorNotify {
             limit: 5,
             limitLine: 0,
             delay: 0,
-            title: errorSource === 'result' ? this.setNotifyTitleAndContent(msg, 'title') : i18n.t('请求异常（内部系统发生未知错误）'),
+            title: this.setNotifyTitleAndContent(msg, true, errorSource),
             message: h('div',
                 [
                     traceId || msg ? h('p', {
@@ -28,7 +28,7 @@ export default class ErrorNotify {
                         style: { display: 'none', maxHeight: '300px', overflow: 'auto' }
                     }, [
                         traceId ? h('p', [`trace_id：${traceId}`]) : '',
-                        msg ? h('p', [this.setNotifyTitleAndContent(msg, 'content')]) : ''
+                        msg ? h('p', [this.setNotifyTitleAndContent(msg, false, errorSource)]) : ''
                     ]),
                     h('bk-button', {
                         class: 'copy-btn',
@@ -56,9 +56,11 @@ export default class ErrorNotify {
         this.notify.$el.appendChild(progressWrap)
 
         // title 样式处理
+        const notifyContentDom = document.querySelector('.bk-notify-content')
         const titleDom = document.querySelector('.bk-notify-content-title')
+        notifyContentDom.style.cssText = 'width: 90%'
         titleDom.style.cssText = 'width: 80%; white-space: nowrap;overflow: hidden; text-overflow: ellipsis;'
-        titleDom.title = this.setNotifyTitleAndContent(msg, 'title') || ''
+        titleDom.title = this.setNotifyTitleAndContent(msg, true, errorSource) || ''
 
         this.remainingTime = 10000 // 倒数10s
         this.timer = null // 定时器示例
@@ -66,8 +68,12 @@ export default class ErrorNotify {
         this.startTimeCountDown(this.remainingTime)
         this.handleMouseEvent()
     }
-    setNotifyTitleAndContent (info, type) {
-        return type === 'title' ? JSON.parse(info).message.split(':')[0] : JSON.parse(info).message.split(':').slice(1).join(':')
+    setNotifyTitleAndContent (info, isTitle, errorSource) {
+        if (errorSource !== 'result') {
+            return isTitle ? info.split(':')[0].split('{')[1].replace(/\'|\"/g, '') : info.split(':')[1].split('}')[0]
+        } else {
+            return isTitle ? JSON.parse(info).message.split(':')[0] : JSON.parse(info).message.split(':').slice(1).join(':')
+        }
     }
     // 开始倒计时
     startTimeCountDown () {
