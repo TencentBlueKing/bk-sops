@@ -41,10 +41,10 @@ class AllBizJobFastPushFileService(BaseAllBizJobFastPushFileService):
                 job_account = attr["job_target_account"]
                 job_target_path = attr["job_target_path"]
                 result, target_server = self.get_target_server_biz_set(
-                    executor, [attr], supplier_account, ip_key="job_ip_list"
+                    executor, [attr], supplier_account, ip_key="job_ip_list", logger_handle=self.logger
                 )
                 if not result:
-                    raise Exception("源文件信息处理失败, message={}".format(target_server))
+                    raise Exception("源文件信息处理失败")
 
                 job_kwargs = {
                     "bk_scope_type": self.biz_scope_type,

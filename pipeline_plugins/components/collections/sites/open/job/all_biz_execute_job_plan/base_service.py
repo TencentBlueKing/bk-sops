@@ -132,7 +132,7 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
 
                 ip_list = self.get_ip_list(val)
                 result, server = self.get_target_server_biz_set(
-                    executor, ip_list, supplier_account=supplier_account, need_build_ip=False
+                    executor, ip_list, supplier_account=supplier_account, need_build_ip=False, logger_handle=self.logger
                 )
 
                 if not result:

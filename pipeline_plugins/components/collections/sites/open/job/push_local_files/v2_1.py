@@ -49,7 +49,9 @@ class JobPushLocalFilesService(BaseJobPushLocalFilesService):
         ]
 
     def get_ip_list(self, data, target_ip_list, executor, biz_cc_id):
-        clean_result, target_server = self.get_target_server_hybrid(executor, biz_cc_id, data, target_ip_list)
+        clean_result, target_server = self.get_target_server_hybrid(
+            executor, biz_cc_id, data, target_ip_list, self.logger
+        )
         return clean_result, target_server
 
     def get_params_list(self, client, data, target_server, local_files_and_target_path):
