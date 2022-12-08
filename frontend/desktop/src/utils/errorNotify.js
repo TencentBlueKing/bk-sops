@@ -1,5 +1,6 @@
 // 接口异常通知提示，出现在页面右上角，10s后自动关闭，鼠标hover时暂停计时
 import i18n from '@/config/i18n/index.js'
+import bus from '@/utils/bus.js'
 export default class ErrorNotify {
     constructor (errorInfo, vueInstance) {
         const { msg, type, traceId, errorSource } = errorInfo
@@ -113,6 +114,8 @@ export default class ErrorNotify {
     }
     handleClose (instance) {
         instance.$el.querySelector('.bk-notify-content-text').style.display = 'none'
+        const errorMsg = instance.$el.textContent
+        bus.$emit('onCloseErrorNotify', errorMsg)
     }
     handleCopy (vueInstance, msg) {
         const textarea = document.createElement('textarea')

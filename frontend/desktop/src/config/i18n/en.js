@@ -1549,7 +1549,10 @@ const en = {
     '展开全部': 'Expand All',
     '中文': 'Chinese',
     '参数已被使用，不可修改': 'The parameter has been used and cannot be modified',
-    '显示全部': 'Display all'
+    '显示全部': 'Display all',
+    '变量保存数据与最新的CMDB集群配置存在差异，是否更新变量数据？': 'There is a difference between the data saved in the variable and the latest CMDB cluster configuration. Do you want to update the variable data?',
+    '将沿用原参数值提交': 'Will submit with the original parameter value',
+    '知道了': 'Understood'
 }
 
 export default en

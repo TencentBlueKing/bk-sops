@@ -12,6 +12,7 @@
 <template>
     <div
         v-show="showForm"
+        :key="randomKey"
         :class="[
             'rf-form-item',
             'clearfix',
@@ -46,13 +47,10 @@
                     <i class="common-icon-dark-circle-warning"></i>
                     {{ scheme.attrs.pre_mako_tip }}
                 </span>
-                <span class="used-tip" v-else-if="scheme.attrs.used_tip">
+                <span class="used-tip" v-else-if="!scheme.attrs.html_used_tip && scheme.attrs.used_tip">
                     <i class="common-icon-dark-circle-warning"></i>
                     {{ scheme.attrs.used_tip }}
                 </span>
-            </div>
-            <div v-if="scheme.attrs.desc" class="rf-group-desc">
-                {{ scheme.attrs.desc }}
             </div>
             <div v-if="scheme.attrs.desc" class="rf-group-desc" v-html="scheme.attrs.desc"></div>
             <!-- 表单名称 -->
@@ -74,6 +72,26 @@
                     {{scheme.attrs.name}}
                 </span>
             </label>
+            <!-- 参数被使用占位popover -->
+            <bk-popover
+                v-if="scheme.attrs.html_used_tip"
+                ref="htmlUsedTipPopper"
+                placement="top-start"
+                theme="light"
+                always
+                :z-index="2072"
+                class="html-used-tippy"
+                ext-cls="html-used-tippy-popper">
+                <div class="empty-box"></div>
+                <template slot="content">
+                    <p class="tip-title">
+                        <i class="common-icon-dark-circle-warning"></i>
+                        {{ scheme.attrs.used_tip }}
+                    </p>
+                    <p class="tip-content">{{ $t('将沿用原参数值提交') }}</p>
+                    <p class="tip-btn" @click="handleFoldUsedTip">{{ $t('知道了') }}</p>
+                </template>
+            </bk-popover>
             <!-- 表单勾选为全局变量 -->
             <div v-show="hook" class="rf-tag-form">
                 <bk-input :disabled="true" :value="String(value)"></bk-input>
@@ -81,7 +99,10 @@
             <!-- 表单元素 -->
             <component
                 v-show="!hook"
-                :class="scheme.attrs.name ? 'rf-tag-form' : ''"
+                :class="[
+                    scheme.attrs.name ? 'rf-tag-form' : '',
+                    showTagUsedStyle
+                ]"
                 ref="tagComponent"
                 :is="tagComponent"
                 v-bind="getDefaultAttrs()"
@@ -219,6 +240,7 @@
             const formValue = this.getFormValue(this.value)
 
             return {
+                randomKey: null,
                 tagComponent: `tag-${this.scheme.type.replace(/_/g, '-')}`,
                 showForm,
                 showHook,
@@ -235,6 +257,13 @@
             },
             showNotReuseTitle () {
                 return this.option.formEdit && this.scheme.attrs.notReuse
+            },
+            showTagUsedStyle () {
+                const { type, attrs } = this.scheme
+                if (attrs.html_used_tip && ['input', 'textarea', 'select'].includes(type)) {
+                    return 'rf-tag-used'
+                }
+                return ''
             }
         },
         watch: {
@@ -445,6 +474,15 @@
                     return this.$refs.tagComponent.validate(combineValue)
                 }
                 return true
+            },
+            handleFoldUsedTip () {
+                this.$refs['htmlUsedTipPopper'].hideHandler()
+                this.scheme.attrs.used_tip = ''
+                this.scheme.attrs.html_used_tip = false
+                this.scheme.attrs.disabled = true
+                this.formValue = this.constants[this.scheme.tag_code].value
+                this.updateForm([this.scheme.tag_code], this.formValue)
+                this.randomKey = new Date().getTime()
             }
         }
     }
@@ -519,6 +557,15 @@
     }
     &.show-label > .rf-tag-form {
         margin-left: 130px;
+    }
+    .html-used-tippy {
+        position: absolute;
+        z-index: -2;
+        left: 130px;
+        .empty-box {
+            width: 32px;
+            height: 32px;
+        }
     }
     .rf-tag-hook {
         position: absolute;
