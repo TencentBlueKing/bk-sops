@@ -144,7 +144,7 @@ class VarCmdbIpSelector(LazyVariable, SelfExplainVariable):
                 p_address = ipaddress.ip_address(host["bk_host_innerip"])
                 # 如果是ipv6地址，则不携带云区域
                 if settings.ENABLE_IPV6 and p_address.version == 6:
-                    hosts.append(host["bk_host_innerip"])
+                    hosts.append(f'{host["bk_cloud_id"]}:[{host["bk_host_innerip"]}]')
                 else:
                     hosts.append("{}:{}".format(host["bk_cloud_id"], host["bk_host_innerip"]))
 
