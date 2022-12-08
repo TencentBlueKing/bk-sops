@@ -43,9 +43,7 @@ class AllBizJobFastPushFileService(BaseAllBizJobFastPushFileService):
                 result, target_server = self.get_target_server_biz_set(
                     executor, [attr], supplier_account, ip_key="job_ip_list"
                 )
-                # ipv4只要不是ip格式有误,result恒定为True
-                if not result:
-                    return False
+
                 job_kwargs = {
                     "bk_scope_type": self.biz_scope_type,
                     "bk_scope_id": str(biz_cc_id),

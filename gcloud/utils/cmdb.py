@@ -180,7 +180,7 @@ def get_business_set_host(username, supplier_account, host_fields, ip_list=None)
     return batch_request(client.cc.list_hosts_without_biz, kwargs)
 
 
-def get_business_host_ipv6(username, bk_biz_id, supplier_account, host_fields, ip_list=None):
+def get_business_host_ipv6(username, bk_biz_id, supplier_account, host_fields, ip_list=None, bk_cloud_id=None):
     """
     根据主机内网 IP 过滤业务下的主机, 主要查询ip_v6
     :param username: 请求用户名
@@ -217,6 +217,10 @@ def get_business_host_ipv6(username, bk_biz_id, supplier_account, host_fields, i
             "rules": [{"field": "bk_host_innerip_v6", "operator": "in", "value": ip_list}],
         },
     }
+    if bk_biz_id is not None:
+        kwargs["host_property_filter"]["rules"].append(
+            {"field": "bk_cloud_id", "operator": "equal", "value": bk_cloud_id}
+        )
 
     client = get_client_by_user(username)
     return batch_request(client.cc.list_biz_hosts, kwargs)

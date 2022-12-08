@@ -27,12 +27,13 @@ class NodemanPluginIPMixin:
             ) = extract_ip_from_ip_str(ip_str)
 
             ip_list = [
-                *ipv6_list,
+                *["{}:[{}]".format(bk_cloud_id, item) for item in ipv6_list],
                 *host_id_list,
                 *ipv4_list_with_cloud_id,
                 *ipv6_list_with_cloud_id,
-                ["{}:{}".format(bk_cloud_id, item) for item in ipv4_list],
+                *["{}:{}".format(bk_cloud_id, item) for item in ipv4_list],
             ]
+
             return ",".join(ip_list)
 
         supplier_account = supplier_account_for_business(biz_cc_id)

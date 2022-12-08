@@ -121,9 +121,6 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService, G
         # 拼装ip_list， bk_cloud_id为空则值为0
         result, target_server = self.get_target_server_biz_set(executor, ip_info, supplier_account)
 
-        if not result:
-            return False
-
         job_kwargs = {
             "bk_scope_type": self.biz_scope_type,
             "bk_scope_id": str(biz_cc_id),
