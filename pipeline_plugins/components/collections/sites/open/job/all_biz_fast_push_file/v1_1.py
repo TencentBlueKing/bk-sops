@@ -81,6 +81,9 @@ class AllBizJobFastPushFileService(BaseAllBizJobFastPushFileService):
                 executor, [attr], supplier_account, ip_key="job_ip_list"
             )
 
+            if not result:
+                raise Exception("源文件信息处理失败, message={}".format(target_server))
+
             job_kwargs = {
                 "bk_scope_type": self.biz_scope_type,
                 "bk_scope_id": str(biz_cc_id),

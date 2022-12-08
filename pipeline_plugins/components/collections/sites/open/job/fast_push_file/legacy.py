@@ -101,6 +101,9 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
             clean_result, server = self.get_target_server(
                 executor, biz_cc_id, data, item["ip"], False, logger_handle=self.logger
             )
+            if not clean_result:
+                self.logger.info("源服务器信息查询失败")
+                return False
             file_source.append(
                 {
                     "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
@@ -117,6 +120,7 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
             executor, biz_cc_id, data, original_ip_list, False, logger_handle=self.logger
         )
         if not clean_result:
+            self.logger.info("源服务器信息查询失败, target_server={}".format(target_server))
             return False
 
         job_timeout = data.get_one_of_inputs("job_timeout")

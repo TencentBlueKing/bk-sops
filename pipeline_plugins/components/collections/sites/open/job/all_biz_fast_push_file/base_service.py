@@ -101,7 +101,7 @@ class BaseAllBizJobFastPushFileService(JobScheduleService, GetJobTargetServerMix
         for item in data.get_one_of_inputs("job_source_files", []):
             result, server = self.get_target_server_biz_set(executor, [item], supplier_account)
             if not result:
-                raise Exception("源文件信息处理失败")
+                raise Exception("源文件信息处理失败, message={}".format(server))
 
             file_source.append(
                 {
