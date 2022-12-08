@@ -112,7 +112,7 @@ def get_ipv4_info_list(username, biz_cc_id, supplier_account, ipv4_list):
 
     if len(ipv4_list) != len(ipv4_info_list):
         return False, compare_ip_list_and_return(
-            ipv4_info_list, ipv4_list, host_key="bk_host_innerip", raise_exception=False
+            [item["host"] for item in ipv4_info_list], ipv4_list, host_key="bk_host_innerip", raise_exception=False
         )
 
     for ip_info in ipv4_info_list:
@@ -204,7 +204,10 @@ def get_ipv6_info_list_with_cloud_id(username, biz_cc_id, supplier_account, ipv6
             ipv6_info_with_cloud_valid.append(ip_info)
 
     compare_data = compare_ip_list_and_return(
-        ipv6_info_with_cloud_valid, ipv6_list, host_key="bk_host_innerip_v6", raise_exception=False
+        [item["host"] for item in ipv6_info_with_cloud_valid],
+        ipv6_list,
+        host_key="bk_host_innerip_v6",
+        raise_exception=False,
     )
 
     if compare_data:
@@ -247,7 +250,7 @@ def get_host_info_list(username, biz_cc_id, supplier_account, host_id_list):
             "ip_result": [],
             "ip_count": 0,
             "invalid_ip": compare_ip_list_and_return(
-                host_info_list, host_id_list, host_key="bk_host_id", raise_exception=False
+                [item["host"] for item in host_info_list], host_id_list, host_key="bk_host_id", raise_exception=False
             ),
         }
 
@@ -283,7 +286,7 @@ def cc_get_ips_info_by_str_ipv6(username, biz_cc_id, ip_str, use_cache=True):
 
     # ipv6带云区域
     ipv6_list_with_cloud_id_result, ipv6_list_with_cloud_id_data = get_ipv6_info_list_with_cloud_id(
-        username, biz_cc_id, supplier_account, ipv6_list
+        username, biz_cc_id, supplier_account, ipv6_list_with_cloud_id
     )
     if not ipv6_list_with_cloud_id_result:
         return {"result": False, "ip_result": [], "ip_count": 0, "invalid_ip": ipv6_list_with_cloud_id_data}
