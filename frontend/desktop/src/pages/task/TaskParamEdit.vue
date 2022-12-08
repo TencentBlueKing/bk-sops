@@ -14,6 +14,7 @@
         <RenderForm
             ref="renderForm"
             v-if="!isConfigLoading"
+            :key="randomKey"
             :scheme="renderConfig"
             :constants="variables"
             :form-option="renderOption"
@@ -61,6 +62,7 @@
         },
         data () {
             return {
+                randomKey: new Date().getTime(),
                 variables: tools.deepClone(this.constants),
                 renderOption: {
                     showRequired: true,

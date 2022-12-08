@@ -103,15 +103,36 @@
                 return this.isParamsEmpty ? this.cntLoading : (this.cntLoading || this.configLoading || this.constantLoading)
             }
         },
-        created () {
+        async created () {
             if (this.retryNodeId) {
                 $.context.exec_env = 'NODE_RETRY'
             }
             bus.$on('tagRemoteLoaded', (code, data) => {
                 this.remoteData[code] = data
             })
+            
+            // 先获取被使用过的变量
+            this.constantLoading = true
+            this.unUsedConstants = await this.getUnUsedConstants()
             this.getTaskData()
-            this.getUnUsedConstants()
+        },
+        mounted () {
+            bus.$on('onCloseErrorNotify', (data) => {
+                const varRegExp = /\${[a-zA-Z_]\w*}/g
+                const matckList = data.match(varRegExp) || []
+                const paramEditComp = this.$refs.TaskParamEdit
+                if (matckList.length && paramEditComp) {
+                    matckList.forEach(key => {
+                        const config = paramEditComp.renderConfig.find(item => item.tag_code === key)
+                        if (!config.attrs) {
+                            config.attrs = {}
+                        }
+                        config.attrs['disabled'] = true
+                        config.attrs['used_tip'] = i18n.t('参数已被使用，不可修改')
+                    })
+                    paramEditComp.randomKey = new Date().getTime()
+                }
+            })
         },
         beforeDestroy () {
             $.context.exec_env = ''
@@ -144,11 +165,10 @@
             },
             async getUnUsedConstants () {
                 try {
-                    this.constantLoading = true
                     const resp = await this.getTaskUsedConstants({
                         instance_id: this.instance_id
                     })
-                    this.unUsedConstants = resp.data.unused_constant_keys
+                    return resp.data.unused_constant_keys || []
                 } catch (error) {
                     console.warn(error)
                 } finally {
@@ -234,6 +254,25 @@
                 }
                 try {
                     this.pending = true
+                    // 首先判断参数是否有被使用
+                    const unUsedConstants = await this.getUnUsedConstants()
+                    const usedConstants = modifiedKeys.filter(key => !unUsedConstants.includes(key))
+                    // 如果有变量被使用过则提示报错，不进行提交
+                    if (usedConstants.length) {
+                        const paramEditComp = this.$refs.TaskParamEdit
+                        if (paramEditComp) {
+                            usedConstants.forEach(key => {
+                                const config = paramEditComp.renderConfig.find(item => item.tag_code === key)
+                                if (!config.attrs) {
+                                    config.attrs = {}
+                                }
+                                config.attrs['html_used_tip'] = true
+                                config.attrs['used_tip'] = i18n.t('参数已被使用，不可修改')
+                            })
+                            paramEditComp.randomKey = new Date().getTime()
+                        }
+                        return
+                    }
                     const res = await this.instanceModifyParams(data)
                     if (res.result) {
                         if (this.retryNodeId) {

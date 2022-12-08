@@ -799,7 +799,7 @@
                 keys.forEach((key, index) => {
                     cronMap[key] = values[index] || '*'
                 })
-                const cronRule = cronMap['m'] + ' ' + cronMap['h'] + ' ' + cronMap['MY'] + ' ' + cronMap['dM'] + ' ' + cronMap['d']
+                const cronRule = cronMap['m'] + ' ' + cronMap['h'] + ' ' + cronMap['dM'] + ' ' + cronMap['MY'] + ' ' + cronMap['d']
                 return cronRule
             },
             onCreatePeriodTask () {
