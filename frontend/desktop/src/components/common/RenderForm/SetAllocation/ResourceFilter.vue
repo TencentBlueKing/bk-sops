@@ -1025,7 +1025,6 @@
                 const hosts = [] // 模块实际的主机数据，去重、按照实际数量配置截取
                 const reuseOthers = this.formData.modules.filter(item => item.selectMethod === 2)
                 const usedHosts = []
-                const usedIpv6Hosts = []
                 const fullMdHosts = this.getFullModuleHosts(data) // 所有满足各模块的主机数据
                 for (let i = 0; i < this.formData.clusterCount; i++) {
                     const moduleHosts = {}
@@ -1042,17 +1041,12 @@
                                 }
                                 const { bk_host_innerip: ipv4, bk_host_innerip_v6: ipv6, is_innerip_v6: isV6 } = h
                                 const ip = isV6 ? ipv6 : ipv4
-                                const usedHostList = isV6 ? usedIpv6Hosts : usedHosts
-                                if (!usedHostList.includes(ip) && !mutedHostAttrs.includes(h[this.formData.muteAttribute])) {
+                                if (!usedHosts.includes(ip) && !mutedHostAttrs.includes(h[this.formData.muteAttribute])) {
                                     if (md.muteMethod === 1 && innerMuteAttr.includes(h[this.formData.muteAttribute])) { // 模块内互斥
                                         return
                                     }
                                     moduleHosts[md.name].push(ip)
-                                    if (isV6) {
-                                        usedIpv6Hosts.push(ip)
-                                    } else {
-                                        usedHosts.push(ip)
-                                    }
+                                    usedHosts.push(ip)
                                     innerMuteAttr.push(h[this.formData.muteAttribute])
                                 }
                             })
@@ -1108,7 +1102,10 @@
                             })
                         } else { // 默认筛选方式，则计算本模块数据
                             if (hostFilterList.length === 0) { // 筛选条件和排序条件为空，按照设置的主机数截取
-                                list = data
+                                list = data.map(item => {
+                                    // ipv4不存在时找ipv6
+                                    return { ...item, is_innerip_v6: !item.bk_host_innerip }
+                                })
                             } else {
                                 const filterObj = this.transFieldArrToObj(validFilters)
                                 const excludeObj = this.transFieldArrToObj(validExclude)
@@ -1138,7 +1135,10 @@
                                     }
 
                                     if (included && !excluded) { // 数据同时满足条件值被包含在筛选条件且不被包含在排除条件里，才添加ip
-                                        list.push(item)
+                                        list.push({
+                                            ...item,
+                                            is_innerip_v6: !item.bk_host_innerip // ipv4不存在时找ipv6
+                                        })
                                     }
                                 })
                             }
