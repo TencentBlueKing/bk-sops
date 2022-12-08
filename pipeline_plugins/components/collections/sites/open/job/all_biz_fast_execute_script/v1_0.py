@@ -83,7 +83,9 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService, G
         ip_info = data.get_one_of_inputs("job_target_ip_table")
         supplier_account = supplier_account_for_business(biz_cc_id)
 
-        result, target_server = self.get_target_server_biz_set(executor, ip_info, supplier_account, self.logger)
+        result, target_server = self.get_target_server_biz_set(
+            executor, ip_info, supplier_account, logger_handle=self.logger
+        )
         if not result:
             raise Exception("[AllBizJobFastExecuteScriptService]->get_job_params 查询主机失败")
 
