@@ -77,8 +77,6 @@ class NodemanCreateTaskService(NodeManBaseService):
 
         # 拼接任务类型
         job_name = "_".join([op_type, node_type])
-        # 需要标记用户在前端输入的是ipv4还是ipv6
-        use_inner_ip = False
         if job_name in itertools.chain.from_iterable([OPERATE_JOB, REMOVE_JOB]):
 
             # 获取bk_host_id
@@ -117,16 +115,13 @@ class NodemanCreateTaskService(NodeManBaseService):
                 ap_id = host["nodeman_ap_id"]
                 auth_type = host["auth_type"]
                 auth_key = host["auth_key"]
-                if settings.ENABLE_IPV6:
-                    # 在ipv6环境下，优先取ipv4的地址
-                    if host.get("inner_ip"):
-                        use_inner_ip = True
-                        inner_ip_list = self.get_ip_list(host.get("inner_ip"))
-                    else:
-                        inner_ip_list = self.get_ip_list(host.get("inner_ipv6"))
-                else:
-                    use_inner_ip = True
-                    inner_ip_list = self.get_ip_list(host.get("inner_ip"))
+                use_inner_ip = True if host.get("inner_ip") else False
+                # use_inner_ip 判定用户输入的的是ipv4还是ipv6
+                inner_ip_list = self.get_ip_list(
+                    host.get("inner_ipv6", "")
+                    if not use_inner_ip and settings.ENABLE_IPV6
+                    else host.get("inner_ip", "")
+                )
 
                 if not inner_ip_list:
                     data.set_outputs("ex_data", _("请确认内网Ip是否合法host_info:{host}".format(host=host["inner_ip"])))
