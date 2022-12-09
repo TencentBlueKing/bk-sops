@@ -161,7 +161,6 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
                     server = self.build_ip_list(biz_across, val, executor, biz_cc_id, data, ip_is_exist)
                     # 如果ip值存在并且没查到
                     if not server:
-                        data.outputs.ex_data = _(f"无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： {val}")
                         return False
                     global_vars.append({"name": _value["name"], "server": server})
             else:
