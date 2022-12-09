@@ -160,7 +160,6 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
                 server = self.build_ip_list(biz_across, val, executor, biz_cc_id, data, ip_is_exist)
                 # 如果ip值存在并且没查到
                 if not server and val:
-                    data.outputs.ex_data = "ip查询失败，请检查ip配置是否正确，ip_list={}".format(val)
                     return False
                 global_vars.append({"name": _value["name"], "server": server})
             else:

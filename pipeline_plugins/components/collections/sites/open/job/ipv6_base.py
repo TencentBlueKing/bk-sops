@@ -10,7 +10,7 @@ from pipeline_plugins.components.utils.sites.open.utils import get_biz_ip_from_f
 
 
 class GetJobTargetServerMixin(object):
-    def get_target_server_ipv6(self, executor, biz_cc_id, ip_str, logger_handle):
+    def get_target_server_ipv6(self, executor, biz_cc_id, ip_str, logger_handle, data):
         supplier_account = supplier_account_for_business(biz_cc_id)
         logger_handle.info("[get_target_server_ipv6] start search this ip:{}".format(ip_str))
         host_result = cc_get_host_by_innerip_with_ipv6(executor, biz_cc_id, ip_str, supplier_account)
@@ -18,11 +18,12 @@ class GetJobTargetServerMixin(object):
             "[get_target_server_ipv6] start search this ip: {} end, result={}".format(ip_str, host_result)
         )
         if not host_result["result"]:
+            data.outputs.ex_data = "ip查询失败，请检查ip配置是否正确，ip_list={}".format(host_result.get("message"))
             return False, {}
 
         return True, {"host_id_list": [int(host["bk_host_id"]) for host in host_result["data"]]}
 
-    def get_target_server_ipv6_across_business(self, executor, biz_cc_id, ip_str, logger_handle):
+    def get_target_server_ipv6_across_business(self, executor, biz_cc_id, ip_str, logger_handle, data):
         """
         step 1: 去本业务查这些ip，得到两个列表，本业务查询到的host, 本业务查不到的ip列表
         step 2: 对于本业务查不到的host, 去全业务查询，查不到的话则报错，将查到的host_id 与 本业务的 host_id 进行合并
@@ -54,6 +55,7 @@ class GetJobTargetServerMixin(object):
             )
         )
         if not host_result["result"]:
+            data.outputs.ex_data = "ip查询失败，请检查ip配置是否正确，ip_list={}".format(host_result.get("message"))
             return False, {}
         host_data = host_result["data"] + host_list
         return True, {"host_id_list": [int(host["bk_host_id"]) for host in host_data]}
@@ -71,8 +73,8 @@ class GetJobTargetServerMixin(object):
     ):
         if settings.ENABLE_IPV6:
             if is_across:
-                return self.get_target_server_ipv6_across_business(executor, biz_cc_id, ip_str, logger_handle)
-            return self.get_target_server_ipv6(executor, biz_cc_id, ip_str, logger_handle)
+                return self.get_target_server_ipv6_across_business(executor, biz_cc_id, ip_str, logger_handle, data)
+            return self.get_target_server_ipv6(executor, biz_cc_id, ip_str, logger_handle, data)
         # 获取IP
         clean_result, ip_list = get_biz_ip_from_frontend(
             ip_str,
@@ -91,7 +93,7 @@ class GetJobTargetServerMixin(object):
 
     def get_target_server_hybrid(self, executor, biz_cc_id, data, ip_str, logger_handle):
         if settings.ENABLE_IPV6:
-            return self.get_target_server_ipv6_across_business(executor, biz_cc_id, ip_str, logger_handle)
+            return self.get_target_server_ipv6_across_business(executor, biz_cc_id, ip_str, logger_handle, data)
         # 获取IP
         clean_result, ip_list = get_biz_ip_from_frontend_hybrid(
             executor,

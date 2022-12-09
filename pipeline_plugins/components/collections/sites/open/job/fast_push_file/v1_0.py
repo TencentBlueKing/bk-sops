@@ -107,7 +107,6 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
                 executor, biz_cc_id, data, item["ip"], self.logger, False, is_across=across_biz
             )
             if not clean_source_ip_result:
-                data.outputs.ex_data = "源服务器信息查询失败，请检查ip配置是否正确，ip={}".format(item["ip"])
                 return False
             file_source.append(
                 {
@@ -130,7 +129,6 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
             is_across=False,
         )
         if not clean_result:
-            data.outputs.ex_data = "目标服务器信息查询失败，请检查ip配置是否正确，ip={}".format(original_ip_list)
             return False
 
         job_timeout = data.get_one_of_inputs("job_timeout")

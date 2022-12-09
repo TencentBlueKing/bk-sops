@@ -135,7 +135,6 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
                 executor, biz_cc_id, data, item["ip"], logger_handle=self.logger
             )
             if not clean_source_ip_result:
-                data.outputs.ex_data = "源服务器信息查询失败，请检查ip配置是否正确，ip={}".format(item["ip"])
                 return False
             file_source.append(
                 {
@@ -180,7 +179,6 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
                 executor, biz_cc_id, data, original_ip_list, logger_handle=self.logger
             )
             if not clean_result:
-                data.outputs.ex_data = "目标服务器信息查询失败，请检查ip配置是否正确，ip={}".format(original_ip_list)
                 return False
             job_kwargs = {
                 "bk_scope_type": JobBizScopeType.BIZ.value,

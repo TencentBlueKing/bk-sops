@@ -124,7 +124,7 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService, G
         )
 
         if not result:
-            raise Exception("[AllBizJobFastExecuteScriptService]->get_job_params 查询主机失败, 失败信息")
+            raise Exception("[AllBizJobFastExecuteScriptService]->get_job_params 查询主机失败, 请检查ip配置是否正确")
 
         job_kwargs = {
             "bk_scope_type": self.biz_scope_type,

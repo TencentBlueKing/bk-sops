@@ -82,7 +82,7 @@ class AllBizJobFastPushFileService(BaseAllBizJobFastPushFileService):
             )
 
             if not result:
-                raise Exception("目标服务器查询失败")
+                raise Exception("目标服务器查询失败，请检查ip配置是否正确")
 
             job_kwargs = {
                 "bk_scope_type": self.biz_scope_type,
