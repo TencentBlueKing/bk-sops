@@ -69,7 +69,7 @@ class JobPushLocalFilesService(JobService, GetJobTargetServerMixin):
 
         # 获取 IP
         clean_result, target_server = self.get_target_server(
-            executor, biz_cc_id, data, target_ip_list, False, logger_handle=self.logger, is_across=across_biz
+            executor, biz_cc_id, data, target_ip_list, self.logger, False, is_across=across_biz
         )
 
         if not clean_result:

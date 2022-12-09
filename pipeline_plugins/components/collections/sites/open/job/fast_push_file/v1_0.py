@@ -104,7 +104,7 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
         for item in original_source_files:
             # filter 跨业务 IP
             clean_source_ip_result, server = self.get_target_server(
-                executor, biz_cc_id, data, item["ip"], False, logger_handle=self.logger, is_across=across_biz
+                executor, biz_cc_id, data, item["ip"], self.logger, False, is_across=across_biz
             )
             if not clean_source_ip_result:
                 return False
@@ -124,8 +124,8 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
             biz_cc_id,
             data,
             original_ip_list,
-            ip_is_exist=ip_is_exist,
             logger_handle=self.logger,
+            ip_is_exist=ip_is_exist,
             is_across=False,
         )
         if not clean_result:

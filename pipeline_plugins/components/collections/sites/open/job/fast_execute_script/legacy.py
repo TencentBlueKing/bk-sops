@@ -160,7 +160,7 @@ class JobFastExecuteScriptService(JobService, GetJobTargetServerMixin):
         original_ip_list = data.get_one_of_inputs("job_ip_list")
 
         clean_result, target_server = self.get_target_server(
-            executor, biz_cc_id, data, original_ip_list, ip_is_exist, logger_handle=self.logger
+            executor, biz_cc_id, data, original_ip_list, self.logger, ip_is_exist
         )
 
         if not clean_result:

@@ -128,7 +128,7 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
         across_biz = data.get_one_of_inputs("job_across_biz", False)
         # 获取 IP
         clean_result, target_server = self.get_target_server(
-            executor, biz_cc_id, data, target_ip_list, False, logger_handle=self.logger, is_across=across_biz
+            executor, biz_cc_id, data, target_ip_list, self.logger, False, is_across=across_biz
         )
         return clean_result, target_server
 

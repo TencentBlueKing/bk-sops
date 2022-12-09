@@ -64,8 +64,8 @@ class GetJobTargetServerMixin(object):
         biz_cc_id,
         data,
         ip_str,
+        logger_handle,
         ip_is_exist=False,
-        logger_handle=None,
         is_across=False,
         ignore_ex_data=False,
     ):
@@ -89,7 +89,7 @@ class GetJobTargetServerMixin(object):
 
         return True, {"ip_list": ip_list}
 
-    def get_target_server_hybrid(self, executor, biz_cc_id, data, ip_str, logger_handle=None):
+    def get_target_server_hybrid(self, executor, biz_cc_id, data, ip_str, logger_handle):
         if settings.ENABLE_IPV6:
             return self.get_target_server_ipv6_across_business(executor, biz_cc_id, ip_str, logger_handle)
         # 获取IP
@@ -105,7 +105,7 @@ class GetJobTargetServerMixin(object):
         return True, {"ip_list": ip_list}
 
     def get_target_server_biz_set(
-        self, executor, ip_table, supplier_account, ip_key="ip", need_build_ip=True, logger_handle=None
+        self, executor, ip_table, supplier_account, logger_handle, ip_key="ip", need_build_ip=True
     ):
         def build_ip_str_from_table():
             ip_list = []
