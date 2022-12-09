@@ -1552,7 +1552,9 @@ const en = {
     '显示全部': 'Display all',
     '变量保存数据与最新的CMDB集群配置存在差异，是否更新变量数据？': 'There is a difference between the data saved in the variable and the latest CMDB cluster configuration. Do you want to update the variable data?',
     '将沿用原参数值提交': 'Will submit with the original parameter value',
-    '知道了': 'Understood'
+    '知道了': 'Understood',
+    '平台日志': 'Platform log',
+    '第三方插件日志': 'Third-party plugin logs'
 }
 
 export default en

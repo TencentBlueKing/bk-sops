@@ -11,9 +11,9 @@
                 :class="{ 'empty-tab': !logInfo && !thirdPartyNodeLog }"
                 :active.sync="curPluginTab"
                 type="unborder-card">
-                <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('节点日志') }"></bk-tab-panel>
+                <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('平台日志') }"></bk-tab-panel>
                 <bk-tab-panel
-                    v-bind="{ name: 'third_party_plugin', label: $t('第三方节点日志') }">
+                    v-bind="{ name: 'third_party_plugin', label: $t('第三方插件日志') }">
                 </bk-tab-panel>
             </bk-tab>
             <div class="perform-log" v-bkloading="{ isLoading: isLogLoading, opacity: 1, zIndex: 100 }">
