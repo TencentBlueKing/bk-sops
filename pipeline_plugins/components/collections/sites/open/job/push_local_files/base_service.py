@@ -180,6 +180,7 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
         # filter 跨业务 IP
         clean_result, target_server = self.get_ip_list(data, target_ip_list, executor, biz_cc_id)
         if not clean_result:
+            data.outputs.ex_data = "ip查询失败，请检查ip配置是否正常"
             return False
 
         params_list = self.get_params_list(client, data, target_server, local_files_and_target_path)

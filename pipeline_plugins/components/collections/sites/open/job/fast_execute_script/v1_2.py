@@ -214,6 +214,7 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin, GetJobTa
             executor, biz_cc_id, data, ip_info, logger_handle=self.logger
         )
         if not result:
+            data.outputs.ex_data = "ip查询失败，请检查ip配置是否正确，ip_list={}".format(ip_info)
             return False
         job_kwargs = {
             "bk_scope_type": JobBizScopeType.BIZ.value,

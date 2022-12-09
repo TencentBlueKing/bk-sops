@@ -136,6 +136,7 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
                 )
 
                 if not result:
+                    data.outputs.ex_data = "ip查询失败，ip_list={}".format(ip_list)
                     return False
 
                 if result:

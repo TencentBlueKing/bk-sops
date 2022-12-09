@@ -73,6 +73,7 @@ class JobPushLocalFilesService(JobService, GetJobTargetServerMixin):
         )
 
         if not clean_result:
+            data.outputs.ex_data = "ip查询失败，请检查ip配置是否正确，请检查ip配置是否正常"
             return False
         # 这里自动过滤掉上传失败的文件
         file_tags = [_file["response"]["tag"] for _file in local_files if _file["response"]["result"] is True]

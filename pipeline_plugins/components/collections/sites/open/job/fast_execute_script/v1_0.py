@@ -179,6 +179,7 @@ class JobFastExecuteScriptService(JobService, GetJobTargetServerMixin):
         )
 
         if not clean_result:
+            data.outputs.ex_data = "ip查询失败，请检查ip配置是否正确，ip_list={}".format(original_ip_list)
             return False
 
         job_kwargs = {

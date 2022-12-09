@@ -144,6 +144,7 @@ class BaseJobLocalContentUploadService(Service, GetJobTargetServerMixin):
 
         result, target_server = self.get_ip_list(data, executor, biz_cc_id)
         if not result:
+            data.outputs.ex_data = "ip查询失败，请检查ip配置是否正常"
             return False
         job_kwargs = self.get_job_kwargs(biz_cc_id, data, target_server)
 

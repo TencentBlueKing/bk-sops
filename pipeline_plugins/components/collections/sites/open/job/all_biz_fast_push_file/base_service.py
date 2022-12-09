@@ -103,7 +103,7 @@ class BaseAllBizJobFastPushFileService(JobScheduleService, GetJobTargetServerMix
                 executor, [item], supplier_account, logger_handle=self.logger
             )
             if not result:
-                raise Exception("源文件信息处理失败")
+                raise Exception("源文件信息处理失败，请检查ip配置是否正确, ip_list={}".format(item))
 
             file_source.append(
                 {
