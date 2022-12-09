@@ -62,7 +62,7 @@
             name="thirdParty"
             :label="$t('第三方插件')"
             v-bkloading="{ isLoading: thirdPluginTagsLoading || thirdPluginLoading }">
-            <div class="group-area" v-if="thirdPluginGroup.length">
+            <div class="group-area" v-if="isThirdPartyGroupShow">
                 <template v-for="group in thirdPluginGroup">
                     <div
                         :class="['group-item', {
@@ -135,6 +135,9 @@
             activeGroupPlugin () {
                 const group = this.builtInPluginGroup.find(item => item.type === this.activeGroup)
                 return group ? group.list : []
+            },
+            isThirdPartyGroupShow () {
+                return this.thirdPluginGroup && this.thirdPluginGroup.some(item => item.isShow)
             }
         },
         async mounted () {
