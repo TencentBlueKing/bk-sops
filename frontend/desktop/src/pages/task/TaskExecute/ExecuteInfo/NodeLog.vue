@@ -8,6 +8,7 @@
                     position: 'top',
                     height: '2px'
                 }"
+                :class="{ 'empty-tab': !logInfo && !thirdPartyNodeLog }"
                 :active.sync="curPluginTab"
                 type="unborder-card">
                 <bk-tab-panel v-bind="{ name: 'build_in_plugin', label: $t('节点日志') }"></bk-tab-panel>
@@ -247,6 +248,10 @@
                 .bk-tab-section {
                     padding: 0;
                 }
+                &.empty-tab {
+                    width: 100%;
+                    background: #2e2e2e;
+                }
             }
             .full-code-editor {
                 margin: 0 !important;
@@ -265,7 +270,7 @@
         }
         .no-data-wrapper {
             height: initial;
-            margin-top: 50px;
+            margin-top: 100px;
         }
     }
 </style>
