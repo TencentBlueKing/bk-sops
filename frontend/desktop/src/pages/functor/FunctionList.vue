@@ -588,19 +588,19 @@
                     if (create_time && create_time[0] && create_time[1]) {
                         if (this.common) {
                             data['pipeline_template__start_time__gte'] = moment(create_time[0]).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_template__start_time__lte'] = moment(create_time[1]).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_template__start_time__lte'] = moment(create_time[1]).format('YYYY-MM-DD HH:mm:ss')
                         } else {
                             data['create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                            data['create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['create_time__lte'] = moment.tz(create_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
                     if (claim_time && claim_time[0] && claim_time[1]) {
                         if (this.common) {
                             data['pipeline_template__claim_time__gte'] = moment(claim_time[0]).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_template__claim_time__lte'] = moment(claim_time[1]).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_template__claim_time__lte'] = moment(claim_time[1]).format('YYYY-MM-DD HH:mm:ss')
                         } else {
                             data['claim_time__gte'] = moment.tz(claim_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                            data['claim_time__lte'] = moment.tz(claim_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['claim_time__lte'] = moment.tz(claim_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
                     const functorListData = await this.loadFunctionTaskList(data)

@@ -471,15 +471,15 @@
 
                     if (last_run_at && last_run_at[0] && last_run_at[1]) {
                         data['task__last_run_at__gte'] = moment.tz(last_run_at[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        data['task__last_run_at__lte'] = moment.tz(last_run_at[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                        data['task__last_run_at__lte'] = moment.tz(last_run_at[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                     }
                     if (create_time && create_time[0] && create_time[1]) {
                         data['create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        data['create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                        data['create_time__lte'] = moment.tz(create_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                     }
                     if (edit_time && edit_time[0] && edit_time[1]) {
                         data['edit_time__gte'] = moment.tz(edit_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        data['edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                        data['edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                     }
 
                     if (!this.admin) {

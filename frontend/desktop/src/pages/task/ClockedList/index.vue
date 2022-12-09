@@ -399,15 +399,15 @@
                     }
                     if (plan_start_time && plan_start_time[0] && plan_start_time[1]) {
                         params['plan_start_time__gte'] = moment.tz(plan_start_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        params['plan_start_time__lte'] = moment.tz(plan_start_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                        params['plan_start_time__lte'] = moment.tz(plan_start_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                     }
                     if (create_time && create_time[0] && create_time[1]) {
                         params['create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        params['create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                        params['create_time__lte'] = moment.tz(create_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                     }
                     if (edit_time && edit_time[0] && edit_time[1]) {
                         params['edit_time__gte'] = moment.tz(edit_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        params['edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                        params['edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                     }
                     const resp = await this.loadClockedList(params)
                     this.pagination.count = resp.data.count
