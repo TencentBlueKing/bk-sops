@@ -157,10 +157,12 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
             val = loose_strip(_value["value"])
             # category为3,表示变量类型为IP
             if _value["category"] == 3:
-                server = self.build_ip_list(biz_across, val, executor, biz_cc_id, data, ip_is_exist)
-                if not server:
-                    return False
-                global_vars.append({"name": _value["name"], "server": server})
+                if val:
+                    server = self.build_ip_list(biz_across, val, executor, biz_cc_id, data, ip_is_exist)
+                    # 如果ip值存在并且没查到
+                    if not server:
+                        return False
+                    global_vars.append({"name": _value["name"], "server": server})
             else:
                 global_vars.append({"name": _value["name"], "value": val})
 

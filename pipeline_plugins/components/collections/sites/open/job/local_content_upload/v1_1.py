@@ -49,7 +49,9 @@ class JobLocalContentUploadService(BaseJobLocalContentUploadService):
     def get_ip_list(self, data, executor, biz_cc_id):
         original_ip_list = data.get_one_of_inputs("job_ip_list")
         # 获取 IP
-        clean_result, target_server = self.get_target_server_hybrid(executor, biz_cc_id, data, original_ip_list)
+        clean_result, target_server = self.get_target_server_hybrid(
+            executor, biz_cc_id, data, original_ip_list, logger_handle=self.logger
+        )
         return clean_result, target_server
 
     def get_job_kwargs(self, biz_cc_id, data, ip_list):

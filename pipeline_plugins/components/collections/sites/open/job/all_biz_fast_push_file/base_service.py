@@ -99,9 +99,11 @@ class BaseAllBizJobFastPushFileService(JobScheduleService, GetJobTargetServerMix
 
         file_source = []
         for item in data.get_one_of_inputs("job_source_files", []):
-            result, server = self.get_target_server_biz_set(executor, [item], supplier_account)
+            result, server = self.get_target_server_biz_set(
+                executor, [item], supplier_account, logger_handle=self.logger
+            )
             if not result:
-                raise Exception("源文件信息处理失败")
+                raise Exception("源文件信息处理失败，请检查ip配置是否正确, ip_list={}".format(item))
 
             file_source.append(
                 {

@@ -119,7 +119,12 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService, G
         supplier_account = supplier_account_for_business(biz_cc_id)
 
         # 拼装ip_list， bk_cloud_id为空则值为0
-        result, target_server = self.get_target_server_biz_set(executor, ip_info, supplier_account)
+        result, target_server = self.get_target_server_biz_set(
+            executor, ip_info, supplier_account, logger_handle=self.logger
+        )
+
+        if not result:
+            raise Exception("[AllBizJobFastExecuteScriptService]->get_job_params 查询主机失败, 请检查ip配置是否正确")
 
         job_kwargs = {
             "bk_scope_type": self.biz_scope_type,

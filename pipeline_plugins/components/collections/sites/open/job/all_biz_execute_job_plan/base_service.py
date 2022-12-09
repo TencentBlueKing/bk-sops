@@ -132,10 +132,11 @@ class BaseAllBizJobExecuteJobPlanService(Jobv3Service, GetJobTargetServerMixin):
 
                 ip_list = self.get_ip_list(val)
                 result, server = self.get_target_server_biz_set(
-                    executor, ip_list, supplier_account=supplier_account, need_build_ip=False
+                    executor, ip_list, supplier_account=supplier_account, logger_handle=self.logger, need_build_ip=False
                 )
 
                 if not result:
+                    data.outputs.ex_data = "ip查询失败, 请检查ip配置是否正确，ip_list={}".format(ip_list)
                     return False
 
                 if result:
