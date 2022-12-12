@@ -208,7 +208,7 @@ def get_ipv4_hosts_with_cloud(executor, bk_biz_id, supplier_account, ipv4_list_w
             executor,
             bk_biz_id,
             supplier_account,
-            ["bk_host_id", "bk_host_innerip", "bk_cloud_id", "bk_agent_id"],
+            ["bk_host_id", "bk_host_innerip_v6", "bk_cloud_id", "bk_agent_id", "bk_host_innerip"],
             ip_list,
         )
 
@@ -338,7 +338,7 @@ def get_ipv4_hosts(executor, bk_biz_id, supplier_account, ipv4_list, is_biz_set=
         ipv4_host_list = cmdb.get_business_set_host(
             executor,
             supplier_account,
-            ["bk_host_id", "bk_host_innerip", "bk_cloud_id", "bk_agent_id"],
+            ["bk_host_id", "bk_host_innerip_v6", "bk_cloud_id", "bk_agent_id", "bk_host_innerip"],
             ipv4_list,
         )
     else:
@@ -347,7 +347,7 @@ def get_ipv4_hosts(executor, bk_biz_id, supplier_account, ipv4_list, is_biz_set=
             executor,
             bk_biz_id,
             supplier_account,
-            ["bk_host_id", "bk_host_innerip", "bk_cloud_id", "bk_agent_id"],
+            ["bk_host_id", "bk_host_innerip_v6", "bk_cloud_id", "bk_agent_id", "bk_host_innerip"],
             ipv4_list,
         )
 
@@ -369,7 +369,7 @@ def get_hosts_by_hosts_ids(executor, bk_biz_id, supplier_account, host_id_list):
         executor,
         bk_biz_id,
         supplier_account,
-        ["bk_host_id", "bk_host_innerip", "bk_cloud_id", "bk_agent_id"],
+        ["bk_host_id", "bk_host_innerip_v6", "bk_cloud_id", "bk_agent_id", "bk_host_innerip"],
         host_id_list,
     )
     # 如果接口报错or其他的导致返回个空，则return []， 上层的compare逻辑会保证插件执行失败
