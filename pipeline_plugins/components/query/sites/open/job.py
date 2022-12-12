@@ -24,6 +24,8 @@ from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline_plugins.components.utils.sites.open.utils import get_host_info_list
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -200,7 +202,15 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
             value = var.get("value", "")
         elif var["type"] == JOB_VAR_CATEGORY_IP:
             if settings.ENABLE_IPV6:
-                value = ",".join([str(ip_item["bk_host_id"]) for ip_item in var.get("server", {}).get("ip_list") or []])
+                bk_host_ids = [str(ip_item["bk_host_id"]) for ip_item in var.get("server", {}).get("ip_list") or []]
+                result, host_data = get_host_info_list(
+                    request.user.username, biz_cc_id, supplier_account_for_business(biz_cc_id), bk_host_ids
+                )
+                if result is False:
+                    message = f"exist invalid ip: {host_data}"
+                    logger.error(message)
+                    return JsonResponse({"result": False, "message": message})
+                value = ",".join([host["InnerIP"] for host in host_data])
             else:
                 value = ",".join(
                     [
@@ -369,7 +379,15 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
             value = var.get("value", "")
         elif var["type"] == JOBV3_VAR_CATEGORY_IP:
             if settings.ENABLE_IPV6:
-                value = ",".join([str(ip_item["bk_host_id"]) for ip_item in var.get("server", {}).get("ip_list") or []])
+                bk_host_ids = [[str(ip_item["bk_host_id"]) for ip_item in var.get("server", {}).get("ip_list") or []]]
+                result, host_data = get_host_info_list(
+                    request.user.username, biz_cc_id, supplier_account_for_business(biz_cc_id), bk_host_ids
+                )
+                if result is False:
+                    message = f"exist invalid ip: {host_data}"
+                    logger.error(message)
+                    return JsonResponse({"result": False, "message": message})
+                value = ",".join([host["InnerIP"] for host in host_data])
             else:
                 value = ",".join(
                     [
@@ -459,10 +477,7 @@ job_urlpatterns = [
     url(r"^job_get_public_script_name_list/$", job_get_public_script_name_list),
     url(r"^job_get_script_by_script_version/(?P<biz_cc_id>\d+)/$", job_get_script_by_script_version),
     url(r"^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$", job_get_job_tasks_by_biz),
-    url(
-        r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$",
-        job_get_job_task_detail,
-    ),
+    url(r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_job_task_detail,),
     url(r"^job_get_instance_detail/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_instance_detail),
     # jobv3接口
     url(r"^jobv3_get_job_template_list/(?P<biz_cc_id>\d+)/$", jobv3_get_job_template_list),

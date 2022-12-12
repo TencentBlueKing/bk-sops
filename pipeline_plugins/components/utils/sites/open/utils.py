@@ -77,8 +77,14 @@ def get_ipv6_info_list(username, biz_cc_id, supplier_account, ipv6_list):
         },
     )
     if len(ipv6_list) != len(ipv6_info_list):
-        return False, compare_ip_list_and_return(
-            [item["host"] for item in ipv6_info_list], ipv6_list, host_key="bk_host_innerip_v6", raise_exception=False
+        return (
+            False,
+            compare_ip_list_and_return(
+                [item["host"] for item in ipv6_info_list],
+                ipv6_list,
+                host_key="bk_host_innerip_v6",
+                raise_exception=False,
+            ),
         )
 
     ip_result = []
@@ -111,8 +117,11 @@ def get_ipv4_info_list(username, biz_cc_id, supplier_account, ipv4_list):
     )
 
     if len(ipv4_list) != len(ipv4_info_list):
-        return False, compare_ip_list_and_return(
-            [item["host"] for item in ipv4_info_list], ipv4_list, host_key="bk_host_innerip", raise_exception=False
+        return (
+            False,
+            compare_ip_list_and_return(
+                [item["host"] for item in ipv4_info_list], ipv4_list, host_key="bk_host_innerip", raise_exception=False
+            ),
         )
 
     for ip_info in ipv4_info_list:
@@ -245,14 +254,12 @@ def get_host_info_list(username, biz_cc_id, supplier_account, host_id_list):
         },
     )
     if len(host_id_list) != len(host_info_list):
-        return {
-            "result": False,
-            "ip_result": [],
-            "ip_count": 0,
-            "invalid_ip": compare_ip_list_and_return(
+        return (
+            False,
+            compare_ip_list_and_return(
                 [item["host"] for item in host_info_list], host_id_list, host_key="bk_host_id", raise_exception=False
             ),
-        }
+        )
 
     # 默认使用bk_host_innerip地址
     for ip_info in host_info_list:
