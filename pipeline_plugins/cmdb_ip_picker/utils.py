@@ -713,9 +713,6 @@ def get_ges_agent_status_ipv6(bk_agent_id_list):
     if data["code"] != 0:
         raise Exception("[get_ges_agent_status_ipv6] 查询agent状态错误，返回值非code非0")
 
-    if len(data.get("data", [])) == 0:
-        raise Exception("[get_ges_agent_status_ipv6] 查询agent状态错误，返回值为空")
-
     agent_id_status_map = {}
     for item in data.get("data", []):
         # esb agent 状态规则 : agent在线状态，0为不在线，1为在线
