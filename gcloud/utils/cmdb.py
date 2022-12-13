@@ -141,7 +141,7 @@ def get_business_host(username, bk_biz_id, supplier_account, host_fields, ip_lis
     return batch_request(client.cc.list_biz_hosts, kwargs)
 
 
-def get_business_set_host(username, supplier_account, host_fields, ip_list=None):
+def get_business_set_host(username, supplier_account, host_fields, ip_list=None, filter_field="bk_host_innerip"):
     """根据主机内网 IP 过滤业务下的主机
     :param username: 请求用户名
     :type username: str
@@ -151,8 +151,8 @@ def get_business_set_host(username, supplier_account, host_fields, ip_list=None)
     :type host_fields: list
     :param ip_list: 主机内网 IP 列表
     :type ip_list: list
-    :param bk_cloud_id: IP列表对应的云区域
-    :type bk_cloud_id: int
+    :param filter_field: 过滤字段
+    :type filter_field: str
     :return:
     [
         {
@@ -164,15 +164,13 @@ def get_business_set_host(username, supplier_account, host_fields, ip_list=None)
         },
         ...
     ]
-    :rtype: [type]
-    @param bk_biz_ids:
     """
     kwargs = {
         "bk_supplier_account": supplier_account,
         "fields": list(host_fields or []),
         "host_property_filter": {
             "condition": "AND",
-            "rules": [{"field": "bk_host_innerip", "operator": "in", "value": ip_list}],
+            "rules": [{"field": filter_field, "operator": "in", "value": ip_list or []}],
         },
     }
 

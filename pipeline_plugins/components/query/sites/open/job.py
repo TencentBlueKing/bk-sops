@@ -23,9 +23,10 @@ from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
+from gcloud.utils.cmdb import get_business_set_host
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.components.utils.sites.open.utils import get_host_info_list
+from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import format_host_with_ipv6
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -202,15 +203,15 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
             value = var.get("value", "")
         elif var["type"] == JOB_VAR_CATEGORY_IP:
             if settings.ENABLE_IPV6:
-                bk_host_ids = [str(ip_item["bk_host_id"]) for ip_item in var.get("server", {}).get("ip_list") or []]
-                result, host_data = get_host_info_list(
-                    request.user.username, biz_cc_id, supplier_account_for_business(biz_cc_id), bk_host_ids
+                bk_host_ids = [int(ip_item["bk_host_id"]) for ip_item in var.get("server", {}).get("ip_list") or []]
+                hosts = get_business_set_host(
+                    request.user.username,
+                    supplier_account_for_business(biz_cc_id),
+                    host_fields=["bk_host_id", "bk_host_innerip", "bk_host_innerip_v6", "bk_cloud_id"],
+                    ip_list=bk_host_ids,
+                    filter_field="bk_host_id",
                 )
-                if result is False:
-                    message = f"exist invalid ip: {host_data}"
-                    logger.error(message)
-                    return JsonResponse({"result": False, "message": message})
-                value = ",".join([host["InnerIP"] for host in host_data])
+                value = ",".join([format_host_with_ipv6(host, with_cloud=True) for host in hosts])
             else:
                 value = ",".join(
                     [
@@ -379,15 +380,15 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
             value = var.get("value", "")
         elif var["type"] == JOBV3_VAR_CATEGORY_IP:
             if settings.ENABLE_IPV6:
-                bk_host_ids = [str(ip_item["bk_host_id"]) for ip_item in var.get("server", {}).get("ip_list") or []]
-                result, host_data = get_host_info_list(
-                    request.user.username, biz_cc_id, supplier_account_for_business(biz_cc_id), bk_host_ids
+                bk_host_ids = [int(ip_item["bk_host_id"]) for ip_item in var.get("server", {}).get("ip_list") or []]
+                hosts = get_business_set_host(
+                    request.user.username,
+                    supplier_account_for_business(biz_cc_id),
+                    host_fields=["bk_host_id", "bk_host_innerip", "bk_host_innerip_v6", "bk_cloud_id"],
+                    ip_list=bk_host_ids,
+                    filter_field="bk_host_id",
                 )
-                if result is False:
-                    message = f"exist invalid ip: {host_data}"
-                    logger.error(message)
-                    return JsonResponse({"result": False, "message": message})
-                value = ",".join([host["InnerIP"] for host in host_data])
+                value = ",".join([format_host_with_ipv6(host, with_cloud=True) for host in hosts])
             else:
                 value = ",".join(
                     [

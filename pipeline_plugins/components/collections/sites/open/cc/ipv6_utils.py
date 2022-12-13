@@ -592,3 +592,12 @@ def cc_get_host_by_innerip_with_ipv6_across_business(executor, bk_biz_id, ip_str
         list(ipv6_absent_innerip),
         list(ipv6_with_cloud_absent_innerip),
     )
+
+
+def format_host_with_ipv6(host, with_cloud=False):
+    """如果host ipv4字段存在，优先返回ipv4，否则返回ipv6"""
+    if host.get("bk_host_innerip"):
+        return f'{host["bk_cloud_id"]}:{host["bk_host_innerip"]}' if with_cloud else f'{host["bk_host_innerip"]}'
+    if host.get("bk_host_innerip_v6"):
+        return f'{host["bk_cloud_id"]}:[{host["bk_host_innerip_v6"]}]' if with_cloud else host["bk_host_innerip_v6"]
+    raise ValueError("bk_host_innerip and bk_host_innerip_v6 can not both be empty")
