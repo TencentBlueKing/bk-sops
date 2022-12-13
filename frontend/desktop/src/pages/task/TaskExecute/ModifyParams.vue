@@ -258,7 +258,7 @@
                     const unUsedConstants = await this.getUnUsedConstants()
                     const usedConstants = modifiedKeys.filter(key => !unUsedConstants.includes(key))
                     // 如果有变量被使用过则提示报错，不进行提交
-                    if (usedConstants.length) {
+                    if (this.state !== 'CREATED' && usedConstants.length) {
                         const paramEditComp = this.$refs.TaskParamEdit
                         if (paramEditComp) {
                             usedConstants.forEach(key => {

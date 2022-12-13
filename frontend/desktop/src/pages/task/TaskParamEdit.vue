@@ -215,6 +215,15 @@
                         // 若该变量是元变量则进行转换操作
                         if (variable.is_meta || currentFormConfig.meta_transform) {
                             currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
+                            // 执行过的元变量，attr配置需要单独处理
+                            if (this.preMakoDisabled && variable.pre_render_mako) {
+                                currentFormConfig.attrs['disabled'] = true
+                                currentFormConfig.attrs['pre_mako_tip'] = i18n.t('设为「常量」的参数中途不允许修改')
+                            } else if (this.unUsedConstants.length && !this.unUsedConstants.includes(variable.key)) {
+                                currentFormConfig.attrs['disabled'] = true
+                                currentFormConfig.attrs['used_tip'] = i18n.t('参数已被使用，不可修改')
+                            }
+                            console.log(variable, currentFormConfig)
                             this.metaConfig[key] = tools.deepClone(variable)
                             // 任务参数重用(元变量)
                             const { remote_url } = currentFormConfig.attrs
