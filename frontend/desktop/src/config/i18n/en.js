@@ -1555,7 +1555,11 @@ const en = {
     '知道了': 'Understood',
     '平台日志': 'Platform log',
     '第三方插件日志': 'Third-party plugin logs',
-    '标签管理': 'Label manage'
+    '标签管理': 'Label manage',
+    '项目执行代理人(zhangsan)；免代理用户(lisi,wangwu)': 'Project executive agent (zhangsan); agent-free users (lisi, wangwu)',
+    '推荐留空使用': 'Recommended to leave blank',
+    '项目执行代理人设置': 'project Execution Agent Settings',
+    '以便统一管理，也可单独配置流程执行代理人覆盖项目的设置': 'for unified management, the process execution agent can also be configured separately to override the settings of the project'
 }
 
 export default en
