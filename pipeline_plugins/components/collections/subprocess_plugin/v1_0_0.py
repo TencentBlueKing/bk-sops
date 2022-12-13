@@ -81,9 +81,7 @@ class SubprocessPluginService(Service):
         # 渲染父任务中的参数
         constants = pipeline_tree.get("constants", {})
         subprocess_inputs = {
-            key: constant["value"]
-            for key, constant in constants.items()
-            if "need_render" not in constant or constant["need_render"]
+            key: constant["value"] for key, constant in constants.items() if constant.get("need_render", True)
         }
         raw_subprocess_inputs = copy.deepcopy(subprocess_inputs)
         inputs_refs = Template(subprocess_inputs).get_reference()
@@ -113,7 +111,7 @@ class SubprocessPluginService(Service):
                 and key in parent_constants[raw_constant_value]["source_info"][self.id]
             ):
                 constant["value"] = context_mappings[raw_subprocess_inputs[key]].value
-            elif constant.get("need_render") and key in parsed_subprocess_inputs:
+            elif constant.get("need_render", True) and key in parsed_subprocess_inputs:
                 constant["value"] = parsed_subprocess_inputs[key]
         self.logger.info(f'subprocess parsed constants: {pipeline_tree.get("constants", {})}')
 

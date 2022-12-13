@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 import requests
-from django.core.files.base import File
+import time
 
 from files.exceptions import InvalidOperationError, ApiResultError
 from files.managers.base import Manager
@@ -29,10 +29,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 class JobRepoStorage:
     @staticmethod
     def generate_temporary_upload_url(
-        username: str,
-        bk_biz_id: int,
-        file_names: list,
-        bk_scope_type: str = "biz",
+        username: str, bk_biz_id: int, file_names: list, bk_scope_type: str = "biz",
     ):
         esb_client = get_client_by_user(username)
         job_kwargs = {
@@ -49,10 +46,13 @@ class JobRepoStorage:
         headers = {
             "X-BKREPO-OVERWRITE": str(allow_overwrite),
         }
-        fh = File(file=content, name=name)
         try:
-            response = requests.put(upload_url, headers=headers, data=fh)
+            before_upload = time.time()
+            response = requests.put(upload_url, headers=headers, data=content, verify=False)
             data = response.json()
+            logger.info(
+                f"[JobRepoStorage save] upload file to job repo, cost: {time.time() - before_upload}, data: {data}"
+            )
         except Exception as e:
             message = f"[upload job_repo file failed]: {e}"
             logger.exception(message)
@@ -81,7 +81,11 @@ class JobRepoManager(Manager):
         upload_result = self.storage.save(upload_url, file_name, content)
         if not upload_result["result"]:
             raise ApiResultError(f'upload file failed: {upload_result["message"]}')
-        return {"type": "job_repo", "tags": {"file_path": upload_path, "name": file_name}}
+        return {
+            "type": "job_repo",
+            "tags": {"file_path": upload_path, "name": file_name},
+            "md5": upload_result["data"]["nodeInfo"]["md5"],
+        }
 
     def push_files_to_ips(
         self,
