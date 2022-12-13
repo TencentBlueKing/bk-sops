@@ -379,7 +379,7 @@ def jobv3_get_job_plan_detail(request, biz_cc_id, job_plan_id):
             value = var.get("value", "")
         elif var["type"] == JOBV3_VAR_CATEGORY_IP:
             if settings.ENABLE_IPV6:
-                bk_host_ids = [[str(ip_item["bk_host_id"]) for ip_item in var.get("server", {}).get("ip_list") or []]]
+                bk_host_ids = [str(ip_item["bk_host_id"]) for ip_item in var.get("server", {}).get("ip_list") or []]
                 result, host_data = get_host_info_list(
                     request.user.username, biz_cc_id, supplier_account_for_business(biz_cc_id), bk_host_ids
                 )
