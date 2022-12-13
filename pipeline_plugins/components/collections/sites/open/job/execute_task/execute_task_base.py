@@ -159,12 +159,12 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
             if _value["category"] == 3:
                 self.logger.info("[job_execute_task_base] start find ip, var={}".format(val))
                 if val:
-                    ip_list = self.build_ip_list(biz_across, val, executor, biz_cc_id, data, ip_is_exist)
-                    self.logger.info("[job_execute_task_base] find a ip var, ip_list is {}".format(ip_list))
-                    if not ip_list:
+                    server = self.build_ip_list(biz_across, val, executor, biz_cc_id, data, ip_is_exist)
+                    self.logger.info("[job_execute_task_base] find a ip var, ip_list is {}".format(server))
+                    if not server:
                         data.outputs.ex_data = _(f"无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： {val}")
                         return False
-                    global_vars.append({"name": _value["name"], "server": {"ip_list": ip_list}})
+                    global_vars.append({"name": _value["name"], "server": server})
             else:
                 global_vars.append({"name": _value["name"], "value": val})
         job_kwargs = {
