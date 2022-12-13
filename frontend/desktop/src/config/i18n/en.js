@@ -1554,7 +1554,8 @@ const en = {
     '将沿用原参数值提交': 'Will submit with the original parameter value',
     '知道了': 'Understood',
     '平台日志': 'Platform log',
-    '第三方插件日志': 'Third-party plugin logs'
+    '第三方插件日志': 'Third-party plugin logs',
+    '标签管理': 'Label manage'
 }
 
 export default en

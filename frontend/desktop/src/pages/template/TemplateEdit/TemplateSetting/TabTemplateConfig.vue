@@ -34,6 +34,7 @@
                             ext-popover-cls="label-select-popover"
                             :display-tag="true"
                             :multiple="true"
+                            searchable
                             :disabled="isViewMode"
                             @toggle="onSelectLabel">
                             <bk-option
@@ -50,14 +51,22 @@
                                     <i class="bk-option-icon bk-icon icon-check-1"></i>
                                 </div>
                             </bk-option>
-                            <div
-                                slot="extension"
-                                class="label-select-extension"
-                                data-test-id="tabTemplateConfig_form_editLabel"
-                                v-cursor="{ active: !hasPermission(['project_edit'], authActions) }"
-                                @click="onEditLabel">
-                                <i class="bk-icon icon-plus-circle"></i>
-                                <span>{{ $t('新建标签') }}</span>
+                            <div slot="extension" class="label-select-extension">
+                                <div
+                                    class="add-label"
+                                    data-test-id="tabTemplateConfig_form_editLabel"
+                                    v-cursor="{ active: !hasPermission(['project_edit'], authActions) }"
+                                    @click="onEditLabel">
+                                    <i class="bk-icon icon-plus-circle"></i>
+                                    <span>{{ $t('新建标签') }}</span>
+                                </div>
+                                <div
+                                    class="label-manage"
+                                    data-test-id="tabTemplateConfig_form_LabelManage"
+                                    v-cursor="{ active: !hasPermission(['project_view'], authActions) }"
+                                    @click="onManageLabel">
+                                    <span>{{ $t('标签管理') }}</span>
+                                </div>
                             </div>
                         </bk-select>
                     </bk-form-item>
@@ -340,6 +349,24 @@
                 this.labelDetail = { color: '#1c9574', name: '', description: '' }
                 this.labelDialogShow = true
                 this.colorDropdownShow = false
+            },
+            onManageLabel () {
+                if (!this.hasPermission(['project_view'], this.authActions)) {
+                    const resourceData = {
+                        project: [{
+                            id: this.projectId,
+                            name: this.projectName
+                        }]
+                    }
+                    this.applyForPermission(['project_view'], this.authActions, resourceData)
+                    return
+                }
+                const { href } = this.$router.resolve({
+                    name: 'projectConfig',
+                    params: { id: this.projectId },
+                    query: { configActive: 'label_config' }
+                })
+                window.open(href, '_blank')
             },
             getTemplateConfig () {
                 const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType } = this.formData
