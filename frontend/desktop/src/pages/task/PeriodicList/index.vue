@@ -106,9 +106,28 @@
                                         <span :title="row.project.name">{{ row.project.name }}</span>
                                     </div>
                                     <!--周期规则-->
-                                    <div v-else-if="item.id === 'cron'">
-                                        <div :title="splitPeriodicCron(row.cron)">{{ splitPeriodicCron(row.cron) }}</div>
-                                    </div>
+                                    <template v-else-if="item.id === 'cron'">
+                                        <bk-popover placement="right">
+                                            <div>{{ splitPeriodicCron(row.cron) }}</div>
+                                            <template slot="content" v-if="row.parseValue.length > 1">
+                                                <template v-if="row.parseValue[0]">
+                                                    <span class="month">{{ row.parseValue[0] }}</span>
+                                                </template>
+                                                <template v-if="row.parseValue[1]">
+                                                    <span class="dayOfMonth">{{ row.parseValue[1] }}</span>
+                                                    <span v-if="row.parseValue[2]">{{ $t('以及当月') }}</span>
+                                                </template>
+                                                <template v-if="row.parseValue[2]">
+                                                    <span class="dayOfWeek">{{ row.parseValue[2] }}</span>
+                                                </template>
+                                                <template v-if="row.parseValue[3]">
+                                                    <span class="hour">{{ row.parseValue[3] }}</span>
+                                                </template>
+                                                <span class="minute">{{ row.parseValue[4] }}</span>
+                                            </template>
+                                        </bk-popover>
+
+                                    </template>
                                     <!-- 其他 -->
                                     <template v-else>
                                         <span :title="row[item.id] || '--'">{{ row[item.id] || '--' }}</span>
@@ -239,6 +258,7 @@
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import moment from 'moment-timezone'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
+    import Translate from '@/utils/cron.js'
     const SEARCH_LIST = [
         {
             id: 'task_id',
@@ -488,7 +508,10 @@
 
                     const periodicListData = await this.loadPeriodicList(data)
                     const list = periodicListData.results
-                    this.periodicList = list
+                    this.periodicList = list.map(item => {
+                        item.parseValue = Translate(item.cron)
+                        return item
+                    })
                     this.pagination.count = periodicListData.count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
