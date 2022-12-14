@@ -287,6 +287,7 @@ class IPPickerHandler:
                 }
             dynamic_groups_host.update({host["bk_host_id"]: host for host in result["data"]})
         data = dynamic_groups_host.values()
+        data = self.format_host_info(data)
 
         # 如果带有过滤条件，则需要拉取主机后进行过滤
         if self.filters or self.excludes:
@@ -313,15 +314,11 @@ class IPPickerHandler:
             fields.append("bk_host_innerip_v6")
 
         host_info = cmdb.get_business_host_topo(
-            self.username,
-            self.bk_biz_id,
-            self.bk_supplier_account,
-            fields,
-            property_filters=self.property_filters,
+            self.username, self.bk_biz_id, self.bk_supplier_account, fields, property_filters=self.property_filters,
         )
         logger.info("[fetch_host_info] cmdb.get_business_host_topo return: {host_info}".format(host_info=host_info))
 
-        host_info = self.format_host_info(host_info)
+        host_info = self.format_host_info([host["host"] for host in host_info])
         return {"result": True, "code": NO_ERROR, "data": host_info, "message": ""}
 
     @staticmethod
@@ -329,11 +326,11 @@ class IPPickerHandler:
         """对返回的主机数据进行一些自定义格式化调整"""
         formatted_host_info = []
         for host in host_info:
-            ip = format_sundry_ip(host["host"].get("bk_host_innerip", ""))
+            ip = format_sundry_ip(host.get("bk_host_innerip", ""))
             # 如果ipv4地址为空并开启了ipv6,则尝试去拿ip_v6地址，否则默认使用该主机的ip_v4地址
             if not ip and settings.ENABLE_IPV6:
-                ip = format_sundry_ip(host["host"].get("bk_host_innerip_v6", ""))
-            formatted_host_info.append({**host["host"], "bk_host_innerip": ip})
+                ip = format_sundry_ip(host.get("bk_host_innerip_v6", ""))
+            formatted_host_info.append({**host, "bk_host_innerip": ip})
         return formatted_host_info
 
 
