@@ -1607,6 +1607,7 @@
                 const { x, y, type, id } = node
                 // 计算判断节点右边的距离是否够展示气泡卡片
                 const nodeDom = document.querySelector(`#${id}`)
+                if (!nodeDom) return
                 const { left: nodeLeft, right: nodeRight } = nodeDom.getBoundingClientRect()
                 const bodyWidth = document.body.offsetWidth
                 // 235节点的气泡卡片展示最小宽度
@@ -1639,7 +1640,7 @@
                     this.isPerspectivePanelShow = true
                 }
                 // 展开节点历史执行时间
-                if (node.status === 'RUNNING' && node.type === 'tasknode') {
+                if (['RUNNING', 'FINISHED'].includes(node.status) && node.type === 'tasknode') {
                     this.execRecordLoading = true
                     this.isExecRecordPanelShow = true
                     this.$emit('nodeExecRecord', id)
