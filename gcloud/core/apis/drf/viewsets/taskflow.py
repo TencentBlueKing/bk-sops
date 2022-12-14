@@ -107,6 +107,9 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
         "node_snapshot_config": IamPermissionInfo(
             IAMMeta.TASK_VIEW_ACTION, res_factory.resources_for_task_obj, HAS_OBJECT_PERMISSION
         ),
+        "node_execution_record": IamPermissionInfo(
+            IAMMeta.TASK_VIEW_ACTION, res_factory.resources_for_task_obj, HAS_OBJECT_PERMISSION
+        ),
     }
 
     def has_permission(self, request, view):
@@ -144,7 +147,7 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
                         resources.extend(res_factory.resources_for_project(request.data["project"]))
                 self.iam_auth_check(request=request, action=iam_action, resources=resources)
                 return True
-        elif view.action in ["list", "list_children_taskflow", "root_task_info", "node_execution_record"]:
+        elif view.action in ["list", "list_children_taskflow", "root_task_info"]:
             user_type_validator = IamUserTypeBasedValidator()
             return user_type_validator.validate(request)
         return super().has_permission(request, view)
@@ -401,11 +404,16 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         query_serializer=NodeExecutionRecordQuerySerializer,
         responses={200: NodeExecutionRecordResponseSerializer},
     )
-    @action(methods=["GET"], detail=False)
+    @action(methods=["GET"], detail=True)
     def node_execution_record(self, request, *args, **kwargs):
-        template_node_id = request.query_params.get("template_node_id")
+        params = NodeExecutionRecordQuerySerializer(data=request.query_params)
+        params.is_valid(raise_exception=True)
+        template_node_id = params.data["template_node_id"]
+        task = self.get_object()
         execution_time_data = (
-            TaskflowExecutedNodeStatistics.objects.filter(template_node_id=template_node_id, status=True, is_skip=False)
+            TaskflowExecutedNodeStatistics.objects.filter(
+                template_node_id=template_node_id, status=True, is_skip=False, task_template_id=task.template_id
+            )
             .order_by("-archived_time")
             .values("archived_time", "elapsed_time")
         )[: settings.MAX_RECORDED_NODE_EXECUTION_TIMES]
