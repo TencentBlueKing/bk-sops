@@ -1465,7 +1465,7 @@
                     this.isExecRecordOpen = true
                     const tempNodeId = this.pipelineData.activities[nodeId]?.template_node_id
                     if (tempNodeId) {
-                        const resp = await this.getNodeExecutionRecord({ tempNodeId })
+                        const resp = await this.getNodeExecutionRecord({ tempNodeId, taskId: this.instance_id })
                         const { execution_time = [] } = resp.data
                         this.nodeExecRecordInfo = {}
                         let latestTime, meanTime, deadline
