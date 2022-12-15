@@ -261,8 +261,9 @@ const task = {
                 params: {
                     instance_id,
                     subprocess_id
-                }
-            }, { cancelToken }).then(response => response.data)
+                },
+                cancelToken
+            }).then(response => response.data)
         },
         /**
          * 开始执行任务实例

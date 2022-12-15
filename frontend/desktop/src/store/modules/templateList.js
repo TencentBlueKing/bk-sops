@@ -30,8 +30,9 @@ const templateList = {
             }
             url = data.new ? url + 'list_with_top_collection/' : url
             return axios.get(url, {
-                params: data
-            }, { cancelToken: data.cancelToken }).then(response => {
+                params: data,
+                cancelToken: data.cancelToken
+            }).then(response => {
                 if (!('limit' in data)) {
                     return { results: response.data.data }
                 } else {
