@@ -136,6 +136,7 @@
             'templateSource',
             'project_id',
             'template_id',
+            'primitiveTplId',
             'nodeNav',
             'instanceActions',
             'taskOperationBtns',
@@ -172,11 +173,12 @@
         methods: {
             getTplURL () {
                 let routerData = ''
+                const templateId = this.primitiveTplId || this.template_id
                 // business 兼容老数据
                 if (this.templateSource === 'business' || this.templateSource === 'project') {
-                    routerData = `/template/view/${this.project_id}/?template_id=${this.template_id}`
+                    routerData = `/template/view/${this.project_id}/?template_id=${templateId}`
                 } else if (this.templateSource === 'common') {
-                    routerData = `/template/common/view/${this.project_id}/?template_id=${this.template_id}&common=1`
+                    routerData = `/template/common/view/${this.project_id}/?template_id=${templateId}&common=1`
                 }
                 return routerData
             },
