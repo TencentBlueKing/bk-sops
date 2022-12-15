@@ -1304,15 +1304,14 @@
                     }
 
                     if (endEvent) {
+                        if (isGateway) return
                         const name = this.$t('结束节点')
                         endEvent.title = name
                         endEvent.name = name
                         endEvent.expanded = false
                         ordered.push(endEvent)
                     } else if (gateway) { // 网关节点
-                        if (isGateway) {
-                            return
-                        }
+                        if (isGateway) return
                         const name = NODE_DICT[gateway.type.toLowerCase()]
                         gateway.title = name
                         gateway.name = name
@@ -1334,6 +1333,7 @@
                                     if (activities[ite].incoming.includes(item.outgoing)) {
                                         item.children.push(Object.assign(activities[ite], { isGateway: true }))
                                         this.retrieveLines(data, activities[ite].outgoing, item.children, true)
+                                        console.log(item.children)
                                     }
                                 }
                             })
