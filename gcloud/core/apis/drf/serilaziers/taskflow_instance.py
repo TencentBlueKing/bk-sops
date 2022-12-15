@@ -21,7 +21,7 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.common_template.models import CommonTemplate
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.constants import TASK_CREATE_METHOD, TASK_FLOW_TYPE, TEMPLATE_SOURCE, DATETIME_FORMAT
+from gcloud.constants import TASK_CREATE_METHOD, TASK_FLOW_TYPE, TEMPLATE_SOURCE, DATETIME_FORMAT, COMMON
 from gcloud.core.apis.drf.serilaziers.taskflow import TaskSerializer
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 from pipeline.exceptions import PipelineException
@@ -42,9 +42,21 @@ class TaskFlowInstanceSerializer(TaskSerializer):
 
 class RetrieveTaskFlowInstanceSerializer(TaskFlowInstanceSerializer):
     pipeline_tree = serializers.SerializerMethodField()
+    primitive_template_id = serializers.SerializerMethodField()
 
     def get_pipeline_tree(self, obj):
         return json.dumps(obj.pipeline_tree)
+
+    def get_primitive_template_id(self, obj):
+        primitive_template_id = obj.template_id
+        if getattr(obj, "is_child_taskflow", False):
+            template_cls = CommonTemplate if obj.template_source == COMMON else TaskTemplate
+            primitive_template = template_cls.objects.filter(
+                pipeline_template_id=obj.pipeline_instance.template.template_id
+            ).first()
+            if primitive_template:
+                primitive_template_id = str(primitive_template.id)
+        return primitive_template_id
 
 
 class CreateTaskFlowInstanceSerializer(TaskSerializer):
