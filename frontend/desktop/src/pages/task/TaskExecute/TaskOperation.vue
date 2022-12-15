@@ -1285,9 +1285,10 @@
              * @param {Object} data 画布数据
              * @param {Array} lineId 连线ID
              * @param {Array} ordered 排序后的节点数据
+             * @param {Boolean} isGateway 是否网关结构内的节点
              *
              */
-            retrieveLines (data, lineId, ordered) {
+            retrieveLines (data, lineId, ordered, isGateway = false) {
                 const { end_event, activities, gateways, flows } = data
                 const currentNode = flows[lineId].target
                 const endEvent = end_event.id === currentNode ? tools.deepClone(end_event) : undefined
@@ -1309,10 +1310,14 @@
                         endEvent.expanded = false
                         ordered.push(endEvent)
                     } else if (gateway) { // 网关节点
+                        if (isGateway) {
+                            return
+                        }
                         const name = NODE_DICT[gateway.type.toLowerCase()]
                         gateway.title = name
                         gateway.name = name
                         gateway.expanded = false
+                        debugger
                         if (gateway.conditions) {
                             gateway.children = []
                             const conditions = Object.keys(gateway.conditions).map(item => {
@@ -1329,6 +1334,7 @@
                                 for (const ite in activities) {
                                     if (activities[ite].incoming.includes(item.outgoing)) {
                                         item.children.push(Object.assign(activities[ite], { isGateway: true }))
+                                        this.retrieveLines(data, activities[ite].outgoing, item.children, true)
                                     }
                                 }
                             })
@@ -1343,7 +1349,7 @@
                             if (gateway.incoming.every(item => ordered.map(ite => ite.outgoing).includes(item))) {
                                 ordered.push(gateway)
                                 outgoing.forEach(line => {
-                                    this.retrieveLines(data, line, ordered)
+                                    this.retrieveLines(data, line, ordered, isGateway)
                                 })
                             }
                         }
@@ -1355,7 +1361,7 @@
                         activity.expanded = activity.pipeline
                         ordered.push(activity)
                         outgoing.forEach(line => {
-                            this.retrieveLines(data, line, ordered)
+                            this.retrieveLines(data, line, ordered, isGateway)
                         })
                     }
                 }
