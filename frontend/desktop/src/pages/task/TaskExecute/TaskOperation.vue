@@ -1317,7 +1317,6 @@
                         gateway.title = name
                         gateway.name = name
                         gateway.expanded = false
-                        debugger
                         if (gateway.conditions) {
                             gateway.children = []
                             const conditions = Object.keys(gateway.conditions).map(item => {
