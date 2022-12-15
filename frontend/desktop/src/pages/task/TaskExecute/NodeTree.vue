@@ -97,6 +97,7 @@
                 node.selected = nodeType !== 'subflow'
                 let rootNode = node
                 let nodeHeirarchy = ''
+                if (!rootNode.id) return
                 while (rootNode.parent) {
                     if (nodeHeirarchy) {
                         nodeHeirarchy += '.' + rootNode.parent.id
@@ -104,6 +105,9 @@
                         nodeHeirarchy += rootNode.parent.id
                     }
                     rootNode = rootNode.parent
+                }
+                if (node.isGateway) {
+                    nodeHeirarchy = nodeHeirarchy.split('.').reverse()[0]
                 }
                 this.$emit('onSelectNode', nodeHeirarchy, node.id, nodeType)
             }

@@ -1313,6 +1313,27 @@
                         gateway.title = name
                         gateway.name = name
                         gateway.expanded = false
+                        if (gateway.conditions) {
+                            gateway.children = []
+                            const conditions = Object.keys(gateway.conditions).map(item => {
+                                return {
+                                    name: gateway.conditions[item].name,
+                                    title: gateway.conditions[item].name,
+                                    isGateway: true,
+                                    expanded: false,
+                                    outgoing: item,
+                                    children: []
+                                }
+                            })
+                            conditions.forEach(item => {
+                                for (const ite in activities) {
+                                    if (activities[ite].incoming.includes(item.outgoing)) {
+                                        item.children.push(Object.assign(activities[ite], { isGateway: true }))
+                                    }
+                                }
+                            })
+                            gateway.children.push(...conditions)
+                        }
                         ordered.push(gateway)
                         outgoing.forEach(line => {
                             this.retrieveLines(data, line, ordered)
