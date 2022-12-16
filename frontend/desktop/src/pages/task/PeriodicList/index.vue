@@ -106,9 +106,28 @@
                                         <span :title="row.project.name">{{ row.project.name }}</span>
                                     </div>
                                     <!--周期规则-->
-                                    <div v-else-if="item.id === 'cron'">
-                                        <div :title="splitPeriodicCron(row.cron)">{{ splitPeriodicCron(row.cron) }}</div>
-                                    </div>
+                                    <template v-else-if="item.id === 'cron'">
+                                        <bk-popover placement="right">
+                                            <div>{{ splitPeriodicCron(row.cron) }}</div>
+                                            <template slot="content" v-if="row.parseValue.length > 1">
+                                                <template v-if="row.parseValue[0]">
+                                                    <span class="month">{{ row.parseValue[0] }}</span>
+                                                </template>
+                                                <template v-if="row.parseValue[1]">
+                                                    <span class="dayOfMonth">{{ row.parseValue[1] }}</span>
+                                                    <span v-if="row.parseValue[2]">{{ $t('以及当月') }}</span>
+                                                </template>
+                                                <template v-if="row.parseValue[2]">
+                                                    <span class="dayOfWeek">{{ row.parseValue[2] }}</span>
+                                                </template>
+                                                <template v-if="row.parseValue[3]">
+                                                    <span class="hour">{{ row.parseValue[3] }}</span>
+                                                </template>
+                                                <span class="minute">{{ row.parseValue[4] }}</span>
+                                            </template>
+                                        </bk-popover>
+
+                                    </template>
                                     <!-- 其他 -->
                                     <template v-else>
                                         <span :title="row[item.id] || '--'">{{ row[item.id] || '--' }}</span>
@@ -239,6 +258,7 @@
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import moment from 'moment-timezone'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
+    import Translate from '@/utils/cron.js'
     const SEARCH_LIST = [
         {
             id: 'task_id',
@@ -471,15 +491,15 @@
 
                     if (last_run_at && last_run_at[0] && last_run_at[1]) {
                         data['task__last_run_at__gte'] = moment.tz(last_run_at[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        data['task__last_run_at__lte'] = moment.tz(last_run_at[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                        data['task__last_run_at__lte'] = moment.tz(last_run_at[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                     }
                     if (create_time && create_time[0] && create_time[1]) {
                         data['create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        data['create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                        data['create_time__lte'] = moment.tz(create_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                     }
                     if (edit_time && edit_time[0] && edit_time[1]) {
                         data['edit_time__gte'] = moment.tz(edit_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        data['edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                        data['edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                     }
 
                     if (!this.admin) {
@@ -488,7 +508,10 @@
 
                     const periodicListData = await this.loadPeriodicList(data)
                     const list = periodicListData.results
-                    this.periodicList = list
+                    this.periodicList = list.map(item => {
+                        item.parseValue = Translate(item.cron)
+                        return item
+                    })
                     this.pagination.count = periodicListData.count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {

@@ -142,11 +142,11 @@
                             <span class="time">{{ nodeExecRecordInfo.curTime || '--' }}</span>
                         </li>
                         <li class="content-item">
-                            <span>{{ $t('最近一次执行时长') }}</span>
+                            <span>{{ $t('最近1次成功执行耗时') }}</span>
                             <span class="time">{{ nodeExecRecordInfo.latestTime || '--' }}</span>
                         </li>
                         <li class="content-item">
-                            <span>{{ $t('近 n 次平均执行时长', { n: nodeExecRecordInfo.count }) }}</span>
+                            <span>{{ $t('近 n 次成功执行平均耗时', { n: nodeExecRecordInfo.count }) }}</span>
                             <span class="time">{{ nodeExecRecordInfo.meanTime || '--' }}</span>
                         </li>
                     </ul>
@@ -371,6 +371,9 @@
             canvasPaintArea.addEventListener('mousemove', tools.debounce(this.onCanvasMouseMove, 300), false)
             // 监听页面视图变化
             window.addEventListener('resize', this.onWindowResize, false)
+            // 监听画布移入
+            const canvasContainer = document.querySelector('#canvasContainer')
+            canvasContainer.addEventListener('mousemove', tools.debounce(this.onCanvasContainerMouseMove, 300), false)
         },
         beforeDestroy () {
             this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler)
@@ -385,6 +388,10 @@
                 canvasPaintArea.removeEventListener('mousemove', this.onCanvasMouseMove, false)
             }
             window.removeEventListener('resize', this.onWindowResize, false)
+            const canvasContainer = document.querySelector('#canvasContainer')
+            if (canvasContainer) {
+                canvasContainer.removeEventListener('mousemove', this.onCanvasContainerMouseMove, false)
+            }
         },
         methods: {
             handlerWindowResize () {
@@ -1600,6 +1607,7 @@
                 const { x, y, type, id } = node
                 // 计算判断节点右边的距离是否够展示气泡卡片
                 const nodeDom = document.querySelector(`#${id}`)
+                if (!nodeDom) return
                 const { left: nodeLeft, right: nodeRight } = nodeDom.getBoundingClientRect()
                 const bodyWidth = document.body.offsetWidth
                 // 235节点的气泡卡片展示最小宽度
@@ -1610,7 +1618,7 @@
                 const top = y + offsetY - 10
                 const nodeWidth = ['tasknode', 'subflow'].includes(type) ? 154 : 34
                 if (isRight) {
-                    left = x + offsetX + nodeWidth
+                    left = x + offsetX + nodeWidth + (this.editable ? 60 : 0) // 60为画布左边栏的宽度
                     right = null
                     padding = '0 0 0 15px'
                 } else {
@@ -1632,7 +1640,7 @@
                     this.isPerspectivePanelShow = true
                 }
                 // 展开节点历史执行时间
-                if (node.status === 'RUNNING' && node.type === 'tasknode') {
+                if (['RUNNING', 'FINISHED'].includes(node.status) && node.type === 'tasknode') {
                     this.execRecordLoading = true
                     this.isExecRecordPanelShow = true
                     this.$emit('nodeExecRecord', id)
@@ -1908,16 +1916,7 @@
                 const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
                 this.zoomOriginPosition.x = e.pageX - offsetX
                 this.zoomOriginPosition.y = e.pageY - offsetY
-                // 节点历史执行时间/透视面板
-                if (this.isExecRecordPanelShow || this.isPerspectivePanelShow) {
-                    if (!dom.parentClsContains('canvas-node', e.target) && !dom.parentClsContains('node-tips-content', e.target)) {
-                        this.nodeTipsPanelPosition = {}
-                        this.isPerspectivePanelShow = false
-                        this.closeNodeExecRecord()
-                    }
-                }
-                // 监听鼠标是否hover到连线上
-                if (!this.editable || e.target.tagName !== 'path') {
+                if (!this.editable) {
                     return
                 }
                 const connectorDom = document.querySelector('svg.bk-sops-connector-hover')
@@ -1947,6 +1946,25 @@
                     const top = pageY - wrapGap.y - 50
                     this.shortcutPanelPosition = { left, top }
                     this.showShortcutPanel = true
+                }
+            },
+            // 画布整体鼠标移入事件
+            onCanvasContainerMouseMove (e) {
+                // 节点历史执行时间/透视面板
+                if (this.isExecRecordPanelShow || this.isPerspectivePanelShow) {
+                    if (!dom.parentClsContains('canvas-node', e.target) && !dom.parentClsContains('node-tips-content', e.target)) {
+                        this.nodeTipsPanelPosition = {}
+                        this.isPerspectivePanelShow = false
+                        this.closeNodeExecRecord()
+                    }
+                }
+                // 监听鼠标是否hover到节点/连线上
+                if (this.showShortcutPanel) {
+                    const domClass = this.shortcutPanelDeleteLine ? 'bk-sops-connector' : 'canvas-node'
+                    if (!dom.parentClsContains(`${domClass}`, e.target) && !dom.parentClsContains('shortcut-panel', e.target)) {
+                        this.connectorPosition = {}
+                        this.showShortcutPanel = false
+                    }
                 }
             },
             /**

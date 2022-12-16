@@ -156,4 +156,7 @@
     .outputs-section .full-code-editor {
         height: 400px;
     }
+    .no-data-wrapper {
+        margin-top: 32px;
+    }
 </style>

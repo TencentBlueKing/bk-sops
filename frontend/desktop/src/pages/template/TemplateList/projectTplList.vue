@@ -164,15 +164,22 @@
                                                     <i v-if="row.labelIds.includes(label.id)" class="bk-option-icon bk-icon icon-check-1"></i>
                                                 </div>
                                             </bk-option>
-                                            <div
-                                                slot="extension"
-                                                v-cursor="{ active: !hasPermission(['project_edit'], authActions) }"
-                                                class="label-select-extension"
-                                                :class="{ 'text-permission-disable': !hasPermission(['project_edit'], authActions) }"
-                                                data-test-id="process_list__editLabel"
-                                                @click="onEditLabel">
-                                                <i class="bk-icon icon-plus-circle"></i>
-                                                <span>{{ $t('新建标签') }}</span>
+                                            <div slot="extension" class="label-select-extension">
+                                                <div
+                                                    class="add-label"
+                                                    data-test-id="process_list__editLabel"
+                                                    v-cursor="{ active: !hasPermission(['project_edit'], authActions) }"
+                                                    @click="onEditLabel">
+                                                    <i class="bk-icon icon-plus-circle"></i>
+                                                    <span>{{ $t('新建标签') }}</span>
+                                                </div>
+                                                <div
+                                                    class="label-manage"
+                                                    data-test-id="process_list__labelManage"
+                                                    v-cursor="{ active: !hasPermission(['project_view'], authActions) }"
+                                                    @click="onManageLabel">
+                                                    <span>{{ $t('标签管理') }}</span>
+                                                </div>
                                             </div>
                                         </bk-select>
                                     </div>
@@ -393,6 +400,7 @@
     import { DARK_COLOR_LIST, LABEL_COLOR_LIST } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
     import dom from '@/utils/dom.js'
+    import axios from 'axios'
     import Skeleton from '@/components/skeleton/index.vue'
     import ImportDatTplDialog from './ImportDatTplDialog.vue'
     import ImportYamlTplDialog from './ImportYamlTplDialog.vue'
@@ -405,6 +413,9 @@
     // moment用于时区使用
     import moment from 'moment-timezone'
     import ListPageTipsTitle from '../ListPageTipsTitle.vue'
+
+    const CancelToken = axios.CancelToken
+    let source = CancelToken.source()
 
     const categoryTips = i18n.t('模板分类即将下线，建议使用标签')
 
@@ -813,6 +824,10 @@
                  */
                 const has_subprocess = (subprocessUpdateVal === 1 || subprocessUpdateVal === -1) ? true : (subprocessUpdateVal === 0 ? false : undefined)
                 const subprocess_has_update = subprocessUpdateVal === 1 ? true : (subprocessUpdateVal === -1 ? false : undefined)
+                if (source) {
+                    source.cancel('cancelled')
+                }
+                source = CancelToken.source()
                 const data = {
                     limit: this.pagination.limit,
                     offset: (this.pagination.current - 1) * this.pagination.limit,
@@ -824,7 +839,8 @@
                     project__id: this.project_id,
                     new: true,
                     id: template_id || undefined,
-                    pipeline_template__editor: editor || undefined
+                    pipeline_template__editor: editor || undefined,
+                    cancelToken: source.token
                 }
                 const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
                 if (keys.includes(this.ordering)) {
@@ -836,11 +852,11 @@
                 }
                 if (create_time && create_time[0] && create_time[1]) {
                     data['pipeline_template__create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                    data['pipeline_template__create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                    data['pipeline_template__create_time__lte'] = moment.tz(create_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                 }
                 if (edit_time && edit_time[0] && edit_time[1]) {
                     data['pipeline_template__edit_time__gte'] = moment.tz(edit_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                    data['pipeline_template__edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                    data['pipeline_template__edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                 }
                 return data
             },
@@ -972,6 +988,24 @@
                 }
                 this.labelDetail = { color: '#1c9574', name: '', description: '' }
                 this.labelDialogShow = true
+            },
+            onManageLabel () {
+                if (!this.hasPermission(['project_view'], this.authActions)) {
+                    const resourceData = {
+                        project: [{
+                            id: this.project_id,
+                            name: this.projectName
+                        }]
+                    }
+                    this.applyForPermission(['project_view'], this.authActions, resourceData)
+                    return
+                }
+                const { href } = this.$router.resolve({
+                    name: 'projectConfig',
+                    params: { id: this.project_id },
+                    query: { configActive: 'label_config' }
+                })
+                window.open(href, '_blank')
             },
             editLabelConfirm () {
                 if (this.labelLoading) {

@@ -15,6 +15,7 @@
             :node-nav="nodeNav"
             :project_id="project_id"
             :template_id="template_id"
+            :primitive-tpl-id="primitiveTplId"
             :template-source="templateSource"
             :node-info-type="nodeInfoType"
             :task-operation-btns="taskOperationBtns"
@@ -319,6 +320,7 @@
             instanceFlow: String,
             instanceName: String,
             template_id: [Number, String],
+            primitiveTplId: [Number, String],
             templateSource: String,
             instanceActions: Array,
             routerType: String
@@ -1465,7 +1467,7 @@
                     this.isExecRecordOpen = true
                     const tempNodeId = this.pipelineData.activities[nodeId]?.template_node_id
                     if (tempNodeId) {
-                        const resp = await this.getNodeExecutionRecord({ tempNodeId })
+                        const resp = await this.getNodeExecutionRecord({ tempNodeId, taskId: this.instance_id })
                         const { execution_time = [] } = resp.data
                         this.nodeExecRecordInfo = {}
                         let latestTime, meanTime, deadline

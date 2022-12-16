@@ -520,6 +520,8 @@
             })
         },
         created () {
+            const { configActive } = this.$route.query
+            this.active = configActive || 'variable'
             this.getProjectDetail()
             this.getAgentData()
             this.getStaffGroupData()

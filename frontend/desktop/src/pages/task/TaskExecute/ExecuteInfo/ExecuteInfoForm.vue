@@ -255,7 +255,10 @@
             async initData () {
                 try {
                     // 获取对应模板配置
-                    const tplConfig = await this.getNodeSnapshotConfig(this.nodeDetailConfig)
+                    let tplConfig = {}
+                    if (!this.nodeDetailConfig.subprocess_stack) { // 旧版子流程任务节点不支持查看节点快照配置
+                        tplConfig = await this.getNodeSnapshotConfig(this.nodeDetailConfig)
+                    }
                     this.templateConfig = tplConfig.data || { ...this.nodeActivity, isOldData: true } || {}
                     if (this.isSubProcessNode) { // 子流程任务节点
                         // tplConfig.data为null为该功能之前的旧数据，没有original_template_id字段的，不调接口
@@ -512,7 +515,7 @@
                 this.taskNodeLoading = true
                 try {
                     // 获取输入输出参数
-                    this.inputs = await this.getAtomConfig({ plugin, version, isThird: this.isThirdParty })
+                    this.inputs = await this.getAtomConfig({ plugin, version, isThird: this.isThirdParty }) || []
                     if (!this.isThirdParty) {
                         this.outputs = this.pluginOutput[plugin][version]
                     }

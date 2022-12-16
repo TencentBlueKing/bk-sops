@@ -261,8 +261,9 @@ const task = {
                 params: {
                     instance_id,
                     subprocess_id
-                }
-            }, { cancelToken }).then(response => response.data)
+                },
+                cancelToken
+            }).then(response => response.data)
         },
         /**
          * 开始执行任务实例
@@ -512,7 +513,7 @@ const task = {
         },
         // 节点执行记录
         getNodeExecutionRecord ({ commit }, data) {
-            return axios.get(`api/v3/taskflow/node_execution_record/`, {
+            return axios.get(`api/v3/taskflow/${data.taskId}/node_execution_record/`, {
                 params: {
                     template_node_id: data.tempNodeId
                 }

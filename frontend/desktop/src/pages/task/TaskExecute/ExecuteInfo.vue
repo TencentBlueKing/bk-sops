@@ -21,6 +21,7 @@
             </NodeTree>
             <div
                 v-if="location"
+                :key="randomKey"
                 :class="['execute-info', { 'loading': loading }]"
                 v-bkloading="{ isLoading: loading, opacity: 1, zIndex: 100 }">
                 <div class="execute-head">
@@ -36,11 +37,11 @@
                     ext-cls="execute-info-tab"
                     @tab-change="onTabChange">
                     <bk-tab-panel name="record" :label="$t('执行记录')"></bk-tab-panel>
-                    <bk-tab-panel name="config" :label="$t('配置快照')"></bk-tab-panel>
+                    <bk-tab-panel name="config" v-if="!loading && ['tasknode', 'subflow'].includes(location.type)" :label="$t('配置快照')"></bk-tab-panel>
                     <bk-tab-panel name="history" :label="$t('操作历史')"></bk-tab-panel>
                     <bk-tab-panel name="log" :label="$t('调用日志')"></bk-tab-panel>
                 </bk-tab>
-                <div class="scroll-area" :key="randomKey">
+                <div class="scroll-area">
                     <section class="execute-time-section" v-if="isExecuteTimeShow">
                         <div class="cycle-wrap" v-if="loop > 1">
                             <span>{{$t('第')}}</span>
@@ -77,6 +78,8 @@
                     <ExecuteRecord
                         v-if="curActiveTab === 'record'"
                         :admin-view="adminView"
+                        :loading="loading"
+                        :location="location"
                         :is-ready-status="isReadyStatus"
                         :node-activity="nodeActivity"
                         :execute-info="executeRecord"
@@ -327,11 +330,7 @@
         watch: {
             'nodeDetailConfig.node_id' (val) {
                 if (val !== undefined) {
-                    this.theExecuteTime = undefined
-                    this.executeInfo = {}
-                    this.historyInfo = []
                     this.loadNodeInfo()
-                    this.randomKey = new Date().getTime()
                 }
             }
         },
@@ -358,6 +357,8 @@
                     if (!respData) {
                         this.isReadyStatus = false
                         this.executeInfo = {}
+                        this.theExecuteTime = undefined
+                        this.historyInfo = []
                         return
                     }
                     respData = this.adminView && this.engineVer === 1 ? { ...respData, ...respData.execution_info } : respData
@@ -397,8 +398,12 @@
                         this.isShowRetryBtn = false
                     }
                 } catch (e) {
+                    this.theExecuteTime = undefined
+                    this.executeInfo = {}
+                    this.historyInfo = []
                     console.log(e)
                 } finally {
+                    this.randomKey = new Date().getTime()
                     this.loading = false
                 }
             },
@@ -734,8 +739,8 @@
                 }
             },
             onSelectNode (nodeHeirarchy, selectNodeId, nodeType) {
-                this.editScrollDom = null
                 this.curActiveTab = 'record'
+                this.loading = true
                 this.$emit('onClickTreeNode', nodeHeirarchy, selectNodeId, nodeType)
             },
             onRetryClick () {
