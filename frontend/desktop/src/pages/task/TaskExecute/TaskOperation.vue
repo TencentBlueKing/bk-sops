@@ -408,7 +408,8 @@
                 nodeInputs: {},
                 isExecRecordOpen: false,
                 nodeExecRecordInfo: {},
-                isInjectVarDialogShow: false
+                isInjectVarDialogShow: false,
+                nodeIds: []
             }
         },
         computed: {
@@ -1278,7 +1279,7 @@
                 const endEventIndex = orderedData.findIndex(item => item.type === 'EmptyEndEvent')
                 const endEvent = orderedData.splice(endEventIndex, 1)
                 orderedData.push(endEvent[0])
-                return orderedData
+                return orderedData.filter(item => !this.nodeIds.includes(item.id))
             },
             /**
              * 根据节点连线遍历任务节点，返回按广度优先排序的节点数据
@@ -1333,7 +1334,11 @@
                                     if (activities[ite].incoming.includes(item.outgoing)) {
                                         item.children.push(Object.assign(activities[ite], { isGateway: true }))
                                         this.retrieveLines(data, activities[ite].outgoing, item.children, true)
-                                        console.log(item.children)
+                                        item.children.forEach(i => {
+                                            if (!this.nodeIds.includes(i.id)) {
+                                                this.nodeIds.push(i.id)
+                                            }
+                                        })
                                     }
                                 }
                             })
