@@ -30,7 +30,7 @@
                 @mousedown="handleSelectText">
         </div>
         <div class="error-msg" v-if="isError">
-            {{ $t('使用了除“,-*/”以外的特殊字符，请修改规则') }}
+            {{ value.length - 4 > 128 ? $t('长度超过128个字符，请修改规则') : $t('使用了除“,-*/”以外的特殊字符，请修改规则') }}
         </div>
         <div class="time-parse" v-if="parseValue.length > 1">
             <template v-if="parseValue[0]">
@@ -101,6 +101,16 @@
                     theme: 'light',
                     content: '#periodic-cron-tips-html',
                     placement: 'top-start'
+                }
+            }
+        },
+        watch: {
+            nativeValue (val) {
+                // 长度超过128个字符, 4为之间的空格
+                if (val.length - 4 > 128) {
+                    this.parseValue = []
+                    this.nextTime = []
+                    this.isError = true
                 }
             }
         },

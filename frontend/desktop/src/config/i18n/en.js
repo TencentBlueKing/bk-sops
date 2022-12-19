@@ -1560,7 +1560,8 @@ const en = {
     '免代理用户': 'Agent-free users',
     '推荐留空使用': 'Recommended to leave blank',
     '项目执行代理人设置': 'project Execution Agent Settings',
-    '以便统一管理，也可单独配置流程执行代理人覆盖项目的设置': 'for unified management, the process execution agent can also be configured separately to override the settings of the project'
+    '以便统一管理，也可单独配置流程执行代理人覆盖项目的设置': 'for unified management, the process execution agent can also be configured separately to override the settings of the project',
+    '长度超过128个字符，请修改规则': 'The length exceeds 128 characters, please modify the rules'
 }
 
 export default en
