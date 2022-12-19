@@ -290,6 +290,9 @@
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
+    import CancelRequest from '@/api/cancelRequest.js'
+
+    const source = new CancelRequest()
     const SEARCH_LIST = [
         {
             id: 'task_id',
@@ -603,7 +606,11 @@
                             data['claim_time__lte'] = moment.tz(claim_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
-                    const functorListData = await this.loadFunctionTaskList(data)
+                    source.updateSourceMap()
+                    const functorListData = await this.loadFunctionTaskList({
+                        params: data,
+                        config: { cancelToken: source.getToken() }
+                    })
                     const list = functorListData.results
                     const taskList = functorListData.results.map(m => m.task)
                     this.functorList = list
@@ -757,7 +764,9 @@
             async getProjectList () {
                 this.business.loading = true
                 try {
-                    const businessData = await this.loadUserProjectList({ is_disable: false })
+                    const businessData = await this.loadUserProjectList({
+                        params: { is_disable: false }
+                    })
                     this.business.list = businessData.results
                 } catch (e) {
                     console.log(e)

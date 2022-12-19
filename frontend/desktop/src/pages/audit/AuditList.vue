@@ -124,6 +124,9 @@
     import task from '@/mixins/task.js'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
+    import CancelRequest from '@/api/cancelRequest.js'
+
+    const source = new CancelRequest()
     const SEARCH_LIST = [
         {
             id: 'task_id',
@@ -355,7 +358,11 @@
                             data['pipeline_instance__finish_time__lte'] = moment.tz(finish_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
-                    const auditListData = await this.loadAuditTaskList(data)
+                    source.updateSourceMap()
+                    const auditListData = await this.loadAuditTaskList({
+                        params: data,
+                        config: { cancelToken: source.getToken() }
+                    })
                     const list = auditListData.results
                     this.auditList = list
                     this.pagination.count = auditListData.count

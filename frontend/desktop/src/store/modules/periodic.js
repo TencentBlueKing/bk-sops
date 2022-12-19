@@ -18,8 +18,10 @@ const periodic = {
     actions: {
         // 获取周期任务列表
         loadPeriodicList ({ commit }, data) {
+            const { params, config = {} } = data
             return axios.get('api/v3/periodic_task/', {
-                params: { ...data }
+                params,
+                ...config
             }).then(response => {
                 if (!('limit' in data)) {
                     return { results: response.data.data }

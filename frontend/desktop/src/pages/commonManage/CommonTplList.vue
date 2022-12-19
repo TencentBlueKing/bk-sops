@@ -283,6 +283,9 @@
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
+    import CancelRequest from '@/api/cancelRequest.js'
+
+    const source = new CancelRequest()
 
     const SEARCH_LIST = [
         {
@@ -597,6 +600,8 @@
                 this.listLoading = true
                 try {
                     const data = this.getQueryData()
+                    source.updateSourceMap()
+                    data.cancelToken = source.getToken()
                     const templateListData = await this.loadTemplateList(data)
                     this.templateList = templateListData.results
                     this.pagination.count = templateListData.count

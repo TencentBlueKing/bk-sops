@@ -259,6 +259,9 @@
     import moment from 'moment-timezone'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     import Translate from '@/utils/cron.js'
+    import CancelRequest from '@/api/cancelRequest.js'
+
+    const source = new CancelRequest()
     const SEARCH_LIST = [
         {
             id: 'task_id',
@@ -506,7 +509,11 @@
                         data.project__id = this.project_id
                     }
 
-                    const periodicListData = await this.loadPeriodicList(data)
+                    source.updateSourceMap()
+                    const periodicListData = await this.loadPeriodicList({
+                        params: data,
+                        config: { cancelToken: source.getToken() }
+                    })
                     const list = periodicListData.results
                     this.periodicList = list.map(item => {
                         item.parseValue = Translate(item.cron)
