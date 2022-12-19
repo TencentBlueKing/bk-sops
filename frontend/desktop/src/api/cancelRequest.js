@@ -1,18 +1,36 @@
 import axios from 'axios'
 
 class CancelRequest {
-    sourceMap = {}
-    initSourceMap () {
-        this.sourceMap = {}
+    static sourceMap = {}
+  
+    static cancelAll () {
+        Object.keys(CancelRequest.sourceMap).forEach(type => {
+            CancelRequest.sourceMap[type].cancel()
+        })
     }
-    updateSourceMap (type = 'default') {
-        if (this.sourceMap[type]) {
-            this.sourceMap[type].cancel('cancelled')
-        }
-        this.sourceMap[type] = axios.CancelToken.source()
+  
+    static clearAll () {
+        Object.keys(CancelRequest.sourceMap).forEach(type => {
+            delete CancelRequest.sourceMap[type]
+        })
     }
-    getToken (type = 'default') {
-        return this.sourceMap[type].token
+  
+    constructor (type = 'default') {
+        this.type = type
+        this.cancel()
+        CancelRequest.sourceMap[type] = axios.CancelToken.source()
+    }
+  
+    cancel () {
+        CancelRequest.sourceMap[this.type] && CancelRequest.sourceMap[this.type].cancel('cancelled')
+    }
+  
+    clear () {
+        delete CancelRequest.sourceMap[this.type]
+    }
+  
+    get token () {
+        return CancelRequest.sourceMap[this.type]?.token
     }
 }
 

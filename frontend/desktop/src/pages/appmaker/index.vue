@@ -102,7 +102,6 @@
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import CancelRequest from '@/api/cancelRequest.js'
 
-    const source = new CancelRequest()
     const SEARCH_LIST = [
         {
             id: 'flowName',
@@ -194,10 +193,10 @@
                         project__id: this.project_id,
                         name__icontains: flowName || undefined
                     }
-                    source.updateSourceMap()
+                    const source = new CancelRequest()
                     const resp = await this.loadAppmaker({
                         params: data,
-                        config: { cancelToken: source.getToken() }
+                        config: { cancelToken: source.token }
                     })
                     // logo_url相同会造成浏览器缓存,兼容不同环境下接口返回的logo_url
                     this.appList = resp.results.map(item => {

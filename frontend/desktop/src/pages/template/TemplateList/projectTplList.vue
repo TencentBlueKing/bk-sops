@@ -414,8 +414,6 @@
     import ListPageTipsTitle from '../ListPageTipsTitle.vue'
     import CancelRequest from '@/api/cancelRequest.js'
 
-    const source = new CancelRequest()
-
     const categoryTips = i18n.t('模板分类即将下线，建议使用标签')
 
     const SEARCH_LIST = [
@@ -786,8 +784,8 @@
                 this.listLoading = true
                 try {
                     const data = this.getQueryData()
-                    source.updateSourceMap()
-                    data.cancelToken = source.getToken()
+                    const source = new CancelRequest()
+                    data.cancelToken = source.token
                     let templateListData = {}
                     templateListData = await this.loadTemplateList(data)
                     this.templateList = templateListData.results.map(item => {

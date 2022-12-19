@@ -23,7 +23,7 @@ const periodic = {
                 params,
                 ...config
             }).then(response => {
-                if (!('limit' in data)) {
+                if (!('limit' in params)) {
                     return { results: response.data.data }
                 } else {
                     return response.data.data

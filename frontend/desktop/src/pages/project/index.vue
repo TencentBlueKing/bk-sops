@@ -167,7 +167,6 @@
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import CancelRequest from '@/api/cancelRequest.js'
 
-    const source = new CancelRequest()
     const SEARCH_LIST = [
         {
             id: 'project_id',
@@ -376,10 +375,10 @@
                         creator: creator || undefined
                     }
 
-                    source.updateSourceMap()
+                    const source = new CancelRequest()
                     const projectList = await this.loadUserProjectList({
                         params: data,
-                        config: { cancelToken: source.getToken() }
+                        config: { cancelToken: source.token }
                     })
                     this.projectList = (projectList.results || []).map(item => {
                         if (!item.from_cmdb) {

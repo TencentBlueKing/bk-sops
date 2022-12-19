@@ -136,8 +136,6 @@
     import moment from 'moment-timezone'
     import CancelRequest from '@/api/cancelRequest.js'
 
-    const source = new CancelRequest()
-
     const SEARCH_LIST = [
         {
             id: 'template_id',
@@ -358,8 +356,8 @@
                 this.listLoading = true
                 try {
                     const data = this.getQueryData()
-                    source.updateSourceMap()
-                    data.cancelToken = source.getToken()
+                    const source = new CancelRequest()
+                    data.cancelToken = source.token
                     const templateListData = await this.loadTemplateList(data)
                     this.templateList = templateListData.results
                     this.pagination.count = templateListData.count

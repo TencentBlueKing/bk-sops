@@ -261,7 +261,6 @@
     import Translate from '@/utils/cron.js'
     import CancelRequest from '@/api/cancelRequest.js'
 
-    const source = new CancelRequest()
     const SEARCH_LIST = [
         {
             id: 'task_id',
@@ -509,10 +508,10 @@
                         data.project__id = this.project_id
                     }
 
-                    source.updateSourceMap()
+                    const source = new CancelRequest()
                     const periodicListData = await this.loadPeriodicList({
                         params: data,
-                        config: { cancelToken: source.getToken() }
+                        config: { cancelToken: source.token }
                     })
                     const list = periodicListData.results
                     this.periodicList = list.map(item => {

@@ -126,7 +126,6 @@
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     import CancelRequest from '@/api/cancelRequest.js'
 
-    const source = new CancelRequest()
     const SEARCH_LIST = [
         {
             id: 'task_id',
@@ -358,10 +357,10 @@
                             data['pipeline_instance__finish_time__lte'] = moment.tz(finish_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
-                    source.updateSourceMap()
+                    const source = new CancelRequest()
                     const auditListData = await this.loadAuditTaskList({
                         params: data,
-                        config: { cancelToken: source.getToken() }
+                        config: { cancelToken: source.token }
                     })
                     const list = auditListData.results
                     this.auditList = list

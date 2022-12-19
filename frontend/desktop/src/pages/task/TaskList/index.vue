@@ -190,7 +190,6 @@
     import task from '@/mixins/task.js'
     import CancelRequest from '@/api/cancelRequest.js'
 
-    const source = new CancelRequest()
     const SEARCH_LIST = [
         {
             id: 'task_id',
@@ -506,10 +505,10 @@
                             data['pipeline_instance__finish_time__lte'] = moment.tz(finish_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
-                    source.updateSourceMap()
+                    const source = new CancelRequest()
                     const taskListData = await this.loadTaskList({
                         params: data,
-                        config: { cancelToken: source.getToken() }
+                        config: { cancelToken: source.token }
                     })
                     const list = taskListData.results
                     // 设置level初始值

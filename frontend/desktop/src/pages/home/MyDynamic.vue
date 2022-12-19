@@ -92,7 +92,6 @@
     import permission from '@/mixins/permission.js'
     import CancelRequest from '@/api/cancelRequest.js'
 
-    const source = new CancelRequest()
     const tableColumn = [
         {
             label: 'ID',
@@ -183,10 +182,10 @@
                         user_type: 'user',
                         create_method: this.currentMethod === 'all' ? undefined : this.currentMethod
                     }
-                    source.updateSourceMap()
+                    const source = new CancelRequest()
                     const res = await this.loadTaskList({
                         params: data,
-                        config: { cancelToken: source.getToken() }
+                        config: { cancelToken: source.token }
                     })
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', res.results)
