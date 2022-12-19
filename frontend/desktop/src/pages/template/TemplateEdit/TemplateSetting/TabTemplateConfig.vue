@@ -119,7 +119,7 @@
                         <member-select
                             :multiple="false"
                             :disabled="isViewMode"
-                            :placeholder="$t('项目执行代理人(zhangsan)；免代理用户(lisi,wangwu)')"
+                            :placeholder="proxyPlaceholder"
                             :value="formData.executorProxy"
                             @change="formData.executorProxy = $event">
                         </member-select>
@@ -291,7 +291,8 @@
                 labelDetail: {},
                 colorDropdownShow: false,
                 colorList: LABEL_COLOR_LIST,
-                labelLoading: false
+                labelLoading: false,
+                proxyPlaceholder: ''
             }
         },
         computed: {
@@ -489,10 +490,14 @@
                 try {
                     const resp = await this.getProjectConfig(this.projectId)
                     if (resp.result) {
-                        const { executor_proxy } = resp.data
+                        const { executor_proxy, executor_proxy_exempts } = resp.data
                         if (executor_proxy) {
                             this.formData.executorProxy = [executor_proxy]
                         }
+                        this.proxyPlaceholder = i18n.t('项目执行代理人(n)；免代理用户(m)', {
+                            n: executor_proxy || '--',
+                            m: executor_proxy_exempts || '--'
+                        })
                     }
                 } catch (e) {
                     console.log(e)
