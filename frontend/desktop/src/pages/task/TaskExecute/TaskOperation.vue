@@ -410,7 +410,8 @@
                 nodeInputs: {},
                 isExecRecordOpen: false,
                 nodeExecRecordInfo: {},
-                isInjectVarDialogShow: false
+                isInjectVarDialogShow: false,
+                nodeIds: []
             }
         },
         computed: {
@@ -1280,16 +1281,17 @@
                 const endEventIndex = orderedData.findIndex(item => item.type === 'EmptyEndEvent')
                 const endEvent = orderedData.splice(endEventIndex, 1)
                 orderedData.push(endEvent[0])
-                return orderedData
+                return orderedData.filter(item => !this.nodeIds.includes(item.id))
             },
             /**
              * 根据节点连线遍历任务节点，返回按广度优先排序的节点数据
              * @param {Object} data 画布数据
              * @param {Array} lineId 连线ID
              * @param {Array} ordered 排序后的节点数据
+             * @param {Boolean} isGateway 是否网关结构内的节点
              *
              */
-            retrieveLines (data, lineId, ordered) {
+            retrieveLines (data, lineId, ordered, isGateway = false) {
                 const { end_event, activities, gateways, flows } = data
                 const currentNode = flows[lineId].target
                 const endEvent = end_event.id === currentNode ? tools.deepClone(end_event) : undefined
@@ -1305,16 +1307,45 @@
                     }
 
                     if (endEvent) {
+                        if (isGateway) return
                         const name = this.$t('结束节点')
                         endEvent.title = name
                         endEvent.name = name
                         endEvent.expanded = false
                         ordered.push(endEvent)
                     } else if (gateway) { // 网关节点
+                        if (isGateway) return
                         const name = NODE_DICT[gateway.type.toLowerCase()]
                         gateway.title = name
                         gateway.name = name
                         gateway.expanded = false
+                        if (gateway.conditions) {
+                            gateway.children = []
+                            const conditions = Object.keys(gateway.conditions).map(item => {
+                                return {
+                                    name: gateway.conditions[item].name,
+                                    title: gateway.conditions[item].name,
+                                    isGateway: true,
+                                    expanded: false,
+                                    outgoing: item,
+                                    children: []
+                                }
+                            })
+                            conditions.forEach(item => {
+                                for (const ite in activities) {
+                                    if (activities[ite].incoming.includes(item.outgoing)) {
+                                        item.children.push(Object.assign(activities[ite], { isGateway: true }))
+                                        this.retrieveLines(data, activities[ite].outgoing, item.children, true)
+                                        item.children.forEach(i => {
+                                            if (!this.nodeIds.includes(i.id)) {
+                                                this.nodeIds.push(i.id)
+                                            }
+                                        })
+                                    }
+                                }
+                            })
+                            gateway.children.push(...conditions)
+                        }
                         ordered.push(gateway)
                         outgoing.forEach(line => {
                             this.retrieveLines(data, line, ordered)
@@ -1324,7 +1355,7 @@
                             if (gateway.incoming.every(item => ordered.map(ite => ite.outgoing).includes(item))) {
                                 ordered.push(gateway)
                                 outgoing.forEach(line => {
-                                    this.retrieveLines(data, line, ordered)
+                                    this.retrieveLines(data, line, ordered, isGateway)
                                 })
                             }
                         }
@@ -1336,7 +1367,7 @@
                         activity.expanded = activity.pipeline
                         ordered.push(activity)
                         outgoing.forEach(line => {
-                            this.retrieveLines(data, line, ordered)
+                            this.retrieveLines(data, line, ordered, isGateway)
                         })
                     }
                 }
