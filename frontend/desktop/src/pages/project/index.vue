@@ -165,6 +165,8 @@
     import { getTimeZoneList } from '@/constants/timeZones.js'
     import permission from '@/mixins/permission.js'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
+    import CancelRequest from '@/api/cancelRequest.js'
+
     const SEARCH_LIST = [
         {
             id: 'project_id',
@@ -373,7 +375,11 @@
                         creator: creator || undefined
                     }
 
-                    const projectList = await this.loadUserProjectList(data)
+                    const source = new CancelRequest()
+                    const projectList = await this.loadUserProjectList({
+                        params: data,
+                        config: { cancelToken: source.token }
+                    })
                     this.projectList = (projectList.results || []).map(item => {
                         if (!item.from_cmdb) {
                             item.bk_biz_id = '--'

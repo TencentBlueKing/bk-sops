@@ -134,6 +134,7 @@
     import permission from '@/mixins/permission.js'
     // moment用于时区使用
     import moment from 'moment-timezone'
+    import CancelRequest from '@/api/cancelRequest.js'
 
     const SEARCH_LIST = [
         {
@@ -355,6 +356,8 @@
                 this.listLoading = true
                 try {
                     const data = this.getQueryData()
+                    const source = new CancelRequest()
+                    data.cancelToken = source.token
                     const templateListData = await this.loadTemplateList(data)
                     this.templateList = templateListData.results
                     this.pagination.count = templateListData.count

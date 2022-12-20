@@ -233,6 +233,14 @@
                     // 记录修改过的变量key值
                     modifiedKeys = paramEditComp.getChangeParams() || []
                 }
+                // 如果参数没有修改，则不用调用接口
+                if (modifiedKeys.length === 0) {
+                    this.$bkMessage({
+                        message: i18n.t('参数未修改'),
+                        theme: 'warning'
+                    })
+                    return
+                }
                 // 传的变量值为修改过的，未修改的不传
                 const constants = Object.keys(formData).reduce((acc, key) => {
                     if (modifiedKeys.includes(key)) {

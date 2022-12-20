@@ -1538,6 +1538,7 @@ const en = {
     '*数据统计截至': '*Statistics as of',
     '注入全局变量': 'Inject global variables',
     '注入全局变量成功': 'Inject global variable successfully',
+    '请输入变量的KEY,如${KEY}': 'Please enter the KEY of the variable, such as ${KEY}',
     '请输入变量的值': 'Please enter a value for the variable',
     '请选择变量值的类型': 'Please select the type of variable value',
     '字符串': 'String',
@@ -1556,10 +1557,13 @@ const en = {
     '平台日志': 'Platform log',
     '第三方插件日志': 'Third-party plugin logs',
     '标签管理': 'Label manage',
-    '项目执行代理人(zhangsan)；免代理用户(lisi,wangwu)': 'Project executive agent (zhangsan); agent-free users (lisi, wangwu)',
+    '项目执行代理人(n)；免代理用户(m)': 'Project executive agent ({n}); agent-free users ({m})',
+    '免代理用户': 'Agent-free users',
     '推荐留空使用': 'Recommended to leave blank',
     '项目执行代理人设置': 'project Execution Agent Settings',
-    '以便统一管理，也可单独配置流程执行代理人覆盖项目的设置': 'for unified management, the process execution agent can also be configured separately to override the settings of the project'
+    '以便统一管理，也可单独配置流程执行代理人覆盖项目的设置': 'for unified management, the process execution agent can also be configured separately to override the settings of the project',
+    '长度超过128个字符，请修改规则': 'The length exceeds 128 characters, please modify the rules',
+    '参数未修改': 'parameter is not modified'
 }
 
 export default en

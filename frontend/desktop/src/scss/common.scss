@@ -334,6 +334,11 @@
 
 .bk-notify-content-text {
     @include scrollbar;
+    &.is-expand {
+        display: block !important;
+        max-height: 300px;
+        overflow-y: auto !important;
+    }
 }
 
 // 流程模板跨页全选和本页全选下拉框样式

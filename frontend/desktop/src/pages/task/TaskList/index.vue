@@ -188,6 +188,8 @@
     import Skeleton from '@/components/skeleton/index.vue'
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
+    import CancelRequest from '@/api/cancelRequest.js'
+
     const SEARCH_LIST = [
         {
             id: 'task_id',
@@ -503,7 +505,11 @@
                             data['pipeline_instance__finish_time__lte'] = moment.tz(finish_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
-                    const taskListData = await this.loadTaskList(data)
+                    const source = new CancelRequest()
+                    const taskListData = await this.loadTaskList({
+                        params: data,
+                        config: { cancelToken: source.token }
+                    })
                     const list = taskListData.results
                     // 设置level初始值
                     list.forEach(item => {

@@ -184,6 +184,8 @@
     import DeleteClockedDialog from './DeleteClockedDialog.vue'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
+    import CancelRequest from '@/api/cancelRequest.js'
+
     const SEARCH_LIST = [
         {
             id: 'task_id',
@@ -409,7 +411,11 @@
                         params['edit_time__gte'] = moment.tz(edit_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                         params['edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                     }
-                    const resp = await this.loadClockedList(params)
+                    const source = new CancelRequest()
+                    const resp = await this.loadClockedList({
+                        params,
+                        config: { cancelToken: source.token }
+                    })
                     this.pagination.count = resp.data.count
                     this.clockedList = resp.data.results
                 } catch (error) {

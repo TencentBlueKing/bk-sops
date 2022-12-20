@@ -1960,7 +1960,7 @@
                 }
                 // 监听鼠标是否hover到节点/连线上
                 if (this.showShortcutPanel) {
-                    const domClass = this.shortcutPanelDeleteLine ? 'bk-sops-connector' : 'canvas-node'
+                    const domClass = this.shortcutPanelDeleteLine ? 'jtk-connector' : 'canvas-node'
                     if (!dom.parentClsContains(`${domClass}`, e.target) && !dom.parentClsContains('shortcut-panel', e.target)) {
                         this.connectorPosition = {}
                         this.showShortcutPanel = false

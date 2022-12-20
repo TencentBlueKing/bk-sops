@@ -131,6 +131,7 @@
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
+    import CancelRequest from '@/api/cancelRequest.js'
 
     const SEARCH_LIST = [
         {
@@ -358,7 +359,11 @@
                         }
                     }
 
-                    const appmakerListData = await this.loadTaskList(data)
+                    const source = new CancelRequest()
+                    const appmakerListData = await this.loadTaskList({
+                        params: data,
+                        config: { cancelToken: source.token }
+                    })
                     const list = appmakerListData.results
                     // 设置level初始值
                     list.forEach(item => {

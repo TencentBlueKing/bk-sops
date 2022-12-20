@@ -35,9 +35,11 @@ const appmaker = {
     actions: {
         // 加载轻应用列表
         loadAppmaker ({ commit }, data) {
-            const querystring = Object.assign({}, data)
+            const { params, config = {} } = data
+            const querystring = Object.assign({}, params)
             return axios.get('api/v3/appmaker/', {
-                params: querystring
+                params: querystring,
+                ...config
             }).then(response => {
                 return { results: response.data.data }
             })

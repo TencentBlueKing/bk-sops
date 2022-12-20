@@ -24,6 +24,7 @@
                     content: item.tips,
                     delay: 500
                 }"
+                :data-test-id="`templateCanvas_panel_${item.key}`"
                 :class="['nodes-item', `common-icon-node-${item.key}-shortcut`]"
                 @click.stop="onAppendNode(item.key)">
             </li>
@@ -35,6 +36,7 @@
                         content: $t('节点配置'),
                         delay: 500
                     }"
+                    data-test-id="templateCanvas_panel_nodeSetting"
                     class="btn-item common-icon-bkflow-setting"
                     @click.stop="onConfigBtnClick">
                 </li>
@@ -43,6 +45,7 @@
                         content: $t('复制节点'),
                         delay: 500
                     }"
+                    data-test-id="templateCanvas_panel_nodeCopy"
                     class="btn-item common-icon-bkflow-copy"
                     @click.stop="onCopyBtnClick">
                 </li>
@@ -53,6 +56,7 @@
                     content: $t('删除节点'),
                     delay: 500
                 }"
+                data-test-id="templateCanvas_panel_nodeDelete"
                 class="btn-item common-icon-bkflow-delete"
                 @click.stop="$emit('onNodeRemove', node)">
             </li>
@@ -62,6 +66,7 @@
                     content: $t('删除连线'),
                     delay: 500
                 }"
+                data-test-id="templateCanvas_panel_lineDelete"
                 class="btn-item common-icon-bkflow-delete"
                 @click.stop="$emit('onDeleteLineClick')">
             </li>

@@ -93,7 +93,6 @@
                             {{ $t('任务操作记录') }}
                         </p>
                         <p
-                            v-if="['SUSPENDED', 'FAILED', 'RUNNING'].includes(state)"
                             class="operate-item"
                             @click="onTaskParamsClick('globalVariable', $t('全局变量'))">
                             {{ $t('全局变量') }}

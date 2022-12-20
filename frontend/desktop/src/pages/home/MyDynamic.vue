@@ -90,6 +90,8 @@
     import task from '@/mixins/task.js'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
+    import CancelRequest from '@/api/cancelRequest.js'
+
     const tableColumn = [
         {
             label: 'ID',
@@ -180,7 +182,11 @@
                         user_type: 'user',
                         create_method: this.currentMethod === 'all' ? undefined : this.currentMethod
                     }
-                    const res = await this.loadTaskList(data)
+                    const source = new CancelRequest()
+                    const res = await this.loadTaskList({
+                        params: data,
+                        config: { cancelToken: source.token }
+                    })
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', res.results)
 

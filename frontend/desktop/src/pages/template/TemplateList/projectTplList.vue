@@ -400,7 +400,6 @@
     import { DARK_COLOR_LIST, LABEL_COLOR_LIST } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
     import dom from '@/utils/dom.js'
-    import axios from 'axios'
     import Skeleton from '@/components/skeleton/index.vue'
     import ImportDatTplDialog from './ImportDatTplDialog.vue'
     import ImportYamlTplDialog from './ImportYamlTplDialog.vue'
@@ -413,9 +412,7 @@
     // moment用于时区使用
     import moment from 'moment-timezone'
     import ListPageTipsTitle from '../ListPageTipsTitle.vue'
-
-    const CancelToken = axios.CancelToken
-    let source = CancelToken.source()
+    import CancelRequest from '@/api/cancelRequest.js'
 
     const categoryTips = i18n.t('模板分类即将下线，建议使用标签')
 
@@ -787,6 +784,8 @@
                 this.listLoading = true
                 try {
                     const data = this.getQueryData()
+                    const source = new CancelRequest()
+                    data.cancelToken = source.token
                     let templateListData = {}
                     templateListData = await this.loadTemplateList(data)
                     this.templateList = templateListData.results.map(item => {
@@ -824,10 +823,6 @@
                  */
                 const has_subprocess = (subprocessUpdateVal === 1 || subprocessUpdateVal === -1) ? true : (subprocessUpdateVal === 0 ? false : undefined)
                 const subprocess_has_update = subprocessUpdateVal === 1 ? true : (subprocessUpdateVal === -1 ? false : undefined)
-                if (source) {
-                    source.cancel('cancelled')
-                }
-                source = CancelToken.source()
                 const data = {
                     limit: this.pagination.limit,
                     offset: (this.pagination.current - 1) * this.pagination.limit,
@@ -839,8 +834,7 @@
                     project__id: this.project_id,
                     new: true,
                     id: template_id || undefined,
-                    pipeline_template__editor: editor || undefined,
-                    cancelToken: source.token
+                    pipeline_template__editor: editor || undefined
                 }
                 const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
                 if (keys.includes(this.ordering)) {
