@@ -1538,6 +1538,7 @@ const en = {
     '*数据统计截至': '*Statistics as of',
     '注入全局变量': 'Inject global variables',
     '注入全局变量成功': 'Inject global variable successfully',
+    '请输入变量的KEY,如${KEY}': 'Please enter the KEY of the variable, such as ${KEY}',
     '请输入变量的值': 'Please enter a value for the variable',
     '请选择变量值的类型': 'Please select the type of variable value',
     '字符串': 'String',

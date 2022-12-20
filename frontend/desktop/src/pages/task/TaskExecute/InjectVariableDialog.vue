@@ -16,7 +16,7 @@
                 <li v-for="(variable, index) in variableList" :key="index" class="variable-item">
                     <bk-form class="key-form" :model="variable" :rules="variable.rules" ref="variableForm">
                         <bk-form-item :required="true" property="key">
-                            <bk-input v-model="variable.key" :placeholder="$t('请输入变量的KEY')"></bk-input>
+                            <bk-input v-model="variable.key" :placeholder="$t('请输入变量的KEY,如${KEY}')"></bk-input>
                         </bk-form-item>
                         <bk-form-item :required="true" property="value" ref="variableValue">
                             <bk-input
