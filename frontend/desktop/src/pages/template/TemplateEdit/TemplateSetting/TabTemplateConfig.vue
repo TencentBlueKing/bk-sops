@@ -37,20 +37,22 @@
                             searchable
                             :disabled="isViewMode"
                             @toggle="onSelectLabel">
-                            <bk-option
-                                v-for="(item, index) in templateLabels"
-                                :key="index"
-                                :id="item.id"
-                                :name="item.name">
-                                <div class="label-select-option">
-                                    <span
-                                        class="label-select-color"
-                                        :style="{ background: item.color }">
-                                    </span>
-                                    <span>{{item.name}}</span>
-                                    <i class="bk-option-icon bk-icon icon-check-1"></i>
-                                </div>
-                            </bk-option>
+                            <div class="label-select-content" v-bkloading="{ isLoading: templateLabelLoading }">
+                                <bk-option
+                                    v-for="(item, index) in templateLabels"
+                                    :key="index"
+                                    :id="item.id"
+                                    :name="item.name">
+                                    <div class="label-select-option">
+                                        <span
+                                            class="label-select-color"
+                                            :style="{ background: item.color }">
+                                        </span>
+                                        <span>{{item.name}}</span>
+                                        <i class="bk-option-icon bk-icon icon-check-1"></i>
+                                    </div>
+                                </bk-option>
+                            </div>
                             <div slot="extension" class="label-select-extension">
                                 <div
                                     class="add-label"
@@ -65,7 +67,14 @@
                                     data-test-id="tabTemplateConfig_form_LabelManage"
                                     v-cursor="{ active: !hasPermission(['project_view'], authActions) }"
                                     @click="onManageLabel">
+                                    <i class="common-icon-label"></i>
                                     <span>{{ $t('标签管理') }}</span>
+                                </div>
+                                <div
+                                    class="refresh-label"
+                                    data-test-id="process_list__refreshLabel"
+                                    @click="$emit('updateTemplateLabelList')">
+                                    <i class="bk-icon icon-right-turn-line"></i>
                                 </div>
                             </div>
                         </bk-select>
