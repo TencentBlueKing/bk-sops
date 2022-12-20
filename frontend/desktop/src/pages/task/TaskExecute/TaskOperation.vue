@@ -1317,8 +1317,8 @@
                         gateway.title = name
                         gateway.name = name
                         gateway.expanded = false
+                        gateway.children = []
                         if (gateway.conditions) {
-                            gateway.children = []
                             const conditions = Object.keys(gateway.conditions).map(item => {
                                 return {
                                     name: gateway.conditions[item].name,
@@ -1343,6 +1343,19 @@
                                 }
                             })
                             gateway.children.push(...conditions)
+                        } else if (gateway.type === 'ParallelGateway') {
+                            gateway.outgoing.forEach(item => {
+                                for (const ite in activities) {
+                                    if (activities[ite].incoming.includes(item)) {
+                                        gateway.children.push(Object.assign(activities[ite], { isGateway: true }))
+                                        gateway.children.forEach(i => {
+                                            if (!this.nodeIds.includes(i.id)) {
+                                                this.nodeIds.push(i.id)
+                                            }
+                                        })
+                                    }
+                                }
+                            })
                         }
                         ordered.push(gateway)
                         outgoing.forEach(line => {
@@ -1363,6 +1376,9 @@
                         }
                         activity.title = activity.name
                         activity.expanded = activity.pipeline
+                        if (isGateway) {
+                            Object.assign(activity, { isGateway: true })
+                        }
                         ordered.push(activity)
                         outgoing.forEach(line => {
                             this.retrieveLines(data, line, ordered, isGateway)
