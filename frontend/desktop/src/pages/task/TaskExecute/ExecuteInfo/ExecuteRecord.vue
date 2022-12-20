@@ -32,19 +32,22 @@
                 </ul>
                 <NoData v-else :message="$t('暂无执行信息')"></NoData>
             </section>
-            <InputParams
-                :admin-view="adminView"
-                :inputs="executeInfo.inputs"
-                :render-config="executeInfo.renderConfig"
-                :constants="executeInfo.constants"
-                :render-data="executeInfo.renderData">
-            </InputParams>
-            <OutputParams
-                :is-ready-status="isReadyStatus"
-                :admin-view="adminView"
-                :outputs="executeInfo.outputsInfo"
-                :node-detail-config="nodeDetailConfig">
-            </OutputParams>
+            <!-- 任务节点才允许展示输入、输出配置 -->
+            <template v-if="['tasknode', 'subflow'].includes(location.type)">
+                <InputParams
+                    :admin-view="adminView"
+                    :inputs="executeInfo.inputs"
+                    :render-config="executeInfo.renderConfig"
+                    :constants="executeInfo.constants"
+                    :render-data="executeInfo.renderData">
+                </InputParams>
+                <OutputParams
+                    :is-ready-status="isReadyStatus"
+                    :admin-view="adminView"
+                    :outputs="executeInfo.outputsInfo"
+                    :node-detail-config="nodeDetailConfig">
+                </OutputParams>
+            </template>
         </template>
         <bk-exception v-else class="exception-part" type="empty" scene="part">
             <span>{{ $t('暂无执行数据') }}</span>
@@ -68,6 +71,14 @@
             adminView: {
                 type: Boolean,
                 default: false
+            },
+            loading: {
+                type: Boolean,
+                default: false
+            },
+            location: {
+                type: Object,
+                default: () => ({})
             },
             isReadyStatus: {
                 type: Boolean,
@@ -239,6 +250,9 @@
     }
     .info-section:not(:last-child) {
         margin-bottom: 32px;
+    }
+    .no-data-wrapper {
+        margin-top: 32px;
     }
 }
 </style>

@@ -29,8 +29,15 @@ const templateList = {
                 url = 'api/v3/template/'
             }
             url = data.new ? url + 'list_with_top_collection/' : url
+            const config = {}
+            if (data.cancelToken) {
+                config.cancelToken = data.cancelToken
+                delete data.cancelToken
+            }
+            delete data.new
             return axios.get(url, {
-                params: data
+                params: data,
+                ...config
             }).then(response => {
                 if (!('limit' in data)) {
                     return { results: response.data.data }

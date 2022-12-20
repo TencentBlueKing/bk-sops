@@ -233,6 +233,14 @@
                     // 记录修改过的变量key值
                     modifiedKeys = paramEditComp.getChangeParams() || []
                 }
+                // 如果参数没有修改，则不用调用接口
+                if (modifiedKeys.length === 0) {
+                    this.$bkMessage({
+                        message: i18n.t('参数未修改'),
+                        theme: 'warning'
+                    })
+                    return
+                }
                 // 传的变量值为修改过的，未修改的不传
                 const constants = Object.keys(formData).reduce((acc, key) => {
                     if (modifiedKeys.includes(key)) {
@@ -258,7 +266,7 @@
                     const unUsedConstants = await this.getUnUsedConstants()
                     const usedConstants = modifiedKeys.filter(key => !unUsedConstants.includes(key))
                     // 如果有变量被使用过则提示报错，不进行提交
-                    if (usedConstants.length) {
+                    if (this.state !== 'CREATED' && usedConstants.length) {
                         const paramEditComp = this.$refs.TaskParamEdit
                         if (paramEditComp) {
                             usedConstants.forEach(key => {

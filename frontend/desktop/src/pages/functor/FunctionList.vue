@@ -290,6 +290,8 @@
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
+    import CancelRequest from '@/api/cancelRequest.js'
+
     const SEARCH_LIST = [
         {
             id: 'task_id',
@@ -588,22 +590,26 @@
                     if (create_time && create_time[0] && create_time[1]) {
                         if (this.common) {
                             data['pipeline_template__start_time__gte'] = moment(create_time[0]).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_template__start_time__lte'] = moment(create_time[1]).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_template__start_time__lte'] = moment(create_time[1]).format('YYYY-MM-DD HH:mm:ss')
                         } else {
                             data['create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                            data['create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['create_time__lte'] = moment.tz(create_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
                     if (claim_time && claim_time[0] && claim_time[1]) {
                         if (this.common) {
                             data['pipeline_template__claim_time__gte'] = moment(claim_time[0]).format('YYYY-MM-DD HH:mm:ss')
-                            data['pipeline_template__claim_time__lte'] = moment(claim_time[1]).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['pipeline_template__claim_time__lte'] = moment(claim_time[1]).format('YYYY-MM-DD HH:mm:ss')
                         } else {
                             data['claim_time__gte'] = moment.tz(claim_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                            data['claim_time__lte'] = moment.tz(claim_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                            data['claim_time__lte'] = moment.tz(claim_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                         }
                     }
-                    const functorListData = await this.loadFunctionTaskList(data)
+                    const source = new CancelRequest()
+                    const functorListData = await this.loadFunctionTaskList({
+                        params: data,
+                        config: { cancelToken: source.token }
+                    })
                     const list = functorListData.results
                     const taskList = functorListData.results.map(m => m.task)
                     this.functorList = list
@@ -757,7 +763,9 @@
             async getProjectList () {
                 this.business.loading = true
                 try {
-                    const businessData = await this.loadUserProjectList({ is_disable: false })
+                    const businessData = await this.loadUserProjectList({
+                        params: { is_disable: false }
+                    })
                     this.business.list = businessData.results
                 } catch (e) {
                     console.log(e)

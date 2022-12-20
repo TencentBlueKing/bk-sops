@@ -21,8 +21,8 @@ const clocked = {
          * @param {Object} data 所需参数
          */
         loadClockedList ({ state }, data) {
-            const params = { ...data }
-            return axios.get('api/v4/clocked_task/', { params }).then(response => response.data)
+            const { params, config = {} } = data
+            return axios.get('api/v4/clocked_task/', { params, ...config }).then(response => response.data)
         },
         /**
          * 获取计划任务详情

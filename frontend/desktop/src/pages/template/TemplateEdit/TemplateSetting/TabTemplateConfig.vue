@@ -34,6 +34,7 @@
                             ext-popover-cls="label-select-popover"
                             :display-tag="true"
                             :multiple="true"
+                            searchable
                             :disabled="isViewMode"
                             @toggle="onSelectLabel">
                             <bk-option
@@ -50,14 +51,22 @@
                                     <i class="bk-option-icon bk-icon icon-check-1"></i>
                                 </div>
                             </bk-option>
-                            <div
-                                slot="extension"
-                                class="label-select-extension"
-                                data-test-id="tabTemplateConfig_form_editLabel"
-                                v-cursor="{ active: !hasPermission(['project_edit'], authActions) }"
-                                @click="onEditLabel">
-                                <i class="bk-icon icon-plus-circle"></i>
-                                <span>{{ $t('新建标签') }}</span>
+                            <div slot="extension" class="label-select-extension">
+                                <div
+                                    class="add-label"
+                                    data-test-id="tabTemplateConfig_form_editLabel"
+                                    v-cursor="{ active: !hasPermission(['project_edit'], authActions) }"
+                                    @click="onEditLabel">
+                                    <i class="bk-icon icon-plus-circle"></i>
+                                    <span>{{ $t('新建标签') }}</span>
+                                </div>
+                                <div
+                                    class="label-manage"
+                                    data-test-id="tabTemplateConfig_form_LabelManage"
+                                    v-cursor="{ active: !hasPermission(['project_view'], authActions) }"
+                                    @click="onManageLabel">
+                                    <span>{{ $t('标签管理') }}</span>
+                                </div>
                             </div>
                         </bk-select>
                     </bk-form-item>
@@ -110,19 +119,18 @@
                         <member-select
                             :multiple="false"
                             :disabled="isViewMode"
+                            :placeholder="proxyPlaceholder"
                             :value="formData.executorProxy"
                             @change="formData.executorProxy = $event">
                         </member-select>
                         <div class="executor-proxy-desc">
-                            <div>
-                                {{ $t('仅支持本流程的执行代理，可在项目配置中') }}
-                                <span
-                                    :class="{ 'project-management': authActions && authActions.length, 'disabled': isViewMode }"
-                                    @click="jumpProjectManagement">
-                                    {{ $t('设置项目执行代理人') }}
-                                </span>。
-                            </div>
-                            {{ $t('模板级别的执行代理人会覆盖业务级别的执行代理人配置，') + $t('若模板配置了执行代理人，业务的执行代理人白名单不会生效。') }}
+                            {{ $t('推荐留空使用') }}
+                            <span
+                                :class="{ 'project-management': authActions && authActions.length, 'disabled': isViewMode }"
+                                @click="jumpProjectManagement">
+                                {{ $t('项目执行代理人设置') }}
+                            </span>
+                            {{ $t('以便统一管理，也可单独配置流程执行代理人覆盖项目的设置') }}
                         </div>
                     </bk-form-item>
                     <bk-form-item property="notifyType" :label="$t('备注')" data-test-id="tabTemplateConfig_form_notifyType">
@@ -283,7 +291,8 @@
                 labelDetail: {},
                 colorDropdownShow: false,
                 colorList: LABEL_COLOR_LIST,
-                labelLoading: false
+                labelLoading: false,
+                proxyPlaceholder: ''
             }
         },
         computed: {
@@ -299,6 +308,10 @@
             })
         },
         mounted () {
+            // 模板没有设置执行代理人时，默认使用项目下的执行代理人
+            if (!this.formData.executorProxy.length) {
+                this.setExecutorProxy()
+            }
             this.$refs.nameInput.focus()
         },
         methods: {
@@ -306,6 +319,7 @@
                 'setTplConfig'
             ]),
             ...mapActions('project', [
+                'getProjectConfig',
                 'createTemplateLabel'
             ]),
             onSelectCategory (val) {
@@ -340,6 +354,24 @@
                 this.labelDetail = { color: '#1c9574', name: '', description: '' }
                 this.labelDialogShow = true
                 this.colorDropdownShow = false
+            },
+            onManageLabel () {
+                if (!this.hasPermission(['project_view'], this.authActions)) {
+                    const resourceData = {
+                        project: [{
+                            id: this.projectId,
+                            name: this.projectName
+                        }]
+                    }
+                    this.applyForPermission(['project_view'], this.authActions, resourceData)
+                    return
+                }
+                const { href } = this.$router.resolve({
+                    name: 'projectConfig',
+                    params: { id: this.projectId },
+                    query: { configActive: 'label_config' }
+                })
+                window.open(href, '_blank')
             },
             getTemplateConfig () {
                 const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType } = this.formData
@@ -451,6 +483,24 @@
                     console.log(e)
                 } finally {
                     this.labelLoading = false
+                }
+            },
+            // 获取代理人设置数据
+            async setExecutorProxy () {
+                try {
+                    const resp = await this.getProjectConfig(this.projectId)
+                    if (resp.result) {
+                        const { executor_proxy, executor_proxy_exempts } = resp.data
+                        if (executor_proxy) {
+                            this.formData.executorProxy = [executor_proxy]
+                        }
+                        this.proxyPlaceholder = i18n.t('项目执行代理人(n)；免代理用户(m)', {
+                            n: executor_proxy || '--',
+                            m: executor_proxy_exempts || '--'
+                        })
+                    }
+                } catch (e) {
+                    console.log(e)
                 }
             }
         }

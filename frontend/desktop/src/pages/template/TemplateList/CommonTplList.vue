@@ -134,6 +134,7 @@
     import permission from '@/mixins/permission.js'
     // moment用于时区使用
     import moment from 'moment-timezone'
+    import CancelRequest from '@/api/cancelRequest.js'
 
     const SEARCH_LIST = [
         {
@@ -355,6 +356,8 @@
                 this.listLoading = true
                 try {
                     const data = this.getQueryData()
+                    const source = new CancelRequest()
+                    data.cancelToken = source.token
                     const templateListData = await this.loadTemplateList(data)
                     this.templateList = templateListData.results
                     this.pagination.count = templateListData.count
@@ -394,11 +397,11 @@
                 }
                 if (create_time && create_time[0] && create_time[1]) {
                     data['pipeline_template__create_time__gte'] = moment(create_time[0]).format('YYYY-MM-DD HH:mm:ss')
-                    data['pipeline_template__create_time__lte'] = moment(create_time[1]).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                    data['pipeline_template__create_time__lte'] = moment(create_time[1]).format('YYYY-MM-DD HH:mm:ss')
                 }
                 if (edit_time && edit_time[0] && edit_time[1]) {
                     data['pipeline_template__edit_time__gte'] = moment(edit_time[0]).format('YYYY-MM-DD HH:mm:ss')
-                    data['pipeline_template__edit_time__lte'] = moment(edit_time[1]).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                    data['pipeline_template__edit_time__lte'] = moment(edit_time[1]).format('YYYY-MM-DD HH:mm:ss')
                 }
                 return data
             },

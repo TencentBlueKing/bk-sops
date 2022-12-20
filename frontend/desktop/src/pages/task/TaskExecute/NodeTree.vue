@@ -119,7 +119,6 @@
                 if (node.isGateway) {
                     nodeHeirarchy = nodeHeirarchy.split('.').reverse()[0]
                 }
-                // debugger
                 this.$emit('onSelectNode', nodeHeirarchy, node.id, nodeType)
             }
         }

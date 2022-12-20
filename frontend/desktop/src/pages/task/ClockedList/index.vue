@@ -184,6 +184,8 @@
     import DeleteClockedDialog from './DeleteClockedDialog.vue'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
+    import CancelRequest from '@/api/cancelRequest.js'
+
     const SEARCH_LIST = [
         {
             id: 'task_id',
@@ -399,17 +401,21 @@
                     }
                     if (plan_start_time && plan_start_time[0] && plan_start_time[1]) {
                         params['plan_start_time__gte'] = moment.tz(plan_start_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        params['plan_start_time__lte'] = moment.tz(plan_start_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                        params['plan_start_time__lte'] = moment.tz(plan_start_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                     }
                     if (create_time && create_time[0] && create_time[1]) {
                         params['create_time__gte'] = moment.tz(create_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        params['create_time__lte'] = moment.tz(create_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                        params['create_time__lte'] = moment.tz(create_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                     }
                     if (edit_time && edit_time[0] && edit_time[1]) {
                         params['edit_time__gte'] = moment.tz(edit_time[0], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
-                        params['edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD HH:mm:ss')
+                        params['edit_time__lte'] = moment.tz(edit_time[1], this.timeZone).format('YYYY-MM-DD HH:mm:ss')
                     }
-                    const resp = await this.loadClockedList(params)
+                    const source = new CancelRequest()
+                    const resp = await this.loadClockedList({
+                        params,
+                        config: { cancelToken: source.token }
+                    })
                     this.pagination.count = resp.data.count
                     this.clockedList = resp.data.results
                 } catch (error) {

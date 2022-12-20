@@ -189,6 +189,10 @@
             }
         }
     }
+    .detail-container {
+        max-height: 525px;
+        overflow: auto;
+    }
 </style>
 <style lang="scss">
     @import '@/scss/markdown-theme.scss';

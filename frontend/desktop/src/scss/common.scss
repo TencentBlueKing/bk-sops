@@ -241,9 +241,26 @@
     .bk-option.is-selected .bk-option-icon{
         display: inline-block;
     }
+    .bk-select-extension {
+        padding: 0;
+        &:hover {
+            background-color: initial;
+        }
+    }
     .label-select-extension {
+        display: flex;
         text-align: center;
         cursor: pointer;
+        .add-label,
+        .label-manage {
+            flex: 1;
+            &:hover {
+                background: #f0f1f5;
+            }
+        }
+        .add-label {
+            border-right: 1px solid #dcdee5;
+        }
         & > .icon-plus-circle {
             font-size: 14px;
             color: #979ba5;
@@ -317,6 +334,11 @@
 
 .bk-notify-content-text {
     @include scrollbar;
+    &.is-expand {
+        display: block !important;
+        max-height: 300px;
+        overflow-y: auto !important;
+    }
 }
 
 // 流程模板跨页全选和本页全选下拉框样式
