@@ -142,6 +142,7 @@
                                         v-bkloading="{ isLoading: row.labelLoading }"
                                         v-bk-clickoutside="handleClickOutSide">
                                         <bk-select
+                                            :key="templateLabels.length"
                                             ref="labelSelect"
                                             v-model="row.labelIds"
                                             ext-popover-cls="label-select-popover"
@@ -150,20 +151,22 @@
                                             searchable
                                             ext-cls="label-select"
                                             @toggle="onToggleTplLabel">
-                                            <bk-option
-                                                v-for="(label, index) in templateLabels"
-                                                :key="index"
-                                                :id="label.id"
-                                                :name="label.name">
-                                                <div class="label-select-option">
-                                                    <span
-                                                        class="label-select-color"
-                                                        :style="{ background: label.color }">
-                                                    </span>
-                                                    <span>{{label.name}}</span>
-                                                    <i v-if="row.labelIds.includes(label.id)" class="bk-option-icon bk-icon icon-check-1"></i>
-                                                </div>
-                                            </bk-option>
+                                            <div class="label-select-content" v-bkloading="{ isLoading: templateLabelLoading }">
+                                                <bk-option
+                                                    v-for="(label, index) in templateLabels"
+                                                    :key="index"
+                                                    :id="label.id"
+                                                    :name="label.name">
+                                                    <div class="label-select-option">
+                                                        <span
+                                                            class="label-select-color"
+                                                            :style="{ background: label.color }">
+                                                        </span>
+                                                        <span>{{label.name}}</span>
+                                                        <i v-if="row.labelIds.includes(label.id)" class="bk-option-icon bk-icon icon-check-1"></i>
+                                                    </div>
+                                                </bk-option>
+                                            </div>
                                             <div slot="extension" class="label-select-extension">
                                                 <div
                                                     class="add-label"
@@ -178,7 +181,14 @@
                                                     data-test-id="process_list__labelManage"
                                                     v-cursor="{ active: !hasPermission(['project_view'], authActions) }"
                                                     @click="onManageLabel">
+                                                    <i class="common-icon-label"></i>
                                                     <span>{{ $t('标签管理') }}</span>
+                                                </div>
+                                                <div
+                                                    class="refresh-label"
+                                                    data-test-id="process_list__refreshLabel"
+                                                    @click="getProjectLabelList">
+                                                    <i class="bk-icon icon-right-turn-line"></i>
                                                 </div>
                                             </div>
                                         </bk-select>
@@ -676,7 +686,8 @@
                 labelLoading: false,
                 curSelectedRow: {},
                 searchList: tools.deepClone(SEARCH_LIST),
-                searchSelectValue
+                searchSelectValue,
+                templateLabelLoading: false
             }
         },
         computed: {

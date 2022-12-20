@@ -248,20 +248,38 @@
         }
     }
     .label-select-extension {
+        height: 40px;
         display: flex;
         text-align: center;
+        line-height: 40px;
         cursor: pointer;
         .add-label,
         .label-manage {
+            position: relative;
             flex: 1;
             &:hover {
                 background: #f0f1f5;
             }
+            &::after {
+                content: '';
+                position: absolute;
+                width: 1px;
+                height: 16px;
+                display: block;
+                right: -1px;
+                top: 12px;
+                background: #dcdee5;
+            }
         }
-        .add-label {
-            border-right: 1px solid #dcdee5;
+        .refresh-label {
+            flex-shrink: 0;
+            padding: 0 16px;
+            &:hover {
+                background: #f0f1f5;
+            }
         }
-        & > .icon-plus-circle {
+        & .common-icon-label,
+        & .icon-plus-circle {
             font-size: 14px;
             color: #979ba5;
         }
