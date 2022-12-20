@@ -41,7 +41,7 @@ export default class ErrorNotify {
                         style: { display: 'none', maxHeight: '300px', overflow: 'auto', margin: '10px 0 0 0' }
                     }, [
                         traceId ? h('p', [`trace_id：${traceId}`]) : '',
-                        msg && errorSource === 'result' ? h('p', ['error_function: ', this.setNotifyTitleAndContent(msg, false, errorSource, 1)]) : ''
+                        msg && errorSource === 'result' ? h('p', ['error_function: ', this.setNotifyTitleAndContent(msg, false, errorSource, 1) || '--']) : ''
                     ]),
                     h('bk-button', {
                         class: 'copy-btn',
@@ -128,7 +128,13 @@ export default class ErrorNotify {
             })
         }
         this.notify.$el.style.zIndex = this.showMore ? Math.max(...zIndexList) + 1 : 2500
-        this.notify.$el.querySelector('.bk-notify-content-text').style.display = this.showMore ? 'block' : '-webkit-box'
+        const contentTextDom = this.notify.$el.querySelector('.bk-notify-content-text')
+        if (this.showMore) {
+            contentTextDom.classList.add('is-expand')
+        } else {
+            contentTextDom.scrollTop = 0
+            contentTextDom.classList.remove('is-expand')
+        }
         this.notify.$el.querySelector('.bk-notify-trace-content').style.display = this.showMore ? 'block' : 'none'
         this.notify.$el.querySelector('.copy-btn').style.display = this.showMore ? 'block' : 'none'
     }
