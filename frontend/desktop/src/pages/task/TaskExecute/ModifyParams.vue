@@ -279,6 +279,10 @@
                             })
                             paramEditComp.randomKey = new Date().getTime()
                         }
+                        this.$bkMessage({
+                            message: i18n.t('保存失败，有参数已被使用不可修改'),
+                            theme: 'error'
+                        })
                         return
                     }
                     const res = await this.instanceModifyParams(data)
