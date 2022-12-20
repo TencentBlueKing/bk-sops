@@ -666,7 +666,6 @@
                 })
             },
             onCreateNodeMoving (node) {
-                if (!['tasknode', 'subflow'].includes(node.type)) return
                 // 计算节点基于画布的坐标
                 const canvasDom = document.querySelector('.canvas-flow')
                 let nodeLeft = 0
@@ -967,6 +966,33 @@
                 // 只对符合单条线的情况进行处理
                 if (Object.keys(matchLines).length === 1) {
                     const values = Object.values(matchLines)[0]
+                    // 计算新建节点的坐标和两端节点的左边是否在一条线上
+                    if (!location.mode) {
+                        const canvasData = tools.deepClone(this.canvasData)
+                        const isTaskNode = ['tasknode', 'subflow'].includes(location.type)
+                        const { source, target, segmentPosition } = values
+                        const bothNodes = canvasData.locations.filter(item => {
+                            return [source.id, target.id].includes(item.id)
+                        })
+                        bothNodes.some(item => {
+                            let nodeWidth, nodeHeight
+                            if (['tasknode', 'subflow'].includes(item.type)) {
+                                nodeWidth = 154
+                                nodeHeight = 54
+                            } else {
+                                nodeWidth = 34
+                                nodeHeight = 34
+                            }
+                            const { left, top, height, width } = segmentPosition
+                            if (height === 8 && item.y < top && top < (item.y + nodeHeight)) {
+                                location.y = item.y + nodeHeight / 2 - (isTaskNode ? 54 : 34) / 2
+                                return true
+                            } else if (width === 8 && item.x < left && left < (item.x + nodeWidth)) {
+                                location.x = item.x + nodeWidth / 2 - (isTaskNode ? 154 : 34) / 2
+                                return true
+                            }
+                        })
+                    }
                     // 删除当前的，在原有位置插入一个新的
                     this.onNodeRemove(location)
                     this.$nextTick(() => {
@@ -994,10 +1020,6 @@
                  */
                 // 左侧添加节点时没有生成节点id
                 if (loc.id) {
-                    // 网关节点不做处理
-                    if (loc.id in this.$store.state.template.gateways) {
-                        return {}
-                    }
                     // 已有连线的节点不做处理
                     const { flows } = this.$store.state.template
                     const isExistLine = Object.values(flows).some(item => [item.source, item.target].includes(loc.id))
@@ -1006,11 +1028,17 @@
                     }
                 }
                 // 横向区间
-                const horizontalInterval = [loc.x + 30, loc.x + 154 - 60]
+                let horizontalInterval = [loc.x + 40, loc.x + 154 - 40]
                 // 纵向区间
-                const verticalInterval = [loc.y + 12, loc.y + 54 - 12]
+                let verticalInterval = [loc.y + 15, loc.y + 54 - 15 + 2]
+                if (loc.type.indexOf('gateway') > -1) { // 网关区间
+                    horizontalInterval = [loc.x + 7, loc.x + 34 - 7]
+                    verticalInterval = [loc.y + 7, loc.y + 34 - 7 + 2]
+                }
                 // 符合匹配连线
                 const matchLines = {}
+                // 符合匹配的线段
+                let segmentPosition = {}
                 // 获取所有连线实例
                 const connections = this.$refs.jsFlow.instance.getConnections()
                 connections.forEach(connection => {
@@ -1030,9 +1058,14 @@
                     })
                     let inputArrow = 'Left'
                     let outputArrow = 'Right'
-                    
+                    // 获取所有连线线段
+                    let segments = connection.connector.getSegments() || []
+                    // 第一段线段坐标
+                    const { x1, x2, y1, y2 } = segments[0].params
+                    const firstSegmentWidth = x2 - x1
+                    const firstSegmentHeight = y2 - y1
                     // 切除插入到节点内部的两端线段
-                    let segments = connection.connector.getSegments().slice(1, -1)
+                    segments = segments.slice(1, -1)
                     // 克隆线段列表，直线时会对线段宽高重新计算，避免影响
                     segments = tools.deepClone(segments)
                     // 纯直线会重叠了1px，为线的折点预留的位置
@@ -1062,33 +1095,37 @@
                         // 计算线段的高宽和坐标
                         const { x1, x2, y1, y2 } = item.params
                         // 线段的坐标的最大值/最小值
-                        let maxX = Math.max(x1, x2)
-                        maxX = maxX < 0 ? 0 : maxX
-                        let minX = Math.min(x1, x2)
-                        minX = minX < 0 ? 0 : minX
-                        let maxY = Math.max(y1, y2)
-                        maxY = maxY < 0 ? 0 : maxY
-                        let minY = Math.min(y1, y2)
-                        minY = minY < 0 ? 0 : minY
+                        const maxX = Math.max(x1, x2)
+                        const minX = Math.min(x1, x2)
+                        const maxY = Math.max(y1, y2)
+                        const minY = Math.min(y1, y2)
 
                         let left, top, width, height
                         if (x1 === x2) { // 垂直
                             width = 8
                             height = maxY - minY
-                            top = lineTop + minY
-                            left = lineLeft + minX
+                            top = lineTop + minY + firstSegmentHeight
+                            left = lineLeft + minX + firstSegmentWidth
                             inputArrow = y1 > y2 ? 'Bottom' : 'Top'
                             outputArrow = y1 > y2 ? 'Top' : 'Bottom'
                         } else if (y1 === y2) { // 水平
                             height = 8
                             width = maxX - minX
-                            top = lineTop + minY
-                            left = lineLeft + minX
+                            top = lineTop + minY + firstSegmentHeight + 5
+                            left = lineLeft + minX + firstSegmentWidth
                             inputArrow = x1 > x2 ? 'Right' : 'Left'
                             outputArrow = x1 > x2 ? 'Left' : 'Right'
                         }
+                        segmentPosition = { left, top, height, width }
 
-                        if (width > 154 || height > 54) { // 线段长需大于节点宽度或高度
+                        let nodeWidth = 154
+                        let nodeHeight = 54
+                        if (loc.type.indexOf('gateway') > -1) { // 网关区间
+                            nodeWidth = 34
+                            nodeHeight = 34
+                        }
+                        
+                        if (width > nodeWidth || height > nodeHeight) { // 线段长需大于节点宽度或高度
                             if (height > 8) { // 垂直线
                                 return (left > horizontalInterval[0] && horizontalInterval[1] > left)
                                     && (top < verticalInterval[0] && top + height > verticalInterval[1])
@@ -1102,6 +1139,7 @@
                     if (isMatch) {
                         matchLines[lineConfig.id] = {
                             ...lineConfig,
+                            segmentPosition,
                             inputArrow,
                             outputArrow
                         }
@@ -1286,10 +1324,10 @@
                 let { style } = nodeDom.attributes
                 style = style.value.split(';').filter(value => value)
                 let nodeLeft = style.find(item => item.indexOf('left') > -1)
-                nodeLeft = nodeLeft ? /:.([0-9.]+)px/.exec(nodeLeft)[1] : 0
+                nodeLeft = nodeLeft ? /:.-?([0-9.]+)px/.exec(nodeLeft)[1] : 0
                 nodeLeft = Number(nodeLeft)
                 let nodeTop = style.find(item => item.indexOf('top') > -1)
-                nodeTop = nodeTop ? /:.([0-9.]+)px/.exec(nodeTop)[1] : 0
+                nodeTop = nodeTop ? /:.-?([0-9.]+)px/.exec(nodeTop)[1] : 0
                 nodeTop = Number(nodeTop)
                 const location = {
                     ...node,
