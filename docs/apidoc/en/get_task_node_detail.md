@@ -4,13 +4,14 @@ Query a task node execution details
 
 #### Interface Parameters
 
-|   Field         |  Type       | Required |  Description     |
-|---------------|------------|--------|------------------|
-|   bk_biz_id   |   string   |   YES   |  the business ID             |
-|   task_id     |   string   |   YES   |  the task ID   |
-|   node_id        | string     | YES         | the node ID of task                        |
-|   component_code| string     | NO         | the code of Standard Plugin, this field is required when query a Standard Plugin node |
-|   subprocess_stack| string   | NO         | stack of SubProcess, format is json  |
+| Field            | Type   | Required | Description                                                                           |
+|------------------|--------|----------|---------------------------------------------------------------------------------------|
+| bk_biz_id        | string | YES      | the business ID                                                                       |
+| task_id          | string | YES      | the task ID                                                                           |
+| node_id          | string | YES      | the node ID of task                                                                   |
+| component_code   | string | NO       | the code of Standard Plugin, this field is required when query a Standard Plugin node |
+| subprocess_stack | string | NO       | stack of SubProcess, format is json                                                   |
+| loop             | int    | NO       | the loop count of node                                                                | 
 
 ### Request Parameters Example
 
@@ -25,6 +26,7 @@ Query a task node execution details
     "node_id": "node0df0431f8f553925af01a94854bd"
     "subprocess_stack": "[\"nodeaaa0ce51d2143aa9b0dbc27cb7df\"]",
     "component_code": "job_fast_execute_script",
+    "loop": 1,
 }
 ```
 
