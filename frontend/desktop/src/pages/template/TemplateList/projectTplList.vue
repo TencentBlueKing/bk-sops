@@ -142,6 +142,7 @@
                                         v-bkloading="{ isLoading: row.labelLoading }"
                                         v-bk-clickoutside="handleClickOutSide">
                                         <bk-select
+                                            :key="templateLabels.length"
                                             ref="labelSelect"
                                             v-model="row.labelIds"
                                             ext-popover-cls="label-select-popover"

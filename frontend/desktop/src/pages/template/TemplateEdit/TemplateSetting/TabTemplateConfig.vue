@@ -30,6 +30,7 @@
                     </bk-form-item>
                     <bk-form-item v-if="!common" :label="$t('标签')" data-test-id="tabTemplateConfig_form_label">
                         <bk-select
+                            :key="templateLabels.length"
                             v-model="formData.labels"
                             ext-popover-cls="label-select-popover"
                             :display-tag="true"
