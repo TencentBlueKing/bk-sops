@@ -239,6 +239,7 @@
                         message: i18n.t('参数未修改'),
                         theme: 'warning'
                     })
+                    this.$emit('packUp')
                     return
                 }
                 // 传的变量值为修改过的，未修改的不传
