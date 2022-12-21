@@ -16,7 +16,7 @@
                     url=""
                     :limit="1"
                     :size="2048"
-                    :tip="$t('支持YAML类型文件，文件小于2M')"
+                    :tip="$t('支持YAML类型文件，文件小于2G')"
                     :custom-request="handleUpload">
                 </bk-upload>
             </div>
