@@ -399,7 +399,11 @@
             jumpProjectManagement () {
                 if (this.isViewMode) return
                 if (this.authActions.includes('project_edit')) {
-                    this.$router.push({ name: 'projectConfig', params: { id: this.$route.params.project_id } })
+                    const { href } = this.$router.resolve({
+                        name: 'projectConfig',
+                        params: { id: this.projectId }
+                    })
+                    window.open(href, '_blank')
                 } else {
                     const resourceData = {
                         project: [{
