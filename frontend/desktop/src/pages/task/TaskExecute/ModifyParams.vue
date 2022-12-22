@@ -270,13 +270,21 @@
                     if (this.state !== 'CREATED' && usedConstants.length) {
                         const paramEditComp = this.$refs.TaskParamEdit
                         if (paramEditComp) {
-                            usedConstants.forEach(key => {
-                                const config = paramEditComp.renderConfig.find(item => item.tag_code === key)
-                                if (!config.attrs) {
-                                    config.attrs = {}
+                            paramEditComp.renderConfig.forEach(item => {
+                                if (!item.attrs?.used_tip && !unUsedConstants.includes(item.tag_code)) {
+                                    if (!item.attrs) {
+                                        item.attrs = {}
+                                    }
+                                    if (usedConstants.includes(item.tag_code)) {
+                                        item.attrs['html_used_tip'] = true
+                                    } else {
+                                        item.attrs['disabled'] = true
+                                        if (item.attrs.children) {
+                                            this.setAtomDisable(item.attrs.children)
+                                        }
+                                    }
+                                    item.attrs['used_tip'] = i18n.t('参数已被使用，不可修改')
                                 }
-                                config.attrs['html_used_tip'] = true
-                                config.attrs['used_tip'] = i18n.t('参数已被使用，不可修改')
                             })
                             paramEditComp.randomKey = new Date().getTime()
                         }
@@ -303,6 +311,17 @@
                 } finally {
                     this.pending = false
                 }
+            },
+            setAtomDisable (atomList) {
+                atomList.forEach(item => {
+                    if (!item.attrs) {
+                        item.attrs = {}
+                    }
+                    item.attrs['disabled'] = true
+                    if (item.attrs.children) {
+                        this.setAtomDisable(item.attrs.children)
+                    }
+                })
             },
             onChangeConfigLoading (val) {
                 this.configLoading = val

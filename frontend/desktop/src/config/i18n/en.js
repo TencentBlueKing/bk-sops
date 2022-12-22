@@ -1204,7 +1204,7 @@ const en = {
     '导出为': 'Export',
     '文件': 'File',
     'YAML文件导出后可以编辑，导入时可以自由覆盖模板但节点会丢失位置信息': 'Exported YAML file can be edited，When it is imported, the template nodes will lose the location information',
-    '支持YAML类型文件，文件小于2M': 'YAML files are supported with files smaller than 2M',
+    '支持YAML类型文件，文件小于2G': 'YAML files are supported with files smaller than 2G',
     'DAT文件导出后不可编辑，导出时不能自由覆盖模板': 'The template cannot be overwritten freely when exporting DAT file',
     '文件合法性检查通过。': 'The legitimacy of the file was checked.',
     '文件解析流程': 'File parsing processes',
