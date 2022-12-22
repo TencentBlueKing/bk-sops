@@ -477,7 +477,6 @@
             },
             handleFoldUsedTip () {
                 this.$refs['htmlUsedTipPopper'].hideHandler()
-                this.scheme.attrs.used_tip = ''
                 this.scheme.attrs.html_used_tip = false
                 this.scheme.attrs.disabled = true
                 this.formValue = this.constants[this.scheme.tag_code].value

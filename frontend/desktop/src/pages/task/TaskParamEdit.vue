@@ -223,7 +223,6 @@
                                 currentFormConfig.attrs['disabled'] = true
                                 currentFormConfig.attrs['used_tip'] = i18n.t('参数已被使用，不可修改')
                             }
-                            console.log(variable, currentFormConfig)
                             this.metaConfig[key] = tools.deepClone(variable)
                             // 任务参数重用(元变量)
                             const { remote_url } = currentFormConfig.attrs
