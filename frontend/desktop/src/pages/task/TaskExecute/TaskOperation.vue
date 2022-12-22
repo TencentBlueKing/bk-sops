@@ -284,7 +284,7 @@
         revoke: {
             action: 'revoke',
             icon: 'common-icon-return-arrow',
-            text: i18n.t('撤销')
+            text: i18n.t('终止')
         }
     }
     // 执行按钮的变更

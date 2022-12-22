@@ -59,10 +59,10 @@
                 {{ $t('跳过') }}
             </span>
             <template v-if="node.status === 'RUNNING'">
-                <span v-if="node.code === 'sleep_timer'" @click.stop="$emit('onModifyTimeClick', node.id)">
+                <!-- <span v-if="node.code === 'sleep_timer'" @click.stop="$emit('onModifyTimeClick', node.id)">
                     <i class="common-icon-clock"></i>
                     {{ $t('修改时间') }}
-                </span>
+                </span> -->
                 <span v-if="node.code === 'pause_node'" @click.stop="$emit('onTaskNodeResumeClick', node.id)">
                     <i class="common-icon-play"></i>
                     {{ $t('继续') }}
@@ -71,9 +71,9 @@
                     <i class="common-icon-circulation"></i>
                     {{ $t('审批') }}
                 </span>
-                <span @click.stop="$emit('onForceFail', node.id)">
+                <span v-if="node.code !== 'bk_approve' && node.code !== 'pause_node'" @click.stop="$emit('onForceFail', node.id)">
                     <i class="common-icon-mandatory-failure"></i>
-                    {{ $t('强制失败') }}
+                    {{ $t('强制终止') }}
                 </span>
             </template>
         </div>

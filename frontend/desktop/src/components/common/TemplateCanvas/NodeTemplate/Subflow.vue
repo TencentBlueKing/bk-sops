@@ -66,7 +66,7 @@
                 </span>
                 <span v-if="hasAdminPerm" @click.stop="$emit('onForceFail', node.id)">
                     <i class="common-icon-resume"></i>
-                    {{ $t('强制失败') }}
+                    {{ $t('强制终止') }}
                 </span>
             </template>
             <span v-if="!isSubProcessNode && node.status === 'SUSPENDED'" @click.stop="onSubflowPauseResumeClick('resume')">
