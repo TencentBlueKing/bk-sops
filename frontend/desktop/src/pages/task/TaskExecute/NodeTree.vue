@@ -66,24 +66,34 @@
             data: {
                 handler () {
                     this.treeData = tools.deepClone(this.data)
-                    if (this.defaultActiveId) {
-                        this.setDefaultActiveId(this.treeData, this.defaultActiveId)
-                    }
                 },
                 deep: true,
                 immediate: true
             }
         },
+        mounted () {
+            if (this.defaultActiveId) {
+                this.setDefaultActiveId(this.treeData, this.treeData, this.defaultActiveId)
+            }
+        },
         methods: {
-            setDefaultActiveId (nodes, id) {
+            setDefaultActiveId (data, nodes, id) {
                 nodes.forEach(node => {
                     if (node.children) {
-                        this.setDefaultActiveId(node.children, id)
+                        this.setDefaultActiveId(data, node.children, id)
                     }
                     if (node.id === id) {
                         this.$set(node, 'selected', true)
+                        node.parent.expanded = true
+                        this.setExpand(node.parent)
                     }
                 })
+            },
+            setExpand (node) {
+                if (node.parent) {
+                    node.parent.expanded = true
+                    this.setExpand(node.parent)
+                }
             },
             getNodeActivedState (id) {
                 const len = this.selectedFlowPath.length
