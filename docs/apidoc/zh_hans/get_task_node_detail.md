@@ -4,13 +4,14 @@
 
 #### 接口参数
 
-| 字段          |  类型       | 必选   |  描述             |
-|---------------|------------|--------|------------------|
-|   bk_biz_id    |   string     |   是   |  所属业务ID |
-|   task_id     |   string   |   是   |  任务ID     |
-|   node_id        | string     | 是         | 节点 ID                        |
-|   component_code| string     | 否         | 标准插件编码，请求标准插件执行详情必填 |
-|   subprocess_stack| string   | 否         | 子流程堆栈，json 格式的列表    |
+| 字段               | 类型     | 必选  | 描述                  |
+|------------------|--------|-----|---------------------|
+| bk_biz_id        | string | 是   | 所属业务ID              |
+| task_id          | string | 是   | 任务ID                |
+| node_id          | string | 是   | 节点 ID               |
+| component_code   | string | 否   | 标准插件编码，请求标准插件执行详情必填 |
+| subprocess_stack | string | 否   | 子流程堆栈，json 格式的列表    |
+| loop             | int    | 否   | 节点循环次数              | 
 
 ### 请求参数示例
 
@@ -25,6 +26,7 @@
     "node_id": "node0df0431f8f553925af01a94854bd"
     "subprocess_stack": "[\"nodeaaa0ce51d2143aa9b0dbc27cb7df\"]",
     "component_code": "job_fast_execute_script",
+    "loop": 1,
 }
 ```
 
