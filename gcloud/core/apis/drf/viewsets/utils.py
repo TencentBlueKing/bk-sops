@@ -31,6 +31,21 @@ logger = logging.getLogger("root")
 class ApiMixin(GenericViewSet):
     EXEMPT_STATUS_CODES = {status.HTTP_204_NO_CONTENT}
 
+    @staticmethod
+    def _extract_error_detail_string(original_error):
+        if isinstance(original_error, ErrorDetail):
+            return str(original_error)
+        elif isinstance(original_error, dict):
+            errors = []
+            for error in original_error.values():
+                if isinstance(error, list):
+                    errors.extend(error)
+                else:
+                    errors.append(error)
+            return ",".join([str(e) for e in errors if isinstance(e, ErrorDetail)])
+        else:
+            return original_error
+
     def finalize_response(self, request, response, *args, **kwargs):
         # 对rest_framework的Response进行统一处理
         if isinstance(response, Response):
@@ -45,7 +60,12 @@ class ApiMixin(GenericViewSet):
                     f"[ApiMixin response exception] request: {request.path}, "
                     f"params: {request.query_params or request.data}, response: {response.data}"
                 )
-                response.data = {"result": False, "data": response.data, "code": error_code, "message": str(error)}
+                response.data = {
+                    "result": False,
+                    "data": response.data,
+                    "code": error_code,
+                    "message": self._extract_error_detail_string(error) or str(error),
+                }
             elif response.status_code not in self.EXEMPT_STATUS_CODES:
                 response.data = {"result": True, "data": response.data, "code": err_code.SUCCESS.code, "message": ""}
 
