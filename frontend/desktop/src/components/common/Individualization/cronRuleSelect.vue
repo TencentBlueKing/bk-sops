@@ -106,7 +106,7 @@
         },
         watch: {
             nativeValue (val) {
-                // 长度超过128个字符, 4为之间的空格
+                // 长度超过100个字符, 4为之间的空格
                 if (val.length - 4 > 100) {
                     this.parseValue = []
                     this.nextTime = []
