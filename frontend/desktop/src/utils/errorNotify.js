@@ -75,7 +75,7 @@ export default class ErrorNotify {
         titleDom.style.cssText = 'width: 80%; white-space: nowrap;overflow: hidden; text-overflow: ellipsis;'
         titleDom.title = this.setNotifyTitleAndContent(msg, true, errorSource) || ''
 
-        this.remainingTime = 100000 // 倒数10s
+        this.remainingTime = 10000 // 倒数10s
         this.timer = null // 定时器示例
         this.errorMsg = msg // 来自window.msg_list的错误信息
         this.startTimeCountDown(this.remainingTime)
@@ -88,7 +88,7 @@ export default class ErrorNotify {
         } else {
             content = isTitle ? JSON.parse(info).message.split(': ')[0] : JSON.parse(info).message.split(': ').slice(1).join(': ').split(' | ')[msgIndex]
         }
-        if (isTitle && (!content || content.length > 21)) { // 21为标题最大宽度
+        if (isTitle && (!content || content.length > 21)) { // 21为标题能容纳的最大数量
             content = errorSource === 'result' ? i18n.t('请求异常（外部系统错误或非法操作）') : i18n.t('请求异常（内部系统发生未知错误）')
         }
         return content
