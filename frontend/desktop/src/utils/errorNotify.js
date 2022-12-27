@@ -84,7 +84,8 @@ export default class ErrorNotify {
     setNotifyTitleAndContent (info, isTitle, errorSource, msgIndex) {
         let content = ''
         if (errorSource !== 'result') {
-            content = isTitle ? info.split(': ')[0].split('{')[1].replace(/\'|\"/g, '') : info.split(': ')[1].split('}')[0]
+            const infoArr = info.split(': ')
+            content = isTitle ? infoArr[0].split('{')[1].replace(/\'|\"/g, '') : (infoArr[1] || infoArr[0]).split('}')[0]
         } else {
             content = isTitle ? JSON.parse(info).message.split(': ')[0] : JSON.parse(info).message.split(': ').slice(1).join(': ').split(' | ')[msgIndex]
         }
