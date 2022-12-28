@@ -23,18 +23,18 @@ from pipeline.core.flow.io import (
 )
 
 from gcloud.conf import settings
-from gcloud.utils.ip import get_ip_by_regex
 from pipeline_plugins.components.utils.sites.open.utils import get_nodeman_job_url
 
-from ..base import NodeManBaseService, get_host_id_by_inner_ip
+from ..base import NodeManBaseService
 
 __group_name__ = _("节点管理(Nodeman)")
 
+from ..ip_v6_base import NodemanPluginIPMixin
 
 INSTALL_TYPE = ["MAIN_INSTALL_PLUGIN"]
 
 
-class NodemanPluginOperateService(NodeManBaseService):
+class NodemanPluginOperateService(NodeManBaseService, NodemanPluginIPMixin):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -108,15 +108,12 @@ class NodemanPluginOperateService(NodeManBaseService):
             return False
         if input_type == "host_ip":
             bk_cloud_id = host_info.get("nodeman_bk_cloud_id", None)
-            ip_list = get_ip_by_regex(host_info.get("nodeman_host_ip", ""))
-            host_id_dict = get_host_id_by_inner_ip(executor, self.logger, bk_cloud_id, bk_biz_id, ip_list)
-
-            # 过滤出未查询到host_id的ip
-            no_host_id_ip = list(set(ip_list).difference(set(host_id_dict.keys())))
-            if no_host_id_ip:
-                data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认云区域是否正确".format(",".join(no_host_id_ip))))
+            ip_str = host_info.get("nodeman_host_ip", "")
+            host_result = self.get_host_list(executor, self.logger, bk_biz_id, ip_str, bk_cloud_id)
+            if not host_result["result"]:
+                data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认云区域是否正确".format(host_result["message"])))
                 return False
-            host = list(host_id_dict.values())
+            host = [int(host_id) for host_id in host_result["data"]]
         else:
             host = host_info.get("nodeman_host_id", "").strip().split(",")
 

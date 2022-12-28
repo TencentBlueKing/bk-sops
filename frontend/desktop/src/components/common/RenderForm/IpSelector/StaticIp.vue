@@ -44,67 +44,18 @@
                 <span v-if="isUnfold" @click="isUnfold = false" class="return-text">{{ i18n.return }}</span>
             </div>
             <div class="selected-ip-table-wrap">
-                <table :class="['ip-table', { 'disabled': !editable }]">
-                    <thead>
-                        <tr>
-                            <th width="">{{i18n.cloudArea}}</th>
-                            <th width="120">
-                                IP
-                                <span class="sort-group">
-                                    <i :class="['sort-icon', 'up', { 'active': ipSortActive === 'up' }]" @click="onIpSort('up')"></i>
-                                    <i :class="['sort-icon', { 'active': ipSortActive === 'down' }]" @click="onIpSort('down')"></i>
-                                </span>
-                            </th>
-                            <th width="120">
-                                {{i18n.hostName}}
-                                <span class="sort-group">
-                                    <i :class="['sort-icon', 'up', { 'active': hostNameSortActive === 'up' }]" @click="onHostNameSort('up')"></i>
-                                    <i :class="['sort-icon', { 'active': hostNameSortActive === 'down' }]" @click="onHostNameSort('down')"></i>
-                                </span>
-                            </th>
-                            <th width="160">Agent {{i18n.status}}</th>
-                            <th width="50">{{i18n.operation}}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <template v-if="listInPage.length">
-                            <tr v-for="item in listInPage" :key="item.bk_host_d">
-                                <td
-                                    class="ui-ellipsis"
-                                    :title="item.cloud[0] && item.cloud[0].bk_inst_name">
-                                    {{item.cloud[0] && item.cloud[0].bk_inst_name}}
-                                </td>
-                                <td>{{item.bk_host_innerip}}</td>
-                                <td>{{item.bk_host_name}}</td>
-                                <td
-                                    class="ui-ellipsis"
-                                    :class="item.agent ? 'agent-normal' : 'agent-failed'"
-                                    :title="item.agent ? 'Agent' + i18n.normal : 'Agent' + i18n.error">
-                                    {{item.agent ? 'Agent' + i18n.normal : 'Agent' + i18n.error}}
-                                </td>
-                                <td>
-                                    <a
-                                        :class="['remove-ip-btn', { 'disabled': !editable }]"
-                                        @click.stop="onRemoveIpClick(item.bk_host_id)">
-                                        {{i18n.remove}}
-                                    </a>
-                                </td>
-                            </tr>
-                        </template>
-                        <tr v-else>
-                            <td class="static-ip-empty" colspan="4">
-                                <span v-if="!isSearchMode && editable">
-                                    {{i18n.noDataCan}}
-                                    <span class="add-ip-btn" @click="onAddPanelShow('select')">{{i18n.selectAdd}}</span>
-                                    {{i18n.or}}
-                                    <span class="add-ip-btn" @click="onAddPanelShow('manual')">{{i18n.manualAdd}}</span>
-                                </span>
-                                <span v-else>{{i18n.noData}}</span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="table-footer">
+                <IpSelectorTable
+                    :editable="editable"
+                    :is-search-mode="isSearchMode"
+                    :list-in-page="listInPage"
+                    :static-ip-table-config="staticIpTableConfig"
+                    @onIpSort="onIpSort"
+                    @onHostNameSort="onHostNameSort"
+                    @onAddPanelShow="onAddPanelShow"
+                    @onTableConfigChange="onTableConfigChange"
+                    @onRemoveIpClick="onRemoveIpClick">
+                </IpSelectorTable>
+                <div class="table-footer" v-if="isShowQuantity || isPaginationShow">
                     <div v-if="isShowQuantity" class="selected-num">{{i18n.total}}
                         <span class="total-ip">{{staticIps.length}}</span>
                         {{i18n.staticIpNum}}
@@ -134,6 +85,8 @@
             :static-ip-list="staticIpList"
             :static-ips="staticIps"
             :type="addingType"
+            :static-ip-table-config="staticIpTableConfig"
+            @onTableConfigChange="onTableConfigChange"
             @onAddIpConfirm="onAddIpConfirm"
             @onAddIpCancel="onAddIpCancel">
         </static-ip-adding-panel>
@@ -144,6 +97,8 @@
 
     import StaticIpAddingPanel from './StaticIpAddingPanel.vue'
     import IpSearchInput from './IpSearchInput.vue'
+    import IpSelectorTable from './IpSelectorTable.vue'
+    import tools from '@/utils/tools.js'
 
     const i18n = {
         copyIp: gettext('复制IP'),
@@ -177,12 +132,14 @@
         name: 'StaticIp',
         components: {
             StaticIpAddingPanel,
-            IpSearchInput
+            IpSearchInput,
+            IpSelectorTable
         },
         props: {
             allowUnfoldInput: Boolean,
             editable: Boolean,
             staticIpList: Array,
+            staticIpTableConfig: Array,
             staticIps: Array
         },
         data () {
@@ -318,8 +275,17 @@
                     const keyArr = keyword.split(',').map(item => item.trim()).filter(item => {
                         return item !== ''
                     })
+                    const ipv6Regexp = tools.getIpv6Regexp()
                     const list = this.staticIps.filter(item => {
-                        return keyArr.some(str => item.bk_host_innerip.indexOf(str) > -1)
+                        const { bk_host_innerip: ipv4, bk_host_innerip_v6: ipv6 } = item
+                        return keyArr.some(str => {
+                            let text = str
+                            if (ipv6Regexp.test(str)) { // 判断是否为ipv6地址
+                                text = tools.tranSimIpv6ToFullIpv6(str) // 将缩写的ipv6转换为全写
+                            }
+                            return ipv4.indexOf(text) > -1
+                                || (ipv6 && ipv6.indexOf(text) > -1)
+                        })
                     })
                     this.searchResult = list
                     this.setPanigation(list)
@@ -336,6 +302,9 @@
                     message: name + this.i18n.success,
                     theme: 'success'
                 })
+            },
+            onTableConfigChange (data) {
+                this.$emit('onTableConfigChange', data)
             },
             onRemoveIpClick (id) {
                 if (!this.editable) {
@@ -404,18 +373,10 @@
             },
             onIpSort (way) {
                 this.hostNameSortActive = ''
-                if (this.ipSortActive === way) {
-                    this.ipSortActive = ''
-                    return
-                }
                 this.ipSortActive = way
             },
             onHostNameSort (way) {
                 this.ipSortActive = ''
-                if (this.hostNameSortActive === way) {
-                    this.hostNameSortActive = ''
-                    return
-                }
                 this.hostNameSortActive = way
             }
         }
@@ -468,80 +429,6 @@
     top: 5px;
     color: #3a84ff;
     cursor: pointer;
-}
-.ip-table {
-    width: 100%;
-    border: 1px solid #dde4eb;
-    border-collapse: collapse;
-    table-layout:fixed;
-    tr {
-        border-bottom: 1px solid #dde4eb;
-    }
-    th {
-        color: #313238;
-    }
-    th,td {
-        padding: 12px 10px;
-        line-height: 1;
-        font-size: 12px;
-        font-weight: normal;
-        text-align: left;
-        &.agent-normal {
-            color: #22a945;
-        }
-        &.agent-failed {
-            color: #ea3636;
-        }
-    }
-    .remove-ip-btn {
-        color: #3a84ff;
-        cursor: pointer;
-        &.disabled {
-            color: #cccccc;
-            cursor: not-allowed;
-        }
-    }
-    .static-ip-empty {
-        height: 214px;
-        text-align: center;
-        color: #c4c6cc;
-        .add-ip-btn {
-            margin: 0 -2px 0 -2px;
-            color: #3a84ff;
-            cursor: pointer;
-        }
-    }
-    &.disabled {
-        th, td {
-            color: #cccccc;
-        }
-    }
-    .sort-group {
-        display: inline-block;
-        margin-left: 6px;
-        vertical-align: top;
-        .sort-icon {
-            display: block;
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-width: 5px 5px 0 5px;
-            border-color: #c4c6cc transparent transparent transparent;
-            cursor: pointer;
-            &.up {
-                margin-bottom: 2px;
-                transform: rotate(180deg);
-            }
-            &.active {
-                border-color: #3a84ff transparent transparent transparent;
-            }
-        }
-    }
-    .ui-ellipsis {
-        overflow:hidden;
-        text-overflow:ellipsis;
-        white-space:nowrap;
-    }
 }
 .table-footer {
     display: flex;

@@ -20,12 +20,12 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.utils.common import batch_execute_func
 from pipeline_plugins.components.utils import (
     get_job_instance_url,
     loose_strip,
     chunk_table_data,
-    get_biz_ip_from_frontend,
 )
 
 from gcloud.conf import settings
@@ -39,7 +39,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class JobFastPushFileService(JobScheduleService):
+class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -114,15 +114,16 @@ class JobFastPushFileService(JobScheduleService):
         job_timeout = data.get_one_of_inputs("job_timeout")
         file_source = []
         for item in original_source_files:
-            clean_source_ip_result, source_ip_list = get_biz_ip_from_frontend(
-                item["ip"], executor, biz_cc_id, data, self.logger, across_biz
+            clean_source_ip_result, server = self.get_target_server(
+                executor, biz_cc_id, data, item["ip"], self.logger, False, is_across=across_biz
             )
+
             if not clean_source_ip_result:
                 return False
             file_source.append(
                 {
                     "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
-                    "server": {"ip_list": source_ip_list},
+                    "server": server,
                     "account": {
                         "alias": loose_strip(item["account"]),
                     },
@@ -149,13 +150,13 @@ class JobFastPushFileService(JobScheduleService):
         for source in file_source:
             for attr in attr_list:
                 # 将[FILESRCIP]替换成源IP
-                job_target_path = (
-                    attr["job_target_path"].replace("[FILESRCIP]", source["server"]["ip_list"][0]["ip"]).strip()
-                )
+                # job_target_path = (
+                #     attr["job_target_path"].replace("[FILESRCIP]", source["server"]["ip_list"][0]["ip"]).strip()
+                # )
                 # 获取目标IP
                 original_ip_list = attr["job_ip_list"]
-                clean_result, ip_list = get_biz_ip_from_frontend(
-                    original_ip_list, executor, biz_cc_id, data, self.logger, across_biz
+                clean_result, target_server = self.get_target_server(
+                    executor, biz_cc_id, data, original_ip_list, self.logger, False, is_across=False
                 )
                 if not clean_result:
                     return False
@@ -164,9 +165,9 @@ class JobFastPushFileService(JobScheduleService):
                     "bk_scope_id": str(biz_cc_id),
                     "bk_biz_id": biz_cc_id,
                     "file_source_list": [source],
-                    "target_server": {"ip_list": ip_list},
+                    "target_server": target_server,
                     "account_alias": attr["job_account"],
-                    "file_target_path": job_target_path,
+                    "file_target_path": attr["job_target_path"],
                 }
                 if upload_speed_limit:
                     job_kwargs["upload_speed_limit"] = int(upload_speed_limit)

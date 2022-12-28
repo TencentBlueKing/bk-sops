@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+import ipaddress
 import logging
 import re
 from typing import List
@@ -21,11 +21,15 @@ from django.utils.translation import ugettext_lazy as _
 
 from gcloud.constants import Type
 from gcloud.core.models import Project
-from gcloud.utils.cmdb import get_business_host
+from gcloud.utils.cmdb import get_business_host, get_business_host_by_hosts_ids
 
-from gcloud.utils.ip import get_ip_by_regex, get_plat_ip_by_regex
+from gcloud.utils.ip import get_ip_by_regex, get_plat_ip_by_regex, extract_ip_from_ip_str
 from gcloud.conf import settings as gcloud_settings
-from pipeline_plugins.variables.collections.sites.open.ip_filter_base import GseAgentStatusIpFilter
+from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_host_by_innerip_with_ipv6
+from pipeline_plugins.variables.collections.sites.open.ip_filter_base import (
+    GseAgentStatusIpFilter,
+    GseAgentStatusIpV6Filter,
+)
 from pipeline.core.data.var import LazyVariable
 from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
 from pipeline_plugins.base.utils.inject import supplier_account_for_project
@@ -135,9 +139,16 @@ class VarCmdbIpSelector(LazyVariable, SelfExplainVariable):
 
         # get for old value compatible
         if self.value.get("with_cloud_id", False):
-            ip = separator.join(
-                ["{}:{}".format(host["bk_cloud_id"], host["bk_host_innerip"]) for host in ip_result["data"]]
-            )
+            hosts = []
+            for host in ip_result["data"]:
+                p_address = ipaddress.ip_address(host["bk_host_innerip"])
+                # 如果是ipv6地址，则不携带云区域
+                if settings.ENABLE_IPV6 and p_address.version == 6:
+                    hosts.append(f'{host["bk_cloud_id"]}:[{host["bk_host_innerip"]}]')
+                else:
+                    hosts.append("{}:{}".format(host["bk_cloud_id"], host["bk_host_innerip"]))
+
+            ip = separator.join(hosts)
         else:
             ip = separator.join([host["bk_host_innerip"] for host in ip_result["data"]])
         return ip
@@ -279,6 +290,7 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
     desc = _(
         "输出字典，键为主机IP，值为主机所有的属性值字典（键为属性，值为属性值）\n"
         '例如，通过 ${hosts["1.1.1.1"]["bk_host_id"]} 获取主机在 CMDB 中的唯一 ID\n'
+        "输入请保证每台主机都有唯一的 IP，否则可能会出现数据覆盖的情况\n"
         "更多可使用的主机属性请在 CMDB 主机模型页面查阅"
     )
 
@@ -287,6 +299,36 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
         return [
             FieldExplain(key="${KEY}", type=Type.DICT, description="主机属性查询结果"),
         ]
+
+    @staticmethod
+    def _handle_value_with_ipv4(username, bk_biz_id, bk_supplier_account, host_fields, ip_str):
+        """根据 ip 字符串获取对应主机属性信息"""
+        ip_list = get_ip_by_regex(ip_str)
+        if not ip_list:
+            return []
+
+        hosts_list = get_business_host(
+            username,
+            bk_biz_id,
+            bk_supplier_account,
+            host_fields,
+            ip_list,
+        )
+        return hosts_list
+
+    @staticmethod
+    def _handle_value_with_ipv4_and_ipv6(username, bk_biz_id, bk_supplier_account, host_fields, ip_str):
+        """根据 ip 字符串获取对应主机属性信息"""
+        # 兼容多种字符串模式，转换成 host_id 列表后统一获取
+        result = cc_get_host_by_innerip_with_ipv6(username, bk_biz_id, ip_str, bk_supplier_account)
+        if not result["result"]:
+            message = f"获取主机列表失败: {result} | cc_get_host_by_innerip_with_ipv6"
+            logger.error(message)
+            raise Exception(message)
+        host_ids = [host["bk_host_id"] for host in result["data"]]
+        if not host_ids:
+            return []
+        return get_business_host_by_hosts_ids(username, bk_biz_id, bk_supplier_account, host_fields, host_ids)
 
     def get_value(self):
         """
@@ -297,54 +339,52 @@ class VarCmdbAttributeQuery(LazyVariable, SelfExplainVariable):
         """
         if "executor" not in self.pipeline_data or "project_id" not in self.pipeline_data:
             raise Exception("ERROR: executor and project_id of pipeline is needed")
+        HOST_FIELDS = [
+            "bk_cpu",
+            "bk_isp_name",
+            "bk_os_name",
+            "bk_province_name",
+            "bk_host_id",
+            "import_from",
+            "bk_os_version",
+            "bk_disk",
+            "operator",
+            "bk_mem",
+            "bk_host_name",
+            "bk_host_innerip",
+            "bk_comment",
+            "bk_os_bit",
+            "bk_outer_mac",
+            "bk_asset_id",
+            "bk_service_term",
+            "bk_sla",
+            "bk_cpu_mhz",
+            "bk_host_outerip",
+            "bk_state_name",
+            "bk_os_type",
+            "bk_mac",
+            "bk_bak_operator",
+            "bk_supplier_account",
+            "bk_sn",
+            "bk_cpu_module",
+        ]
         username = self.pipeline_data["executor"]
         project_id = self.pipeline_data["project_id"]
         project = Project.objects.get(id=project_id)
         bk_biz_id = project.bk_biz_id if project.from_cmdb else ""
         bk_supplier_account = supplier_account_for_project(project_id)
-        ip_list = get_ip_by_regex(self.value)
-        if not ip_list:
-            return {}
 
-        hosts_list = get_business_host(
-            username,
-            bk_biz_id,
-            bk_supplier_account,
-            [
-                "bk_cpu",
-                "bk_isp_name",
-                "bk_os_name",
-                "bk_province_name",
-                "bk_host_id",
-                "import_from",
-                "bk_os_version",
-                "bk_disk",
-                "operator",
-                "bk_mem",
-                "bk_host_name",
-                "bk_host_innerip",
-                "bk_comment",
-                "bk_os_bit",
-                "bk_outer_mac",
-                "bk_asset_id",
-                "bk_service_term",
-                "bk_sla",
-                "bk_cpu_mhz",
-                "bk_host_outerip",
-                "bk_state_name",
-                "bk_os_type",
-                "bk_mac",
-                "bk_bak_operator",
-                "bk_supplier_account",
-                "bk_sn",
-                "bk_cpu_module",
-            ],
-            ip_list,
-        )
-
+        if settings.ENABLE_IPV6:
+            hosts_list = self._handle_value_with_ipv4_and_ipv6(
+                username, bk_biz_id, bk_supplier_account, HOST_FIELDS + ["bk_host_innerip_v6"], self.value
+            )
+            ipv6_list, *_ = extract_ip_from_ip_str(self.value)
+        else:
+            hosts_list = self._handle_value_with_ipv4(username, bk_biz_id, bk_supplier_account, HOST_FIELDS, self.value)
+            ipv6_list = []
         hosts = {}
         for host in hosts_list:
-            ip = host["bk_host_innerip"]
+            ip = host["bk_host_innerip_v6"] if host.get("bk_host_innerip_v6") in ipv6_list else host["bk_host_innerip"]
             # bk_cloud_id as a dict is not needed
             if "bk_cloud_id" in host:
                 host.pop("bk_cloud_id")
@@ -377,13 +417,25 @@ class VarCmdbIpFilter(LazyVariable, SelfExplainVariable):
 
         origin_ip_list = get_plat_ip_by_regex(origin_ips)
         filter_data = {**self.value, **self.pipeline_data}
+        if not settings.ENABLE_IPV6:
+            # 进行gse agent状态过滤
+            gse_agent_status_filter = GseAgentStatusIpFilter(origin_ip_list, filter_data)
+            match_result_ip = gse_agent_status_filter.get_match_ip()
+            if not ip_cloud:
+                return ip_separator.join(["{}".format(host["ip"]) for host in match_result_ip])
 
-        # 进行gse agent状态过滤
-        gse_agent_status_filter = GseAgentStatusIpFilter(origin_ip_list, filter_data)
-
-        match_result_ip = gse_agent_status_filter.get_match_ip()
-
-        if not ip_cloud:
-            return ip_separator.join(["{}".format(host["ip"]) for host in match_result_ip])
-
-        return ip_separator.join(["{}:{}".format(host["bk_cloud_id"], host["ip"]) for host in match_result_ip])
+            return ip_separator.join(["{}:{}".format(host["bk_cloud_id"], host["ip"]) for host in match_result_ip])
+        else:
+            gse_agent_status_ipv6_filter = GseAgentStatusIpV6Filter(origin_ips, filter_data)
+            match_result_ip = gse_agent_status_ipv6_filter.get_match_ip()
+            if not ip_cloud:
+                return ip_separator.join(["{}".format(host["ip"]) for host in match_result_ip])
+            result = []
+            for host in match_result_ip:
+                p_address = ipaddress.ip_address(host["ip"])
+                if p_address.version == 6:
+                    # 针对于ipv6 需要保持ipv6+云区域的格式
+                    result.append("{}:[{}]".format(host["bk_cloud_id"], host["ip"]))
+                else:
+                    result.append("{}:{}".format(host["bk_cloud_id"], host["ip"]))
+            return ip_separator.join(result)

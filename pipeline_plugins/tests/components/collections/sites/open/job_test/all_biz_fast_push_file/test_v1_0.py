@@ -64,7 +64,7 @@ INPUT = {
     "all_biz_cc_id": "321456",
     "job_source_files": [
         {"bk_cloud_id": "0", "ip": "127.0.0.1", "files": "/tmp/aa\n/tmp/bb", "account": "root"},
-        {"bk_cloud_id": "1", "ip": "127.0.02", "files": "/tmp/cc\n/tmp/dd", "account": "user00"},
+        {"bk_cloud_id": "1", "ip": "127.0.0.2", "files": "/tmp/cc\n/tmp/dd", "account": "user00"},
     ],
     "upload_speed_limit": "100",
     "download_speed_limit": "100",
@@ -224,7 +224,7 @@ CLL_INFO = MagicMock(
                 {
                     "file_list": ["/tmp/cc", "/tmp/dd"],
                     "server": {
-                        "ip_list": [{"ip": "127.0.02", "bk_cloud_id": 1}],
+                        "ip_list": [{"ip": "127.0.0.2", "bk_cloud_id": 1}],
                     },
                     "account": {
                         "alias": "user00",
@@ -252,7 +252,7 @@ CLL_INFO = MagicMock(
                 {
                     "file_list": ["/tmp/cc", "/tmp/dd"],
                     "server": {
-                        "ip_list": [{"ip": "127.0.02", "bk_cloud_id": 1}],
+                        "ip_list": [{"ip": "127.0.0.2", "bk_cloud_id": 1}],
                     },
                     "account": {
                         "alias": "user00",
@@ -341,7 +341,7 @@ BIZ_SET_CLL_INFO = MagicMock(
                 {
                     "file_list": ["/tmp/cc", "/tmp/dd"],
                     "server": {
-                        "ip_list": [{"ip": "127.0.02", "bk_cloud_id": 1}],
+                        "ip_list": [{"ip": "127.0.0.2", "bk_cloud_id": 1}],
                     },
                     "account": {
                         "alias": "user00",
@@ -369,7 +369,7 @@ BIZ_SET_CLL_INFO = MagicMock(
                 {
                     "file_list": ["/tmp/cc", "/tmp/dd"],
                     "server": {
-                        "ip_list": [{"ip": "127.0.02", "bk_cloud_id": 1}],
+                        "ip_list": [{"ip": "127.0.0.2", "bk_cloud_id": 1}],
                     },
                     "account": {
                         "alias": "user00",

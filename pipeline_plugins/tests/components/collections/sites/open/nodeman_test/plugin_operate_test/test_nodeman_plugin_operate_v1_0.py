@@ -50,7 +50,7 @@ GET_CLIENT_BY_USER_BASE = "pipeline_plugins.components.collections.sites.open.no
 
 HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.nodeman.base.handle_api_error"
 GET_HOST_ID_BY_INNER_IP = (
-    "pipeline_plugins.components.collections.sites.open.nodeman.plugin_operate.v1_0.get_host_id_by_inner_ip"
+    "pipeline_plugins.components.collections.sites.open.nodeman.ip_v6_base.get_host_id_by_inner_ip"
 )
 
 # mock clients

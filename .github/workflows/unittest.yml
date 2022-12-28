@@ -2,9 +2,9 @@ name: Unittest
 
 on:
   push:
-    branches: [ master, develop, release* ]
+    branches: [ master, develop, release*, feature* ]
   pull_request:
-    branches: [ master, develop, release* ]
+    branches: [ master, develop, release*, feature* ]
 
 jobs:
   build:

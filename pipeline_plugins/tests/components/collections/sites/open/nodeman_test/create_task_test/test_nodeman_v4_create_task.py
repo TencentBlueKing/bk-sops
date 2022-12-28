@@ -69,9 +69,7 @@ BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.no
 
 HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.nodeman.base.handle_api_error"
 GET_BUSINESS_HOST = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v4_0.get_business_host"
-GET_HOST_ID_BY_INNER_IP = (
-    "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v4_0.get_host_id_by_inner_ip"
-)
+GET_HOST_ID_BY_INNER_IP = "pipeline_plugins.components.collections.sites.open.nodeman.base.get_host_id_by_inner_ip"
 ENCRYPT_AUTH_KEY = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v4_0.encrypt_auth_key"
 
 # mock clients
@@ -256,7 +254,10 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
+        CallAssertion(
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
+            calls=[Call(**{"job_id": "1"})],
+        ),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
@@ -379,7 +380,10 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
+        CallAssertion(
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
+            calls=[Call(**{"job_id": "1"})],
+        ),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
@@ -468,7 +472,10 @@ INSTALL_FAIL_CASE = ComponentTestCase(
         },
     ),
     schedule_call_assertion=[
-        CallAssertion(func=DETAILS_FAIL_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
+        CallAssertion(
+            func=DETAILS_FAIL_CLIENT.job_details,
+            calls=[Call(**{"job_id": "1"})],
+        ),
         CallAssertion(
             func=DETAILS_FAIL_CLIENT.get_job_log,
             calls=[Call(**{"job_id": "1", "instance_id": "host|instance|host|1.1.1.1-0-0"})],
@@ -509,7 +516,10 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
+        CallAssertion(
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
+            calls=[Call(**{"job_id": "1"})],
+        ),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
@@ -774,7 +784,10 @@ INSTALL_SUCCESS_CASE_WITH_TTJ = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
+        CallAssertion(
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
+            calls=[Call(**{"job_id": "1"})],
+        ),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
@@ -812,7 +825,10 @@ MULTI_CLOUD_ID_OPERATE_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
+        CallAssertion(
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
+            calls=[Call(**{"job_id": "1"})],
+        ),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
@@ -923,7 +939,10 @@ MULTI_CLOUD_ID_INSTALL_CASE = ComponentTestCase(
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})],),
+        CallAssertion(
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
+            calls=[Call(**{"job_id": "1"})],
+        ),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),

@@ -734,6 +734,7 @@
         padding: 0 10px;
     }
     .add-variable {
+        position: relative;
         padding: 30px 30px 20px;
         .add-variable-btn {
             width: 90px;

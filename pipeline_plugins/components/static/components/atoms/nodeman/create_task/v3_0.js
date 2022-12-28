@@ -294,12 +294,7 @@
                                         name: gettext("内网IP"),
                                         placeholder: gettext("多个用英文逗号 `,` 或换行分隔"),
                                         width: "180px",
-                                        editable: true,
-                                        validation: [
-                                            {
-                                                type: "required"
-                                            }
-                                        ]
+                                        editable: true
                                     }
                                 },
                                 {
@@ -332,6 +327,26 @@
                                         width: "180px",
                                         editable: true,
 
+                                    }
+                                },
+                                {
+                                    tag_code: "inner_ipv6",
+                                    type: "textarea",
+                                    attrs: {
+                                        name: gettext("内网IP(IPV6)"),
+                                        placeholder: gettext("可为空，如纯ipv6主机，内网ipv和外网IP(IPV6)两个必须填一个"),
+                                        width: "180px",
+                                        editable: true,
+                                    }
+                                },
+                                {
+                                    tag_code: "outer_ipv6",
+                                    type: "textarea",
+                                    attrs: {
+                                        name: gettext("外网IP(IPV6)"),
+                                        placeholder: gettext("可为空，如纯ipv6主机，外网ipv和外网IP(IPV6)两个必须填一个"),
+                                        width: "180px",
+                                        editable: true,
                                     }
                                 },
                                 {
