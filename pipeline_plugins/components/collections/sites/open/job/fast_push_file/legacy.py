@@ -24,8 +24,9 @@ from pipeline.core.flow.io import (
     ObjectItemSchema,
 )
 from pipeline.component_framework.component import Component
+
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.utils import (
-    cc_get_ips_info_by_str,
     get_job_instance_url,
     get_node_callback_url,
     loose_strip,
@@ -43,7 +44,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class JobFastPushFileService(JobService):
+class JobFastPushFileService(JobService, GetJobTargetServerMixin):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -97,20 +98,20 @@ class JobFastPushFileService(JobService):
         original_source_files = deepcopy(data.get_one_of_inputs("job_source_files", []))
         file_source = []
         for item in original_source_files:
-            ip_info = cc_get_ips_info_by_str(
-                username=executor,
-                biz_cc_id=biz_cc_id,
-                ip_str=item["ip"],
-                use_cache=False,
+            clean_result, server = self.get_target_server(
+                executor,
+                biz_cc_id,
+                data,
+                item["ip"],
+                self.logger,
+                False,
             )
+            if not clean_result:
+                return False
             file_source.append(
                 {
                     "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
-                    "server": {
-                        "ip_list": [
-                            {"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]
-                        ],
-                    },
+                    "server": server,
                     "account": {
                         "alias": loose_strip(item["account"]),
                     },
@@ -118,8 +119,13 @@ class JobFastPushFileService(JobService):
             )
 
         original_ip_list = data.get_one_of_inputs("job_ip_list")
-        ip_info = cc_get_ips_info_by_str(executor, biz_cc_id, original_ip_list)
-        ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
+
+        clean_result, target_server = self.get_target_server(
+            executor, biz_cc_id, data, original_ip_list, self.logger, False
+        )
+        if not clean_result:
+            return False
+
         job_timeout = data.get_one_of_inputs("job_timeout")
 
         job_kwargs = {
@@ -127,7 +133,7 @@ class JobFastPushFileService(JobService):
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
             "file_source_list": file_source,
-            "target_server": {"ip_list": ip_list},
+            "target_server": target_server,
             "account_alias": data.get_one_of_inputs("job_account"),
             "file_target_path": data.get_one_of_inputs("job_target_path"),
             "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),

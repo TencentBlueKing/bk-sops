@@ -44,7 +44,8 @@ from pipeline.component_framework.component import Component
 from api.utils.request import batch_request
 from gcloud.exceptions import ApiRequestError
 from pipeline_plugins.components.collections.sites.open.job import JobService
-from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, get_biz_ip_from_frontend
+from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from ..base import GetJobHistoryResultMixin
 
 from gcloud.conf import settings
@@ -58,7 +59,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
+class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin, GetJobTargetServerMixin):
     need_get_sops_var = True
 
     def inputs_format(self):
@@ -184,9 +185,10 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
         ip_is_exist = data.get_one_of_inputs("ip_is_exist")
 
         # 获取 IP
-        clean_result, ip_list = get_biz_ip_from_frontend(
-            original_ip_list, executor, biz_cc_id, data, self.logger, across_biz, ip_is_exist=ip_is_exist
+        clean_result, target_server = self.get_target_server(
+            executor, biz_cc_id, data, original_ip_list, self.logger, ip_is_exist, is_across=across_biz
         )
+
         if not clean_result:
             return False
 
@@ -196,7 +198,7 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin):
             "bk_biz_id": biz_cc_id,
             "timeout": data.get_one_of_inputs("job_script_timeout"),
             "account_alias": data.get_one_of_inputs("job_account"),
-            "target_server": {"ip_list": ip_list},
+            "target_server": target_server,
             "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
 

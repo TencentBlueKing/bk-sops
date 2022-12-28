@@ -144,8 +144,8 @@ class IPPickerHandlerTestCase(TestCase):
 
     def test_format_host_info(self):
         host_info = [
-            {"host": {"bk_host_innerip": "1.1.1.1", "bk_host_id": 1}},
-            {"host": {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2,3.3.3.3"}},
+            {"bk_host_innerip": "1.1.1.1", "bk_host_id": 1},
+            {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2,3.3.3.3"},
         ]
         expected_host_info = [
             {"bk_host_innerip": "1.1.1.1", "bk_host_id": 1},

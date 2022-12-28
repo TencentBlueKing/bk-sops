@@ -33,12 +33,14 @@ import base64
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud.constants import JobBizScopeType
-from gcloud.utils.ip import get_ip_by_regex
 from pipeline.core.flow.io import BooleanItemSchema, StringItemSchema
 from pipeline.component_framework.component import Component
+
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.job.all_biz_fast_execute_script.base_service import (
     BaseAllBizJobFastExecuteScriptService,
 )
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.utils import get_node_callback_url
 
 from gcloud.conf import settings
@@ -46,7 +48,7 @@ from gcloud.conf import settings
 __group_name__ = _("作业平台(JOB)")
 
 
-class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService):
+class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService, GetJobTargetServerMixin):
     need_get_sops_var = True
 
     biz_scope_type = JobBizScopeType.BIZ_SET.value
@@ -72,29 +74,27 @@ class AllBizJobFastExecuteScriptService(BaseAllBizJobFastExecuteScriptService):
             ),
         ]
 
-    def get_job_params(self, data):
+    def get_job_params(self, data, parent_data):
 
         biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
-
+        executor = parent_data.get_one_of_inputs("executor")
         script_param = str(data.get_one_of_inputs("job_script_param"))
         job_script_timeout = data.get_one_of_inputs("job_script_timeout")
         ip_info = data.get_one_of_inputs("job_target_ip_table")
+        supplier_account = supplier_account_for_business(biz_cc_id)
 
-        # 拼装ip_list， bk_cloud_id为空则值为0
-        ip_list = [
-            {"ip": ip, "bk_cloud_id": int(_ip["bk_cloud_id"]) if str(_ip["bk_cloud_id"]) else 0}
-            for _ip in ip_info
-            for ip in get_ip_by_regex(_ip["ip"])
-        ]
+        result, target_server = self.get_target_server_biz_set(
+            executor, ip_info, supplier_account, logger_handle=self.logger
+        )
+        if not result:
+            raise Exception("[AllBizJobFastExecuteScriptService]->get_job_params 查询主机失败")
 
         job_kwargs = {
             "bk_scope_type": self.biz_scope_type,
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
             "account_alias": data.get_one_of_inputs("job_target_account"),
-            "target_server": {
-                "ip_list": ip_list,
-            },
+            "target_server": target_server,
             "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
 

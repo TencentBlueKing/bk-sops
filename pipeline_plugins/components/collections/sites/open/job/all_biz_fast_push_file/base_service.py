@@ -17,6 +17,8 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema
 
 from gcloud.constants import JobBizScopeType
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
 from pipeline_plugins.components.utils import has_biz_set, batch_execute_func, get_job_instance_url, loose_strip
 from gcloud.conf import settings
@@ -28,8 +30,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class BaseAllBizJobFastPushFileService(JobScheduleService):
-
+class BaseAllBizJobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
     biz_scope_type = JobBizScopeType.BIZ_SET.value
 
     def inputs_format(self):
@@ -91,21 +92,29 @@ class BaseAllBizJobFastPushFileService(JobScheduleService):
             self.biz_scope_type = JobBizScopeType.BIZ.value
         return super().schedule(data, parent_data, callback_data)
 
-    def get_file_source(self, job_source_files):
-        file_source = [
-            {
-                "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
-                "server": {
-                    "ip_list": [
-                        {"ip": item["ip"], "bk_cloud_id": int(item["bk_cloud_id"]) if item["bk_cloud_id"] else 0}
-                    ],
-                },
-                "account": {
-                    "alias": loose_strip(item["account"]),
-                },
-            }
-            for item in job_source_files
-        ]
+    def get_file_source(self, data, parent_data):
+        executor = parent_data.get_one_of_inputs("executor")
+        biz_cc_id = int(data.get_one_of_inputs("all_biz_cc_id"))
+        supplier_account = supplier_account_for_business(biz_cc_id)
+
+        file_source = []
+        for item in data.get_one_of_inputs("job_source_files", []):
+            result, server = self.get_target_server_biz_set(
+                executor, [item], supplier_account, logger_handle=self.logger
+            )
+            if not result:
+                raise Exception("源文件信息处理失败，请检查ip配置是否正确, ip_list={}".format(item))
+
+            file_source.append(
+                {
+                    "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
+                    "server": server,
+                    "account": {
+                        "alias": loose_strip(item["account"]),
+                    },
+                }
+            )
+
         return file_source
 
     def execute(self, data, parent_data):
@@ -122,7 +131,7 @@ class BaseAllBizJobFastPushFileService(JobScheduleService):
         if not has_biz_set(int(biz_cc_id)):
             self.biz_scope_type = JobBizScopeType.BIZ.value
 
-        params_list = self.get_params_list(data)
+        params_list = self.get_params_list(data, parent_data)
         task_count = len(params_list)
         # 并发请求接口
         job_result_list = batch_execute_func(client.jobv3.fast_transfer_file, params_list, interval_enabled=True)

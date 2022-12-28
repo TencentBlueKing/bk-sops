@@ -21,11 +21,11 @@ from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemS
 from pipeline.component_framework.component import Component
 
 from pipeline_plugins.components.collections.sites.open.job import JobService
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.utils import (
     get_job_instance_url,
     get_node_callback_url,
     loose_strip,
-    get_biz_ip_from_frontend,
 )
 
 from gcloud.conf import settings
@@ -39,7 +39,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class JobFastPushFileService(JobService):
+class JobFastPushFileService(JobService, GetJobTargetServerMixin):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -103,15 +103,15 @@ class JobFastPushFileService(JobService):
         file_source = []
         for item in original_source_files:
             # filter 跨业务 IP
-            clean_source_ip_result, source_ip_list = get_biz_ip_from_frontend(
-                item["ip"], executor, biz_cc_id, data, self.logger, across_biz
+            clean_source_ip_result, server = self.get_target_server(
+                executor, biz_cc_id, data, item["ip"], self.logger, False, is_across=across_biz
             )
             if not clean_source_ip_result:
                 return False
             file_source.append(
                 {
                     "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
-                    "server": {"ip_list": source_ip_list},
+                    "server": server,
                     "account": {
                         "alias": loose_strip(item["account"]),
                     },
@@ -119,8 +119,14 @@ class JobFastPushFileService(JobService):
             )
         # 获取目标IP
         original_ip_list = data.get_one_of_inputs("job_ip_list")
-        clean_result, ip_list = get_biz_ip_from_frontend(
-            original_ip_list, executor, biz_cc_id, data, self.logger, is_across=False, ip_is_exist=ip_is_exist
+        clean_result, target_server = self.get_target_server(
+            executor,
+            biz_cc_id,
+            data,
+            original_ip_list,
+            logger_handle=self.logger,
+            ip_is_exist=ip_is_exist,
+            is_across=False,
         )
         if not clean_result:
             return False
@@ -131,7 +137,7 @@ class JobFastPushFileService(JobService):
             "bk_scope_id": str(biz_cc_id),
             "bk_biz_id": biz_cc_id,
             "file_source_list": file_source,
-            "target_server": {"ip_list": ip_list},
+            "target_server": target_server,
             "account_alias": data.get_one_of_inputs("job_account"),
             "file_target_path": data.get_one_of_inputs("job_target_path"),
             "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),

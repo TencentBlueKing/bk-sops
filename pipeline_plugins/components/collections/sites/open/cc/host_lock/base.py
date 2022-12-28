@@ -19,7 +19,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
-from pipeline_plugins.components.utils import cc_get_ips_info_by_str
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
@@ -37,7 +38,7 @@ class HostLockTypeService(Service, metaclass=ABCMeta):
         raise NotImplementedError()
 
 
-class CCHostLockBaseService(HostLockTypeService):
+class CCHostLockBaseService(HostLockTypeService, CCPluginIPMixin):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -58,13 +59,16 @@ class CCHostLockBaseService(HostLockTypeService):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
         cc_host_ip = data.get_one_of_inputs("cc_host_ip")
-        id_info = cc_get_ips_info_by_str(executor, biz_cc_id, cc_host_ip)
+        supplier_account = supplier_account_for_business(biz_cc_id)
+        host_list_result = self.get_host_list(executor, biz_cc_id, cc_host_ip, supplier_account)
 
-        if id_info["invalid_ip"]:
-            data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
+        if not host_list_result["result"]:
+            data.outputs.ex_data = _(
+                "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, message={}".format(host_list_result.get("message", ""))
+            )
             return False
-        host_list = [_ip["HostID"] for _ip in id_info["ip_result"]]
 
+        host_list = [int(host_id) for host_id in host_list_result["data"]]
         cc_host_lock_kwargs = {"id_list": host_list}
         cc_host_lock_method = getattr(client.cc, method)
         cc_host_lock_result = cc_host_lock_method(cc_host_lock_kwargs)

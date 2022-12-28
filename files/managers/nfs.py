@@ -63,6 +63,7 @@ class HostNFSManager(Manager):
         callback_url=None,
         timeout=None,
         bk_scope_type="biz",
+        target_server=None,
         rolling_config=None,
     ):
 
@@ -93,10 +94,12 @@ class HostNFSManager(Manager):
             "account_alias": account,
             "file_target_path": target_path,
             "file_source_list": file_source,
-            "target_server": {
-                "ip_list": ips,
-            },
         }
+
+        if target_server is not None:
+            job_kwargs["target_server"] = target_server
+        else:
+            job_kwargs["target_server"] = {"ip_list": ips}
 
         if timeout is not None:
             job_kwargs["timeout"] = int(timeout)

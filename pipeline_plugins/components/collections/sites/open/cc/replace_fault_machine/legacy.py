@@ -23,10 +23,9 @@ from pipeline.component_framework.component import Component
 
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
-from gcloud.utils import cmdb
-from gcloud.utils.ip import get_ip_by_regex
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -36,7 +35,7 @@ __group_name__ = _("配置平台(CMDB)")
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class CCReplaceFaultMachineService(Service):
+class CCReplaceFaultMachineService(Service, CCPluginIPMixin):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -98,52 +97,39 @@ class CCReplaceFaultMachineService(Service):
             if item["editable"]:
                 editable_attrs.append(item["bk_property_id"])
 
-        # 拉取所有主机信息
-        fault_replace_ip_map = {}
-        for item in cc_hosts:
-            fault_replace_ip_map["".join(get_ip_by_regex(item["cc_fault_ip"]))] = "".join(
-                get_ip_by_regex(item["cc_new_ip"])
-            )
-
-        all_hosts = []
-        all_hosts.extend(list(fault_replace_ip_map.keys()))
-        all_hosts.extend(list(fault_replace_ip_map.values()))
-
-        host_attrs = editable_attrs + ["bk_host_innerip"]
-        hosts_topo = cmdb.get_business_host_topo(executor, biz_cc_id, supplier_account, host_attrs, all_hosts)
-
-        if not hosts_topo:
-            data.outputs.ex_data = "fetch host topo for {} failed".format(all_hosts)
-            return False
+        host_attrs = editable_attrs
 
         # 只有复制故障机属性时才用到
         batch_update_kwargs = {"bk_obj_id": "host", "bk_supplier_account": supplier_account, "update": []}
-
-        host_dict = {host_info["host"]["bk_host_innerip"]: host_info["host"] for host_info in hosts_topo}
-        host_id_to_ip = {
-            host_info["host"]["bk_host_id"]: host_info["host"]["bk_host_innerip"] for host_info in hosts_topo
-        }
         fault_replace_id_map = {}
+        fault_host_map = {}
+        for host in cc_hosts:
+            fault_ip = host["cc_fault_ip"]
+            new_ip = host["cc_new_ip"]
 
-        for fault_ip, new_ip in list(fault_replace_ip_map.items()):
-            fault_host = host_dict.get(fault_ip)
-            new_host = host_dict.get(new_ip)
+            fault_host_list = self.get_host_topo(executor, biz_cc_id, supplier_account, host_attrs, fault_ip)
+            new_host_list = self.get_host_topo(executor, biz_cc_id, supplier_account, host_attrs, new_ip)
 
-            if not fault_host:
-                data.outputs.ex_data = _("无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % fault_ip
+            # 如果不存在，或者查询到的值大于1
+            if not fault_host_list or len(fault_host_list) != 1:
+                # 查询旧的主机出错
+                data.outputs.ex_data = data.outputs.ex_data = _("无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % fault_ip
                 return False
 
-            if not new_host:
-                data.outputs.ex_data = _("无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % new_ip
+            if not new_host_list or len(new_host_list) != 1:
+                data.outputs.ex_data = data.outputs.ex_data = _("无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % fault_ip
                 return False
 
+            fault_host = fault_host_list[0]
+            new_host = new_host_list[0]
             if copy_attrs:
-                update_item = {"properties": {}, "bk_host_id": new_host["bk_host_id"]}
-                for attr in [attr for attr in editable_attrs if attr in fault_host]:
-                    update_item["properties"][attr] = fault_host[attr]
+                update_item = {"properties": {}, "bk_host_id": new_host["host"]["bk_host_id"]}
+                for attr in [attr for attr in editable_attrs if attr in fault_host["host"]]:
+                    update_item["properties"][attr] = fault_host["host"][attr]
                 batch_update_kwargs["update"].append(update_item)
 
-            fault_replace_id_map[fault_host["bk_host_id"]] = new_host["bk_host_id"]
+            fault_replace_id_map[fault_host["host"]["bk_host_id"]] = new_host
+            fault_host_map[fault_host["host"]["bk_host_id"]] = fault_host
 
         # 更新替换机信息
         if copy_attrs:
@@ -171,19 +157,17 @@ class CCReplaceFaultMachineService(Service):
 
         # 转移主机模块
         transfer_kwargs_list = []
-        for host_info in hosts_topo:
-            new_host_id = fault_replace_id_map.get(host_info["host"]["bk_host_id"])
-
-            if new_host_id:
-                transfer_kwargs_list.append(
-                    {
-                        "bk_biz_id": biz_cc_id,
-                        "bk_supplier_account": supplier_account,
-                        "bk_host_id": [new_host_id],
-                        "bk_module_id": [module_info["bk_module_id"] for module_info in host_info["module"]],
-                        "is_increment": True,
-                    }
-                )
+        for fault_replace_id, new_host in fault_replace_id_map.items():
+            fault_host = fault_host_map[fault_replace_id]
+            transfer_kwargs_list.append(
+                {
+                    "bk_biz_id": biz_cc_id,
+                    "bk_supplier_account": supplier_account,
+                    "bk_host_id": [new_host["host"]["bk_host_id"]],
+                    "bk_module_id": [module_info["bk_module_id"] for module_info in fault_host["module"]],
+                    "is_increment": True,
+                }
+            )
 
         success = []
         for kwargs in transfer_kwargs_list:
@@ -195,8 +179,7 @@ class CCReplaceFaultMachineService(Service):
                     msg=message, success=_("成功替换的机器: %s") % ",".join(success)
                 )
                 return False
-
-            success.append(host_id_to_ip[kwargs["bk_host_id"][0]])
+            success.append(kwargs["bk_host_id"][0])
 
 
 class CCReplaceFaultMachineComponent(Component):

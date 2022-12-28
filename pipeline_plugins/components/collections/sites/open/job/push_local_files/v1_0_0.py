@@ -18,7 +18,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.collections.sites.open.job import JobService
-from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, get_biz_ip_from_frontend
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
+from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url
 from files.factory import ManagerFactory
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
@@ -31,7 +32,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class JobPushLocalFilesService(JobService):
+class JobPushLocalFilesService(JobService, GetJobTargetServerMixin):
     __need_schedule__ = True
 
     reload_outputs = False
@@ -66,11 +67,13 @@ class JobPushLocalFilesService(JobService):
 
         client = get_client_by_user(executor)
 
-        # filter 跨业务 IP
-        clean_result, ip_list = get_biz_ip_from_frontend(
-            target_ip_list, executor, biz_cc_id, data, self.logger, across_biz
+        # 获取 IP
+        clean_result, target_server = self.get_target_server(
+            executor, biz_cc_id, data, target_ip_list, self.logger, False, is_across=across_biz
         )
+
         if not clean_result:
+            data.outputs.ex_data = "ip查询失败，请检查ip配置是否正确，请检查ip配置是否正常"
             return False
         # 这里自动过滤掉上传失败的文件
         file_tags = [_file["response"]["tag"] for _file in local_files if _file["response"]["result"] is True]
@@ -80,9 +83,10 @@ class JobPushLocalFilesService(JobService):
             bk_biz_id=biz_cc_id,
             file_tags=file_tags,
             target_path=target_path,
-            ips=ip_list,
+            ips=None,
             account=target_account,
             callback_url=get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
+            target_server=target_server,
         )
 
         if not push_result["result"]:

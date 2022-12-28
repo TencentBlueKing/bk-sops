@@ -18,7 +18,8 @@ from api.client import BKComponentClient
 NODEMAN_API_ENTRY = env.BK_NODEMAN_API_ENTRY or "{}/{}".format(settings.BK_PAAS_ESB_HOST, "api/c/compapi/v2/nodeman")
 
 NODEMAN_API_ENTRY_V2 = env.BK_NODEMAN_API_ENTRY or "{}/{}".format(
-    settings.BK_PAAS_ESB_HOST, "api/c/compapi/{bk_api_ver}/nodeman/api".format(bk_api_ver=settings.DEFAULT_BK_API_VER),
+    settings.BK_PAAS_ESB_HOST,
+    "api/c/compapi/{bk_api_ver}/nodeman/api".format(bk_api_ver=settings.DEFAULT_BK_API_VER),
 )
 
 
@@ -47,12 +48,16 @@ class BKNodeManClient(BKComponentClient):
 
     def get_task_info(self, bk_biz_id, job_id):
         return self._request(
-            method="get", url=_get_nodeman_api("get_task_info"), data={"bk_biz_id": bk_biz_id, "job_id": job_id},
+            method="get",
+            url=_get_nodeman_api("get_task_info"),
+            data={"bk_biz_id": bk_biz_id, "job_id": job_id},
         )
 
     def get_log(self, host_id, bk_biz_id):
         return self._request(
-            method="get", url=_get_nodeman_api("get_log"), data={"host_id": host_id, "bk_biz_id": bk_biz_id},
+            method="get",
+            url=_get_nodeman_api("get_log"),
+            data={"host_id": host_id, "bk_biz_id": bk_biz_id},
         )
 
     def search_host_plugin(self, bk_biz_id, pagesize, conditions):
@@ -86,11 +91,12 @@ class BKNodeManClient(BKComponentClient):
 
     def get_job_log(self, job_id, instance_id):
         return self._request(
-            method="post", url=_get_nodeman_api_v2("job/log"), data={"job_id": job_id, "instance_id": instance_id},
+            method="post",
+            url=_get_nodeman_api_v2("job/log"),
+            data={"job_id": job_id, "instance_id": instance_id},
         )
 
     def cloud_list(self):
-        print(_get_nodeman_api_v2("cloud"))
         return self._request(method="get", url=_get_nodeman_api_v2("cloud"), data={})
 
     def ap_list(self):
