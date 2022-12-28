@@ -99,3 +99,8 @@ class EngineConfigAdmin(admin.ModelAdmin):
 class DisabledComponentAdmin(admin.ModelAdmin):
     search_fields = ["component_code", "action", "scope"]
     list_display = ["component_code", "action", "scope"]
+
+
+@admin.register(models.UserFavoriteProject)
+class UserFavoriteProjectAdmin(admin.ModelAdmin):
+    list_display = ["id", "username", "project_id"]

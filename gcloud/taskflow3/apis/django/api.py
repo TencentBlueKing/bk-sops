@@ -205,7 +205,7 @@ def detail(request, project_id):
                     "ex_data": "节点错误信息(string)"
                 }
             ],
-            "auto_retry_info": {"node_id": "act1", "auto_retry_times": 3, "max_auto_retry_times": 10},
+            "auto_retry_info": "自动重试信息, node_id auto_retry_times max_auto_retry_times 三个 key (dict)",
             "inputs": "节点输入数据, include_data 为 1 时返回(object or null)",
             "outputs": "节点输出数据, include_data 为 1 时返回(list)",
             "ex_data": "节点错误信息, include_data 为 1 时返回(string)"
