@@ -17,4 +17,5 @@ from .utils import common_process_request
 
 class JobRepoBartender(UploadRequestBartender):
     def process_request(self, request, *args, **kwargs):
+        kwargs["use_md5_in_file_tag"] = True
         return common_process_request(request, self.manager, *args, **kwargs)

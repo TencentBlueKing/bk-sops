@@ -56,6 +56,7 @@ def get_task_node_detail(request, task_id, project_id):
 
     node_id = request.GET.get("node_id")
     component_code = request.GET.get("component_code")
+    loop = request.GET.get("loop")
 
     try:
         subprocess_stack = json.loads(request.GET.get("subprocess_stack", "[]"))
@@ -71,5 +72,6 @@ def get_task_node_detail(request, task_id, project_id):
         component_code=component_code,
         subprocess_stack=subprocess_stack,
         project_id=project_id,
+        loop=loop,
     )
     return result
