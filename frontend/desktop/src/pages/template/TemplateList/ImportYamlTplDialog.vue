@@ -15,8 +15,8 @@
                     accept=".yaml,.yml"
                     url=""
                     :limit="1"
-                    :size="2"
-                    :tip="$t('支持YAML类型文件，文件小于2M')"
+                    :size="2048"
+                    :tip="$t('支持YAML类型文件，文件小于2G')"
                     :custom-request="handleUpload">
                 </bk-upload>
             </div>
@@ -431,8 +431,8 @@
             onFileChange (e) {
                 const file = e.target.files[0]
                 if (file) {
-                    if (file.size > 2 * 1024 * 1024) {
-                        this.$bkMessage({ message: i18n.t('上传失败，YAML类型文件最大为2M'), theme: 'error' })
+                    if (file.size > 2 * 1024 * 1024 * 1024) {
+                        this.$bkMessage({ message: i18n.t('上传失败，YAML类型文件最大为2G'), theme: 'error' })
                         return
                     }
                     const filename = file.name
