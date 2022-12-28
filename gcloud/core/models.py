@@ -268,6 +268,29 @@ class UserDefaultProjectManager(models.Manager):
             return self.create(username=username, default_project=project)
 
 
+class UserFavoriteProjectManager(models.Manager):
+    def add_user_favorite_project(self, username, project_id):
+        return self.create(username=username, project_id=project_id)
+
+    def remove_user_favorite_project(self, username, project_id):
+        return self.filter(username=username, project_id=project_id).delete()
+
+    def get_user_favorite_projects(self, username):
+        return self.filter(username=username).values_list("project_id", flat=True)
+
+
+class UserFavoriteProject(models.Model):
+    username = models.CharField(_("用户名"), max_length=128)
+    project_id = models.IntegerField(_("项目id"))
+
+    objects = UserFavoriteProjectManager()
+
+    class Meta:
+        verbose_name = _("用户收藏项目 UserFavoriteProject")
+        verbose_name_plural = _("用户收藏项目 UserFavoriteProject")
+        unique_together = ("username", "project_id")
+
+
 class UserDefaultProject(models.Model):
     username = models.CharField(_("用户名"), max_length=255, unique=True)
     default_project = models.ForeignKey(verbose_name=_("用户默认项目"), to=Project, on_delete=models.CASCADE)

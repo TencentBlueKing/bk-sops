@@ -29,3 +29,8 @@ class ProjectSerializer(serializers.ModelSerializer):
             "bk_biz_id",
             "relate_business",
         ]
+
+
+class ProjectWithFavSerializer(ProjectSerializer):
+    is_fav = serializers.BooleanField(read_only=True)
+    is_user_project = serializers.BooleanField(read_only=True)
