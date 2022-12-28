@@ -13,14 +13,22 @@
     <div class="tag-input">
         <div class="rf-form-wrapper">
             <template v-if="formMode">
-                <el-input
-                    type="text"
-                    v-model="inputValue"
-                    :disabled="!editable || disabled"
-                    :show-password="showPassword"
-                    :placeholder="placeholder"
-                    @input="onInput">
-                </el-input>
+                <div class="rf-form-wrap" :class="{ 'input-focus': input.focus }">
+                    <div
+                        ref="input"
+                        class="div-input"
+                        :class="{
+                            'input-before': !input.value
+                        }"
+                        contenteditable="true"
+                        :data-placeholder="placeholder"
+                        @mouseup="handleInputMouseUp"
+                        @focus="handleInputFocus"
+                        @blur="handleInputBlur "
+                        @keydown="handleInputKeyDown"
+                        @input="handleInputChange">
+                    </div>
+                </div>
                 <transition>
                     <div class="rf-select-list" v-show="showVarList && isListOpen">
                         <ul class="rf-select-content">
@@ -38,22 +46,6 @@
             <span v-else class="rf-view-value">{{ viewValue }}</span>
         </div>
         <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{ validateInfo.message }}</span>
-        <div class="rf-form-wrap" :class="{ 'input-focus': input.focus }">
-            <div
-                ref="input"
-                class="div-input"
-                :class="{
-                    'input-before': !input.value
-                }"
-                contenteditable="true"
-                :data-placeholder="placeholder"
-                @mouseup="handleInputMouseUp"
-                @focus="handleInputFocus"
-                @blur="handleInputBlur "
-                @keydown="handleInputKeyDown"
-                @input="handleInputChange">
-            </div>
-        </div>
     </div>
 </template>
 <script>
@@ -62,7 +54,7 @@
     import dom from '@/utils/dom.js'
     import { getFormMixins } from '../formMixins.js'
 
-    const VAR_REG = /\$.*$/
+    const VAR_REG = /\$[^\}]*$/
 
     export const attrs = {
         placeholder: {
@@ -159,20 +151,9 @@
                     this.isListOpen = false
                 }
             },
-            onInput (val) {
-                const matchResult = val.match(VAR_REG)
-                if (matchResult && matchResult[0]) {
-                    const regStr = matchResult[0].replace(/[\$\{\}]/g, '\\$&')
-                    const inputReg = new RegExp(regStr)
-                    this.varList = this.constantArr.filter(item => {
-                        return inputReg.test(item)
-                    })
-                } else {
-                    this.varList = []
-                }
-                this.isListOpen = !!this.varList.length
-            },
             onSelectVal (val) {
+                const divInputDom = document.querySelector('.div-input')
+                divInputDom.innerText = divInputDom.innerText.replace(VAR_REG, val)
                 const replacedValue = this.value.replace(VAR_REG, val)
                 this.updateForm(replacedValue)
                 this.isListOpen = false
@@ -185,7 +166,6 @@
                 if (varTagDoms && varTagDoms.length) {
                     isVarTagDom = Array.from(varTagDoms).some(item => dom.nodeContains(item, e.target))
                 }
-                console.log(isVarTagDom)
                 if (isVarTagDom) {
                     const varText = e.target.innerText
                     const varTextHtml = `<span contenteditable="false" class="var-tag">${varText}</span>`
@@ -220,6 +200,18 @@
             handleInputChange (e) {
                 const { innerText } = e.target
                 this.input.value = innerText
+                this.updateForm(innerText)
+                const matchResult = innerText.match(VAR_REG)
+                if (matchResult && matchResult[0]) {
+                    const regStr = matchResult[0].replace(/[\$\{\}]/g, '\\$&')
+                    const inputReg = new RegExp(regStr)
+                    this.varList = this.constantArr.filter(item => {
+                        return inputReg.test(item)
+                    })
+                } else {
+                    this.varList = []
+                }
+                this.isListOpen = !!this.varList.length
             },
             // 文本框失焦
             handleInputBlur  (e) {
