@@ -38,6 +38,22 @@
             <span v-else class="rf-view-value">{{ viewValue }}</span>
         </div>
         <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{ validateInfo.message }}</span>
+        <div class="rf-form-wrap" :class="{ 'input-focus': input.focus }">
+            <div
+                ref="input"
+                class="div-input"
+                :class="{
+                    'input-before': !input.value
+                }"
+                contenteditable="true"
+                :data-placeholder="placeholder"
+                @mouseup="handleInputMouseUp"
+                @focus="handleInputFocus"
+                @blur="handleInputBlur "
+                @keydown="handleInputKeyDown"
+                @input="handleInputChange">
+            </div>
+        </div>
     </div>
 </template>
 <script>
@@ -84,6 +100,10 @@
         data () {
             return {
                 isListOpen: false,
+                input: {
+                    value: '',
+                    focus: false
+                },
                 varList: []
             }
         },
@@ -156,6 +176,75 @@
                 const replacedValue = this.value.replace(VAR_REG, val)
                 this.updateForm(replacedValue)
                 this.isListOpen = false
+            },
+            // 文本框点击
+            handleInputMouseUp (e) {
+                // 判断是否点到变量节点上
+                let isVarTagDom = false
+                const varTagDoms = document.querySelectorAll('.var-tag')
+                if (varTagDoms && varTagDoms.length) {
+                    isVarTagDom = Array.from(varTagDoms).some(item => dom.nodeContains(item, e.target))
+                }
+                console.log(isVarTagDom)
+                if (isVarTagDom) {
+                    const varText = e.target.innerText
+                    const varTextHtml = `<span contenteditable="false" class="var-tag">${varText}</span>`
+                    const divInputDom = document.querySelector('.div-input')
+                    // 记录光标的位置
+                    const selection = window.getSelection()
+                    const varTextOffset = selection.anchorOffset
+                    // 替换内容
+                    divInputDom.innerHTML = divInputDom.innerHTML.replace(varTextHtml, varText)
+                    // 变量左侧文本的长度
+                    let startToVarTextLength = 0
+                    // 选取符合条件的文本节点
+                    const textNode = Array.from(divInputDom.childNodes).find(item => {
+                        if (item.nodeName === '#text' && item.textContent.indexOf(varText) > -1) {
+                            startToVarTextLength = item.textContent.split(varText)[0].length
+                            return true
+                        }
+                    })
+                    selection.collapse(textNode, startToVarTextLength + varTextOffset)
+                }
+            },
+            // 文本框获取焦点
+            handleInputFocus () {
+                this.input.focus = true
+                const input = this.$refs.input
+                // 设置光标到最后
+                const selection = window.getSelection()
+                selection.selectAllChildren(input)
+                selection.collapseToEnd()
+            },
+            // 文本框输入
+            handleInputChange (e) {
+                const { innerText } = e.target
+                this.input.value = innerText
+            },
+            // 文本框失焦
+            handleInputBlur  (e) {
+                this.input.focus = false
+                const { innerText } = e.target
+                const varRegexp = /\s?\${(?!_env_|_system\.)[a-zA-Z_]\w*}\s?/g
+                const innerHtml = innerText.replace(varRegexp, (match) => {
+                    return ` <span contenteditable="false" class="var-tag">${match.trim()}</span> ` // 两边留空格保持间距
+                })
+                e.target.innerHTML = innerHtml
+            },
+            // 文本框按键事件
+            handleInputKeyDown (e) {
+                switch (e.code) {
+                    case 'Enter':
+                    case 'NumpadEnter':
+                        e.preventDefault()
+                        break
+                    case 'ArrowDown':
+                    case 'ArrowUp':
+                        e.preventDefault()
+                        break
+                    default:
+                        return false
+                }
             }
         }
     }
@@ -194,6 +283,34 @@
                 background: #eef6fe;
                 color: #3a84ff;
             }
+        }
+    }
+    .rf-form-wrap {
+        line-height: 32px;
+        padding: 0 10px;
+        border: 1px solid #c4c6cc;
+        border-radius: 2px;
+        margin-top: 20px;
+        &.input-focus {
+            border-color: #3a84ff;
+        }
+    }
+    .div-input {
+        color: #63656e;
+        white-space: nowrap;
+        overflow: hidden;
+        /deep/.var-tag {
+            line-height: 20px;
+            padding: 1px 4px;
+            background: #f0f1f5;
+            cursor: pointer;
+            &:hover {
+                background: #eaebf0;
+            }
+        }
+        &.input-before::before {
+            content: attr(data-placeholder);
+            color: #c4c6cc;
         }
     }
 }
