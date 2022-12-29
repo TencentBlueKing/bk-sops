@@ -38,11 +38,21 @@
                     :key="i"
                     :id="option.id"
                     :name="option.from_cmdb ? `[${option.bk_biz_id}] ${option.name}` : `[${option.id}] ${option.name}`">
+                    <div class="">{{ option.from_cmdb ? `[${option.bk_biz_id}] ${option.name}` : `[${option.id}] ${option.name}` }}</div>
+                    <div v-bk-tooltips="favoriteMax === 9 ? '最多只能收藏9个' : option.is_disabled ? '添加收藏' : '取消收藏'" style="padding: 0 5px" class="commonicon-icon common-icon-favorite" @click.stop="changeFavorite(option)"></div>
                 </bk-option>
             </bk-option-group>
             <div slot="extension" @click="jumpToOther">
-                <i class="bk-icon icon-plus-circle"></i>
-                {{ $t('申请业务权限') }}
+                <div class="project-create">
+                    <div class="project">
+                        <i class="bk-icon icon-plus-circle"></i>
+                        {{ $t('新建业务') }}
+                    </div>
+                    <div class="project">
+                        <i class="bk-icon icon-plus-circle"></i>
+                        {{ $t('新建业务集') }}
+                    </div>
+                </div>
             </div>
         </bk-select>
     </div>
@@ -69,7 +79,8 @@
             return {
                 crtProject: isNaN(id) ? '' : id,
                 showList: false,
-                searchStr: ''
+                searchStr: '',
+                favoriteMax: 9
             }
         },
         computed: {
@@ -107,6 +118,10 @@
                 })
 
                 return projects
+            },
+            displayTooltips (option) {
+                console.log(option)
+                return 'ss'
             }
         },
         methods: {
@@ -144,6 +159,9 @@
             // 这里统一直接用后端提供的 host 跳转
             jumpToOther () {
                 openOtherApp(window.BK_IAM_APP_CODE, window.BK_IAM_APPLY_URL)
+            },
+            changeFavorite (option) {
+                console.log(option)
             }
         }
     }
@@ -202,6 +220,9 @@
     .project-select-comp-list {
         .project-item.bk-option {
             .bk-option-content {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
                 padding: 0;
                 .bk-option-content-default {
                     padding: 0;
@@ -217,6 +238,13 @@
         .bk-select-extension {
             text-align: center;
             cursor: pointer;
+            padding: 0;
+            .project-create {
+                display: flex;
+                .project {
+                    flex: 1;
+                }
+            }
         }
     }
 </style>
