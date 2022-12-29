@@ -30,7 +30,10 @@
                     </div>
                 </div>
                 <transition>
-                    <div class="rf-select-list" v-show="showVarList && isListOpen">
+                    <div
+                        class="rf-select-list"
+                        :style="`left: ${varListPositionLeft}px`"
+                        v-show="showVarList && isListOpen">
                         <ul class="rf-select-content">
                             <li
                                 class="rf-select-item"
@@ -96,7 +99,8 @@
                     value: '',
                     focus: false
                 },
-                varList: []
+                varList: [],
+                varListPositionLeft: 0
             }
         },
         computed: {
@@ -155,8 +159,10 @@
                 const divInputDom = document.querySelector('.div-input')
                 divInputDom.innerText = divInputDom.innerText.replace(VAR_REG, val)
                 const replacedValue = this.value.replace(VAR_REG, val)
+                this.input.value = replacedValue
                 this.updateForm(replacedValue)
                 this.isListOpen = false
+                this.handleInputBlur()
             },
             // 文本框点击
             handleInputMouseUp (e) {
@@ -198,7 +204,7 @@
             },
             // 文本框输入
             handleInputChange (e) {
-                const { innerText } = e.target
+                const { innerText, innerHTML } = e.target
                 this.input.value = innerText
                 this.updateForm(innerText)
                 const matchResult = innerText.match(VAR_REG)
@@ -208,6 +214,17 @@
                     this.varList = this.constantArr.filter(item => {
                         return inputReg.test(item)
                     })
+                    // 计算变量下拉列表的left
+                    if (!this.isListOpen && this.varList.length) {
+                        const newDom = document.createElement('span')
+                        newDom.innerHTML = innerHTML.split(0, -1)
+                        const tagInput = document.querySelector('.tag-input')
+                        tagInput.appendChild(newDom)
+                        let inputValueWidth = newDom.offsetWidth || 0
+                        tagInput.removeChild(newDom)
+                        inputValueWidth = inputValueWidth > 380 ? 380 : inputValueWidth
+                        this.varListPositionLeft = inputValueWidth
+                    }
                 } else {
                     this.varList = []
                 }
@@ -216,12 +233,12 @@
             // 文本框失焦
             handleInputBlur  (e) {
                 this.input.focus = false
-                const { innerText } = e.target
-                const varRegexp = /\s?\${(?!_env_|_system\.)[a-zA-Z_]\w*}\s?/g
-                const innerHtml = innerText.replace(varRegexp, (match) => {
+                const varRegexp = /\s?\${[a-zA-Z_]\w*}\s?/g
+                const innerHtml = this.input.value.replace(varRegexp, (match) => {
                     return ` <span contenteditable="false" class="var-tag">${match.trim()}</span> ` // 两边留空格保持间距
                 })
-                e.target.innerHTML = innerHtml
+                const divInputDom = document.querySelector('.div-input')
+                divInputDom.innerHTML = innerHtml
             },
             // 文本框按键事件
             handleInputKeyDown (e) {
@@ -254,7 +271,7 @@
             position: absolute;
             top: 40px;
             right: 0;
-            width: 100%;
+            width: 238px;
             background: #ffffff;
             border-radius: 2px;
             box-shadow: 0 0 8px 1px rgba(0, 0, 0, 0.1);
