@@ -13,14 +13,14 @@
     <div class="tag-input">
         <div class="rf-form-wrapper">
             <template v-if="formMode">
-                <div class="rf-form-wrap" :class="{ 'input-focus': input.focus }">
+                <div class="rf-form-wrap" :class="{ 'input-focus': input.focus, 'input-disable': isDisabled }">
                     <div
                         ref="input"
                         class="div-input"
                         :class="{
                             'input-before': !input.value
                         }"
-                        contenteditable="true"
+                        :contenteditable="!isDisabled"
                         :data-placeholder="placeholder"
                         @mouseup="handleInputMouseUp"
                         @focus="handleInputFocus"
@@ -137,6 +137,9 @@
                 } else {
                     return this.showPassword ? '******' : this.value
                 }
+            },
+            isDisabled () {
+                return !this.editable || this.disable
             }
         },
         created () {
@@ -302,6 +305,11 @@
         margin-top: 20px;
         &.input-focus {
             border-color: #3a84ff;
+        }
+        &.input-disable {
+            cursor: not-allowed;
+            background-color: #fafbfd;
+            border-color: #dcdee5;
         }
     }
     .div-input {
