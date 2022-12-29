@@ -82,11 +82,17 @@ export default class ErrorNotify {
         this.handleMouseEvent()
     }
     setNotifyTitleAndContent (info, isTitle, errorSource, msgIndex) {
+        let content = ''
         if (errorSource !== 'result') {
-            return isTitle ? info.split(':')[0].split('{')[1].replace(/\'|\"/g, '') : info.split(':')[1].split('}')[0]
+            const infoArr = info.split(': ')
+            content = isTitle ? infoArr[0].split('{')[1].replace(/\'|\"/g, '') : (infoArr[1] || infoArr[0]).split('}')[0]
         } else {
-            return isTitle ? JSON.parse(info).message.split(':')[0] : JSON.parse(info).message.split(':').slice(1).join(':').split(' | ')[msgIndex]
+            content = isTitle ? JSON.parse(info).message.split(': ')[0] : JSON.parse(info).message.split(': ').slice(1).join(': ').split(' | ')[msgIndex]
         }
+        if (isTitle && (!content || content.length > 21)) { // 21为标题能容纳的最大数量
+            content = errorSource === 'result' ? i18n.t('请求异常（外部系统错误或非法操作）') : i18n.t('请求异常（内部系统发生未知错误）')
+        }
+        return content
     }
     // 开始倒计时
     startTimeCountDown () {
