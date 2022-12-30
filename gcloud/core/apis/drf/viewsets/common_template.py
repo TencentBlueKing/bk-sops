@@ -18,6 +18,7 @@ from django.db import transaction
 from django.db.models import ExpressionWrapper, Q, BooleanField
 from drf_yasg.utils import swagger_auto_schema
 from iam import Request, Subject, Action, Resource
+from iam.exceptions import AuthFailedException
 from rest_framework.decorators import action
 from rest_framework.exceptions import ErrorDetail
 from rest_framework import status, permissions
@@ -28,6 +29,7 @@ from gcloud import err_code
 from gcloud.contrib.collection.models import Collection
 from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
+from gcloud.core.apis.drf.viewsets import IAMMixin
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.core.apis.drf.serilaziers.common_template import (
     CommonTemplateListSerializer,
@@ -44,30 +46,61 @@ from gcloud.iam_auth import res_factory, get_iam_client
 from gcloud.iam_auth import IAMMeta
 from gcloud.core.apis.drf.filtersets import PropertyFilterSet
 from gcloud.core.apis.drf.filters import BooleanPropertyFilter
-from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
 from pipeline.models import TemplateScheme
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=CommonTemplate)
 
 
-class CommonTemplatePermission(IamPermission):
+class CommonTemplateWithCommonSpacePermission(IAMMixin, permissions.BasePermission):
     actions = {
-        "list": IamPermissionInfo(pass_all=True),
-        "list_with_top_collection": IamPermissionInfo(pass_all=True),
-        "retrieve": IamPermissionInfo(
-            IAMMeta.COMMON_FLOW_VIEW_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
-        ),
-        "destroy": IamPermissionInfo(
-            IAMMeta.COMMON_FLOW_DELETE_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
-        ),
-        "update": IamPermissionInfo(
-            IAMMeta.COMMON_FLOW_EDIT_ACTION, res_factory.resources_for_common_flow_obj, HAS_OBJECT_PERMISSION
-        ),
-        "create": IamPermissionInfo(IAMMeta.COMMON_FLOW_CREATE_ACTION),
-        "enable_independent_subprocess": IamPermissionInfo(pass_all=True),
-        "common_info": IamPermissionInfo(pass_all=True),
+        "create": IAMMeta.COMMON_FLOW_CREATE_ACTION,
+        "retrieve": IAMMeta.COMMON_FLOW_VIEW_ACTION,
+        "update": IAMMeta.COMMON_FLOW_EDIT_ACTION,
+        "destroy": IAMMeta.COMMON_FLOW_DELETE_ACTION,
+        "transfer_common_space": IAMMeta.COMMON_FLOW_EDIT_ACTION,
     }
+
+    def has_permission(self, request, view):
+        if view.action == "create":
+            common_space_id = request.data.get("space_id")
+            if not common_space_id:
+                self.iam_auth_check(request, action=self.actions[view.action], resources=[])
+            return self._has_common_space_join_permission(request, common_space_id)
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        if view.action in ["retrieve", "destroy", "update"]:
+            common_space_id = obj.space_id
+            if common_space_id and self._has_common_space_join_permission(request, common_space_id):
+                return True
+            self.iam_auth_check(
+                request, action=self.actions[view.action], resources=res_factory.resources_for_common_flow_obj(obj)
+            )
+        elif view.action == "transfer_common_space":
+            original_common_space_id = obj.space_id
+            if original_common_space_id:
+                self._has_common_space_join_permission(request, original_common_space_id, raise_exception=True)
+            else:
+                self.iam_auth_check(
+                    request, action=self.actions[view.action], resources=res_factory.resources_for_common_flow_obj(obj)
+                )
+            common_space_id = request.data.get("target_space_id")
+            return self._has_common_space_join_permission(request, common_space_id)
+        return True
+
+    def _has_common_space_join_permission(self, request, common_space_id, raise_exception=False):
+        try:
+            self.iam_auth_check(
+                request,
+                action=IAMMeta.COMMON_SPACE_JOIN_ACTION,
+                resources=res_factory.resources_for_common_space(common_space_id),
+            )
+        except AuthFailedException:
+            if raise_exception:
+                raise
+            return False
+        return True
 
 
 class CommonTemplateFilter(PropertyFilterSet):
@@ -94,7 +127,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         actions=[IAMMeta.COMMON_FLOW_VIEW_ACTION, IAMMeta.COMMON_FLOW_EDIT_ACTION, IAMMeta.COMMON_FLOW_DELETE_ACTION],
     )
     filterset_class = CommonTemplateFilter
-    permission_classes = [permissions.IsAuthenticated, CommonTemplatePermission]
+    permission_classes = [permissions.IsAuthenticated, CommonTemplateWithCommonSpacePermission]
     ordering = ["-id"]
 
     def get_serializer_class(self):
@@ -267,6 +300,14 @@ class CommonTemplateViewSet(GcloudModelViewSet):
             instance_id=template.id,
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=["post"])
+    def transfer_common_space(self, request, *args, **kwargs):
+        target_space_id = request.data.get("target_space_id")
+        template = self.get_object()
+        template.space_id = target_space_id
+        template.save()
+        return Response("success")
 
     @swagger_auto_schema(method="GET", operation_summary="查询流程是否开启独立子流程")
     @action(methods=["GET"], detail=True)

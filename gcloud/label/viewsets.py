@@ -10,26 +10,44 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.db.models import Q
+from functools import wraps
+
+from django.utils.decorators import method_decorator
 from drf_yasg.utils import swagger_auto_schema
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from gcloud.constants import PROJECT, COMMON
 from gcloud.core.apis.drf.exceptions import ValidationException
 from gcloud.core.apis.drf.viewsets import ApiMixin, permissions
 from gcloud.label.models import Label, TemplateLabelRelation
+from gcloud.label.permissions import LabelIAMAdapter
 from gcloud.label.serilaziers import NewLabelSerializer
-from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.openapi.schema import AnnotationAutoSchema
-
-from iam import Subject, Action
-from iam.shortcuts import allow_or_raise_auth_failed
-
 from gcloud.utils.models import Convert
 
-iam = get_iam_client()
+
+def label_view_decorator(func):
+    @wraps(func)
+    def wrapper(request, *args, **kwargs):
+        project_id = request.query_params.get("project_id") or request.data.get("project_id")
+        from_space = request.query_params.get("from_space") or request.data.get("from_space")
+        if project_id is not None and from_space is not None:
+            raise ValidationException("[label_view_decorator] project_id and from_space can not both be filled.")
+        scope_id = (
+            project_id
+            if not from_space
+            else request.query_params.get("from_space_id") or request.data.get("from_space_id")
+        )
+        scope_type = PROJECT if not from_space else COMMON
+        setattr(request, "scope_id", scope_id)
+        setattr(request, "scope_type", scope_type)
+
+        return func(request, *args, **kwargs)
+
+    return wrapper
 
 
 class NewLabelViewSet(ApiMixin, ModelViewSet):
@@ -46,85 +64,57 @@ class NewLabelViewSet(ApiMixin, ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = "__all__"
 
+    @method_decorator(label_view_decorator)
     def create(self, request, *args, **kwargs):
-        project_id = request.data.get("project_id")
-        if not project_id:
-            raise ValidationException("project_id should be provided.")
-        allow_or_raise_auth_failed(
-            iam=iam,
-            system=IAMMeta.SYSTEM_ID,
-            subject=Subject("user", request.user.username),
-            action=Action(IAMMeta.PROJECT_EDIT_ACTION),
-            resources=res_factory.resources_for_project(project_id),
-        )
+        LabelIAMAdapter(handler_type=request.scope_type).handle(request, self.action, request.scope_id)
         return super(NewLabelViewSet, self).create(request, *args, **kwargs)
 
+    @method_decorator(label_view_decorator)
     def list(self, request, *args, **kwargs):
-        project_id = request.query_params.get("project_id")
-        if not project_id:
-            raise ValidationException("project_id should be provided.")
-        allow_or_raise_auth_failed(
-            iam=iam,
-            system=IAMMeta.SYSTEM_ID,
-            subject=Subject("user", request.user.username),
-            action=Action(IAMMeta.PROJECT_VIEW_ACTION),
-            resources=res_factory.resources_for_project(project_id),
-        )
+        LabelIAMAdapter(handler_type=request.scope_type).handle(request, self.action, request.scope_id)
         return super(NewLabelViewSet, self).list(request, *args, **kwargs)
 
+    @method_decorator(label_view_decorator)
     def update(self, request, *args, **kwargs):
         label = self.get_object()
         if label.is_default:
             raise ValidationException("default label cannot be updated.")
-        project_id = label.project_id
-        allow_or_raise_auth_failed(
-            iam=iam,
-            system=IAMMeta.SYSTEM_ID,
-            subject=Subject("user", request.user.username),
-            action=Action(IAMMeta.PROJECT_EDIT_ACTION),
-            resources=res_factory.resources_for_project(project_id),
-        )
+        scope_id = label.project_id or label.from_space_id
+        scope_type = PROJECT if label.project_id else COMMON
+        LabelIAMAdapter(handler_type=scope_type).handle(request, self.action, scope_id)
         return super(NewLabelViewSet, self).update(request, *args, **kwargs)
 
+    @method_decorator(label_view_decorator)
     def destroy(self, request, *args, **kwargs):
         label = self.get_object()
         if label.is_default:
             raise ValidationException("default label cannot be deleted.")
-        project_id = label.project_id
-        allow_or_raise_auth_failed(
-            iam=iam,
-            system=IAMMeta.SYSTEM_ID,
-            subject=Subject("user", request.user.username),
-            action=Action(IAMMeta.PROJECT_EDIT_ACTION),
-            resources=res_factory.resources_for_project(project_id),
-        )
+        scope_id = label.project_id or label.from_space_id
+        scope_type = PROJECT if label.project_id else COMMON
+        LabelIAMAdapter(handler_type=scope_type).handle(request, self.action, scope_id)
         self.perform_destroy(label)
         return Response({"result": True, "message": "success"})
 
     @swagger_auto_schema(methods=["get"], auto_schema=AnnotationAutoSchema, ignore_filter_query=True)
     @action(methods=["get"], detail=False)
+    @method_decorator(label_view_decorator)
     def list_with_default_labels(self, request, *args, **kwargs):
         """
         获取某个项目下的标签（包括默认标签）
 
         param: project_id: 项目ID, integer, query, required
         """
-        project_id = request.query_params.get("project_id")
-        if not project_id:
-            raise ValidationException("project_id should be provided.")
-        allow_or_raise_auth_failed(
-            iam=iam,
-            system=IAMMeta.SYSTEM_ID,
-            subject=Subject("user", request.user.username),
-            action=Action(IAMMeta.PROJECT_VIEW_ACTION),
-            resources=res_factory.resources_for_project(project_id),
-        )
-        queryset = Label.objects.filter(Q(project_id=project_id) | Q(is_default=True)).order_by(Convert("name", "gbk"))
+        LabelIAMAdapter(handler_type=request.scope_type).handle(request, self.action, request.scope_id)
+        if request.scope_type == PROJECT:
+            queryset = Label.objects.get_project_label_with_default(request.scope_id)
+        else:
+            queryset = Label.objects.get_common_label_with_default()
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
     @swagger_auto_schema(method="get", auto_schema=AnnotationAutoSchema, ignore_filter_query=True)
     @action(methods=["get"], detail=False)
+    @method_decorator(label_view_decorator)
     def get_templates_labels(self, request):
         """
         批量获取某些流程对应的标签
@@ -147,7 +137,9 @@ class NewLabelViewSet(ApiMixin, ModelViewSet):
 
     @swagger_auto_schema(method="get", auto_schema=AnnotationAutoSchema, ignore_filter_query=True)
     @action(methods=["get"], detail=False)
+    @method_decorator(label_view_decorator)
     def get_label_template_ids(self, request):
+
         """
         批量某些标签对应的流程id
 
@@ -161,8 +153,7 @@ class NewLabelViewSet(ApiMixin, ModelViewSet):
         """
         return self._fetch_label_or_template_ids(request, fetch_label=False)
 
-    @staticmethod
-    def _fetch_label_or_template_ids(request, fetch_label):
+    def _fetch_label_or_template_ids(self, request, fetch_label):
         base_id_name = "template_ids" if fetch_label else "label_ids"
         if fetch_label:
             fetch_func = TemplateLabelRelation.objects.fetch_templates_labels
@@ -171,13 +162,6 @@ class NewLabelViewSet(ApiMixin, ModelViewSet):
         base_ids = request.query_params.get(base_id_name)
         if not base_ids:
             raise ValidationException("{} must be provided.".format(base_id_name))
-        project_id = request.query_params.get("project_id")
-        allow_or_raise_auth_failed(
-            iam=iam,
-            system=IAMMeta.SYSTEM_ID,
-            subject=Subject("user", request.user.username),
-            action=Action(IAMMeta.PROJECT_VIEW_ACTION),
-            resources=res_factory.resources_for_project(project_id),
-        )
+        LabelIAMAdapter(handler_type=request.scope_type).handle(request, self.action, request.scope_id)
         base_ids = [int(base_id) for base_id in base_ids.strip().split(",")]
-        return Response(fetch_func(base_ids))
+        return Response(fetch_func(base_ids, template_source=request.scope_type))

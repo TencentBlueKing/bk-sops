@@ -15,7 +15,7 @@ import logging
 import os
 
 import requests
-from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.core.files.uploadedfile import UploadedFile
 
 from . import env
 from .conf import PLUGIN_CLIENT_LOGGER
@@ -54,13 +54,13 @@ class PluginServiceApiClient:
         if inject_headers:
             headers.update(inject_headers)
         # 上传文件的情况
-        if any([isinstance(data, InMemoryUploadedFile) for data in request_params["data"].values()]):
+        if any([isinstance(data, UploadedFile) for data in request_params["data"].values()]):
             headers.pop("Content-Type")
             files = dict(
                 [
-                    (key, (value.name, value.file.getvalue()))
+                    (key, (value.name, value.file.read()))
                     for key, value in request_params["data"].items()
-                    if isinstance(value, InMemoryUploadedFile)
+                    if isinstance(value, UploadedFile)
                 ]
             )
             request_params.pop("data")

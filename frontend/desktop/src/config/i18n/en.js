@@ -1532,6 +1532,7 @@ const en = {
     '暂无输出': 'No output yet',
     '仅对「保存」后启动的节点 / 表达式生效。请尽量在「暂停 / 失败 / 审批」等状态下完成编辑，以确保效果符合预期。': 'Only valid for nodes/expressions started after "Save". Please try to complete the editing in the status of "paused/failed/approved" to ensure the effect is as expected.',
     '「未完成」任务才可编辑参数': 'Unfinished" tasks can only edit parameters',
+    '查看任务参数': 'View task parameters',
     '当前已执行': 'Currently executed',
     '最近1次成功执行耗时': 'Time spent on the last successful execution',
     '近 n 次成功执行平均耗时': 'The average time spent on the last {n} successful executions',
