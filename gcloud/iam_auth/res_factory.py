@@ -15,7 +15,7 @@ from iam import Resource
 
 from gcloud.clocked_task.models import ClockedTask
 from gcloud.core.models import Project
-from gcloud.common_template.models import CommonTemplate
+from gcloud.common_template.models import CommonTemplate, CommonSpace
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.periodictask.models import PeriodicTask
@@ -92,6 +92,24 @@ def resources_for_project(project_id):
 
 def resources_for_project_obj(project_obj):
     return [Resource(IAMMeta.SYSTEM_ID, IAMMeta.PROJECT_RESOURCE, str(project_obj.id), {"name": project_obj.name})]
+
+
+# common space
+
+
+def resources_for_common_space(common_space_id):
+    common_space = CommonSpace.objects.get(id=common_space_id)
+    return [
+        Resource(IAMMeta.SYSTEM_ID, IAMMeta.COMMON_SPACE_RESOURCE, str(common_space_id), {"name": common_space.name})
+    ]
+
+
+def resources_for_common_space_obj(common_space_obj):
+    return [
+        Resource(
+            IAMMeta.SYSTEM_ID, IAMMeta.COMMON_SPACE_RESOURCE, str(common_space_obj.id), {"name": common_space_obj.name}
+        )
+    ]
 
 
 # task

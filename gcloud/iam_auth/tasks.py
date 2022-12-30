@@ -28,3 +28,6 @@ def register_grant_resource_creator_task(username):
     register_grant_resource_creator_action_attributes(
         IAMMeta.CLOCKED_TASK_RESOURCE, username, attributes=[{"id": "iam_resource_owner", "name": "资源创建者"}]
     )
+    register_grant_resource_creator_action_attributes(
+        IAMMeta.COMMON_SPACE_RESOURCE, username, attributes=[{"id": "iam_resource_owner", "name": "资源创建者"}]
+    )

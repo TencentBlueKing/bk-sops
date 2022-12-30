@@ -17,6 +17,7 @@ from iam.contrib.django.dispatcher import DjangoBasicResourceApiDispatcher
 from gcloud.iam_auth import get_iam_client
 from .clocked_task import ClockedTaskResourceProvider
 from .common_flow import CommonFlowResourceProvider
+from .common_space import CommonSpaceResourceProvider
 from .flow import FlowResourceProvider
 from .mini_app import MiniAppResourceProvider
 from .periodic_task import PeriodicTaskResourceProvider
@@ -31,3 +32,4 @@ dispatcher.register("common_flow", CommonFlowResourceProvider())
 dispatcher.register("mini_app", MiniAppResourceProvider())
 dispatcher.register("periodic_task", PeriodicTaskResourceProvider())
 dispatcher.register("clocked_task", ClockedTaskResourceProvider())
+dispatcher.register("common_space", CommonSpaceResourceProvider())

@@ -35,6 +35,7 @@ from gcloud.core.apis.drf.viewsets import (
     PeriodicTaskViewSet,
     CommonTemplateViewSet as V3CommonTemplateViewSet,
     TaskFlowInstanceViewSet,
+    CommonSpaceViewSet,
 )
 
 from gcloud.template_base.apis.drf.viewsets import TemplateSchemeViewSet
@@ -72,6 +73,7 @@ drf_router.register(r"template", TaskTemplateViewSet)
 drf_router.register(r"appmaker", AppmakerListViewSet, basename="appmaker")
 drf_router.register(r"periodic_task", PeriodicTaskViewSet)
 drf_router.register(r"common_template", V3CommonTemplateViewSet)
+drf_router.register(r"common_space", CommonSpaceViewSet)
 drf_router.register(r"taskflow", TaskFlowInstanceViewSet)
 
 

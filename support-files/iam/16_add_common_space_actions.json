@@ -1,0 +1,100 @@
+{
+    "system_id": "bk_sops",
+    "operations": [
+        {
+            "operation": "upsert_resource_type",
+            "data": {
+                "id": "common_space",
+                "name": "公共空间",
+                "name_en": "Common Space",
+                "description": "",
+                "description_en": "",
+                "parents": [],
+                "provider_config": {
+                    "path": "/iam/resource/api/v1/"
+                },
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "common_space",
+                "name": "公共空间",
+                "name_en": "common space",
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "common_space"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "common_space_create",
+                "name": "创建公共空间",
+                "name_en": "Common Space Create",
+                "description": "",
+                "description_en": "",
+                "type": "create",
+                "related_resource_types": [],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "common_space_join",
+                "name": "加入公共空间",
+                "name_en": "加入公共空间",
+                "description": "",
+                "description_en": "",
+                "type": "",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "common_space",
+                        "selection_mode": "all",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_sops",
+                                "id": "common_space"
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "common_space_manage",
+                "name": "公共空间管理",
+                "name_en": "Common Space Manage",
+                "description": "",
+                "description_en": "",
+                "type": "manage",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "common_space",
+                        "selection_mode": "all",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_sops",
+                                "id": "common_space"
+                            }
+                        ]
+                    }
+                ],
+                "related_actions": [
+                    "common_space_join"
+                ],
+                "version": 1
+            }
+        }
+    ]
+}

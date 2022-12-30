@@ -18,9 +18,9 @@ from gcloud.label import models
 
 @admin.register(models.Label)
 class LabelAdmin(admin.ModelAdmin):
-    list_display = ["id", "name", "project_id"]
-    list_filter = ["project_id", "is_default", "color", "creator"]
-    search_fields = ["name", "project_id", "creator"]
+    list_display = ["id", "name", "project_id", "from_space_id"]
+    list_filter = ["project_id", "is_default", "color", "creator", "from_space_id"]
+    search_fields = ["name", "project_id", "creator", "from_space_id"]
 
 
 @admin.register(models.TemplateLabelRelation)

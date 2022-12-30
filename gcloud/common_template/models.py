@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud import err_code
@@ -71,8 +71,28 @@ class CommonTemplate(BaseTemplate):
     @summary: common templates maintained by admin, which all businesses could use to creating tasks
     """
 
+    space_id = models.IntegerField("公共流程空间ID", null=True, db_index=True)
+
     objects = CommonTemplateManager()
 
     class Meta(BaseTemplate.Meta):
         verbose_name = _("公共流程模板 CommonTemplate")
         verbose_name_plural = _("公共流程模板 CommonTemplate")
+
+
+class CommonSpaceManager(models.Manager):
+    def can_delete(self, space_id):
+        return not CommonTemplate.objects.filter(space_id=space_id).exists()
+
+
+class CommonSpace(models.Model):
+    name = models.CharField("空间名称", max_length=128)
+    code = models.CharField("空间代号", max_length=64)
+    description = models.TextField("空间说明")
+    creator = models.CharField("创建者", max_length=255)
+    create_time = models.DateTimeField("创建时间", auto_now_add=True)
+
+    objects = CommonSpaceManager()
+
+    class Meta:
+        verbose_name = verbose_name_plural = _("公共流程空间")

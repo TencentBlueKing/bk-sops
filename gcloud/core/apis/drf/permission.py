@@ -44,6 +44,8 @@ class IamPermissionInfo:
 
 class IamPermission(IAMMixin, permissions.BasePermission):
     actions = {}
+    # 检查并保证所有action显式声明对应权限
+    action_check = True
 
     def get_id_field(self, request, id_field):
         id_field = request.query_params.get(id_field) or request.data.get(id_field)
@@ -55,7 +57,10 @@ class IamPermission(IAMMixin, permissions.BasePermission):
 
         # 未出现在actions中的行为不被允许
         if view.action not in self.actions:
-            raise PermissionDenied
+            if self.action_check:
+                raise PermissionDenied
+            else:
+                return True
 
         permission_info = self.actions[view.action]
 

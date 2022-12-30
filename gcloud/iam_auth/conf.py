@@ -29,6 +29,7 @@ RESOURCES = [
     {"id": "flow", "name": _("流程模板"), "parent_id": "project"},
     {"id": "task", "name": _("任务实例"), "parent_id": "project"},
     {"id": "common_flow", "name": _("公共流程"), "parent_id": None},
+    {"id": "common_space", "name": _("公共空间"), "parent_id": None},
     {"id": "mini_app", "name": _("轻应用"), "parent_id": "project"},
     {"id": "periodic_task", "name": _("周期任务"), "parent_id": "project"},
     {"id": "clocked_task", "name": _("计划任务"), "parent_id": "project"},
@@ -204,6 +205,27 @@ ACTIONS = [
         "resource_topo": ["common_flow"],
     },
     {
+        "id": "common_space_create",
+        "name": _("创建公共空间"),
+        "relate_resources": ["common_space"],
+        "relate_actions": [],
+        "resource_topo": ["common_space"],
+    },
+    {
+        "id": "common_space_join",
+        "name": _("加入公共空间"),
+        "relate_resources": ["common_space"],
+        "relate_actions": [],
+        "resource_topo": ["common_space"],
+    },
+    {
+        "id": "common_space_manage",
+        "name": _("管理公共空间"),
+        "relate_resources": ["common_space"],
+        "relate_actions": ["common_space_join"],
+        "resource_topo": ["common_space"],
+    },
+    {
         "id": "mini_app_view",
         "name": _("查看轻应用"),
         "relate_resources": ["mini_app"],
@@ -292,6 +314,7 @@ class IAMMeta(object):
     MINI_APP_RESOURCE = "mini_app"
     PERIODIC_TASK_RESOURCE = "periodic_task"
     CLOCKED_TASK_RESOURCE = "clocked_task"
+    COMMON_SPACE_RESOURCE = "common_space"
 
     PROJECT_VIEW_ACTION = "project_view"
     PROJECT_EDIT_ACTION = "project_edit"
@@ -319,6 +342,10 @@ class IAMMeta(object):
     COMMON_FLOW_EDIT_ACTION = "common_flow_edit"
     COMMON_FLOW_DELETE_ACTION = "common_flow_delete"
     COMMON_FLOW_CREATE_PERIODIC_TASK_ACTION = "common_flow_create_periodic_task"
+
+    COMMON_SPACE_CREATE_ACTION = "common_space_create"
+    COMMON_SPACE_JOIN_ACTION = "common_space_join"
+    COMMON_SPACE_MANAGE_ACTION = "common_space_manage"
 
     MINI_APP_VIEW_ACTION = "mini_app_view"
     MINI_APP_EDIT_ACTION = "mini_app_edit"
@@ -357,6 +384,12 @@ COMMON_FLOW_ACTIONS = [
     IAMMeta.COMMON_FLOW_VIEW_ACTION,
     IAMMeta.COMMON_FLOW_CREATE_ACTION,
     IAMMeta.COMMON_FLOW_CREATE_PERIODIC_TASK_ACTION,
+]
+
+COMMON_SPACE_ACTIONS = [
+    IAMMeta.COMMON_SPACE_CREATE_ACTION,
+    IAMMeta.COMMON_SPACE_JOIN_ACTION,
+    IAMMeta.COMMON_SPACE_MANAGE_ACTION,
 ]
 
 PERIODIC_TASK_ACTIONS = [
