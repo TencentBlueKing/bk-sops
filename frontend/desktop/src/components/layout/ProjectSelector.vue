@@ -123,10 +123,6 @@
                 })
 
                 return projects
-            },
-            displayTooltips (option) {
-                console.log(option)
-                return 'ss'
             }
         },
         methods: {
