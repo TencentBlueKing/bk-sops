@@ -44,7 +44,7 @@
                     :name="option.from_cmdb ? `[${option.bk_biz_id}] ${option.name}` : `[${option.id}] ${option.name}`">
                     <div>{{ option.from_cmdb ? `[${option.bk_biz_id}] ${option.name}` : `[${option.id}] ${option.name}` }}</div>
                     <div
-                        v-bk-tooltips="option.is_fav ? '取消收藏' : '添加收藏'"
+                        v-bk-tooltips="option.is_fav ? $t('取消收藏') : $t('添加收藏')"
                         style="padding: 0 5px"
                         :class="['commonicon-icon', option.is_fav ? 'common-icon-favorite' : 'common-icon-rate', option.is_user_project ? 'favorite' : 'no-permission']"
                         @click.stop="changeFavorite(option)"></div>
