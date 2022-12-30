@@ -328,10 +328,13 @@
             }
         },
         watch: {
-            'nodeDetailConfig.node_id' (val) {
-                if (val !== undefined) {
-                    this.loadNodeInfo()
-                }
+            'nodeDetailConfig.node_id': {
+                handler (val) {
+                    if (val !== undefined) {
+                        this.loadNodeInfo()
+                    }
+                },
+                deep: true
             }
         },
         mounted () {
