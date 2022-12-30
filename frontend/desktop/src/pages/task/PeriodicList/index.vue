@@ -408,7 +408,7 @@
                 selectedPeriodicId: undefined,
                 periodicList: [],
                 collectingId: '', // 正在被收藏/取消收藏的周期任务id
-                selectedCron: undefined,
+                selectedCron: '*/5 * * * *',
                 constants: {},
                 modifyDialogLoading: false,
                 selectedTemplateName: undefined,
