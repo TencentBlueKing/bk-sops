@@ -23,8 +23,9 @@
             v-else
             class="project-select"
             ext-popover-cls="project-select-comp-list"
-            :value="crtProject"
+            v-model="crtProject"
             :disabled="disabled"
+            :search-with-pinyin="true"
             :clearable="false"
             :searchable="true"
             @selected="onProjectChange">
@@ -34,36 +35,37 @@
                 :key="index">
                 <bk-option
                     class="project-item"
-                    v-for="(option, i) in group.children"
-                    :key="i"
+                    v-for="option in group.children"
+                    :class="{ 'btn-permission-disable': !option.is_user_project }"
+                    v-cursor="{ active: !option.is_user_project }"
+                    :readonly="option.is_user_project"
+                    :key="option.id"
                     :id="option.id"
                     :name="option.from_cmdb ? `[${option.bk_biz_id}] ${option.name}` : `[${option.id}] ${option.name}`">
-                    <div class="">{{ option.from_cmdb ? `[${option.bk_biz_id}] ${option.name}` : `[${option.id}] ${option.name}` }}</div>
-                    <div v-bk-tooltips="favoriteMax === 9 ? '最多只能收藏9个' : option.is_disabled ? '添加收藏' : '取消收藏'" style="padding: 0 5px" class="commonicon-icon common-icon-favorite" @click.stop="changeFavorite(option)"></div>
+                    <div>{{ option.from_cmdb ? `[${option.bk_biz_id}] ${option.name}` : `[${option.id}] ${option.name}` }}</div>
+                    <div
+                        v-bk-tooltips="option.is_fav ? '取消收藏' : '添加收藏'"
+                        style="padding: 0 5px"
+                        :class="['commonicon-icon', option.is_fav ? 'common-icon-favorite' : 'common-icon-rate', option.is_user_project ? 'favorite' : 'no-permission']"
+                        @click.stop="changeFavorite(option)"></div>
                 </bk-option>
             </bk-option-group>
             <div slot="extension" @click="jumpToOther">
-                <div class="project-create">
-                    <div class="project">
-                        <i class="bk-icon icon-plus-circle"></i>
-                        {{ $t('新建业务') }}
-                    </div>
-                    <div class="project">
-                        <i class="bk-icon icon-plus-circle"></i>
-                        {{ $t('新建业务集') }}
-                    </div>
-                </div>
+                <i class="bk-icon icon-plus-circle"></i>
+                {{ $t('申请业务权限') }}
             </div>
         </bk-select>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapState } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import openOtherApp from '@/utils/openOtherApp.js'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'ProjectSelector',
+        mixins: [permission],
         props: {
             readOnly: {
                 type: Boolean,
@@ -79,8 +81,7 @@
             return {
                 crtProject: isNaN(id) ? '' : id,
                 showList: false,
-                searchStr: '',
-                favoriteMax: 9
+                searchStr: ''
             }
         },
         computed: {
@@ -113,6 +114,10 @@
 
                 projectsGroup.forEach(group => {
                     if (group.children.length) {
+                        // 按照英文a-z排序
+                        group.children.sort((a, b) => a.name.localeCompare(b.name, 'en'))
+                        // 按照是否收藏排序
+                        group.children.sort((a, b) => b.is_fav - a.is_fav)
                         projects.push(group)
                     }
                 })
@@ -125,7 +130,25 @@
             }
         },
         methods: {
+            ...mapActions([
+                'projectFavorite'
+            ]),
+            ...mapActions('project', [
+                'loadUserProjectList'
+            ]),
             async onProjectChange (id) {
+                const project = this.projectList.find(item => item.id === id)
+                if (!project.is_user_project) {
+                    const resourceData = {
+                        project: [{
+                            id: project.id,
+                            name: project.name
+                        }]
+                    }
+                    this.applyForPermission(['project_view'], project.auth_actions, resourceData)
+                    this.crtProject = Number(this.$store.state.project.project_id)
+                    return false
+                }
                 if (this.project_id === id) {
                     return false
                 }
@@ -160,8 +183,15 @@
             jumpToOther () {
                 openOtherApp(window.BK_IAM_APP_CODE, window.BK_IAM_APPLY_URL)
             },
-            changeFavorite (option) {
-                console.log(option)
+            async changeFavorite (option) {
+                const { is_fav, id } = option
+                const params = {}
+                params.url = is_fav ? `api/v3/user_project/${id}/cancel_favor/` : `api/v3/user_project/${id}/favor/`
+                params.method = is_fav ? 'delete' : 'post'
+                const res = await this.projectFavorite(params)
+                if (res.data && res.data.result) {
+                    this.loadUserProjectList()
+                }
             }
         }
     }
@@ -231,6 +261,17 @@
                         overflow: hidden;
                         text-overflow: ellipsis;
                         white-space: nowrap;
+                    }
+                }
+                .no-permission {
+                    display: none;
+                }
+                .favorite {
+                    display: none;
+                }
+                &:hover {
+                    .favorite {
+                        display: block;
                     }
                 }
             }
