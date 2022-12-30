@@ -1332,17 +1332,56 @@
                                 }
                             })
                             conditions.forEach(item => {
-                                for (const ite in activities) {
-                                    if (activities[ite].incoming.includes(item.outgoing)) {
-                                        item.children.push(Object.assign(activities[ite], { isGateway: true }))
-                                        this.retrieveLines(data, activities[ite].outgoing, item.children, true)
-                                        item.children.forEach(i => {
-                                            if (!this.nodeIds.includes(i.id)) {
-                                                this.nodeIds.push(i.id)
+                                [activities, gateways].forEach((node, index) => {
+                                    for (const ite in node) {
+                                        if (node[ite].incoming.includes(item.outgoing)) {
+                                            let nodeOutgoing
+                                            if (Array.isArray(node[ite].outgoing)) {
+                                                nodeOutgoing = node[ite].outgoing
+                                            } else {
+                                                nodeOutgoing = node[ite].outgoing ? [node[ite].outgoing] : []
                                             }
-                                        })
+                                            // 处理条件网关分支内是否有并行网关
+                                            if (node[ite].type === 'ParallelGateway') {
+                                                const parallelGateway = [
+                                                    {
+                                                        name: this.$t('并行网关'),
+                                                        title: this.$t('并行网关'),
+                                                        isGateway: true,
+                                                        id: node[ite].id,
+                                                        expanded: false,
+                                                        outgoing: node[ite].outgoing,
+                                                        children: []
+                                                    }
+                                                ]
+                                                if (nodeOutgoing) {
+                                                    nodeOutgoing.forEach(nOutgoing => {
+                                                        this.retrieveLines(data, nOutgoing, parallelGateway[0].children, true)
+                                                    })
+                                                }
+                                                item.children.push(...parallelGateway)
+                                                this.nodeIds.push(node[ite].id)
+                                                parallelGateway[0].children.forEach(i => {
+                                                    if (!this.nodeIds.includes(i.id)) {
+                                                        this.nodeIds.push(i.id)
+                                                    }
+                                                })
+                                            } else {
+                                                item.children.push(Object.assign(node[ite], { isGateway: true }))
+                                                if (nodeOutgoing) {
+                                                    nodeOutgoing.forEach(nOutgoing => {
+                                                        this.retrieveLines(data, nOutgoing, item.children, true)
+                                                    })
+                                                }
+                                                item.children.forEach(i => {
+                                                    if (!this.nodeIds.includes(i.id)) {
+                                                        this.nodeIds.push(i.id)
+                                                    }
+                                                })
+                                            }
+                                        }
                                     }
-                                }
+                                })
                             })
                             gateway.children.push(...conditions)
                         } else if (gateway.type === 'ParallelGateway') {
