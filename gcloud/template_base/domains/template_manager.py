@@ -263,7 +263,7 @@ class TemplateManager:
         if appmaker_referencer:
             message = _(
                 "流程删除失败: 流程已被其他轻应用引用[{}], 暂不可删除, 请处理后重试 | can_delete".format(
-                    ",".join([f'{item["template_type"]}:{item["id"]}:{item["name"]}' for item in appmaker_referencer])
+                    ",".join([f'{item["id"]}:{item["name"]}' for item in appmaker_referencer])
                 )
             )
             logger.error(message)
@@ -276,9 +276,7 @@ class TemplateManager:
         if clocked_task_referencer:
             message = _(
                 "流程删除失败: 流程已被其他计划任务引用[{}], 暂不可删除, 请处理后重试 | can_delete".format(
-                    ",".join(
-                        [f'{item["template_type"]}:{item["id"]}:{item["name"]}' for item in clocked_task_referencer]
-                    )
+                    ",".join([f'{item["id"]}:{item["name"]}' for item in clocked_task_referencer])
                 )
             )
             logger.error(message)
@@ -291,9 +289,7 @@ class TemplateManager:
         if periodic_task_referencer:
             message = _(
                 "流程删除失败: 流程已被其他周期任务引用[{}], 暂不可删除, 请处理后重试 | can_delete".format(
-                    ",".join(
-                        [f'{item["template_type"]}:{item["id"]}:{item["name"]}' for item in periodic_task_referencer]
-                    )
+                    ",".join([f'{item["id"]}:{item["name"]}' for item in periodic_task_referencer])
                 )
             )
             logger.error(message)
