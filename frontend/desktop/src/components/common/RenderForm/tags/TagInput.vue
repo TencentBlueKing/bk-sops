@@ -13,7 +13,16 @@
     <div class="tag-input">
         <div class="rf-form-wrapper">
             <template v-if="formMode">
-                <div class="rf-form-wrap" :class="{ 'input-focus': input.focus, 'input-disable': isDisabled }">
+                <el-input
+                    v-if="showPassword"
+                    type="text"
+                    v-model="inputValue"
+                    :disabled="isDisabled"
+                    :show-password="showPassword"
+                    :placeholder="placeholder"
+                    @input="handleInputChange">
+                </el-input>
+                <div v-else class="rf-form-wrap" :class="{ 'input-focus': input.focus, 'input-disable': isDisabled }">
                     <div
                         ref="input"
                         class="div-input"
@@ -159,7 +168,7 @@
                 }
             },
             onSelectVal (val) {
-                const divInputDom = document.querySelector('.div-input')
+                const divInputDom = document.querySelector('.tag-input .div-input')
                 divInputDom.innerText = divInputDom.innerText.replace(VAR_REG, val)
                 const replacedValue = this.value.replace(VAR_REG, val)
                 this.input.value = replacedValue
@@ -171,14 +180,14 @@
             handleInputMouseUp (e) {
                 // 判断是否点到变量节点上
                 let isVarTagDom = false
-                const varTagDoms = document.querySelectorAll('.var-tag')
+                const varTagDoms = document.querySelectorAll('.tag-input .var-tag')
                 if (varTagDoms && varTagDoms.length) {
                     isVarTagDom = Array.from(varTagDoms).some(item => dom.nodeContains(item, e.target))
                 }
                 if (isVarTagDom) {
                     const varText = e.target.innerText
                     const varTextHtml = `<span contenteditable="false" class="var-tag">${varText}</span>`
-                    const divInputDom = document.querySelector('.div-input')
+                    const divInputDom = document.querySelector('.tag-input .div-input')
                     // 记录光标的位置
                     const selection = window.getSelection()
                     const varTextOffset = selection.anchorOffset
@@ -240,7 +249,7 @@
                 const innerHtml = this.input.value.replace(varRegexp, (match) => {
                     return ` <span contenteditable="false" class="var-tag">${match.trim()}</span> ` // 两边留空格保持间距
                 })
-                const divInputDom = document.querySelector('.div-input')
+                const divInputDom = document.querySelector('.tag-input .div-input')
                 divInputDom.innerHTML = innerHtml
             },
             // 文本框按键事件
@@ -248,8 +257,6 @@
                 switch (e.code) {
                     case 'Enter':
                     case 'NumpadEnter':
-                        e.preventDefault()
-                        break
                     case 'ArrowDown':
                     case 'ArrowUp':
                         e.preventDefault()
