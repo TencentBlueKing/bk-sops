@@ -79,7 +79,7 @@ def get_plugin_list(request: Request):
 def get_plugin_tags(request: Request):
     """获取插件tag列表信息"""
     result = PluginServiceApiClient.get_plugin_tags_list()
-    if request.query_params.get("with_unknown_tag") and result.get("result"):
+    if request.query_params.get("with_unknown_tag") and result.get("result") and isinstance(result["data"], list):
         result["data"].append({"code_name": "OTHER", "name": "未分类", "id": -1})
     return JsonResponse(result)
 
