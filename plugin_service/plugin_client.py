@@ -133,7 +133,7 @@ class PluginServiceApiClient:
         """获取插件tag列表"""
         # 如果不启动插件服务，直接返回空列表
         if not env.USE_PLUGIN_SERVICE == "1":
-            return {"result": True, "message": "插件服务未启用，请联系管理员进行配置", "data": {"count": 0, "plugins": []}}
+            return {"result": True, "message": "插件服务未启用，请联系管理员进行配置", "data": []}
         result = PluginServiceApiClient.get_paas_plugin_tags(environment="prod", **kwargs)
         if isinstance(result, dict) and result.get("result") is False:
             return result
