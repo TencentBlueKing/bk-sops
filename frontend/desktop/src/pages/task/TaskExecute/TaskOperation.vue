@@ -1526,10 +1526,12 @@
                             meanTime = (meanTime || 0) + item.elapsed_time
                         })
                         const execNodeConfig = this.instanceStatus.children[nodeId]
+                        latestTime = !execution_time.length ? '--' : latestTime === 0 ? `${i18n.tc('小于')} ${i18n.tc('秒', 1)}` : this.formatDuring(latestTime)
+                        meanTime = !execution_time.length ? '--' : meanTime === 0 ? `${i18n.tc('小于')} ${i18n.tc('秒', 1)}` : this.formatDuring(meanTime / execution_time.length)
                         this.nodeExecRecordInfo = {
                             nodeId,
-                            latestTime: this.formatDuring(latestTime),
-                            meanTime: this.formatDuring(meanTime / execution_time.length),
+                            latestTime,
+                            meanTime,
                             deadline: deadline ? deadline.replace('T', ' ').split('+')[0] : '--',
                             curTime: this.formatDuring(execNodeConfig.elapsed_time),
                             count: execution_time.length
