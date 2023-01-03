@@ -3,6 +3,7 @@ WORK_PATH=`pwd`
 
 mkdir -p  ~/Temp/gcloud_open/ || exit 1
 mv -f $WORK_PATH/static/ ~/Temp/gcloud_open/ || exit 1
+mv -f $WORK_PATH/staticfiles/ ~/Temp/gcloud_open/ || exit 1
 mv -f $WORK_PATH/frontend/desktop/node_modules ~/Temp/gcloud_open/desktop_node
 mv -f $WORK_PATH/frontend/mobile/node_modules ~/Temp/gcloud_open/modile_node
 rm -rf $WORK_PATH/frontend/desktop/static/ || exit 1
@@ -47,5 +48,6 @@ read -rsp $'Press translate django.po and djangojs.po, then press any key to con
 django-admin compilemessages
 
 mv -f ~/Temp/gcloud_open/static/ $WORK_PATH/
+mv -f ~/Temp/gcloud_open/staticfiles/ $WORK_PATH/
 mv -f ~/Temp/gcloud_open/desktop_node $WORK_PATH/frontend/desktop/node_modules
 mv -f ~/Temp/gcloud_open/modile_node $WORK_PATH/frontend/mobile/node_modules

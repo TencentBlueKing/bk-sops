@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-21 21:13+0800\n"
+"POT-Creation-Date: 2023-01-03 20:00+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -346,7 +346,7 @@ msgstr "Notification Executor"
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_0.js:90
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:178
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:276
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:522
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:536
 msgid "是"
 msgstr "Yes"
 
@@ -381,7 +381,7 @@ msgstr "Yes"
 #: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_0.js:91
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:179
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:277
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:523
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:537
 msgid "否"
 msgstr "No"
 
@@ -453,7 +453,7 @@ msgstr "Topo Select"
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:202
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:97
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:202
-#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:448
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:450
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:49
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:123
 msgid "手动输入"
@@ -557,9 +557,9 @@ msgstr "Module Attribute"
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:51
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:345
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:241
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:494
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:509
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:325
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:662
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:676
 #: pipeline_plugins/variables/static/variables/datatable.js:100
 msgid "导出"
 msgstr "Export"
@@ -578,9 +578,9 @@ msgstr "Export"
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:58
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:341
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:237
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:490
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:505
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:321
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:658
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:672
 #: pipeline_plugins/variables/static/variables/datatable.js:107
 msgid "导入"
 msgstr "Import"
@@ -629,9 +629,9 @@ msgstr "Host Module Modifying Detail"
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_0.js:37
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:37
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:37
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:541
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:520
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:688
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:556
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:535
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:702
 #: pipeline_plugins/variables/static/variables/cmdb/var_ip_picker.js:76
 #: pipeline_plugins/variables/static/variables/cmdb/var_set_module_ip_selector.js:61
 msgid "IP"
@@ -1426,9 +1426,9 @@ msgstr "Multiple IP addresses can be separated by Spaces or line breaks. For non
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:229
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:334
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:230
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:483
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:498
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:314
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:651
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:665
 #: pipeline_plugins/variables/static/variables/datatable.js:93
 msgid "添加"
 msgstr "Add"
@@ -1475,39 +1475,30 @@ msgstr "Execution by rolling"
 msgid "滚动策略"
 msgstr "Strategy of rolling"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:569
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:467
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:751
-#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:454
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:429
-#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:236
-msgid "详情请查看JOB使用指引"
-msgstr "For details, see the JOB user Guide"
-
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:592
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:490
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:774
-#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:477
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:452
-#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:259
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:589
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:487
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:771
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:474
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:449
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:256
 msgid "滚动执行开启时滚动策略为必填项"
 msgstr "The scrolling policy is mandatory when the rolling execution is enabled"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:639
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:537
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:821
-#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:524
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:499
-#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:306
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:636
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:534
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:818
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:521
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:496
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:303
 msgid "滚动机制"
 msgstr "Rolling mechanism"
 
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:656
-#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:554
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:838
-#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:541
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:516
-#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:323
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_execute_script/v1_1.js:653
+#: pipeline_plugins/components/static/components/atoms/job/all_biz_fast_push_file/v1_1.js:551
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:835
+#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_1.js:538
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files/v2_1.js:513
+#: pipeline_plugins/components/static/components/atoms/job/local_content_upload/v1_1.js:320
 msgid "滚动执行开启时滚动机制为必填项"
 msgstr "Rolling Execution When the rolling mechanism is enabled, it is mandatory"
 
@@ -1527,9 +1518,9 @@ msgstr "Source File"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:50
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:80
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:253
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:506
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:521
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:337
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:674
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:688
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:93
 msgid "云区域ID"
 msgstr "Cloud ID"
@@ -1683,7 +1674,7 @@ msgstr "Allow Cross Business"
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_1.js:324
 #: pipeline_plugins/components/static/components/atoms/job/execute_task/v1_2.js:273
 #: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_1.js:669
-#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:885
+#: pipeline_plugins/components/static/components/atoms/job/fast_execute_script/v1_2.js:882
 msgid "JOB成功历史"
 msgstr "JOB Success History"
 
@@ -1795,10 +1786,6 @@ msgstr "Allow Cross Business"
 #| msgid "输入IP, 多个用英文逗号 `,` 或换行分隔"
 msgid "输入 CLOUD_ID:IP, 多个用英文逗号 `,` 或换行分隔"
 msgstr "Enter Ip, multiple are separated by `,` or Line breaks"
-
-#: pipeline_plugins/components/static/components/atoms/job/fast_push_file/output_format/v2_1.js:18
-msgid "任务id列表"
-msgstr "Task ID LIST"
 
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v1_0.js:77
 #: pipeline_plugins/components/static/components/atoms/job/fast_push_file/v2_0.js:76
@@ -2018,196 +2005,210 @@ msgstr "All Alarms"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:397
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:397
-msgid "5分钟平均负载"
+#, fuzzy
+#| msgid "5分钟平均负载"
+msgid "1分钟平均负载"
 msgstr "Average load of 5 minutes"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:398
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:398
-msgid "CPU总使用率"
-msgstr "Total CPU utilization"
+msgid "5分钟平均负载"
+msgstr "Average load of 5 minutes"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:399
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:399
-msgid "CPU单核使用率"
-msgstr "CPU single core utilization"
+#, fuzzy
+#| msgid "5分钟平均负载"
+msgid "15分钟平均负载"
+msgstr "Average load of 5 minutes"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:400
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:400
-msgid "接收字节流量"
-msgstr "Receive byte traffic"
+msgid "CPU总使用率"
+msgstr "Total CPU utilization"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:401
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:401
-msgid "发送字节流量"
-msgstr "Send byte traffic"
+msgid "CPU单核使用率"
+msgstr "CPU single core utilization"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:402
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:402
-msgid "发送包速率"
-msgstr "Packet sending rate"
+msgid "接收字节流量"
+msgstr "Receive byte traffic"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:403
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:403
-msgid "接收包速率"
-msgstr "Packet receiving rate"
+msgid "发送字节流量"
+msgstr "Send byte traffic"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:404
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:404
-msgid "可用物理内存"
-msgstr "Available physical memory"
+msgid "发送包速率"
+msgstr "Packet sending rate"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:405
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:405
-msgid "交换分区使用量"
-msgstr "Swap partition usage"
+msgid "接收包速率"
+msgstr "Packet receiving rate"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:406
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:406
-msgid "物理内存使用率"
-msgstr "Physical memory utilization"
+msgid "可用物理内存"
+msgstr "Available physical memory"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:407
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:407
-msgid "磁盘使用率"
-msgstr "Disk utilization"
+msgid "交换分区使用量"
+msgstr "Swap partition usage"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:408
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:408
-msgid "读速率"
-msgstr "Reading rate"
+msgid "物理内存使用率"
+msgstr "Physical memory utilization"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:409
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:409
-msgid "写速率"
-msgstr "Writing rate"
+msgid "磁盘使用率"
+msgstr "Disk utilization"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:410
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:410
-msgid "磁盘IO使用率"
-msgstr "Disk IO utilization"
+msgid "读速率"
+msgstr "Reading rate"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:411
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:411
-msgid "物理内存使用量"
-msgstr "Physical memory usage"
+msgid "写速率"
+msgstr "Writing rate"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:412
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:412
-msgid "应用内存使用量"
-msgstr "Application memory usage"
+msgid "磁盘IO使用率"
+msgstr "Disk IO utilization"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:413
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:413
-msgid "应用内存使用率"
-msgstr "Application memory utilization"
+msgid "物理内存使用量"
+msgstr "Physical memory usage"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:414
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:414
-msgid "ESTABLISHED连接数"
-msgstr "Number of ESTABLISHED connections"
+msgid "应用内存使用量"
+msgstr "Application memory usage"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:415
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:415
-msgid "TIME_WAIT连接数"
-msgstr "Number of TIME_WAIT connections"
+msgid "应用内存使用率"
+msgstr "Application memory utilization"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:416
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:416
-msgid "SYN_RECV连接数"
-msgstr "Number of SYN_RECV connections"
+msgid "ESTABLISHED连接数"
+msgstr "Number of ESTABLISHED connections"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:417
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:417
-msgid "UDP接收包量"
-msgstr "Number of packets received by UDP"
+msgid "TIME_WAIT连接数"
+msgstr "Number of TIME_WAIT connections"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:418
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:418
-msgid "UDP发送包量"
-msgstr "Number of packets sent by UDP"
+msgid "SYN_RECV连接数"
+msgstr "Number of SYN_RECV connections"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:419
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:419
-msgid "CPU使用率"
-msgstr "CPU utilization"
+msgid "UDP接收包量"
+msgstr "Number of packets received by UDP"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:420
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:420
-msgid "内存使用率"
-msgstr "Memory utilization"
+msgid "UDP发送包量"
+msgstr "Number of packets sent by UDP"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:421
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:421
-msgid "进程物理内存使用量"
-msgstr "Process physical memory usage"
+msgid "CPU使用率"
+msgstr "CPU utilization"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:422
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:422
-msgid "进程虚拟内存使用量"
-msgstr "Process virtual memory usage"
+msgid "内存使用率"
+msgstr "Memory utilization"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:423
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:423
-msgid "文件句柄数"
-msgstr "Number of file handles"
+msgid "进程物理内存使用量"
+msgstr "Process physical memory usage"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:424
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:424
-msgid "系统进程数"
-msgstr "Number of system processes"
+msgid "进程虚拟内存使用量"
+msgstr "Process virtual memory usage"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:425
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:425
-msgid "CLOSE_WAIT连接数"
-msgstr "Number of CLOSE_WAIT connections"
+msgid "文件句柄数"
+msgstr "Number of file handles"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:426
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:426
-msgid "系统重新启动"
-msgstr "System restart"
+msgid "系统进程数"
+msgstr "Number of system processes"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:427
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:427
-msgid "进程端口"
-msgstr "Process port"
+msgid "CLOSE_WAIT连接数"
+msgstr "Number of CLOSE_WAIT connections"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:428
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:428
-msgid "Agent心跳丢失"
-msgstr "Agent lost heartbeat"
+msgid "系统重新启动"
+msgstr "System restart"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:429
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:429
-msgid "磁盘只读"
-msgstr "Disk read-only"
+msgid "进程端口"
+msgstr "Process port"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:430
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:430
-msgid "磁盘写满"
-msgstr "Disk full"
+msgid "Agent心跳丢失"
+msgstr "Agent lost heartbeat"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:431
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:431
-msgid "Corefile产生"
-msgstr "Corefile generation"
+msgid "磁盘只读"
+msgstr "Disk read-only"
 
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:432
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:432
+msgid "磁盘写满"
+msgstr "Disk full"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:433
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:433
+msgid "Corefile产生"
+msgstr "Corefile generation"
+
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:434
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:434
 msgid "PING不可达告警"
 msgstr "PING unreachable alarm"
 
-#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:445
-#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:473
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:447
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:475
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_0.js:46
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:74
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:148
 msgid "开始时间"
 msgstr "Date Started"
 
-#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:447
-#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:461
-#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:475
-#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:532
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:449
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:463
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:477
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:534
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_0.js:47
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_0.js:61
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:76
@@ -2217,33 +2218,33 @@ msgstr "Date Started"
 msgid "时间格式 yyyy-MM-dd HH:mm:ss，建议引用自定义时间日期变量"
 msgstr "Time Format yyyy-MM-dd HH:mm:ss, recommended to refer to Custom Date Time Variables"
 
-#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:459
-#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:530
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_0.js:461
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:532
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_0.js:60
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:131
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:205
 msgid "结束时间"
 msgstr "Date Finished"
 
-#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:445
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:447
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:46
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:120
 msgid "时间选择"
 msgstr "Time Selection"
 
-#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:449
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:451
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:50
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:124
 msgid "从当前时间开始，仅输入持续时间"
 msgstr "From the current time, enter only the duration"
 
-#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:450
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:452
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:51
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:125
 msgid "输入开始时间和持续时间"
 msgstr "Enter the start time and duration"
 
-#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:491
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:493
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:92
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:166
 #, fuzzy
@@ -2251,7 +2252,7 @@ msgstr "Enter the start time and duration"
 msgid "开始时间不可为空"
 msgstr "Date Started"
 
-#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:548
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:550
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:149
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:223
 #, fuzzy
@@ -2259,19 +2260,19 @@ msgstr "Date Started"
 msgid "结束时间不可为空"
 msgstr "Date Finished"
 
-#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:588
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:590
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:189
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:263
 msgid "持续时间(分钟)"
 msgstr "Duration (minutes)"
 
-#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:589
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:591
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:190
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:264
 msgid "输入屏蔽的分钟数"
 msgstr "Enter the number of minutes to block"
 
-#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:605
+#: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield/v1_1.js:607
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_1.js:206
 #: pipeline_plugins/components/static/components/atoms/monitor/alarm_shield_strategy/v1_2.js:280
 #, fuzzy
@@ -2399,9 +2400,9 @@ msgstr "Upgrate"
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:103
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:330
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:226
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:479
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:494
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:310
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:647
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:661
 msgid "主机"
 msgstr "Host"
 
@@ -2414,9 +2415,9 @@ msgid "多个用,隔开"
 msgstr "multiple items are seperated by ','"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:126
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:383
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:320
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:404
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:378
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:315
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:399
 msgid "登录IP"
 msgstr "Login IP"
 
@@ -2426,9 +2427,9 @@ msgid "可为空，适配复杂网络时填写"
 msgstr "Use in complex network adaption"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:136
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:393
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:330
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:414
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:388
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:325
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:409
 msgid "数据IP"
 msgstr "Data IP"
 
@@ -2441,32 +2442,32 @@ msgid "可为空，节点类型是 PROXY 时必填"
 msgstr "must provide when node type is PROXY"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:157
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:404
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:341
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:425
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:419
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:356
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:439
 msgid "操作系统类型"
 msgstr "OS Type"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:160
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:407
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:344
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:428
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:422
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:359
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:442
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:53
 msgid "LINUX"
 msgstr "LINUX"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:161
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:408
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:345
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:429
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:423
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:360
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:443
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:54
 msgid "WINDOWS"
 msgstr "WINDOWS"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:162
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:409
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:346
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:430
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:424
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:361
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:444
 msgid "AIX"
 msgstr "AIX"
 
@@ -2475,44 +2476,44 @@ msgid "是否安装cygwin"
 msgstr "Install cygwin"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:194
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:437
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:374
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:458
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:452
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:389
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:472
 msgid "端口号"
 msgstr "Port"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:208
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:423
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:360
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:444
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:438
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:375
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:458
 msgid "登录账号"
 msgstr "Login account"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:217
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:451
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:388
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:472
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:466
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:403
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:486
 msgid "认证方式"
 msgstr "Auth type"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:220
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:454
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:391
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:475
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:469
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:406
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:489
 msgid "PASSWORD"
 msgstr "PASSWORD"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:221
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:455
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:392
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:476
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:470
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:407
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:490
 msgid "KEY"
 msgstr "KEY"
 
 #: pipeline_plugins/components/static/components/atoms/nodeman/create_task/legacy.js:235
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:471
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:408
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:492
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:486
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:423
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:506
 msgid "认证密钥"
 msgstr "Auth key"
 
@@ -2597,58 +2598,86 @@ msgstr "Access Point"
 msgid "多个用英文逗号 `,` 或换行分隔"
 msgstr "Enter Ip, multiple are separated by `,` or Line breaks"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:372
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:309
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:393
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:367
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:304
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:388
 msgid "外网IP"
 msgstr "Outter IP"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:373
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:310
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:394
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:368
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:305
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:389
 msgid "可选,如填写需与内网ip一一对应,多个用英文逗号 `,` 或换行分隔"
 msgstr "Optional, should be one to one correspondence with inner_ip"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:384
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:394
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:321
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:331
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:405
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:415
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:379
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:389
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:316
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:326
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:400
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:410
 msgid "可为空，如填写需与内网ip一一对应，适配复杂网络时填写,多个用英文逗号 `,` 或换行分隔"
 msgstr "Use in complex network adaption"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:456
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:393
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:477
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:399
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:336
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:419
+#, fuzzy
+#| msgid "内网IP"
+msgid "内网IP(IPV6)"
+msgstr "Inner IP"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:400
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:337
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:420
+msgid "可为空，如纯ipv6主机，内网ipv和外网IP(IPV6)两个必须填一个"
+msgstr ""
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:409
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:346
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:429
+#, fuzzy
+#| msgid "外网IP"
+msgid "外网IP(IPV6)"
+msgstr "Outter IP"
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:410
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:347
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:430
+msgid "可为空，如纯ipv6主机，外网ipv和外网IP(IPV6)两个必须填一个"
+msgstr ""
+
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:471
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:408
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:491
 msgid "TJJ"
 msgstr "TJJ"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:485
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:422
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:506
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:500
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:437
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:520
 #, fuzzy
 #| msgid "认证密钥"
 msgid "请输入认证密钥"
 msgstr "Auth key"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:510
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:447
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:545
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:609
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:713
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:525
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:462
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:560
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:623
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:727
 msgid "请完善主机信息"
 msgstr "complete host info please"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:542
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:521
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:689
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:557
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:536
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:703
 #: pipeline_plugins/components/static/components/atoms/nodeman/plugin_operate/v1_0.js:194
 #: pipeline_plugins/variables/static/variables/bk_manage_user_selector.js:19
 msgid "多个用英文逗号 `,` 分隔"
 msgstr "mutiple items seperated by `,`"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:557
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v2_0.js:572
 msgid "请填写IP"
 msgstr "Input IP please"
 
@@ -2657,8 +2686,8 @@ msgstr "Input IP please"
 msgid "说明"
 msgstr "tip"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:507
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:675
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v3_0.js:522
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:689
 msgid "一行只能对应一个云区域ID"
 msgstr "A row can correspond to only one cloud zone ID"
 
@@ -2666,19 +2695,19 @@ msgstr "A row can correspond to only one cloud zone ID"
 msgid "是否安装最新版本插件"
 msgstr "Whether to install the latest plug-in version"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:520
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:534
 msgid "BT节点探测"
 msgstr "BT node detection"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:555
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:569
 msgid "传输限速 M/s"
 msgstr "The transmission limit is M/s"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:557
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:571
 msgid "请输入"
 msgstr "Please enter"
 
-#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:568
+#: pipeline_plugins/components/static/components/atoms/nodeman/create_task/v4_0.js:582
 msgid "请输入数字"
 msgstr "Please enter a number"
 
@@ -3180,11 +3209,260 @@ msgstr "Select member"
 msgid "文本框"
 msgstr "Textarea"
 
-#~ msgid "取消勾选"
-#~ msgstr "Check to cancel"
+#, javascript-format
+#~ msgid "Available %s"
+#~ msgstr "Available %s"
 
-#~ msgid "勾选参数作为全局变量"
-#~ msgstr "Check to adding the parameter to Global Variables"
+#, javascript-format
+#~ msgid "This is the list of available %s. You may choose some by selecting them in the box below and then clicking the \"Choose\" arrow between the two boxes."
+#~ msgstr "This is the list of available %s. You may choose some by selecting them in the box below and then clicking the \"Choose\" arrow between the two boxes."
+
+#, javascript-format
+#~ msgid "Type into this box to filter down the list of available %s."
+#~ msgstr "Type into this box to filter down the list of available %s."
+
+#~ msgid "Filter"
+#~ msgstr "Filter"
+
+#~ msgid "Choose all"
+#~ msgstr "Choose all"
+
+#, javascript-format
+#~ msgid "Click to choose all %s at once."
+#~ msgstr "Click to choose all %s at once."
+
+#~ msgid "Choose"
+#~ msgstr "Choose"
+
+#~ msgid "Remove"
+#~ msgstr "Remove"
+
+#, javascript-format
+#~ msgid "Chosen %s"
+#~ msgstr "Chosen %s"
+
+#, fuzzy, javascript-format
+#~| msgid "This is the list of available %s. You may choose some by selecting them in the box below and then clicking the \"Choose\" arrow between the two boxes."
+#~ msgid "This is the list of chosen %s. You may remove some by selecting them in the box below and then clicking the \"Remove\" arrow between the two boxes."
+#~ msgstr "This is the list of available %s. You may choose some by selecting them in the box below and then clicking the \"Choose\" arrow between the two boxes."
+
+#~ msgid "Remove all"
+#~ msgstr "Remove all"
+
+#, javascript-format
+#~ msgid "Click to remove all chosen %s at once."
+#~ msgstr "Click to remove all chosen %s at once."
+
+#~ msgid "%(sel)s of %(cnt)s selected"
+#~ msgid_plural "%(sel)s of %(cnt)s selected"
+#~ msgstr[0] "%(sel)s of %(cnt)s selected"
+#~ msgstr[1] "%(sel)s of %(cnt)s selected"
+
+#~ msgid "You have unsaved changes on individual editable fields. If you run an action, your unsaved changes will be lost."
+#~ msgstr "You have unsaved changes on individual editable fields. If you run an action, your unsaved changes will be lost."
+
+#, fuzzy
+#~| msgid "You have selected an action, but you haven't saved your changes to individual fields yet. Please click OK to save. You'll need to re-run the action."
+#~ msgid "You have selected an action, but you haven’t saved your changes to individual fields yet. Please click OK to save. You’ll need to re-run the action."
+#~ msgstr "You have selected an action, but you haven't saved your changes to individual fields yet. Please click OK to save. You'll need to re-run the action."
+
+#, fuzzy
+#~| msgid "You have selected an action, and you haven't made any changes on individual fields. You're probably looking for the Go button rather than the Save button."
+#~ msgid "You have selected an action, and you haven’t made any changes on individual fields. You’re probably looking for the Go button rather than the Save button."
+#~ msgstr "You have selected an action, and you haven't made any changes on individual fields. You're probably looking for the Go button rather than the Save button."
+
+#~ msgid "Now"
+#~ msgstr "Now"
+
+#~ msgid "Midnight"
+#~ msgstr "Midnight"
+
+#~ msgid "6 a.m."
+#~ msgstr "6 a.m."
+
+#~ msgid "Noon"
+#~ msgstr "Noon"
+
+#~ msgid "6 p.m."
+#~ msgstr "6 p.m."
+
+#, javascript-format
+#~ msgid "Note: You are %s hour ahead of server time."
+#~ msgid_plural "Note: You are %s hours ahead of server time."
+#~ msgstr[0] "Note: You are %s hour ahead of server time."
+#~ msgstr[1] "Note: You are %s hours ahead of server time."
+
+#, javascript-format
+#~ msgid "Note: You are %s hour behind server time."
+#~ msgid_plural "Note: You are %s hours behind server time."
+#~ msgstr[0] "Note: You are %s hour behind server time."
+#~ msgstr[1] "Note: You are %s hours behind server time."
+
+#~ msgid "Choose a Time"
+#~ msgstr "Choose a Time"
+
+#~ msgid "Choose a time"
+#~ msgstr "Choose a time"
+
+#~ msgid "Cancel"
+#~ msgstr "Cancel"
+
+#~ msgid "Today"
+#~ msgstr "Today"
+
+#~ msgid "Choose a Date"
+#~ msgstr "Choose a Date"
+
+#~ msgid "Yesterday"
+#~ msgstr "Yesterday"
+
+#~ msgid "Tomorrow"
+#~ msgstr "Tomorrow"
+
+#~ msgid "January"
+#~ msgstr "January"
+
+#~ msgid "February"
+#~ msgstr "February"
+
+#~ msgid "March"
+#~ msgstr "March"
+
+#~ msgid "April"
+#~ msgstr "April"
+
+#~ msgid "May"
+#~ msgstr "May"
+
+#~ msgid "June"
+#~ msgstr "June"
+
+#~ msgid "July"
+#~ msgstr "July"
+
+#~ msgid "August"
+#~ msgstr "August"
+
+#~ msgid "September"
+#~ msgstr "September"
+
+#~ msgid "October"
+#~ msgstr "October"
+
+#~ msgid "November"
+#~ msgstr "November"
+
+#~ msgid "December"
+#~ msgstr "December"
+
+#, fuzzy
+#~| msgid "January"
+#~ msgctxt "abbrev. month January"
+#~ msgid "Jan"
+#~ msgstr "January"
+
+#, fuzzy
+#~| msgid "March"
+#~ msgctxt "abbrev. month March"
+#~ msgid "Mar"
+#~ msgstr "March"
+
+#, fuzzy
+#~| msgid "April"
+#~ msgctxt "abbrev. month April"
+#~ msgid "Apr"
+#~ msgstr "April"
+
+#, fuzzy
+#~| msgid "May"
+#~ msgctxt "abbrev. month May"
+#~ msgid "May"
+#~ msgstr "May"
+
+#, fuzzy
+#~| msgid "June"
+#~ msgctxt "abbrev. month June"
+#~ msgid "Jun"
+#~ msgstr "June"
+
+#, fuzzy
+#~| msgid "July"
+#~ msgctxt "abbrev. month July"
+#~ msgid "Jul"
+#~ msgstr "July"
+
+#, fuzzy
+#~| msgid "August"
+#~ msgctxt "abbrev. month August"
+#~ msgid "Aug"
+#~ msgstr "August"
+
+#, fuzzy
+#~| msgid "October"
+#~ msgctxt "abbrev. month October"
+#~ msgid "Oct"
+#~ msgstr "October"
+
+#, fuzzy
+#~| msgid "Now"
+#~ msgctxt "abbrev. month November"
+#~ msgid "Nov"
+#~ msgstr "Now"
+
+#~ msgctxt "one letter Sunday"
+#~ msgid "S"
+#~ msgstr "S"
+
+#~ msgctxt "one letter Monday"
+#~ msgid "M"
+#~ msgstr "M"
+
+#~ msgctxt "one letter Tuesday"
+#~ msgid "T"
+#~ msgstr "T"
+
+#~ msgctxt "one letter Wednesday"
+#~ msgid "W"
+#~ msgstr "W"
+
+#~ msgctxt "one letter Thursday"
+#~ msgid "T"
+#~ msgstr "T"
+
+#~ msgctxt "one letter Friday"
+#~ msgid "F"
+#~ msgstr "F"
+
+#~ msgctxt "one letter Saturday"
+#~ msgid "S"
+#~ msgstr "S"
+
+#~ msgid "Show"
+#~ msgstr "Show"
+
+#~ msgid "Hide"
+#~ msgstr "Hide"
+
+#~ msgid "保存"
+#~ msgstr "Save"
+
+#~ msgid "取消"
+#~ msgstr "Cancel"
+
+#~ msgid "编辑"
+#~ msgstr "Edit"
+
+#~ msgid "操作"
+#~ msgstr "Operation"
+
+#~ msgid "删除"
+#~ msgstr "Delete"
+
+#~ msgid "格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件"
+#~ msgstr "Wrong format! Please select xlsx,xls,xlc,xlm,xlt,xlw or csv"
+
+#~ msgid "请求表头数据失败，使用预置表头"
+#~ msgstr "Requesting table titles failed, please config columns"
 
 #~ msgid "必选项"
 #~ msgstr "Required"
@@ -3198,9 +3476,6 @@ msgstr "Textarea"
 #~ msgid "确认"
 #~ msgstr "OK"
 
-#~ msgid "取消"
-#~ msgstr "Cancel"
-
 #~ msgid "主机资源所属"
 #~ msgstr "Hosts belongs"
 
@@ -3209,9 +3484,6 @@ msgstr "Textarea"
 
 #~ msgid "筛选条件和排除条件"
 #~ msgstr "Hosts exclusion condition"
-
-#~ msgid "保存"
-#~ msgstr "Save"
 
 #~ msgid "筛选方案"
 #~ msgstr "Allocation strategy"
@@ -3225,141 +3497,14 @@ msgstr "Textarea"
 #~ msgid "保存筛选方案"
 #~ msgstr "Save allocation strategy"
 
-#~ msgid "资源不足"
-#~ msgstr "Lack of resources"
+#~ msgid "下拉框的选中值，可输入 String、Boolean、Number 类型的值，若为多选请输入包含上述类型的数组格式数据"
+#~ msgstr "Select value of selector, can be String, Booleamn or Number, or array of those type when multi-select is enable"
 
-#~ msgid "操作"
-#~ msgstr "Operation"
+#~ msgid "加载中"
+#~ msgstr "Loading"
 
-#~ msgid "请输入，多个用换行分隔"
-#~ msgstr "Please enter, multiple are separated by Line breaks"
-
-#~ msgid "筛选"
-#~ msgstr "Filter Condition"
-
-#~ msgid "排除"
-#~ msgstr "Exclusion condition"
-
-#~ msgid "已选择"
-#~ msgstr " Selected"
-
-#~ msgid "个动态分组"
-#~ msgstr " Dynamic groups"
-
-#~ msgid "搜索分组"
-#~ msgstr "Search dynamic groups"
-
-#~ msgid "个节点"
-#~ msgstr " Nodes"
-
-#~ msgid "搜索节点"
-#~ msgstr "Search Nodes"
-
-#~ msgid "搜索IP，多个以逗号隔开"
-#~ msgstr "Search IP, multiple are separated by commas"
-
-#~ msgid "（同时满足）"
-#~ msgstr "(All match)"
-
-#~ msgid "点击增加条件"
-#~ msgstr "Click to add condition"
-
-#~ msgid "复制IP"
-#~ msgstr "Copy IP"
-
-#~ msgid "复制Agent异常IP"
-#~ msgstr "Copy agent abnormal IP"
-
-#~ msgid "清空IP"
-#~ msgstr "Remove IP"
-
-#~ msgid "清空Agent异常IP"
-#~ msgstr "Remove agent abnormal IP"
-
-#~ msgid "选择添加"
-#~ msgstr "Select to add"
-
-#~ msgid "手动添加"
-#~ msgstr "Add manually"
-
-#~ msgid "批量操作"
-#~ msgstr "Batch operate"
-
-#~ msgid "共"
-#~ msgstr "Totally"
-
-#~ msgid "个静态IP，"
-#~ msgstr "Static IP"
-
-#~ msgid "其中"
-#~ msgstr "Among them"
-
-#~ msgid "个"
-#~ msgstr " )"
-
-#~ msgid "云区域"
-#~ msgstr "Cloud Area"
-
-#~ msgid "状态"
-#~ msgstr "Status"
-
-#~ msgid "异常"
-#~ msgstr " abnormal"
-
-#~ msgid "正常"
-#~ msgstr " normal"
-
-#~ msgid "服务器"
-#~ msgstr "Host"
-
-#~ msgid "无数据，可"
-#~ msgstr "No data, click"
-
-#~ msgid "或者"
-#~ msgstr "Or"
-
-#~| msgid "主机"
-#~ msgid "主机名"
-#~ msgstr "Host"
-
-#~ msgid "请输入IP，多个以逗号或者换行符隔开"
-#~ msgstr "Search IP, multiple are separated by commas"
-
-#~ msgid "IP地址不合法，"
-#~ msgstr "IP Address Invalid, "
-
-#~ msgid "IP地址不存在，"
-#~ msgstr "IP Address not Exists, "
-
-#~ msgid "查看详情"
-#~ msgstr "View Detail"
-
-#~ msgid "静态 IP"
-#~ msgstr "Static IP"
-
-#~ msgid "动态 IP"
-#~ msgstr "Dynamic IP"
-
-#~ msgid "动态分组"
-#~ msgstr "Dynamic Group"
-
-#~ msgid "变量值是否带云区域："
-#~ msgstr "Value with cloud id: "
-
-#~ msgid "分隔符："
-#~ msgstr "Separator: "
-
-#~ msgid "逗号"
-#~ msgstr "Commas"
-
-#~ msgid "分号"
-#~ msgstr " Minute"
-
-#~ msgid "竖线"
-#~ msgstr "Vertical Line"
-
-#~ msgid "换行符"
-#~ msgstr "Newline"
+#~ msgid "请求数据失败"
+#~ msgstr "Get data failed"
 
 #~ msgid "IP地址不合法"
 #~ msgstr "IP Address Invalid"
@@ -3373,6 +3518,11 @@ msgstr "Textarea"
 #~ msgid "均摊属性"
 #~ msgstr "Amortized attribute"
 
+#, fuzzy
+#~| msgid "筛选方式"
+#~ msgid "筛选方式"
+#~ msgstr "Filter Method"
+
 #~ msgid "默认"
 #~ msgstr "Default"
 
@@ -3381,6 +3531,9 @@ msgstr "Textarea"
 
 #~ msgid "列表"
 #~ msgstr "Script List"
+
+#~ msgid "请输入IP，多个以逗号或者换行符隔开"
+#~ msgstr "Search IP, multiple are separated by commas"
 
 #~ msgid "复用其他模块机器"
 #~ msgstr "Reuse hosts"
@@ -3418,17 +3571,151 @@ msgstr "Textarea"
 #~ msgid "参数错误，请检查模块表单项"
 #~ msgstr "Params error, please check modules forms"
 
-#~ msgid "编辑"
-#~ msgstr "Edit"
+#~ msgid "请输入，多个用换行分隔"
+#~ msgstr "Please enter, multiple are separated by Line breaks"
 
-#~ msgid "删除"
-#~ msgstr "Delete"
+#~ msgid "筛选"
+#~ msgstr "Filter Condition"
 
-#~ msgid "格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件"
-#~ msgstr "Wrong format! Please select xlsx,xls,xlc,xlm,xlt,xlw or csv"
+#~ msgid "排除"
+#~ msgstr "Exclusion condition"
+
+#~ msgid "（同时满足）"
+#~ msgstr "(All match)"
+
+#~ msgid "点击增加条件"
+#~ msgstr "Click to add condition"
+
+#~ msgid "分隔符："
+#~ msgstr "Separator: "
+
+#~ msgid "逗号"
+#~ msgstr "Commas"
+
+#~ msgid "分号"
+#~ msgstr " Minute"
+
+#~ msgid "竖线"
+#~ msgstr "Vertical Line"
+
+#~ msgid "换行符"
+#~ msgstr "Newline"
+
+#~ msgid "搜索IP，多个以逗号隔开"
+#~ msgstr "Search IP, multiple are separated by commas"
+
+#~ msgid "选择添加"
+#~ msgstr "Select to add"
+
+#~ msgid "手动添加"
+#~ msgstr "Add manually"
+
+#~ msgid "云区域"
+#~ msgstr "Cloud Area"
+
+#~ msgid "状态"
+#~ msgstr "Status"
+
+#~ msgid "异常"
+#~ msgstr " abnormal"
+
+#~ msgid "正常"
+#~ msgstr " normal"
+
+#~ msgid "无数据，可"
+#~ msgstr "No data, click"
+
+#~ msgid "或者"
+#~ msgstr "Or"
+
+#~ msgid "主机名"
+#~ msgstr "Host"
+
+#~ msgid "已选择"
+#~ msgstr " Selected"
+
+#~ msgid "个"
+#~ msgstr " )"
+
+#~ msgid "IP地址不合法，"
+#~ msgstr "IP Address Invalid, "
+
+#~ msgid "IP地址不存在，"
+#~ msgstr "IP Address not Exists, "
+
+#~ msgid "查看详情"
+#~ msgstr "View Detail"
+
+#~ msgid "复制IP"
+#~ msgstr "Copy IP"
+
+#~ msgid "复制Agent异常IP"
+#~ msgstr "Copy agent abnormal IP"
+
+#~ msgid "清空IP"
+#~ msgstr "Remove IP"
+
+#~ msgid "清空Agent异常IP"
+#~ msgstr "Remove agent abnormal IP"
+
+#, fuzzy
+#~| msgid "成功条件"
+#~ msgid "成功"
+#~ msgstr "Success condition"
+
+#~ msgid "批量操作"
+#~ msgstr "Batch operate"
+
+#~ msgid "共"
+#~ msgstr "Totally"
+
+#~ msgid "个静态IP，"
+#~ msgstr "Static IP"
+
+#~ msgid "其中"
+#~ msgstr "Among them"
+
+#~ msgid "服务器"
+#~ msgstr "Host"
+
+#~ msgid "个节点"
+#~ msgstr " Nodes"
+
+#~ msgid "搜索节点"
+#~ msgstr "Search Nodes"
+
+#~ msgid "个动态分组"
+#~ msgstr " Dynamic groups"
+
+#~ msgid "搜索分组"
+#~ msgstr "Search dynamic groups"
+
+#~ msgid "变量值是否带云区域："
+#~ msgstr "Value with cloud id: "
+
+#~ msgid "组件禁用态"
+#~ msgstr "Tag disabled"
+
+#~ msgid "组件内部调用接口地址"
+#~ msgstr "The address of the internal call interface of the tag"
+
+#~ msgid "静态 IP"
+#~ msgstr "Static IP"
+
+#~ msgid "动态分组"
+#~ msgstr "Dynamic Group"
+
+#~ msgid "资源不足"
+#~ msgstr "Lack of resources"
 
 #~ msgid "模块："
 #~ msgstr "Module:"
+
+#~ msgid "禁用组件"
+#~ msgstr "Disable tag"
+
+#~ msgid "要修改密码请点击后重新输入密码"
+#~ msgstr "Please enter a new password when modifying"
 
 #~ msgid "按钮文本"
 #~ msgstr "Button text"
@@ -3508,9 +3795,6 @@ msgstr "Textarea"
 #~ msgid "选项3"
 #~ msgstr "Item3"
 
-#~ msgid "请求表头数据失败，使用预置表头"
-#~ msgstr "Requesting table titles failed, please config columns"
-
 #~ msgid "请选择日期时间"
 #~ msgstr "Please select a datetime"
 
@@ -3523,12 +3807,6 @@ msgstr "Textarea"
 #~ msgid "选中的时间"
 #~ msgstr "Selected time"
 
-#~ msgid "组件禁用态"
-#~ msgstr "Tag disabled"
-
-#~ msgid "组件内部调用接口地址"
-#~ msgstr "The address of the internal call interface of the tag"
-
 #~ msgid "禁用表单输入"
 #~ msgstr "Disable form input"
 
@@ -3540,21 +3818,6 @@ msgstr "Textarea"
 
 #~ msgid "最小值"
 #~ msgstr "Min Value"
-
-#~ msgid "禁用组件"
-#~ msgstr "Disable tag"
-
-#~ msgid "要修改密码请点击后重新输入密码"
-#~ msgstr "Please enter a new password when modifying"
-
-#~ msgid "下拉框的选中值，可输入 String、Boolean、Number 类型的值，若为多选请输入包含上述类型的数组格式数据"
-#~ msgstr "Select value of selector, can be String, Booleamn or Number, or array of those type when multi-select is enable"
-
-#~ msgid "加载中"
-#~ msgstr "Loading"
-
-#~ msgid "请求数据失败"
-#~ msgstr "Get data failed"
 
 #~ msgid "请选择开始时间"
 #~ msgstr "Date Started"
@@ -3579,6 +3842,30 @@ msgstr "Textarea"
 
 #~ msgid "选择文件"
 #~ msgstr "Select"
+
+#~ msgid "动态 IP"
+#~ msgstr "Dynamic IP"
+
+#~ msgid "Wrong index"
+#~ msgstr "Wrong index"
+
+#~ msgid "Wrong offset"
+#~ msgstr "Wrong offset"
+
+#~ msgid "Wrong length"
+#~ msgstr "Wrong length"
+
+#~ msgid "详情请查看JOB使用指引"
+#~ msgstr "For details, see the JOB user Guide"
+
+#~ msgid "任务id列表"
+#~ msgstr "Task ID LIST"
+
+#~ msgid "取消勾选"
+#~ msgstr "Check to cancel"
+
+#~ msgid "勾选参数作为全局变量"
+#~ msgstr "Check to adding the parameter to Global Variables"
 
 #~ msgid "暂无数据"
 #~ msgstr "No data"
@@ -3756,177 +4043,6 @@ msgstr "Textarea"
 #~ msgid "请输入IP"
 #~ msgstr "Input IP"
 
-#, javascript-format
-#~ msgid "Available %s"
-#~ msgstr "Available %s"
-
-#, javascript-format
-#~ msgid "This is the list of available %s. You may choose some by selecting them in the box below and then clicking the \"Choose\" arrow between the two boxes."
-#~ msgstr "This is the list of available %s. You may choose some by selecting them in the box below and then clicking the \"Choose\" arrow between the two boxes."
-
-#, javascript-format
-#~ msgid "Type into this box to filter down the list of available %s."
-#~ msgstr "Type into this box to filter down the list of available %s."
-
-#~ msgid "Filter"
-#~ msgstr "Filter"
-
-#~ msgid "Choose all"
-#~ msgstr "Choose all"
-
-#, javascript-format
-#~ msgid "Click to choose all %s at once."
-#~ msgstr "Click to choose all %s at once."
-
-#~ msgid "Choose"
-#~ msgstr "Choose"
-
-#~ msgid "Remove"
-#~ msgstr "Remove"
-
-#, javascript-format
-#~ msgid "Chosen %s"
-#~ msgstr "Chosen %s"
-
-#~ msgid "Remove all"
-#~ msgstr "Remove all"
-
-#, javascript-format
-#~ msgid "Click to remove all chosen %s at once."
-#~ msgstr "Click to remove all chosen %s at once."
-
-#~ msgid "%(sel)s of %(cnt)s selected"
-#~ msgid_plural "%(sel)s of %(cnt)s selected"
-#~ msgstr[0] "%(sel)s of %(cnt)s selected"
-#~ msgstr[1] "%(sel)s of %(cnt)s selected"
-
-#~ msgid "You have unsaved changes on individual editable fields. If you run an action, your unsaved changes will be lost."
-#~ msgstr "You have unsaved changes on individual editable fields. If you run an action, your unsaved changes will be lost."
-
-#~ msgid "You have selected an action, but you haven't saved your changes to individual fields yet. Please click OK to save. You'll need to re-run the action."
-#~ msgstr "You have selected an action, but you haven't saved your changes to individual fields yet. Please click OK to save. You'll need to re-run the action."
-
-#~ msgid "You have selected an action, and you haven't made any changes on individual fields. You're probably looking for the Go button rather than the Save button."
-#~ msgstr "You have selected an action, and you haven't made any changes on individual fields. You're probably looking for the Go button rather than the Save button."
-
-#~ msgid "Now"
-#~ msgstr "Now"
-
-#~ msgid "Midnight"
-#~ msgstr "Midnight"
-
-#~ msgid "6 a.m."
-#~ msgstr "6 a.m."
-
-#~ msgid "Noon"
-#~ msgstr "Noon"
-
-#~ msgid "6 p.m."
-#~ msgstr "6 p.m."
-
-#, javascript-format
-#~ msgid "Note: You are %s hour ahead of server time."
-#~ msgid_plural "Note: You are %s hours ahead of server time."
-#~ msgstr[0] "Note: You are %s hour ahead of server time."
-#~ msgstr[1] "Note: You are %s hours ahead of server time."
-
-#, javascript-format
-#~ msgid "Note: You are %s hour behind server time."
-#~ msgid_plural "Note: You are %s hours behind server time."
-#~ msgstr[0] "Note: You are %s hour behind server time."
-#~ msgstr[1] "Note: You are %s hours behind server time."
-
-#~ msgid "Choose a Time"
-#~ msgstr "Choose a Time"
-
-#~ msgid "Choose a time"
-#~ msgstr "Choose a time"
-
-#~ msgid "Cancel"
-#~ msgstr "Cancel"
-
-#~ msgid "Today"
-#~ msgstr "Today"
-
-#~ msgid "Choose a Date"
-#~ msgstr "Choose a Date"
-
-#~ msgid "Yesterday"
-#~ msgstr "Yesterday"
-
-#~ msgid "Tomorrow"
-#~ msgstr "Tomorrow"
-
-#~ msgid "January"
-#~ msgstr "January"
-
-#~ msgid "February"
-#~ msgstr "February"
-
-#~ msgid "March"
-#~ msgstr "March"
-
-#~ msgid "April"
-#~ msgstr "April"
-
-#~ msgid "May"
-#~ msgstr "May"
-
-#~ msgid "June"
-#~ msgstr "June"
-
-#~ msgid "July"
-#~ msgstr "July"
-
-#~ msgid "August"
-#~ msgstr "August"
-
-#~ msgid "September"
-#~ msgstr "September"
-
-#~ msgid "October"
-#~ msgstr "October"
-
-#~ msgid "November"
-#~ msgstr "November"
-
-#~ msgid "December"
-#~ msgstr "December"
-
-#~ msgctxt "one letter Sunday"
-#~ msgid "S"
-#~ msgstr "S"
-
-#~ msgctxt "one letter Monday"
-#~ msgid "M"
-#~ msgstr "M"
-
-#~ msgctxt "one letter Tuesday"
-#~ msgid "T"
-#~ msgstr "T"
-
-#~ msgctxt "one letter Wednesday"
-#~ msgid "W"
-#~ msgstr "W"
-
-#~ msgctxt "one letter Thursday"
-#~ msgid "T"
-#~ msgstr "T"
-
-#~ msgctxt "one letter Friday"
-#~ msgid "F"
-#~ msgstr "F"
-
-#~ msgctxt "one letter Saturday"
-#~ msgid "S"
-#~ msgstr "S"
-
-#~ msgid "Show"
-#~ msgstr "Show"
-
-#~ msgid "Hide"
-#~ msgstr "Hide"
-
 #~ msgid "canvas-flow"
 #~ msgstr "canvas-flow"
 
@@ -3977,15 +4093,6 @@ msgstr "Textarea"
 
 #~ msgid "onUntrigger"
 #~ msgstr "onUntrigger"
-
-#~ msgid "Wrong index"
-#~ msgstr "Wrong index"
-
-#~ msgid "Wrong offset"
-#~ msgstr "Wrong offset"
-
-#~ msgid "Wrong length"
-#~ msgstr "Wrong length"
 
 #~ msgid "undo"
 #~ msgstr "undo"
