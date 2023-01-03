@@ -52,6 +52,7 @@
     import '@/utils/i18n.js'
     import { getFormMixins } from '../formMixins.js'
     import FullCodeEditor from '@/components/common/FullCodeEditor.vue'
+    import * as monaco from 'monaco-editor'
     export const attrs = {
         language: {
             type: String,
@@ -106,6 +107,45 @@
             },
             readOnly () {
                 this.onLanguageChange()
+            },
+            value: {
+                handler (val) {
+                    console.log(val)
+                },
+                deep: true
+            }
+        },
+        mounted () {
+            // 不是变量免渲染则有限判断脚本内容是否包含全局变量
+            if (this.render) {
+                const regex = /\${[a-zA-Z_]\w*}/
+                if (regex.test(this.value)) {
+                    const rows = this.value.split('\n')
+                    const matchIndex = rows.reduce((acc, cur, idx) => {
+                        if (regex.test(cur)) {
+                            acc.push(idx + 1)
+                        }
+                        return acc
+                    }, [])
+                    const { monacoInstance } = this.$refs.tagCodeEditor?.$refs.codeEditor || {}
+                    matchIndex.forEach(index => {
+                        const variable = rows[index - 1].match(regex)[0]
+                        const startNumber = rows[index - 1].split(variable)[0].length || 1
+                        const endNumber = startNumber + variable.length
+                        monacoInstance.deltaDecorations(
+                            [],
+                            [
+                                {
+                                    range: new monaco.Range(index, startNumber, index, endNumber),
+                                    options: {
+                                        inlineClassName: 'variable-tag',
+                                        hoverMessage: { isTrusted: true, supportHtml: true, value: '<p>我是猪</p><p>你也是猪</p>' }
+                                    }
+                                }
+                            ]
+                        )
+                    })
+                }
             }
         },
         methods: {
@@ -136,6 +176,11 @@
         }
         .code-editor-wrap {
             position: relative;
+            /deep/.view-lines .variable-tag {
+                display: inline-block;
+                color: red;
+                background: #fff2e8;
+            }
         }
     }
 </style>

@@ -108,6 +108,7 @@
                 v-bind="getDefaultAttrs()"
                 :tag-code="scheme.tag_code"
                 :hook="hook"
+                :render="render"
                 :constants="constants"
                 :atom-events="scheme.events"
                 :atom-methods="scheme.methods"
