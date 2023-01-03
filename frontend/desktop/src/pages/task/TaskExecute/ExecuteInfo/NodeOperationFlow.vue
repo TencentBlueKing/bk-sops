@@ -17,10 +17,6 @@
     import moment from 'moment'
     export default {
         props: {
-            locations: {
-                type: Array,
-                default: () => []
-            },
             nodeId: {
                 type: String,
                 default: ''
@@ -55,14 +51,6 @@
                     })
                     this.operateFlowData = resp.data.map(item => {
                         item.operate_date = moment(item.operate_date).format('YYYY-MM-DD HH:mm:ss')
-                        let nodeName = '--'
-                        if (item.node_id) {
-                            const node = this.locations.find(node => node.id === item.node_id)
-                            if (node) {
-                                nodeName = node.name
-                            }
-                        }
-                        item.node_name = nodeName
                         return item
                     }) || []
                 } catch (error) {
