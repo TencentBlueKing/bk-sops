@@ -94,7 +94,7 @@ class PipelineTreeSubprocessConverter:
                 if not template:
                     raise ValueError(f"Template with pipeline_template_id: {pipeline_template_id} not found")
                 subprocess_data = self.pipeline_tree["activities"][act_id]["component"]["data"]["subprocess"]["value"]
-                subprocess_data["template_source"] = COMMON if isinstance(template, CommonTemplate) else PROJECT
+                subprocess_data["template_source"] = COMMON if isinstance(template, type(CommonTemplate)) else PROJECT
                 self.pipeline_tree["activities"][act_id]["original_template_id"] = str(template.id)
                 self.pipeline_tree["activities"][act_id]["original_template_version"] = template.version
 
