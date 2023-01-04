@@ -246,9 +246,6 @@
             }
             &.finished {
                 @include circleStatusStyle($greenDark);
-                &.end-point {
-                    @include circleStatusStyle(#2dcb56);
-                }
             }
             &.running {
                 @include circleStatusStyle($blueDark)
@@ -334,6 +331,9 @@
             background: #ffffff;
             border-radius: 4px;
             cursor: pointer;
+            &:hover {
+                box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
+            }
             &.actived {
                 box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
             }
@@ -350,7 +350,6 @@
                 }
             }
             &.failed {
-                box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
                 .node-name {
                     border-color: $redDark;
                 }
@@ -366,7 +365,6 @@
                 }
             }
             &.running {
-                box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
                 .node-name {
                     border-color: $blueDark;
                 }
