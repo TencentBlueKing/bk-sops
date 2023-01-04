@@ -65,6 +65,7 @@ def recursive_collect_components_execution(activities, status_tree, task_instanc
     @param engine_ver: 流程引擎版本
     """
     instance = task_instance.pipeline_instance
+    trigger_template_id = task_instance.template_id
     task_instance_id = task_instance.id
     task_template = TaskTemplate.objects.get(pipeline_template=instance.template)
     if stack is None:
@@ -109,6 +110,7 @@ def recursive_collect_components_execution(activities, status_tree, task_instanc
                         "version": component_version,
                         "template_id": instance.template.id,
                         "task_template_id": task_template.id,
+                        "trigger_template_id": trigger_template_id,
                         "project_id": task_template.project.id,
                         "instance_create_time": instance.create_time,
                         "instance_start_time": instance.start_time,
