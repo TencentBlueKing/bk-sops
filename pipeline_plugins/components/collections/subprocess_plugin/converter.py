@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 import copy
 
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import COMMON
+from gcloud.constants import COMMON, PROJECT
 from gcloud.tasktmpl3.models import TaskTemplate
 
 
@@ -93,6 +93,8 @@ class PipelineTreeSubprocessConverter:
                 )
                 if not template:
                     raise ValueError(f"Template with pipeline_template_id: {pipeline_template_id} not found")
+                subprocess_data = self.pipeline_tree["activities"][act_id]["component"]["data"]["subprocess"]["value"]
+                subprocess_data["template_source"] = COMMON if isinstance(template, CommonTemplate) else PROJECT
                 self.pipeline_tree["activities"][act_id]["original_template_id"] = str(template.id)
                 self.pipeline_tree["activities"][act_id]["original_template_version"] = template.version
 

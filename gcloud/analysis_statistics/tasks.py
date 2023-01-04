@@ -67,7 +67,12 @@ def recursive_collect_components_execution(activities, status_tree, task_instanc
     instance = task_instance.pipeline_instance
     trigger_template_id = task_instance.template_id
     task_instance_id = task_instance.id
-    task_template = TaskTemplate.objects.get(pipeline_template=instance.template)
+    task_template = (
+        TaskTemplate.objects.filter(pipeline_template=instance.template).first()
+        or CommonTemplate.objects.filter(pipeline_template=instance.template).first()
+    )
+    if not task_template:
+        raise Exception(f"task_template with template_id {instance.template.template_id} not found")
     if stack is None:
         stack = []
         is_sub = False
@@ -111,12 +116,13 @@ def recursive_collect_components_execution(activities, status_tree, task_instanc
                         "template_id": instance.template.id,
                         "task_template_id": task_template.id,
                         "trigger_template_id": trigger_template_id,
-                        "project_id": task_template.project.id,
                         "instance_create_time": instance.create_time,
                         "instance_start_time": instance.start_time,
                         "instance_finish_time": instance.finish_time,
                         "is_remote": is_remote,
                     }
+                    if getattr(task_template, "project", None):
+                        component_kwargs["project_id"] = task_template.project.id
                     component_list.append(TaskflowExecutedNodeStatistics(**component_kwargs))
                     if exec_act["retry"] > 0:
                         # 有重试记录，需要从执行历史中获取数据
