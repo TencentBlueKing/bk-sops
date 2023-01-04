@@ -2235,7 +2235,7 @@
     }
     .canvas-wrapper.jsflow {
         border: none;
-        background: #e1e4e8;
+        background: #f5f7fa;
         .palette-panel-wrap {
             border-right: 1px solid #cacedb;
         }

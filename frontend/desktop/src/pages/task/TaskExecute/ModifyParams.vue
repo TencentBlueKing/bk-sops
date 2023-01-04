@@ -235,6 +235,10 @@
                 }
                 // 如果参数没有修改，则不用调用接口
                 if (modifiedKeys.length === 0) {
+                    if (this.retryNodeId) {
+                        await this.$emit('nodeTaskRetry')
+                        return
+                    }
                     this.$bkMessage({
                         message: i18n.t('参数未修改'),
                         theme: 'warning'

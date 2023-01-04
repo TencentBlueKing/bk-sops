@@ -97,7 +97,7 @@
                         :is-sub-process-node="isSubProcessNode">
                     </ExecuteInfoForm>
                     <section class="info-section" data-test-id="taskExcute_form_operatFlow" v-else-if="curActiveTab === 'history'">
-                        <OperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></OperationFlow>
+                        <NodeOperationFlow :locations="pipelineData.location" :node-id="executeInfo.id"></NodeOperationFlow>
                     </section>
                     <NodeLog
                         v-else-if="curActiveTab === 'log'"
@@ -175,7 +175,7 @@
     import atomFilter from '@/utils/atomFilter.js'
     import { TASK_STATE_DICT, NODE_DICT } from '@/constants/index.js'
     import NodeTree from './NodeTree'
-    import OperationFlow from './OperationFlow.vue'
+    import NodeOperationFlow from './ExecuteInfo/NodeOperationFlow.vue'
     import ExecuteRecord from './ExecuteInfo/ExecuteRecord.vue'
     import NodeLog from './ExecuteInfo/NodeLog.vue'
     import ExecuteInfoForm from './ExecuteInfo/ExecuteInfoForm.vue'
@@ -184,7 +184,7 @@
         name: 'ExecuteInfo',
         components: {
             NodeTree,
-            OperationFlow,
+            NodeOperationFlow,
             ExecuteRecord,
             NodeLog,
             ExecuteInfoForm
@@ -328,10 +328,13 @@
             }
         },
         watch: {
-            'nodeDetailConfig.node_id' (val) {
-                if (val !== undefined) {
-                    this.loadNodeInfo()
-                }
+            'nodeDetailConfig.node_id': {
+                handler (val) {
+                    if (val !== undefined) {
+                        this.loadNodeInfo()
+                    }
+                },
+                deep: true
             }
         },
         mounted () {

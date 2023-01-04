@@ -16,7 +16,7 @@
                 :min="min"
                 :max="max"
                 :controls="false"
-                :disabled="!editable || disable"
+                :disabled="!editable || disabled"
                 :placeholder="placeholder"
                 v-model="intValue">
             </el-input-number>
@@ -48,7 +48,7 @@
             default: Infinity,
             desc: gettext('最小值')
         },
-        disable: {
+        disabled: {
             type: Boolean,
             required: false,
             default: false,

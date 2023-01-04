@@ -129,7 +129,7 @@
                     }
                 }
                 const key = Object.keys(redirectMap).find(path => this.$route.path.indexOf(path) === 0)
-                if (key && this.$route.name !== redirectMap[key].name) {
+                if (key && this.$route.name !== redirectMap[key].name && !['periodicTemplate', 'clockedTemplate'].includes(this.$route.name)) {
                     this.$router.push(redirectMap[key])
                 } else {
                     this.$router.push({
