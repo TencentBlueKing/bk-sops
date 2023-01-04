@@ -400,7 +400,8 @@ class SubprocessPluginConverterTest(TestCase):
                                     },
                                     "id": "n378d83bb3143087a0f9b85e836ad272"
                                 },
-                                "subprocess_name": "公共子流程"
+                                "subprocess_name": "公共子流程",
+                                "template_source": "project"
                             }
                         }
                     },
