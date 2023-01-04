@@ -165,6 +165,7 @@
             toggleLanguage (language) {
                 this.curLanguage = language
                 const local = language === 'chinese' ? 'zh-cn' : 'en'
+                document.cookie = `blueking_language;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
                 document.cookie = `blueking_language=${local};expires=${(new Date(Date.now() + 86400 * 1000)).toUTCString()};domain=${window.location.hostname.replace(/^[^.]+(.*)$/, '$1')}`
                 window.location.reload()
             },
