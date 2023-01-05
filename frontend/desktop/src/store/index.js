@@ -223,7 +223,7 @@ const store = new Vuex.Store({
         projectFavorite ({ commit }, data) {
             return axios.post(`api/v3/user_project/${data.id}/favor/`).then(response => response.data)
         },
-        projectuCancelfavorite ({ commit }, data) {
+        projectuCancelFavorite ({ commit }, data) {
             return axios.delete(`api/v3/user_project/${data.id}/cancel_favor/`).then(response => response.data)
         }
     },

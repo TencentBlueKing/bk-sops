@@ -127,7 +127,7 @@
         methods: {
             ...mapActions([
                 'projectFavorite',
-                'projectuCancelfavorite'
+                'projectuCancelFavorite'
             ]),
             ...mapActions('project', [
                 'loadUserProjectList'
@@ -181,7 +181,7 @@
             },
             async changeFavorite (option) {
                 const { is_fav, id } = option
-                const res = await is_fav ? this.projectuCancelfavorite({ id }) : this.projectFavorite({ id })
+                const res = await is_fav ? this.projectuCancelFavorite({ id }) : this.projectFavorite({ id })
                 if (res.data && res.data.result) {
                     this.loadUserProjectList()
                 }
