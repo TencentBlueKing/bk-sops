@@ -412,7 +412,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         task = self.get_object()
         execution_time_data = (
             TaskflowExecutedNodeStatistics.objects.filter(
-                template_node_id=template_node_id, status=True, is_skip=False, task_template_id=task.template_id
+                template_node_id=template_node_id, status=True, is_skip=False, trigger_template_id=task.template_id
             )
             .order_by("-archived_time")
             .values("archived_time", "elapsed_time")
