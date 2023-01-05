@@ -32,6 +32,7 @@
                 :instance-flow="instanceFlow"
                 :template_id="templateId"
                 :primitive-tpl-id="primitiveTplId"
+                :primitive-tpl-source="primitiveTplSource"
                 :template-source="templateSource"
                 :instance-actions="instanceActions">
             </TaskOperation>
@@ -68,7 +69,8 @@
                 templateSource: '',
                 instanceActions: [],
                 templateId: '',
-                primitiveTplId: '' // 子流程任务对应的模板id
+                primitiveTplId: '', // 任务原始模板id
+                primitiveTplSource: '' // 任务原始模板来源
             }
         },
         created () {
@@ -85,7 +87,7 @@
                 try {
                     this.taskDataLoading = true
                     const instanceData = await this.getTaskInstanceData(this.instance_id)
-                    const { flow_type, current_flow, pipeline_tree, name, template_id, template_source, auth_actions, engine_ver, primitive_template_id } = instanceData
+                    const { flow_type, current_flow, pipeline_tree, name, template_id, template_source, auth_actions, engine_ver, primitive_template_id, primitive_template_source } = instanceData
                     if (this.isFunctional && current_flow === 'func_claim') {
                         this.showParamsFill = true
                     } else {
@@ -97,6 +99,7 @@
                     this.instanceName = name
                     this.templateId = template_id
                     this.primitiveTplId = primitive_template_id
+                    this.primitiveTplSource = primitive_template_source
                     this.templateSource = template_source
                     this.instanceActions = auth_actions
                     // 将节点树存起来
