@@ -38,7 +38,6 @@
                     v-for="option in group.children"
                     :class="{ 'btn-permission-disable': !option.is_user_project }"
                     v-cursor="{ active: !option.is_user_project }"
-                    :readonly="option.is_user_project"
                     :key="option.id"
                     :id="option.id"
                     :name="option.from_cmdb ? `[${option.bk_biz_id}] ${option.name}` : `[${option.id}] ${option.name}`">
@@ -127,7 +126,8 @@
         },
         methods: {
             ...mapActions([
-                'projectFavorite'
+                'projectFavorite',
+                'projectuCancelfavorite'
             ]),
             ...mapActions('project', [
                 'loadUserProjectList'
@@ -181,10 +181,7 @@
             },
             async changeFavorite (option) {
                 const { is_fav, id } = option
-                const params = {}
-                params.url = is_fav ? `api/v3/user_project/${id}/cancel_favor/` : `api/v3/user_project/${id}/favor/`
-                params.method = is_fav ? 'delete' : 'post'
-                const res = await this.projectFavorite(params)
+                const res = await is_fav ? this.projectuCancelfavorite({ id }) : this.projectFavorite({ id })
                 if (res.data && res.data.result) {
                     this.loadUserProjectList()
                 }

@@ -221,7 +221,10 @@ const store = new Vuex.Store({
          * 项目收藏、取消项目收藏
          */
         projectFavorite ({ commit }, data) {
-            return axios[data.method](data.url).then(response => response.data)
+            return axios.post(`api/v3/user_project/${data.id}/favor/`).then(response => response.data)
+        },
+        projectuCancelfavorite ({ commit }, data) {
+            return axios.delete(`api/v3/user_project/${data.id}/cancel_favor/`).then(response => response.data)
         }
     },
     modules
