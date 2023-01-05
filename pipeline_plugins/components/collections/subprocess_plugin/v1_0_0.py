@@ -154,13 +154,18 @@ class SubprocessPluginService(Service):
                 "engine_ver": parent_task.engine_ver,
                 "recorded_executor_proxy": parent_task.recorded_executor_proxy,
                 "is_child_taskflow": True,
-                "extra_info": json.dumps(
-                    {
-                        "primitive_template_source": subprocess.template_source,
-                        "primitive_template_id": str(getattr(primitive_template, "id")),
-                    }
-                ),
             }
+            if subprocess.template_source and getattr(primitive_template, "id", None):
+                taskflow_kwargs.update(
+                    {
+                        "extra_info": json.dumps(
+                            {
+                                "primitive_template_source": subprocess.template_source,
+                                "primitive_template_id": str(primitive_template.id),
+                            }
+                        )
+                    }
+                )
             task = TaskFlowInstance.objects.create(**taskflow_kwargs)
             try:
                 root_task_id = TaskFlowRelation.objects.get(task_id=parent_task_id).root_task_id
