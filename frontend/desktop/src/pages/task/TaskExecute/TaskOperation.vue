@@ -16,6 +16,7 @@
             :project_id="project_id"
             :template_id="template_id"
             :primitive-tpl-id="primitiveTplId"
+            :primitive-tpl-source="primitiveTplSource"
             :template-source="templateSource"
             :node-info-type="nodeInfoType"
             :task-operation-btns="taskOperationBtns"
@@ -321,6 +322,7 @@
             instanceName: String,
             template_id: [Number, String],
             primitiveTplId: [Number, String],
+            primitiveTplSource: String,
             templateSource: String,
             instanceActions: Array,
             routerType: String
