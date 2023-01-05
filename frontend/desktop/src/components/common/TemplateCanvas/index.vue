@@ -1652,23 +1652,21 @@
                 const isRight = bodyWidth - nodeRight > 235
                 // 设置坐标
                 const { x: offsetX, y: offsetY } = this.$refs.jsFlow.canvasOffset
-                let left, right, padding
                 const top = y + offsetY - 10
                 const nodeWidth = ['tasknode', 'subflow'].includes(type) ? 154 : 34
                 if (isRight) {
-                    left = x + offsetX + nodeWidth + (this.editable ? 60 : 0) // 60为画布左边栏的宽度
-                    right = null
-                    padding = '0 0 0 15px'
+                    const left = x + offsetX + nodeWidth + (this.editable ? 60 : 0) // 60为画布左边栏的宽度
+                    this.nodeTipsPanelPosition = {
+                        top: `${top}px`,
+                        left: `${left}px`,
+                        padding: '0 0 0 15px'
+                    }
                 } else {
-                    right = bodyWidth - nodeLeft
-                    left = null
-                    padding = '0 15px 0 0'
-                }
-                this.nodeTipsPanelPosition = {
-                    top: `${top}px`,
-                    right: `${right}px`,
-                    left: `${left}px`,
-                    padding
+                    this.nodeTipsPanelPosition = {
+                        top: `${top}px`,
+                        right: `${bodyWidth - nodeLeft}px`,
+                        padding: '0 15px 0 0'
+                    }
                 }
                 this.isPerspectivePanelShow = false
                 this.isExecRecordPanelShow = false
@@ -2235,7 +2233,7 @@
     }
     .canvas-wrapper.jsflow {
         border: none;
-        background: #f5f7fa;
+        background: #e1e4e8;
         .palette-panel-wrap {
             border-right: 1px solid #cacedb;
         }

@@ -1973,8 +1973,11 @@
             }
         }
         .task-management-page {
-            /deep/ .canvas-wrapper.jsflow .jtk-endpoint {
-                z-index: 2 !important;
+            /deep/ .canvas-wrapper.jsflow {
+                background: #f5f7fa;
+                .jtk-endpoint {
+                    z-index: 2 !important;
+                }
             }
         }
     }

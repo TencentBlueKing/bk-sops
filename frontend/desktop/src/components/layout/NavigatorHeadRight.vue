@@ -91,6 +91,7 @@
     import { mapActions, mapMutations, mapState } from 'vuex'
     import ProjectSelector from './ProjectSelector.vue'
     import VersionLog from './VersionLog.vue'
+    import Cookies from 'js-cookie'
 
     export default {
         name: 'NavigatorHeadRight',
@@ -165,7 +166,11 @@
             toggleLanguage (language) {
                 this.curLanguage = language
                 const local = language === 'chinese' ? 'zh-cn' : 'en'
-                document.cookie = `blueking_language=${local};expires=${(new Date(Date.now() + 86400 * 1000)).toUTCString()};domain=${window.location.hostname.replace(/^[^.]+(.*)$/, '$1')}`
+                Cookies.set('blueking_language', local, {
+                    expires: 1,
+                    domain: window.location.hostname.replace(/^[^.]+(.*)$/, '$1'),
+                    path: '/'
+                })
                 window.location.reload()
             },
             goToHelpDoc () {
