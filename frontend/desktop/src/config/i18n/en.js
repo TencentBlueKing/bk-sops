@@ -1566,7 +1566,9 @@ const en = {
     '长度超过100个字符，请修改规则': 'The length exceeds 100 characters, please modify the rules',
     '参数未修改': 'parameter is not modified',
     '保存失败，有参数已被使用不可修改': 'Failed to save, some parameters have been used and cannot be modified',
-    '动态拓扑': 'Dynamic topology'
+    '动态拓扑': 'Dynamic topology',
+    '计划任务删除成功': 'Clocked task deleted successfully',
+    '周期任务删除成功': 'Periodic task deleted successfully'
 }
 
 export default en
