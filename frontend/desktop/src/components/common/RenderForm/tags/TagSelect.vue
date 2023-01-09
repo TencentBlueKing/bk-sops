@@ -167,7 +167,7 @@
         rightBtnIcon: {
             type: String,
             required: false,
-            default: 'bk-icon icon-chain',
+            default: 'common-icon-box-top-right-corner',
             desc: 'button icon to the right of the selection box'
         },
         rightBtnCb: {
@@ -400,7 +400,7 @@
         }
         /deep/.el-input__prefix {
             left: auto;
-            right: 34px;
+            right: 28px;
         }
         /deep/.el-tag.el-tag--info.el-tag--small.el-tag--light { // 解决已选多选项选项过长不换行问题
             height: auto;
