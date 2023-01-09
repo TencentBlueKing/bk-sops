@@ -1385,6 +1385,14 @@
                                     }
                                 })
                             })
+                            // 添加条件分支默认节点
+                            if (gateway.default_condition) {
+                                const defaults = flows[gateway.default_condition.flow_id].target
+                                const cur = tools.deepClone(activities[defaults])
+                                cur.name = this.$t('默认') + '-' + cur.name
+                                conditions.unshift(cur)
+                                this.nodeIds.push(cur.id)
+                            }
                             gateway.children.push(...conditions)
                         } else if (gateway.type === 'ParallelGateway') {
                             gateway.outgoing.forEach(item => {
