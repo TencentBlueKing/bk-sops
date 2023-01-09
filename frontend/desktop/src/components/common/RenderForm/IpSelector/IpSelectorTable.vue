@@ -45,7 +45,7 @@
                 </a>
             </template>
         </bk-table-column>
-        <bk-table-column type="setting">
+        <bk-table-column type="setting" width="42">
             <column-setting
                 :editable="editable"
                 :column-list="tableColumnList"
