@@ -149,6 +149,9 @@
                                             :display-tag="true"
                                             :multiple="true"
                                             searchable
+                                            :popover-options="{
+                                                onHide: () => !labelDialogShow
+                                            }"
                                             ext-cls="label-select"
                                             @toggle="onToggleTplLabel">
                                             <div class="label-select-content" v-bkloading="{ isLoading: templateLabelLoading }">

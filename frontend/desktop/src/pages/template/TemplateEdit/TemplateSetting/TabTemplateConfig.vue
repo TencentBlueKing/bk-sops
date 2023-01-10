@@ -36,6 +36,9 @@
                             :display-tag="true"
                             :multiple="true"
                             searchable
+                            :popover-options="{
+                                onHide: () => !labelDialogShow
+                            }"
                             :disabled="isViewMode"
                             @toggle="onSelectLabel">
                             <div class="label-select-content" v-bkloading="{ isLoading: templateLabelLoading }">
