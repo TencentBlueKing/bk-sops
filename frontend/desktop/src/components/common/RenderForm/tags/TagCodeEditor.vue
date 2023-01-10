@@ -159,15 +159,14 @@
                     const matchGlobalVar = []
                     // 脚本内容存在全局变量
                     if (regex.test(value)) {
-                        const matchIndex = rows.reduce((acc, cur, idx) => {
+                        const matchMap = rows.reduce((acc, cur, idx) => {
                             const variables = cur.match(/\${[a-zA-Z_]\w*}/g) || []
                             const matchList = variables.filter(item => this.constantArr.includes(item))
                             if (matchList.length) {
-                                matchGlobalVar.push(...matchList)
-                                acc.push(idx + 1)
+                                acc[idx + 1] = matchList
                             }
                             return acc
-                        }, [])
+                        }, {})
                         this.globalVarLength = matchGlobalVar.length
                         // 数据更新处理逻辑
                         if (valueUpdate) {
@@ -182,12 +181,14 @@
                                 delete this.decorationsMap[lineNumber]
                             }
                             // 检查光标位置，如果光标没有定位在全局变量所在行，则不进行后续处理
-                            if (!matchIndex.includes(lineNumber)) return
+                            if (!matchMap[lineNumber]) return
                         }
-                        matchIndex.forEach(idx => {
-                            matchGlobalVar.forEach(variable => {
-                                const startNumber = rows[idx - 1].split(variable)[0].length + 1
+                        Object.keys(matchMap).forEach(idx => {
+                            let start = 0
+                            matchMap[idx].forEach(variable => {
+                                const startNumber = rows[idx - 1].indexOf(variable, start) + 1
                                 const endNumber = startNumber + variable.length
+                                start = endNumber
                                 const decorations = monacoInstance.deltaDecorations(
                                     [],
                                     [
