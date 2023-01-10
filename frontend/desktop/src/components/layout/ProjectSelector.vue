@@ -113,10 +113,7 @@
 
                 projectsGroup.forEach(group => {
                     if (group.children.length) {
-                        // 按照英文a-z排序
-                        group.children.sort((a, b) => a.name.localeCompare(b.name, 'en'))
-                        // 按照是否收藏排序
-                        group.children.sort((a, b) => b.is_fav - a.is_fav)
+                        // 后台排序
                         projects.push(group)
                     }
                 })
@@ -184,6 +181,7 @@
                 const res = await is_fav ? this.projectuCancelFavorite({ id }) : this.projectFavorite({ id })
                 if (res.data && res.data.result) {
                     this.loadUserProjectList()
+                    this.$bkMessage({ message: is_fav ? i18n.t('取消收藏成功！') : i18n.t('添加收藏成功！'), theme: 'success' })
                 }
             }
         }
