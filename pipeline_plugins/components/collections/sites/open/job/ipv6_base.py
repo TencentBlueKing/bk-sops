@@ -31,13 +31,21 @@ class GetJobTargetServerMixin(object):
         logger_handle.info("[get_target_server_ipv6_across_business] start search ip, ip_str={}".format(ip_str))
         supplier_account = supplier_account_for_business(biz_cc_id)
         # 去本业务查
-        (
-            host_list,
-            ipv4_not_find_list,
-            ipv4_with_cloud_not_find_list,
-            ipv6_not_find_list,
-            ipv6_with_cloud_not_find_list,
-        ) = cc_get_host_by_innerip_with_ipv6_across_business(executor, biz_cc_id, ip_str, supplier_account)
+        try:
+            (
+                host_list,
+                ipv4_not_find_list,
+                ipv4_with_cloud_not_find_list,
+                ipv6_not_find_list,
+                ipv6_with_cloud_not_find_list,
+            ) = cc_get_host_by_innerip_with_ipv6_across_business(executor, biz_cc_id, ip_str, supplier_account)
+        except Exception as e:
+            logger_handle.exception(
+                f"[get_target_server_ipv6_across_business] call "
+                f"cc_get_host_by_innerip_with_ipv6_across_business error: {e}"
+            )
+            data.outputs.ex_data = "ip查询失败，请检查ip配置是否正确：{}".format(e)
+            return False, {}
 
         ip_not_find_str = ",".join(
             ipv4_not_find_list + ipv6_not_find_list + ipv4_with_cloud_not_find_list + ipv6_with_cloud_not_find_list
@@ -95,12 +103,7 @@ class GetJobTargetServerMixin(object):
         if settings.ENABLE_IPV6:
             return self.get_target_server_ipv6_across_business(executor, biz_cc_id, ip_str, logger_handle, data)
         # 获取IP
-        clean_result, ip_list = get_biz_ip_from_frontend_hybrid(
-            executor,
-            ip_str,
-            biz_cc_id,
-            data,
-        )
+        clean_result, ip_list = get_biz_ip_from_frontend_hybrid(executor, ip_str, biz_cc_id, data,)
         if not clean_result:
             return False, {}
 
