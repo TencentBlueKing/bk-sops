@@ -662,7 +662,7 @@
                     this.deleting = true
                     await this.deleteClocked({ id: this.selectedDeleteTaskId })
                     this.$bkMessage({
-                        'message': i18n.t('计划任务') + i18n.t('删除成功'),
+                        'message': i18n.t('计划任务删除成功'),
                         'theme': 'success'
                     })
                     this.isDeleteDialogShow = false
