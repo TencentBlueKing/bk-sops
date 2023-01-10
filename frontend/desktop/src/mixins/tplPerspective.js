@@ -85,6 +85,11 @@ const tplPerspective = {
                 const variableCited = resp.data.defined
                 const nodeCitedInfo = Object.keys(variableCited).reduce((acc, key) => {
                     const values = variableCited[key]
+                    const nodeInfo = variableList[key]
+                    let outputIds = []
+                    if (nodeInfo.source_type === 'component_outputs') {
+                        outputIds = Object.keys(nodeInfo.source_info) || []
+                    }
                     values.activities.forEach(nodeId => {
                         if (!(nodeId in acc)) {
                             acc[nodeId] = {
@@ -92,7 +97,8 @@ const tplPerspective = {
                                 'output': []
                             }
                         }
-                        acc[nodeId]['input'].push(key)
+                        const sourceType = outputIds.includes(nodeId) ? 'output' : 'input'
+                        acc[nodeId][sourceType].push(key)
                     })
                     return acc
                 }, {})
