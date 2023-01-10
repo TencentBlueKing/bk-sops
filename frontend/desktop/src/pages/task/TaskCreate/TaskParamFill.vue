@@ -421,7 +421,6 @@
                 }
                 // 变量添加条件
                 nodeList.forEach(item => {
-                    console.log(item)
                     for (const key in item.component.data) {
                         unReferenced.push({
                             key: item.component.data[key].value,
@@ -448,7 +447,6 @@
                         Object.assign(this.pipelineData.constants[item], { rely })
                     }
                 })
-                // console.log(this.pipelineData.constants)
             },
             retrieveLines (data, lineId, nodeList, conditions, extra = []) {
                 const { activities, gateways, flows } = tools.deepClone(data)
