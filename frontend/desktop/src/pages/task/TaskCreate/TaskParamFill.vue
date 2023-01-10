@@ -217,7 +217,9 @@
                 notifyType: [[]],
                 receiverGroup: [],
                 remoteData: {}, // 文本值下拉框变量远程数据源
-                locTimeZone: '' // 本地时区后缀
+                locTimeZone: '', // 本地时区后缀
+                cacheConstants: {},
+                cacheUnreferenced: {}
             }
         },
         computed: {
@@ -390,6 +392,7 @@
                     }
                     this.pipelineData = previewData.data.pipeline_tree
                     this.unreferenced = previewData.data.constants_not_referred
+                    this.filterConstansShow(previewData.data.pipeline_tree.gateways)
                     this.taskName = this.getDefaultTaskName()
                 } catch (e) {
                     if (e.status === 404) {
@@ -398,6 +401,91 @@
                     console.log(e)
                 } finally {
                     this.taskMessageLoading = false
+                }
+            },
+            filterConstansShow (data) {
+                const nodeList = []
+                const unReferenced = []
+                for (const key in data) {
+                    let outgoing
+                    if (Array.isArray(data[key].outgoing)) {
+                        outgoing = data[key].outgoing
+                    } else {
+                        outgoing = data[key].outgoing ? [data[key].outgoing] : []
+                    }
+                    if (data[key].type === 'ExclusiveGateway' || data[key].type === 'ParallelGateway') {
+                        outgoing.forEach(line => {
+                            this.retrieveLines(this.pipelineData, line, nodeList, data[key].conditions)
+                        })
+                    }
+                }
+                // 变量添加条件
+                nodeList.forEach(item => {
+                    console.log(item)
+                    for (const key in item.component.data) {
+                        unReferenced.push({
+                            key: item.component.data[key].value,
+                            show_condition: item.show_condition
+                        })
+                    }
+                })
+                // 显示没依赖条件的变量
+                Object.keys(this.pipelineData.constants).forEach(item => {
+                    const cur = unReferenced.find(ite => ite.key === item)
+                    if (cur) {
+                        const computeTypes = ['==', '>', '>=', '<', '<=', '!=']
+                        const rely = cur.show_condition.map(condition => {
+                            const rely = {
+                                relyVariable: condition.evaluate.split(' ')[0].replace(/int|[(|)]/g, ''),
+                                relyComputeType: condition.evaluate.split(' ')[1],
+                                relyCompareValue: condition.evaluate.split(' ')[2]
+                            }
+                            if (!computeTypes.includes(condition.evaluate.split(' ')[1])) {
+                                rely.relyCompareValue = condition.evaluate.split(' ')[2].replace(/[(|)]/g, '').split(',')
+                            }
+                            return rely
+                        })
+                        Object.assign(this.pipelineData.constants[item], { rely })
+                    }
+                })
+                // console.log(this.pipelineData.constants)
+            },
+            retrieveLines (data, lineId, nodeList, conditions, extra = []) {
+                const { activities, gateways, flows } = tools.deepClone(data)
+                const currentNode = flows[lineId].target
+                const activity = tools.deepClone(activities[currentNode])
+                const gateway = tools.deepClone(gateways[currentNode])
+                const node = activity || gateway
+                if (node && nodeList.findIndex(item => item.id === node.id) === -1) {
+                    let outgoing
+                    if (Array.isArray(node.outgoing)) {
+                        outgoing = node.outgoing
+                    } else {
+                        outgoing = node.outgoing ? [node.outgoing] : []
+                    }
+                    // evaluate
+                    if (gateway) {
+                        outgoing.forEach(line => {
+                            this.retrieveLines(data, line, nodeList, gateway.conditions, extra)
+                        })
+                    } else if (activity) {
+                        activity.show_condition = []
+                        if (extra.length !== 0) {
+                            activity.show_condition.push(...extra)
+                        }
+                        const cur = conditions[activity.incoming[0]]
+                        if (cur) {
+                            activity.show_condition.push(conditions[activity.incoming[0]])
+                        } else {
+                            // 后节点继承条件
+                            const prev = nodeList.find(item => item.id === flows[activity.incoming[0]].source)
+                            activity.show_condition.push(...prev.show_condition)
+                        }
+                        nodeList.push(activity)
+                        outgoing.forEach(line => {
+                            this.retrieveLines(data, line, nodeList, {}, [...activity.show_condition])
+                        })
+                    }
                 }
             },
             getDefaultTaskName () {

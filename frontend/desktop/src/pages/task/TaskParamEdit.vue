@@ -97,7 +97,20 @@
                 this.getFormData()
             },
             editable (val) {
+                // console.log(val)
                 this.$set(this.renderOption, 'editable', val)
+            },
+            renderData: {
+                handler (newVal, oldVal) {
+                    if (newVal) {
+                        this.$nextTick(() => {
+                            if (this.$refs.renderForm) {
+                                this.renderDateChange(newVal, this.$refs.renderForm)
+                            }
+                        })
+                    }
+                },
+                deep: true
             }
         },
         created () {
@@ -110,6 +123,39 @@
             this.clearAtomForm()
         },
         methods: {
+            renderDateChange (data, instance) {
+                Object.keys(this.variables).forEach(key => {
+                    if (this.variables[key].hasOwnProperty('rely')) {
+                        const index = this.renderConfig.findIndex(config => config.tag_code === key)
+                        const targetTag = instance.$children[index]
+                        const result = this.variables[key].rely.every(validate => {
+                            const becomparValue = data[validate.relyVariable] || validate.relyVariable // 比较值 变量 || 常量
+                            const comparValue = validate.relyCompareValue // 被比较值
+                            const computeType = data[validate.relyComputeType] || validate.relyComputeType // 基础类型
+                            if (computeType === 'in') {
+                                // 当array内含变量值 comparValue = []
+                                return comparValue.includes(String(becomparValue))
+                            } else if (computeType === 'notin') {
+                                return !comparValue.includes(String(becomparValue))
+                            } else {
+                                if (isNaN(Number(becomparValue))) {
+                                    // 当比较值为string
+                                    return becomparValue === comparValue
+                                } else {
+                                    // 基础类型运算时 eval
+                                    if (!becomparValue) return false
+                                    return eval(becomparValue + computeType + comparValue)
+                                }
+                            }
+                        })
+                        if (result) {
+                            targetTag.onShowForm()
+                        } else {
+                            targetTag.onHideForm()
+                        }
+                    }
+                })
+            },
             ...mapActions('atomForm/', [
                 'loadAtomConfig',
                 'loadPluginServiceDetail'
@@ -152,7 +198,6 @@
                     const instanceData = await this.getTaskInstanceData(this.reuseTaskId)
                     pipelineTree = JSON.parse(instanceData.pipeline_tree)
                 }
-
                 for (const variable of variableArray) {
                     const { key } = variable
                     const { plugin_code } = variable
@@ -243,7 +288,9 @@
                         currentFormConfig.tag_code = key
                         currentFormConfig.name = variable.name // 变量名称，全局变量编辑时填写的名称，和表单配置项 label 名称不同
                         currentFormConfig.attrs.desc = variable.desc
-
+                        if ('rely' in variable) {
+                            currentFormConfig.attrs.hidden = true // 有依赖条件时初始化隐藏
+                        }
                         // 参数填写时为保证每个表单 tag_code 唯一，原表单 tag_code 会被替换为变量 key，导致事件监听不生效
                         if (currentFormConfig.hasOwnProperty('events')) {
                             currentFormConfig.events.forEach(e => {
