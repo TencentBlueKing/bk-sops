@@ -155,9 +155,6 @@
                     // 获取光标所在行
                     const { monacoInstance } = this.$refs.tagCodeEditor?.$refs.codeEditor || {}
                     const { lineNumber } = monacoInstance?.getPosition() || {}
-                    // 所有匹配的全局变量
-                    const matchGlobalVar = []
-                    // 脚本内容存在全局变量
                     if (regex.test(value)) {
                         const matchMap = rows.reduce((acc, cur, idx) => {
                             const variables = cur.match(/\${[a-zA-Z_]\w*}/g) || []
@@ -167,7 +164,8 @@
                             }
                             return acc
                         }, {})
-                        this.globalVarLength = matchGlobalVar.length
+                        // 脚本内容存在全局变量
+                        this.globalVarLength = Object.values(matchMap).flat().length
                         // 数据更新处理逻辑
                         if (valueUpdate) {
                             // 清空本行所有变量色块
@@ -184,7 +182,7 @@
                             if (!matchMap[lineNumber]) return
                         }
                         Object.keys(matchMap).forEach(idx => {
-                            let start = 0
+                            let start = 0 // 兼容一行中有多个相同的变量
                             matchMap[idx].forEach(variable => {
                                 const startNumber = rows[idx - 1].indexOf(variable, start) + 1
                                 const endNumber = startNumber + variable.length
