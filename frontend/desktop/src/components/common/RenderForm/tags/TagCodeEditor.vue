@@ -148,7 +148,7 @@
             },
             // 变量tag设置
             setVariableTag (value, valueUpdate) {
-                // 不是变量免渲染则有限判断脚本内容是否包含全局变量
+                // 不是变量免渲染则首先判断脚本内容是否包含全局变量
                 if (this.render) {
                     const regex = /\${[a-zA-Z_]\w*}/
                     const rows = value.split('\n')
