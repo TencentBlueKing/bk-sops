@@ -352,7 +352,7 @@
                 rootState: '', // 根流程状态
                 selectedNodeId: '',
                 selectedFlowPath: path, // 选择面包屑路径
-                cacheStatus: undefined, // 总任务缓存状态信息；只有总任务完成、撤销时才存在
+                cacheStatus: undefined, // 总任务缓存状态信息；只有总任务完成、终止时才存在
                 instanceStatus: {},
                 taskParamsType: '',
                 timer: null,
@@ -563,11 +563,11 @@
             async loadTaskStatus () {
                 try {
                     let instanceStatus = {}
-                    if (['FINISHED', 'REVOKED'].includes(this.state) && this.cacheStatus && this.cacheStatus.children[this.taskId]) { // 总任务：完成/撤销时,取实例缓存数据
+                    if (['FINISHED', 'REVOKED'].includes(this.state) && this.cacheStatus && this.cacheStatus.children[this.taskId]) { // 总任务：完成/终止时,取实例缓存数据
                         instanceStatus = await this.getGlobalCacheStatus(this.taskId)
                     } else if (
                         this.instanceStatus.state
-                        && this.instanceStatus.state === 'FINISHED' // 任务实例才会出现撤销，子流程不存在
+                        && this.instanceStatus.state === 'FINISHED' // 任务实例才会出现终止，子流程不存在
                         && this.instanceStatus.children
                         && this.instanceStatus.children[this.taskId]
                     ) { // 局部：完成时，取局部缓存数据
@@ -813,7 +813,7 @@
                     if (res.result) {
                         this.state = 'REVOKED'
                         this.$bkMessage({
-                            message: i18n.t('任务撤销成功'),
+                            message: i18n.t('任务终止成功'),
                             theme: 'success'
                         })
                         setTimeout(() => {
@@ -1876,7 +1876,7 @@
                 this.isInjectVarDialogShow = false
             },
             unclickableOperation (type) {
-                // 失败时不允许点击暂停按钮，创建是不允许点击撤销按钮，操作执行过程不允许点击
+                // 失败时不允许点击暂停按钮，创建是不允许点击终止按钮，操作执行过程不允许点击
                 return (this.state === 'FAILED' && type !== 'revoke') || (this.state === 'CREATED' && type === 'revoke') || this.operateLoading || !this.isTopTask
             },
             packUp () {

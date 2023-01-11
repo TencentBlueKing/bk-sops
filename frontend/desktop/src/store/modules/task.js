@@ -290,7 +290,7 @@ const task = {
             return axios.post(`taskflow/api/action/resume/${project_id}/`, { instance_id }).then(response => response.data)
         },
         /**
-         * 撤销任务实例执行
+         * 终止任务实例执行
          * @param {String} instance_id 任务实例id
          */
         instanceRevoke ({ commit }, instance_id) {
