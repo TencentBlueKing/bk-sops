@@ -83,10 +83,12 @@
             padding-right: 10px;
             font-size: 12px;
             text-align: left;
+            color: #313238;
         }
         .bk-form-radio {
             margin-right: 30px;
             font-size: 12px;
+            color: #313238;
         }
     }
 </style>

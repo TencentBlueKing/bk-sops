@@ -377,6 +377,10 @@
                 &.is-disabled {
                     color: #d8d8d8;
                 }
+                /deep/.common-icon-stop {
+                    font-size: 24px;
+                    margin-top: 10px;
+                }
             }
         }
         .task-params-btns {
