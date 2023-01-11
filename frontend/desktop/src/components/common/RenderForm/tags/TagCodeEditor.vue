@@ -88,6 +88,11 @@
             default: false,
             desc: 'The editor code is read-only'
         },
+        variable_render: {
+            type: Boolean,
+            default: false,
+            desc: 'Variable render'
+        },
         value: {
             type: String,
             default: ''

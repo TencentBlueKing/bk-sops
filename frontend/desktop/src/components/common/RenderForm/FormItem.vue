@@ -285,8 +285,8 @@
         },
         created () {
             // 针对job的代码编辑框，移除「变量免渲染」的功能开关
-            const { type, tag_code } = this.scheme
-            if (type === 'code_editor' && tag_code === 'job_content') {
+            const { type, attrs } = this.scheme
+            if (type === 'code_editor' && !attrs.variable_render) { // variable_render 是否开启变量渲染
                 /**
                  * need_render:
                     1. false
