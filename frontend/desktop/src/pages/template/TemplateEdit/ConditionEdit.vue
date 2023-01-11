@@ -87,7 +87,7 @@
                 </div>
             </div>
             <div class="btn-wrap">
-                <bk-button v-if="!isReadonly" class="save-btn" theme="primary" @click="confirm">{{ $t('保存') }}</bk-button>
+                <bk-button v-if="!isReadonly" class="save-btn" theme="primary" @click="confirm">{{ $t('确定') }}</bk-button>
                 <bk-button theme="default" @click="close(false)">{{ isReadonly ? $t('关闭') : $t('取消') }}</bk-button>
             </div>
         </div>

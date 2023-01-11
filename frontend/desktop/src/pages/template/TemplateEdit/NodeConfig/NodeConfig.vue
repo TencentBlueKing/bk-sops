@@ -265,7 +265,7 @@
                                     :disabled="inputLoading || (isSubflow && subflowListLoading)"
                                     data-test-id="templateEdit_form_saveNodeConfig"
                                     @click="onSaveConfig">
-                                    {{ $t('保存') }}
+                                    {{ $t('确定') }}
                                 </bk-button>
                                 <bk-button
                                     theme="default"
