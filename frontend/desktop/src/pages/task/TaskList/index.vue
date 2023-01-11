@@ -214,7 +214,7 @@
             children: [
                 { id: 'nonExecution', name: i18n.t('未执行') },
                 { id: 'running', name: i18n.t('未完成') },
-                { id: 'revoked', name: i18n.t('撤销') },
+                { id: 'revoked', name: i18n.t('终止') },
                 { id: 'finished', name: i18n.t('完成') }
             ]
         },

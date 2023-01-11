@@ -15,13 +15,13 @@
         :mask-close="false"
         :header-position="'left'"
         :ext-cls="'common-dialog'"
-        :title="$t('任务撤销')"
+        :title="$t('任务终止')"
         :value="isRevokeDialogShow"
         data-test-id="taskExcute_form_revokeDialog"
         @confirm="onConfirm"
         @cancel="onCancel">
         <div class="dialog-content">
-            <div>{{ $t('是否撤销该任务？') }}</div>
+            <div>{{ $t('是否终止该任务？') }}</div>
         </div>
     </bk-dialog>
 </template>
