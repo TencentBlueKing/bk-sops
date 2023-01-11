@@ -26,7 +26,7 @@
             </div>
             <div class="btn-wrap">
                 <template v-if="hasAdminPerm">
-                    <bk-button v-if="!isViewMode" class="save-btn" theme="primary" @click="onConfirm">{{ $t('保存') }}</bk-button>
+                    <bk-button v-if="!isViewMode" class="save-btn" theme="primary" @click="onConfirm">{{ $t('确定') }}</bk-button>
                     <bk-button theme="default" @click="closeTab">{{ isViewMode ? $t('关闭') : $t('取消') }}</bk-button>
                 </template>
                 <bk-button v-else theme="primary" @click="closeTab">{{ $t('关闭') }}</bk-button>
