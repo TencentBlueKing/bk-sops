@@ -23,8 +23,9 @@
             v-else
             class="project-select"
             ext-popover-cls="project-select-comp-list"
-            :value="crtProject"
+            v-model="crtProject"
             :disabled="disabled"
+            :search-with-pinyin="true"
             :clearable="false"
             :searchable="true"
             @selected="onProjectChange">
@@ -34,10 +35,18 @@
                 :key="index">
                 <bk-option
                     class="project-item"
-                    v-for="(option, i) in group.children"
-                    :key="i"
+                    v-for="option in group.children"
+                    :class="{ 'btn-permission-disable': !option.is_user_project }"
+                    v-cursor="{ active: !option.is_user_project }"
+                    :key="option.id"
                     :id="option.id"
                     :name="option.from_cmdb ? `[${option.bk_biz_id}] ${option.name}` : `[${option.id}] ${option.name}`">
+                    <div>{{ option.from_cmdb ? `[${option.bk_biz_id}] ${option.name}` : `[${option.id}] ${option.name}` }}</div>
+                    <div
+                        v-bk-tooltips="option.is_fav ? $t('取消收藏') : $t('添加收藏')"
+                        style="padding: 0 5px"
+                        :class="['commonicon-icon', option.is_fav ? 'common-icon-favorite' : 'common-icon-rate', option.is_user_project ? 'favorite' : 'no-permission']"
+                        @click.stop="changeFavorite(option)"></div>
                 </bk-option>
             </bk-option-group>
             <div slot="extension" @click="jumpToOther">
@@ -49,11 +58,13 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapState } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import openOtherApp from '@/utils/openOtherApp.js'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'ProjectSelector',
+        mixins: [permission],
         props: {
             readOnly: {
                 type: Boolean,
@@ -102,6 +113,7 @@
 
                 projectsGroup.forEach(group => {
                     if (group.children.length) {
+                        // 后台排序
                         projects.push(group)
                     }
                 })
@@ -110,7 +122,26 @@
             }
         },
         methods: {
+            ...mapActions([
+                'projectFavorite',
+                'projectuCancelFavorite'
+            ]),
+            ...mapActions('project', [
+                'loadUserProjectList'
+            ]),
             async onProjectChange (id) {
+                const project = this.projectList.find(item => item.id === id)
+                if (!project.is_user_project) {
+                    const resourceData = {
+                        project: [{
+                            id: project.id,
+                            name: project.name
+                        }]
+                    }
+                    this.applyForPermission(['project_view'], project.auth_actions, resourceData)
+                    this.crtProject = Number(this.$store.state.project.project_id)
+                    return false
+                }
                 if (this.project_id === id) {
                     return false
                 }
@@ -144,6 +175,14 @@
             // 这里统一直接用后端提供的 host 跳转
             jumpToOther () {
                 openOtherApp(window.BK_IAM_APP_CODE, window.BK_IAM_APPLY_URL)
+            },
+            async changeFavorite (option) {
+                const { is_fav, id } = option
+                const res = await is_fav ? this.projectuCancelFavorite({ id }) : this.projectFavorite({ id })
+                if (res.data && res.data.result) {
+                    this.loadUserProjectList()
+                    this.$bkMessage({ message: is_fav ? i18n.t('取消收藏成功！') : i18n.t('添加收藏成功！'), theme: 'success' })
+                }
             }
         }
     }
@@ -202,6 +241,9 @@
     .project-select-comp-list {
         .project-item.bk-option {
             .bk-option-content {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
                 padding: 0;
                 .bk-option-content-default {
                     padding: 0;
@@ -212,11 +254,29 @@
                         white-space: nowrap;
                     }
                 }
+                .no-permission {
+                    display: none;
+                }
+                .favorite {
+                    display: none;
+                }
+                &:hover {
+                    .favorite {
+                        display: block;
+                    }
+                }
             }
         }
         .bk-select-extension {
             text-align: center;
             cursor: pointer;
+            padding: 0;
+            .project-create {
+                display: flex;
+                .project {
+                    flex: 1;
+                }
+            }
         }
     }
 </style>
