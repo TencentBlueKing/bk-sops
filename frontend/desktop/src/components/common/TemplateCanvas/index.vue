@@ -373,7 +373,7 @@
             window.addEventListener('resize', this.onWindowResize, false)
             // 监听画布移入
             const canvasContainer = document.querySelector('#canvasContainer')
-            canvasContainer.addEventListener('mousemove', tools.debounce(this.onCanvasContainerMouseMove, 300), false)
+            canvasContainer.addEventListener('mousemove', tools.debounce(this.onCanvasContainerMouseMove, 100), false)
         },
         beforeDestroy () {
             this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler)
