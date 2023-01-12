@@ -87,7 +87,14 @@ export default class ErrorNotify {
             const infoArr = info.split(': ')
             content = isTitle ? infoArr[0].split('{')[1].replace(/\'|\"/g, '') : (infoArr[1] || infoArr[0]).split('}')[0]
         } else {
-            content = isTitle ? JSON.parse(info).message.split(': ')[0] : JSON.parse(info).message.split(': ').slice(1).join(': ').split(' | ')[msgIndex]
+            const { message } = JSON.parse(info)
+            const regex = /([\s\S]*)?: ([\s\S]*)?/ // 标准数据结构
+            if (regex.test(message)) {
+                const arr = message.match(regex)
+                content = isTitle ? arr[1] : arr[2]?.split(' | ')[msgIndex]
+            } else {
+                content = isTitle ? message : message?.split(' | ')[msgIndex]
+            }
         }
         if (isTitle && (!content || content.length > 21)) { // 21为标题能容纳的最大数量
             content = errorSource === 'result' ? i18n.t('请求异常（外部系统错误或非法操作）') : i18n.t('请求异常（内部系统发生未知错误）')
