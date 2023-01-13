@@ -19,7 +19,7 @@
             node.status ? node.status.toLowerCase() : ''
         ]">
         <div class="node-type-icon common-icon-node-conditionalparallelgateway"></div>
-        <div class="state-icon" v-if="isOpenTooltip && node.task_state !== 'REVOKED'">
+        <div class="state-icon" v-if="isOpenTooltip">
             <span @click.stop="onGatewaySelectionClick">
                 <i class="common-icon-skip"></i>
                 {{ $t('跳过') }}
@@ -41,7 +41,9 @@
         },
         computed: {
             isOpenTooltip () {
-                return this.node.status === 'FAILED'
+                const { status, task_state } = this.node
+                // 任务终止时禁止节点操作
+                return task_state !== 'REVOKED' && status === 'FAILED'
             }
         },
         methods: {
