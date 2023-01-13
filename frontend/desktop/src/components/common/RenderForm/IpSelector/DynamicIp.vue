@@ -203,7 +203,7 @@
                 const keyword = String(data.label).toLowerCase()
                 if (keyword.indexOf(value) > -1) {
                     // 当节点匹配到以后, 如果有子节点则记录节点id, level
-                    if (keyword === value && children.length) {
+                    if (children.length) {
                         this.matchedList.push({ id, level })
                     }
                     return true
