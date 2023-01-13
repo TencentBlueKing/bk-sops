@@ -1565,6 +1565,8 @@ const en = {
     '长度超过100个字符，请修改规则': 'The length exceeds 100 characters, please modify the rules',
     '参数未修改': 'parameter is not modified',
     '保存失败，有参数已被使用不可修改': 'Failed to save, some parameters have been used and cannot be modified',
+    'tagCodeEditorTips': 'Script content {0} global variable. A suspected reference to {1} was detected, and it is recommended to use script parameters to pass in.',
+    '不再支持': 'no supported',
     '添加收藏': 'Collection'
 }
 
