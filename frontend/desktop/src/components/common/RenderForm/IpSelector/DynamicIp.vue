@@ -85,7 +85,8 @@
                 selectedIps: this.dynamicIps.map(item => `${item.bk_inst_id}_${item.bk_obj_id}`),
                 selectedIpsPath: [],
                 dataError: false,
-                i18n
+                i18n,
+                matchedList: []
             }
         },
         watch: {
@@ -193,11 +194,29 @@
                 }
             },
             onTopoSearch (keyword) {
+                this.matchedList = []
                 this.$refs.topoTree.filter(String(keyword).toLowerCase())
             },
             filterNode (value, node) {
                 if (!value) return true
-                return String(node.data.label).toLowerCase().indexOf(value) > -1
+                const { data, id, level, children, parent } = node
+                const keyword = String(data.label).toLowerCase()
+                if (keyword.indexOf(value) > -1) {
+                    // 当节点匹配到以后, 如果有子节点则记录节点id, level
+                    if (keyword === value && children.length) {
+                        this.matchedList.push({ id, level })
+                    }
+                    return true
+                } else {
+                    // 当节点没有匹配上, 但父节点匹配上时, 父节点底下所有子孙节点默认显示
+                    const matchParent = this.matchedList.find(item => item.id === parent.id && item.level === parent.level)
+                    if (matchParent) {
+                        if (children.length) {
+                            this.matchedList.push({ id, level })
+                        }
+                        return true
+                    }
+                }
             },
             onNodeCheckClick (selectedNodes, node) {
                 const checkedList = selectedNodes.slice(0)
