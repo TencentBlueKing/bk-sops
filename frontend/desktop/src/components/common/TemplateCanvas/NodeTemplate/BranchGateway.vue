@@ -19,7 +19,7 @@
             node.status ? node.status.toLowerCase() : ''
         ]">
         <div class="node-type-icon common-icon-node-branchgateway"></div>
-        <div class="state-icon" v-if="isOpenTooltip">
+        <div class="state-icon" v-if="isOpenTooltip && node.task_state !== 'REVOKED'">
             <span @click.stop="onGatewaySelectionClick">
                 <i class="common-icon-skip"></i>
                 {{ $t('跳过') }}

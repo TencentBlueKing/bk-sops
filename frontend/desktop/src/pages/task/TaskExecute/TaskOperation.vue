@@ -987,7 +987,8 @@
                         error_ignored: currentNode.error_ignored,
                         error_ignorable: errorIgnorable,
                         auto_retry: autoRetry,
-                        ready: false
+                        ready: false,
+                        task_state: this.state // 任务状态
                     }
 
                     this.setTaskNodeStatus(id, data)

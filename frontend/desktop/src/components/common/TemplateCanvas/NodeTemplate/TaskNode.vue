@@ -48,8 +48,8 @@
         </div>
         <!-- 节点右上角执行相关的icon区域 -->
         <node-right-icon-status :node="node"></node-right-icon-status>
-        <!-- tooltip提示 -->
-        <div class="state-icon" v-if="node.mode === 'execute'">
+        <!-- tooltip提示（任务终止时禁止节点操作） -->
+        <div class="state-icon" v-if="node.mode === 'execute' && node.task_state !== 'REVOKED'">
             <span v-if="isShowRetryBtn" @click.stop="$emit('onRetryClick', node.id)">
                 <i class="common-icon-retry"></i>
                 {{ $t('重试') }}
