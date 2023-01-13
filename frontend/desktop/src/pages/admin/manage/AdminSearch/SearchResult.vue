@@ -389,7 +389,7 @@
                             status.cls = 'finished bk-icon icon-check-circle-shape'
                             status.text = i18n.t('完成')
                         } else if (item.is_revoked) {
-                            status.cls = 'revoke common-icon-stop'
+                            status.cls = 'revoke common-icon-dark-stop'
                             status.text = i18n.t('终止')
                         } else if (item.is_started) {
                             status.cls = 'loading common-icon-loading'
