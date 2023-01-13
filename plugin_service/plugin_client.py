@@ -228,9 +228,7 @@ class PluginServiceApiClient:
     def _prepare_apigw_api_request(self, path_params: list, inject_authorization: dict = None):
         """插件服务APIGW接口请求信息准备"""
         url = os.path.join(
-            f"{env.APIGW_NETWORK_PROTOCAL}://{self.plugin_apigw_name}.{env.APIGW_URL_SUFFIX}",
-            env.APIGW_ENVIRONMENT,
-            *path_params,
+            env.PLUGIN_APIGW_API_HOST_FORMAT.format(self.plugin_apigw_name), env.APIGW_ENVIRONMENT, *path_params,
         )
         authorization_info = {
             "bk_app_code": env.PLUGIN_SERVICE_APIGW_APP_CODE,
@@ -250,7 +248,7 @@ class PluginServiceApiClient:
     def _prepare_paas_api_request(path_params: list, environment=None):
         """PaaS平台服务接口请求信息准备"""
         url = os.path.join(
-            f"{env.APIGW_NETWORK_PROTOCAL}://paasv3.{env.APIGW_URL_SUFFIX}",
+            env.PAASV3_APIGW_API_HOST or f"{env.APIGW_NETWORK_PROTOCAL}://paasv3.{env.APIGW_URL_SUFFIX}",
             environment or env.APIGW_ENVIRONMENT,
             *path_params,
         )
