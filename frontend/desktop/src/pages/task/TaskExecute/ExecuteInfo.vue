@@ -111,7 +111,7 @@
                 </div>
             </div>
         </div>
-        <div class="action-wrapper" v-if="(executeInfo.state === 'RUNNING' && !isSubProcessNode) || isShowRetryBtn || isShowSkipBtn">
+        <div class="action-wrapper" v-if="isShowActionWrap">
             <template v-if="executeInfo.state === 'RUNNING' && !isSubProcessNode">
                 <bk-button
                     v-if="nodeDetailConfig.component_code === 'pause_node'"
@@ -325,6 +325,10 @@
             },
             isExecuteTimeShow () {
                 return ['record', 'log'].includes(this.curActiveTab) && (this.loop > 1 || this.historyInfo.length > 1)
+            },
+            isShowActionWrap () {
+                // 任务终止时禁止节点操作
+                return this.state !== 'REVOKED' && ((this.executeInfo.state === 'RUNNING' && !this.isSubProcessNode) || this.isShowRetryBtn || this.isShowSkipBtn)
             }
         },
         watch: {

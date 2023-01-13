@@ -27,7 +27,7 @@
     .common-icon-waitting {
         @include status-icon-style(#979BA5);
     }
-    .common-icon-stop {
+    .common-icon-dark-stop {
         @include status-icon-style(#ea3636);
     }
     &.revoke {
