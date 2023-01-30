@@ -265,7 +265,7 @@ MANUAL_KWARGS = {
 
 # 手动输入脚本失败样例输出
 MANUAL_FAIL_OUTPUTS = {
-    "ex_data": "调用作业平台(JOB)接口jobv3.fast_execute_script返回失败, params={params}, error={error}, "
+    "ex_data": "调用作业平台(JOB)接口jobv3.fast_execute_script返回失败, error={error}, params={params}, "
     "request_id=aac7755b09944e4296b2848d81bd9411".format(params=json.dumps(MANUAL_KWARGS), error=FAIL_RESULT["message"])
 }
 
@@ -333,19 +333,14 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_SUCCESS_CASE = ComponentTestCase(
     parent_data=PARENT_DATA,
     execute_assertion=ExecuteAssertion(success=True, outputs=MANUAL_SUCCESS_OUTPUTS),
     schedule_assertion=ScheduleAssertion(
-        success=True,
-        outputs=MANUAL_SUCCESS_OUTPUTS2,
-        callback_data={"job_instance_id": 10000, "status": 3},
+        success=True, outputs=MANUAL_SUCCESS_OUTPUTS2, callback_data={"job_instance_id": 10000, "status": 3},
     ),
     execute_call_assertion=[
         CallAssertion(func=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT.jobv3.fast_execute_script, calls=[Call(MANUAL_KWARGS)]),
     ],
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
-        Patcher(
-            target=CC_GET_IPS_INFO_BY_STR,
-            return_value={"ip_result": []},
-        ),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []},),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(

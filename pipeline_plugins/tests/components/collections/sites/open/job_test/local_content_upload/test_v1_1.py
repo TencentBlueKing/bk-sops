@@ -151,14 +151,12 @@ KWARGS = {
     "account_alias": "root",
     "file_target_path": "/tmp/bk_sops_test/",
     "file_list": [{"file_name": "1.txt", "content": "MTIzCjQ1Ngo3ODkK"}],
-    "target_server": {
-        "ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}],
-    },
+    "target_server": {"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 0}]},
 }
 
 # 手动输入脚本失败样例输出
 MANUAL_FAIL_OUTPUTS = {
-    "ex_data": "调用作业平台(JOB)接口jobv3.push_config_file返回失败, params={params}, error={error}, "
+    "ex_data": "调用作业平台(JOB)接口jobv3.push_config_file返回失败, error={error}, params={params}, "
     "request_id=aac7755b09944e4296b2848d81bd9411".format(params=json.dumps(KWARGS), error=FAIL_RESULT["message"])
 }
 
@@ -183,9 +181,7 @@ LOCAL_CONTENT_UPLOAD_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = ComponentTestCa
     parent_data=PARENT_DATA,
     execute_assertion=ExecuteAssertion(success=True, outputs=SUCCESS_OUTPUTS),
     schedule_assertion=ScheduleAssertion(
-        success=True,
-        schedule_finished=True,
-        outputs=dict(list(SUCCESS_OUTPUTS.items())),
+        success=True, schedule_finished=True, outputs=dict(list(SUCCESS_OUTPUTS.items())),
     ),
     execute_call_assertion=[
         CallAssertion(func=LOCAL_CONTENT_UPLOAD_SUCCESS_CLIENT.jobv3.push_config_file, calls=[Call(KWARGS)]),
@@ -260,9 +256,7 @@ LOCAL_CONTENT_UPLOAD_ACROSS_BIZ_SUCCESS = ComponentTestCase(
                         "account_alias": "root",
                         "file_target_path": "/tmp/bk_sops_test/",
                         "file_list": [{"file_name": "1.txt", "content": "MTIzCjQ1Ngo3ODkK"}],
-                        "target_server": {
-                            "ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 2}],
-                        },
+                        "target_server": {"ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 2}]},
                     }
                 )
             ],

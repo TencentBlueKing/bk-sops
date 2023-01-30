@@ -310,7 +310,7 @@ BIZ_SET_MANUAL_KWARGS = {
 
 # 脚本失败样例输出
 MANUAL_FAIL_OUTPUTS = {
-    "ex_data": "调用作业平台(JOB)接口jobv3.fast_execute_script返回失败, params={params}, error={error}, "
+    "ex_data": "调用作业平台(JOB)接口jobv3.fast_execute_script返回失败, error={error}, params={params}, "
     "request_id=aac7755b09944e4296b2848d81bd9411".format(params=json.dumps(MANUAL_KWARGS), error=FAIL_RESULT["message"])
 }
 

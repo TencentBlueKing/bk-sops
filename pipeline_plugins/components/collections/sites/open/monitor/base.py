@@ -50,7 +50,7 @@ class MonitorBaseService(Service):
             if host_without_innerip:
                 raise Exception(
                     _("主机[{}]innerip字段为空，蓝鲸监控接口仅支持通过该字段进行ip传参").format(
-                        ",".join([host["bk_host_id"] for host in host_without_innerip])
+                        ",".join([str(host["bk_host_id"]) for host in host_without_innerip])
                     )
                 )
         else:

@@ -413,9 +413,7 @@ INVALID_IP_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "IP 校验失败，请确认输入的 IP 0:192.168.20.256 是否合法"}),
     schedule_assertion=None,
     execute_call_assertion=[],
-    patchers=[
-        Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT),
-    ],
+    patchers=[Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT)],
 )
 # 作业执行不成功
 EXECUTE_JOB_PLAN_NOT_SUCCESS_CASE = ComponentTestCase(
@@ -504,7 +502,7 @@ EXECUTE_JOB_PLAN_CALL_FAIL_CASE = ComponentTestCase(
         success=False,
         outputs={
             "ex_data": (
-                "调用作业平台(JOB)接口jobv3.execute_job_plan返回失败, params={params}, error={error}, request_id={request_id}"
+                "调用作业平台(JOB)接口jobv3.execute_job_plan返回失败, error={error}, params={params}, request_id={request_id}"
             ).format(
                 params=json.dumps(
                     {
@@ -650,7 +648,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             "job_tagged_ip_dict": {},
             "ex_data": (
                 "调用作业平台(JOB)接口jobv3.get_job_instance_global_var_value"
-                "返回失败, params={params}, error=global var message token"
+                "返回失败, error=global var message token, params={params}"
             ).format(
                 params=json.dumps(
                     {"bk_scope_type": "biz", "bk_scope_id": "2", "bk_biz_id": 2, "job_instance_id": 10000}
