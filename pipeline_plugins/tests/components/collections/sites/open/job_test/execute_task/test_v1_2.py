@@ -503,7 +503,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             },
             "ex_data": (
                 "调用作业平台(JOB)接口jobv3.get_job_instance_global_var_value"
-                "返回失败, params={params}, error=global var message token"
+                "返回失败, error=global var message token, params={params}"
             ).format(
                 params=json.dumps(
                     {"bk_scope_type": "biz", "bk_scope_id": "1", "bk_biz_id": 1, "job_instance_id": 56789}

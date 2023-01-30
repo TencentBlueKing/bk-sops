@@ -167,7 +167,7 @@ SEARCH_SET_SUCCESS_UPDATE_SET_FAIL_CASE = ComponentTestCase(
         success=False,
         outputs={
             "ex_data": "调用配置平台(CMDB)接口cc.update_set返回失败, error=fail, "
-            'params={"bk_biz_id":2,"bk_supplier_account":0, "bk_set_id":45,"data":{"bk_service_status":"1"}}, '
+            'params={"bk_biz_id":2,"bk_supplier_account":0,"bk_set_id":45,"data":{"bk_service_status":"1"}}, '
             "request_id=4a487ef38cf14157a0c3795310bad1a3"
         },
     ),

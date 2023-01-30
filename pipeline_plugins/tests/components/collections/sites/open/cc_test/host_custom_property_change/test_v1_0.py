@@ -283,7 +283,7 @@ FIND_SET_BATCH_SUCCESS_FIND_MODULE_BATCH_FAIL_CHANGE_HOST_PROPERTY_FAIL_CASE = C
         outputs={
             "ex_data": "调用蓝鲸配置平台(CC)接口cc.find_module_batch返回失败, "
             "error=find module batch fail, "
-            'params={"bk_biz_id":1,"bk_ids":[2222,1111], "fields":["bk_module_name","bk_module_id"]}'
+            'params={"bk_biz_id":1,"bk_ids":[2222,1111],"fields":["bk_module_name","bk_module_id"]}'
         },
     ),
     execute_call_assertion=[
