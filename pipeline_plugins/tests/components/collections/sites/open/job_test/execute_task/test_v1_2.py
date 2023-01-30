@@ -406,7 +406,7 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
             "client": JOB_EXECUTE_NOT_SUCCESS_CLIENT,
             "ex_data": "调用作业平台(JOB)接口jobv3.get_job_instance_global_var_value返回失败, "
             "error=global var message token, "
-            'params={"bk_scope_type":"biz","bk_scope_id":"1","bk_biz_id":1,"job_instance_id":56789}, ',
+            'params={"bk_scope_type":"biz","bk_scope_id":"1","bk_biz_id":1,"job_instance_id":56789}',
             "job_tagged_ip_dict": {
                 "name": "JOB执行IP分组",
                 "key": "job_tagged_ip_dict",
