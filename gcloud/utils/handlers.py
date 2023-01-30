@@ -65,8 +65,8 @@ def handle_api_error(system, api_name, params, result):
                 )
 
     else:
-        message = _("调用{system}接口{api_name}返回失败, params={params}, error={error}").format(
-            system=system, api_name=api_name, params=json.dumps(params), error=result.get("message", "")
+        message = _("调用{system}接口{api_name}返回失败, error={error}, params={params}").format(
+            system=system, api_name=api_name, error=result.get("message", ""), params=json.dumps(params)
         )
         if request_id:
             message = "{}, request_id={}".format(message, request_id)
