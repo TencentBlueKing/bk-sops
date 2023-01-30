@@ -254,16 +254,13 @@ FIND_SET_BATCH_FAIL_CHANGE_HOST_PROPERTY_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
-            "ex_data": "调用蓝鲸配置平台(CC)接口cc.find_set_batch返回失败,"
-            ' params={"bk_biz_id":1,"bk_ids":[222,111],"fields":["bk_set_name","bk_set_id"]},'
-            " error=find set batch fail"
+            "ex_data": "调用蓝鲸配置平台(CC)接口cc.find_set_batch返回失败, "
+            "error=find set batch fail, "
+            'params={"bk_biz_id":1,"bk_ids":[222,111],"fields":["bk_set_name","bk_set_id"]}'
         },
     ),
     execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call("executor", 1, "1.1.1.1,2.2.2.2", 0)],
-        ),
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", 1, "1.1.1.1,2.2.2.2", 0)],),
         CallAssertion(
             func=FIND_SET_BATCH_FAIL_CLIENT.cc.find_set_batch,
             calls=[Call({"bk_biz_id": 1, "bk_ids": [222, 111], "fields": ["bk_set_name", "bk_set_id"]})],
@@ -285,15 +282,12 @@ FIND_SET_BATCH_SUCCESS_FIND_MODULE_BATCH_FAIL_CHANGE_HOST_PROPERTY_FAIL_CASE = C
         success=False,
         outputs={
             "ex_data": "调用蓝鲸配置平台(CC)接口cc.find_module_batch返回失败, "
-            'params={"bk_biz_id":1,"bk_ids":[2222,1111],'
-            '"fields":["bk_module_name","bk_module_id"]}, error=find module batch fail'
+            "error=find module batch fail, "
+            'params={"bk_biz_id":1,"bk_ids":[2222,1111], "fields":["bk_module_name","bk_module_id"]}'
         },
     ),
     execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call("executor", 1, "1.1.1.1,2.2.2.2", 0)],
-        ),
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", 1, "1.1.1.1,2.2.2.2", 0)],),
         CallAssertion(
             func=FIND_SET_BATCH_SUCCESS_FIND_MODULE_BATCH_FAIL_CLIENT.cc.find_set_batch,
             calls=[Call({"bk_biz_id": 1, "bk_ids": [222, 111], "fields": ["bk_set_name", "bk_set_id"]})],
@@ -319,14 +313,11 @@ GET_HOST_BASE_INFO_FAIL_CHANGE_HOST_PROPERTY_FAIL_CASE = ComponentTestCase(
         success=False,
         outputs={
             "ex_data": "调用蓝鲸配置平台(CC)接口cc.get_host_base_info返回失败, "
-            'params={"bk_host_id":1212}, error=get host base info fail'
+            'error=get host base info fail, params={"bk_host_id":1212}'
         },
     ),
     execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call("executor", 1, "1.1.1.1,2.2.2.2", 0)],
-        ),
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", 1, "1.1.1.1,2.2.2.2", 0)],),
         CallAssertion(
             func=GET_HOST_BASE_INFO_CLIENT_FAIL.cc.find_set_batch,
             calls=[Call({"bk_biz_id": 1, "bk_ids": [222, 111], "fields": ["bk_set_name", "bk_set_id"]})],
@@ -368,10 +359,7 @@ CHANGE_HOST_PROPERTY_SUCCESS_CASE = ComponentTestCase(
     parent_data={"executor": "executor", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call("executor", 1, "1.1.1.1,2.2.2.2", 0)],
-        ),
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", 1, "1.1.1.1,2.2.2.2", 0)],),
         CallAssertion(
             func=EXECUTE_TASK_SUCCESS_CLIENT.cc.batch_update_host,
             calls=[
@@ -402,16 +390,13 @@ CHANGE_HOST_PROPERTY_FAIL_CASE = ComponentTestCase(
         success=False,
         outputs={
             "ex_data": "调用配置平台(CMDB)接口cc.batch_update_host返回失败, "
+            "error=Batch update host Failed, "
             'params={"update":[{"bk_host_id":1212,"properties":{"dbrole":"adminset_amodule_a1%1%1%13ww"}},'
-            '{"bk_host_id":3434,"properties":{"dbrole":"admin_qset_bmodule_b2%2%2%24wwww"}}]}, '
-            "error=Batch update host Failed"
+            '{"bk_host_id":3434,"properties":{"dbrole":"admin_qset_bmodule_b2%2%2%24wwww"}}]}'
         },
     ),
     execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call("executor", 1, "1.1.1.1,2.2.2.2", 0)],
-        ),
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", 1, "1.1.1.1,2.2.2.2", 0)],),
         CallAssertion(
             func=EXECUTE_TASK_FAIL_CLIENT.cc.find_set_batch,
             calls=[Call({"bk_biz_id": 1, "bk_ids": [222, 111], "fields": ["bk_set_name", "bk_set_id"]})],

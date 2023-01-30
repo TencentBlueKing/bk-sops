@@ -67,10 +67,7 @@ ADD_HOST_LOCK_SUCCESS_CASE = ComponentTestCase(
     # add patch
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=ADD_HOST_LOCK_SUCCESS_CLIENT),
-        Patcher(
-            target=CC_GET_IPS_INFO_BY_STR,
-            return_value={"result": True, "data": ["1", "2"], "invalid_ip": []},
-        ),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"result": True, "data": ["1", "2"], "invalid_ip": []},),
     ],
 )
 
@@ -79,8 +76,7 @@ ADD_HOST_LOCK_FAIL_CASE = ComponentTestCase(
     inputs={"cc_host_ip": "1.1.1.1;2.2.2.2"},
     parent_data={"executor": "executor_token", "biz_cc_id": 2, "biz_supplier_account": 0, "language": "中文"},
     execute_assertion=ExecuteAssertion(
-        success=False,
-        outputs={"ex_data": '调用配置平台(CMDB)接口cc.add_host_lock返回失败, params={"id_list":[1,2]}, error=fail'},
+        success=False, outputs={"ex_data": '调用配置平台(CMDB)接口cc.add_host_lock返回失败, error=fail, params={"id_list":[1,2]}'},
     ),
     schedule_assertion=None,
     execute_call_assertion=[
@@ -90,9 +86,6 @@ ADD_HOST_LOCK_FAIL_CASE = ComponentTestCase(
     # add patch
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=ADD_HOST_LOCK_FAIL_CLIENT),
-        Patcher(
-            target=CC_GET_IPS_INFO_BY_STR,
-            return_value={"result": True, "data": ["1", "2"], "invalid_ip": []},
-        ),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"result": True, "data": ["1", "2"], "invalid_ip": []},),
     ],
 )

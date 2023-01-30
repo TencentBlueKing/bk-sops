@@ -413,9 +413,7 @@ INVALID_IP_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "IP 校验失败，请确认输入的 IP 0:192.168.20.256 是否合法"}),
     schedule_assertion=None,
     execute_call_assertion=[],
-    patchers=[
-        Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT),
-    ],
+    patchers=[Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT)],
 )
 # 作业执行不成功
 EXECUTE_JOB_PLAN_NOT_SUCCESS_CASE = ComponentTestCase(
@@ -504,7 +502,7 @@ EXECUTE_JOB_PLAN_CALL_FAIL_CASE = ComponentTestCase(
         success=False,
         outputs={
             "ex_data": (
-                "调用作业平台(JOB)接口jobv3.execute_job_plan返回失败, params={params}, error={error}, request_id={request_id}"
+                "调用作业平台(JOB)接口jobv3.execute_job_plan返回失败, error={error}, params={params}, request_id={request_id}"
             ).format(
                 params=json.dumps(
                     {

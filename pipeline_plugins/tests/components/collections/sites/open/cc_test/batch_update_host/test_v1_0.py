@@ -126,10 +126,7 @@ BATCH_UPDATE_HOST_SUCCESS = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call("executor", 1, ["1.1.1.1"], 0)],
-        ),
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", 1, ["1.1.1.1"], 0)],),
         CallAssertion(
             func=BATCH_UPDATE_HOST_SUCCESS_CLIENT.cc.batch_update_host,
             calls=[
@@ -163,18 +160,15 @@ BATCH_UPDATE_HOST_FAIL = ComponentTestCase(
         success=False,
         outputs={
             "ex_data": "调用配置平台(CMDB)接口cc.batch_update_host返回失败, "
+            "error=error, "
             'params={"bk_supplier_account":0,'
             '"update":[{"bk_host_id":111,"properties":{"operator":"admin","bk_bak_operator":"admin",'
-            '"bk_comment":"test"}}]}, '
-            "error=error"
+            '"bk_comment":"test"}}]}'
         },
     ),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call("executor", 1, ["1.1.1.1"], 0)],
-        ),
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor", 1, ["1.1.1.1"], 0)],),
         CallAssertion(
             func=BATCH_UPDATE_HOST_FAIL_CLIENT.cc.batch_update_host,
             calls=[

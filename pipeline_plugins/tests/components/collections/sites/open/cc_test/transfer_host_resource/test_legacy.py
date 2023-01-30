@@ -85,8 +85,8 @@ TRANSFER_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
-            "ex_data": "调用配置平台(CMDB)接口cc.transfer_host_to_resourcemodule返回失败, "
-            'params={"bk_supplier_account":0,"bk_biz_id":2,"bk_host_id":[2,3]}, error=message token'
+            "ex_data": "调用配置平台(CMDB)接口cc.transfer_host_to_resourcemodule返回失败, error=message token, "
+            'params={"bk_supplier_account":0,"bk_biz_id":2,"bk_host_id":[2,3]}'
         },
     ),
     schedule_assertion=None,

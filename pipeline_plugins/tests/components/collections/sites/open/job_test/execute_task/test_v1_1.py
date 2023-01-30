@@ -225,7 +225,7 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
-            "ex_data": ("调用作业平台(JOB)接口jobv3.execute_job_plan返回失败, params={params}, " "error=message token").format(
+            "ex_data": ("调用作业平台(JOB)接口jobv3.execute_job_plan返回失败, error=message token, params={params}").format(
                 params=json.dumps(
                     {
                         "bk_scope_type": "biz",
