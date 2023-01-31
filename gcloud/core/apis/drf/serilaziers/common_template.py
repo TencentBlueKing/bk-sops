@@ -70,6 +70,7 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
         help_text="pipeline模板ID", source="pipeline_template.id", read_only=True
     )
     space_id = serializers.IntegerField(help_text="公共空间ID", read_only=True)
+    template_labels = serializers.ListField(help_text="模板label", required=False)
 
     class Meta:
         model = CommonTemplate
@@ -93,4 +94,5 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             "version",
             "pipeline_template",
             "space_id",
+            "template_labels",
         ]
