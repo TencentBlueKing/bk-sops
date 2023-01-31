@@ -266,7 +266,7 @@ class PluginServiceApiClient:
     def _request_api_and_error_retry(url, method, **kwargs):
         """请求API接口,失败进行重试"""
         message = f"request url {url} with method {method} and kwargs {kwargs}".replace(
-            env.PAASV3_APIGW_API_TOKEN, "******"
+            env.PAASV3_APIGW_API_TOKEN or env.PLUGIN_SERVICE_APIGW_APP_SECRET, "******"
         )
         for invoke_num in range(1, env.BKAPP_INVOKE_PAAS_RETRY_NUM + 1):
             try:
