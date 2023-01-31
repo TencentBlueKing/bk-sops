@@ -4,6 +4,8 @@
         <div v-if="!isProjectHidden" class="project-select">
             <ProjectSelector :read-only="isProjectReadOnly" @reloadHome="reloadHome"></ProjectSelector>
         </div>
+        <!-- 选择空间 -->
+        <SpaceSelect v-if="isSpaceShow"></SpaceSelect>
         <!-- 语言 -->
         <div
             class="language-icon"
@@ -90,6 +92,7 @@
 <script>
     import { mapActions, mapMutations, mapState } from 'vuex'
     import ProjectSelector from './ProjectSelector.vue'
+    import SpaceSelect from './SpaceSelect.vue'
     import VersionLog from './VersionLog.vue'
 
     export default {
@@ -97,6 +100,7 @@
         inject: ['reload'],
         components: {
             ProjectSelector,
+            SpaceSelect,
             VersionLog
         },
         data () {
@@ -127,6 +131,10 @@
                 }
                 const paths = ['/home', '/common/', '/admin/', '/project/', '/function/home', '/audit/home']
                 return paths.some(path => this.$route.path.startsWith(path))
+            },
+            // 显示公共流程空间管理
+            isSpaceShow () {
+                return this.$route.path.startsWith('/common/')
             },
             // 项目名称只读
             isProjectReadOnly () {

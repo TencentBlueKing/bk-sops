@@ -30,11 +30,22 @@
         },
         computed: {
             ...mapState({
-                permissionMeta: state => state.permissionMeta
+                permissionMeta: state => state.permissionMeta,
+                crtCommonSpace: state => state.template.crtCommonSpace
             })
         },
-        created () {
-            this.queryViewPerm()
+        watch: {
+            crtCommonSpace: {
+                handler (val) {
+                    if (val === -1) {
+                        this.queryViewPerm()
+                    } else if (val) {
+                        this.hasViewPerm = true
+                    }
+                },
+                deep: true,
+                immediate: true
+            }
         },
         methods: {
             ...mapActions([

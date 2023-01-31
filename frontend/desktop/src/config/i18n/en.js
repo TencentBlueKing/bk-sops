@@ -1565,7 +1565,28 @@ const en = {
     '以便统一管理，也可单独配置流程执行代理人覆盖项目的设置': 'for unified management, the process execution agent can also be configured separately to override the settings of the project',
     '长度超过100个字符，请修改规则': 'The length exceeds 100 characters, please modify the rules',
     '参数未修改': 'parameter is not modified',
-    '保存失败，有参数已被使用不可修改': 'Failed to save, some parameters have been used and cannot be modified'
+    '保存失败，有参数已被使用不可修改': 'Failed to save, some parameters have been used and cannot be modified',
+    'tagCodeEditorTips': 'Script content {0} global variable. A suspected reference to {1} was detected, and it is recommended to use script parameters to pass in.',
+    '不再支持': 'no supported',
+    '添加收藏': 'Collection',
+    '空间': 'Space',
+    '管理空间': 'Manage space',
+    '删除空间': 'Delete space',
+    '新建空间': 'Create space',
+    '编辑空间': 'Edit space',
+    '空间名称': 'Space name',
+    '不超过 50 个字符': 'No more than 50 characters',
+    '空间代号': 'Space code',
+    '不超过 50 个字符，由字母、数字、下划线组成': 'No more than 50 characters, consisting of letters, numbers, underscores',
+    '空间管理员': 'Space manager',
+    '可管理空间和流程，创建人自动成为管理员': 'Spaces and processes can be managed, creators automatically become administrators',
+    '空间成员': 'Space member',
+    '仅可管理空间下的流程': 'Only processes under the management space can be',
+    '空间说明': 'Space desc',
+    '至少 5 个字符': 'At least 5 characters',
+    '转移': 'Transfer',
+    '转移流程': 'Transfer processes',
+    '转移至': 'Transfer to'
 }
 
 export default en
