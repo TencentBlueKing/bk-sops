@@ -252,7 +252,14 @@ class PluginServiceApiClient:
             environment or env.APIGW_ENVIRONMENT,
             *path_params,
         )
-        params = {"private_token": env.PAASV3_APIGW_API_TOKEN}
+        params = (
+            {"private_token": env.PAASV3_APIGW_API_TOKEN}
+            if env.PAASV3_APIGW_API_TOKEN
+            else {
+                "bk_app_code": env.PLUGIN_SERVICE_APIGW_APP_CODE,
+                "bk_app_secret": env.PLUGIN_SERVICE_APIGW_APP_SECRET,
+            }
+        )
         return url, params
 
     @staticmethod
