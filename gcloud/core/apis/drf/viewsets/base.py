@@ -14,16 +14,24 @@ import logging
 from collections import Iterable
 
 from rest_framework import generics
+from rest_framework.exceptions import ErrorDetail
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.pagination import LimitOffsetPagination
 
 from django_filters.rest_framework import DjangoFilterBackend
+from django.utils.translation import ugettext_lazy as _
+
+from gcloud import err_code
+from gcloud.constants import PROJECT, COMMON
 from gcloud.iam_auth import get_iam_client
 from gcloud.core.apis.drf.viewsets import IAMMixin, ApiMixin
+from gcloud.label.models import Label, TemplateLabelRelation
 
 iam = get_iam_client()
 iam_logger = logging.getLogger("iam")
+
+logger = logging.getLogger("root")
 
 
 class GcloudLimitOffsetPagination(LimitOffsetPagination):
@@ -111,3 +119,27 @@ class GcloudModelViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, generics
     """
 
     pass
+
+
+class GcloudTemplateMixin:
+    """
+    公共流程 和 项目流程 共用的一些方法
+    """
+
+    IS_COMMON_TEMPLATE = False
+
+    def _sync_template_labels(self, template_id, label_ids):
+        """
+        创建或更新模板时同步模板标签数据
+        """
+        if label_ids:
+            label_ids = list(set(label_ids))
+            if not Label.objects.check_label_ids(label_ids):
+                message = _("流程保存失败: 流程设置的标签不存在, 请检查配置后重试 | _sync_template_lables")
+                logger.error(message)
+                return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+            try:
+                template_source = COMMON if self.IS_COMMON_TEMPLATE else PROJECT
+                TemplateLabelRelation.objects.set_labels_for_template(template_id, label_ids, template_source)
+            except Exception as e:
+                return Response({"detail": ErrorDetail(str(e), err_code.REQUEST_PARAM_INVALID.code)}, exception=True)

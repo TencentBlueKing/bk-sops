@@ -26,11 +26,12 @@ from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 
 from gcloud import err_code
+from gcloud.constants import COMMON
 from gcloud.contrib.collection.models import Collection
 from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.contrib.operate_record.constants import RecordType, OperateType, OperateSource
 from gcloud.core.apis.drf.viewsets import IAMMixin
-from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
+from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet, GcloudTemplateMixin
 from gcloud.core.apis.drf.serilaziers.common_template import (
     CommonTemplateListSerializer,
     CommonTemplateSerializer,
@@ -40,6 +41,7 @@ from gcloud.core.apis.drf.serilaziers.common_template import (
 from gcloud.common_template.signals import post_template_save_commit
 from gcloud.common_template.models import CommonTemplate
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
+from gcloud.label.models import TemplateLabelRelation
 from gcloud.taskflow3.models import TaskConfig
 from gcloud.template_base.domains.template_manager import TemplateManager
 from gcloud.iam_auth import res_factory, get_iam_client
@@ -115,11 +117,13 @@ class CommonTemplateFilter(PropertyFilterSet):
             "pipeline_template__has_subprocess": ["exact"],
             "pipeline_template__edit_time": ["gte", "lte"],
             "pipeline_template__create_time": ["gte", "lte"],
+            "space_id": ["exact", "isnull"],
         }
         property_fields = [("subprocess_has_update", BooleanPropertyFilter, ["exact"])]
 
 
-class CommonTemplateViewSet(GcloudModelViewSet):
+class CommonTemplateViewSet(GcloudTemplateMixin, GcloudModelViewSet):
+    IS_COMMON_TEMPLATE = True
     queryset = CommonTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
     pagination_class = LimitOffsetPagination
     iam_resource_helper = ViewSetResourceHelper(
@@ -160,16 +164,30 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         serializer = self.get_serializer(page if page is not None else queryset, many=True)
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, serializer.instance)
+        template_ids = [template["id"] for template in data]
 
         # 注入公共流程新建任务权限
-        templates = self._inject_project_based_task_create_action(request, [template["id"] for template in data])
+        templates = self._inject_project_based_task_create_action(request, template_ids)
+
+        templates_labels = TemplateLabelRelation.objects.fetch_templates_labels(template_ids, template_source=COMMON)
 
         for obj in data:
+            obj["template_labels"] = templates_labels.get(obj["id"], [])
             obj["is_collected"] = 1 if obj["id"] in collection_template_ids else 0
             obj["collection_id"] = collection_id_template_id_map.get(obj["id"], -1)
             if obj["id"] in templates:
                 obj["auth_actions"].append(IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION)
         return self.get_paginated_response(data) if page is not None else Response(data)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        data = self.injection_auth_actions(request, serializer.data, instance)
+        labels = TemplateLabelRelation.objects.fetch_templates_labels([instance.id], template_source=COMMON).get(
+            instance.id, []
+        )
+        data["template_labels"] = [label["label_id"] for label in labels]
+        return Response(data)
 
     @staticmethod
     def _inject_project_based_task_create_action(request, common_template_ids):
@@ -225,8 +243,9 @@ class CommonTemplateViewSet(GcloudModelViewSet):
                 return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
             serializer.validated_data["pipeline_template"] = result["data"]
-
+            template_labels = serializer.validated_data.pop("template_labels")
             self.perform_create(serializer)
+            self._sync_template_labels(serializer.instance.id, template_labels)
         # 发送信号
         post_template_save_commit.send(sender=CommonTemplate, template_id=serializer.instance.id, is_deleted=False)
         # 注入权限
@@ -267,7 +286,9 @@ class CommonTemplateViewSet(GcloudModelViewSet):
                 return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
             serializer.validated_data["pipeline_template"] = template.pipeline_template
+            template_labels = serializer.validated_data.pop("template_labels")
             self.perform_update(serializer)
+            self._sync_template_labels(serializer.instance.id, template_labels)
         # 发送信号
         post_template_save_commit.send(sender=CommonTemplate, template_id=serializer.instance.id, is_deleted=False)
         # 注入权限

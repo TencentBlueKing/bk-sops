@@ -27,6 +27,6 @@ class NewLabelSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        if "project_id" in attrs and "from_space_id" in attrs:
+        if attrs.get("project_id") and attrs.get("from_space_id"):
             raise serializers.ValidationError("project_id and from_space_id can not both be filled")
         return attrs

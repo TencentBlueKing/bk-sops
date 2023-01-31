@@ -28,8 +28,8 @@ from gcloud import err_code
 from pipeline.models import TemplateRelationship, TemplateScheme
 
 from gcloud.contrib.collection.models import Collection
-from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
-from gcloud.label.models import TemplateLabelRelation, Label
+from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet, GcloudTemplateMixin
+from gcloud.label.models import TemplateLabelRelation
 from gcloud.tasktmpl3.signals import post_template_save_commit
 from gcloud.taskflow3.models import TaskTemplate, TaskConfig
 from gcloud.core.apis.drf.serilaziers.task_template import (
@@ -50,7 +50,6 @@ from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.contrib.operate_record.constants import OperateType, OperateSource, RecordType
 from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
 from gcloud.user_custom_config.constants import TASKTMPL_ORDERBY_OPTIONS
-from django.utils.translation import ugettext_lazy as _
 
 
 logger = logging.getLogger("root")
@@ -109,7 +108,7 @@ class TaskTemplateFilter(PropertyFilterSet):
         return query.filter(**condition)
 
 
-class TaskTemplateViewSet(GcloudModelViewSet):
+class TaskTemplateViewSet(GcloudTemplateMixin, GcloudModelViewSet):
     queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
     pagination_class = LimitOffsetPagination
     filterset_class = TaskTemplateFilter
@@ -132,21 +131,6 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         if self.action == "list":
             return TaskTemplateListSerializer
         return TaskTemplateSerializer
-
-    def _sync_template_lables(self, template_id, label_ids):
-        """
-        创建或更新模板时同步模板标签数据
-        """
-        if label_ids:
-            label_ids = list(set(label_ids))
-            if not Label.objects.check_label_ids(label_ids):
-                message = _("流程保存失败: 流程设置的标签不存在, 请检查配置后重试 | _sync_template_lables")
-                logger.error(message)
-                return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
-            try:
-                TemplateLabelRelation.objects.set_labels_for_template(template_id, label_ids)
-            except Exception as e:
-                return Response({"detail": ErrorDetail(str(e), err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -224,7 +208,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             serializer.validated_data["pipeline_template_id"] = result["data"].template_id
             template_labels = serializer.validated_data.pop("template_labels")
             self.perform_create(serializer)
-            self._sync_template_lables(serializer.instance.id, template_labels)
+            self._sync_template_labels(serializer.instance.id, template_labels)
             headers = self.get_success_headers(serializer.data)
         # 发送信号
         post_template_save_commit.send(
@@ -273,7 +257,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             serializer.validated_data["pipeline_template"] = template.pipeline_template
             template_labels = serializer.validated_data.pop("template_labels")
             self.perform_update(serializer)
-            self._sync_template_lables(serializer.instance.id, template_labels)
+            self._sync_template_labels(serializer.instance.id, template_labels)
         # 发送信号
         post_template_save_commit.send(
             sender=TaskTemplate,
