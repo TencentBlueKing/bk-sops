@@ -16,6 +16,7 @@ import logging
 import ujson as json
 from django.db import transaction
 from django.db.models import ExpressionWrapper, Q, BooleanField
+from django_filters import CharFilter
 from drf_yasg.utils import swagger_auto_schema
 from iam import Request, Subject, Action, Resource
 from iam.exceptions import AuthFailedException
@@ -106,6 +107,8 @@ class CommonTemplateWithCommonSpacePermission(IAMMixin, permissions.BasePermissi
 
 
 class CommonTemplateFilter(PropertyFilterSet):
+    label_ids = CharFilter(method="filter_by_label_ids")
+
     class Meta:
         model = CommonTemplate
         fields = {
@@ -120,6 +123,12 @@ class CommonTemplateFilter(PropertyFilterSet):
             "space_id": ["exact", "isnull"],
         }
         property_fields = [("subprocess_has_update", BooleanPropertyFilter, ["exact"])]
+
+    def filter_by_label_ids(self, query, name, value):
+        label_ids = [int(label_id) for label_id in value.strip().split(",")]
+        template_ids = list(TemplateLabelRelation.objects.fetch_template_ids_using_union_labels(label_ids, COMMON))
+        condition = {"id__in": template_ids}
+        return query.filter(**condition)
 
 
 class CommonTemplateViewSet(GcloudTemplateMixin, GcloudModelViewSet):
