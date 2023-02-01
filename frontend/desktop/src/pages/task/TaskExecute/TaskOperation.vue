@@ -1273,7 +1273,6 @@
                 }
             },
             getOrderedTree (data) {
-                console.log(data)
                 const startNode = tools.deepClone(data.start_event)
                 const endNode = tools.deepClone(data.end_event)
                 const fstLine = startNode.outgoing
@@ -1313,14 +1312,9 @@
                     } else {
                         outgoing = node.outgoing ? [node.outgoing] : []
                     }
+                    // 当前tree是否已存在
                     const isAt = !this.nodeIds.includes(node.id)
-                    if (endEvent) {
-                        const name = this.$t('结束节点')
-                        endEvent.title = name
-                        endEvent.name = name
-                        endEvent.expanded = false
-                        // ordered.push(endEvent)
-                    } else if (gateway) { // 网关节点
+                    if (gateway) { // 网关节点
                         const name = NODE_DICT[gateway.type.toLowerCase()]
                         gateway.title = name
                         gateway.name = name
@@ -1363,8 +1357,8 @@
                             // 添加并行默认条件
                             const defaultCondition = gateway.outgoing.map((item, index) => {
                                 return {
-                                    name: '并行条件' + (index + 1),
-                                    title: '并行条件' + (index + 1),
+                                    name: this.$t('并行') + (index + 1),
+                                    title: this.$t('并行') + (index + 1),
                                     isGateway: true,
                                     expanded: false,
                                     outgoing: item,
@@ -1641,12 +1635,8 @@
                 const heirarchyList = nodeHeirarchy.split('.').reverse().splice(1)
                 if (heirarchyList.length) { // not root node
                     nodeActivities = this.completePipelineData.activities
-                    if (!nodeActivities) {
-                        debugger
-                    }
                     heirarchyList.forEach((key, index) => {
                         nodeActivities = index ? nodeActivities.pipeline.activities[key] : nodeActivities[key]
-                        console.log(nodeActivities)
                         nodePath.push({
                             id: nodeActivities.id,
                             name: nodeActivities.name,

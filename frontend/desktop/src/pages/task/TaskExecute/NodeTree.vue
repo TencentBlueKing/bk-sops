@@ -116,9 +116,7 @@
                     }
                     rootNode = rootNode.parent
                 }
-                if (node.isGateway) {
-                    nodeHeirarchy = nodeHeirarchy.split('.').reverse()[0]
-                }
+                nodeHeirarchy = nodeHeirarchy.split('.').reverse()[0]
                 this.$emit('onSelectNode', nodeHeirarchy, node.id, nodeType)
             }
         }
