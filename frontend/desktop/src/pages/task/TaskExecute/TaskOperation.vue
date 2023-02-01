@@ -1270,18 +1270,23 @@
                 }
             },
             getOrderedTree (data) {
+                console.log(data)
                 const startNode = tools.deepClone(data.start_event)
+                const endNode = tools.deepClone(data.end_event)
                 const fstLine = startNode.outgoing
                 const orderedData = [Object.assign({}, startNode, {
                     title: this.$t('开始节点'),
                     name: this.$t('开始节点'),
                     expanded: false
                 })]
+                const endEvent = Object.assign({}, endNode, {
+                    title: this.$t('结束节点'),
+                    name: this.$t('结束节点'),
+                    expanded: false
+                })
                 this.retrieveLines(data, fstLine, orderedData)
-                const endEventIndex = orderedData.findIndex(item => item.type === 'EmptyEndEvent')
-                const endEvent = orderedData.splice(endEventIndex, 1)
-                orderedData.push(endEvent[0])
-                return orderedData.filter(item => !this.nodeIds.includes(item.id))
+                orderedData.push(endEvent)
+                return orderedData
             },
             /**
              * 根据节点连线遍历任务节点，返回按广度优先排序的节点数据
@@ -1291,7 +1296,7 @@
              * @param {Boolean} isGateway 是否网关结构内的节点
              *
              */
-            retrieveLines (data, lineId, ordered, isGateway = false) {
+            retrieveLines (data, lineId, ordered) {
                 const { end_event, activities, gateways, flows } = data
                 const currentNode = flows[lineId].target
                 const endEvent = end_event.id === currentNode ? tools.deepClone(end_event) : undefined
@@ -1305,22 +1310,21 @@
                     } else {
                         outgoing = node.outgoing ? [node.outgoing] : []
                     }
-
+                    const isAt = !this.nodeIds.includes(node.id)
                     if (endEvent) {
-                        if (isGateway) return
                         const name = this.$t('结束节点')
                         endEvent.title = name
                         endEvent.name = name
                         endEvent.expanded = false
-                        ordered.push(endEvent)
+                        // ordered.push(endEvent)
                     } else if (gateway) { // 网关节点
-                        if (isGateway) return
                         const name = NODE_DICT[gateway.type.toLowerCase()]
                         gateway.title = name
                         gateway.name = name
                         gateway.expanded = false
                         gateway.children = []
-                        if (gateway.conditions) {
+                        
+                        if (isAt && gateway.conditions) {
                             const conditions = Object.keys(gateway.conditions).map(item => {
                                 return {
                                     name: gateway.conditions[item].name,
@@ -1332,58 +1336,75 @@
                                 }
                             })
                             conditions.forEach(item => {
-                                for (const ite in activities) {
-                                    if (activities[ite].incoming.includes(item.outgoing)) {
-                                        item.children.push(Object.assign(activities[ite], { isGateway: true }))
-                                        this.retrieveLines(data, activities[ite].outgoing, item.children, true)
-                                        item.children.forEach(i => {
-                                            if (!this.nodeIds.includes(i.id)) {
-                                                this.nodeIds.push(i.id)
-                                            }
-                                        })
+                                this.retrieveLines(data, item.outgoing, item.children)
+                                item.children.forEach(i => {
+                                    if (!this.nodeIds.includes(i.id)) {
+                                        this.nodeIds.push(i.id)
                                     }
-                                }
+                                })
                             })
                             gateway.children.push(...conditions)
-                        } else if (gateway.type === 'ParallelGateway') {
-                            gateway.outgoing.forEach(item => {
-                                for (const ite in activities) {
-                                    if (activities[ite].incoming.includes(item)) {
-                                        gateway.children.push(Object.assign(activities[ite], { isGateway: true }))
-                                        gateway.children.forEach(i => {
-                                            if (!this.nodeIds.includes(i.id)) {
-                                                this.nodeIds.push(i.id)
-                                            }
-                                        })
-                                    }
+                            ordered.push(gateway)
+                            outgoing.forEach(line => {
+                                this.retrieveLines(data, line, ordered)
+                            })
+                        } else if (isAt && gateway.type === 'ParallelGateway') {
+                            // 添加并行默认条件
+                            const defaultCondition = gateway.outgoing.map((item, index) => {
+                                return {
+                                    name: '并行条件' + (index + 1),
+                                    title: '并行条件' + (index + 1),
+                                    isGateway: true,
+                                    expanded: false,
+                                    outgoing: item,
+                                    children: []
                                 }
                             })
+                            gateway.children.push(...defaultCondition)
+                            defaultCondition.forEach(item => {
+                                this.retrieveLines(data, item.outgoing, item.children)
+                                item.children.forEach(i => {
+                                    if (!this.nodeIds.includes(i.id)) {
+                                        this.nodeIds.push(i.id)
+                                    }
+                                })
+                            })
+                            ordered.push(gateway)
+                            outgoing.forEach(line => {
+                                this.retrieveLines(data, line, ordered)
+                            })
                         }
-                        ordered.push(gateway)
-                        outgoing.forEach(line => {
-                            this.retrieveLines(data, line, ordered)
-                        })
                         if (gateway.type === 'ConvergeGateway') {
                             // 判断ordered中 汇聚网关的incoming是否存在
-                            if (gateway.incoming.every(item => ordered.map(ite => ite.outgoing).includes(item))) {
+                            const list = []
+                            this.nodeIds.forEach(item => {
+                                if (activities[item]) {
+                                    list.push(activities[item])
+                                } else if (gateways[item]) {
+                                    list.push(gateways[item])
+                                }
+                            })
+                            if (gateway.incoming.every(item => list.map(ite => ite.outgoing).includes(item))) {
                                 ordered.push(gateway)
+                                if (!this.nodeIds.includes(gateway.id)) {
+                                    this.nodeIds.push(gateway.id)
+                                }
                                 outgoing.forEach(line => {
-                                    this.retrieveLines(data, line, ordered, isGateway)
+                                    this.retrieveLines(data, line, ordered)
                                 })
                             }
                         }
                     } else if (activity) { // 任务节点
-                        if (activity.pipeline) {
-                            activity.children = this.getOrderedTree(activity.pipeline)
+                        if (isAt) {
+                            if (activity.pipeline) {
+                                activity.children = this.getOrderedTree(activity.pipeline)
+                            }
+                            activity.title = activity.name
+                            activity.expanded = activity.pipeline
+                            ordered.push(activity)
                         }
-                        activity.title = activity.name
-                        activity.expanded = activity.pipeline
-                        if (isGateway) {
-                            Object.assign(activity, { isGateway: true })
-                        }
-                        ordered.push(activity)
                         outgoing.forEach(line => {
-                            this.retrieveLines(data, line, ordered, isGateway)
+                            this.retrieveLines(data, line, ordered)
                         })
                     }
                 }
@@ -1607,8 +1628,12 @@
                 const heirarchyList = nodeHeirarchy.split('.').reverse().splice(1)
                 if (heirarchyList.length) { // not root node
                     nodeActivities = this.completePipelineData.activities
+                    if (!nodeActivities) {
+                        debugger
+                    }
                     heirarchyList.forEach((key, index) => {
                         nodeActivities = index ? nodeActivities.pipeline.activities[key] : nodeActivities[key]
+                        console.log(nodeActivities)
                         nodePath.push({
                             id: nodeActivities.id,
                             name: nodeActivities.name,
