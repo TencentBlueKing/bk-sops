@@ -361,7 +361,7 @@
                         const tagInfo = pluginInfo.data.tag_info
                         tagId = tagInfo ? tagInfo.id : -1
                     }
-                    const resp = await this.$store.dispatch('atomForm/getThirdPluginTags', { with_unknown_tag: true })
+                    const resp = await this.$store.dispatch('atomForm/getThirdPluginTags')
                     if (resp.result) {
                         this.thirdActiveGroup = tagId || (this.searchStr ? '' : resp.data[0].id)
                         this.thirdPluginGroup = resp.data.map(item => {
