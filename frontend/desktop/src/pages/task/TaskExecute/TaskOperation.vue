@@ -90,6 +90,7 @@
                     :state="state"
                     :node-data="nodeData"
                     :engine-ver="engineVer"
+                    :node-display-status="nodeDisplayStatus"
                     :selected-flow-path="selectedFlowPath"
                     :admin-view="adminView"
                     :pipeline-data="nodePipelineData"
@@ -413,7 +414,8 @@
                 isExecRecordOpen: false,
                 nodeExecRecordInfo: {},
                 isInjectVarDialogShow: false,
-                nodeIds: []
+                nodeIds: [],
+                nodeDisplayStatus: {}
             }
         },
         computed: {
@@ -635,6 +637,7 @@
                             this.setTaskStatusTimer()
                         }
                     }
+                    this.nodeDisplayStatus = tools.deepClone(this.instanceStatus)
                     this.modifyPageIcon()
                 } catch (e) {
                     this.cancelTaskStatusTimer()
@@ -975,7 +978,6 @@
                         errorIgnorable = nodeActivities.error_ignorable
                         autoRetry = nodeActivities.auto_retry
                     }
-
                     const data = {
                         code,
                         skippable,
@@ -1305,6 +1307,7 @@
                 const activity = tools.deepClone(activities[currentNode])
                 const gateway = tools.deepClone(gateways[currentNode])
                 const node = endEvent || activity || gateway
+
                 if (node && ordered.findIndex(item => item.id === node.id) === -1) {
                     let outgoing
                     if (Array.isArray(node.outgoing)) {
@@ -1321,7 +1324,7 @@
                         gateway.expanded = false
                         gateway.children = []
                         
-                        if (isAt && gateway.conditions) {
+                        if (isAt && (gateway.conditions || gateway.default_condition)) {
                             const conditions = Object.keys(gateway.conditions).map(item => {
                                 return {
                                     name: gateway.conditions[item].name,
@@ -1332,6 +1335,19 @@
                                     children: []
                                 }
                             })
+                            if (gateway.default_condition) {
+                                const defaultCondition = [
+                                    {
+                                        name: gateway.default_condition.name,
+                                        title: gateway.default_condition.name,
+                                        isGateway: true,
+                                        expanded: false,
+                                        outgoing: gateway.default_condition.flow_id,
+                                        children: []
+                                    }
+                                ]
+                                conditions.push(...defaultCondition)
+                            }
                             conditions.forEach(item => {
                                 this.retrieveLines(data, item.outgoing, item.children)
                                 item.children.forEach(i => {
@@ -1675,7 +1691,6 @@
                     await this.switchCanvasView(this.completePipelineData, true)
                     this.treeNodeConfig = {}
                 }
-
                 this.setNodeDetailConfig(selectNodeId, !nodeHeirarchy)
                 // 节点树切换时，如果为子流程节点则需要重置pipelineData的constants
                 this.nodePipelineData = { ...this.pipelineData }

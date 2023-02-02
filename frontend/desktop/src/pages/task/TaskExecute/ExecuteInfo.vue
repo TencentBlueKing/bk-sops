@@ -15,6 +15,7 @@
             <NodeTree
                 class="nodeTree"
                 :data="nodeData"
+                :node-display-status="nodeDisplayStatus"
                 :selected-flow-path="selectedFlowPath"
                 :default-active-id="defaultActiveId"
                 @onSelectNode="onSelectNode">
@@ -226,6 +227,10 @@
             },
             engineVer: {
                 type: Number,
+                required: true
+            },
+            nodeDisplayStatus: {
+                type: Object,
                 required: true
             }
         },
