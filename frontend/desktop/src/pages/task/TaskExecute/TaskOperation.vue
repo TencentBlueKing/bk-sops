@@ -1335,6 +1335,7 @@
                                     children: []
                                 }
                             })
+                            // 添加条件分支默认节点
                             if (gateway.default_condition) {
                                 const defaultCondition = [
                                     {
@@ -1346,7 +1347,7 @@
                                         children: []
                                     }
                                 ]
-                                conditions.push(...defaultCondition)
+                                conditions.unshift(...defaultCondition)
                             }
                             conditions.forEach(item => {
                                 this.retrieveLines(data, item.outgoing, item.children)
@@ -1356,14 +1357,6 @@
                                     }
                                 })
                             })
-                            // 添加条件分支默认节点
-                            if (gateway.default_condition) {
-                                const defaults = flows[gateway.default_condition.flow_id].target
-                                const cur = tools.deepClone(activities[defaults])
-                                cur.name = this.$t('默认') + '-' + cur.name
-                                conditions.unshift(cur)
-                                this.nodeIds.push(cur.id)
-                            }
                             gateway.children.push(...conditions)
                             ordered.push(gateway)
                             outgoing.forEach(line => {
