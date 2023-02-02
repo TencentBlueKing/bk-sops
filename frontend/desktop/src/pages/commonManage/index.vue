@@ -66,7 +66,7 @@
                             this.queryViewPerm()
                         }
                     } else if (val) {
-                        this.hasViewPerm = !this.spaceInfo.auth_actions.length
+                        this.hasViewPerm = this.spaceInfo.auth_actions.length
                     }
                 },
                 deep: true,

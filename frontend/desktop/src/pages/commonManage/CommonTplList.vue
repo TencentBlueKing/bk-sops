@@ -66,6 +66,7 @@
                     <search-select
                         ref="searchSelect"
                         id="commonTplList"
+                        :key="crtCommonSpace"
                         :placeholder="$t('ID/流程名称/标签/子流程更新/创建人/更新人')"
                         v-model="searchSelectValue"
                         :search-list="searchList"
@@ -782,13 +783,14 @@
                     this.pagination.limit = 15
                     this.updateUrl()
                     this.getTemplateList()
+                    this.getTemplateLabelList()
                 },
                 deep: true
             }
         },
         async created () {
             this.getFields()
-            this.getProjectLabelList()
+            this.getTemplateLabelList()
             this.getProjectBaseInfo()
             this.queryCreateCommonTplPerm()
             // 获取表头排序列表和设置
@@ -1593,7 +1595,7 @@
                 this.selectedTpl = {}
             },
             // 获取标签列表
-            async getProjectLabelList () {
+            async getTemplateLabelList () {
                 const form = this.searchList.find(item => item.id === 'label_ids')
                 try {
                     this.templateLabelLoading = true
@@ -1710,7 +1712,7 @@
                                 // 新建标签后自动选上
                                 const curRow = this.templateList.find(item => item.id === this.curSelectedRow.id)
                                 curRow.labelIds.push(resp.data.id)
-                                this.getProjectLabelList()
+                                this.getTemplateLabelList()
                             }
                         }
                     } catch (error) {

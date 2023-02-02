@@ -242,7 +242,6 @@
                     id: this.crtSpace,
                     list: this.commonSpaceList
                 })
-                console.log('11')
                 this.$router.replace({
                     name: this.$route.name,
                     query: { spaceId: this.crtSpace }

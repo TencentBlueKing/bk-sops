@@ -48,7 +48,7 @@
                     </ul>
                     <p class="clear-checked" @click="handleClearFilter">{{ $t('清空筛选') }}</p>
                 </template>
-                <p class="no-search-data">{{ $t('查询无数据') }}</p>
+                <p v-else class="no-search-data">{{ $t('查询无数据') }}</p>
             </div>
         </bk-popover>
         <bk-date-picker
@@ -85,10 +85,6 @@
             orderShow: {
                 type: Boolean,
                 default: true
-            },
-            filterShow: {
-                type: Boolean,
-                default: false
             },
             dateFilterShow: {
                 type: Boolean,
