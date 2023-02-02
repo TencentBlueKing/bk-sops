@@ -13,35 +13,36 @@
     <div class="static-ip">
         <div v-show="!isIpAddingPanelShow" class="ip-list-panel">
             <div :class="['operation-area', { 'is-view': !editable }]">
-                <bk-dropdown-menu
-                    trigger="click"
-                    :disabled="!editable"
-                    @show="onDropdownShow"
-                    @hide="onDropdownHide">
-                    <bk-button theme="default" size="small" class="trigger-btn" slot="dropdown-trigger" :disabled="!editable">
-                        <span>{{i18n.batchOperations}}</span>
-                        <i :class="['bk-icon icon-angle-down',{ 'icon-flip': isDropdownShow }]"></i>
-                    </bk-button>
-                    <div slot="dropdown-content">
-                        <div
-                            v-for="operation in operations"
-                            :key="operation.type"
-                            class="operation-btn"
-                            @click="onOperationClick(operation)">
-                            {{operation.name}}
-                        </div>
-                    </div>
-                </bk-dropdown-menu>
                 <bk-button theme="default" size="small" :disabled="!editable" style="margin-left: 4px;" @click="onAddPanelShow('select')">{{i18n.selectAdd}}</bk-button>
                 <bk-button theme="default" size="small" :disabled="!editable" style="margin-left: 4px;" @click="onAddPanelShow('manual')">{{i18n.manualAdd}}</bk-button>
-                <ip-search-input
-                    v-if="staticIps.length"
-                    ref="ipSearchInput"
-                    :class="['ip-search-wrap', { 'static-ip-unfold': isUnfold }]"
-                    :editable="editable"
-                    @focus="onStaticIpFocus"
-                    @search="onStaticIpSearch">
-                </ip-search-input>
+                <template v-if="staticIps.length">
+                    <bk-dropdown-menu
+                        trigger="click"
+                        :disabled="!editable"
+                        @show="onDropdownShow"
+                        @hide="onDropdownHide">
+                        <bk-button theme="default" size="small" class="trigger-btn" slot="dropdown-trigger" :disabled="!editable">
+                            <span>{{i18n.batchOperations}}</span>
+                            <i :class="['bk-icon icon-angle-down',{ 'icon-flip': isDropdownShow }]"></i>
+                        </bk-button>
+                        <div slot="dropdown-content">
+                            <div
+                                v-for="operation in operations"
+                                :key="operation.type"
+                                class="operation-btn"
+                                @click="onOperationClick(operation)">
+                                {{operation.name}}
+                            </div>
+                        </div>
+                    </bk-dropdown-menu>
+                    <ip-search-input
+                        ref="ipSearchInput"
+                        :class="['ip-search-wrap', { 'static-ip-unfold': isUnfold }]"
+                        :editable="editable"
+                        @focus="onStaticIpFocus"
+                        @search="onStaticIpSearch">
+                    </ip-search-input>
+                </template>
                 <span v-if="isUnfold" @click="isUnfold = false" class="return-text">{{ i18n.return }}</span>
             </div>
             <div class="selected-ip-table-wrap">
