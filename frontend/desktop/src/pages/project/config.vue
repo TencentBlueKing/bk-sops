@@ -785,7 +785,8 @@
                                 project_id: Number(this.id),
                                 color,
                                 name,
-                                description
+                                description,
+                                from_space_id: null
                             }
                             if (type === 'edit') {
                                 data.id = id

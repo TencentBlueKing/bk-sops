@@ -479,7 +479,8 @@
                                 project_id: Number(project_id),
                                 color,
                                 name,
-                                description
+                                description,
+                                from_space_id: null
                             }
                             const resp = await this.createTemplateLabel(data)
                             if (resp.result) {

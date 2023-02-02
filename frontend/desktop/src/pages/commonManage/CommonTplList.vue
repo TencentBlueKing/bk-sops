@@ -145,6 +145,9 @@
                                             :display-tag="true"
                                             :multiple="true"
                                             searchable
+                                            :popover-options="{
+                                                onHide: () => !labelDialogShow
+                                            }"
                                             ext-cls="label-select">
                                             <div class="label-select-content" v-bkloading="{ isLoading: templateLabelLoading }">
                                                 <bk-option
@@ -166,24 +169,10 @@
                                                 <div
                                                     class="add-label"
                                                     data-test-id="process_list__editLabel"
-                                                    v-cursor="{ active: !hasPermission(['project_edit'], authActions) }"
-                                                    @click="onEditLabel">
+                                                    v-cursor="{ active: !hasPermission(['common_flow_edit'], row.auth_actions) }"
+                                                    @click="onEditLabel(row)">
                                                     <i class="bk-icon icon-plus-circle"></i>
                                                     <span>{{ $t('新建标签') }}</span>
-                                                </div>
-                                                <div
-                                                    class="label-manage"
-                                                    data-test-id="process_list__labelManage"
-                                                    v-cursor="{ active: !hasPermission(['project_view'], authActions) }"
-                                                    @click="onManageLabel">
-                                                    <i class="common-icon-label"></i>
-                                                    <span>{{ $t('标签管理') }}</span>
-                                                </div>
-                                                <div
-                                                    class="refresh-label"
-                                                    data-test-id="process_list__refreshLabel"
-                                                    @click="getProjectLabelList">
-                                                    <i class="bk-icon icon-right-turn-line"></i>
                                                 </div>
                                             </div>
                                         </bk-select>
@@ -366,11 +355,11 @@
                         searchable
                         ext-popover-cls="space-select-popover-list">
                         <bk-option
-                            v-for="spaceInfo in commonSpaceList"
+                            v-for="spaceInfo in spaceFilterList"
                             :key="spaceInfo.id"
                             :id="spaceInfo.id"
                             :name="spaceInfo.name">
-                            <div class="space-select-option">
+                            <div class="space-select-option" v-bk-overflow-tips>
                                 <div class="option-content">
                                     <span>{{ spaceInfo.name }}</span>
                                     <span v-if="spaceInfo.code">{{ $t('（') + spaceInfo.code + $t('）') }}</span>
@@ -381,11 +370,58 @@
                 </bk-form-item>
             </bk-form>
         </bk-dialog>
+        <bk-dialog
+            width="480"
+            ext-cls="common-dialog label-dialog"
+            header-position="left"
+            render-directive="if"
+            :mask-close="false"
+            :auto-close="false"
+            :title="$t('新建标签')"
+            :loading="labelLoading"
+            :value="labelDialogShow"
+            @confirm="editLabelConfirm"
+            @cancel="labelDialogShow = false">
+            <bk-form ref="labelForm" :model="labelDetail" :rules="labelRules">
+                <bk-form-item property="name" :label="$t('标签名称')" :required="true">
+                    <bk-input v-model="labelDetail.name"></bk-input>
+                </bk-form-item>
+                <bk-form-item property="color" :label="$t('标签颜色')" :required="true">
+                    <bk-dropdown-menu
+                        ref="dropdown"
+                        trigger="click"
+                        class="color-dropdown"
+                        @show="colorDropdownShow = true"
+                        @hide="colorDropdownShow = false">
+                        <div class="dropdown-trigger-btn" slot="dropdown-trigger">
+                            <span class="color-block" :style="{ background: labelDetail.color }"></span>
+                            <i :class="['bk-icon icon-angle-down',{ 'icon-flip': colorDropdownShow }]"></i>
+                        </div>
+                        <div class="color-list" slot="dropdown-content">
+                            <div class="tip">{{ $t('选择颜色') }}</div>
+                            <div>
+                                <span
+                                    v-for="color in colorList"
+                                    :key="color"
+                                    class="color-item color-block"
+                                    :style="{ background: color }"
+                                    @click="labelDetail.color = color">
+                                </span>
+                            </div>
+                        </div>
+                    </bk-dropdown-menu>
+                </bk-form-item>
+                <bk-form-item :label="$t('标签描述')">
+                    <bk-input type="textarea" v-model="labelDetail.description"></bk-input>
+                </bk-form-item>
+            </bk-form>
+        </bk-dialog>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
+    import { DARK_COLOR_LIST, LABEL_COLOR_LIST } from '@/constants/index.js'
     import toolsUtils from '@/utils/tools.js'
     import Skeleton from '@/components/skeleton/index.vue'
     import ImportDatTplDialog from '@/pages/template/TemplateList/ImportDatTplDialog.vue'
@@ -511,7 +547,8 @@
                 creator = '',
                 editor = '',
                 flowName = '',
-                template_id = ''
+                template_id = '',
+                labels = ''
             } = this.$route.query
             const searchList = [
                 ...SEARCH_LIST,
@@ -594,7 +631,8 @@
                     edit_time: edit_time ? edit_time.split(',') : ['', ''],
                     flowName,
                     template_id,
-                    editor
+                    editor,
+                    labels
                 },
                 totalPage: 1,
                 pagination: {
@@ -637,7 +675,41 @@
                 },
                 templateLabels: [],
                 templateLabelLoading: false,
-                curSelectedRow: {}
+                curSelectedRow: {},
+                darkColorList: DARK_COLOR_LIST,
+                labelDialogShow: false,
+                labelRules: {
+                    color: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    name: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        },
+                        {
+                            max: 50,
+                            message: i18n.t('标签名称不能超过') + 50 + i18n.t('个字符'),
+                            trigger: 'blur'
+                        },
+                        {
+                            validator: (val) => {
+                                return this.templateLabels.every(label => label.name !== val)
+                            },
+                            message: i18n.t('标签已存在，请重新输入'),
+                            trigger: 'blur'
+                        }
+                    ]
+                },
+                labelDetail: {},
+                colorDropdownShow: false,
+                colorList: LABEL_COLOR_LIST,
+                labelLoading: false
             }
         },
         computed: {
@@ -682,6 +754,15 @@
                     return { prop: ordering, order: 'ascending' }
                 }
                 return {}
+            },
+            // 不包含当前空间的空间列表
+            spaceFilterList () {
+                return this.commonSpaceList.filter(item => item.id !== this.crtCommonSpace)
+            },
+            // 是否为空间管理员
+            isManager () {
+                const spaceInfo = this.commonSpaceList.find(item => item.id === this.crtCommonSpace)
+                return spaceInfo && spaceInfo.auth_actions.includes('common_space_manage')
             }
         },
         watch: {
@@ -729,11 +810,12 @@
                 'getUserProjectConfigOptions',
                 'getUserProjectConfigs',
                 'setUserProjectConfig',
-                'getProjectLabelsWithDefault',
+                'getProjectLabels',
                 'createTemplateLabel'
             ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo',
+                'saveTemplateData',
                 'onTransferCommonSpace'
             ]),
             ...mapActions('templateList/', [
@@ -743,7 +825,8 @@
                 'batchDeleteTpl'
             ]),
             ...mapMutations('template/', [
-                'setProjectBaseInfo'
+                'setProjectBaseInfo',
+                'setTemplateData'
             ]),
             async queryCreateCommonTplPerm () {
                 try {
@@ -787,7 +870,7 @@
                 }
             },
             getQueryData () {
-                const { subprocessUpdateVal, creator, create_time, edit_time, flowName, template_id, editor } = this.requestData
+                const { subprocessUpdateVal, creator, create_time, edit_time, flowName, template_id, editor, label_ids } = this.requestData
                 /**
                  * 无子流程 has_subprocess=false
                  * 有子流程，需要更新 has_subprocess=true&subprocess_has_update=true
@@ -806,7 +889,8 @@
                     pipeline_template__has_subprocess: has_subprocess,
                     new: true,
                     id: template_id || undefined,
-                    pipeline_template__editor: editor || undefined
+                    pipeline_template__editor: editor || undefined,
+                    label_ids: label_ids && label_ids.length ? label_ids.join(',') : undefined
                 }
                 // 所属空间
                 if (this.crtCommonSpace === -1) {
@@ -1162,6 +1246,25 @@
                         onSortChange={ data => this.handleSortChange(data) }
                         onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
+                } else if (column.property === 'label') {
+                    const list = this.templateLabels.map(label => {
+                        label.textColor = this.darkColorList.includes(label.color) ? '#fff' : '#262e4f'
+                        return label
+                    })
+                    const data = this.searchSelectValue.find(item => item.id === 'label_ids')
+                    const filterConfig = {
+                        show: true,
+                        list,
+                        values: data ? data.values : []
+                    }
+                    return <TableRenderHeader
+                        name={ column.label }
+                        property={ column.property }
+                        orderShow={ false }
+                        dateFilterShow={ false }
+                        filterConfig = { filterConfig }
+                        onFilterChange={ data => this.handleLabelFilter(data) }>
+                    </TableRenderHeader>
                 } else {
                     return column.label
                 }
@@ -1182,6 +1285,20 @@
                         // 添加搜索记录
                         const searchDom = this.$refs.searchSelect
                         searchDom && searchDom.addSearchRecord(info)
+                    }
+                } else if (index > -1) {
+                    this.searchSelectValue.splice(index, 1)
+                }
+            },
+            handleLabelFilter (data = []) {
+                const index = this.searchSelectValue.findIndex(item => item.id === 'label_ids')
+                if (data.length) {
+                    if (index > -1) {
+                        const values = this.searchSelectValue[index].values
+                        this.searchSelectValue[index].values = [...new Set(values, data)]
+                    } else {
+                        const form = this.searchList.find(item => item.id === 'label_ids')
+                        this.searchSelectValue.push({ ...form, values: data })
                     }
                 } else if (index > -1) {
                     this.searchSelectValue.splice(index, 1)
@@ -1216,7 +1333,7 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { create_time, edit_time, subprocessUpdateVal, creator, flowName, template_id, editor } = this.requestData
+                const { create_time, edit_time, subprocessUpdateVal, creator, flowName, template_id, editor, label_ids } = this.requestData
                 const filterObj = {
                     limit,
                     subprocessUpdateVal,
@@ -1226,7 +1343,8 @@
                     edit_time: edit_time && edit_time.every(item => item) ? edit_time.join(',') : '',
                     flowName,
                     template_id,
-                    editor
+                    editor,
+                    labels: label_ids?.join(',') || undefined
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {
@@ -1438,20 +1556,15 @@
             },
             // 确认转移
             async onTransferConfirm () {
-                if (this.isTransferLoading) return
+                this.isTransferLoading = true
                 this.$refs.transferForm.validate().then(async () => {
                     try {
-                        this.isTransferLoading = true
                         await this.onTransferCommonSpace({
                             spaceId: this.transferData.spaceId,
                             tplId: this.selectedTpl.id
                         })
                         this.isTransferShow = false
-                        // 删除列表中被转移的模板
-                        const index = this.templateList.findIndex(item => item.id === this.selectedTpl.id)
-                        if (index > -1) {
-                            this.templateList.splice(index, 1)
-                        }
+                        this.getTemplateList()
                         this.$bkMessage({
                             message: this.$t('模板转移成功'),
                             theme: 'success'
@@ -1461,6 +1574,8 @@
                     } finally {
                         this.isTransferLoading = false
                     }
+                }, () => {
+                    this.isTransferLoading = false
                 })
             },
             // 取消转移
@@ -1473,12 +1588,15 @@
                 const form = this.searchList.find(item => item.id === 'label_ids')
                 try {
                     this.templateLabelLoading = true
-                    const res = await this.getProjectLabelsWithDefault(this.project_id)
+                    const res = await this.getProjectLabels({
+                        from_space: true,
+                        from_space_id: this.crtCommonSpace
+                    })
                     this.templateLabels = res.data
                     
                     form.children = res.data.map(item => Object.assign({}, item, { value: item.id }))
                     // 因为标签列表是通过接口获取的，所以需要把路径上的标签添加进去
-                    const ids = this.$route.query['label_ids']
+                    const ids = this.$route.query['labels']
                     if (ids) {
                         const values = form.children.filter(item => ids.split(',').includes(String(item.id)))
                         this.searchSelectValue.push({ ...form, values })
@@ -1492,12 +1610,7 @@
             // 模板标签点击选中
             handleTempLabelClick (row) {
                 if (!this.hasPermission(['common_flow_edit'], row.auth_actions)) {
-                    const project = {
-                        id: this.project_id,
-                        name: this.projectName
-                    }
-                    const authActions = [...this.authActions, ...row.auth_actions]
-                    this.applyForPermission(['common_flow_edit'], authActions, { flow: [row], project: [project] })
+                    this.onTemplatePermissonCheck(['common_flow_edit'], row)
                     return
                 }
                 this.curSelectedRow = toolsUtils.deepClone(row)
@@ -1531,8 +1644,10 @@
                     this.setTemplateData({ ...curRow, template_labels })
                     const resp = await this.saveTemplateData({
                         templateId: id,
-                        projectId: this.project_id,
-                        common: false
+                        project_id: null,
+                        from_space: true,
+                        from_space_id: this.crtCommonSpace,
+                        common: true
                     })
                     if (!resp.result) return
                     // 前端修改对应模板的labels
@@ -1556,50 +1671,24 @@
                     console.warn(error)
                 }
             },
-            onEditLabel () {
-                if (!this.hasPermission(['project_edit'], this.authActions)) {
-                    const resourceData = {
-                        project: [{
-                            id: this.project_id,
-                            name: this.projectName
-                        }]
-                    }
-                    this.applyForPermission(['project_edit'], this.authActions, resourceData)
+            onEditLabel (row) {
+                if (!this.hasPermission(['common_flow_edit'], row.auth_actions)) {
+                    this.onTemplatePermissonCheck(['common_flow_edit'], row)
                     return
                 }
                 this.labelDetail = { color: '#1c9574', name: '', description: '' }
                 this.labelDialogShow = true
             },
-            onManageLabel () {
-                if (!this.hasPermission(['project_view'], this.authActions)) {
-                    const resourceData = {
-                        project: [{
-                            id: this.project_id,
-                            name: this.projectName
-                        }]
-                    }
-                    this.applyForPermission(['project_view'], this.authActions, resourceData)
-                    return
-                }
-                const { href } = this.$router.resolve({
-                    name: 'projectConfig',
-                    params: { id: this.project_id },
-                    query: { configActive: 'label_config' }
-                })
-                window.open(href, '_blank')
-            },
             editLabelConfirm () {
-                if (this.labelLoading) {
-                    return
-                }
                 this.labelLoading = true
-                try {
-                    this.$refs.labelForm.validate().then(async result => {
+                this.$refs.labelForm.validate().then(async result => {
+                    try {
                         if (result) {
-                            const { project_id } = this.$route.params
                             const data = {
+                                project_id: null,
+                                from_space: true,
+                                from_space_id: this.crtCommonSpace,
                                 creator: this.username,
-                                project_id: Number(project_id),
                                 ...this.labelDetail
                             }
                             const resp = await this.createTemplateLabel(data)
@@ -1615,12 +1704,14 @@
                                 this.getProjectLabelList()
                             }
                         }
-                    })
-                } catch (e) {
-                    console.log(e)
-                } finally {
+                    } catch (error) {
+                        console.warn(error)
+                    } finally {
+                        this.labelLoading = false
+                    }
+                }, () => {
                     this.labelLoading = false
-                }
+                })
             }
         }
     }

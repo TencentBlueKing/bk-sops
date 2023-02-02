@@ -7,6 +7,7 @@
                 v-model="crtSpace"
                 placeholder="请选择空间"
                 searchable
+                :loading="isSpaceLoading"
                 :clearable="false"
                 :popover-width="248"
                 :popover-options="{
@@ -22,7 +23,7 @@
                     :id="spaceInfo.id"
                     :name="spaceInfo.name">
                     <div class="space-select-option">
-                        <div class="option-content">
+                        <div class="option-content" v-bk-overflow-tips>
                             <span>{{ spaceInfo.name }}</span>
                             <span v-if="spaceInfo.code">{{ $t('（') + spaceInfo.code + $t('）') }}</span>
                         </div>
@@ -46,6 +47,7 @@
                     <div
                         class="add-space"
                         data-test-id="commonProcess_header__createSpace"
+                        v-cursor="{ active: !hasCreateSpacePerm }"
                         @click="onCreateSpace">
                         <i class="bk-icon icon-plus-circle"></i>
                         <span>{{ $t('新建空间') }}</span>
@@ -119,9 +121,9 @@
         mixins: [permission],
         data () {
             return {
+                isSpaceLoading: false,
                 crtSpace: '',
                 commonSpaceList: [],
-                authActions: [],
                 isEditSpace: false, // 是否为编辑空间
                 isCreateDialogShow: false,
                 isCreateLoading: false,
@@ -168,7 +170,8 @@
                         }
                     ]
                 },
-                isDeleteLoading: false
+                isDeleteLoading: false,
+                hasCreateSpacePerm: false // 是否存在创建空间权限
             }
         },
         computed: {
@@ -178,8 +181,12 @@
         },
         created () {
             this.getCommonSpaceList()
+            this.getSpaceCreatePerm()
         },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             ...mapActions('template', [
                 'getCommonSpace',
                 'createCommonSpace',
@@ -191,9 +198,10 @@
             ]),
             async getCommonSpaceList () {
                 try {
+                    this.isSpaceLoading = true
                     const resp = await this.getCommonSpace()
                     this.commonSpaceList = [
-                        { name: '默认空间', id: -1 },
+                        { name: '默认空间', id: -1, auth_actions: [] },
                         ...resp.data
                     ]
                     this.crtSpace = -1
@@ -203,6 +211,18 @@
                     })
                 } catch (error) {
                     console.warn(error)
+                } finally {
+                    this.isSpaceLoading = false
+                }
+            },
+            async getSpaceCreatePerm () {
+                try {
+                    const res = await this.queryUserPermission({
+                        action: 'common_space_create'
+                    })
+                    this.hasCreateSpacePerm = res.data.is_allow
+                } catch (e) {
+                    console.log(e)
                 }
             },
             handleDropdownHide () {
@@ -220,6 +240,7 @@
             },
             onEditSpace (info) {
                 if (!info.auth_actions.includes('common_space_manage')) {
+                    this.onSpacePermissionCheck(['common_space_manage'], info)
                     return
                 }
                 this.isEditSpace = true
@@ -228,6 +249,7 @@
             },
             onDeleteSpace (info) {
                 if (!info.auth_actions.includes('common_space_manage')) {
+                    this.onSpacePermissionCheck(['common_space_manage'], info)
                     return
                 }
                 if (this.isDeleteLoading) return
@@ -250,7 +272,27 @@
                     }
                 })
             },
+            /**
+             * 单个空间操作项点击时校验
+             * @params {Array} required 需要的权限
+             * @params {Object} template 空间数据对象
+             */
+            onSpacePermissionCheck (required, spaceInfo) {
+                const curPermission = spaceInfo.auth_actions.slice(0)
+                const permissionData = {
+                    common_space: [{
+                        id: spaceInfo.id,
+                        name: spaceInfo.name
+                    }]
+                }
+                console.log(permissionData)
+                this.applyForPermission(required, curPermission, permissionData)
+            },
             onCreateSpace () {
+                if (!this.hasCreateSpacePerm) {
+                    this.applyForPermission(['common_space_create'])
+                    return
+                }
                 this.isEditSpace = false
                 this.formData = {
                     name: '',
@@ -262,10 +304,9 @@
                 this.isCreateDialogShow = true
             },
             onConfirm () {
-                if (this.isCreateLoading) return
+                this.isCreateLoading = true
                 this.$refs.spaceValidate.validate().then(async () => {
                     try {
-                        this.isCreateLoading = true
                         const funcName = this.isEditSpace ? 'updateCommonSpace' : 'createCommonSpace'
                         await this[funcName]({ creator: this.username, ...this.formData })
                         this.isCreateDialogShow = false
@@ -280,6 +321,8 @@
                     } finally {
                         this.isCreateLoading = false
                     }
+                }, () => {
+                    this.isCreateLoading = false
                 })
             },
             onCancel () {
