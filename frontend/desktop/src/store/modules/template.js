@@ -199,7 +199,9 @@ const template = {
             subproc_has_update: false
         },
         internalVariable: [],
-        default_flow_type: 'common'
+        default_flow_type: 'common',
+        commonSpaceList: [],
+        crtCommonSpace: null
     },
     mutations: {
         setTemplateName (state, name) {
@@ -871,6 +873,11 @@ const template = {
         // 设置内置变量
         setInternalVariable (state, payload) {
             state.internalVariable = payload
+        },
+        // 设置公共空间
+        setCommonSpace (state, payload) {
+            state.crtCommonSpace = payload.id
+            state.commonSpaceList = payload.list
         }
     },
     actions: {
@@ -1051,6 +1058,27 @@ const template = {
         getCommonTemplatePublicData ({ commit }, data) {
             const { templateId } = data
             return axios.get(`/api/v3/common_template/${templateId}/common_info/`).then(response => response.data)
+        },
+        // 获取公共流程空间列表
+        getCommonSpace ({ commit }) {
+            return axios.get(`/api/v3/common_space/`).then(response => response.data)
+        },
+        // 创建公共流程空间
+        createCommonSpace ({ commit }, data) {
+            return axios.post(`/api/v3/common_space/`, data).then(response => response.data)
+        },
+        // 更新公共流程空间
+        updateCommonSpace ({ commit }, data) {
+            return axios.put(`/api/v3/common_space/${data.id}/`, data).then(response => response.data)
+        },
+        // 删除公共流程空间
+        deleteCommonSpace ({ commit }, data) {
+            return axios.delete(`/api/v3/common_space/${data.spaceId}/`).then(response => response.data)
+        },
+        // 转移公共流程空间
+        onTransferCommonSpace ({ commit }, data) {
+            const { spaceId, tplId } = data
+            return axios.post(`/api/v3/common_template/${tplId}/transfer_common_space/`, { target_space_id: spaceId }).then(response => response.data)
         }
     },
     getters: {

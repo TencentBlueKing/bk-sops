@@ -1024,7 +1024,8 @@
                             const data = {
                                 creator: this.username,
                                 project_id: Number(project_id),
-                                ...this.labelDetail
+                                ...this.labelDetail,
+                                from_space_id: null
                             }
                             const resp = await this.createTemplateLabel(data)
                             if (resp.result) {

@@ -66,6 +66,7 @@
                     <search-select
                         ref="searchSelect"
                         id="commonTplList"
+                        :key="crtCommonSpace"
                         :placeholder="$t('ID/流程名称/标签/子流程更新/创建人/更新人')"
                         v-model="searchSelectValue"
                         :search-list="searchList"
@@ -105,21 +106,21 @@
                                 <div v-if="item.id === 'name'" class="name-column">
                                     <a
                                         data-test-id="process_table_collectBtn"
-                                        v-cursor="{ active: !hasPermission(['common_flow_view'], row.auth_actions) }"
+                                        v-cursor="{ active: !isManager && !hasPermission(['common_flow_view'], row.auth_actions) }"
                                         href="javascript:void(0);"
                                         class="common-icon-favorite icon-favorite"
                                         :class="{
                                             'is-active': row.is_collected,
                                             'disable': collectingId === row.id,
-                                            'text-permission-disable': !hasPermission(['common_flow_view'], row.auth_actions)
+                                            'text-permission-disable': !isManager && !hasPermission(['common_flow_view'], row.auth_actions)
                                         }"
                                         @click="onCollectTemplate(row)">
                                     </a>
                                     <a
-                                        v-if="!hasPermission(['common_flow_view'], row.auth_actions)"
+                                        v-if="!isManager && !hasPermission(['common_flow_view'], row.auth_actions)"
                                         v-cursor
                                         class="text-permission-disable"
-                                        @click="onTemplatePermissonCheck(['common_flow_view'], row)">
+                                        @click="onTemplatePermissionCheck(['common_flow_view'], row)">
                                         {{row.name}}
                                     </a>
                                     <a
@@ -130,6 +131,70 @@
                                         {{row.name}}
                                     </a>
                                 </div>
+                                <!-- 标签 -->
+                                <template v-else-if="item.id === 'label'">
+                                    <div
+                                        v-if="row.isSelectShow"
+                                        class="label-select"
+                                        v-bkloading="{ isLoading: row.labelLoading }"
+                                        v-bk-clickoutside="handleClickOutSide">
+                                        <bk-select
+                                            :key="templateLabels.length"
+                                            ref="labelSelect"
+                                            v-model="row.labelIds"
+                                            ext-popover-cls="label-select-popover"
+                                            :display-tag="true"
+                                            :multiple="true"
+                                            searchable
+                                            :popover-options="{
+                                                onHide: () => !labelDialogShow
+                                            }"
+                                            ext-cls="label-select">
+                                            <div class="label-select-content" v-bkloading="{ isLoading: templateLabelLoading }">
+                                                <bk-option
+                                                    v-for="(label, index) in templateLabels"
+                                                    :key="index"
+                                                    :id="label.id"
+                                                    :name="label.name">
+                                                    <div class="label-select-option">
+                                                        <span
+                                                            class="label-select-color"
+                                                            :style="{ background: label.color }">
+                                                        </span>
+                                                        <span>{{label.name}}</span>
+                                                        <i v-if="row.labelIds.includes(label.id)" class="bk-option-icon bk-icon icon-check-1"></i>
+                                                    </div>
+                                                </bk-option>
+                                            </div>
+                                            <div slot="extension" class="label-select-extension">
+                                                <div
+                                                    class="add-label"
+                                                    data-test-id="process_list__editLabel"
+                                                    v-cursor="{ active: !isManager && !hasPermission(['common_flow_edit'], row.auth_actions) }"
+                                                    @click="onEditLabel(row)">
+                                                    <i class="bk-icon icon-plus-circle"></i>
+                                                    <span>{{ $t('新建标签') }}</span>
+                                                </div>
+                                            </div>
+                                        </bk-select>
+                                    </div>
+                                    <div
+                                        v-else
+                                        class="label-column"
+                                        v-cursor="{ active: !isManager && !hasPermission(['common_flow_edit'], row.auth_actions) }"
+                                        @click="handleTempLabelClick(row)">
+                                        <template v-if="row.template_labels && row.template_labels.length > 0">
+                                            <span
+                                                v-for="label in row.template_labels"
+                                                class="label-name"
+                                                :key="label.id"
+                                                :style="{ background: label.color, color: darkColorList.includes(label.color) ? '#fff' : '#262e4f' }">
+                                                {{ label.name }}
+                                            </span>
+                                        </template>
+                                        <span v-else>--</span>
+                                    </div>
+                                </template>
                                 <!--子流程更新-->
                                 <div v-else-if="item.id === 'subprocess_has_update'" :class="['subflow-update', { 'subflow-has-update': row.subprocess_has_update }]">
                                     {{getSubflowContent(row)}}
@@ -150,10 +215,10 @@
                                             {{$t('新建任务')}}
                                         </a>
                                         <a
-                                            v-if="!hasPermission(['common_flow_view'], props.row.auth_actions)"
+                                            v-if="!isManager && !hasPermission(['common_flow_view'], props.row.auth_actions)"
                                             v-cursor
                                             class="text-permission-disable"
-                                            @click="onTemplatePermissonCheck(['common_flow_view'], props.row)">
+                                            @click="onTemplatePermissionCheck(['common_flow_view'], props.row)">
                                             {{$t('克隆')}}
                                         </a>
                                         <a
@@ -161,6 +226,15 @@
                                             class="template-operate-btn"
                                             @click.prevent="getJumpUrl('clone', props.row.id)">
                                             {{$t('克隆')}}
+                                        </a>
+                                        <a
+                                            class="template-operate-btn"
+                                            v-cursor="{ active: !isManager && !hasPermission(['common_flow_edit'], props.row.auth_actions) }"
+                                            :class="{
+                                                'text-permission-disable': !isManager && !hasPermission(['common_flow_edit'], props.row.auth_actions)
+                                            }"
+                                            @click.prevent="onTemplateTransfer(props.row)">
+                                            {{$t('转移')}}
                                         </a>
                                         <!-- <router-link class="template-operate-btn" :to="getExecuteHistoryUrl(props.row.id)">{{ $t('执行历史') }}</router-link> -->
                                         <bk-popover
@@ -175,10 +249,10 @@
                                             <ul slot="content">
                                                 <li class="opt-btn">
                                                     <a
-                                                        v-if="!hasPermission(['common_flow_edit'], props.row.auth_actions)"
+                                                        v-if="!isManager && !hasPermission(['common_flow_edit'], props.row.auth_actions)"
                                                         v-cursor
                                                         class="text-permission-disable"
-                                                        @click="onTemplatePermissonCheck(['common_flow_edit'], props.row)">
+                                                        @click="onTemplatePermissionCheck(['common_flow_edit'], props.row)">
                                                         {{$t('编辑')}}
                                                     </a>
                                                     <a
@@ -190,10 +264,10 @@
                                                 </li>
                                                 <li class="opt-btn">
                                                     <a
-                                                        v-cursor="{ active: !hasPermission(['common_flow_delete'], props.row.auth_actions) }"
+                                                        v-cursor="{ active: !isManager && !hasPermission(['common_flow_delete'], props.row.auth_actions) }"
                                                         href="javascript:void(0);"
                                                         :class="{
-                                                            'text-permission-disable': !hasPermission(['common_flow_delete'], props.row.auth_actions)
+                                                            'text-permission-disable': !isManager && !hasPermission(['common_flow_delete'], props.row.auth_actions)
                                                         }"
                                                         @click="onDeleteTemplate(props.row, $event)">
                                                         {{$t('删除')}}
@@ -265,11 +339,94 @@
                 {{$t('确认删除') + '"' + deleteTemplateName + '"' + '?' }}
             </div>
         </bk-dialog>
+        <bk-dialog
+            width="480"
+            :title="$t('转移流程')"
+            :header-position="'left'"
+            :theme="'primary'"
+            :mask-close="false"
+            :auto-close="false"
+            render-directive="if"
+            v-model="isTransferShow"
+            :loading="isTransferLoading"
+            @confirm="onTransferConfirm"
+            @cancel="onTransferCancel">
+            <bk-form :model="transferData" :rules="transferRules" :label-width="86" ref="transferForm">
+                <bk-form-item :label="$t('转移至')" required property="spaceId">
+                    <bk-select
+                        ref="spaceSelect"
+                        v-model="transferData.spaceId"
+                        :placeholder="$t('请选择空间')"
+                        searchable
+                        ext-popover-cls="space-select-popover-list">
+                        <bk-option
+                            v-for="spaceInfo in spaceFilterList"
+                            :key="spaceInfo.id"
+                            :id="spaceInfo.id"
+                            :name="spaceInfo.name">
+                            <div class="space-select-option" v-bk-overflow-tips>
+                                <div class="option-content">
+                                    <span>{{ spaceInfo.name }}</span>
+                                    <span v-if="spaceInfo.code">{{ $t('（') + spaceInfo.code + $t('）') }}</span>
+                                </div>
+                            </div>
+                        </bk-option>
+                    </bk-select>
+                </bk-form-item>
+            </bk-form>
+        </bk-dialog>
+        <bk-dialog
+            width="480"
+            ext-cls="common-dialog label-dialog"
+            header-position="left"
+            render-directive="if"
+            :mask-close="false"
+            :auto-close="false"
+            :title="$t('新建标签')"
+            :loading="labelLoading"
+            :value="labelDialogShow"
+            @confirm="editLabelConfirm"
+            @cancel="labelDialogShow = false">
+            <bk-form ref="labelForm" :model="labelDetail" :rules="labelRules">
+                <bk-form-item property="name" :label="$t('标签名称')" :required="true">
+                    <bk-input v-model="labelDetail.name"></bk-input>
+                </bk-form-item>
+                <bk-form-item property="color" :label="$t('标签颜色')" :required="true">
+                    <bk-dropdown-menu
+                        ref="dropdown"
+                        trigger="click"
+                        class="color-dropdown"
+                        @show="colorDropdownShow = true"
+                        @hide="colorDropdownShow = false">
+                        <div class="dropdown-trigger-btn" slot="dropdown-trigger">
+                            <span class="color-block" :style="{ background: labelDetail.color }"></span>
+                            <i :class="['bk-icon icon-angle-down',{ 'icon-flip': colorDropdownShow }]"></i>
+                        </div>
+                        <div class="color-list" slot="dropdown-content">
+                            <div class="tip">{{ $t('选择颜色') }}</div>
+                            <div>
+                                <span
+                                    v-for="color in colorList"
+                                    :key="color"
+                                    class="color-item color-block"
+                                    :style="{ background: color }"
+                                    @click="labelDetail.color = color">
+                                </span>
+                            </div>
+                        </div>
+                    </bk-dropdown-menu>
+                </bk-form-item>
+                <bk-form-item :label="$t('标签描述')">
+                    <bk-input type="textarea" v-model="labelDetail.description"></bk-input>
+                </bk-form-item>
+            </bk-form>
+        </bk-dialog>
     </div>
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
+    import { DARK_COLOR_LIST, LABEL_COLOR_LIST } from '@/constants/index.js'
     import toolsUtils from '@/utils/tools.js'
     import Skeleton from '@/components/skeleton/index.vue'
     import ImportDatTplDialog from '@/pages/template/TemplateList/ImportDatTplDialog.vue'
@@ -284,6 +441,7 @@
     // moment用于时区使用
     import moment from 'moment-timezone'
     import CancelRequest from '@/api/cancelRequest.js'
+    import dom from '@/utils/dom.js'
 
     const SEARCH_LIST = [
         {
@@ -294,6 +452,12 @@
             id: 'flowName',
             name: i18n.t('流程名'),
             isDefaultOption: true
+        },
+        {
+            id: 'label_ids',
+            name: i18n.t('标签'),
+            children: [],
+            multiable: true
         },
         {
             id: 'subprocessUpdateVal',
@@ -324,6 +488,11 @@
             label: i18n.t('流程名称'),
             disabled: true,
             min_width: 400
+        },
+        {
+            id: 'label',
+            label: i18n.t('标签'),
+            min_width: 300
         },
         {
             key: 'pipeline_template__create_time',
@@ -383,7 +552,8 @@
                 creator = '',
                 editor = '',
                 flowName = '',
-                template_id = ''
+                template_id = '',
+                labels = ''
             } = this.$route.query
             const searchList = [
                 ...SEARCH_LIST,
@@ -466,7 +636,8 @@
                     edit_time: edit_time ? edit_time.split(',') : ['', ''],
                     flowName,
                     template_id,
-                    editor
+                    editor,
+                    labels
                 },
                 totalPage: 1,
                 pagination: {
@@ -492,7 +663,58 @@
                 isInit: true, // 避免default-sort在初始化时去触发table的sort-change事件
                 categoryTips: i18n.t('模板分类即将下线，建议使用标签'),
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
-                searchSelectValue
+                searchSelectValue,
+                isTransferShow: false,
+                isTransferLoading: false,
+                transferData: {
+                    spaceId: ''
+                },
+                transferRules: {
+                    spaceId: [
+                        {
+                            required: true,
+                            message: this.$t('必填项'),
+                            trigger: 'blur'
+                        }
+                    ]
+                },
+                templateLabels: [],
+                templateLabelLoading: false,
+                curSelectedRow: {},
+                darkColorList: DARK_COLOR_LIST,
+                labelDialogShow: false,
+                labelRules: {
+                    color: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    name: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        },
+                        {
+                            max: 50,
+                            message: i18n.t('标签名称不能超过') + 50 + i18n.t('个字符'),
+                            trigger: 'blur'
+                        },
+                        {
+                            validator: (val) => {
+                                return this.templateLabels.every(label => label.name !== val)
+                            },
+                            message: i18n.t('标签已存在，请重新输入'),
+                            trigger: 'blur'
+                        }
+                    ]
+                },
+                labelDetail: {},
+                colorDropdownShow: false,
+                colorList: LABEL_COLOR_LIST,
+                labelLoading: false
             }
         },
         computed: {
@@ -500,7 +722,10 @@
                 'username': state => state.username,
                 'site_url': state => state.site_url,
                 'v1_import_flag': state => state.v1_import_flag,
-                'permissionMeta': state => state.permissionMeta
+                'permissionMeta': state => state.permissionMeta,
+                'authActions': state => state.authActions,
+                commonSpaceList: state => state.template.commonSpaceList,
+                crtCommonSpace: state => state.template.crtCommonSpace
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone,
@@ -513,14 +738,14 @@
             hasBatchViewAuth () {
                 let result = false
                 if (this.selectedTpls.length) {
-                    result = this.selectedTpls.every(template => this.hasPermission(['common_flow_view'], template.auth_actions))
+                    result = this.isManager || this.selectedTpls.every(template => this.hasPermission(['common_flow_view'], template.auth_actions))
                 }
                 return result
             },
             hasBatchEditAuth () {
                 let result = false
                 if (this.selectedTpls.length) {
-                    result = this.selectedTpls.every(template => this.hasPermission(['common_flow_delete'], template.auth_actions))
+                    result = this.isManager || this.selectedTpls.every(template => this.hasPermission(['common_flow_delete'], template.auth_actions))
                 }
                 return result
             },
@@ -534,6 +759,15 @@
                     return { prop: ordering, order: 'ascending' }
                 }
                 return {}
+            },
+            // 不包含当前空间和默认空间的空间列表
+            spaceFilterList () {
+                return this.commonSpaceList.filter(item => ![-1, this.crtCommonSpace].includes(item.id))
+            },
+            // 是否为空间管理员
+            isManager () {
+                const spaceInfo = this.commonSpaceList.find(item => item.id === this.crtCommonSpace)
+                return spaceInfo && spaceInfo.auth_actions.includes('common_space_manage')
             }
         },
         watch: {
@@ -542,10 +776,21 @@
                     this.pagination.current = Number(val) || 1
                     this.getTemplateList()
                 }
+            },
+            crtCommonSpace: {
+                handler (val) {
+                    this.pagination.current = 1
+                    this.pagination.limit = 15
+                    this.updateUrl()
+                    this.getTemplateList()
+                    this.getTemplateLabelList()
+                },
+                deep: true
             }
         },
         async created () {
             this.getFields()
+            this.getTemplateLabelList()
             this.getProjectBaseInfo()
             this.queryCreateCommonTplPerm()
             // 获取表头排序列表和设置
@@ -570,10 +815,14 @@
             ...mapActions('project/', [
                 'getUserProjectConfigOptions',
                 'getUserProjectConfigs',
-                'setUserProjectConfig'
+                'setUserProjectConfig',
+                'getProjectLabels',
+                'createTemplateLabel'
             ]),
             ...mapActions('template/', [
-                'loadProjectBaseInfo'
+                'loadProjectBaseInfo',
+                'saveTemplateData',
+                'onTransferCommonSpace'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList',
@@ -582,14 +831,15 @@
                 'batchDeleteTpl'
             ]),
             ...mapMutations('template/', [
-                'setProjectBaseInfo'
+                'setProjectBaseInfo',
+                'setTemplateData'
             ]),
             async queryCreateCommonTplPerm () {
                 try {
                     const res = await this.queryUserPermission({
                         action: 'common_flow_create'
                     })
-                    this.hasCreateCommonTplPerm = res.data.is_allow
+                    this.hasCreateCommonTplPerm = this.isManager || res.data.is_allow
                 } catch (e) {
                     console.log(e)
                 }
@@ -601,7 +851,16 @@
                     const source = new CancelRequest()
                     data.cancelToken = source.token
                     const templateListData = await this.loadTemplateList(data)
-                    this.templateList = templateListData.results
+                    this.templateList = templateListData.results.map(item => {
+                        item.isSelectShow = false
+                        item.labelLoading = false
+                        if (item.template_labels && item.template_labels.length > 0) {
+                            item.labelIds = item.template_labels.map(label => label.label_id)
+                        } else {
+                            item.labelIds = []
+                        }
+                        return item
+                    })
                     this.pagination.count = templateListData.count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
@@ -617,7 +876,7 @@
                 }
             },
             getQueryData () {
-                const { subprocessUpdateVal, creator, create_time, edit_time, flowName, template_id, editor } = this.requestData
+                const { subprocessUpdateVal, creator, create_time, edit_time, flowName, template_id, editor, label_ids } = this.requestData
                 /**
                  * 无子流程 has_subprocess=false
                  * 有子流程，需要更新 has_subprocess=true&subprocess_has_update=true
@@ -636,7 +895,14 @@
                     pipeline_template__has_subprocess: has_subprocess,
                     new: true,
                     id: template_id || undefined,
-                    pipeline_template__editor: editor || undefined
+                    pipeline_template__editor: editor || undefined,
+                    label_ids: label_ids && label_ids.length ? label_ids.join(',') : undefined
+                }
+                // 所属空间
+                if (this.crtCommonSpace === -1) {
+                    data.space_id__isnull = true
+                } else {
+                    data.space_id = this.crtCommonSpace
                 }
                 const keys = ['edit_time', '-edit_time', 'create_time', '-create_time']
                 if (keys.includes(this.ordering)) {
@@ -927,8 +1193,8 @@
                 this.isExportDialogShow = true
             },
             onDeleteTemplate (template) {
-                if (!this.hasPermission(['common_flow_delete'], template.auth_actions)) {
-                    this.onTemplatePermissonCheck(['common_flow_delete'], template)
+                if (!this.isManager && !this.hasPermission(['common_flow_delete'], template.auth_actions)) {
+                    this.onTemplatePermissionCheck(['common_flow_delete'], template)
                     return
                 }
                 this.theDeleteTemplateId = template.id
@@ -986,6 +1252,25 @@
                         onSortChange={ data => this.handleSortChange(data) }
                         onDateChange={ data => this.handleDateTimeFilter(data, id) }>
                     </TableRenderHeader>
+                } else if (column.property === 'label') {
+                    const list = this.templateLabels.map(label => {
+                        label.textColor = this.darkColorList.includes(label.color) ? '#fff' : '#262e4f'
+                        return label
+                    })
+                    const data = this.searchSelectValue.find(item => item.id === 'label_ids')
+                    const filterConfig = {
+                        show: true,
+                        list,
+                        values: data ? data.values : []
+                    }
+                    return <TableRenderHeader
+                        name={ column.label }
+                        property={ column.property }
+                        orderShow={ false }
+                        dateFilterShow={ false }
+                        filterConfig = { filterConfig }
+                        onFilterChange={ data => this.handleLabelFilter(data) }>
+                    </TableRenderHeader>
                 } else {
                     return column.label
                 }
@@ -1006,6 +1291,20 @@
                         // 添加搜索记录
                         const searchDom = this.$refs.searchSelect
                         searchDom && searchDom.addSearchRecord(info)
+                    }
+                } else if (index > -1) {
+                    this.searchSelectValue.splice(index, 1)
+                }
+            },
+            handleLabelFilter (data = []) {
+                const index = this.searchSelectValue.findIndex(item => item.id === 'label_ids')
+                if (data.length) {
+                    if (index > -1) {
+                        const values = this.searchSelectValue[index].values
+                        this.searchSelectValue[index].values = [...new Set(values, data)]
+                    } else {
+                        const form = this.searchList.find(item => item.id === 'label_ids')
+                        this.searchSelectValue.push({ ...form, values: data })
                     }
                 } else if (index > -1) {
                     this.searchSelectValue.splice(index, 1)
@@ -1040,7 +1339,7 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { create_time, edit_time, subprocessUpdateVal, creator, flowName, template_id, editor } = this.requestData
+                const { create_time, edit_time, subprocessUpdateVal, creator, flowName, template_id, editor, label_ids } = this.requestData
                 const filterObj = {
                     limit,
                     subprocessUpdateVal,
@@ -1050,7 +1349,9 @@
                     edit_time: edit_time && edit_time.every(item => item) ? edit_time.join(',') : '',
                     flowName,
                     template_id,
-                    editor
+                    editor,
+                    labels: label_ids?.join(',') || undefined,
+                    spaceId: this.crtCommonSpace
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {
@@ -1066,7 +1367,7 @@
              * @params {Array} required 需要的权限
              * @params {Object} template 模板数据对象
              */
-            onTemplatePermissonCheck (required, template) {
+            onTemplatePermissionCheck (required, template) {
                 const curPermission = template.auth_actions.slice(0)
                 const permissionData = {
                     common_flow: [{
@@ -1151,8 +1452,8 @@
             },
             // 添加/取消收藏模板
             async onCollectTemplate (template) {
-                if (!this.hasPermission(['common_flow_view'], template.auth_actions)) {
-                    this.onTemplatePermissonCheck(['common_flow_view'], template)
+                if (!this.isManager && !this.hasPermission(['common_flow_view'], template.auth_actions)) {
+                    this.onTemplatePermissionCheck(['common_flow_view'], template)
                     return
                 }
                 if (typeof this.collectingId === 'number') {
@@ -1253,6 +1554,175 @@
                 this.selectedTpl = {}
                 this.selectedProject = {}
                 this.isSelectProjectShow = false
+            },
+            // 打开转移弹框
+            onTemplateTransfer (tpl) {
+                if (!this.isManager && !this.hasPermission(['common_flow_edit'], tpl.auth_actions)) {
+                    this.onTemplatePermissionCheck(['common_flow_edit'], tpl)
+                    return
+                }
+                this.selectedTpl = tpl
+                this.transferData.spaceId = ''
+                this.isTransferShow = true
+            },
+            // 确认转移
+            async onTransferConfirm () {
+                this.isTransferLoading = true
+                this.$refs.transferForm.validate().then(async () => {
+                    try {
+                        await this.onTransferCommonSpace({
+                            spaceId: this.transferData.spaceId,
+                            tplId: this.selectedTpl.id
+                        })
+                        this.isTransferShow = false
+                        this.getTemplateList()
+                        this.$bkMessage({
+                            message: this.$t('模板转移成功'),
+                            theme: 'success'
+                        })
+                    } catch (error) {
+                        console.warn(error)
+                    } finally {
+                        this.isTransferLoading = false
+                    }
+                }, () => {
+                    this.isTransferLoading = false
+                })
+            },
+            // 取消转移
+            onTransferCancel () {
+                this.isTransferShow = false
+                this.selectedTpl = {}
+            },
+            // 获取标签列表
+            async getTemplateLabelList () {
+                const form = this.searchList.find(item => item.id === 'label_ids')
+                try {
+                    this.templateLabelLoading = true
+                    const res = await this.getProjectLabels({
+                        from_space: true,
+                        from_space_id: this.crtCommonSpace
+                    })
+                    this.templateLabels = res.data
+                    
+                    form.children = res.data.map(item => Object.assign({}, item, { value: item.id }))
+                    // 因为标签列表是通过接口获取的，所以需要把路径上的标签添加进去
+                    const ids = this.$route.query['labels']
+                    if (ids) {
+                        const values = form.children.filter(item => ids.split(',').includes(String(item.id)))
+                        this.searchSelectValue.push({ ...form, values })
+                    }
+                } catch (e) {
+                    console.log(e)
+                } finally {
+                    this.templateLabelLoading = false
+                }
+            },
+            // 模板标签点击选中
+            handleTempLabelClick (row) {
+                if (!this.isManager && !this.hasPermission(['common_flow_edit'], row.auth_actions)) {
+                    this.onTemplatePermissionCheck(['common_flow_edit'], row)
+                    return
+                }
+                this.curSelectedRow = toolsUtils.deepClone(row)
+                row.labelLoading = true
+                row.isSelectShow = true
+                setTimeout(() => {
+                    this.$refs.labelSelect[0].show()
+                    row.labelLoading = false
+                }, 500)
+            },
+            // 是否点击到标签下拉框范围外
+            handleClickOutSide (e) {
+                if (dom.parentClsContains('label-select-popover', e.target)
+                    || dom.parentClsContains('label-dialog', e.target)
+                    || dom.parentClsContains('permission-dialog', e.target)
+                ) {
+                    return
+                }
+                this.saveTemplateLabels()
+            },
+            async saveTemplateLabels () {
+                const curRow = this.templateList.find(item => item.id === this.curSelectedRow.id)
+                const match = toolsUtils.isDataEqual(curRow.labelIds, this.curSelectedRow.labelIds)
+                if (match) {
+                    curRow.isSelectShow = false
+                    return
+                }
+                curRow.labelLoading = true
+                try {
+                    const { id, labelIds: template_labels } = curRow
+                    this.setTemplateData({ ...curRow, template_labels })
+                    const resp = await this.saveTemplateData({
+                        templateId: id,
+                        project_id: null,
+                        from_space: true,
+                        from_space_id: this.crtCommonSpace,
+                        common: true
+                    })
+                    if (!resp.result) return
+                    // 前端修改对应模板的labels
+                    curRow.template_labels = this.templateLabels.reduce((acc, cur) => {
+                        const { id, name, color } = cur
+                        if (curRow.labelIds.includes(id)) {
+                            acc.push({ id, name, color })
+                        }
+                        return acc
+                    }, [])
+                    curRow.labelLoading = false
+                    this.$nextTick(() => {
+                        curRow.isSelectShow = false
+                    })
+                    this.$bkMessage({
+                        message: i18n.t('流程标签修改成功'),
+                        theme: 'success'
+                    })
+                } catch (error) {
+                    curRow.labelLoading = false
+                    console.warn(error)
+                }
+            },
+            onEditLabel (row) {
+                if (!this.isManager && !this.hasPermission(['common_flow_edit'], row.auth_actions)) {
+                    this.onTemplatePermissionCheck(['common_flow_edit'], row)
+                    return
+                }
+                this.labelDetail = { color: '#1c9574', name: '', description: '' }
+                this.labelDialogShow = true
+            },
+            editLabelConfirm () {
+                this.labelLoading = true
+                this.$refs.labelForm.validate().then(async result => {
+                    try {
+                        if (result) {
+                            const data = {
+                                project_id: null,
+                                from_space: true,
+                                from_space_id: this.crtCommonSpace,
+                                creator: this.username,
+                                ...this.labelDetail
+                            }
+                            const resp = await this.createTemplateLabel(data)
+                            if (resp.result) {
+                                this.labelDialogShow = false
+                                this.$bkMessage({
+                                    message: i18n.t('标签新建成功'),
+                                    theme: 'success'
+                                })
+                                // 新建标签后自动选上
+                                const curRow = this.templateList.find(item => item.id === this.curSelectedRow.id)
+                                curRow.labelIds.push(resp.data.id)
+                                this.getTemplateLabelList()
+                            }
+                        }
+                    } catch (error) {
+                        console.warn(error)
+                    } finally {
+                        this.labelLoading = false
+                    }
+                }, () => {
+                    this.labelLoading = false
+                })
             }
         }
     }
@@ -1389,6 +1859,29 @@ a {
     }
     a.template-name {
         color: $blueDefault;
+    }
+    .label-column {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        min-height: 41px;
+        width: 100%;
+        padding-left: 8px;
+        &:hover {
+            cursor: pointer;
+            background: #dcdee5;
+        }
+        .label-name {
+            margin: 4px 0 4px 4px;
+            padding: 2px 6px;
+            font-size: 12px;
+            color: #63656e;
+            border-radius: 8px;
+        }
+    }
+    .label-select {
+        width: 100%;
+        margin: 5px 0 4px;
     }
     .template-operation > .text-permission-disable {
         padding: 5px;

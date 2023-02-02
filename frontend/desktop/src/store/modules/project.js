@@ -135,9 +135,9 @@ const project = {
             return axios.delete(`api/v3/staff_group/${id}/`).then(response => response.data)
         },
         // 查询项目下用户可编辑的模板标签
-        getProjectLabels ({ commit }, id) {
+        getProjectLabels ({ commit }, data) {
             return axios.get('api/v3/new_label/', {
-                params: { project_id: id }
+                params: data
             }).then(response => response.data)
         },
         // 查询项目下支持的模板标签（包含默认标签）
