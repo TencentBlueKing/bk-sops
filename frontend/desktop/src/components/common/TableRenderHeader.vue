@@ -21,30 +21,34 @@
             trigger="click"
             :distance="6"
             :arrow="false"
-            ext-cls="table-header-filter-popover">
+            ext-cls="table-header-filter-popover"
+            :on-hide="() => isFilterOpen = false">
             <i
                 class="bk-table-column-filter-trigger bk-icon icon-funnel"
                 :class="{ 'is-selected': isSelected, 'is-open': isFilterOpen }"
                 @click="isFilterOpen = !isFilterOpen">
             </i>
             <div slot="content">
-                <ul class="option-list">
-                    <li
-                        v-for="item in filterConfig.list"
-                        :key="item.id"
-                        :class="['option-item', { 'is-checked': judgeOptionSelected(item) }]"
-                        @click="handleFilter(item)">
-                        <span
-                            v-if="item.color"
-                            class="label-name"
-                            :style="{ background: item.color, color: item.textColor }">
-                            {{ item.name }}
-                        </span>
-                        <span v-else>{{ item.name }}</span>
-                        <i class="check-icon bk-icon icon-check-line"></i>
-                    </li>
-                </ul>
-                <p class="clear-checked" @click="handleClearFilter">清空筛选</p>
+                <template v-if="filterConfig.list.length">
+                    <ul class="option-list">
+                        <li
+                            v-for="item in filterConfig.list"
+                            :key="item.id"
+                            :class="['option-item', { 'is-checked': judgeOptionSelected(item) }]"
+                            @click="handleFilter(item)">
+                            <span
+                                v-if="item.color"
+                                class="label-name"
+                                :style="{ background: item.color, color: item.textColor }">
+                                {{ item.name }}
+                            </span>
+                            <span v-else>{{ item.name }}</span>
+                            <i class="check-icon bk-icon icon-check-line"></i>
+                        </li>
+                    </ul>
+                    <p class="clear-checked" @click="handleClearFilter">{{ $t('清空筛选') }}</p>
+                </template>
+                <p class="no-search-data">{{ $t('查询无数据') }}</p>
             </div>
         </bk-popover>
         <bk-date-picker
@@ -342,7 +346,6 @@
             @include scrollbar;
             margin-bottom: 15px;
             .option-item {
-                width: 200px;
                 height: 32px;
                 display: flex;
                 align-items: center;
@@ -378,6 +381,12 @@
             color: #3a84ff;
             cursor: pointer;
             border-top: 1px solid #dedee5;
+        }
+        .no-search-data {
+            width: 200px;
+            line-height: 32px;
+            text-align: center;
+            color: #63656e;
         }
     }
 </style>

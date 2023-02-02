@@ -1586,7 +1586,15 @@ const en = {
     '至少 5 个字符': 'At least 5 characters',
     '转移': 'Transfer',
     '转移流程': 'Transfer processes',
-    '转移至': 'Transfer to'
+    '转移至': 'Transfer to',
+    '清空筛选': 'Clear filter',
+    '可申请管理空间内的所有流程': 'Can apply for all processes in the management space',
+    '申请空间成员': 'Apply space membership',
+    '可申请管理空间配置': 'Can apply for management space configuration ',
+    '及管理空间内的所有流程': 'and manage all processes within the space',
+    '申请空间管理员': 'Apply space administrator',
+    '需要有新建空间的权限': 'Permission to create new spaces is required',
+    '请选择空间': 'Please select a space'
 }
 
 export default en

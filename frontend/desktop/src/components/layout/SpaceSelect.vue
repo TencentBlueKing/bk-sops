@@ -5,7 +5,7 @@
             <bk-select
                 ref="spaceSelect"
                 v-model="crtSpace"
-                placeholder="请选择空间"
+                :placeholder="$t('请选择空间')"
                 searchable
                 :loading="isSpaceLoading"
                 :clearable="false"
@@ -21,13 +21,17 @@
                     v-for="spaceInfo in commonSpaceList"
                     :key="spaceInfo.id"
                     :id="spaceInfo.id"
-                    :name="spaceInfo.name">
-                    <div class="space-select-option">
+                    :name="spaceInfo.name"
+                    :disabled="spaceInfo.id === -1 ? false : !spaceInfo.auth_actions.length">
+                    <div
+                        class="space-select-option"
+                        v-cursor="{ active: spaceInfo.id === -1 ? false : !spaceInfo.auth_actions.length }"
+                        @click="onSelectedSpace(spaceInfo)">
                         <div class="option-content" v-bk-overflow-tips>
                             <span>{{ spaceInfo.name }}</span>
                             <span v-if="spaceInfo.code">{{ $t('（') + spaceInfo.code + $t('）') }}</span>
                         </div>
-                        <div v-if="spaceInfo.code" class="operate-wrap">
+                        <div v-if="spaceInfo.code && spaceInfo.auth_actions.length" class="operate-wrap">
                             <i
                                 v-bk-tooltips="{ content: $t('管理空间'), boundary: 'window' }"
                                 v-cursor="{ active: !spaceInfo.auth_actions.includes('common_space_manage') }"
@@ -204,7 +208,8 @@
                         { name: '默认空间', id: -1, auth_actions: [] },
                         ...resp.data
                     ]
-                    this.crtSpace = -1
+                    const { spaceId } = this.$route.query
+                    this.crtSpace = spaceId ? Number(spaceId) : -1
                     this.setCommonSpace({
                         id: this.crtSpace,
                         list: this.commonSpaceList
@@ -237,6 +242,16 @@
                     id: this.crtSpace,
                     list: this.commonSpaceList
                 })
+                console.log('11')
+                this.$router.replace({
+                    name: this.$route.name,
+                    query: { spaceId: this.crtSpace }
+                })
+            },
+            onSelectedSpace (info) {
+                if (info.id !== -1 && !info.auth_actions.length) {
+                    this.onSpacePermissionCheck(['common_space_join'])
+                }
             },
             onEditSpace (info) {
                 if (!info.auth_actions.includes('common_space_manage')) {
@@ -285,7 +300,6 @@
                         name: spaceInfo.name
                     }]
                 }
-                console.log(permissionData)
                 this.applyForPermission(required, curPermission, permissionData)
             },
             onCreateSpace () {
@@ -378,11 +392,10 @@
                     overflow: hidden;
                 }
                 .operate-wrap {
-                    display: flex;
+                    display: none;
                     align-items: center;
                     font-size: 16px;
                     color: #979ba5;
-                    opacity: 0;
                     .icon-cog {
                         font-size: 14px;
                     }
@@ -394,13 +407,18 @@
                     color: #63656e;
                     background: #f5f7fa;
                     .operate-wrap {
-                        opacity: 1;
+                        display: flex;
                     }
                 }
             }
             &.is-selected .space-select-option {
                 color: #3a84ff;
                 background: #e1ecff;
+
+            }
+            &.is-disabled .space-select-option {
+                color: #c4c6cc;
+                background: #fff;
 
             }
         }

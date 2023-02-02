@@ -105,21 +105,21 @@
                                 <div v-if="item.id === 'name'" class="name-column">
                                     <a
                                         data-test-id="process_table_collectBtn"
-                                        v-cursor="{ active: !hasPermission(['common_flow_view'], row.auth_actions) }"
+                                        v-cursor="{ active: !isManager && !hasPermission(['common_flow_view'], row.auth_actions) }"
                                         href="javascript:void(0);"
                                         class="common-icon-favorite icon-favorite"
                                         :class="{
                                             'is-active': row.is_collected,
                                             'disable': collectingId === row.id,
-                                            'text-permission-disable': !hasPermission(['common_flow_view'], row.auth_actions)
+                                            'text-permission-disable': !isManager && !hasPermission(['common_flow_view'], row.auth_actions)
                                         }"
                                         @click="onCollectTemplate(row)">
                                     </a>
                                     <a
-                                        v-if="!hasPermission(['common_flow_view'], row.auth_actions)"
+                                        v-if="!isManager && !hasPermission(['common_flow_view'], row.auth_actions)"
                                         v-cursor
                                         class="text-permission-disable"
-                                        @click="onTemplatePermissonCheck(['common_flow_view'], row)">
+                                        @click="onTemplatePermissionCheck(['common_flow_view'], row)">
                                         {{row.name}}
                                     </a>
                                     <a
@@ -169,7 +169,7 @@
                                                 <div
                                                     class="add-label"
                                                     data-test-id="process_list__editLabel"
-                                                    v-cursor="{ active: !hasPermission(['common_flow_edit'], row.auth_actions) }"
+                                                    v-cursor="{ active: !isManager && !hasPermission(['common_flow_edit'], row.auth_actions) }"
                                                     @click="onEditLabel(row)">
                                                     <i class="bk-icon icon-plus-circle"></i>
                                                     <span>{{ $t('新建标签') }}</span>
@@ -180,7 +180,7 @@
                                     <div
                                         v-else
                                         class="label-column"
-                                        v-cursor="{ active: !hasPermission(['common_flow_edit'], row.auth_actions) }"
+                                        v-cursor="{ active: !isManager && !hasPermission(['common_flow_edit'], row.auth_actions) }"
                                         @click="handleTempLabelClick(row)">
                                         <template v-if="row.template_labels && row.template_labels.length > 0">
                                             <span
@@ -214,10 +214,10 @@
                                             {{$t('新建任务')}}
                                         </a>
                                         <a
-                                            v-if="!hasPermission(['common_flow_view'], props.row.auth_actions)"
+                                            v-if="!isManager && !hasPermission(['common_flow_view'], props.row.auth_actions)"
                                             v-cursor
                                             class="text-permission-disable"
-                                            @click="onTemplatePermissonCheck(['common_flow_view'], props.row)">
+                                            @click="onTemplatePermissionCheck(['common_flow_view'], props.row)">
                                             {{$t('克隆')}}
                                         </a>
                                         <a
@@ -228,6 +228,10 @@
                                         </a>
                                         <a
                                             class="template-operate-btn"
+                                            v-cursor="{ active: !isManager && !hasPermission(['common_flow_edit'], props.row.auth_actions) }"
+                                            :class="{
+                                                'text-permission-disable': !isManager && !hasPermission(['common_flow_edit'], props.row.auth_actions)
+                                            }"
                                             @click.prevent="onTemplateTransfer(props.row)">
                                             {{$t('转移')}}
                                         </a>
@@ -244,10 +248,10 @@
                                             <ul slot="content">
                                                 <li class="opt-btn">
                                                     <a
-                                                        v-if="!hasPermission(['common_flow_edit'], props.row.auth_actions)"
+                                                        v-if="!isManager && !hasPermission(['common_flow_edit'], props.row.auth_actions)"
                                                         v-cursor
                                                         class="text-permission-disable"
-                                                        @click="onTemplatePermissonCheck(['common_flow_edit'], props.row)">
+                                                        @click="onTemplatePermissionCheck(['common_flow_edit'], props.row)">
                                                         {{$t('编辑')}}
                                                     </a>
                                                     <a
@@ -259,10 +263,10 @@
                                                 </li>
                                                 <li class="opt-btn">
                                                     <a
-                                                        v-cursor="{ active: !hasPermission(['common_flow_delete'], props.row.auth_actions) }"
+                                                        v-cursor="{ active: !isManager && !hasPermission(['common_flow_delete'], props.row.auth_actions) }"
                                                         href="javascript:void(0);"
                                                         :class="{
-                                                            'text-permission-disable': !hasPermission(['common_flow_delete'], props.row.auth_actions)
+                                                            'text-permission-disable': !isManager && !hasPermission(['common_flow_delete'], props.row.auth_actions)
                                                         }"
                                                         @click="onDeleteTemplate(props.row, $event)">
                                                         {{$t('删除')}}
@@ -351,7 +355,7 @@
                     <bk-select
                         ref="spaceSelect"
                         v-model="transferData.spaceId"
-                        placeholder="请选择空间"
+                        :placeholder="$t('请选择空间')"
                         searchable
                         ext-popover-cls="space-select-popover-list">
                         <bk-option
@@ -733,14 +737,14 @@
             hasBatchViewAuth () {
                 let result = false
                 if (this.selectedTpls.length) {
-                    result = this.selectedTpls.every(template => this.hasPermission(['common_flow_view'], template.auth_actions))
+                    result = this.isManager || this.selectedTpls.every(template => this.hasPermission(['common_flow_view'], template.auth_actions))
                 }
                 return result
             },
             hasBatchEditAuth () {
                 let result = false
                 if (this.selectedTpls.length) {
-                    result = this.selectedTpls.every(template => this.hasPermission(['common_flow_delete'], template.auth_actions))
+                    result = this.isManager || this.selectedTpls.every(template => this.hasPermission(['common_flow_delete'], template.auth_actions))
                 }
                 return result
             },
@@ -755,9 +759,9 @@
                 }
                 return {}
             },
-            // 不包含当前空间的空间列表
+            // 不包含当前空间和默认空间的空间列表
             spaceFilterList () {
-                return this.commonSpaceList.filter(item => item.id !== this.crtCommonSpace)
+                return this.commonSpaceList.filter(item => ![-1, this.crtCommonSpace].includes(item.id))
             },
             // 是否为空间管理员
             isManager () {
@@ -833,7 +837,7 @@
                     const res = await this.queryUserPermission({
                         action: 'common_flow_create'
                     })
-                    this.hasCreateCommonTplPerm = res.data.is_allow
+                    this.hasCreateCommonTplPerm = this.isManager || res.data.is_allow
                 } catch (e) {
                     console.log(e)
                 }
@@ -1187,8 +1191,8 @@
                 this.isExportDialogShow = true
             },
             onDeleteTemplate (template) {
-                if (!this.hasPermission(['common_flow_delete'], template.auth_actions)) {
-                    this.onTemplatePermissonCheck(['common_flow_delete'], template)
+                if (!this.isManager && !this.hasPermission(['common_flow_delete'], template.auth_actions)) {
+                    this.onTemplatePermissionCheck(['common_flow_delete'], template)
                     return
                 }
                 this.theDeleteTemplateId = template.id
@@ -1344,7 +1348,8 @@
                     flowName,
                     template_id,
                     editor,
-                    labels: label_ids?.join(',') || undefined
+                    labels: label_ids?.join(',') || undefined,
+                    spaceId: this.crtCommonSpace
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {
@@ -1360,7 +1365,7 @@
              * @params {Array} required 需要的权限
              * @params {Object} template 模板数据对象
              */
-            onTemplatePermissonCheck (required, template) {
+            onTemplatePermissionCheck (required, template) {
                 const curPermission = template.auth_actions.slice(0)
                 const permissionData = {
                     common_flow: [{
@@ -1445,8 +1450,8 @@
             },
             // 添加/取消收藏模板
             async onCollectTemplate (template) {
-                if (!this.hasPermission(['common_flow_view'], template.auth_actions)) {
-                    this.onTemplatePermissonCheck(['common_flow_view'], template)
+                if (!this.isManager && !this.hasPermission(['common_flow_view'], template.auth_actions)) {
+                    this.onTemplatePermissionCheck(['common_flow_view'], template)
                     return
                 }
                 if (typeof this.collectingId === 'number') {
@@ -1550,6 +1555,10 @@
             },
             // 打开转移弹框
             onTemplateTransfer (tpl) {
+                if (!this.isManager && !this.hasPermission(['common_flow_edit'], tpl.auth_actions)) {
+                    this.onTemplatePermissionCheck(['common_flow_edit'], tpl)
+                    return
+                }
                 this.selectedTpl = tpl
                 this.transferData.spaceId = ''
                 this.isTransferShow = true
@@ -1609,8 +1618,8 @@
             },
             // 模板标签点击选中
             handleTempLabelClick (row) {
-                if (!this.hasPermission(['common_flow_edit'], row.auth_actions)) {
-                    this.onTemplatePermissonCheck(['common_flow_edit'], row)
+                if (!this.isManager && !this.hasPermission(['common_flow_edit'], row.auth_actions)) {
+                    this.onTemplatePermissionCheck(['common_flow_edit'], row)
                     return
                 }
                 this.curSelectedRow = toolsUtils.deepClone(row)
@@ -1672,8 +1681,8 @@
                 }
             },
             onEditLabel (row) {
-                if (!this.hasPermission(['common_flow_edit'], row.auth_actions)) {
-                    this.onTemplatePermissonCheck(['common_flow_edit'], row)
+                if (!this.isManager && !this.hasPermission(['common_flow_edit'], row.auth_actions)) {
+                    this.onTemplatePermissionCheck(['common_flow_edit'], row)
                     return
                 }
                 this.labelDetail = { color: '#1c9574', name: '', description: '' }
