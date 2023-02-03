@@ -52,14 +52,14 @@ def handle_api_error(system, api_name, params, result):
                 message = _("调用{system}接口{api_name}无权限：<a href='{url}' target='_blank'>申请权限</a>。").format(
                     system=system, api_name=api_name, url=url
                 )
-                message = "{prefix}\n details: params={params}, error={error}".format(
+                message = "{prefix}\n details: error={error}, params={params}".format(
                     prefix=message, params=json.dumps(params), error=result.get("message", "")
                 )
                 if request_id:
                     message = "{}, request_id={}".format(message, request_id)
             else:
                 message = _(
-                    "调用{system}接口{api_name}无权限，获取申请权限接口失败\ndetails: {result}\n error={error}".format(
+                    "调用{system}接口{api_name}无权限，获取申请权限接口失败\nerror={error}\ndetails: {result}\n".format(
                         system=system, api_name=api_name, result=result, error=apply_message
                     )
                 )
