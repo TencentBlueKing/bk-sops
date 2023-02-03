@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from django.apps import apps
 from pipeline.engine import states as pipeline_states
 from pipeline.engine.utils import calculate_elapsed_time
 from pipeline.core import constants as pipeline_constants
@@ -87,6 +88,32 @@ def add_node_name_to_status_tree(pipeline_tree, status_tree_children):
         status["name"] = pipeline_tree.get("activities", {}).get(node_id, {}).get("name", "")
         children = status.get("children", {})
         add_node_name_to_status_tree(pipeline_tree["activities"].get(node_id, {}).get("pipeline", {}), children)
+
+
+def extract_failed_nodes(status_tree):
+    FAILED_STATE = "FAILED"
+    failed_nodes = []
+    for node_id, status in status_tree["children"].items():
+        if status["state"] == FAILED_STATE:
+            failed_nodes.append(node_id)
+            failed_nodes += extract_failed_nodes(status)
+    return failed_nodes
+
+
+def get_failed_nodes_info(root_pipeline_id, failed_node_ids):
+    info = {failed_node_id: {} for failed_node_id in failed_node_ids}
+
+    # 获取失败节点自动重试数据
+    AutoRetryNodeStrategy = apps.get_model("taskflow3", "AutoRetryNodeStrategy")
+    strategy_info = AutoRetryNodeStrategy.objects.filter(
+        root_pipeline_id=root_pipeline_id, node_id__in=failed_node_ids
+    ).values("node_id", "retry_times", "max_retry_times")
+    for strategy in strategy_info:
+        info[strategy["node_id"]].update(
+            {"auto_retry_times": strategy["retry_times"], "max_auto_retry_times": strategy["max_retry_times"]}
+        )
+
+    return info
 
 
 def parse_node_timeout_configs(pipeline_tree: dict) -> list:
