@@ -124,7 +124,8 @@
                     FINISHED: 'color:#61c861;',
                     FAILED: 'color:#d84038;',
                     WAIT: 'color:#dedfe6;',
-                    BLOCKED: 'color:#4b81f7;'
+                    BLOCKED: 'color:#4b81f7;',
+                    RUNNING: 'color:#4d83f7;'
                 }
                 const nodeStateMap = {
                     FINISHED: 'background: #E5F6EA;border: 1px solid #3FC06D;',
