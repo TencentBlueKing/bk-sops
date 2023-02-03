@@ -21,7 +21,7 @@ from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_r
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
-from gcloud.taskflow3.utils import add_node_name_to_status_tree
+from gcloud.taskflow3.utils import add_node_name_to_status_tree, extract_failed_nodes, get_failed_nodes_info
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
@@ -53,6 +53,7 @@ def get_task_status(request, task_id, project_id):
     project = request.project
     subprocess_id = request.GET.get("subprocess_id")
     with_ex_data = request.GET.get("with_ex_data")
+    with_failed_node_info = request.GET.get("with_failed_node_info")
 
     try:
         task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
@@ -87,6 +88,22 @@ def get_task_status(request, task_id, project_id):
                 "message": message,
                 "code": err_code.UNKNOWN_ERROR.code,
             }
+
+    if with_failed_node_info:
+        try:
+            status_tree, root_pipeline_id = result["data"], result["data"]["id"]
+            failed_node_ids = extract_failed_nodes(status_tree)
+            failed_node_info = get_failed_nodes_info(root_pipeline_id, failed_node_ids)
+            result["data"]["failed_node_info"] = failed_node_info
+        except Exception as e:
+            message = "task[id={task_id}] extract failed node info error: {error}".format(task_id=task_id, error=e)
+            logger.exception(message)
+            return {
+                "result": False,
+                "message": message,
+                "code": err_code.UNKNOWN_ERROR.code,
+            }
+
     result["data"]["name"] = task.name
 
     return result
