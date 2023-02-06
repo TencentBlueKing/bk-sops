@@ -243,7 +243,7 @@
                     list: this.commonSpaceList
                 })
                 this.$router.replace({
-                    name: this.$route.name,
+                    name: 'commonProcessList',
                     query: { spaceId: this.crtSpace }
                 })
             },

@@ -909,7 +909,7 @@ const template = {
          * 保存模板数据
          * @param {Object} data 模板完整数据
          */
-        saveTemplateData ({ state }, { templateId, projectId, common }) {
+        saveTemplateData ({ state }, { templateId, projectId, common, spaceId }) {
             const { activities, constants, end_event, flows, gateways, line,
                 location, outputs, start_event, notify_receivers, notify_type,
                 time_out, category, description, executor_proxy, template_labels, default_flow_type
@@ -988,7 +988,8 @@ const template = {
                 default_flow_type,
                 notify_type,
                 pipeline_tree: pipelineTree,
-                notify_receivers: notifyReceivers
+                notify_receivers: notifyReceivers,
+                space_id: spaceId
             }, {
                 headers
             }).then(response => response.data)
