@@ -179,13 +179,13 @@
             header-position="left"
             :mask-close="false"
             :auto-close="false"
-            :title="$t('强制失败')"
+            :title="$t('强制终止')"
             :loading="pending.forceFail"
             :value="isForceFailDialogShow"
             data-test-id="taskExcute_dialog_forceFailDialog"
             @confirm="nodeForceFail(forceFailId)"
             @cancel="onForceFailCancel">
-            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否将该任务节点强制执行失败？') }}</div>
+            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否将该任务节点强制执行终止？') }}</div>
         </bk-dialog>
         <bk-dialog
             width="400"
@@ -874,7 +874,7 @@
                     const res = await this.forceFail(params)
                     if (res.result) {
                         this.$bkMessage({
-                            message: i18n.t('强制失败执行成功'),
+                            message: i18n.t('强制终止执行成功'),
                             theme: 'success'
                         })
                         this.isForceFailDialogShow = false

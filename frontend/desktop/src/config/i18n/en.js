@@ -747,7 +747,7 @@ const en = {
     '任务继续成功': 'Task Continued',
     '任务终止成功': 'Task Revoked',
     '跳过成功': 'Skip successfully',
-    '强制失败执行成功': 'Force fail success',
+    '强制终止执行成功': 'Force revoke success',
     '继续成功': 'Continued successfully',
     '返回': 'Return',
     '查看参数': 'Parameters',
@@ -1157,7 +1157,7 @@ const en = {
     '导出当前方案': 'Export Current Scheme',
     '跳过节点': 'Skip',
     '是否跳过该任务节点？': 'Is the execution of this task node skipped?',
-    '是否将该任务节点强制执行失败？': 'Does it fail to enforce this task node?',
+    '是否将该任务节点强制执行终止？': 'Does it revoke to enforce this task node?',
     '是否完成暂停节点继续向后执行？': 'Does the completion of the task node continue backwards?',
     '备注': 'Description',
     '模板级别的执行代理人会覆盖业务级别的执行代理人配置，': 'The template-level executive agent will override the business-level executive agent configuration,',
@@ -1294,7 +1294,7 @@ const en = {
     '在': '',
     '后': '',
     '则': '',
-    '强制失败后跳过': 'skip after the force fails',
+    '强制终止后跳过': 'skip after the force revoke',
     '该功能仅对V2引擎生效': 'This function takes effect only for the V2 engine',
     '转交': 'Transfer',
     '由': 'By',
@@ -1568,7 +1568,8 @@ const en = {
     '保存失败，有参数已被使用不可修改': 'Failed to save, some parameters have been used and cannot be modified',
     '动态拓扑': 'Dynamic topology',
     '计划任务删除成功': 'Clocked task deleted successfully',
-    '周期任务删除成功': 'Periodic task deleted successfully'
+    '周期任务删除成功': 'Periodic task deleted successfully',
+    '强制终止': 'Force revoke'
 }
 
 export default en

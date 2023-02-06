@@ -172,8 +172,8 @@
                             v-model="formData.timeoutConfig.action"
                             :disabled="isViewMode"
                             :clearable="false" @change="updateData">
-                            <bk-option id="forced_fail" :name="$t('强制失败')"></bk-option>
-                            <bk-option id="forced_fail_and_skip" :name="$t('强制失败后跳过')"></bk-option>
+                            <bk-option id="forced_fail" :name="$t('强制终止')"></bk-option>
+                            <bk-option id="forced_fail_and_skip" :name="$t('强制终止后跳过')"></bk-option>
                         </bk-select>
                     </template>
                 </div>
@@ -369,8 +369,8 @@
                                 v-model="formData.timeoutConfig.action"
                                 :disabled="isViewMode"
                                 :clearable="false" @change="updateData">
-                                <bk-option id="forced_fail" :name="$t('强制失败')"></bk-option>
-                                <bk-option id="forced_fail_and_skip" :name="$t('强制失败后跳过')"></bk-option>
+                                <bk-option id="forced_fail" :name="$t('强制终止')"></bk-option>
+                                <bk-option id="forced_fail_and_skip" :name="$t('强制终止后跳过')"></bk-option>
                             </bk-select>
                         </template>
                     </div>
