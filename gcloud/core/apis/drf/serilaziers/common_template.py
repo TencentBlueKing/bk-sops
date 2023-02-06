@@ -69,7 +69,7 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
     pipeline_template = serializers.IntegerField(
         help_text="pipeline模板ID", source="pipeline_template.id", read_only=True
     )
-    space_id = serializers.IntegerField(help_text="公共空间ID", read_only=True)
+    space_id = serializers.IntegerField(help_text="公共空间ID")
     template_labels = serializers.ListField(help_text="模板label", required=False)
 
     class Meta:
