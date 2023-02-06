@@ -808,7 +808,13 @@
                 }
 
                 try {
-                    const resp = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
+                    const { spaceId } = this.$route.query
+                    const resp = await this.saveTemplateData({
+                        'templateId': template_id,
+                        'projectId': this.project_id,
+                        'common': this.common,
+                        spaceId: spaceId && Number(spaceId)
+                    })
                     if (!resp.result) return
                     const data = resp.data
                     this.tplActions = data.auth_actions

@@ -55,7 +55,8 @@
                 crtCommonSpace: state => state.template.crtCommonSpace
             }),
             spaceInfo () {
-                return this.commonSpaceList.find(item => item.id === this.crtCommonSpace)
+                const data = this.commonSpaceList.find(item => item.id === this.crtCommonSpace)
+                return data || { id: this.crtCommonSpace, name: '--', auth_actions: [] }
             }
         },
         watch: {

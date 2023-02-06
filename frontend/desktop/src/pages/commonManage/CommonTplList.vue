@@ -783,7 +783,6 @@
                     this.pagination.limit = 15
                     this.updateUrl()
                     this.getTemplateList()
-                    this.getTemplateLabelList()
                 },
                 deep: true
             }
@@ -958,7 +957,8 @@
                 } else {
                     this.$router.push({
                         name: 'commonTemplatePanel',
-                        params: { type: 'new' }
+                        params: { type: 'new' },
+                        query: { spaceId: this.crtCommonSpace }
                     })
                 }
             },
@@ -1432,7 +1432,8 @@
                 const url = urlMap[name]
                 url.query = {
                     template_id,
-                    common: '1'
+                    common: '1',
+                    spaceId: this.crtCommonSpace
                 }
                 this.$router.push(url)
             },
@@ -1601,7 +1602,7 @@
                     this.templateLabelLoading = true
                     const res = await this.getProjectLabels({
                         from_space: true,
-                        from_space_id: this.crtCommonSpace
+                        from_space_id__isnull: false
                     })
                     this.templateLabels = res.data
                     
@@ -1656,8 +1657,7 @@
                     const resp = await this.saveTemplateData({
                         templateId: id,
                         project_id: null,
-                        from_space: true,
-                        from_space_id: this.crtCommonSpace,
+                        spaceId: this.crtCommonSpace,
                         common: true
                     })
                     if (!resp.result) return
