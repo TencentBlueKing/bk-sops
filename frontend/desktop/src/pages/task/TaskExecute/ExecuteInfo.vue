@@ -121,21 +121,6 @@
                     @click="onResumeClick">
                     {{ $t('继续执行') }}
                 </bk-button>
-                <span
-                    v-if="nodeDetailConfig.component_code === 'sleep_timer'"
-                    v-bk-tooltips="{
-                        content: $t('修改时间实际是强制失败后重试节点，需配置可重试才能修改时间'),
-                        disabled: nodeActivity.retryable !== false,
-                        hideOnClick: false
-                    }">
-                    <bk-button
-                        theme="primary"
-                        :disabled="nodeActivity.retryable === false"
-                        data-test-id="taskExcute_form_modifyTimeBtn"
-                        @click="onModifyTimeClick">
-                        {{ $t('修改时间') }}
-                    </bk-button>
-                </span>
                 <bk-button
                     v-if="nodeDetailConfig.component_code === 'bk_approve'"
                     theme="primary"
@@ -144,10 +129,10 @@
                     {{ $t('审批') }}
                 </bk-button>
                 <bk-button
-                    v-if="location.type !== 'subflow'"
+                    v-if="nodeDetailConfig.component_code === 'sleep_timer'"
                     data-test-id="taskExcute_form_mandatoryFailBtn"
                     @click="mandatoryFailure">
-                    {{ $t('强制失败') }}
+                    {{ $t('强制终止') }}
                 </bk-button>
             </template>
             <template v-if="isShowRetryBtn || isShowSkipBtn">
