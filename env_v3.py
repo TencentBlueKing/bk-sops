@@ -52,6 +52,12 @@ BK_NODEMAN_HOST = os.getenv("BK_NODEMAN_HOST", BK_SAAS_HOSTS["bk_nodeman"][BKSAA
 
 BK_SOPS_HOST = os.getenv("BK_SOPS_HOST", BK_SAAS_HOSTS["bk_sops"][BKSAAS_DEFAULT_MODULE_NAME])
 
+# 兼容没有部署 GSEKIT 的情况
+BK_GSE_KIT_PAGE_URL_TEMPLATE = os.getenv(
+    "BK_GSEKIT_PAGE_URL_TEMPLATE",
+    BK_SAAS_HOSTS["bk_gsekit"][BKSAAS_DEFAULT_MODULE_NAME] + "/task-history/detail/{job_id}?biz={bk_biz_id}",
+)
+
 # 用户管理配置
 BK_USER_MANAGE_HOST = os.getenv("BK_USER_MANAGE_HOST", BK_SAAS_HOSTS["bk_user_manage"][BKSAAS_DEFAULT_MODULE_NAME])
 
