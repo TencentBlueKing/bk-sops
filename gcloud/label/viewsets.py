@@ -62,7 +62,14 @@ class NewLabelViewSet(ApiMixin, ModelViewSet):
     serializer_class = NewLabelSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = "__all__"
+    filterset_fields = {
+        "id": ["exact"],
+        "name": ["exact", "icontains"],
+        "creator": ["exact"],
+        "project_id": ["exact", "isnull"],
+        "is_default": ["exact"],
+        "from_space_id": ["exact", "isnull"],
+    }
 
     @method_decorator(label_view_decorator)
     def create(self, request, *args, **kwargs):

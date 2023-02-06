@@ -207,9 +207,9 @@ ACTIONS = [
     {
         "id": "common_space_create",
         "name": _("创建公共空间"),
-        "relate_resources": ["common_space"],
+        "relate_resources": [],
         "relate_actions": [],
-        "resource_topo": ["common_space"],
+        "resource_topo": [],
     },
     {
         "id": "common_space_join",
@@ -222,7 +222,7 @@ ACTIONS = [
         "id": "common_space_manage",
         "name": _("管理公共空间"),
         "relate_resources": ["common_space"],
-        "relate_actions": ["common_space_join"],
+        "relate_actions": [],
         "resource_topo": ["common_space"],
     },
     {
