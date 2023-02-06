@@ -17,7 +17,7 @@
         <div v-if="retryNodeId || (state !== 'CREATED' && paramsCanBeModify)" class="panel-notice-task-run">
             <p>
                 <i class="common-icon-info ui-notice"></i>
-                {{ $t('仅对「保存」后启动的节点 / 表达式生效。请尽量在「暂停 / 失败 / 审批」等状态下完成编辑，以确保效果符合预期。') }}
+                {{ $t('仅“未使用”的参数允许修改，“已使用”（成功、执行中节点引用）的参数不可修改。执行失败视为“未使用”引用的参数') }}
             </p>
         </div>
         <div v-else-if="state !== 'CREATED' && !isChildTaskflow" class="panel-notice-task-run">
