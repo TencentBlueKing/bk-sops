@@ -1301,28 +1301,12 @@
             // 查看参数、修改参数 （侧滑面板 标题 点击遮罩关闭）
             onTaskParamsClick (type, name) {
                 if (type === 'viewNodeDetails') {
-                    let nodeData = tools.deepClone(this.nodeData[0].children)
-                    let firstTaskNode = null
-                    const subprocessStack = []
-                    while (nodeData) {
-                        const activityNode = nodeData.find(item => item.type === 'ServiceActivity' || item.type === 'SubProcess')
-                        if (activityNode.type === 'ServiceActivity') {
-                            firstTaskNode = activityNode
-                            nodeData = null
-                        } else {
-                            subprocessStack.push(activityNode.id)
-                            nodeData = null
-                        }
-                    }
-                    this.defaultActiveId = firstTaskNode.id
-                    this.nodeDetailConfig = {
-                        component_code: firstTaskNode.component.code,
-                        version: firstTaskNode.component.version || 'legacy',
-                        node_id: firstTaskNode.id,
-                        instance_id: this.instance_id,
-                        subprocess_stack: JSON.stringify(subprocessStack)
-                    }
-                    this.nodePipelineData = { ...this.pipelineData }
+                    const { activities, location } = this.pipelineData
+                    const nodeId = Object.keys(activities)[0]
+                    const locInfo = location.find(item => item.id === nodeId)
+                    const type = locInfo.type === 'subflow' ? 'subflowDetail' : locInfo.type
+                    this.onNodeClick(nodeId, type)
+                    return
                 }
                 if (type === 'templateData') {
                     this.templateData = JSON.stringify(this.pipelineData, null, 4)
