@@ -1530,7 +1530,7 @@ const en = {
     '暂无执行信息': 'No execution information yet',
     '暂无日志': 'No log yet',
     '暂无输出': 'No output yet',
-    '仅对「保存」后启动的节点 / 表达式生效。请尽量在「暂停 / 失败 / 审批」等状态下完成编辑，以确保效果符合预期。': 'Only valid for nodes/expressions started after "Save". Please try to complete the editing in the status of "paused/failed/approved" to ensure the effect is as expected.',
+    '仅“未使用”的参数允许修改，“已使用”（成功、执行中节点引用）的参数不可修改。执行失败视为“未使用”引用的参数': 'Only "unused" parameters are allowed to be modified, and "used" (successful, node reference in execution) parameters cannot be modified. Execution failed to treat arguments as "unused" references',
     '「未完成」任务才可编辑参数': 'Unfinished" tasks can only edit parameters',
     '查看任务参数': 'View task parameters',
     '当前已执行': 'Currently executed',
