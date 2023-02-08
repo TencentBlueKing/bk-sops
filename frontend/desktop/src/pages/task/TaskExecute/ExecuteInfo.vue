@@ -15,9 +15,11 @@
             <NodeTree
                 class="nodeTree"
                 :data="nodeData"
+                :node-nav="nodeNav"
                 :node-display-status="nodeDisplayStatus"
                 :selected-flow-path="selectedFlowPath"
                 :default-active-id="defaultActiveId"
+                @onNodeClick="onNodeClick"
                 @onSelectNode="onSelectNode">
             </NodeTree>
             <div
@@ -206,6 +208,12 @@
                 }
             },
             selectedFlowPath: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            nodeNav: {
                 type: Array,
                 default () {
                     return []
@@ -418,6 +426,9 @@
                     this.randomKey = new Date().getTime()
                     this.loading = false
                 }
+            },
+            onNodeClick (id, type, event) {
+                this.$emit('onNodeClick', id, type)
             },
             // 补充记录缺少的字段
             async setFillRecordField (record) {

@@ -10,22 +10,34 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="node-tree-wrapper" data-test-id="taskExcute_tree_nodeTree">
-        <bk-tree
-            class="node-tree"
-            ref="tree1"
-            :data="treeData"
-            :show-icon="showIcon"
-            :node-key="'id'"
-            :tpl="tpl"
-            :has-border="true">
-        </bk-tree>
+    <div class="node-tree-wrapper">
+        <div class="tree-item" v-for="tree in treeData" :key="tree.id" data-test-id="taskExcute_tree_nodeTree">
+            <div v-if="!tree.children || tree.name === '汇聚网关' || tree.type === 'SubProcess'" :class="['tree-item-info', tree.isGateway ? 'gateway' : '']">
+                <div class="tree-line"></div>
+                <div class="tree-item-status">
+                    <span class="tree-item-expanded"></span>
+                    <span v-if="tree.type === 'ConvergeGateway'" class="commonicon-icon common-icon-node-convergegateway"></span>
+                    <span v-else class="default-node" :style="nodeStateMap[tree.state]"></span>
+                </div>
+                <div :class="['tree-item-name', curSelectId === tree.id ? 'active-name' : '']" @click="onClickNode(tree)">{{ tree.name }}</div>
+            </div>
+            <div v-else class="tree-item-children">
+                <bk-tree
+                    class="node-tree"
+                    :data="[tree]"
+                    :show-icon="showIcon"
+                    :tpl="tpl"
+                    :has-border="true">
+                </bk-tree>
+            </div>
+        </div>
     </div>
 </template>
 <script>
 
     import { bkTree } from 'bk-magic-vue'
     import tools from '@/utils/tools.js'
+
     export default {
         name: 'NodeTree',
         components: {
@@ -33,6 +45,12 @@
         },
         props: {
             data: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            nodeNav: {
                 type: Array,
                 default () {
                     return []
@@ -63,17 +81,41 @@
             }
         },
         data () {
+            const gatewayType = {
+                'EmptyStartEvent': 'commonicon-icon common-icon-node-startpoint-en',
+                'EmptyEndEvent': 'commonicon-icon common-icon-node-endpoint-en',
+                'ParallelGateway': 'commonicon-icon common-icon-node-parallelgateway-shortcut',
+                'ExclusiveGateway': 'commonicon-icon common-icon-node-branchgateway',
+                'ConvergeGateway': 'commonicon-icon common-icon-node-convergegateway'
+            }
+            const stateColor = {
+                FINISHED: 'color:#61c861;',
+                FAILED: 'color:#d84038;',
+                WAIT: 'color:#dedfe6;',
+                BLOCKED: 'color:#4b81f7;',
+                RUNNING: 'color:#4d83f7;'
+            }
+            const nodeStateMap = {
+                FINISHED: 'background: #E5F6EA;border: 1px solid #3FC06D;',
+                FAILED: 'background: #ecbbb7;border: 1px solid #ecbbb7;',
+                WAIT: 'background: #e0e1e9;border: 1px solid #e0e1e9;',
+                RUNNING: 'background: #7ea2f0;border: 1px solid #4d83f7;'
+            }
             return {
                 curSelectId: '',
                 treeData: [],
+                subTreeData: [],
                 showIcon: false,
-                allNodeDate: {}
+                allNodeDate: {},
+                gatewayType,
+                stateColor,
+                nodeStateMap
             }
         },
         watch: {
             data: {
                 handler () {
-                    this.treeData = tools.deepClone(this.data)
+                    this.treeData = tools.deepClone(this.data[0].children)
                     this.nodeAddStatus(this.treeData, this.nodeDisplayStatus.children)
                 },
                 deep: true,
@@ -85,6 +127,15 @@
                 },
                 deep: true,
                 immediate: true
+            },
+            nodeNav: {
+                handler (val) {
+                    const cur = this.treeData.find(item => item.id === val[val.length - 1].id)
+                    if (cur) {
+                        this.renderSubProcessData(cur)
+                    }
+                },
+                immediate: true
             }
         },
         mounted () {
@@ -93,6 +144,21 @@
             }
         },
         methods: {
+            onClickNode (node) {
+                if (node.children && node.children.length === 0) return
+                node.expanded = !node.expanded
+                this.curSelectId = node.id
+                const nodeType = node.type === 'SubProcess'
+                if (nodeType) {
+                    this.$emit('onNodeClick', node.id, 'subflow')
+                    this.renderSubProcessData(node)
+                } else {
+                    this.$emit('onSelectNode', node.id, node.id, 'tasknode')
+                }
+            },
+            renderSubProcessData (node) {
+                this.treeData = node.children
+            },
             nodeAddStatus (data, states) {
                 data.forEach(item => {
                     if (item.id && states[item.id]) {
@@ -112,32 +178,11 @@
                 if (!this.allNodeDate[node.id] && node.id !== 'undefined') {
                     this.allNodeDate[node.id] = node
                 }
-                
-                const gatewayType = {
-                    'EmptyStartEvent': 'commonicon-icon common-icon-node-startpoint-en',
-                    'EmptyEndEvent': 'commonicon-icon common-icon-node-endpoint-en',
-                    'ParallelGateway': 'commonicon-icon common-icon-node-parallelgateway-shortcut',
-                    'ExclusiveGateway': 'commonicon-icon common-icon-node-branchgateway',
-                    'ConvergeGateway': 'commonicon-icon common-icon-node-convergegateway'
-                }
-                const stateColor = {
-                    FINISHED: 'color:#61c861;',
-                    FAILED: 'color:#d84038;',
-                    WAIT: 'color:#dedfe6;',
-                    BLOCKED: 'color:#4b81f7;',
-                    RUNNING: 'color:#4d83f7;'
-                }
-                const nodeStateMap = {
-                    FINISHED: 'background: #E5F6EA;border: 1px solid #3FC06D;',
-                    FAILED: 'background: #ecbbb7;border: 1px solid #ecbbb7;',
-                    WAIT: 'background: #e0e1e9;border: 1px solid #e0e1e9;',
-                    RUNNING: 'background: #7ea2f0;border: 1px solid #4d83f7;'
-                }
-                const iconClass = gatewayType[node.type]
+                const iconClass = this.gatewayType[node.type]
                 // 并行、条件分支样式
                 const conditionClass = node.title !== '默认' ? 'condition' : 'default-conditon'
                 // 选中样式
-                const isActive = node.selected ? 'is-node-active' : 'default-node'
+                const isActive = this.curSelectId === node.id ? 'is-node-active' : 'default-tpl-node'
                 // 节点样式
                 const nodeClass = node.parent !== null ? 'node' : 'root-node'
                 // 处理条件分支
@@ -145,14 +190,14 @@
                     return <span class={conditionClass}>
                         <span style={'font-size:12px'} data-node-id={node.id} domPropsInnerHTML={node.name} onClick={node => this.onSelectNode(node)}></span>
                     </span>
-                } else if (gatewayType[node.type]) {
+                } else if (this.gatewayType[node.type]) {
                     return <span style={'font-size: 16px'}>
-                        <span class={iconClass} style={stateColor[node.state]}></span>
+                        <span class={iconClass} style={this.stateColor[node.state]}></span>
                         <span class={isActive} data-node-id={node.id} domPropsInnerHTML={node.name} onClick={node => this.onSelectNode(node)}></span>
                     </span>
                 } else {
                     return <span style={'font-size: 10px'}>
-                        <span class={nodeClass} style={nodeStateMap[node.state]}></span>
+                        <span class={nodeClass} style={this.nodeStateMap[node.state]}></span>
                         <span class={isActive} data-node-id={node.id} domPropsInnerHTML={node.name} onClick={node => this.onSelectNode(node)}></span>
                     </span>
                 }
@@ -165,8 +210,10 @@
                     }
                     if (node.id === id) {
                         this.$set(node, 'selected', true)
-                        node.parent.expanded = true
-                        this.setExpand(node.parent)
+                        if (node.parent) {
+                            node.parent.expanded = true
+                            this.setExpand(node.parent)
+                        }
                     } else {
                         this.$set(node, 'selected', false)
                     }
@@ -188,8 +235,28 @@
             onSelectNode (e) {
                 const id = e.target.dataset.nodeId
                 const node = this.allNodeDate[id]
+                const treeNodes = Array.from(document.querySelectorAll('.tree-node'))
+                const curNodeIndex = node.parent.children.findIndex(item => item.id === id)
+                node.parent.children.forEach((item, index) => {
+                    if (item.type === 'ConvergeGateway') {
+                        const converge = treeNodes.filter(dom => dom.innerText === '汇聚网关' || dom.innerHTML === 'ConvergeGateway')
+                        if (index > curNodeIndex) {
+                            if (!node.expanded) {
+                                converge.forEach(cdom => {
+                                    cdom.style.display = 'block'
+                                })
+                            } else {
+                                converge.forEach(cdom => {
+                                    cdom.style.display = 'none'
+                                })
+                            }
+                        }
+                    }
+                })
                 const nodeType = node.type === 'ServiceActivity' ? 'tasknode' : (node.type === 'SubProcess' ? 'subflow' : 'controlNode')
                 node.selected = nodeType !== 'subflow'
+                if (this.curSelectId === node.id) return
+                this.curSelectId = node.id
                 let rootNode = node
                 let nodeHeirarchy = ''
                 if (!rootNode.id) return
@@ -202,7 +269,6 @@
                     rootNode = rootNode.parent
                 }
                 nodeHeirarchy = nodeHeirarchy.split('.').reverse()[0]
-                if (this.curSelectId === node.id) return
                 this.setDefaultActiveId(this.treeData, this.treeData, id)
                 this.$emit('onSelectNode', nodeHeirarchy, node.id, nodeType)
             }
@@ -220,19 +286,103 @@
 @import '@/scss/mixins/scrollbar.scss';
 .node-tree-wrapper {
     display: inline-block;
-    width: 229px;
-    min-width: 229px;
-    padding: 24px 8px 0;
-}
-.node-tree {
+    width: 237px;
+    // min-width: 229px;
+    padding: 8px;
     height: 100%;
     white-space: nowrap;
     overflow-x: auto;
     @include scrollbar;
 }
+.tree-item {
+    position: relative;
+    min-height: 28px;
+    margin: 9px 0;
+    font-size: 14px;
+    color: #63656E;
+    line-height: 28px;
+    .tree-item-info {
+        
+        display: flex;
+        align-items: center;
+       
+        .tree-item-status {
+            display: flex;
+            align-items: center;
+            width: 36px;
+            height: 16px;
+            position: relative;
+            .tree-item-expanded {
+                width: 14px;
+                height: 14px;
+                cursor: pointer;
+            }
+            .default-node {
+                line-height: 28px;
+                display: block;
+                width: 8px;
+                height: 8px;
+                background: #E5F6EA;
+                border: 1px solid #3FC06D;
+                border-radius: 4px;
+                margin: 0 4px;
+                
+            }
+        }
+        
+        .tree-item-name {
+            width: 160px;
+            max-width: 100px;
+            height: 28px;
+            cursor: pointer;
+        }
+        .tree-line {
+            display: inline-block;
+            position: relative;
+            width: 1px;
+            height: 16px;
+            ::before {
+                content: "";
+                position: absolute;
+                border-width: 1px;
+                border-left: 1px dashed #c3cdd7;
+            }
+        }
+    }
+    .tree-item-children {
+        // width: 100px;
+        min-height: 28px;
+        // background-color: #3FC06D;
+    }
+    .gateway {
+        height: 20px;
+        background: #FBF9E2;
+        border: 1px solid #CCC79E;
+        border-radius: 1px;
+        width: 100px;
+        &::after {
+            content: '';
+            width: 1px;
+            height: 10px;
+            position: absolute;
+            right: auto;
+            border-width: 1px;
+            border-left: 1px dashed #c3cdd7;
+            bottom: 50px;
+            top: -14px;
+            left: 7px;
+        }
+        .tree-item-status {
+            width: 16px;
+        }
+    }
+}
+.active-name {
+    color: #3a84ff !important;
+}
 .is-node-active {
     color: #3a84ff !important;
-    font-size: 10px;
+    font-size: 14px;
     padding: 0 4px;
     cursor: pointer;
 }
@@ -293,7 +443,7 @@
         z-index: 88;
     }
 }
-.gateway {
+.tpl-gateway {
     font-size: 10px;
 }
 .root-node {
@@ -312,8 +462,8 @@
     padding: 0 2px;
     cursor: pointer;
 }
-.default-node {
-    font-size: 10px;
+.default-tpl-node {
+    font-size: 14px;
     padding: 0 4px;
     cursor: pointer;
 }
