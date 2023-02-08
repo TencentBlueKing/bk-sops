@@ -1301,8 +1301,8 @@
             // 查看参数、修改参数 （侧滑面板 标题 点击遮罩关闭）
             onTaskParamsClick (type, name) {
                 if (type === 'viewNodeDetails') {
-                    const { activities, location } = this.pipelineData
-                    const nodeId = Object.keys(activities)[0]
+                    const { start_event, flows, location } = this.pipelineData
+                    const nodeId = flows[start_event.outgoing].target
                     const locInfo = location.find(item => item.id === nodeId)
                     const type = locInfo.type === 'subflow' ? 'subflowDetail' : locInfo.type
                     this.onNodeClick(nodeId, type)
