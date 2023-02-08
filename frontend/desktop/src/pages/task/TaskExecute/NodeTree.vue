@@ -109,7 +109,8 @@
                 allNodeDate: {},
                 gatewayType,
                 stateColor,
-                nodeStateMap
+                nodeStateMap,
+                curSubId: ''
             }
         },
         watch: {
@@ -153,10 +154,11 @@
                     this.$emit('onNodeClick', node.id, 'subflow')
                     this.renderSubProcessData(node)
                 } else {
-                    this.$emit('onSelectNode', node.id, node.id, 'tasknode')
+                    this.$emit('onSelectNode', this.curSubId + '.' + node.id, node.id, 'tasknode')
                 }
             },
             renderSubProcessData (node) {
+                this.curSubId = node.id
                 this.treeData = node.children
             },
             nodeAddStatus (data, states) {
