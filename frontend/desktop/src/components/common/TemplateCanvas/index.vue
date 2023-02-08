@@ -967,33 +967,31 @@
                 // 只对符合单条线的情况进行处理
                 if (Object.keys(matchLines).length === 1) {
                     const values = Object.values(matchLines)[0]
-                    // 计算新建节点的坐标和两端节点的左边是否在一条线上
-                    if (!location.mode) {
-                        const canvasData = tools.deepClone(this.canvasData)
-                        const isTaskNode = ['tasknode', 'subflow'].includes(location.type)
-                        const { source, target, segmentPosition } = values
-                        const bothNodes = canvasData.locations.filter(item => {
-                            return [source.id, target.id].includes(item.id)
-                        })
-                        bothNodes.some(item => {
-                            let nodeWidth, nodeHeight
-                            if (['tasknode', 'subflow'].includes(item.type)) {
-                                nodeWidth = 154
-                                nodeHeight = 54
-                            } else {
-                                nodeWidth = 34
-                                nodeHeight = 34
-                            }
-                            const { left, top, height, width } = segmentPosition
-                            if (height === 8 && item.y < top && top < (item.y + nodeHeight)) {
-                                location.y = item.y + nodeHeight / 2 - (isTaskNode ? 54 : 34) / 2
-                                return true
-                            } else if (width === 8 && item.x < left && left < (item.x + nodeWidth)) {
-                                location.x = item.x + nodeWidth / 2 - (isTaskNode ? 154 : 34) / 2
-                                return true
-                            }
-                        })
-                    }
+                    // 计算节点的坐标和两端节点的左边是否在一条线上
+                    const canvasData = tools.deepClone(this.canvasData)
+                    const isTaskNode = ['tasknode', 'subflow'].includes(location.type)
+                    const { source, target, segmentPosition } = values
+                    const bothNodes = canvasData.locations.filter(item => {
+                        return [source.id, target.id].includes(item.id)
+                    })
+                    bothNodes.some(item => {
+                        let nodeWidth, nodeHeight
+                        if (['tasknode', 'subflow'].includes(item.type)) {
+                            nodeWidth = 154
+                            nodeHeight = 54
+                        } else {
+                            nodeWidth = 34
+                            nodeHeight = 34
+                        }
+                        const { left, top, height, width } = segmentPosition
+                        if (height === 8 && item.y < top && top < (item.y + nodeHeight)) {
+                            location.y = item.y + nodeHeight / 2 - (isTaskNode ? 54 : 34) / 2
+                            return true
+                        } else if (width === 8 && item.x < left && left < (item.x + nodeWidth)) {
+                            location.x = item.x + nodeWidth / 2 - (isTaskNode ? 154 : 34) / 2
+                            return true
+                        }
+                    })
                     // 删除当前的，在原有位置插入一个新的
                     this.onNodeRemove(location)
                     this.$nextTick(() => {
@@ -1205,6 +1203,9 @@
                     const lines = this.canvasData.lines.filter(line => [line.source.id, line.target.id].includes(node.id))
                     lines.forEach(line => {
                         this.$refs.jsFlow.removeConnector(line)
+                    })
+                    this.$nextTick(() => {
+                        this.addNodeToSelectedList(node)
                     })
                 }
 
@@ -1778,6 +1779,9 @@
             onCopyNode (location) {
                 this.$refs.jsFlow.createNode(location)
                 this.$emit('onLocationChange', 'copy', location)
+                this.$nextTick(() => {
+                    this.addNodeToSelectedList(location)
+                })
             },
             // 节点后面追加
             onAppendNode ({ location, line, isFillParam }) {

@@ -33,21 +33,21 @@
             <template v-if="nodeOperate && ['tasknode', 'subflow'].includes(node.type)">
                 <li
                     v-bk-tooltips="{
-                        content: $t('复制并插入'),
-                        delay: 500
-                    }"
-                    data-test-id="templateCanvas_panel_nodeCopyInsert"
-                    class="btn-item common-icon-copy-insert"
-                    @click.stop="onCopyInsetBtnClick">
-                </li>
-                <li
-                    v-bk-tooltips="{
                         content: $t('复制节点'),
                         delay: 500
                     }"
                     data-test-id="templateCanvas_panel_nodeCopy"
                     class="btn-item common-icon-bkflow-copy"
-                    @click.stop="onCopyBtnClick">
+                    @click.stop="onAppendNode(node.type, true)">
+                </li>
+                <li
+                    v-bk-tooltips="{
+                        content: $t('复制并插入'),
+                        delay: 500
+                    }"
+                    data-test-id="templateCanvas_panel_nodeCopyInsert"
+                    class="btn-item common-icon-bkflow-copy-insert"
+                    @click.stop="onAppendNode(node.type, true, true)">
                 </li>
                 <li
                     v-if="isHasLines"
@@ -56,8 +56,8 @@
                         delay: 500
                     }"
                     data-test-id="templateCanvas_panel_nodeDisconnect"
-                    class="btn-item common-icon-disconnect"
-                    @click.stop="onDisconnectBtnClick">
+                    class="btn-item common-icon-bkflow-disconnect"
+                    @click.stop="$emit('onNodeRemove', node, false)">
                 </li>
             </template>
             <li
@@ -274,21 +274,6 @@
                     }
                 })
                 return needNodeLocation
-            },
-            // 克隆当前节点并插入
-            onCopyInsetBtnClick () {
-                this.onAppendNode(this.node.type, true, true)
-                this.$bkMessage({ message: i18n.t('复制成功'), theme: 'success' })
-            },
-            // 复制节点
-            onCopyBtnClick () {
-                this.onAppendNode(this.node.type, true)
-                this.$bkMessage({ message: i18n.t('复制成功'), theme: 'success' })
-            },
-            // 解除连线
-            onDisconnectBtnClick () {
-                this.$emit('onNodeRemove', this.node, false)
-                this.$bkMessage({ message: i18n.t('解除节点连线成功'), theme: 'success' })
             }
         }
     }
@@ -331,18 +316,20 @@
         }
     }
     .operate-btns {
-        padding: 5px 12px;
+        padding: 6px 12px;
         text-align: left;
         background: #f5f7fa;
         .btn-item {
             display: inline-block;
-            margin-left: 4px;
-            padding: 2px;
+            margin-left: 8px;
             color: #52699d;
-            font-size: 14px;
+            font-size: 16px;
             cursor: pointer;
             &:hover {
                 color: #3a84ff;
+            }
+            &:first-child {
+                margin-left: 0;
             }
         }
     }
