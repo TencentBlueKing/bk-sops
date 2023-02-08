@@ -33,12 +33,12 @@
             <template v-if="nodeOperate && ['tasknode', 'subflow'].includes(node.type)">
                 <li
                     v-bk-tooltips="{
-                        content: $t('节点配置'),
+                        content: $t('复制并插入'),
                         delay: 500
                     }"
-                    data-test-id="templateCanvas_panel_nodeSetting"
-                    class="btn-item common-icon-bkflow-setting"
-                    @click.stop="onConfigBtnClick">
+                    data-test-id="templateCanvas_panel_nodeCopyInsert"
+                    class="btn-item common-icon-copy-insert"
+                    @click.stop="onCopyInsetBtnClick">
                 </li>
                 <li
                     v-bk-tooltips="{
@@ -48,6 +48,16 @@
                     data-test-id="templateCanvas_panel_nodeCopy"
                     class="btn-item common-icon-bkflow-copy"
                     @click.stop="onCopyBtnClick">
+                </li>
+                <li
+                    v-if="isHasLines"
+                    v-bk-tooltips="{
+                        content: $t('解除连线'),
+                        delay: 500
+                    }"
+                    data-test-id="templateCanvas_panel_nodeDisconnect"
+                    class="btn-item common-icon-disconnect"
+                    @click.stop="onDisconnectBtnClick">
                 </li>
             </template>
             <li
@@ -132,6 +142,12 @@
                 ]
             }
         },
+        computed: {
+            isHasLines () {
+                const lines = this.canvasData.lines.filter(line => [line.source.id, line.target.id].includes(this.node.id))
+                return !!lines.length
+            }
+        },
         methods: {
             onConfigBtnClick () {
                 this.$emit('onConfigBtnClick', this.node.id)
@@ -140,7 +156,7 @@
              * 添加节点
              * @param {String} type -添加节点类型
              */
-            onAppendNode (type, isFillParam = false) {
+            onAppendNode (type, isFillParam = false, insert = false) {
                 const { x, y, id, type: currType } = this.node
                 const endX = x + 200
                 const newNodeId = 'node' + uuid()
@@ -184,6 +200,11 @@
                     }
                 }
 
+                // 复制节点并且不插入
+                if (isFillParam && !insert) {
+                    this.$emit('onCopyNode', location)
+                    return
+                }
                 /**
                  * 添加规则
                  * 当前节点类型为并行/分支网管：都是 onAppendNode
@@ -254,10 +275,20 @@
                 })
                 return needNodeLocation
             },
-            // 克隆当前节点
+            // 克隆当前节点并插入
+            onCopyInsetBtnClick () {
+                this.onAppendNode(this.node.type, true, true)
+                this.$bkMessage({ message: i18n.t('复制成功'), theme: 'success' })
+            },
+            // 复制节点
             onCopyBtnClick () {
                 this.onAppendNode(this.node.type, true)
                 this.$bkMessage({ message: i18n.t('复制成功'), theme: 'success' })
+            },
+            // 解除连线
+            onDisconnectBtnClick () {
+                this.$emit('onNodeRemove', this.node, false)
+                this.$bkMessage({ message: i18n.t('解除节点连线成功'), theme: 'success' })
             }
         }
     }

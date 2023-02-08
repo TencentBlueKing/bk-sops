@@ -105,6 +105,7 @@
             :node-operate="shortcutPanelNodeOperate"
             :delete-line="shortcutPanelDeleteLine"
             :canvas-data="canvasData"
+            @onCopyNode="onCopyNode"
             @onAppendNode="onAppendNode"
             @onInsertNode="onInsertNode"
             @onNodeRemove="onNodeRemove"
@@ -1183,7 +1184,7 @@
                     this.branchConditionEditHandler(e, overlay.id)
                 }
             },
-            onNodeRemove (node) {
+            onNodeRemove (node, remove = true) {
                 // 拷贝数据更新前的数据
                 const canvasData = tools.deepClone(this.canvasData)
                 const { activities, lines } = canvasData
@@ -1196,9 +1197,16 @@
                 }
                 this.showShortcutPanel = false
                 
-                this.$refs.jsFlow.removeNode(node)
-                this.$emit('templateDataChanged')
-                this.$emit('onLocationChange', 'delete', node)
+                if (remove) { // 删除节点
+                    this.$refs.jsFlow.removeNode(node)
+                    this.$emit('templateDataChanged')
+                    this.$emit('onLocationChange', 'delete', node)
+                } else { // 解除节点时不删除节点，需要删除节点两端旧的连线
+                    const lines = this.canvasData.lines.filter(line => [line.source.id, line.target.id].includes(node.id))
+                    lines.forEach(line => {
+                        this.$refs.jsFlow.removeConnector(line)
+                    })
+                }
 
                 if (node.type === 'startpoint') {
                     this.isDisableStartPoint = false
@@ -1765,6 +1773,11 @@
                 } else {
                     node.classList.add('actived')
                 }
+            },
+            // 复制节点
+            onCopyNode (location) {
+                this.$refs.jsFlow.createNode(location)
+                this.$emit('onLocationChange', 'copy', location)
             },
             // 节点后面追加
             onAppendNode ({ location, line, isFillParam }) {

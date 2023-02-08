@@ -1569,7 +1569,10 @@ const en = {
     '动态拓扑': 'Dynamic topology',
     '计划任务删除成功': 'Clocked task deleted successfully',
     '周期任务删除成功': 'Periodic task deleted successfully',
-    '强制终止': 'Force revoke'
+    '强制终止': 'Force revoke',
+    '复制并插入': 'Copy and insert',
+    '解除连线': 'Disconnect',
+    '解除节点连线成功': 'Disconnect node successfully'
 }
 
 export default en
