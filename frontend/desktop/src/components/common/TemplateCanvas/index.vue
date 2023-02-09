@@ -340,7 +340,8 @@
                 isPerspectivePanelShow: false,
                 isExecRecordPanelShow: false,
                 connectionHoverList: [],
-                execRecordLoading: false
+                execRecordLoading: false,
+                curMinDis: null // 拖拽的节点与发起连线节点间最短的距离
             }
         },
         watch: {
@@ -940,6 +941,7 @@
                 this.$emit('onLineChange', 'delete', line)
             },
             onNodeMoveStop (loc) {
+                this.curMinDis = null
                 this.$emit('templateDataChanged')
                 if (this.selectedNodes.length) {
                     const item = this.selectedNodes.find(m => m.id === loc.id)
@@ -1397,6 +1399,10 @@
                             }
                         })
                     })
+                    // 如果节点拖拽前的最短距离与拖拽后的最短距离达到最大阈值30后才允许生成新的连线
+                    this.curMinDis = this.curMinDis || minDis
+                    if (this.curMinDis - minDis < 30) return
+
                     if (!cep || !oep) return
                     if (cep !== cEndpoint || oep !== oEndpoint) {
                         // 保留分支网关连线上的分支条件
