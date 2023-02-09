@@ -1646,7 +1646,7 @@
                     })
                     this.pipelineData = nodeActivities.pipeline
                 }
-                this.isNodeInfoPanelShow = false
+                // this.isNodeInfoPanelShow = false
                 this.nodeDetailConfig = {}
                 this.cancelTaskStatusTimer()
                 this.updateTaskStatus(id)

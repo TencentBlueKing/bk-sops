@@ -306,7 +306,7 @@
                 return skip ? i18n.t('失败后跳过') : state && TASK_STATE_DICT[state]
             },
             location () {
-                const { node_id, subprocess_stack } = this.nodeDetailConfig
+                const { node_id, subprocess_stack = [] } = this.nodeDetailConfig
                 return this.pipelineData.location.find(item => {
                     if (item.id === node_id || subprocess_stack.includes(item.id)) {
                         return true

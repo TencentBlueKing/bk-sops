@@ -17,7 +17,7 @@
                 <div class="tree-item-status">
                     <span class="tree-item-expanded"></span>
                     <span v-if="tree.type === 'ConvergeGateway'" class="commonicon-icon common-icon-node-convergegateway"></span>
-                    <span v-else class="default-node" :style="nodeStateMap[tree.state]"></span>
+                    <span v-else :class="['default-node', nodeStateMap[tree.state]]"></span>
                 </div>
                 <div :class="['tree-item-name', curSelectId === tree.id ? 'active-name' : '']" @click="onClickNode(tree)">{{ tree.name }}</div>
             </div>
@@ -96,10 +96,10 @@
                 RUNNING: 'color:#4d83f7;'
             }
             const nodeStateMap = {
-                FINISHED: 'background: #E5F6EA;border: 1px solid #3FC06D;',
-                FAILED: 'background: #ecbbb7;border: 1px solid #ecbbb7;',
-                WAIT: 'background: #e0e1e9;border: 1px solid #e0e1e9;',
-                RUNNING: 'background: #7ea2f0;border: 1px solid #4d83f7;'
+                FINISHED: 'finished',
+                FAILED: 'failed',
+                WAIT: 'wait',
+                RUNNING: 'running'
             }
             return {
                 curSelectId: '',
@@ -130,10 +130,15 @@
                 immediate: true
             },
             nodeNav: {
-                handler (val) {
-                    const cur = this.treeData.find(item => item.id === val[val.length - 1].id)
-                    if (cur) {
-                        this.renderSubProcessData(cur)
+                handler (val, old) {
+                    if (val.length !== old.length) {
+                        const cur = this.treeData.find(item => item.id === val[val.length - 1].id)
+                        if (val.length === 1) {
+                            this.curSubId = ''
+                            this.treeData = tools.deepClone(this.data[0].children)
+                        } else {
+                            this.renderSubProcessData(cur)
+                        }
                     }
                 },
                 immediate: true
@@ -154,12 +159,15 @@
                     this.$emit('onNodeClick', node.id, 'subflow')
                     this.renderSubProcessData(node)
                 } else {
-                    this.$emit('onSelectNode', this.curSubId + '.' + node.id, node.id, 'tasknode')
+                    const str = this.curSubId ? this.curSubId + '.' + node.id : node.id
+                    this.$emit('onSelectNode', str, node.id, 'tasknode')
                 }
             },
             renderSubProcessData (node) {
-                this.curSubId = node.id
-                this.treeData = node.children
+                if (node) {
+                    this.curSubId = node.id
+                    this.treeData = node.children
+                }
             },
             nodeAddStatus (data, states) {
                 data.forEach(item => {
@@ -186,7 +194,7 @@
                 // 选中样式
                 const isActive = this.curSelectId === node.id ? 'is-node-active' : 'default-tpl-node'
                 // 节点样式
-                const nodeClass = node.parent !== null ? 'node' : 'root-node'
+                const nodeClass = node.parent !== null ? `node ${this.nodeStateMap[node.state]} ` : `root-node ${this.nodeStateMap[node.state]}`
                 // 处理条件分支
                 if (node.isGateway) {
                     return <span class={conditionClass}>
@@ -199,7 +207,7 @@
                     </span>
                 } else {
                     return <span style={'font-size: 10px'}>
-                        <span class={nodeClass} style={this.nodeStateMap[node.state]}></span>
+                        <span class={nodeClass}></span>
                         <span class={isActive} data-node-id={node.id} domPropsInnerHTML={node.name} onClick={node => this.onSelectNode(node)}></span>
                     </span>
                 }
@@ -238,23 +246,25 @@
                 const id = e.target.dataset.nodeId
                 const node = this.allNodeDate[id]
                 const treeNodes = Array.from(document.querySelectorAll('.tree-node'))
-                const curNodeIndex = node.parent.children.findIndex(item => item.id === id)
-                node.parent.children.forEach((item, index) => {
-                    if (item.type === 'ConvergeGateway') {
-                        const converge = treeNodes.filter(dom => dom.innerText === '汇聚网关' || dom.innerHTML === 'ConvergeGateway')
-                        if (index > curNodeIndex) {
-                            if (!node.expanded) {
-                                converge.forEach(cdom => {
-                                    cdom.style.display = 'block'
-                                })
-                            } else {
-                                converge.forEach(cdom => {
-                                    cdom.style.display = 'none'
-                                })
+                if (node.parent) {
+                    const curNodeIndex = node.parent.children.findIndex(item => item.id === id)
+                    node.parent.children.forEach((item, index) => {
+                        if (item.type === 'ConvergeGateway') {
+                            const converge = treeNodes.filter(dom => dom.innerText === '汇聚网关' || dom.innerHTML === 'ConvergeGateway')
+                            if (index > curNodeIndex) {
+                                if (!node.expanded) {
+                                    converge.forEach(cdom => {
+                                        cdom.style.display = 'block'
+                                    })
+                                } else {
+                                    converge.forEach(cdom => {
+                                        cdom.style.display = 'none'
+                                    })
+                                }
                             }
                         }
-                    }
-                })
+                    })
+                }
                 const nodeType = node.type === 'ServiceActivity' ? 'tasknode' : (node.type === 'SubProcess' ? 'subflow' : 'controlNode')
                 node.selected = nodeType !== 'subflow'
                 if (this.curSelectId === node.id) return
@@ -270,7 +280,8 @@
                     }
                     rootNode = rootNode.parent
                 }
-                nodeHeirarchy = nodeHeirarchy.split('.').reverse()[0]
+                // 最外层网关为null时传递id
+                nodeHeirarchy = node.parent ? nodeHeirarchy.split('.').reverse()[0] : node.id
                 this.setDefaultActiveId(this.treeData, this.treeData, id)
                 this.$emit('onSelectNode', nodeHeirarchy, node.id, nodeType)
             }
@@ -286,6 +297,22 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
+.finished {
+    background-color: #e5f6ea !important;
+    border: 1px solid #3fc06d !important;
+}
+.failed {
+    background-color: #ecbbb7 !important;
+    border: 1px solid #ecbbb7 !important;
+}
+.wait {
+    background-color: #e0e1e9 !important;
+    border: 1px solid #e0e1e9 !important;
+}
+.running {
+    background-color: #7ea2f0 !important;
+    border: 1px solid #4d83f7 !important;
+}
 .node-tree-wrapper {
     display: inline-block;
     width: 237px;
