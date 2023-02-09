@@ -943,7 +943,7 @@
             onNodeMoveStop (loc) {
                 this.curMinDis = null
                 this.$emit('templateDataChanged')
-                if (this.selectedNodes.length) {
+                if (this.selectedNodes.length > 1) {
                     const item = this.selectedNodes.find(m => m.id === loc.id)
                     if (!item) {
                         return false
