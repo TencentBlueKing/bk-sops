@@ -1412,11 +1412,10 @@
                         if (gateway.type === 'ConvergeGateway') {
                             // 判断ordered中 汇聚网关的incoming是否存在
                             const list = []
+                            const converList = Object.assign({}, activities)
                             this.nodeIds.forEach(item => {
-                                if (activities[item]) {
+                                if (converList[item]) {
                                     list.push(activities[item])
-                                } else if (gateways[item]) {
-                                    list.push(gateways[item])
                                 }
                             })
                             if (gateway.incoming.every(item => list.map(ite => ite.outgoing).includes(item))) {

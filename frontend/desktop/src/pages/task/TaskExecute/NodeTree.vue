@@ -131,9 +131,10 @@
             },
             nodeNav: {
                 handler (val, old) {
-                    if (val.length !== old.length) {
+                    // 当为面包屑数量不为根节点时重新渲染结构
+                    if (val && old) {
                         const cur = this.treeData.find(item => item.id === val[val.length - 1].id)
-                        if (val.length === 1) {
+                        if (val.length === 1 && val.length !== old.length) {
                             this.curSubId = ''
                             this.treeData = tools.deepClone(this.data[0].children)
                         } else {
