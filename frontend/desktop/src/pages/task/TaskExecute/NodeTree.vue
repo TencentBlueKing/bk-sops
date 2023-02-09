@@ -146,7 +146,6 @@
             }
         },
         mounted () {
-            console.log(this.defaultActiveId)
             if (this.defaultActiveId) {
                 this.setDefaultActiveId(this.treeData, this.treeData, this.defaultActiveId)
             }
