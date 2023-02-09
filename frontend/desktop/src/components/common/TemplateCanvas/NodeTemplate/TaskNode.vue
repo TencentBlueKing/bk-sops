@@ -63,11 +63,11 @@
                     <i class="common-icon-play"></i>
                     {{ $t('继续') }}
                 </span>
-                <span v-if="node.code === 'bk_approve'" @click.stop="$emit('onApprovalClick', node.id)">
+                <span v-else-if="node.code === 'bk_approve'" @click.stop="$emit('onApprovalClick', node.id)">
                     <i class="common-icon-circulation"></i>
                     {{ $t('审批') }}
                 </span>
-                <span v-if="node.code === 'sleep_timer'" @click.stop="$emit('onForceFail', node.id)">
+                <span v-else @click.stop="$emit('onForceFail', node.id)">
                     <i class="common-icon-mandatory-failure"></i>
                     {{ $t('强制终止') }}
                 </span>
