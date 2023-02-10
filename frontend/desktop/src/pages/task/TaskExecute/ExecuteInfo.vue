@@ -15,9 +15,11 @@
             <NodeTree
                 class="nodeTree"
                 :data="nodeData"
+                :node-nav="nodeNav"
                 :node-display-status="nodeDisplayStatus"
                 :selected-flow-path="selectedFlowPath"
                 :default-active-id="defaultActiveId"
+                @onNodeClick="onNodeClick"
                 @onSelectNode="onSelectNode">
             </NodeTree>
             <div
@@ -196,6 +198,12 @@
                     return []
                 }
             },
+            nodeNav: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
             defaultActiveId: {
                 type: String,
                 default: ''
@@ -283,7 +291,7 @@
                 return skip ? i18n.t('失败后跳过') : state && TASK_STATE_DICT[state]
             },
             location () {
-                const { node_id, subprocess_stack } = this.nodeDetailConfig
+                const { node_id, subprocess_stack = [] } = this.nodeDetailConfig
                 return this.pipelineData.location.find(item => {
                     if (item.id === node_id || subprocess_stack.includes(item.id)) {
                         return true
@@ -403,6 +411,9 @@
                     this.randomKey = new Date().getTime()
                     this.loading = false
                 }
+            },
+            onNodeClick (id, type, event) {
+                this.$emit('onNodeClick', id, type)
             },
             // 补充记录缺少的字段
             async setFillRecordField (record) {

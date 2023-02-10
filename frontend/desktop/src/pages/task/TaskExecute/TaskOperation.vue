@@ -71,7 +71,24 @@
             </div>
         </div>
         <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="960" :quick-close="true" @hidden="onHiddenSideslider" :before-close="onBeforeClose">
-            <div slot="header">{{sideSliderTitle}}</div>
+            <div slot="header">
+                <div class="header">
+                    <span>{{sideSliderTitle}}</span>
+                    <div class="bread-crumbs-wrapper">
+                        <span
+                            :class="['path-item', { 'name-ellipsis': nodeNav.length > 1 }]"
+                            v-for="(path, index) in nodeNav"
+                            :key="path.id"
+                            :title="showNodeList.includes(index) ? path.name : ''">
+                            <span v-if="!!index && showNodeList.includes(index) || index === 1">/</span>
+                            <span v-if="showNodeList.includes(index)" class="node-name" :title="path.name" @click="onSelectSubflow(path.id)">
+                                {{path.name}}
+                            </span>
+                            <span class="node-ellipsis" v-else-if="index === 1">...</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
                 <ModifyParams
                     ref="modifyParams"
@@ -89,6 +106,7 @@
                     v-if="nodeInfoType === 'executeInfo' || nodeInfoType === 'viewNodeDetails'"
                     :state="state"
                     :node-data="nodeData"
+                    :node-nav="nodeNav"
                     :engine-ver="engineVer"
                     :node-display-status="nodeDisplayStatus"
                     :selected-flow-path="selectedFlowPath"
@@ -102,6 +120,7 @@
                     @onModifyTimeClick="onModifyTimeClick"
                     @onForceFail="onForceFailClick"
                     @onApprovalClick="onApprovalClick"
+                    @onNodeClick="onNodeClick"
                     @onClickTreeNode="onClickTreeNode">
                 </ExecuteInfo>
                 <RetryNode
@@ -415,7 +434,8 @@
                 nodeExecRecordInfo: {},
                 isInjectVarDialogShow: false,
                 nodeIds: [],
-                nodeDisplayStatus: {}
+                nodeDisplayStatus: {},
+                showNodeList: [0, 1, 2]
             }
         },
         computed: {
@@ -1290,7 +1310,8 @@
                 })
                 this.retrieveLines(data, fstLine, orderedData)
                 orderedData.push(endEvent)
-                return orderedData
+                // 过滤root最上层汇聚网关
+                return orderedData.filter(item => item.type !== 'ConvergeGateway')
             },
             /**
              * 根据节点连线遍历任务节点，返回按广度优先排序的节点数据
@@ -1391,11 +1412,10 @@
                         if (gateway.type === 'ConvergeGateway') {
                             // 判断ordered中 汇聚网关的incoming是否存在
                             const list = []
+                            const converList = Object.assign({}, activities)
                             this.nodeIds.forEach(item => {
-                                if (activities[item]) {
+                                if (converList[item]) {
                                     list.push(activities[item])
-                                } else if (gateways[item]) {
-                                    list.push(gateways[item])
                                 }
                             })
                             if (gateway.incoming.every(item => list.map(ite => ite.outgoing).includes(item))) {
@@ -1625,7 +1645,7 @@
                     })
                     this.pipelineData = nodeActivities.pipeline
                 }
-                this.isNodeInfoPanelShow = false
+                // this.isNodeInfoPanelShow = false
                 this.nodeDetailConfig = {}
                 this.cancelTaskStatusTimer()
                 this.updateTaskStatus(id)
@@ -1979,6 +1999,49 @@
 }
 /deep/.bk-sideslider-content {
     height: calc(100% - 60px);
+}
+.header {
+    display: flex;
+    span {
+        margin-right: 20px;
+    }
+    .bread-crumbs-wrapper {
+        margin-left: 10px;
+        font-size: 0;
+        .path-item {
+            display: inline-block;
+            font-size: 14px;
+            overflow: hidden;
+            &.name-ellipsis {
+                max-width: 190px;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+            .node-name {
+                margin: 0 4px;
+                font-size: 14px;
+                color: #3a84ff;
+                cursor: pointer;
+            }
+            .node-ellipsis {
+                margin-right: 4px;
+            }
+            &:first-child {
+                .node-name {
+                    margin-left: 0px;
+                }
+            }
+            &:last-child {
+                .node-name {
+                    &:last-child {
+                        color: #313238;
+                        cursor: text;
+                    }
+                }
+            }
+        }
+    }
 }
 .node-info-panel {
     height: 100%;
