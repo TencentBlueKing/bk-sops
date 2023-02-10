@@ -170,18 +170,35 @@ def classify_constants(constants: dict, is_subprocess: bool):
         # 输出参数
         if info["source_type"] == "component_outputs":
             if info["source_info"].values():
-                source_key = list(info["source_info"].values())[0][0]
-                source_step = list(info["source_info"].keys())[0]
-                # 生成 pipeline 层需要的 pipeline input
-                data_inputs[key] = {
-                    "type": "splice",
-                    "source_act": source_step,
-                    "source_key": source_key,
-                    "value": info["value"],
-                    "is_param": info["is_param"],
-                }
-                # 生成 pipeline 层需要的 acts_output
-                acts_outputs.setdefault(source_step, {}).update({source_key: key})
+                if len(info["source_info"]) == 1:
+                    source_key = list(info["source_info"].values())[0][0]
+                    source_step = list(info["source_info"].keys())[0]
+                    # 生成 pipeline 层需要的 pipeline input
+                    data_inputs[key] = {
+                        "type": "splice",
+                        "source_act": source_step,
+                        "source_key": source_key,
+                        "value": info["value"],
+                        "is_param": info["is_param"],
+                    }
+                    # 生成 pipeline 层需要的 acts_output
+                    acts_outputs.setdefault(source_step, {}).update({source_key: key})
+                else:
+                    source_info = [
+                        {"source_act": key, "source_key": value[0]} for key, value in info["source_info"].items()
+                    ]
+                    # 生成 pipeline 层需要的 pipeline input
+                    data_inputs[key] = {
+                        "type": "splice",
+                        "source_act": source_info,
+                        "value": info["value"],
+                        "is_param": info["is_param"],
+                    }
+                    # 生成 pipeline 层需要的 acts_output
+                    [
+                        acts_outputs.setdefault(info["source_act"], {}).update({info["source_key"]: key})
+                        for info in source_info
+                    ]
         # 自定义的Lazy类型变量
         elif info["custom_type"] and var_cls and issubclass(var_cls, var.LazyVariable):
             if (
