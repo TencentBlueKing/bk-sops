@@ -171,7 +171,7 @@
             data-test-id="taskExcute_dialog_skipNodeDialog"
             @confirm="nodeTaskSkip(skipNodeId)"
             @cancel="onSkipCancel">
-            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否跳过该任务节点？') }}</div>
+            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否跳过该节点继续往后执行？') }}</div>
         </bk-dialog>
         <bk-dialog
             width="400"
@@ -185,7 +185,7 @@
             data-test-id="taskExcute_dialog_forceFailDialog"
             @confirm="nodeForceFail(forceFailId)"
             @cancel="onForceFailCancel">
-            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否将该任务节点强制执行终止？') }}</div>
+            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否强制终止该节点？') }}</div>
         </bk-dialog>
         <bk-dialog
             width="400"
@@ -199,7 +199,7 @@
             data-test-id="taskExcute_dialog_resumeDialog"
             @confirm="nodeResume(nodeResumeId)"
             @cancel="onTaskNodeResumeCancel">
-            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否完成暂停节点继续向后执行？') }}</div>
+            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否完成该节点继续向后执行？') }}</div>
         </bk-dialog>
         <condition-edit
             v-if="isShowConditionEdit"
