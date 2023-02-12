@@ -90,16 +90,18 @@
             }
             const stateColor = {
                 FINISHED: 'color:#61c861;',
-                FAILED: 'color:#d84038;',
+                FAILED: 'color:#da443c;',
                 WAIT: 'color:#dedfe6;',
                 BLOCKED: 'color:#4b81f7;',
-                RUNNING: 'color:#4d83f7;'
+                RUNNING: 'color:#4d83f7;',
+                SKIP: 'color: #edbbb8'
             }
             const nodeStateMap = {
                 FINISHED: 'finished',
                 FAILED: 'failed',
                 WAIT: 'wait',
-                RUNNING: 'running'
+                RUNNING: 'running',
+                SKIP: 'skip'
             }
             return {
                 curSelectId: '',
@@ -173,7 +175,7 @@
             nodeAddStatus (data, states) {
                 data.forEach(item => {
                     if (item.id && states[item.id]) {
-                        item.state = states[item.id].state
+                        item.state = states[item.id].skip ? 'SKIP' : states[item.id].state
                     } else {
                         item.state = 'WAIT'
                     }
@@ -313,6 +315,10 @@
 .running {
     background-color: #7ea2f0 !important;
     border: 1px solid #4d83f7 !important;
+}
+.skip {
+    background-color: #f8c4c1 !important;
+    border: 1px solid #f8c4c1 !important;
 }
 .node-tree-wrapper {
     display: inline-block;
