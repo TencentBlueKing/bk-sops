@@ -1362,7 +1362,6 @@
                                     isLoop: loopList.includes(item)
                                 }
                             })
-                            // debugger
                             // 添加条件分支默认节点
                             if (gateway.default_condition) {
                                 const defaultCondition = [
@@ -1419,11 +1418,10 @@
                         if (gateway.type === 'ConvergeGateway') {
                             // 判断ordered中 汇聚网关的incoming是否存在
                             const list = []
+                            const converList = Object.assign({}, activities, gateways)
                             this.nodeIds.forEach(item => {
-                                if (activities[item]) {
-                                    list.push(activities[item])
-                                } else if (gateways[item]) {
-                                    list.push(gateways[item])
+                                if (converList[item]) {
+                                    list.push(converList[item])
                                 }
                             })
                             if (gateway.incoming.every(item => list.map(ite => ite.outgoing).includes(item))) {
