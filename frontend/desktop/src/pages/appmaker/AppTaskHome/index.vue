@@ -93,7 +93,7 @@
                                     v-if="props.row.template_deleted || props.row.template_source === 'onetime'"
                                     class="task-operation-btn disabled"
                                     data-test-id="taskList_table_reexecuteBtn">
-                                    {{$t('重新执⾏')}}
+                                    {{$t('重新执行')}}
                                 </a>
                                 <a
                                     v-else-if="!hasCreateTaskPerm(props.row)"
@@ -101,15 +101,15 @@
                                     class="text-permission-disable task-operation-btn"
                                     data-test-id="taskList_table_reexecuteBtn"
                                     @click="onTaskPermissonCheck(['flow_create_task'], props.row)">
-                                    {{$t('重新执⾏')}}
+                                    {{$t('重新执行')}}
                                 </a>
                                 <a
                                     v-else
-                                    v-bk-tooltips.top="$t('复⽤参数值并使⽤流程最新数据重新执⾏')"
+                                    v-bk-tooltips.top="$t('复⽤参数值并使⽤流程最新数据重新执行')"
                                     class="task-operation-btn"
                                     data-test-id="taskList_table_reexecuteBtn"
                                     @click="getCreateTaskUrl(props.row)">
-                                    {{$t('重新执⾏')}}
+                                    {{$t('重新执行')}}
                                 </a>
                             </template>
                         </bk-table-column>
