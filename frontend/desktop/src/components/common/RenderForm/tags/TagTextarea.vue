@@ -53,7 +53,7 @@
         computed: {
             textareaValue: {
                 get () {
-                    if (!this.formMode && !this.value && ![false, 0].includes(this.value)) {
+                    if (!this.formMode && ['', undefined].includes(this.value)) {
                         return '--'
                     }
                     return this.value
