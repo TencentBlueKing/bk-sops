@@ -1318,17 +1318,16 @@
              * @param {Object} data 画布数据
              * @param {Array} lineId 连线ID
              * @param {Array} ordered 排序后的节点数据
-             * @param {Boolean} isGateway 是否网关结构内的节点
+             * @param {Boolean} isLoop 条件网关节点是否有循环
              *
              */
-            retrieveLines (data, lineId, ordered) {
+            retrieveLines (data, lineId, ordered, isLoop = false) {
                 const { end_event, activities, gateways, flows } = data
                 const currentNode = flows[lineId].target
                 const endEvent = end_event.id === currentNode ? tools.deepClone(end_event) : undefined
                 const activity = tools.deepClone(activities[currentNode])
                 const gateway = tools.deepClone(gateways[currentNode])
                 const node = endEvent || activity || gateway
-
                 if (node && ordered.findIndex(item => item.id === node.id) === -1) {
                     let outgoing
                     if (Array.isArray(node.outgoing)) {
@@ -1344,8 +1343,14 @@
                         gateway.name = name
                         gateway.expanded = false
                         gateway.children = []
-                        
                         if (isAt && (gateway.conditions || gateway.default_condition)) {
+                            const loopList = [] // 需要打回的node的incoming
+                            outgoing.forEach(item => {
+                                const curNode = activities[flows[item].target] || gateways[flows[item].target]
+                                if (ordered.find(ite => ite.id === curNode.id || this.nodeIds.find(ite => ite === curNode.id))) {
+                                    loopList.push(...curNode.incoming)
+                                }
+                            })
                             const conditions = Object.keys(gateway.conditions).map(item => {
                                 return {
                                     name: gateway.conditions[item].name,
@@ -1353,7 +1358,8 @@
                                     isGateway: true,
                                     expanded: false,
                                     outgoing: item,
-                                    children: []
+                                    children: [],
+                                    isLoop: loopList.includes(item)
                                 }
                             })
                             // 添加条件分支默认节点
@@ -1371,7 +1377,7 @@
                                 conditions.unshift(...defaultCondition)
                             }
                             conditions.forEach(item => {
-                                this.retrieveLines(data, item.outgoing, item.children)
+                                this.retrieveLines(data, item.outgoing, item.children, item.isLoop)
                                 item.children.forEach(i => {
                                     if (!this.nodeIds.includes(i.id)) {
                                         this.nodeIds.push(i.id)
@@ -1412,10 +1418,10 @@
                         if (gateway.type === 'ConvergeGateway') {
                             // 判断ordered中 汇聚网关的incoming是否存在
                             const list = []
-                            const converList = Object.assign({}, activities)
+                            const converList = Object.assign({}, activities, gateways)
                             this.nodeIds.forEach(item => {
                                 if (converList[item]) {
-                                    list.push(activities[item])
+                                    list.push(converList[item])
                                 }
                             })
                             if (gateway.incoming.every(item => list.map(ite => ite.outgoing).includes(item))) {
@@ -1429,6 +1435,7 @@
                             }
                         }
                     } else if (activity) { // 任务节点
+                        if (isLoop) return
                         if (isAt) {
                             if (activity.pipeline) {
                                 activity.children = this.getOrderedTree(activity.pipeline)
