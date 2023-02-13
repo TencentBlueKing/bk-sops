@@ -86,7 +86,7 @@
                 'EmptyEndEvent': 'commonicon-icon common-icon-node-endpoint-en',
                 'ParallelGateway': 'commonicon-icon common-icon-node-parallelgateway-shortcut',
                 'ExclusiveGateway': 'commonicon-icon common-icon-node-branchgateway',
-                'ConvergeGateway': 'commonicon-icon common-icon-node-convergegateway'
+                'ConvergeGateway': 'commonicon-icon common-icon-node-convergegateway conver'
             }
             const stateColor = {
                 FINISHED: 'color:#61c861;',
@@ -318,7 +318,10 @@
 }
 .skip {
     background-color: #f8c4c1 !important;
-    border: 1px solid #f8c4c1 !important;
+    border: 1px solid #da635f !important;
+}
+.conver {
+    margin-left: -20px;
 }
 .node-tree-wrapper {
     display: inline-block;
