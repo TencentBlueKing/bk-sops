@@ -15,7 +15,7 @@
         :mask-close="false"
         :header-position="'left'"
         :ext-cls="'common-dialog'"
-        :title="$t('任务终止')"
+        :title="$t('终止任务')"
         :value="isRevokeDialogShow"
         data-test-id="taskExcute_form_revokeDialog"
         @confirm="onConfirm"
