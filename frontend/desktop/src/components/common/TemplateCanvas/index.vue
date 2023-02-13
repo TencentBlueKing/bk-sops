@@ -833,27 +833,17 @@
                         arrow: targetType
                     }
                 }
-                if (this.activeCon) {
-                    const sEdp = tools.deepClone(this.activeCon.endpoints[0])
-                    const tEdp = tools.deepClone(this.activeCon.endpoints[1])
-                    this.replaceEndpoint(sEdp, this.activeCon.sourceId)
-                    this.replaceEndpoint(tEdp, this.activeCon.targetId)
-                    this.$nextTick(() => {
-                        this.activeCon = null
-                        this.createLine(data.source, data.target)
-                    })
+                
+                const validateMessage = validatePipeline.isLineValid(data, this.canvasData)
+                if (validateMessage.result) {
+                    this.$emit('onLineChange', 'add', data)
+                    this.$emit('templateDataChanged')
+                    return true
                 } else {
-                    const validateMessage = validatePipeline.isLineValid(data, this.canvasData)
-                    if (validateMessage.result) {
-                        this.$emit('onLineChange', 'add', data)
-                        this.$emit('templateDataChanged')
-                        return true
-                    } else {
-                        this.$bkMessage({
-                            message: validateMessage.message,
-                            theme: 'warning'
-                        })
-                    }
+                    this.$bkMessage({
+                        message: validateMessage.message,
+                        theme: 'warning'
+                    })
                 }
             },
             onConnection (line) {
