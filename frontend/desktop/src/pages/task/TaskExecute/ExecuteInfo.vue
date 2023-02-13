@@ -112,47 +112,47 @@
                         :engine-ver="engineVer">
                     </NodeLog>
                 </div>
+                <div class="action-wrapper" v-if="isShowActionWrap">
+                    <template v-if="executeInfo.state === 'RUNNING' && !isSubProcessNode">
+                        <bk-button
+                            v-if="nodeDetailConfig.component_code === 'pause_node'"
+                            theme="primary"
+                            data-test-id="taskExcute_form_resumeBtn"
+                            @click="onResumeClick">
+                            {{ $t('继续执行') }}
+                        </bk-button>
+                        <bk-button
+                            v-else-if="nodeDetailConfig.component_code === 'bk_approve'"
+                            theme="primary"
+                            data-test-id="taskExcute_form_approvalBtn"
+                            @click="$emit('onApprovalClick', nodeDetailConfig.node_id)">
+                            {{ $t('审批') }}
+                        </bk-button>
+                        <bk-button
+                            v-else
+                            data-test-id="taskExcute_form_mandatoryFailBtn"
+                            @click="mandatoryFailure">
+                            {{ $t('强制终止') }}
+                        </bk-button>
+                    </template>
+                    <template v-if="isShowRetryBtn || isShowSkipBtn">
+                        <bk-button
+                            theme="primary"
+                            v-if="isShowRetryBtn"
+                            data-test-id="taskExcute_form_retryBtn"
+                            @click="onRetryClick">
+                            {{ $t('重试') }}
+                        </bk-button>
+                        <bk-button
+                            theme="default"
+                            v-if="isShowSkipBtn"
+                            data-test-id="taskExcute_form_skipBtn"
+                            @click="onSkipClick">
+                            {{ $t('跳过') }}
+                        </bk-button>
+                    </template>
+                </div>
             </div>
-        </div>
-        <div class="action-wrapper" v-if="isShowActionWrap">
-            <template v-if="executeInfo.state === 'RUNNING' && !isSubProcessNode">
-                <bk-button
-                    v-if="nodeDetailConfig.component_code === 'pause_node'"
-                    theme="primary"
-                    data-test-id="taskExcute_form_resumeBtn"
-                    @click="onResumeClick">
-                    {{ $t('继续执行') }}
-                </bk-button>
-                <bk-button
-                    v-if="nodeDetailConfig.component_code === 'bk_approve'"
-                    theme="primary"
-                    data-test-id="taskExcute_form_approvalBtn"
-                    @click="$emit('onApprovalClick', nodeDetailConfig.node_id)">
-                    {{ $t('审批') }}
-                </bk-button>
-                <bk-button
-                    v-if="nodeDetailConfig.component_code === 'sleep_timer'"
-                    data-test-id="taskExcute_form_mandatoryFailBtn"
-                    @click="mandatoryFailure">
-                    {{ $t('强制终止') }}
-                </bk-button>
-            </template>
-            <template v-if="isShowRetryBtn || isShowSkipBtn">
-                <bk-button
-                    theme="primary"
-                    v-if="isShowRetryBtn"
-                    data-test-id="taskExcute_form_retryBtn"
-                    @click="onRetryClick">
-                    {{ $t('重试') }}
-                </bk-button>
-                <bk-button
-                    theme="default"
-                    v-if="isShowSkipBtn"
-                    data-test-id="taskExcute_form_skipBtn"
-                    @click="onSkipClick">
-                    {{ $t('跳过') }}
-                </bk-button>
-            </template>
         </div>
     </div>
 </template>
