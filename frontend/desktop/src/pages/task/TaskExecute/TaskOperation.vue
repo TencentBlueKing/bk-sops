@@ -435,7 +435,8 @@
                 isInjectVarDialogShow: false,
                 nodeIds: [],
                 nodeDisplayStatus: {},
-                showNodeList: [0, 1, 2]
+                showNodeList: [0, 1, 2],
+                converNodeList: []
             }
         },
         computed: {
@@ -1311,7 +1312,7 @@
                 this.retrieveLines(data, fstLine, orderedData)
                 orderedData.push(endEvent)
                 // 过滤root最上层汇聚网关
-                return orderedData.filter(item => item.type !== 'ConvergeGateway')
+                return orderedData
             },
             /**
              * 根据节点连线遍历任务节点，返回按广度优先排序的节点数据
@@ -1425,7 +1426,13 @@
                                 }
                             })
                             if (gateway.incoming.every(item => list.map(ite => ite.outgoing).includes(item))) {
-                                ordered.push(gateway)
+                                // 汇聚网关push在最近的条件网关下
+                                const prev = ordered[ordered.findLastIndex(order => order.type !== 'ServiceActivity' || order.type !== 'ConvergeGateway')]
+                                if (!prev.children.find(item => item.id === gateway.id) && !this.converNodeList.includes(gateway.id)) {
+                                    this.converNodeList.push(gateway.id)
+                                    prev.children.push(gateway)
+                                }
+                                // ordered.push(gateway)
                                 if (!this.nodeIds.includes(gateway.id)) {
                                     this.nodeIds.push(gateway.id)
                                 }
