@@ -270,6 +270,11 @@
                 }
                 const nodeType = node.type === 'ServiceActivity' ? 'tasknode' : (node.type === 'SubProcess' ? 'subflow' : 'controlNode')
                 node.selected = nodeType !== 'subflow'
+                if (nodeType === 'subflow') {
+                    this.$emit('onNodeClick', node.id, 'subflow')
+                    this.renderSubProcessData(node)
+                    return
+                }
                 if (this.curSelectId === node.id) return
                 this.curSelectId = node.id
                 let rootNode = node
