@@ -194,6 +194,9 @@
                     if (item.isGateway) {
                         item.state = 'Gateway'
                     }
+                    if (item.type === 'SubProcess') {
+                        this.nodeAddStatus(item.subChildren, states)
+                    }
                     if (item.children && item.children.length !== 0) {
                         this.nodeAddStatus(item.children, states)
                     }
