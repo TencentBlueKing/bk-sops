@@ -228,9 +228,7 @@ class PluginServiceApiClient:
     def _prepare_apigw_api_request(self, path_params: list, inject_authorization: dict = None):
         """插件服务APIGW接口请求信息准备"""
         url = os.path.join(
-            f"{env.APIGW_NETWORK_PROTOCAL}://{self.plugin_apigw_name}.{env.APIGW_URL_SUFFIX}",
-            env.APIGW_ENVIRONMENT,
-            *path_params,
+            env.PLUGIN_APIGW_API_HOST_FORMAT.format(self.plugin_apigw_name), env.APIGW_ENVIRONMENT, *path_params,
         )
         authorization_info = {
             "bk_app_code": env.PLUGIN_SERVICE_APIGW_APP_CODE,
@@ -250,18 +248,25 @@ class PluginServiceApiClient:
     def _prepare_paas_api_request(path_params: list, environment=None):
         """PaaS平台服务接口请求信息准备"""
         url = os.path.join(
-            f"{env.APIGW_NETWORK_PROTOCAL}://paasv3.{env.APIGW_URL_SUFFIX}",
+            env.PAASV3_APIGW_API_HOST or f"{env.APIGW_NETWORK_PROTOCAL}://paasv3.{env.APIGW_URL_SUFFIX}",
             environment or env.APIGW_ENVIRONMENT,
             *path_params,
         )
-        params = {"private_token": env.PAASV3_APIGW_API_TOKEN}
+        params = (
+            {"private_token": env.PAASV3_APIGW_API_TOKEN}
+            if env.PAASV3_APIGW_API_TOKEN
+            else {
+                "bk_app_code": env.PLUGIN_SERVICE_APIGW_APP_CODE,
+                "bk_app_secret": env.PLUGIN_SERVICE_APIGW_APP_SECRET,
+            }
+        )
         return url, params
 
     @staticmethod
     def _request_api_and_error_retry(url, method, **kwargs):
         """请求API接口,失败进行重试"""
         message = f"request url {url} with method {method} and kwargs {kwargs}".replace(
-            env.PAASV3_APIGW_API_TOKEN, "******"
+            env.PAASV3_APIGW_API_TOKEN or env.PLUGIN_SERVICE_APIGW_APP_SECRET, "******"
         )
         for invoke_num in range(1, env.BKAPP_INVOKE_PAAS_RETRY_NUM + 1):
             try:
