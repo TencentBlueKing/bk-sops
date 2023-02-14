@@ -1348,7 +1348,7 @@
                             const loopList = [] // 需要打回的node的incoming
                             outgoing.forEach(item => {
                                 const curNode = activities[flows[item].target] || gateways[flows[item].target]
-                                if (ordered.find(ite => ite.id === curNode.id || this.nodeIds.find(ite => ite === curNode.id))) {
+                                if (curNode && (ordered.find(ite => ite.id === curNode.id || this.nodeIds.find(ite => ite === curNode.id)))) {
                                     loopList.push(...curNode.incoming)
                                 }
                             })
@@ -1444,8 +1444,14 @@
                     } else if (activity) { // 任务节点
                         if (isLoop) return
                         if (isAt) {
-                            if (activity.pipeline) {
-                                activity.children = this.getOrderedTree(activity.pipeline)
+                            if (activity.type === 'SubProcess') {
+                                if (activity.pipeline) {
+                                    activity.subChildren = this.getOrderedTree(activity.pipeline)
+                                } else {
+                                    if (activity.component.data && activity.component.data.subprocess) {
+                                        activity.subChildren = this.getOrderedTree(activity.component.data.subprocess.value.pipeline)
+                                    }
+                                }
                             }
                             activity.title = activity.name
                             activity.expanded = activity.pipeline
