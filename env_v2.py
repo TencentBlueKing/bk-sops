@@ -32,6 +32,10 @@ BK_JOB_HOST = os.getenv("BK_JOB_HOST")
 
 BK_NODEMAN_HOST = os.getenv("BK_NODEMAN_HOST", "{}/o/bk_nodeman".format(BK_PAAS_HOST))
 
+BK_GSE_KIT_PAGE_URL_TEMPLATE = os.getenv(
+    "BK_GSEKIT_PAGE_URL_TEMPLATE", BK_PAAS_HOST + "/o/bk_gsekit/task-history/detail/{job_id}?biz={bk_biz_id}"
+)
+
 # 用户管理配置
 BK_USER_MANAGE_HOST = os.getenv("BK_USER_MANAGE_HOST", "{}/o/bk_user_manage".format(BK_PAAS_HOST))
 
