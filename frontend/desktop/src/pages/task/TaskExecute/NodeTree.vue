@@ -134,13 +134,13 @@
             nodeNav: {
                 handler (val, old) {
                     // 当为面包屑数量不为根节点时重新渲染结构
-                    if (val && old) {
-                        const cur = this.treeData.find(item => item.id === val[val.length - 1].id)
-                        if (val.length === 1 && val.length !== old.length) {
+                    if (val) {
+                        const cur = this.findSubChildren(this.treeData, val[val.length - 1].id)
+                        if (val.length === 1 && old && val.length !== old.length) {
                             this.curSubId = ''
                             this.treeData = tools.deepClone(this.data[0].children)
                         } else {
-                            this.renderSubProcessData(cur)
+                            this.renderSubProcessData(...cur)
                         }
                     }
                 },
@@ -153,6 +153,18 @@
             }
         },
         methods: {
+            findSubChildren (data, id, node = []) {
+                data.forEach(item => {
+                    if (item.id === id) {
+                        node.push(item)
+                    } else {
+                        if (item.children) {
+                            this.findSubChildren(item.children, id, node)
+                        }
+                    }
+                })
+                return node
+            },
             onClickNode (node) {
                 if (node.children && node.children.length === 0) return
                 node.expanded = !node.expanded
@@ -169,7 +181,7 @@
             renderSubProcessData (node) {
                 if (node) {
                     this.curSubId = node.id
-                    this.treeData = node.children
+                    this.treeData = node.subChildren
                 }
             },
             nodeAddStatus (data, states) {
@@ -217,20 +229,22 @@
             },
             setDefaultActiveId (data, nodes, id) {
                 this.curSelectId = id
-                nodes.forEach(node => {
-                    if (node.children) {
-                        this.setDefaultActiveId(data, node.children, id)
-                    }
-                    if (node.id === id) {
-                        this.$set(node, 'selected', true)
-                        if (node.parent) {
-                            node.parent.expanded = true
-                            this.setExpand(node.parent)
+                if (nodes) {
+                    nodes.forEach(node => {
+                        if (node.children) {
+                            this.setDefaultActiveId(data, node.children, id)
                         }
-                    } else {
-                        this.$set(node, 'selected', false)
-                    }
-                })
+                        if (node.id === id) {
+                            this.$set(node, 'selected', true)
+                            if (node.parent) {
+                                node.parent.expanded = true
+                                this.setExpand(node.parent)
+                            }
+                        } else {
+                            this.$set(node, 'selected', false)
+                        }
+                    })
+                }
             },
             setExpand (node) {
                 if (node.parent) {

@@ -190,7 +190,7 @@
             data-test-id="taskExcute_dialog_skipNodeDialog"
             @confirm="nodeTaskSkip(skipNodeId)"
             @cancel="onSkipCancel">
-            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否跳过该节点继续往后执行？') }}</div>
+            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否跳过该任务节点？') }}</div>
         </bk-dialog>
         <bk-dialog
             width="400"
@@ -204,7 +204,7 @@
             data-test-id="taskExcute_dialog_forceFailDialog"
             @confirm="nodeForceFail(forceFailId)"
             @cancel="onForceFailCancel">
-            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否强制终止该节点？') }}</div>
+            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否将该任务节点强制执行终止？') }}</div>
         </bk-dialog>
         <bk-dialog
             width="400"
@@ -218,7 +218,7 @@
             data-test-id="taskExcute_dialog_resumeDialog"
             @confirm="nodeResume(nodeResumeId)"
             @cancel="onTaskNodeResumeCancel">
-            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否完成该节点继续向后执行？') }}</div>
+            <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否完成暂停节点继续向后执行？') }}</div>
         </bk-dialog>
         <condition-edit
             v-if="isShowConditionEdit"
@@ -1348,7 +1348,7 @@
                             const loopList = [] // 需要打回的node的incoming
                             outgoing.forEach(item => {
                                 const curNode = activities[flows[item].target] || gateways[flows[item].target]
-                                if (ordered.find(ite => ite.id === curNode.id || this.nodeIds.find(ite => ite === curNode.id))) {
+                                if (curNode && (ordered.find(ite => ite.id === curNode.id || this.nodeIds.find(ite => ite === curNode.id)))) {
                                     loopList.push(...curNode.incoming)
                                 }
                             })
@@ -1444,8 +1444,14 @@
                     } else if (activity) { // 任务节点
                         if (isLoop) return
                         if (isAt) {
-                            if (activity.pipeline) {
-                                activity.children = this.getOrderedTree(activity.pipeline)
+                            if (activity.type === 'SubProcess') {
+                                if (activity.pipeline) {
+                                    activity.subChildren = this.getOrderedTree(activity.pipeline)
+                                } else {
+                                    if (activity.component.data && activity.component.data.subprocess) {
+                                        activity.subChildren = this.getOrderedTree(activity.component.data.subprocess.value.pipeline)
+                                    }
+                                }
                             }
                             activity.title = activity.name
                             activity.expanded = activity.pipeline
