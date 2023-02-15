@@ -223,7 +223,7 @@
                     if (item.bk_obj_id === objId && item.bk_inst_id === instId) {
                         return false
                     } else if (item.child && item.child.length) {
-                        this.loopDynamicIpList(item.child, objId, instId)
+                        return this.loopDynamicIpList(item.child, objId, instId)
                     } else {
                         return true
                     }
