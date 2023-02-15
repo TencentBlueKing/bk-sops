@@ -233,10 +233,14 @@
             }
         },
         mounted () {
+            $.context.exec_env = 'NODE_EXEC_DETAIL'
             this.initData()
             if (this.nodeActivity.original_template_id) {
                 this.getTemplateData()
             }
+        },
+        beforeDestroy () {
+            $.context.exec_env = ''
         },
         methods: {
             ...mapActions('template/', [
