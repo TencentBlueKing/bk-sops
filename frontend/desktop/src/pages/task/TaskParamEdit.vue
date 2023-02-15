@@ -43,6 +43,10 @@
                     return {}
                 }
             },
+            isUsedTipShow: {
+                type: Boolean,
+                default: true
+            },
             preMakoDisabled: {
                 type: Boolean,
                 default: false
@@ -187,7 +191,7 @@
                                 item.attrs = {}
                             }
                             item.attrs['disabled'] = true
-                            item.attrs['used_tip'] = i18n.t('参数已被使用，不可修改')
+                            item.attrs['used_tip'] = this.isUsedTipShow ? i18n.t('参数已被使用，不可修改') : ''
                             if (item.attrs.children) { // 变量下包含子组件配置禁止编辑
                                 this.setAtomDisable(item.attrs.children)
                             }
@@ -221,7 +225,7 @@
                                 currentFormConfig.attrs['pre_mako_tip'] = i18n.t('设为「常量」的参数中途不允许修改')
                             } else if (this.unUsedConstants.length && !this.unUsedConstants.includes(variable.key)) {
                                 currentFormConfig.attrs['disabled'] = true
-                                currentFormConfig.attrs['used_tip'] = i18n.t('参数已被使用，不可修改')
+                                currentFormConfig.attrs['used_tip'] = this.isUsedTipShow ? i18n.t('参数已被使用，不可修改') : ''
                             }
                             this.metaConfig[key] = tools.deepClone(variable)
                             // 任务参数重用(元变量)

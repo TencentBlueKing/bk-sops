@@ -20,7 +20,7 @@
                 {{ $t('仅“未使用”的参数允许修改，“已使用”（成功、执行中节点引用）的参数不可修改。执行失败视为“未使用”引用的参数') }}
             </p>
         </div>
-        <div v-else-if="state !== 'CREATED' && !isChildTaskflow" class="panel-notice-task-run">
+        <div v-else-if="state !== 'CREATED' && !isChildTaskFlow" class="panel-notice-task-run">
             <p>
                 <i class="common-icon-info ui-notice"></i>
                 {{ paramsCanBeModify ? $t('已开始执行的任务，修改参数值仅对还未执行的步骤生效') : $t('已执行完毕的任务不能修改参数') }}
@@ -30,16 +30,17 @@
             <TaskParamEdit
                 v-if="!isParamsEmpty"
                 ref="TaskParamEdit"
+                :is-used-tip-show="(state !== 'CREATED' && !paramsCanBeModify) ? false : true"
                 :pre-mako-disabled="(paramsCanBeModify && state === 'CREATED') ? false : true"
                 :constants="constants"
                 :un-used-constants="unUsedConstants"
-                :editable="paramsCanBeModify && !isChildTaskflow"
+                :editable="paramsCanBeModify && !isChildTaskFlow"
                 @onChangeConfigLoading="onChangeConfigLoading">
             </TaskParamEdit>
             <NoData v-else :message="$t('没有参数需要配置')"></NoData>
         </div>
         <div class="action-wrapper">
-            <div v-if="retryNodeId || (!isParamsEmpty && paramsCanBeModify && !isChildTaskflow)">
+            <div v-if="retryNodeId || (!isParamsEmpty && paramsCanBeModify && !isChildTaskFlow)">
                 <bk-button
                     theme="primary"
                     :class="{
@@ -83,7 +84,7 @@
                 configLoading: true, // 变量配置项加载
                 pending: false, // 提交修改中
                 remoteData: {}, // 文本值下拉框变量远程数据源
-                isChildTaskflow: false, // 是否为子流程任务
+                isChildTaskFlow: false, // 是否为子流程任务
                 constantLoading: true, // 变量是否被使用加载
                 unUsedConstants: [] // 还未执行的变量
             }
@@ -119,10 +120,10 @@
         mounted () {
             bus.$on('onCloseErrorNotify', (data) => {
                 const varRegExp = /\${[a-zA-Z_]\w*}/g
-                const matckList = data.match(varRegExp) || []
+                const matchList = data.match(varRegExp) || []
                 const paramEditComp = this.$refs.TaskParamEdit
-                if (matckList.length && paramEditComp) {
-                    matckList.forEach(key => {
+                if (matchList.length && paramEditComp) {
+                    matchList.forEach(key => {
                         const config = paramEditComp.renderConfig.find(item => item.tag_code === key)
                         if (!config.attrs) {
                             config.attrs = {}
@@ -155,7 +156,7 @@
                             constants[key] = cnt
                         }
                     })
-                    this.isChildTaskflow = instanceData.is_child_taskflow
+                    this.isChildTaskFlow = instanceData.is_child_taskflow
                     this.constants = constants
                 } catch (e) {
                     console.log(e)
