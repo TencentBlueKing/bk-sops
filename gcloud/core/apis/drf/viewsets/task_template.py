@@ -137,16 +137,15 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         """
         创建或更新模板时同步模板标签数据
         """
-        if label_ids:
-            label_ids = list(set(label_ids))
-            if not Label.objects.check_label_ids(label_ids):
-                message = _("流程保存失败: 流程设置的标签不存在, 请检查配置后重试 | _sync_template_lables")
-                logger.error(message)
-                return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
-            try:
-                TemplateLabelRelation.objects.set_labels_for_template(template_id, label_ids)
-            except Exception as e:
-                return Response({"detail": ErrorDetail(str(e), err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+        label_ids = list(set(label_ids))
+        if not Label.objects.check_label_ids(label_ids):
+            message = _("流程保存失败: 流程设置的标签不存在, 请检查配置后重试 | _sync_template_lables")
+            logger.error(message)
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+        try:
+            TemplateLabelRelation.objects.set_labels_for_template(template_id, label_ids)
+        except Exception as e:
+            return Response({"detail": ErrorDetail(str(e), err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
