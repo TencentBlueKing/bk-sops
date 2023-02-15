@@ -137,7 +137,7 @@ class BKGseKitClient(BKComponentClient):
             data["process_status"] = process_status
         if is_auto:
             data["is_auto"] = is_auto
-        return self._request(method="post", url=_get_gse_kit_api("process/process_status"), data=data,)
+        return self._request_with_retry(method="post", url=_get_gse_kit_api("process/process_status"), data=data,)
 
     def create_job(self, bk_biz_id, job_object, job_action, expression_scope, extra_data=None):
         """
@@ -160,7 +160,7 @@ class BKGseKitClient(BKComponentClient):
         :param job_task_id: string
         """
         param = {"bk_biz_id": bk_biz_id, "job_id": job_task_id}
-        return self._request(method="post", url=_get_gse_kit_api("job/job_status"), data=param)
+        return self._request_with_retry(method="post", url=_get_gse_kit_api("job/job_status"), data=param)
 
     def flush_process(self, bk_biz_id):
         """
@@ -175,5 +175,23 @@ class BKGseKitClient(BKComponentClient):
         获取 gsekit 配置模版列表
         """
         params = {"bk_biz_id": bk_biz_id}
-        url = _get_gse_kit_api("config_template/config_template_list")
-        return self._request(method="GET", url=url, data=params)
+        return self._batch_request(func=self._list_config_template, params=params)
+
+    def _list_config_template(self, bk_biz_id, page_param):
+        pagesize = page_param["pagesize"]
+        page = page_param["page"]
+        data = {
+            "bk_biz_id": bk_biz_id,
+            "pagesize": pagesize,
+            "page": page,
+        }
+        return self._request_with_retry(
+            method="get", url=_get_gse_kit_api("config_template/config_template_list"), data=data
+        )
+
+    def _request_with_retry(self, method, url, data):
+        response = self._request(method=method, url=url, data=data)
+        # 处理接口报错的情况，进行一次重试
+        if response.get("result") is False and "Request API error" in response.get("message", ""):
+            response = self._request(method=method, url=url, data=data)
+        return response
