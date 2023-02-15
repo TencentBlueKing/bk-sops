@@ -139,6 +139,7 @@
                         if (val.length === 1 && old && val.length !== old.length) {
                             this.curSubId = ''
                             this.treeData = tools.deepClone(this.data[0].children)
+                            this.nodeAddStatus(this.treeData, this.nodeDisplayStatus.children)
                         } else {
                             this.renderSubProcessData(...cur)
                         }
