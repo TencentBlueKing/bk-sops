@@ -1,5 +1,5 @@
 # Base
-Django==3.2.15
+Django==3.2.18
 PyMySQL==0.6.7
 mysqlclient==2.0.3
 requests==2.25.1
