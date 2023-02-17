@@ -98,12 +98,11 @@
                         // 清除默认选中 改为通过点击的方式选中
                         this.$refs.topoTree.setChecked(item, { checked: false })
                         this.getCheckedNodeInfo(this.topoList, item)
-                        this.checkedNode.id = this.checkedNode.uniqueId
-                        this.onNodeCheckClick(this.selectedIps, this.checkedNode)
+                        if (this.checkedNode) {
+                            this.checkedNode.id = this.checkedNode.uniqueId
+                            this.onNodeCheckClick(this.selectedIps, this.checkedNode)
+                        }
                     })
-                })
-                this.$nextTick(() => {
-                    this.setNodesDefaultDisabled() // tips：tree 组件配置节点 disabled、checked 属性不生效，需手动设置组件修复
                 })
             },
             dynamicIps (val) {
@@ -138,28 +137,6 @@
                 return list
             },
             /**
-             * 设置默认被禁用的节点
-             */
-            setNodesDefaultDisabled () {
-                if (this.selectedIps && this.$refs.topoTree) {
-                    let defaultDisabledIds = []
-                    this.selectedIps.forEach(id => {
-                        const node = this.$refs.topoTree.getNodeById(id)
-                        if (node.children && node.children.length > 0) {
-                            defaultDisabledIds = defaultDisabledIds.concat(this.traverseNodesToList(node.children))
-                        }
-                    })
-                    this.$refs.topoTree.setDisabled(defaultDisabledIds, { disabled: true })
-                }
-                // 禁止编辑时将topo树最外层的节点设置为禁止状态
-                if (!this.editable) {
-                    this.topoList.forEach(item => {
-                        const nodeId = item.uniqueId || item.id
-                        this.$refs.topoTree.setDisabled(nodeId, { disabled: true })
-                    })
-                }
-            },
-            /**
              * 遍历获取子节点列表
              */
             traverseNodesToList (nodes) {
@@ -186,8 +163,10 @@
                         const selectedIpsPath = []
                         this.selectedIps.forEach(key => {
                             const selectedNode = this.$refs.topoTree.getNodeById(key)
-                            const namePath = this.getNodeNamePath(selectedNode)
-                            selectedIpsPath.push({ key, namePath })
+                            if (selectedNode) {
+                                const namePath = this.getNodeNamePath(selectedNode)
+                                selectedIpsPath.push({ key, namePath })
+                            }
                         })
                         this.selectedIpsPath = selectedIpsPath
                     })
@@ -246,7 +225,9 @@
                     const [bk_inst_id, bk_obj_id] = uniqueId.split('_')
                     return { bk_inst_id: Number(bk_inst_id), bk_obj_id }
                 })
-                this.$refs.topoTree.setChecked(checkedList, { checked: true })
+                checkedList.forEach(id => {
+                    this.$refs.topoTree.setChecked(id, { checked: true })
+                })
                 this.$emit('change', selectedList)
                 this.validate()
             },
