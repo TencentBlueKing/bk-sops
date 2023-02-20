@@ -524,6 +524,7 @@ Code editor
  - `showMiniMap`: show minimap. Default: false
  - `showLanguageSwitch`: show language switch. Default: true
  - `readOnly`: read only mode. Default: false
+  - `variable_render`: enable variable render. Default: false
 
 **Methods**
 

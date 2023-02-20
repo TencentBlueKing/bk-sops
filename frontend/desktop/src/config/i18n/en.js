@@ -1573,7 +1573,10 @@ const en = {
     '赋值给变量': 'Assign to variable',
     '节点输入': 'Node input',
     '节点输出': 'Node output',
-    '保存并引用': 'Save and quote'
+    '保存并引用': 'Save and quote',
+    'tagCodeEditorTips': 'Script content {0} global variable. A suspected reference to {1} was detected, and it is recommended to use script parameters to pass in.',
+    '不再支持': 'no supported',
+    '添加收藏': 'Collection'
 }
 
 export default en
