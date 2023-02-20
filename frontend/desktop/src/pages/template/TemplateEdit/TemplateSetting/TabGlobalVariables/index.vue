@@ -410,7 +410,8 @@
                                 result.checked = this.checkedTypeList.includes(cur.custom_type)
                                 acc.push(result)
                             } else {
-                                this.$set(cur, 'type', i18n.t('组件'))
+                                const name = cur.source_type === 'component_outputs' ? i18n.t('节点输出') : i18n.t('节点输入')
+                                this.$set(cur, 'type', name)
                                 isHasComponent = true
                             }
                         }

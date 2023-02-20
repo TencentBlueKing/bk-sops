@@ -1564,7 +1564,16 @@ const en = {
     '以便统一管理，也可单独配置流程执行代理人覆盖项目的设置': 'for unified management, the process execution agent can also be configured separately to override the settings of the project',
     '长度超过100个字符，请修改规则': 'The length exceeds 100 characters, please modify the rules',
     '参数未修改': 'parameter is not modified',
-    '保存失败，有参数已被使用不可修改': 'Failed to save, some parameters have been used and cannot be modified'
+    '保存失败，有参数已被使用不可修改': 'Failed to save, some parameters have been used and cannot be modified',
+    '直接赋值给': 'Assign directly to',
+    '拼接赋值给': '拼接赋值给',
+    '请选择变量': 'Splicing assigns to',
+    '请输入变量名/key': 'Please enter the variable name/key',
+    '取消赋值给变量': 'Unassign the variable',
+    '赋值给变量': 'Assign to variable',
+    '节点输入': 'Node input',
+    '节点输出': 'Node output',
+    '保存并引用': 'Save and quote'
 }
 
 export default en
