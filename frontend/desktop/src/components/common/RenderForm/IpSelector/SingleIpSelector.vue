@@ -132,8 +132,8 @@
             updateDiffData () {
                 if (!this.editable) return
                 const selectors = this.activeSelector
-                const selectList = selectors === 'ip' ? this.staticIps : selectors === 'topo' ? this.dynamicIps : this.dynamicGroups
-                selectList.forEach((value, index) => {
+                let selectList = selectors === 'ip' ? this.staticIps : selectors === 'topo' ? this.dynamicIps : this.dynamicGroups
+                selectList = selectList.filter((value, index) => {
                     let result = true
                     // 删除掉没匹配上的
                     if (selectors === 'ip') {
@@ -143,9 +143,7 @@
                     } else {
                         result = this.dynamicGroupList.find(item => item.id === value.id)
                     }
-                    if (!result) {
-                        selectList.splice(index, 1)
-                    }
+                    return result
                 })
                 this.$emit('change', selectors, selectList)
                 this.curSelectorTab.hasDiff = false

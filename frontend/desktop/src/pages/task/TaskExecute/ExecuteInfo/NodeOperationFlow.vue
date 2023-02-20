@@ -44,6 +44,10 @@
                 const { params, query } = this.$route
                 try {
                     this.isFlowLoading = true
+                    if (!this.nodeId) { // 未执行的任务节点操作历史为空
+                        this.operateFlowData = []
+                        return
+                    }
                     const resp = await this.getOperationRecordTask({
                         project_id: params.project_id,
                         instance_id: query.instance_id,
