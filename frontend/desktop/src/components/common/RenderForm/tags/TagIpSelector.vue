@@ -192,10 +192,10 @@
                                 case 1:
                                     this.dynamicIpList = v.data
                                     // 判断动态IP数据与最新的CMDB动态IP配置是否存在差异
-                                    hasDiff = topo.some(item => {
+                                    hasDiff = topo.every(item => {
                                         return this.loopDynamicIpList(this.dynamicIpList, item.bk_obj_id, item.bk_inst_id)
                                     })
-                                    this.selectorTabs[1].hasDiff = hasDiff
+                                    this.selectorTabs[1].hasDiff = !hasDiff
                                     break
                                 case 2:
                                     this.topoModelList = v.data
@@ -221,11 +221,11 @@
             loopDynamicIpList (list, objId, instId) {
                 return list.some(item => {
                     if (item.bk_obj_id === objId && item.bk_inst_id === instId) {
-                        return false
+                        return true
                     } else if (item.child && item.child.length) {
                         return this.loopDynamicIpList(item.child, objId, instId)
                     } else {
-                        return true
+                        return false
                     }
                 })
             },

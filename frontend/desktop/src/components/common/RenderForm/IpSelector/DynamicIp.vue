@@ -100,7 +100,7 @@
                         this.getCheckedNodeInfo(this.topoList, item)
                         if (this.checkedNode) {
                             this.checkedNode.id = this.checkedNode.uniqueId
-                            this.onNodeCheckClick(this.selectedIps, this.checkedNode)
+                            this.onNodeCheckClick(this.selectedIps, this.checkedNode, false)
                         }
                     })
                 })
@@ -197,7 +197,7 @@
                     }
                 }
             },
-            onNodeCheckClick (selectedNodes, node) {
+            onNodeCheckClick (selectedNodes, node, update = true) {
                 const checkedList = selectedNodes.slice(0)
                 if (checkedList.length >= this.lastSelectedNodes.length) {
                     this.selectedNodeList.push(node.id)
@@ -228,8 +228,10 @@
                 checkedList.forEach(id => {
                     this.$refs.topoTree.setChecked(id, { checked: true })
                 })
-                this.$emit('change', selectedList)
-                this.validate()
+                if (update) { // 初始化时不更新选中数据
+                    this.$emit('change', selectedList)
+                    this.validate()
+                }
             },
             changeChildrenNodeState (node, checkedList, isChecked) {
                 node.children.forEach(item => {

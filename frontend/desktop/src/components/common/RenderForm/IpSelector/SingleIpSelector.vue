@@ -151,11 +151,11 @@
             loopDynamicIpList (list, objId, instId) {
                 return list.some(item => {
                     if (item.bk_obj_id === objId && item.bk_inst_id === instId) {
-                        return false
-                    } else if (item.child && item.child.length) {
-                        this.loopDynamicIpList(item.child, objId, instId)
-                    } else {
                         return true
+                    } else if (item.child && item.child.length) {
+                        return this.loopDynamicIpList(item.child, objId, instId)
+                    } else {
+                        return false
                     }
                 })
             },
