@@ -984,8 +984,6 @@
                             return true
                         }
                     })
-                    // 删除当前的，在原有位置插入一个新的
-                    this.onNodeRemove(location)
                     this.$nextTick(() => {
                         // 按照连线本身的方向，插入新的节点
                         this.onInsertNode({
