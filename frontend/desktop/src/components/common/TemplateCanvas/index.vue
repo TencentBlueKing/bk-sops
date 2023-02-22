@@ -984,22 +984,24 @@
                             return true
                         }
                     })
-                    this.$nextTick(() => {
-                        // 按照连线本身的方向，插入新的节点
-                        this.onInsertNode({
-                            startNodeId: values.source.id,
-                            endNodeId: values.target.id,
-                            location,
-                            startLineArrow: {
-                                source: values.source.arrow,
-                                target: values.inputArrow
-                            },
-                            endLineArrow: {
-                                source: values.outputArrow,
-                                target: values.target.arrow
-                            }
-                        })
+                    // 删除旧的连线，创建新的连线
+                    const result = this.updateConnector({
+                        startNodeId: values.source.id,
+                        endNodeId: values.target.id,
+                        location,
+                        startLineArrow: {
+                            source: values.source.arrow,
+                            target: values.inputArrow
+                        },
+                        endLineArrow: {
+                            source: values.outputArrow,
+                            target: values.target.arrow
+                        }
                     })
+                    if (!result) return
+                    const { startLine, endLine } = result
+                    this.$refs.jsFlow.createConnector(startLine)
+                    this.$refs.jsFlow.createConnector(endLine)
                 }
             },
             // 拖拽节点到线上, 获取对应匹配连线
@@ -1801,13 +1803,45 @@
              */
             onInsertNode ({ startNodeId, endNodeId, location, isFillParam, startLineArrow = {}, endLineArrow = {} }) {
                 const type = isFillParam ? 'copy' : 'add'
+                // 删除旧的连线，创建新的连线
+                const result = this.updateConnector({ startNodeId, endNodeId, location, startLineArrow, endLineArrow })
+                if (!result) return
+                const { deleteLine, startLine, endLine } = result
+                this.$refs.jsFlow.createNode(location)
+                this.$emit('onLocationChange', type, location)
+                this.$nextTick(() => {
+                    // 添加网关节点时禁止对该节点操作
+                    if (location.type.includes('gateway') > -1) {
+                        this.shortcutPanelNodeOperate = false
+                    }
+                    this.$refs.jsFlow.createConnector(startLine)
+                    this.$refs.jsFlow.createConnector(endLine)
+                    this.activeNode = location
+                    this.openShortcutPanel('node')
+                })
+                // 拷贝插入节点前网关的配置
+                let gateways = this.$store.state.template.gateways
+                gateways = tools.deepClone(gateways)
+                // 插入节点时，若起始节点为网关节点则保留分支表达式
+                if (startNodeId in gateways) {
+                    const branchInfo = gateways[startNodeId]
+                    const { conditions, default_condition } = branchInfo
+                    if (!conditions) return
+                    const tagCode = `branch_${startNodeId}_${location.id}`
+                    conditions.tag = tagCode
+                    this.conditionInfo = conditions[deleteLine.id]
+                    if (default_condition && default_condition.flow_id === deleteLine.id) {
+                        default_condition.tag = tagCode
+                        this.conditionInfo = { ...default_condition, default_condition }
+                    }
+                }
+            },
+            // 更新连线
+            updateConnector ({ startNodeId, endNodeId, location, startLineArrow = {}, endLineArrow = {} }) {
                 const deleteLine = this.canvasData.lines.find(line => line.source.id === startNodeId && line.target.id === endNodeId)
                 if (!deleteLine) {
                     return false
                 }
-                // 拷贝插入节点前网关的配置
-                let gateways = this.$store.state.template.gateways
-                gateways = tools.deepClone(gateways)
                 this.$refs.jsFlow.removeConnector(deleteLine)
                 const startLine = {
                     source: {
@@ -1829,33 +1863,9 @@
                         arrow: endLineArrow.target || 'Left'
                     }
                 }
-                this.$refs.jsFlow.createNode(location)
-                this.$emit('onLocationChange', type, location)
                 this.$emit('onLineChange', 'add', startLine)
                 this.$emit('onLineChange', 'add', endLine)
-                this.$nextTick(() => {
-                    // 添加网关节点时禁止对该节点操作
-                    if (location.type.includes('gateway') > -1) {
-                        this.shortcutPanelNodeOperate = false
-                    }
-                    this.$refs.jsFlow.createConnector(startLine)
-                    this.$refs.jsFlow.createConnector(endLine)
-                    this.activeNode = location
-                    this.openShortcutPanel('node')
-                })
-                // 插入节点时，若起始节点为网关节点则保留分支表达式
-                if (startNodeId in gateways) {
-                    const branchInfo = gateways[startNodeId]
-                    const { conditions, default_condition } = branchInfo
-                    if (!conditions) return
-                    const tagCode = `branch_${startNodeId}_${location.id}`
-                    conditions.tag = tagCode
-                    this.conditionInfo = conditions[deleteLine.id]
-                    if (default_condition && default_condition.flow_id === deleteLine.id) {
-                        default_condition.tag = tagCode
-                        this.conditionInfo = { ...default_condition, default_condition }
-                    }
-                }
+                return { deleteLine, startLine, endLine }
             },
             // 通过快捷面板删除连线
             onShortcutDeleteLine () {
