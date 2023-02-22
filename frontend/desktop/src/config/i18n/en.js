@@ -1572,7 +1572,8 @@ const en = {
     '强制终止': 'Force revoke',
     '复制并插入': 'Copy and insert',
     '解除连线': 'Disconnect',
-    '解除节点连线成功': 'Disconnect node successfully'
+    '解除节点连线成功': 'Disconnect node successfully',
+    '退回节点：': 'Back off node：'
 }
 
 export default en

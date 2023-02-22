@@ -1353,7 +1353,11 @@
                                 }
                             })
                             const conditions = Object.keys(gateway.conditions).map(item => {
+                                // 给需要打回的条件添加节点id
+                                const callback = loopList.includes(item) ? activities[flows[item].target] : ''
                                 return {
+                                    id: callback.id,
+                                    callbackName: callback.name,
                                     name: gateway.conditions[item].name,
                                     title: gateway.conditions[item].name,
                                     isGateway: true,

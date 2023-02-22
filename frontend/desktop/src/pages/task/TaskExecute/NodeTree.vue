@@ -207,6 +207,8 @@
                 if (!this.allNodeDate[node.id] && node.id !== 'undefined') {
                     this.allNodeDate[node.id] = node
                 }
+                // 退回节点
+                const callbackTip = node.isLoop ? this.$t('退回节点：') + node.callbackName : ''
                 const iconClass = this.gatewayType[node.type]
                 // 并行、条件分支样式
                 const conditionClass = node.title !== '默认' ? 'condition' : 'default-conditon'
@@ -216,7 +218,7 @@
                 const nodeClass = node.parent !== null ? `node ${this.nodeStateMap[node.state]} ` : `root-node ${this.nodeStateMap[node.state]}`
                 // 处理条件分支
                 if (node.isGateway) {
-                    return <span class={conditionClass}>
+                    return <span class={conditionClass} v-bk-tooltips={callbackTip}>
                         <span style={'font-size:12px'} data-node-id={node.id} domPropsInnerHTML={node.name} onClick={node => this.onSelectNode(node)}></span>
                     </span>
                 } else if (this.gatewayType[node.type]) {
@@ -466,6 +468,7 @@
     position: relative;
     border-left: none;
     padding-right: 4px;
+    cursor: pointer;
     ::before {
         content: '';
         position: absolute;
