@@ -976,6 +976,7 @@
                             nodeHeight = 34
                         }
                         const { left, top, height, width } = segmentPosition
+                        // 计算方法为：匹配节点的中线坐标 - 当前节点一半的高度
                         if (height === 8 && item.y < top && top < (item.y + nodeHeight)) {
                             location.y = item.y + nodeHeight / 2 - (isTaskNode ? 54 : 34) / 2
                             return true
@@ -1000,8 +1001,13 @@
                     })
                     if (!result) return
                     const { startLine, endLine } = result
-                    this.$refs.jsFlow.createConnector(startLine)
-                    this.$refs.jsFlow.createConnector(endLine)
+                    // 更新节点position不更新activities
+                    this.$refs.jsFlow.setNodePosition(location)
+                    this.$emit('onLocationChange', 'edit', location)
+                    this.$nextTick(() => {
+                        this.$refs.jsFlow.createConnector(startLine)
+                        this.$refs.jsFlow.createConnector(endLine)
+                    })
                 }
             },
             // 拖拽节点到线上, 获取对应匹配连线
@@ -1035,12 +1041,12 @@
                 connections.forEach(connection => {
                     // 计算连线的top, left
                     let { cssText } = connection.canvas.style
-                    cssText = cssText.split(';').filter(value => /:.[0-9.]+px/.test(value))
+                    cssText = cssText.split(';').filter(value => /:.(\-)?[0-9.]+px/.test(value))
                     let lineLeft = cssText.find(item => item.indexOf('left') > -1)
-                    lineLeft = lineLeft ? /:.([0-9.]+)px/.exec(lineLeft)[1] : 0
+                    lineLeft = lineLeft ? /:.((\-)?[0-9.]+)px/.exec(lineLeft)[1] : 0
                     lineLeft = Number(lineLeft)
                     let lineTop = cssText.find(item => item.indexOf('top') > -1)
-                    lineTop = lineTop ? /:.([0-9.]+)px/.exec(lineTop)[1] : 0
+                    lineTop = lineTop ? /:.((\-)?[0-9.]+)px/.exec(lineTop)[1] : 0
                     lineTop = Number(lineTop)
 
                     // 根据下标找到对应的line的配置
@@ -1325,10 +1331,10 @@
                 let { style } = nodeDom.attributes
                 style = style.value.split(';').filter(value => value)
                 let nodeLeft = style.find(item => item.indexOf('left') > -1)
-                nodeLeft = nodeLeft ? /:.-?([0-9.]+)px/.exec(nodeLeft)[1] : 0
+                nodeLeft = nodeLeft ? /:.((\-)?[0-9.]+)px/.exec(nodeLeft)[1] : 0
                 nodeLeft = Number(nodeLeft)
                 let nodeTop = style.find(item => item.indexOf('top') > -1)
-                nodeTop = nodeTop ? /:.-?([0-9.]+)px/.exec(nodeTop)[1] : 0
+                nodeTop = nodeTop ? /:.((\-)?[0-9.]+)px/.exec(nodeTop)[1] : 0
                 nodeTop = Number(nodeTop)
                 const location = {
                     ...node,

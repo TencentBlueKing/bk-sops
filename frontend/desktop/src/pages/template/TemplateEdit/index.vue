@@ -1307,6 +1307,8 @@
              */
             async onLocationChange (changeType, location) {
                 this.setLocation({ type: changeType, location })
+                // 节点编辑时只更新position不更新activities
+                if (changeType === 'edit') return
                 switch (location.type) {
                     case 'tasknode':
                     case 'subflow':
