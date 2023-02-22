@@ -322,9 +322,6 @@
     position: relative;
     height: calc(100vh - 100px);
     background-color: #ffffff;
-    /deep/ .no-data-wrapper {
-        margin: 100px 0;
-    }
 }
 .form-area {
     padding-top: 20px;
@@ -419,10 +416,6 @@
         max-width: 160px;
         margin-right: 24px;
     }
-}
-/deep/ .no-data-wrapper {
-    position: relative;
-    top: 90px;
 }
 
 </style>

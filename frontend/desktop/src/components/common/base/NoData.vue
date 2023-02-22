@@ -11,25 +11,15 @@
 */
 <template>
     <div class="no-data-wrapper">
-        <div class="no-data">
-            <i class="common-icon-no-data"></i>
-            <p class="no-data-wording">
-                <slot>{{ message || $t('无数据') }}</slot>
-            </p>
-        </div>
+        <bk-exception :type="type || 'empty'" scene="part">
+            <slot>{{ message || $t('没有数据') }}</slot>
+        </bk-exception>
     </div>
 </template>
 <script>
     export default {
         name: 'NoData',
-        props: {
-            message: {
-                type: String,
-                default () {
-                    return ''
-                }
-            }
-        }
+        props: ['message', 'type']
     }
 </script>
 <style lang="scss" scoped>
@@ -40,17 +30,9 @@
         color: #999999;
         background: #ffffff;
     }
-    .no-data {
-        display: table-cell;
-        vertical-align: middle;
-        text-align: center;
-    }
-    .common-icon-no-data {
-        font-size: 40px;
-    }
-    .no-data-wording {
-        margin-top: 20px;
-        font-size: 12px;
-        color: #63656e;
+    // 异常提示固定高度
+    .bk-exception {
+        height: 280px;
+        justify-content: center;
     }
 </style>

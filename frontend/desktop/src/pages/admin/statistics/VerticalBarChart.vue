@@ -22,7 +22,7 @@
                     :clearable="selector.clearable !== false"
                     :placeholder="selector.placeholder"
                     :disabled="selector.options.length === 0"
-                    :value="selector.selected"
+                    v-model="selector.selected"
                     @change="onOptionClick(selector.id, $event)">
                     <bk-option
                         v-for="option in selector.options"
@@ -49,7 +49,11 @@
         <div v-if="dataLoading || dataList.length" class="chart-wrapper" ref="chartWrap" v-bkloading="{ isLoading: dataLoading, opacity: 1, zIndex: 100 }">
             <canvas class="bar-chart-canvas" style="height: 100%;"></canvas>
         </div>
-        <no-data v-else></no-data>
+        <NoData
+            v-else
+            :type="isSearch ? 'search-empty' : 'empty'"
+            :message="isSearch ? $t('搜索结果为空') : ''">
+        </NoData>
     </div>
 </template>
 <script>
@@ -92,6 +96,11 @@
         data () {
             return {
                 chartInstance: null
+            }
+        },
+        computed: {
+            isSearch () {
+                return this.selectorList.slice(0, -1).some(item => item.selected)
             }
         },
         watch: {
@@ -322,9 +331,6 @@
             margin-top: 20px;
             padding-bottom: 20px;
             height: 365px;
-        }
-        .no-data-wrapper {
-            padding: 130px 0;
         }
         .bk-button-group {
             transform: translateY(-2px);

@@ -115,7 +115,12 @@
                                 @setting-change="handleSettingChange">
                             </table-setting-content>
                         </bk-table-column>
-                        <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
+                        <div class="empty-data" slot="empty">
+                            <NoData
+                                :type="searchSelectValue.length ? 'search-empty' : 'empty'"
+                                :message="searchSelectValue.length ? $t('搜索结果为空') : ''">
+                            </NoData>
+                        </div>
                     </bk-table>
                 </div>
             </div>
@@ -825,9 +830,6 @@ a {
             background: #dcdee5;
             border-radius: 50%;
         }
-    }
-    .empty-data {
-        padding: 120px 0;
     }
     .subflow-has-update {
         color: $redDefault;

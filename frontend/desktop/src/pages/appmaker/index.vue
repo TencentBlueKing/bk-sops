@@ -44,11 +44,9 @@
                             @getCollectList="getCollectList">
                         </app-card>
                     </div>
-                    <div v-else-if="searchMode" class="empty-app-list">
-                        <NoData>
-                            <p>{{$t('未找到相关轻应用')}}</p>
-                        </NoData>
-                    </div>
+                    <NoData v-else-if="searchMode" class="empty-app-list">
+                        <p>{{$t('未找到相关轻应用')}}</p>
+                    </NoData>
                     <div v-else class="empty-app-content">
                         <div class="appmaker-info">
                             <h2 class="appmaker-info-title">{{$t('什么是轻应用？')}}</h2>
@@ -354,7 +352,6 @@
         width: 120px;
     }
     .empty-app-list {
-        padding: 200px 0;
         background: $whiteDefault;
         border: 1px solid $commonBorderColor;
     }

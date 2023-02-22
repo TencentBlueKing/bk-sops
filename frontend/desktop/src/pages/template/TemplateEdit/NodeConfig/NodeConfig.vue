@@ -117,7 +117,7 @@
             </div>
             <template slot="content">
                 <!-- 插件/插件版本不存在面板 -->
-                <bk-exception v-if="isNotExistAtomOrVerion" class="exception-wrap" type="500">
+                <bk-exception v-if="isNotExistAtomOrVersion" class="exception-wrap" type="500">
                     <span>{{ $t('未找到可用的插件或插件版本') }}</span>
                     <div class="text-wrap" @click="handleReslectPlugin">{{ $t('重选插件') }}</div>
                 </bk-exception>
@@ -335,7 +335,7 @@
             common: [String, Number],
             subflowListLoading: Boolean,
             backToVariablePanel: Boolean,
-            isNotExistAtomOrVerion: Boolean,
+            isNotExistAtomOrVersion: Boolean,
             pluginLoading: Boolean,
             isViewMode: Boolean
         },
@@ -786,7 +786,7 @@
                     let desc = ''
                     let version = ''
                     // 节点已选择标准插件
-                    if (component.code && !this.isNotExistAtomOrVerion) { // 节点插件存在
+                    if (component.code && !this.isNotExistAtomOrVersion) { // 节点插件存在
                         if (component.code === 'remote_plugin') {
                             const atom = this.$parent.thirdPartyList[this.nodeId]
                             code = component.data.plugin_code.value
@@ -874,7 +874,7 @@
              * 获取某一标准插件所有版本列表
              */
             getAtomVersions (code, isThirdParty = false) {
-                if (!code || this.isNotExistAtomOrVerion) {
+                if (!code || this.isNotExistAtomOrVersion) {
                     return []
                 }
                 let atom
@@ -1205,7 +1205,7 @@
             },
             // 重选插件
             handleReslectPlugin () {
-                this.$parent.isNotExistAtomOrVerion = false
+                this.$parent.isNotExistAtomOrVersion = false
                 this.isSelectorPanelShow = true
             },
             // 查看子流程模板
@@ -1728,7 +1728,8 @@
         overflow: hidden;
     }
     .exception-wrap {
-        margin-top: 146px;
+        height: 280px;
+        justify-content: center;
         .bk-exception-img {
             width: 220px;
             height: 110px;

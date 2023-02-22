@@ -232,7 +232,7 @@
                 background: #ffffff;
             }
             .empty-data {
-                height: 400px;
+                padding: 0;
             }
             .view-detail {
                 padding: 0;

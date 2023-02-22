@@ -86,7 +86,6 @@
                                 <template v-else :title="props.row[col.prop]">{{ props.row[col.prop] }}</template>
                             </template>
                         </bk-table-column>
-                        <div slot="empty"><no-data></no-data></div>
                     </bk-table>
                 </div>
                 <div class="list-table task-list-table" v-if="taskDataLoading || taskData.length">
@@ -139,11 +138,10 @@
                                 <template v-else :title="props.row[col.prop]">{{ props.row[col.prop] }}</template>
                             </template>
                         </bk-table-column>
-                        <div slot="empty"><no-data></no-data></div>
                     </bk-table>
                 </div>
             </template>
-            <div v-else class="no-data-matched" slot="empty"><no-data :message="$t('没有找到相关内容')"></no-data></div>
+            <NoData v-else class="no-data-matched" type="search-empty">{{ $t('没有找到相关内容') }}</NoData>
         </div>
         <bk-dialog
             width="400"
@@ -608,10 +606,7 @@
         }
     }
     .no-data-matched {
-        padding: 30px 0;
-        .no-data-wrapper {
-            padding: 50px 0;
-        }
+        margin: 20px 0;
     }
     .dialog-content {
         padding: 30px;

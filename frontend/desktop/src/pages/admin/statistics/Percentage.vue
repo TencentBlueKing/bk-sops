@@ -20,7 +20,7 @@
                     <span class="desc">{{ statsInfo.name + $t('总数') }}</span>
                 </div>
             </div>
-            <no-data class="canvas-content" v-else></no-data>
+            <NoData v-else></NoData>
             <div class="percent-table">
                 <bk-table
                     :data="statsList"
@@ -46,6 +46,7 @@
                             <span v-else>{{ row[item.prop] }}</span>
                         </template>
                     </bk-table-column>
+                    <NoData slot="empty"></NoData>
                 </bk-table>
             </div>
         </section>
@@ -348,9 +349,6 @@
                         height: 12px;
                         margin-right: 8px;
                     }
-                }
-                .bk-table-empty-text {
-                    height: 200px;
                 }
             }
         }

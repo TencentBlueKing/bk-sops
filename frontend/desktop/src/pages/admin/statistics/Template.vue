@@ -131,7 +131,12 @@
                                 </template>
                             </template>
                         </bk-table-column>
-                        <div class="empty-data" slot="empty"><no-data></no-data></div>
+                        <div class="empty-data" slot="empty">
+                            <NoData
+                                :type="(tplProject || tplCategory) ? 'search-empty' : 'empty'"
+                                :message="(tplProject || tplCategory) ? $t('搜索结果为空') : ''">
+                            </NoData>
+                        </div>
                     </bk-table>
                 </bk-tab-panel>
             </bk-tab>

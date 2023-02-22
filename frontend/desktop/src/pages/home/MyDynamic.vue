@@ -80,7 +80,12 @@
                     </template>
                 </template>
             </bk-table-column>
-            <div class="empty-data" slot="empty"><no-data></no-data></div>
+            <div class="empty-data" slot="empty">
+                <NoData
+                    :type="currentMethod !== 'all' ? 'search-empty' : 'empty'"
+                    :message="currentMethod !== 'all' ? $t('搜索结果为空') : ''">
+                </NoData>
+            </div>
         </bk-table>
     </div>
 </template>

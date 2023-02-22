@@ -50,9 +50,7 @@
                 </div>
             </div>
             <local-cache v-for="cache in cacheList" :key="cache.id" :value="cache"></local-cache>
-            <div class="cache-empty">
-                <NoData v-if="!cacheList.length"></NoData>
-            </div>
+            <NoData v-if="!cacheList.length" class="cache-empty"></NoData>
         </div>
         <div class="empty-data" v-if="emptyData">
             <p>{{$t('无数据，')}}
@@ -177,8 +175,6 @@
         }
     }
     .cache-empty {
-        padding: 30px 0;
-        background: #ffffff;
         border: 1px solid #dde4eb;
     }
 </style>

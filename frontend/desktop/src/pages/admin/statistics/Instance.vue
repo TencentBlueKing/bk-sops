@@ -122,19 +122,25 @@
                                     </template>
                                 </template>
                             </bk-table-column>
-                            <bk-table-column
-                                v-else
-                                :key="item.prop"
-                                :label="item.label"
-                                :prop="item.prop"
-                                :min-width="120"
-                                :render-header="renderFilterHeader">
-                                <template slot-scope="props">
-                                    <span :title="props.row[item.prop]">{{ props.row[item.prop] }}</span>
-                                </template>
-                            </bk-table-column>
+                            <template v-else>
+                                <bk-table-column
+                                    :key="item.prop"
+                                    :label="item.label"
+                                    :prop="item.prop"
+                                    :min-width="120"
+                                    :render-header="renderFilterHeader">
+                                    <template slot-scope="props">
+                                        <span :title="props.row[item.prop]">{{ props.row[item.prop] }}</span>
+                                    </template>
+                                </bk-table-column>
+                            </template>
                         </template>
-                        <div class="empty-data" slot="empty"><no-data></no-data></div>
+                        <div class="empty-data" slot="empty">
+                            <NoData
+                                :type="(instanceProject || instanceCategory) ? 'search-empty' : 'empty'"
+                                :message="(instanceProject || instanceCategory) ? $t('搜索结果为空') : ''">
+                            </NoData>
+                        </div>
                     </bk-table>
                 </bk-tab-panel>
             </bk-tab>

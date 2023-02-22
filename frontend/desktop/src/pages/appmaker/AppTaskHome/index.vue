@@ -113,7 +113,12 @@
                                 </a>
                             </template>
                         </bk-table-column>
-                        <div class="empty-data" slot="empty"><NoData /></div>
+                        <div class="empty-data" slot="empty">
+                            <NoData
+                                :type="searchSelectValue.length ? 'search-empty' : 'empty'"
+                                :message="searchSelectValue.length ? $t('搜索结果为空') : ''">
+                            </NoData>
+                        </div>
                     </bk-table>
                 </div>
             </div>
@@ -647,9 +652,6 @@
     background: #ffffff;
     a.task-name {
         color: $blueDefault;
-    }
-    .empty-data {
-        padding: 120px 0;
     }
     .ui-task-status {
         @include ui-task-status;

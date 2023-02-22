@@ -107,7 +107,11 @@
                             </div>
                         </li>
                     </ul>
-                    <NoData v-else-if="!taskListPending" class="empty-task">{{ $t('搜索结果为空') }}</NoData>
+                    <NoData
+                        v-else-if="!taskListPending"
+                        :is-search="searchWord ? 'search-empty' : 'empty'"
+                        :message="searchWord ? $t('搜索结果为空') : ''">
+                    </NoData>
                 </div>
             </div>
             <div class="task-footer" v-if="selectError">
@@ -150,9 +154,7 @@
                     </li>
                 </ul>
                 <div v-else class="empty-variable-tips">
-                    <NoData>
-                        <p>{{ $t('该流程暂无自定义全局变量') }}</p>
-                    </NoData>
+                    <NoData message="$t('该流程暂无自定义全局变量')"></NoData>
                 </div>
             </div>
             <div class="variable-footer">
@@ -611,10 +613,12 @@
         width: 850px;
         height: 100%;
         .task-list {
-            padding: 16px 0 0 24px;
-            height: 268px;
+            height: 280px;
             overflow-y: auto;
             @include scrollbar;
+            .grouped-list {
+                margin: 16px 0 0 24px;
+            }
         }
         .search-list {
             padding-top: 40px;
@@ -822,10 +826,7 @@
         }
     }
     .empty-variable-tips {
-        margin: 80px 0;
-        /deep/ .no-data-wording {
-            font-size: 12px;
-        }
+        height: 280px;
     }
     .variable-footer {
         position: absolute;

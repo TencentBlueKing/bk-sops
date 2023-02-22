@@ -95,7 +95,12 @@
                                 </template>
                             </template>
                         </bk-table-column>
-                        <div class="empty-data" slot="empty"><no-data></no-data></div>
+                        <div class="empty-data" slot="empty">
+                            <NoData
+                                :type="isSearch ? 'search-empty' : 'empty'"
+                                :message="isSearch ? $t('搜索结果为空') : ''">
+                            </NoData>
+                        </div>
                     </bk-table>
                 </bk-tab-panel>
             </bk-tab>
@@ -202,7 +207,10 @@
         computed: {
             ...mapState({
                 site_url: state => state.site_url
-            })
+            }),
+            isSearch () {
+                return this.appmakerProject || this.appmakerCategory
+            }
         },
         watch: {
             dateRange (val) {

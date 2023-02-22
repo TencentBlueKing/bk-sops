@@ -106,7 +106,12 @@
                                 @setting-change="handleSettingChange">
                             </bk-table-setting-content>
                         </bk-table-column>
-                        <div class="empty-data" slot="empty"><NoData /></div>
+                        <div class="empty-data" slot="empty">
+                            <NoData
+                                :type="searchSelectValue.length ? 'search-empty' : 'empty'"
+                                :message="searchSelectValue.length ? $t('搜索结果为空') : ''">
+                            </NoData>
+                        </div>
                     </bk-table>
                 </div>
             </div>
@@ -564,9 +569,6 @@
     }
     .audit-operation-btn {
         color: #3a84ff;
-    }
-    .empty-data {
-        padding: 120px 0;
     }
 }
 .panagation {

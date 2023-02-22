@@ -1077,9 +1077,6 @@
     top: 8px;
     font-size: 16px;
 }
-/deep/.no-data-wrapper {
-    margin: 150px 0;
-}
 .btn-footer {
     position: fixed;
     bottom: 0;
