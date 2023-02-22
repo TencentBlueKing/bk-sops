@@ -84,7 +84,8 @@
                 let items = [];
                 let placeholder = '';
                 if (metaConfig.datasource === "1") {
-                    remote_url = $.context.get('site_url') + 'pipeline/variable_select_source_data_proxy/?url=' + metaConfig.items_text;
+                    let data_url = encodeURIComponent(decodeURIComponent(metaConfig.items_text));
+                    remote_url = $.context.get('site_url') + 'pipeline/variable_select_source_data_proxy/?url=' + data_url;
                     remote = true;
                 } else {
                     try {
