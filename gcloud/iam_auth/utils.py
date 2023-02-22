@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from iam import Request, MultiActionRequest, Subject, Action
+from iam.auth.models import ApiBatchAuthRequest
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import MultiAuthFailedException, AuthFailedException, RawAuthFailedException
 from iam.shortcuts import allow_or_raise_auth_failed
@@ -52,10 +53,7 @@ def get_flow_allowed_actions_for_user(username, actions, flow_id_list):
         return {}
 
     return get_resources_allowed_actions_for_user(
-        username,
-        IAMMeta.SYSTEM_ID,
-        actions,
-        res_factory.resources_list_for_flows(flow_id_list),
+        username, IAMMeta.SYSTEM_ID, actions, res_factory.resources_list_for_flows(flow_id_list),
     )
 
 
@@ -65,12 +63,7 @@ def get_common_flow_allowed_actions_for_user(username, actions, common_flow_id_l
     if not resources_list:
         return {}
 
-    return get_resources_allowed_actions_for_user(
-        username,
-        IAMMeta.SYSTEM_ID,
-        actions,
-        resources_list,
-    )
+    return get_resources_allowed_actions_for_user(username, IAMMeta.SYSTEM_ID, actions, resources_list,)
 
 
 def get_mini_app_allowed_actions_for_user(username, actions, mini_app_id_list):
@@ -79,12 +72,7 @@ def get_mini_app_allowed_actions_for_user(username, actions, mini_app_id_list):
     if not resources_list:
         return {}
 
-    return get_resources_allowed_actions_for_user(
-        username,
-        IAMMeta.SYSTEM_ID,
-        actions,
-        resources_list,
-    )
+    return get_resources_allowed_actions_for_user(username, IAMMeta.SYSTEM_ID, actions, resources_list,)
 
 
 def get_task_allowed_actions_for_user(username, actions, task_id_list):
@@ -152,11 +140,7 @@ def check_project_or_admin_view_action_for_user(project_id, username):
     action = Action(IAMMeta.PROJECT_VIEW_ACTION) if project_id else Action(IAMMeta.ADMIN_VIEW_ACTION)
     resources = res_factory.resources_for_project(project_id) if project_id else []
     allow_or_raise_auth_failed(
-        iam=iam,
-        system=IAMMeta.SYSTEM_ID,
-        subject=Subject("user", username),
-        action=action,
-        resources=resources,
+        iam=iam, system=IAMMeta.SYSTEM_ID, subject=Subject("user", username), action=action, resources=resources,
     )
 
 
@@ -164,3 +148,18 @@ def check_and_raise_raw_auth_fail_exception(result: dict, message=None):
     if result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
         logger.warning(message or result.get("message", "[check_and_raise_raw_auth_fail_exception]"))
         raise RawAuthFailedException(permissions=result.get("permission", {}))
+
+
+def grant_or_revoke_common_space_actions_to_user(operator, username, common_space_id, actions, operate):
+    action_mapping = {
+        "join": IAMMeta.COMMON_SPACE_JOIN_ACTION,
+        "manage": IAMMeta.COMMON_SPACE_MANAGE_ACTION,
+    }
+    request = ApiBatchAuthRequest(
+        system=IAMMeta.SYSTEM_ID,
+        subject=Subject("user", username),
+        actions=[Action(action_mapping[act]) for act in actions],
+        resources=res_factory.path_resources_for_common_space(common_space_id),
+        operate=operate,
+    )
+    return iam.batch_grant_or_revoke_path_permission(request, bk_username=operator)

@@ -21,3 +21,9 @@ class CommonSpaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommonSpace
         fields = "__all__"
+
+
+class ActionGrantOrRevokeSerializer(serializers.Serializer):
+    operate = serializers.ChoiceField(choices=["grant", "revoke"])
+    actions = serializers.ListField(child=serializers.ChoiceField(choices=["manage", "join"]))
+    users = serializers.ListField(child=serializers.CharField())

@@ -10,16 +10,24 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import json
+
+import requests
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions
+from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
 
+import env
 from gcloud.common_template.models import CommonSpace, CommonTemplate
 from gcloud.core.apis.drf.permission import IamPermission, IamPermissionInfo, HAS_OBJECT_PERMISSION
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
-from gcloud.core.apis.drf.serilaziers.common_space import CommonSpaceSerializer
+from gcloud.core.apis.drf.serilaziers.common_space import CommonSpaceSerializer, ActionGrantOrRevokeSerializer
 from gcloud.core.apis.drf.viewsets import GcloudModelViewSet
 from gcloud.iam_auth import res_factory, IAMMeta
+from gcloud.iam_auth.utils import grant_or_revoke_common_space_actions_to_user
 
 
 class CommonSpacePermission(IamPermission):
@@ -33,6 +41,12 @@ class CommonSpacePermission(IamPermission):
             IAMMeta.COMMON_SPACE_MANAGE_ACTION, res_factory.resources_for_common_space_obj, HAS_OBJECT_PERMISSION
         ),
         "create": IamPermissionInfo(IAMMeta.COMMON_SPACE_CREATE_ACTION),
+        "get_common_space_users": IamPermissionInfo(
+            IAMMeta.COMMON_SPACE_MANAGE_ACTION, res_factory.resources_for_common_space_obj, HAS_OBJECT_PERMISSION
+        ),
+        "grant_or_revoke_common_space_action": IamPermissionInfo(
+            IAMMeta.COMMON_SPACE_MANAGE_ACTION, res_factory.resources_for_common_space_obj, HAS_OBJECT_PERMISSION
+        ),
     }
 
 
@@ -52,3 +66,65 @@ class CommonSpaceViewSet(GcloudModelViewSet):
             ids = CommonTemplate.objects.filter(space_id=kwargs["pk"]).values_list("id", flat=True)
             raise ValidationError(f"公共空间删除失败: 该公共空间下存在公共流程，id列表: [{','.join(list(ids))}]，不允许删除")
         return super(CommonSpaceViewSet, self).destroy(request, *args, **kwargs)
+
+    @swagger_auto_schema(method="post", request_body=ActionGrantOrRevokeSerializer)
+    @action(methods=["post"], detail=True)
+    def grant_or_revoke_common_space_action(self, request, *args, **kwargs):
+        serializer = ActionGrantOrRevokeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        operate = serializer.validated_data["operate"]
+        actions = serializer.validated_data["actions"]
+        users = serializer.validated_data["users"]
+        for user in users:
+            grant_or_revoke_common_space_actions_to_user(
+                operator=request.user.username,
+                username=user,
+                common_space_id=kwargs["pk"],
+                actions=actions,
+                operate=operate,
+            )
+        return Response({"result": True, "message": "ok"})
+
+    @action(methods=["get"], detail=True)
+    def get_common_space_users(self, request, *args, **kwargs):
+        if env.BK_IAM_SEARCH_ENGINE_HOST:
+            return Response({"result": False, "message": "iam search engine is not available"})
+        common_space_id = kwargs["pk"]
+        data = [
+            {
+                "system": IAMMeta.SYSTEM_ID,
+                "subject_type": "user",
+                "action": {"id": IAMMeta.COMMON_SPACE_JOIN_ACTION},
+                "resources": [
+                    {"system": IAMMeta.SYSTEM_ID, "type": "common_space", "id": str(common_space_id), "attribute": {}}
+                ],
+            },
+            {
+                "system": IAMMeta.SYSTEM_ID,
+                "subject_type": "user",
+                "action": {"id": IAMMeta.COMMON_SPACE_MANAGE_ACTION},
+                "resources": [
+                    {"system": IAMMeta.SYSTEM_ID, "type": "common_space", "id": str(common_space_id), "attribute": {}}
+                ],
+            },
+        ]
+        headers = {"Content-Type": "application/json"}
+        response = requests.get(
+            f"http://{env.BK_IAM_SEARCH_ENGINE_HOST}/api/v1/engine/batch-search/",
+            headers=headers,
+            data=json.dumps(data),
+        )
+        result = response.json()
+        if result["code"] != 0:
+            return Response({"result": False, "message": result["message"]})
+        join_data, manage_data = result["data"]["results"]
+        return Response(
+            {
+                "result": True,
+                "data": {
+                    "join_users": [data["name"] for data in join_data if data["type"] == "user"],
+                    "manage_users": [data["name"] for data in manage_data if data["type"] == "user"],
+                },
+                "message": "ok",
+            }
+        )
