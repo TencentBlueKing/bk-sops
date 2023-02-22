@@ -159,7 +159,7 @@ def grant_or_revoke_common_space_actions_to_user(operator, username, common_spac
         system=IAMMeta.SYSTEM_ID,
         subject=Subject("user", username),
         actions=[Action(action_mapping[act]) for act in actions],
-        resources=res_factory.path_resources_for_common_space(common_space_id),
+        resources=res_factory.batch_paths_resources_for_common_space(common_space_id),
         operate=operate,
     )
     return iam.batch_grant_or_revoke_path_permission(request, bk_username=operator)

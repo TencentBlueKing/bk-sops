@@ -83,19 +83,19 @@ class CommonSpaceViewSet(GcloudModelViewSet):
                 actions=actions,
                 operate=operate,
             )
-        return Response({"result": True, "message": "ok"})
+        return Response({})
 
     @action(methods=["get"], detail=True)
     def get_common_space_users(self, request, *args, **kwargs):
-        if env.BK_IAM_SEARCH_ENGINE_HOST:
-            return Response({"result": False, "message": "iam search engine is not available"})
+        if not env.BK_IAM_SEARCH_ENGINE_HOST:
+            raise ValidationError("iam search engine is not available")
         common_space_id = kwargs["pk"]
         data = [
             {
                 "system": IAMMeta.SYSTEM_ID,
                 "subject_type": "user",
                 "action": {"id": IAMMeta.COMMON_SPACE_JOIN_ACTION},
-                "resources": [
+                "resource": [
                     {"system": IAMMeta.SYSTEM_ID, "type": "common_space", "id": str(common_space_id), "attribute": {}}
                 ],
             },
@@ -103,7 +103,7 @@ class CommonSpaceViewSet(GcloudModelViewSet):
                 "system": IAMMeta.SYSTEM_ID,
                 "subject_type": "user",
                 "action": {"id": IAMMeta.COMMON_SPACE_MANAGE_ACTION},
-                "resources": [
+                "resource": [
                     {"system": IAMMeta.SYSTEM_ID, "type": "common_space", "id": str(common_space_id), "attribute": {}}
                 ],
             },
@@ -120,11 +120,7 @@ class CommonSpaceViewSet(GcloudModelViewSet):
         join_data, manage_data = result["data"]["results"]
         return Response(
             {
-                "result": True,
-                "data": {
-                    "join_users": [data["name"] for data in join_data if data["type"] == "user"],
-                    "manage_users": [data["name"] for data in manage_data if data["type"] == "user"],
-                },
-                "message": "ok",
+                "join_users": [data["name"] for data in join_data if data["type"] == "user"],
+                "manage_users": [data["name"] for data in manage_data if data["type"] == "user"],
             }
         )

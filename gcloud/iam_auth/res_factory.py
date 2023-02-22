@@ -12,7 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from iam import Resource
-from iam.auth.models import ApiAuthResourceWithPath
+from iam.auth.models import ApiBatchAuthResourceWithPath
 
 from gcloud.clocked_task.models import ClockedTask
 from gcloud.core.models import Project
@@ -105,13 +105,13 @@ def resources_for_common_space(common_space_id):
     ]
 
 
-def path_resources_for_common_space(common_space_id):
+def batch_paths_resources_for_common_space(common_space_id):
     common_space = CommonSpace.objects.get(id=common_space_id)
     return [
-        ApiAuthResourceWithPath(
+        ApiBatchAuthResourceWithPath(
             system=IAMMeta.SYSTEM_ID,
             type=IAMMeta.COMMON_SPACE_RESOURCE,
-            path=[{"type": IAMMeta.COMMON_SPACE_RESOURCE, "id": str(common_space_id), "name": common_space.name}],
+            paths=[[{"type": IAMMeta.COMMON_SPACE_RESOURCE, "id": str(common_space_id), "name": common_space.name}]],
         )
     ]
 
