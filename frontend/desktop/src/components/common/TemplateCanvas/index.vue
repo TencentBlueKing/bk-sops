@@ -1004,6 +1004,8 @@
                     // 更新节点position不更新activities
                     this.$refs.jsFlow.setNodePosition(location)
                     this.$emit('onLocationChange', 'edit', location)
+                    this.$emit('onLineChange', 'add', startLine)
+                    this.$emit('onLineChange', 'add', endLine)
                     this.$nextTick(() => {
                         this.$refs.jsFlow.createConnector(startLine)
                         this.$refs.jsFlow.createConnector(endLine)
@@ -1812,9 +1814,12 @@
                 // 删除旧的连线，创建新的连线
                 const result = this.updateConnector({ startNodeId, endNodeId, location, startLineArrow, endLineArrow })
                 if (!result) return
-                const { deleteLine, startLine, endLine } = result
+                const { startLine, endLine } = result
+                // 先创建节点再生成连线
                 this.$refs.jsFlow.createNode(location)
                 this.$emit('onLocationChange', type, location)
+                this.$emit('onLineChange', 'add', startLine)
+                this.$emit('onLineChange', 'add', endLine)
                 this.$nextTick(() => {
                     // 添加网关节点时禁止对该节点操作
                     if (location.type.includes('gateway') > -1) {
@@ -1825,6 +1830,14 @@
                     this.activeNode = location
                     this.openShortcutPanel('node')
                 })
+            },
+            // 更新连线
+            updateConnector ({ startNodeId, endNodeId, location, startLineArrow = {}, endLineArrow = {} }) {
+                // 查找旧的连线
+                const deleteLine = this.canvasData.lines.find(line => line.source.id === startNodeId && line.target.id === endNodeId)
+                if (!deleteLine) {
+                    return false
+                }
                 // 拷贝插入节点前网关的配置
                 let gateways = this.$store.state.template.gateways
                 gateways = tools.deepClone(gateways)
@@ -1841,14 +1854,9 @@
                         this.conditionInfo = { ...default_condition, default_condition }
                     }
                 }
-            },
-            // 更新连线
-            updateConnector ({ startNodeId, endNodeId, location, startLineArrow = {}, endLineArrow = {} }) {
-                const deleteLine = this.canvasData.lines.find(line => line.source.id === startNodeId && line.target.id === endNodeId)
-                if (!deleteLine) {
-                    return false
-                }
+                // 删除旧的连线
                 this.$refs.jsFlow.removeConnector(deleteLine)
+                // 新联连线配置
                 const startLine = {
                     source: {
                         arrow: startLineArrow.source || 'Right',
@@ -1869,8 +1877,6 @@
                         arrow: endLineArrow.target || 'Left'
                     }
                 }
-                this.$emit('onLineChange', 'add', startLine)
-                this.$emit('onLineChange', 'add', endLine)
                 return { deleteLine, startLine, endLine }
             },
             // 通过快捷面板删除连线
