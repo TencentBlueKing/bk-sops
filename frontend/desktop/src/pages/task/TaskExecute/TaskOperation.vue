@@ -1052,7 +1052,7 @@
                             await this.loadNodeInfo(id)
                         }
                     } else {
-                        this.openNodeInfoPanel('modifyParams', i18n.t('重试任务'))
+                        this.openNodeInfoPanel('modifyParams', i18n.t('重试'))
                         this.retryNodeId = id
                     }
                 } catch (error) {
