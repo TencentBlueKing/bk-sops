@@ -38,6 +38,7 @@
                             :prop="item.id"
                             :render-header="renderTableHeader"
                             :width="item.width"
+                            show-overflow-tooltip
                             :min-width="item.min_width">
                             <template slot-scope="props">
                                 <!-- 任务ID -->

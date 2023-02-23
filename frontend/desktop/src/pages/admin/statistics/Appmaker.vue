@@ -80,6 +80,7 @@
                             :label="item.label"
                             :prop="item.prop"
                             :width="item.hasOwnProperty('width') ? item.width : 'auto'"
+                            show-overflow-tooltip
                             :sortable="item.sortable">
                             <template slot-scope="props">
                                 <router-link

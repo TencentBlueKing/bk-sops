@@ -107,6 +107,7 @@
                                 :prop="item.prop"
                                 :width="item.hasOwnProperty('width') ? item.width : 'auto'"
                                 :min-width="item.hasOwnProperty('minWidth') ? item.minWidth : 'auto'"
+                                show-overflow-tooltip
                                 :sortable="item.sortable">
                                 <template slot-scope="props">
                                     <a
@@ -128,6 +129,7 @@
                                     :label="item.label"
                                     :prop="item.prop"
                                     :min-width="120"
+                                    show-overflow-tooltip
                                     :render-header="renderFilterHeader">
                                     <template slot-scope="props">
                                         <span :title="props.row[item.prop]">{{ props.row[item.prop] }}</span>

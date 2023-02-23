@@ -100,6 +100,7 @@
                             :width="item.width"
                             :min-width="item.min_width"
                             :class-name="item.id.replace(/_/g, '-')"
+                            show-overflow-tooltip
                             :render-header="renderTableHeader"
                             :sort-orders="['descending', 'ascending', null]"
                             :sortable="sortableCols.find(col => col.value === (item.key || item.id)) ? 'custom' : false">
@@ -1641,16 +1642,13 @@
             height: 42px;
         }
     }
-    .flow-name-column {
-        display: flex;
-        align-items: center;
-    }
     .icon-favorite {
         position: absolute;
         left: -9px;
         font-size: 14px;
         color: #c4c6cc;
         display: none;
+        margin-top: 1px;
         &.is-active {
             display: block;
             color: #ff9c01;

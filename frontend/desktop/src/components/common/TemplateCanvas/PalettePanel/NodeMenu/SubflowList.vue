@@ -69,7 +69,12 @@
                         </div>
                     </div>
                 </template>
-                <bk-exception v-if="tableList.length === 0" class="exception-part" type="empty" scene="part"></bk-exception>
+                <NoData
+                    v-if="tableList.length === 0"
+                    class="exception-part"
+                    :type="(labels.length || searchStr) ? 'search-empty' : 'empty'"
+                    :message="(labels.length || searchStr) ? $t('搜索结果为空') : ''">
+                </NoData>
             </div>
         </div>
     </div>
@@ -78,11 +83,13 @@
     import permission from '@/mixins/permission.js'
     import tools from '@/utils/tools.js'
     import NodeItem from '../NodeItem.vue'
+    import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'SubflowList',
         components: {
-            NodeItem
+            NodeItem,
+            NoData
         },
         mixins: [permission],
         props: {
@@ -311,6 +318,11 @@
             line-height: 40px;
             color: #63656e;
             font-size: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 1;
         }
     }
     .exception-part {

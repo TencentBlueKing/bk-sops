@@ -49,6 +49,7 @@
                                 :prop="item.id"
                                 :width="item.width"
                                 :render-header="renderTableHeader"
+                                show-overflow-tooltip
                                 :min-width="item.min_width">
                                 <template slot-scope="{ row }">
                                     <!--任务-->

@@ -39,6 +39,7 @@
                             :label="item.label"
                             :prop="item.id"
                             :width="item.width"
+                            show-overflow-tooltip
                             :min-width="item.min_width">
                             <template slot-scope="props">
                                 {{ props.row[item.id] || '--' }}

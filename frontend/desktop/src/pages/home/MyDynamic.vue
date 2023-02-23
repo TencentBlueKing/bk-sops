@@ -43,6 +43,7 @@
                 :prop="item.prop"
                 :width="item.hasOwnProperty('width') ? item.width : 'auto'"
                 :min-width="item.min_width"
+                show-overflow-tooltip
                 :sortable="item.sortable">
                 <template slot-scope="props">
                     <template v-if="item.prop === 'status'">

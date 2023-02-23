@@ -32,7 +32,7 @@
                         :min-width="item.width"
                         :label="item.label"
                         :align="item.align"
-                        :resizable="false"
+                        show-overflow-tooltip
                         :prop="item.prop">
                         <template slot-scope="{ row, $index }">
                             <div v-if="item.prop === 'name'" class="business-name">
@@ -342,12 +342,12 @@
                     }
                 }
                 .business-name {
-                    display: flex;
-                    align-items: center;
                     .color-block {
+                        display: inline-block;
                         width: 12px;
                         height: 12px;
                         margin-right: 8px;
+                        vertical-align: middle;
                     }
                 }
             }

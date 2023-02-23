@@ -7,6 +7,8 @@
                 right-icon="bk-icon icon-search"
                 :placeholder="$t('搜索插件')"
                 :clearable="true"
+                @input="isSearch = false"
+                @clear="handleSearch"
                 @enter="handleSearch">
             </bk-input>
         </div>
@@ -29,18 +31,24 @@
                         logo_url: plugin.logo_url
                     }">
                 </node-item>
-                <bk-exception v-if="pluginList.length === 0" class="exception-part" type="empty" scene="part"></bk-exception>
+                <NoData
+                    v-if="pluginList.length === 0"
+                    :type="isSearch ? 'search-empty' : 'empty'"
+                    :message="searchStr ? $t('搜索结果为空') : ''">
+                </NoData>
             </div>
         </div>
     </div>
 </template>
 <script>
     import NodeItem from '../NodeItem.vue'
+    import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'ThirdPartyPluginList',
         components: {
-            NodeItem
+            NodeItem,
+            NoData
         },
         data () {
             return {
@@ -50,7 +58,8 @@
                 pagelimit: 15, // 默认值
                 pluginPageOffset: 0,
                 isCompleteLoading: false,
-                searchStr: ''
+                searchStr: '',
+                isSearch: false
             }
         },
         mounted () {
@@ -112,6 +121,10 @@
                 }
             },
             handleSearch (val) {
+                this.isSearch = true
+                this.pluginList = []
+                this.pluginPageOffset = 0
+                this.getPluginList()
             }
         }
     }

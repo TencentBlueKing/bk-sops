@@ -56,7 +56,11 @@
                                 </node-item>
                             </template>
                             <div class="node-empty" v-if="group.list.length === 0">
-                                <bk-exception class="exception-part" type="empty" scene="part"></bk-exception>
+                                <NoData
+                                    class="exception-part"
+                                    :type="searchStr ? 'search-empty' : 'empty'"
+                                    :message="searchStr ? $t('搜索结果为空') : ''">
+                                </NoData>
                             </div>
                         </div>
                     </bk-collapse-item>
@@ -67,7 +71,12 @@
                     <node-item class="node-item" type="tasknode" :key="index" :node="node">
                     </node-item>
                 </template>
-                <bk-exception v-if="pluginList.length === 0" class="exception-part" type="empty" scene="part"></bk-exception>
+                <NoData
+                    v-if="pluginList.length === 0"
+                    class="exception-part"
+                    :type="searchStr ? 'search-empty' : 'empty'"
+                    :message="searchStr ? $t('搜索结果为空') : ''">
+                </NoData>
             </div>
         </div>
     </div>
@@ -76,11 +85,13 @@
     import { SYSTEM_GROUP_ICON } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
     import NodeItem from '../NodeItem.vue'
+    import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'BuiltInPluginList',
         components: {
-            NodeItem
+            NodeItem,
+            NoData
         },
         props: {
             builtInPlugins: {

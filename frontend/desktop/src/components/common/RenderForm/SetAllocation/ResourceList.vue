@@ -61,6 +61,7 @@
                     :label="item.config.attrs.name"
                     :min-width="item.width"
                     :index="colIndex"
+                    show-overflow-tooltip
                     :prop="item.config.tag_code"
                     :fixed="item.config.tag_code === 'tb_btns' ? 'right' : false"
                     :align="item.config.tag_code === 'tb_btns' ? 'center' : 'left'">

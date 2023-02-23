@@ -33,6 +33,7 @@
                             :label="col.label"
                             :prop="col.prop"
                             :width="col.hasOwnProperty('width') ? col.width : 'auto'"
+                            show-overflow-tooltip
                             :sortable="col.sortable">
                             <template slot-scope="props">
                                 <template v-if="col.prop === 'name'">
@@ -101,6 +102,7 @@
                             :label="col.label"
                             :prop="col.prop"
                             :width="col.hasOwnProperty('width') ? col.width : 'auto'"
+                            show-overflow-tooltip
                             :sortable="col.sortable">
                             <template slot-scope="props">
                                 <template v-if="col.prop === 'name'">
@@ -559,7 +561,6 @@
             cursor: pointer;
         }
         .task-status {
-            width: 105px;
             text-align: left;
             .common-icon-waitting,
             .common-icon-dark-circle-shape {
@@ -600,7 +601,6 @@
                 }
             }
             .task-status-text {
-                display: inline-block;
                 vertical-align: middle;
             }
         }

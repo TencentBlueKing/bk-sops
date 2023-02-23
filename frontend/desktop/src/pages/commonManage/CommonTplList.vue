@@ -97,6 +97,7 @@
                             :width="item.width"
                             :min-width="item.min_width"
                             :class-name="item.id.replace(/_/g, '-')"
+                            show-overflow-tooltip
                             :render-header="renderTableHeader"
                             :sort-orders="['descending', 'ascending', null]"
                             :sortable="sortableCols.find(col => col.value === (item.key || item.id)) ? 'custom' : false">

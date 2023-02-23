@@ -29,7 +29,7 @@
                 </p>
             </div>
         </div>
-        <div v-else class="name-wrapper">{{node.name}}</div>
+        <div v-else class="name-wrapper" v-bk-overflow-tips>{{node.name}}</div>
     </div>
 </template>
 <script>
@@ -72,7 +72,6 @@
             font-weight: 700;
             line-height: 19px;
             margin-bottom: 4px;
-            white-space: nowrap;
             text-overflow: ellipsis;
             overflow: hidden;
         }
@@ -87,6 +86,13 @@
         &:hover {
             background: hsl(218, 100%, 94%);
         }
+    }
+    .name-wrapper {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 1;
     }
 </style>
 <style lang="scss">

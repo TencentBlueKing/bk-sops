@@ -11,8 +11,8 @@
 <template>
     <div class="output-params">
         <bk-table :data="list" :col-border="false" :row-class-name="getRowClassName">
-            <bk-table-column :label="$t('名称')" :width="180" prop="name"></bk-table-column>
-            <bk-table-column :label="$t('说明')">
+            <bk-table-column show-overflow-tooltip :label="$t('名称')" :width="180" prop="name"></bk-table-column>
+            <bk-table-column show-overflow-tooltip :label="$t('说明')">
                 <template slot-scope="props">
                     <div
                         v-if="props.row.description"

@@ -39,8 +39,8 @@
                             <bk-checkbox :value="props.row.isChecked" @change="onSelectTemplate(props.row)"></bk-checkbox>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :resizable="false" label="ID" prop="id" width="120"></bk-table-column>
-                    <bk-table-column :resizable="false" label="流程名称" prop="name"></bk-table-column>
+                    <bk-table-column show-overflow-tooltip :resizable="false" label="ID" prop="id" width="120"></bk-table-column>
+                    <bk-table-column show-overflow-tooltip :resizable="false" label="流程名称" prop="name"></bk-table-column>
                     <div class="is-loading" slot="append" v-if="!isPageOver && isLoading" v-bkloading="{ isLoading: isLoading, zIndex: 100 }"></div>
                     <div class="empty-data" slot="empty">
                         <NoData
