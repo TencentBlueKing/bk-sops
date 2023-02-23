@@ -676,10 +676,10 @@
                 if (style) {
                     style = style.value.split(';').filter(value => value)
                     nodeLeft = style.find(item => item.indexOf('left') > -1)
-                    nodeLeft = nodeLeft ? /:.([0-9.]+)px/.exec(nodeLeft)[1] : 0
+                    nodeLeft = nodeLeft ? /:.((\-)?[0-9.]+)px/.exec(nodeLeft)[1] : 0
                     nodeLeft = Number(nodeLeft)
                     nodeTop = style.find(item => item.indexOf('top') > -1)
-                    nodeTop = nodeTop ? /:.([0-9.]+)px/.exec(nodeTop)[1] : 0
+                    nodeTop = nodeTop ? /:.((\-)?[0-9.]+)px/.exec(nodeTop)[1] : 0
                     nodeTop = Number(nodeTop)
                 }
                 const location = {
