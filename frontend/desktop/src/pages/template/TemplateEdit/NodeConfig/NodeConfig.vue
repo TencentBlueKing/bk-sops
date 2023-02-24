@@ -1629,6 +1629,7 @@
                 })
             },
             onClosePanel (openVariablePanel) {
+                this.$emit('updateNodeInfo', this.nodeId, { isActived: false })
                 this.$emit('close', openVariablePanel)
             }
         }

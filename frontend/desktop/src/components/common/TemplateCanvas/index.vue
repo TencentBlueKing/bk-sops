@@ -1324,6 +1324,7 @@
                 if (this.referenceLine.id && this.referenceLine.id === node.id) {
                     this.clearReferenceLine()
                 }
+                // 关闭快捷菜单面板
                 if (this.activeNode) {
                     this.closeShortcutPanel()
                 }
@@ -1715,16 +1716,24 @@
                 }
                 // 快捷菜单面板
                 if (type !== 'endpoint') {
-                    if (this.activeNode && this.activeNode.id) {
-                        this.onUpdateNodeInfo(this.activeNode.id, { isActived: false })
-                        this.toggleNodeLevel(this.activeNode.id, false)
-                        this.onUpdateNodeInfo(id, { isActived: true })
-                        this.toggleNodeLevel(id, true)
-                    }
+                    // 设置节点选中状态
+                    this.setNodeActive(id)
                     this.activeCon = null
                     this.activeNode = this.canvasData.locations.find(item => item.id === id)
                     this.openShortcutPanel('node')
                 }
+            },
+            // 设置节点选中状态
+            setNodeActive (id) {
+                // 取消上个节点的选中态，给当前点击节点加上选中态
+                this.$nextTick(() => {
+                    if (this.activeNode && this.activeNode.id) {
+                        this.onUpdateNodeInfo(this.activeNode.id, { isActived: false })
+                        this.toggleNodeLevel(this.activeNode.id, false)
+                    }
+                    this.onUpdateNodeInfo(id, { isActived: true })
+                    this.toggleNodeLevel(id, true)
+                })
             },
             /**
              * 节点双击
@@ -1732,6 +1741,8 @@
             onNodeDblclick (id) {
                 this.onShowNodeConfig(id)
                 this.closeShortcutPanel()
+                // 设置节点选中状态
+                this.setNodeActive(id)
             },
             // 显示快捷节点面板
             openShortcutPanel (type, e) {
@@ -1785,6 +1796,10 @@
                 this.$emit('onLocationChange', 'copy', location)
                 this.$nextTick(() => {
                     this.addNodeToSelectedList(location)
+                    // 设置节点选中状态
+                    this.setNodeActive(location.id)
+                    this.activeNode = location
+                    this.openShortcutPanel('node')
                 })
             },
             // 节点后面追加
@@ -1799,6 +1814,8 @@
                         this.shortcutPanelNodeOperate = false
                     }
                     this.$refs.jsFlow.createConnector(line)
+                    // 设置节点选中状态
+                    this.setNodeActive(location.id)
                     this.activeNode = location
                     this.openShortcutPanel('node')
                 })
@@ -1827,6 +1844,8 @@
                     }
                     this.$refs.jsFlow.createConnector(startLine)
                     this.$refs.jsFlow.createConnector(endLine)
+                    // 设置节点选中状态
+                    this.setNodeActive(location.id)
                     this.activeNode = location
                     this.openShortcutPanel('node')
                 })
@@ -2031,8 +2050,7 @@
                 if (this.showShortcutPanel) {
                     const domClass = this.shortcutPanelDeleteLine ? 'jtk-connector' : 'canvas-node'
                     if (!dom.parentClsContains(`${domClass}`, e.target) && !dom.parentClsContains('shortcut-panel', e.target)) {
-                        this.connectorPosition = {}
-                        this.showShortcutPanel = false
+                        this.closeShortcutPanel()
                     }
                 }
             },
