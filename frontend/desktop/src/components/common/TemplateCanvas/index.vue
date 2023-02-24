@@ -1868,13 +1868,14 @@
                 if (startNodeId in gateways) {
                     const branchInfo = gateways[startNodeId]
                     const { conditions, default_condition } = branchInfo
-                    if (!conditions) return
-                    const tagCode = `branch_${startNodeId}_${location.id}`
-                    conditions.tag = tagCode
-                    this.conditionInfo = conditions[deleteLine.id]
-                    if (default_condition && default_condition.flow_id === deleteLine.id) {
-                        default_condition.tag = tagCode
-                        this.conditionInfo = { ...default_condition, default_condition }
+                    if (conditions) {
+                        const tagCode = `branch_${startNodeId}_${location.id}`
+                        conditions.tag = tagCode
+                        this.conditionInfo = conditions[deleteLine.id]
+                        if (default_condition && default_condition.flow_id === deleteLine.id) {
+                            default_condition.tag = tagCode
+                            this.conditionInfo = { ...default_condition, default_condition }
+                        }
                     }
                 }
                 // 删除旧的连线
