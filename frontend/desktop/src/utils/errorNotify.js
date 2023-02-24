@@ -16,13 +16,14 @@ export default class ErrorNotify {
             message: h('div',
                 [
                     traceId || msg ? h('p', {
+                        class: 'toggle-btn',
                         style: { position: 'absolute', top: '24px', right: '36px', color: '#3a84ff', cursor: 'pointer' },
                         on: {
                             click: () => {
                                 this.toggleShowMore()
                             }
                         }
-                    }, [i18n.t('查看更多')]) : '',
+                    }, [i18n.t('展开详情')]) : '',
                     h('div', {
                         class: 'bk-notify-content-text',
                         style: this.showMore ? {} : {
@@ -132,6 +133,11 @@ export default class ErrorNotify {
     }
     toggleShowMore () {
         this.showMore = !this.showMore
+        // 设置切换按钮文案
+        const btnDom = this.notify.$el.querySelector('.toggle-btn')
+        if (btnDom) {
+            btnDom.innerHTML = this.showMore ? i18n.t('隐藏详情') : i18n.t('展开详情')
+        }
         // 计算当前展开的notify最大层级
         const notifyErrorDoms = document.querySelectorAll('.bk-notify')
         const zIndexList = [2500] // 默认层级2500

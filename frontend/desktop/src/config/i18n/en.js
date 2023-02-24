@@ -1573,7 +1573,9 @@ const en = {
     '复制并插入': 'Copy and insert',
     '解除连线': 'Disconnect',
     '解除节点连线成功': 'Disconnect node successfully',
-    '退回节点：': 'Back off node：'
+    '退回节点：': 'Back off node：',
+    '展开详情': 'Expand details',
+    '隐藏详情': 'Hide details'
 }
 
 export default en
