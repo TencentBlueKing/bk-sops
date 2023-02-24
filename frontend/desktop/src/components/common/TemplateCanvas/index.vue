@@ -1356,6 +1356,10 @@
                     })
                     this.connectionHoverList = []
                 }
+                // 节点执行历史面板跟着节点移动
+                if (this.isExecRecordPanelShow || this.isPerspectivePanelShow) {
+                    this.onNodeMouseEnter(location)
+                }
             },
             /**
              * 节点移动时，计算当前节点的四个端点到目标端点的最短距离，取出对应端点，重新连线
