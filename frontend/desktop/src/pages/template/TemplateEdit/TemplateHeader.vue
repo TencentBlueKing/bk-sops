@@ -286,13 +286,6 @@
                         this.applyTplPerm(this.saveAndCreateRequiredPerm)
                     }
                 } else {
-                    if (!this.isTemplateDataChanged) {
-                        this.$bkMessage({
-                            theme: 'warning',
-                            message: i18n.t('流程未修改')
-                        })
-                        return
-                    }
                     if (this.saveBtnActive) {
                         this.saveTemplate(saveAndCreate)
                     } else {
