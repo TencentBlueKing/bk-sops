@@ -120,7 +120,16 @@
                             </bk-table-column>
                             <bk-table-column :label="$t('标签引用')" :width="200">
                                 <template slot-scope="props">
-                                    {{ labelCount[props.row.id] ? labelCount[props.row.id].length : 0 }}{{ $t('个流程在引用') }}
+                                    <router-link
+                                        class="citation"
+                                        :to="{
+                                            name: 'processHome',
+                                            params: { project_id: id },
+                                            query: { label_ids: String(props.row.id) }
+                                        }">
+                                        {{ labelCount[props.row.id] ? labelCount[props.row.id].length : 0 }}
+                                    </router-link>
+                                    {{ $t('个流程在引用') }}
                                 </template>
                             </bk-table-column>
                             <bk-table-column :label="$t('系统默认标签')" :width="300">
@@ -1000,6 +1009,9 @@
         line-height: 1;
         color: #63656e;
         border-radius: 8px;
+    }
+    .citation {
+        color: #3a84ff;
     }
     .agent-dialog,
     .scheme-dialog,
