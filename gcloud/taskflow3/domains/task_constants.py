@@ -43,7 +43,7 @@ class TaskConstantsHandler:
         rendered_node_ids = [
             state.node_id
             for state in self.runtime.get_state_by_root(self.task.pipeline_instance.instance_id)
-            if state.name in RENDERED_STATE_TYPES
+            if state.name in RENDERED_STATE_TYPES and state.skip is False
         ]
         batch_data = self.runtime.get_batch_data(rendered_node_ids).values()
         need_render_inputs = [data.need_render_inputs() for data in batch_data]
