@@ -181,3 +181,32 @@ class NewLabelViewSet(ApiMixin, ModelViewSet):
         )
         base_ids = [int(base_id) for base_id in base_ids.strip().split(",")]
         return Response(fetch_func(base_ids))
+
+    @swagger_auto_schema(method="get", auto_schema=AnnotationAutoSchema)
+    @action(methods=["get"], detail=False)
+    def get_label_template_count(self, request):
+        """
+        批量获取某些标签对应的流程数量
+
+        param: project_id: 项目ID, integer, query, required
+        param: label_ids: 标签ID列表(以`,`分隔), string, query, required
+
+        return: 标签对应的流程ID数量
+        {
+            "label_id(integer)": "流程数量"
+        }
+        """
+        label_ids = request.query_params.get("label_ids")
+        project_id = request.query_params.get("project_id")
+        if label_ids is None and project_id is None:
+            raise ValidationException("Both label_ids and project_id must be provided.")
+
+        if label_ids == "":
+            return Response([])
+
+        label_ids = label_ids.strip().split(",")
+        label_template_count = TemplateLabelRelation.objects.fetch_label_template_count(
+            label_ids=label_ids, project_id=int(project_id)
+        )
+
+        return Response({data["label_id"]: data["count"] for data in label_template_count})
