@@ -783,10 +783,10 @@
                                          )
                                      ]
                         ),
-                        confirmFn: () => {
+                        confirmFn: async () => {
                             const constants = ins.handleIllegalKeys()
                             this.setConstants(constants)
-                            this.saveTemplate()
+                            await this.saveTemplate()
                         }
                     })
                     return true
