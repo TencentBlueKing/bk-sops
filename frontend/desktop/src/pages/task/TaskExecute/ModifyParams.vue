@@ -85,7 +85,7 @@
                 pending: false, // 提交修改中
                 remoteData: {}, // 文本值下拉框变量远程数据源
                 isChildTaskFlow: false, // 是否为子流程任务
-                constantLoading: true, // 变量是否被使用加载
+                constantLoading: false, // 变量是否被使用加载
                 unUsedConstants: [] // 还未执行的变量
             }
         },
@@ -112,9 +112,10 @@
                 this.remoteData[code] = data
             })
             
+            /* 暂不进行变量是否被使用判断 */
             // 先获取被使用过的变量
-            this.constantLoading = true
-            this.unUsedConstants = await this.getUnUsedConstants()
+            // this.constantLoading = true
+            // this.unUsedConstants = await this.getUnUsedConstants()
             this.getTaskData()
         },
         mounted () {
@@ -268,37 +269,38 @@
                 }
                 try {
                     this.pending = true
-                    // 首先判断参数是否有被使用
-                    const unUsedConstants = await this.getUnUsedConstants()
-                    const usedConstants = modifiedKeys.filter(key => !unUsedConstants.includes(key))
-                    // 如果有变量被使用过则提示报错，不进行提交
-                    if (this.state !== 'CREATED' && usedConstants.length) {
-                        const paramEditComp = this.$refs.TaskParamEdit
-                        if (paramEditComp) {
-                            paramEditComp.renderConfig.forEach(item => {
-                                if (!item.attrs?.used_tip && !unUsedConstants.includes(item.tag_code)) {
-                                    if (!item.attrs) {
-                                        item.attrs = {}
-                                    }
-                                    if (usedConstants.includes(item.tag_code)) {
-                                        item.attrs['html_used_tip'] = true
-                                    } else {
-                                        item.attrs['disabled'] = true
-                                        if (item.attrs.children) {
-                                            this.setAtomDisable(item.attrs.children)
-                                        }
-                                    }
-                                    item.attrs['used_tip'] = i18n.t('参数已被使用，不可修改')
-                                }
-                            })
-                            paramEditComp.randomKey = new Date().getTime()
-                        }
-                        this.$bkMessage({
-                            message: i18n.t('保存失败，有参数已被使用不可修改'),
-                            theme: 'error'
-                        })
-                        return
-                    }
+                    /* 暂不进行变量是否被使用判断 */
+                    // // 首先判断参数是否有被使用
+                    // const unUsedConstants = await this.getUnUsedConstants()
+                    // const usedConstants = modifiedKeys.filter(key => !unUsedConstants.includes(key))
+                    // // 如果有变量被使用过则提示报错，不进行提交
+                    // if (this.state !== 'CREATED' && usedConstants.length) {
+                    //     const paramEditComp = this.$refs.TaskParamEdit
+                    //     if (paramEditComp) {
+                    //         paramEditComp.renderConfig.forEach(item => {
+                    //             if (!item.attrs?.used_tip && !unUsedConstants.includes(item.tag_code)) {
+                    //                 if (!item.attrs) {
+                    //                     item.attrs = {}
+                    //                 }
+                    //                 if (usedConstants.includes(item.tag_code)) {
+                    //                     item.attrs['html_used_tip'] = true
+                    //                 } else {
+                    //                     item.attrs['disabled'] = true
+                    //                     if (item.attrs.children) {
+                    //                         this.setAtomDisable(item.attrs.children)
+                    //                     }
+                    //                 }
+                    //                 item.attrs['used_tip'] = i18n.t('参数已被使用，不可修改')
+                    //             }
+                    //         })
+                    //         paramEditComp.randomKey = new Date().getTime()
+                    //     }
+                    //     this.$bkMessage({
+                    //         message: i18n.t('保存失败，有参数已被使用不可修改'),
+                    //         theme: 'error'
+                    //     })
+                    //     return
+                    // }
                     const res = await this.instanceModifyParams(data)
                     if (res.result) {
                         if (this.retryNodeId) {

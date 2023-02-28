@@ -176,7 +176,9 @@
                     }
 
                     const isPreRenderMako = this.preMakoDisabled && variable.pre_render_mako // 变量预渲染
-                    const isUsed = this.unUsedConstants.length && !this.unUsedConstants.includes(variable.key) // 变量是否被使用
+                    /* 暂不进行变量是否被使用判断 */
+                    // const isUsed = this.unUsedConstants.length && !this.unUsedConstants.includes(variable.key) // 变量是否被使用
+                    const isUsed = false
                     atomConfig.forEach(item => {
                         if (!item.attrs) {
                             item.attrs = {}
@@ -185,7 +187,7 @@
                         if (isPreRenderMako) {
                             item.attrs['pre_mako_tip'] = i18n.t('设为「常量」的参数中途不允许修改')
                         } else if (isUsed) {
-                            item.attrs['used_tip'] = this.isUsedTipShow ? i18n.t('参数已被使用，不可修改') : ''
+                            // item.attrs['used_tip'] = this.isUsedTipShow ? i18n.t('参数已被使用，不可修改') : ''
                         } else {
                             delete item.attrs['pre_mako_tip']
                             delete item.attrs['used_tip']
@@ -220,10 +222,11 @@
                             if (this.preMakoDisabled && variable.pre_render_mako) {
                                 currentFormConfig.attrs['disabled'] = true
                                 currentFormConfig.attrs['pre_mako_tip'] = i18n.t('设为「常量」的参数中途不允许修改')
-                            } else if (this.unUsedConstants.length && !this.unUsedConstants.includes(variable.key)) {
-                                currentFormConfig.attrs['disabled'] = true
-                                currentFormConfig.attrs['used_tip'] = this.isUsedTipShow ? i18n.t('参数已被使用，不可修改') : ''
                             }
+                            // else if (this.unUsedConstants.length && !this.unUsedConstants.includes(variable.key)) {
+                            //     currentFormConfig.attrs['disabled'] = true
+                            //     currentFormConfig.attrs['used_tip'] = this.isUsedTipShow ? i18n.t('参数已被使用，不可修改') : ''
+                            // }
                             this.metaConfig[key] = tools.deepClone(variable)
                             // 任务参数重用(元变量)
                             const { remote_url } = currentFormConfig.attrs
