@@ -961,7 +961,15 @@
                         projectId: this.project_id,
                         common: false
                     })
-                    if (!resp.result) return
+                    if (!resp.result) {
+                        if ('errorId' in resp) {
+                            this.$bkMessage({
+                                message: resp.message,
+                                theme: 'error'
+                            })
+                        }
+                        return
+                    }
                     // 前端修改对应模板的labels
                     curRow.template_labels = this.templateLabels.reduce((acc, cur) => {
                         const { id, name, color } = cur

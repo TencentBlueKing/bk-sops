@@ -1575,7 +1575,9 @@ const en = {
     '解除节点连线成功': 'Disconnect node successfully',
     '退回节点：': 'Back off node：',
     '展开详情': 'Expand details',
-    '隐藏详情': 'Hide details'
+    '隐藏详情': 'Hide details',
+    '并行网关缺少对应的汇聚网关': 'The parallel gateway lacks the corresponding aggregation gateway',
+    '条件并行网关缺少对应的汇聚网关': 'The conditional parallel gateway lacks a corresponding aggregation gateway'
 }
 
 export default en
