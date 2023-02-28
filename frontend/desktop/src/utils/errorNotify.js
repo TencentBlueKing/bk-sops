@@ -89,7 +89,7 @@ export default class ErrorNotify {
             content = isTitle ? infoArr[0].split('{')[1].replace(/\'|\"/g, '') : (infoArr[1] || infoArr[0]).split('}')[0]
         } else {
             const { message } = JSON.parse(info)
-            const regex = /([\s\S]*)?: ([\s\S]*)?/ // 标准数据结构
+            const regex = /([^:]*)?: (.*)?/ // 标准数据结构
             if (regex.test(message)) {
                 const arr = message.match(regex)
                 content = isTitle ? arr[1] : arr[2]?.split(' | ')[msgIndex]
