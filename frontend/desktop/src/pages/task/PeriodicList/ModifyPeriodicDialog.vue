@@ -114,10 +114,10 @@
                                     v-else
                                     v-model="formData.schemeId"
                                     :searchable="true"
-                                    :placeholder="$t('请选择')"
+                                    :placeholder="schemeSelectPlaceholder"
                                     :multiple="true"
                                     :clearable="false"
-                                    :disabled="formData.is_latest !== true || !formData.template_id || previewDataLoading"
+                                    :disabled="isSelectSchemeDisable"
                                     :loading="isLoading || schemeLoading"
                                     @selected="onSelectScheme">
                                     <bk-option
@@ -270,7 +270,7 @@
                     is_latest: this.isEdit ? is_latest : true,
                     task_template_name,
                     template_id,
-                    schemeId: this.isEdit ? (schemeId.length ? schemeId : [0]) : []
+                    schemeId: this.isEdit ? (schemeId.length ? schemeId : []) : []
                 },
                 initFormData: {},
                 templateData: {},
@@ -401,6 +401,13 @@
             hasNoCreatePerm () {
                 const { id, auth_actions } = this.templateData
                 return this.isEdit || !id ? false : !this.hasPermission(['flow_create_periodic_task'], auth_actions)
+            },
+            schemeSelectPlaceholder () {
+                return !this.formData.template_id || this.isLoading || this.schemeLoading ? i18n.t('请选择') : i18n.t('此流程无执行方案，无需选择')
+            },
+            isSelectSchemeDisable () {
+                const { is_latest, template_id } = this.formData
+                return is_latest !== true || !template_id || this.previewDataLoading || !this.schemeList.length
             }
         },
         created () {
@@ -519,7 +526,7 @@
                             this.previewData = tools.deepClone(this.curRow.pipeline_tree)
                         }
                     } else if (!this.isEdit) {
-                        this.formData.schemeId = [0]
+                        this.formData.schemeId = this.schemeList.length ? [0] : []
                         const templateInfo = this.templateList.find(item => item.id === id)
                         await this.getPreviewNodeData(id, templateInfo.version, true)
                     }
@@ -564,12 +571,14 @@
                     })
                     const { activities } = this.templateData.pipeline_tree
                     const nodeList = Object.keys(activities)
-                    this.schemeList.unshift({
-                        data: JSON.stringify(nodeList),
-                        id: 0,
-                        idDefault: false,
-                        name: '<' + i18n.t('不使用执行方案') + '>'
-                    })
+                    if (this.schemeList.length) {
+                        this.schemeList.unshift({
+                            data: JSON.stringify(nodeList),
+                            id: 0,
+                            idDefault: false,
+                            name: '<' + i18n.t('不使用执行方案') + '>'
+                        })
+                    }
                 } catch (e) {
                     console.log(e)
                 } finally {
