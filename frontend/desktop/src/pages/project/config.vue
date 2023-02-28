@@ -127,7 +127,7 @@
                                             params: { project_id: id },
                                             query: { label_ids: String(props.row.id) }
                                         }">
-                                        {{ labelCount[props.row.id] ? labelCount[props.row.id].length : 0 }}
+                                        {{ labelCount[props.row.id] || 0 }}
                                     </router-link>
                                     {{ $t('个流程在引用') }}
                                 </template>
@@ -551,7 +551,7 @@
                 'updateTemplateLabel',
                 'createTemplateLabel',
                 'delTemplateLabel',
-                'getlabelsCitedCount',
+                'getLabelsCitedCount',
                 'loadEnvVariableList',
                 'createEnvVariable',
                 'deleteEnvVariable',
@@ -759,7 +759,7 @@
                         this.labelList = [...normalList, ...defaultList]
                         if (resp.data.length > 0) {
                             const ids = resp.data.map(item => item.id).join(',')
-                            const labelData = await this.getlabelsCitedCount({ ids, project_id: this.id })
+                            const labelData = await this.getLabelsCitedCount({ ids, project_id: this.id })
                             if (labelData.result) {
                                 this.labelCount = labelData.data
                             }
