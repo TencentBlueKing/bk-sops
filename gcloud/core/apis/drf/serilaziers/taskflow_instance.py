@@ -165,3 +165,4 @@ class NodeExecutionTimeSerializer(serializers.Serializer):
 
 class NodeExecutionRecordResponseSerializer(serializers.Serializer):
     execution_time = serializers.ListField(child=NodeExecutionTimeSerializer(help_text="执行时间"))
+    total = serializers.IntegerField(help_text="执行总数")
