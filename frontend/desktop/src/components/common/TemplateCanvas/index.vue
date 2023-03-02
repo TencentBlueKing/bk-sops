@@ -36,6 +36,7 @@
             @onEndpointClick="onEndpointClick"
             @onNodeMoving="onNodeMoving"
             @onNodeMoveStop="onNodeMoveStop"
+            @onCanvasMove="onCanvasMove"
             @onOverlayClick="onOverlayClick"
             @onFrameSelectEnd="onFrameSelectEnd"
             @onCloseFrameSelect="onCloseFrameSelect">
@@ -1154,6 +1155,17 @@
                     stroke: color
                 })
             },
+            // 画布拖动回调
+            onCanvasMove () {
+                // 节点执行历史面板跟着画布移动
+                if (this.isExecRecordPanelShow || this.isPerspectivePanelShow) {
+                    this.judgeNodeExecRecordPanelPos(this.activeNode)
+                }
+                // 节点快捷操作面板跟随移动
+                if (this.showShortcutPanel) {
+                    this.openShortcutPanel('node')
+                }
+            },
             onOverlayClick (overlay, e) {
                 // 点击 overlay 类型
                 const TypeMap = [
@@ -1344,7 +1356,7 @@
                 }
                 // 节点执行历史面板跟着节点移动
                 if (this.isExecRecordPanelShow || this.isPerspectivePanelShow) {
-                    this.onNodeMouseEnter(location)
+                    this.judgeNodeExecRecordPanelPos(location)
                 }
             },
             /**
@@ -1569,6 +1581,28 @@
                 if (this.activeNode && node.id !== this.activeNode.id) {
                     this.closeShortcutPanel()
                 }
+                this.isPerspectivePanelShow = false
+                this.isExecRecordPanelShow = false
+                // 节点透视面板展开
+                if (this.isPerspective && node.name && ['tasknode', 'subflow'].includes(node.type)) {
+                    this.nodeVariable = this.nodeVariableInfo[node.id] || { input: [], output: [] }
+                    this.isPerspectivePanelShow = true
+                }
+                // 展开节点历史执行时间
+                if (['RUNNING', 'FINISHED'].includes(node.status) && node.type === 'tasknode') {
+                    this.execRecordLoading = true
+                    this.isExecRecordPanelShow = true
+                    this.$emit('nodeExecRecord', node.id)
+                }
+                // 计算位置
+                if (this.isPerspectivePanelShow || this.isExecRecordPanelShow) {
+                    this.activeNode = node
+                    this.judgeNodeExecRecordPanelPos(node)
+                }
+            },
+            // 计算节点执行历史/输入输出面板位置
+            judgeNodeExecRecordPanelPos (node) {
+                if (!node) return
                 // 节点提示面板宽度
                 const { x, y, type, id } = node
                 // 计算判断节点右边的距离是否够展示气泡卡片
@@ -1596,24 +1630,12 @@
                         padding: '0 15px 0 0'
                     }
                 }
-                this.isPerspectivePanelShow = false
-                this.isExecRecordPanelShow = false
-                // 节点透视面板展开
-                if (this.isPerspective && node.name && ['tasknode', 'subflow'].includes(node.type)) {
-                    this.nodeVariable = this.nodeVariableInfo[node.id] || { input: [], output: [] }
-                    this.isPerspectivePanelShow = true
-                }
-                // 展开节点历史执行时间
-                if (['RUNNING', 'FINISHED'].includes(node.status) && node.type === 'tasknode') {
-                    this.execRecordLoading = true
-                    this.isExecRecordPanelShow = true
-                    this.$emit('nodeExecRecord', id)
-                }
             },
             // 关闭节点历史执行时间
             closeNodeExecRecord () {
                 this.isExecRecordPanelShow = false
                 this.execRecordLoading = false
+                this.activeNode = null
                 this.$emit('closeNodeExecRecord')
             },
             // 点击节点
