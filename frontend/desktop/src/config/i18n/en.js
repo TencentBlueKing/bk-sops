@@ -1589,7 +1589,9 @@ const en = {
     '终止任务将停止执行任务，但执行中节点将运行完成': 'Terminating a task will stop executing tasks, but executing nodes will run to completion',
     '确定继续往后执行?': 'OK to continue?',
     '若该变量被节点引用，请及时检查并更新节点配置': 'If the variable is referenced by the node, please check and update the node configuration in time',
-    '此流程无执行方案，无需选择': 'There is no execution plan for this process, no need to choose'
+    '此流程无执行方案，无需选择': 'There is no execution plan for this process, no need to choose',
+    '最近 x 次成功执行耗时': 'Elapsed time for the last {num} successful executions',
+    '已运行': 'Has been run'
 }
 
 export default en

@@ -137,21 +137,19 @@
             <!-- 节点历史执行时间展示 -->
             <div class="execute-record-tips-content" v-if="isExecRecordPanelShow">
                 <div class="content-wrap" v-bkloading="{ isLoading: execRecordLoading }">
-                    <ul>
-                        <li class="content-item">
-                            <span>{{ $t('当前已执行') }}</span>
-                            <span class="time">{{ nodeExecRecordInfo.curTime || '--' }}</span>
+                    <p v-if="nodeExecRecordInfo.count" class="record-title">
+                        {{ $t('最近 x 次成功执行耗时', { num: nodeExecRecordInfo.count > 5 ? 5 : nodeExecRecordInfo.count }) }}
+                    </p>
+                    <ul :class="['content-list', { 'no-record': !nodeExecRecordInfo.count, 'lot-record': nodeExecRecordInfo.count > 5 }]">
+                        <li class="content-item running" v-if="nodeExecRecordInfo.curTime">
+                            {{ $t('已运行') + ' ' + nodeExecRecordInfo.curTime || '--' }}
                         </li>
-                        <li class="content-item">
-                            <span>{{ $t('最近1次成功执行耗时') }}</span>
-                            <span class="time">{{ nodeExecRecordInfo.latestTime || '--' }}</span>
-                        </li>
-                        <li class="content-item">
-                            <span>{{ $t('近 n 次成功执行平均耗时', { n: nodeExecRecordInfo.count }) }}</span>
-                            <span class="time">{{ nodeExecRecordInfo.meanTime || '--' }}</span>
-                        </li>
+                        <template v-if="nodeExecRecordInfo.count">
+                            <li class="content-item" v-for="(time, index) in nodeExecRecordInfo.execTime.slice(0, 5)" :key="index">
+                                {{ time || '--' }}
+                            </li>
+                        </template>
                     </ul>
-                    <p class="deadline">{{ $t('*数据统计截至') + ' ' + nodeExecRecordInfo.deadline }}</p>
                 </div>
             </div>
             <!-- 节点输入输出变量(node.name用来判断节点是否选择过插件) -->
@@ -1666,8 +1664,8 @@
                 if (!nodeDom) return
                 const { left: nodeLeft, right: nodeRight } = nodeDom.getBoundingClientRect()
                 const bodyWidth = document.body.offsetWidth
-                // 235节点的气泡卡片展示最小宽度
-                const isRight = bodyWidth - nodeRight > 235
+                // 200节点的气泡卡片展示最小宽度
+                const isRight = bodyWidth - nodeRight > 200
                 // 设置坐标
                 const { x: offsetX, y: offsetY } = this.$refs.jsFlow.canvasOffset
                 const top = y + offsetY - 10
@@ -2470,41 +2468,82 @@
     .node-tips-content {
         position: absolute;
         z-index: 5;
-        min-width: 235px;
+        min-width: 200px;
         .execute-record-tips-content {
             margin-bottom: 8px;
             .content-wrap {
                 width: 100%;
                 font-size: 12px;
                 background: #fff;
-                padding: 12px 16px;
+                padding: 16px;
                 border: 1px solid #dcdee5;
                 box-shadow: 0 0 5px 0 rgba(0,0,0,0.09);
+                border-radius: 2px;
+            }
+            .record-title {
+                line-height: 19px;
+                font-size: 14px;
+                color: #63656e;
+                font-weight: 700;
+                margin-bottom: 12px;
+            }
+            .content-list {
+                position: relative;
+                &::before {
+                    content: '';
+                    position: absolute;
+                    top: 7px;
+                    left: 4px;
+                    width: 1px;
+                    height: calc(100% - 14px);
+                    background: #d8d8d8;
+                }
+                &.no-record::before {
+                    content: none;
+                }
+                &.lot-record::after {
+                    content: '';
+                    position: absolute;
+                    top: calc(100% - 7px);
+                    left: 4px;
+                    height: 16px;
+                    width: 1px;
+                    border-left: 1px dashed #d8d8d8;
+                }
             }
             .content-item {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                color: #979ba5;
-                margin-bottom: 8px;
-                &:first-child {
-                    color: #699df4;
-                    .time {
-                        font-weight: 700;
+                position: relative;
+                line-height: 22px;
+                font-size: 14px;
+                color: #63656e;
+                padding-left: 24px;
+                margin-bottom: 12px;
+                &::before {
+                    content: '';
+                    display: inline-block;
+                    position: absolute;
+                    top: 7px;
+                    left: 0;
+                    height: 9px;
+                    width: 9px;
+                    background: #fff;
+                    border: 2px solid #d8d8d8;
+                    border-radius: 50%;
+                    box-sizing: border-box;
+                }
+                &.running {
+                    color: #3a84ff;
+                    &::before {
+                        top: 5px;
+                        left: -2px;
+                        height: 13px;
+                        width: 13px;
+                        border-color: #3a84ff;
                     }
                 }
                 &:last-child {
-                    margin-bottom: 15px;
+                    margin-bottom: 9px;
                 }
-                .time {
-                    color: #63656e;
-                    padding-left: 15px;
-                }
-            }
-            .deadline {
-                color: #c4c6cc;
-                padding-top: 8px;
-                border-top: 1px solid #dcdee5;
             }
         }
         .perspective-tips-context {
@@ -2526,7 +2565,11 @@
                 }
             }
             .tip-label {
-                color: #979ba5;
+                line-height: 19px;
+                font-size: 14px;
+                color: #63656e;
+                font-weight: 700;
+                margin-bottom: 8px !important;
             }
             .dividLine {
                 height: 1px;

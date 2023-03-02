@@ -575,15 +575,23 @@
                         if (this.state === 'SUSPENDED') {
                             suspendedRunning = Object.values(instanceStatus.data.children).some(item => item.state === 'RUNNING')
                         }
-                        if (this.state === 'RUNNING' || (!this.isTopTask && this.state === 'FINISHED' && !['FINISHED', 'REVOKED', 'FAILED'].includes(this.rootState)) || suspendedRunning) {
-                            if (this.isExecRecordOpen) {
-                                const execNodeConfig = this.instanceStatus.children[this.nodeExecRecordInfo.nodeId]
-                                this.nodeExecRecordInfo.curTime = this.formatDuring(execNodeConfig.elapsed_time)
-                                if (execNodeConfig.state === 'RUNNING') { // 节点执行中一秒查一次
-                                    this.setTaskStatusTimer(1000)
-                                } else {
-                                    this.setTaskStatusTimer()
+                        // 节点执行记录显示时，重新计算当前执行时间/判断是否还在执行中
+                        if (this.isExecRecordOpen) {
+                            const execNodeConfig = this.instanceStatus.children[this.nodeExecRecordInfo.nodeId]
+                            if (execNodeConfig) {
+                                const elapsedTime = this.formatDuring(execNodeConfig.elapsed_time)
+                                if (execNodeConfig.state === 'RUNNING') {
+                                    this.nodeExecRecordInfo.curTime = elapsedTime
+                                } else if (this.nodeExecRecordInfo.curTime) {
+                                    this.nodeExecRecordInfo.curTime = ''
+                                    this.nodeExecRecordInfo.execTime.unshift(elapsedTime)
                                 }
+                                this.nodeExecRecordInfo.state = execNodeConfig.state
+                            }
+                        }
+                        if (this.state === 'RUNNING' || (!this.isTopTask && this.state === 'FINISHED' && !['FINISHED', 'REVOKED', 'FAILED'].includes(this.rootState)) || suspendedRunning) {
+                            if (this.isExecRecordOpen && this.nodeExecRecordInfo.state) { // 节点执行中一秒查一次
+                                this.setTaskStatusTimer(1000)
                             } else {
                                 this.setTaskStatusTimer()
                             }
@@ -1533,26 +1541,18 @@
                     const tempNodeId = this.pipelineData.activities[nodeId]?.template_node_id
                     if (tempNodeId) {
                         const resp = await this.getNodeExecutionRecord({ tempNodeId, taskId: this.instance_id })
-                        const { execution_time = [] } = resp.data
+                        const { execution_time = [], total = 0 } = resp.data
                         this.nodeExecRecordInfo = {}
-                        let latestTime, meanTime, deadline
-                        execution_time.forEach((item, index) => {
-                            if (index === 0) {
-                                latestTime = item.elapsed_time
-                                deadline = item.archived_time
-                            }
-                            meanTime = (meanTime || 0) + item.elapsed_time
+                        const execTime = execution_time.map(item => {
+                            return this.formatDuring(item.elapsed_time)
                         })
                         const execNodeConfig = this.instanceStatus.children[nodeId]
-                        latestTime = !execution_time.length ? '--' : latestTime === 0 ? `${i18n.tc('小于')} ${i18n.tc('秒', 1)}` : this.formatDuring(latestTime)
-                        meanTime = !execution_time.length ? '--' : meanTime === 0 ? `${i18n.tc('小于')} ${i18n.tc('秒', 1)}` : this.formatDuring(meanTime / execution_time.length)
                         this.nodeExecRecordInfo = {
                             nodeId,
-                            latestTime,
-                            meanTime,
-                            deadline: deadline ? deadline.replace('T', ' ').split('+')[0] : '--',
-                            curTime: this.formatDuring(execNodeConfig.elapsed_time),
-                            count: execution_time.length
+                            curTime: execNodeConfig.state === 'RUNNING' ? this.formatDuring(execNodeConfig.elapsed_time) : '',
+                            execTime,
+                            state: execNodeConfig.state,
+                            count: total
                         }
                     } else {
                         this.$refs.templateCanvas.closeNodeExecRecord()
@@ -1562,7 +1562,7 @@
                 }
             },
             formatDuring (time) {
-                if (!time) return '--'
+                if (!time && time !== 0) return '--'
                 const days = parseInt(time / (60 * 60 * 24))
                 const hours = parseInt((time % (60 * 60 * 24)) / (60 * 60))
                 const minutes = parseInt((time % (60 * 60)) / (60))
