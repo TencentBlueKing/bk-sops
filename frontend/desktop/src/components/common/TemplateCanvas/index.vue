@@ -656,7 +656,7 @@
                 }
                 this.$nextTick(() => {
                     // 拖拽节点到线上, 自动生成连线
-                    this.handleDraggerNodeToLine(node)
+                    this.handleDraggerNodeToLine({ ...node, isCreate: true })
                 })
             },
             onCreateNodeMoving (node) {
@@ -996,8 +996,8 @@
                         this.$refs.jsFlow.createConnector(startLine)
                         this.$refs.jsFlow.createConnector(endLine)
                     })
-                    // 删除节点两端插入连线的端点,id为空时表示从左侧菜单栏直接拖拽，还未生成的节点
-                    const nodeDom = document.querySelector(`#${location.id || 'canvas-flow'}`)
+                    // 删除节点两端插入连线的端点,isCreate为true时表示从左侧菜单栏直接拖拽创建，插入端点还存在在画布里面
+                    const nodeDom = document.querySelector(`#${!location.isCreate ? location.id : 'canvas-flow'}`)
                     const pointDoms = nodeDom && nodeDom.querySelectorAll('.insert-point')
                     if (pointDoms.length) {
                         Array.from(pointDoms).forEach(pointDomItem => {
