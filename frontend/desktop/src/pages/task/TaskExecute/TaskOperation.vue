@@ -114,6 +114,13 @@
                     :pipeline-data="nodePipelineData"
                     :default-active-id="defaultActiveId"
                     :node-detail-config="nodeDetailConfig"
+                    :is-readonly="true"
+                    :is-condition="isCondition"
+                    :is-show.sync="isShowConditionEdit"
+                    :gateways="pipelineData.gateways"
+                    :condition-data="conditionData"
+                    @onOpenGatewayInfo="onOpenConditionEdit"
+                    @close="onCloseConfigPanel"
                     @onRetryClick="onRetryClick"
                     @onSkipClick="onSkipClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
@@ -220,7 +227,7 @@
             @cancel="onTaskNodeResumeCancel">
             <div class="leave-tips" style="padding: 30px 20px;">{{ $t('是否完成该节点继续向后执行？') }}</div>
         </bk-dialog>
-        <condition-edit
+        <!-- <condition-edit
             v-if="isShowConditionEdit"
             ref="conditionEdit"
             :is-readonly="true"
@@ -228,7 +235,7 @@
             :gateways="pipelineData.gateways"
             :condition-data="conditionData"
             @close="onCloseConfigPanel">
-        </condition-edit>
+        </condition-edit> -->
         <bk-dialog
             width="600"
             :theme="'primary'"
@@ -279,7 +286,8 @@
     import permission from '@/mixins/permission.js'
     import TaskOperationHeader from './TaskOperationHeader'
     import TemplateData from './TemplateData'
-    import ConditionEdit from '../../template/TemplateEdit/ConditionEdit.vue'
+    // import ConditionEdit from '../../template/TemplateEdit/ConditionEdit.vue'
+    // import taskCondition from './taskCondition.vue'
     import injectVariableDialog from './InjectVariableDialog.vue'
     import tplPerspective from '@/mixins/tplPerspective.js'
 
@@ -330,8 +338,9 @@
             revokeDialog,
             TaskOperationHeader,
             TemplateData,
-            ConditionEdit,
+            // ConditionEdit,
             injectVariableDialog
+            // taskCondition
         },
         mixins: [permission, tplPerspective],
         props: {
@@ -436,7 +445,8 @@
                 nodeIds: [],
                 nodeDisplayStatus: {},
                 showNodeList: [0, 1, 2],
-                converNodeList: []
+                converNodeList: [],
+                isCondition: false
             }
         },
         computed: {
@@ -1355,8 +1365,18 @@
                             const conditions = Object.keys(gateway.conditions).map(item => {
                                 // 给需要打回的条件添加节点id
                                 const callback = loopList.includes(item) ? activities[flows[item].target] : ''
+                                const { evaluate, tag } = gateway.conditions[item]
+                                const callbackData = {
+                                    id: item,
+                                    name: gateway.conditions[item].name,
+                                    nodeId: gateway.id,
+                                    overlayId: 'condition' + item,
+                                    tag,
+                                    value: evaluate
+                                }
                                 return {
                                     id: callback.id,
+                                    conditionsId: '',
                                     callbackName: callback.name,
                                     name: gateway.conditions[item].name,
                                     title: gateway.conditions[item].name,
@@ -1364,7 +1384,8 @@
                                     expanded: false,
                                     outgoing: item,
                                     children: [],
-                                    isLoop: loopList.includes(item)
+                                    isLoop: loopList.includes(item),
+                                    callbackData
                                 }
                             })
                             // 添加条件分支默认节点
@@ -1486,10 +1507,11 @@
                 this.openNodeInfoPanel(type, name)
             },
             // 打开节点参数信息面板
-            openNodeInfoPanel (type, name) {
+            openNodeInfoPanel (type, name, isCondition = false) {
                 this.sideSliderTitle = name
                 this.isNodeInfoPanelShow = true
                 this.nodeInfoType = type
+                this.isCondition = isCondition
             },
             // 注入全局变量
             onInjectGlobalVariable () {
@@ -1551,9 +1573,14 @@
                 }
                 this.openNodeInfoPanel('executeInfo', i18n.t('节点详情'))
             },
-            onOpenConditionEdit (data) {
-                this.isShowConditionEdit = true
-                this.conditionData = { ...data }
+            onOpenConditionEdit (data, isCondition = true) {
+                if (isCondition) {
+                    this.onNodeClick(data.nodeId)
+                    this.isCondition = true
+                    this.isShowConditionEdit = true
+                    this.conditionData = { ...data }
+                }
+                this.isCondition = isCondition
             },
             /**
              * 切换为子流程画布

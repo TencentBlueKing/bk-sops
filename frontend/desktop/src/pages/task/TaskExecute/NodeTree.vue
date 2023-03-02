@@ -168,6 +168,7 @@
             },
             onClickNode (node) {
                 if (node.children && node.children.length === 0) return
+                this.$emit('onOpenGatewayInfo', this.cachecallbackData, false)
                 node.expanded = !node.expanded
                 this.curSelectId = node.id
                 const nodeType = node.type === 'SubProcess'
@@ -211,7 +212,8 @@
                 const callbackTip = node.isLoop ? this.$t('退回节点：') + node.callbackName : ''
                 const iconClass = this.gatewayType[node.type]
                 // 并行、条件分支样式
-                const conditionClass = node.title !== '默认' ? 'condition' : 'default-conditon'
+                let conditionClass = node.title !== '默认' ? 'condition' : 'default-conditon'
+                if (node.isLoop) conditionClass = 'callback-condition'
                 // 选中样式
                 const isActive = this.curSelectId === node.id ? 'is-node-active' : 'default-tpl-node'
                 // 节点样式
@@ -219,6 +221,7 @@
                 // 处理条件分支
                 if (node.isGateway) {
                     return <span class={conditionClass} v-bk-tooltips={callbackTip}>
+                        <span class={'commonicon-icon common-icon-return-arrow callback'} onClick={node => this.onSelectNode(node)}></span>
                         <span style={'font-size:12px'} data-node-id={node.id} domPropsInnerHTML={node.name} onClick={node => this.onSelectNode(node)}></span>
                     </span>
                 } else if (this.gatewayType[node.type]) {
@@ -268,6 +271,10 @@
             onSelectNode (e) {
                 const id = e.target.dataset.nodeId
                 const node = this.allNodeDate[id]
+                this.$emit('onOpenGatewayInfo', node.callbackData, false)
+                if (node.state === 'Gateway' && node.isLoop) {
+                    this.$emit('onOpenGatewayInfo', node.callbackData, true)
+                }
                 const treeNodes = Array.from(document.querySelectorAll('.tree-node'))
                 if (node.parent) {
                     const curNodeIndex = node.parent.children.findIndex(item => item.id === id)
@@ -458,6 +465,26 @@
     margin: 0 4px;
     border-radius: 4px;
     background: #e5f6ea;
+}
+.callback-condition {
+    font-size: 10px;
+    background: #FBF9E2;
+    border: 1px solid #CCC79E;
+    border-radius: 1px;
+    color: #968E4D;
+    position: relative;
+    padding:0 4px;
+    cursor: pointer;
+    margin-left: -20px;
+    z-index: 999;
+    .callback {
+        display: inline-block;
+        height: 17px;
+        width: 17px;
+        line-height: 20px;
+        padding: 0px 0px;
+        color: #c0c4cc;
+    }
 }
 .condition {
     font-size: 10px;
