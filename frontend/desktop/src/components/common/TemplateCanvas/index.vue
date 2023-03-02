@@ -679,18 +679,8 @@
                     x: node.x - 60 - nodeLeft, // 60为画布左边栏的宽度
                     y: node.y - nodeTop
                 }
-                // 拖拽节点到线上, 自动生成连线
-                const matchLines = this.getNodeMatchLines(location)
-                if (Object.keys(matchLines).length === 1) {
-                    const lineConfig = Object.values(matchLines)[0]
-                    this.setPaintStyle(lineConfig.id, '#3a84ff')
-                    this.connectionHoverList.push(lineConfig.id)
-                } else if (this.connectionHoverList.length) {
-                    this.connectionHoverList.forEach(lineId => {
-                        this.setPaintStyle(lineId, '#a9adb6')
-                    })
-                    this.connectionHoverList = []
-                }
+                // 节点拖拽到过连线过程
+                this.onNodeToLineDragging(location)
             },
             // 拖拽到节点上自动连接
             onConnectionDragOnNode (source, targetId, event) {
@@ -1006,6 +996,14 @@
                         this.$refs.jsFlow.createConnector(startLine)
                         this.$refs.jsFlow.createConnector(endLine)
                     })
+                    // 删除节点两端插入连线的端点,id为空时表示从左侧菜单栏直接拖拽，还未生成的节点
+                    const nodeDom = document.querySelector(`#${location.id || 'canvas-flow'}`)
+                    const pointDoms = nodeDom && nodeDom.querySelectorAll('.insert-point')
+                    if (pointDoms.length) {
+                        Array.from(pointDoms).forEach(pointDomItem => {
+                            nodeDom.removeChild(pointDomItem)
+                        })
+                    }
                 }
             },
             // 拖拽节点到线上, 获取对应匹配连线
@@ -1342,18 +1340,8 @@
                     x: nodeLeft,
                     y: nodeTop
                 }
-                // 拖拽节点到线上, 自动生成连线
-                const matchLines = this.getNodeMatchLines(location)
-                if (Object.keys(matchLines).length === 1) {
-                    const lineConfig = Object.values(matchLines)[0]
-                    this.setPaintStyle(lineConfig.id, '#3a84ff')
-                    this.connectionHoverList.push(lineConfig.id)
-                } else if (this.connectionHoverList.length) {
-                    this.connectionHoverList.forEach(lineId => {
-                        this.setPaintStyle(lineId, '#a9adb6')
-                    })
-                    this.connectionHoverList = []
-                }
+                // 节点拖拽到过连线过程
+                this.onNodeToLineDragging(location)
                 // 节点执行历史面板跟着节点移动
                 if (this.isExecRecordPanelShow || this.isPerspectivePanelShow) {
                     this.judgeNodeExecRecordPanelPos(location)
@@ -1444,6 +1432,86 @@
                         })
                     }
                 })
+            },
+            // 节点拖拽到过连线过程
+            onNodeToLineDragging (location) {
+                if (!location) return
+                // 获取父级节点dom, id为空时表示从左侧菜单栏直接拖拽，还未生成的节点
+                const parentDom = document.querySelector(`#${location.id || 'canvas-flow'}`)
+                // 拖拽节点到线上, 自动匹配连线
+                const matchLines = this.getNodeMatchLines(location)
+                if (Object.keys(matchLines).length === 1) {
+                    const lineConfig = Object.values(matchLines)[0]
+                    this.setPaintStyle(lineConfig.id, '#3a84ff')
+                    this.connectionHoverList.push(lineConfig.id)
+                    // 节点宽高
+                    let nodeWidth, nodeHeight
+                    if (['tasknode', 'subflow'].includes(location.type)) {
+                        nodeWidth = 154
+                        nodeHeight = 54
+                    } else {
+                        nodeWidth = 34
+                        nodeHeight = 34
+                    }
+                    const defaultAttribute = 'position: absolute; z-index: 8; font-size: 14px; color: #3a84ff;'
+                    // 判断端点是否已经创建
+                    const pointDoms = parentDom.querySelectorAll('.insert-point')
+                    if (!pointDoms.length) {
+                        // 创建节点两边插入连线的端点
+                        const pointDom1 = document.createElement('span')
+                        const pointDom2 = document.createElement('span')
+                        pointDom1.className = 'bk-icon icon-plus-circle-shape insert-point'
+                        pointDom2.className = 'bk-icon icon-plus-circle-shape insert-point'
+                        if (lineConfig.segmentPosition.width > 8) { // 平行
+                            if (!location.id) { // 还未生成的节点
+                                const { x, y } = location
+                                const sameTop = `top: ${y + (nodeHeight - 14) / 2}px;`
+                                pointDom1.style.cssText = defaultAttribute + `left: ${x - 7}px;` + sameTop
+                                pointDom2.style.cssText = defaultAttribute + `left: ${x + nodeWidth - 7}px;` + sameTop
+                            } else {
+                                pointDom1.style.cssText = defaultAttribute + `left: -7px; top: ${(nodeHeight - 14) / 2}px;`
+                                pointDom2.style.cssText = defaultAttribute + `right: -7px; top: ${(nodeHeight - 14) / 2}px;`
+                            }
+                        } else { // 垂直
+                            if (!location.id) { // 还未生成的节点
+                                const { x, y } = location
+                                const sameLeft = `left: ${x + (nodeWidth - 14) / 2}px;`
+                                pointDom1.style.cssText = defaultAttribute + `top: ${y - 7}px;` + sameLeft
+                                pointDom2.style.cssText = defaultAttribute + `top: ${y + nodeHeight - 7}px;` + sameLeft
+                            } else {
+                                pointDom1.style.cssText = defaultAttribute + `top: -7px; left: ${(nodeWidth - 14) / 2}px;`
+                                pointDom2.style.cssText = defaultAttribute + `bottom: -7px; left: ${(nodeWidth - 14) / 2}px;`
+                            }
+                        }
+                        parentDom.appendChild(pointDom1)
+                        parentDom.appendChild(pointDom2)
+                    } else if (!location.id) { // 未创建的节点拖拽时需要实时计算端点的位置
+                        const doms = Array.from(pointDoms)
+                        if (lineConfig.segmentPosition.width > 8) { // 平行
+                            const { x, y } = location
+                            const sameTop = `top: ${y + (nodeHeight - 14) / 2}px;`
+                            doms[0].style.cssText = defaultAttribute + `left: ${x - 7}px;` + sameTop
+                            doms[1].style.cssText = defaultAttribute + `left: ${x + nodeWidth - 7}px;` + sameTop
+                        } else { // 垂直
+                            const { x, y } = location
+                            const sameLeft = `left: ${x + (nodeWidth - 14) / 2}px;`
+                            doms[0].style.cssText = defaultAttribute + `top: ${y - 7}px;` + sameLeft
+                            doms[1].style.cssText = defaultAttribute + `top: ${y + nodeHeight - 7}px;` + sameLeft
+                        }
+                    }
+                } else if (this.connectionHoverList.length) {
+                    this.connectionHoverList.forEach(lineId => {
+                        this.setPaintStyle(lineId, '#a9adb6')
+                    })
+                    this.connectionHoverList = []
+                    // 移除节点两边插入连线的端点
+                    const pointDoms = parentDom.querySelectorAll('.insert-point')
+                    if (pointDoms.length) {
+                        Array.from(pointDoms).forEach(pointDomItem => {
+                            parentDom.removeChild(pointDomItem)
+                        })
+                    }
+                }
             },
             // 锚点点击回调
             onEndpointClick (edp, event) {
